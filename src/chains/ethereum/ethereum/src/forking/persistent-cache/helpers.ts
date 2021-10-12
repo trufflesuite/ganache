@@ -166,8 +166,7 @@ export async function* findRelated(
     // block is the same as the one in the db we've found our closest
     // ancestor!
     if (block != null && block.hash === Data.from(node.hash).toString()) {
-      const shouldContinue = yield node;
-      if (!shouldContinue) break;
+      yield node;
     }
   }
 }
