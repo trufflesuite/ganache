@@ -15,7 +15,9 @@ import compile from "../helpers/compile";
 import path from "path";
 import { CodedError } from "@ganache/ethereum-utils";
 
-describe("forking", () => {
+describe("forking", function () {
+  this.timeout(10000);
+
   const PORT = 9999;
   const NETWORK_ID = 1234;
   const REMOTE_ACCOUNT_COUNT = 15;

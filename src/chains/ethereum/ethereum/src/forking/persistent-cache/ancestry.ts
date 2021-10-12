@@ -16,7 +16,7 @@ export class Ancestry {
       this.next = parent.closestKnownAncestor.equals(BUFFER_EMPTY)
         ? null
         : parent.closestKnownAncestor;
-      this.knownAncestors = new Set([parent.key.toString("hex")]);
+      this.knownAncestors = new Set([parent.hash.toString("hex")]);
     }
   }
 
@@ -37,7 +37,7 @@ export class Ancestry {
     this.next = node.closestKnownAncestor.equals(BUFFER_EMPTY)
       ? null
       : node.closestKnownAncestor;
-    this.knownAncestors.add(node.key.toString("hex"));
+    this.knownAncestors.add(node.hash.toString("hex"));
     this.lock.delete(k);
     resolver();
   }

@@ -12,7 +12,8 @@ import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
-import BlockLogManager from "../data-managers/blocklog-manager";
+
+const CONFIRMATIONS = 5n;
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -105,9 +106,19 @@ export class Fork {
   #setBlockDataFromChainAndOptions = async () => {
     const options = this.#options;
     if (options.blockNumber === Tag.LATEST) {
-      // if our block number option is "latest" override it with the original
-      // chain's current blockNumber
-      const block = await fetchBlock(this, Tag.LATEST);
+      // if our block number option is "latest" use `latest - CONFIRMATIONS`
+      // as the block number to ensure the block is fully synced. Then override
+      // the `options.blockNumber` with the original chain's
+      // `"latest" - CONFIRMATIONS` block number.
+      // One reason for this is because providers often know about blocks before
+      // they've fully synced the state. so a eth_getBlockByNumber(latest)
+      // followed by calls that use that number (like getting an account's
+      // transaction count) may result in a "header not found" error.
+      const latestBlockNumber = BigInt(await fetchBlockNumber(this));
+      const block = await fetchBlock(
+        this,
+        Quantity.from(latestBlockNumber - CONFIRMATIONS)
+      );
       options.blockNumber = parseInt(block.number, 16);
       this.blockNumber = Quantity.from(options.blockNumber);
       this.stateRoot = Data.from(block.stateRoot);
@@ -153,7 +164,9 @@ export class Fork {
 
   public async initialize() {
     let cacheProm: Promise<PersistentCache>;
-    if (this.#options.noCache === false) {
+    const options = this.#options;
+    if (options.deleteCache) await PersistentCache.deleteDb();
+    if (options.noCache === false) {
       // ignore cache start up errors as it is possible there is an open
       // conflict if another ganache fork is running at the time this one is
       // started. The cache isn't required (though performance will be

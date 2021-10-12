@@ -170,6 +170,16 @@ export type ForkConfig = {
       type: boolean;
       hasDefault: true;
     };
+
+    /**
+     * Deletes the persistent cache on start up.
+     *
+     * @default false
+     */
+    deleteCache: {
+      type: boolean;
+      hasDefault: true;
+    };
   };
 };
 
@@ -280,7 +290,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         return;
       }
     },
-    defaultDescription: `"${Tag.LATEST}"`
+    defaultDescription: `Latest block number - 5`
     //implies: ["url"]
   },
   username: {
@@ -380,6 +390,12 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
     normalize,
     default: () => false,
     cliDescription: "Don't cache forking requests in a persistent db.",
+    cliType: "boolean"
+  },
+  deleteCache: {
+    normalize,
+    default: () => false,
+    cliDescription: "Deletes the persistent cache before starting.",
     cliType: "boolean"
   }
 };
