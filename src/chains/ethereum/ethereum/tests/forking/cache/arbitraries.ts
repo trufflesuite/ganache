@@ -2,7 +2,7 @@ import * as fc from "fast-check";
 
 export interface Network {
   networkId: number;
-  getBlockByNumber?(height: number): Promise<any>;
+  getBlockByNumber?(height: number): any;
   historicBlock: {
     number: number;
     hash: string;
