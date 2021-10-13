@@ -45,6 +45,6 @@ describe("forking", () => {
         provider.send("eth_getTransactionByHash", [txHash])
       ]);
       assert.deepStrictEqual(tx, originalTx);
-    });
+    }).timeout(5000);
   });
 });
