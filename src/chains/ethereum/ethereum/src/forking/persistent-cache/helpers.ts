@@ -52,7 +52,7 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
     case "eth_getStorageAt":
       return params[2];
     default:
-      throw new Error(`Persistent cache does not support calls to "${method}.`);
+      return null;
   }
 }
 

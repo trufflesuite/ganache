@@ -320,8 +320,11 @@ export class PersistentCache {
 
   async get(method: string, params: any[], key: string) {
     const blockNumber = getBlockNumberFromParams(method, params);
+    if (blockNumber == null) return;
+
     const height = Quantity.from(blockNumber);
-    const start = lexico.encode([height.toBuffer(), Buffer.from(key)]);
+    const bufKey = Buffer.from(key);
+    const start = lexico.encode([height.toBuffer(), bufKey]);
     const end = lexico.encode([
       Quantity.from(height.toBigInt() + 1n).toBuffer()
     ]);
@@ -333,22 +336,28 @@ export class PersistentCache {
     });
     const hashBuf = this.hash.toBuffer();
     for await (const data of readStream) {
-      const { key, value } = (data as any) as { key: Buffer; value: Buffer };
-      const [_height, _key, blockHash] = lexico.decode(key);
+      const { key: k, value } = (data as any) as { key: Buffer; value: Buffer };
+      const [_height, _key, blockHash] = lexico.decode(k);
+      // if our key no longer matches make sure we don't keep searching
+      if (!_key.equals(bufKey)) return;
       if (hashBuf.equals(blockHash) || (await this.ancestry.has(blockHash))) {
         return value;
       }
     }
   }
 
-  put(method: string, params: any[], key: string, value: Buffer) {
-    const height = Quantity.from(getBlockNumberFromParams(method, params));
+  async put(method: string, params: any[], key: string, value: Buffer) {
+    const blockNumber = getBlockNumberFromParams(method, params);
+    if (blockNumber == null) return false;
+
+    const height = Quantity.from(blockNumber);
     const dbKey = lexico.encode([
       height.toBuffer(),
       Buffer.from(key),
       this.hash.toBuffer()
     ]);
-    return this.cacheDb.put(dbKey, value);
+    await this.cacheDb.put(dbKey, value);
+    return true;
   }
 
   private status: "closed" | "open" = "open";
