@@ -4,7 +4,9 @@ import EthereumProvider from "../../src/provider";
 import request from "superagent";
 
 describe("forking", () => {
-  describe("transactions", () => {
+  describe("transactions", function () {
+    this.timeout(5000);
+
     const blockNumber = 0xcb6169;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
@@ -45,6 +47,6 @@ describe("forking", () => {
         provider.send("eth_getTransactionByHash", [txHash])
       ]);
       assert.deepStrictEqual(tx, originalTx);
-    }).timeout(5000);
+    });
   });
 });
