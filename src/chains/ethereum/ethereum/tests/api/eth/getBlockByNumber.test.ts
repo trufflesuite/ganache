@@ -51,7 +51,8 @@ describe("api", () => {
               block.totalDifficulty,
               `0x${((numberOfBlocksToMine + 1) * DEFAULT_DIFFICULTY).toString(
                 16
-              )}`
+              )}`,
+              `Didn't correctly mine ${numberOfBlocksToMine} blocks`
             );
           });
         });
@@ -83,7 +84,8 @@ describe("api", () => {
             ]);
             assert.strictEqual(
               block.totalDifficulty,
-              `0x${((numberOfBlocksToMine + 1) * difficulty).toString(16)}`
+              `0x${((numberOfBlocksToMine + 1) * difficulty).toString(16)}`,
+              `Didn't correctly mine ${numberOfBlocksToMine} blocks`
             );
           });
         });
