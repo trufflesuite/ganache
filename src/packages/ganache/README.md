@@ -1,5 +1,5 @@
 <h3 align="center">
-  ⚠ This documentation describes the alpha release of Ganache. You can find instructions to install the stable release at https://github.com/trufflesuite/ganache-cli-archive ⚠
+  ⚠ Note: This documentation describes the alpha release of Ganache. If you are looking to install the stable version of Ganache you can find instructions at https://github.com/trufflesuite/ganache-cli-archive ⚠
 </h3>
 
 ---
