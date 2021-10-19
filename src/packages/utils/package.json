@@ -61,6 +61,6 @@
     "typescript": "4.1.3"
   },
   "optionalDependencies": {
-    "@trufflesuite/bigint-buffer": "1.1.6"
+    "bigint-buffer": "1.1.5"
   }
 }

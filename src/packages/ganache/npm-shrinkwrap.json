@@ -10,14 +10,6 @@
 			"integrity": "sha512-Fxt+AfXgjMoin2maPIYzFZnQjAXjAL0PHscM5pRTtatFqB+vZxAM9tLp2Optnuw3QOQC40jTNeGYFOMvyf7v9g==",
 			"dev": true
 		},
-		"@trufflesuite/bigint-buffer": {
-			"version": "1.1.6",
-			"resolved": "https://registry.npmjs.org/@trufflesuite/bigint-buffer/-/bigint-buffer-1.1.6.tgz",
-			"integrity": "sha512-W3rgwVW7gRewB8GHt31UUnQYVRvLEogic1T0CVoSYoSe55nsS/PIMDpgA0S0P3JovjbEL8nfdtXdiI3PuH1Mhg==",
-			"requires": {
-				"bindings": "^1.3.0"
-			}
-		},
 		"@types/eslint": {
 			"version": "7.28.0",
 			"resolved": "https://registry.npmjs.org/@types/eslint/-/eslint-7.28.0.tgz",
@@ -383,6 +375,14 @@
 			"resolved": "https://registry.npmjs.org/big.js/-/big.js-5.2.2.tgz",
 			"integrity": "sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==",
 			"dev": true
+		},
+		"bigint-buffer": {
+			"version": "1.1.5",
+			"resolved": "https://registry.npmjs.org/bigint-buffer/-/bigint-buffer-1.1.5.tgz",
+			"integrity": "sha512-trfYco6AoZ+rKhKnxA0hgX0HAbVP/s808/EuDSe2JDzUnCp/xAsli35Orvk67UrTEcwuxZqYZDmfA2RXJgxVvA==",
+			"requires": {
+				"bindings": "^1.3.0"
+			}
 		},
 		"binary-extensions": {
 			"version": "2.2.0",

@@ -1,4 +1,4 @@
-import { toBigIntBE } from "@trufflesuite/bigint-buffer";
+import { toBigIntBE } from "bigint-buffer";
 /**
  * note: this doesn't handle negative values
  * @param value Buffer representation of a bigint, most-significant bit first (Big-endian)

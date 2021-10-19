@@ -1,1 +1,1 @@
-export { toBufferBE, toBigIntBE } from "@trufflesuite/bigint-buffer";
+export { toBufferBE, toBigIntBE } from "bigint-buffer";
