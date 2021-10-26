@@ -798,8 +798,16 @@ export default class Blockchain extends Emittery.Typed<
     return (this.#timeAdjustment = timestamp - Date.now());
   }
 
-  #deleteBlockData = (blocksToDelete: Block[]) => {
-    return this.#database.batch(() => {
+  #deleteBlockData = async (blocksToDelete: Block[]) => {
+    // if we are forking we need to make sure we clean up the forking related
+    // metadata that isn't stored in the trie
+    if ("revertMetaData" in this.trie) {
+      await (this.trie as ForkTrie).revertMetaData(
+        blocksToDelete[blocksToDelete.length - 1].header.number,
+        blocksToDelete[0].header.number
+      );
+    }
+    await this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
       blocksToDelete.forEach(block => {
         block.getTransactions().forEach(tx => {
@@ -908,7 +916,7 @@ export default class Blockchain extends Emittery.Typed<
     if (!currentHash.equals(snapshotHash)) {
       // if we've added blocks since we snapshotted we need to delete them and put
       // some things back the way they were.
-      const blockPromises = [];
+      const blockPromises: Promise<Block>[] = [];
       let blockList = snapshots.blocks;
       while (blockList !== null) {
         if (blockList.current.equals(snapshotHash)) break;
@@ -917,7 +925,8 @@ export default class Blockchain extends Emittery.Typed<
       }
       snapshots.blocks = blockList;
 
-      await Promise.all(blockPromises).then(this.#deleteBlockData);
+      const blockData = await Promise.all(blockPromises);
+      await this.#deleteBlockData(blockData);
 
       setStateRootSync(
         this.vm.stateManager,

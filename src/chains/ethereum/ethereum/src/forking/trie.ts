@@ -2,7 +2,6 @@ import { Address } from "@ganache/ethereum-address";
 import {
   keccak,
   BUFFER_EMPTY,
-  RPCQUANTITY_ONE,
   RPCQUANTITY_EMPTY,
   Quantity,
   Data
@@ -17,17 +16,24 @@ import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
+type KVP = { key: Buffer; value: Buffer };
 
+const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";
 const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap<LevelUp, CheckpointDB>();
 const LEVELDOWN_OPTIONS = {
   keyEncoding: "binary",
   valueEncoding: "binary"
 };
+
+function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
+  const decodedKey = lexico.decode(encodedKey);
+  const [, keyAddress, deletedKey] = decodedKey;
+  return keyAddress.equals(address) && deletedKey.equals(key);
+}
 
 export class ForkTrie extends GanacheTrie {
   private accounts: AccountManager;
@@ -40,13 +46,7 @@ export class ForkTrie extends GanacheTrie {
 
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
-
-    if (MetadataSingletons.has(db)) {
-      this.metadata = MetadataSingletons.get(db);
-    } else {
-      this.metadata = new CheckpointDB(sub(db, "f", LEVELDOWN_OPTIONS));
-      MetadataSingletons.set(db, this.metadata);
-    }
+    this.metadata = new CheckpointDB(sub(db, "f", LEVELDOWN_OPTIONS));
   }
 
   set root(value: Buffer) {
@@ -78,6 +78,27 @@ export class ForkTrie extends GanacheTrie {
     return super.put(key, val);
   }
 
+  /**
+   * Removes saved metadata from the given block range (inclusive)
+   * @param startBlockNumber (inclusive)
+   * @param endBlockNumber (inclusive)
+   */
+  public async revertMetaData(
+    startBlockNumber: Quantity,
+    endBlockNumber: Quantity
+  ) {
+    const db = this.metadata._leveldb;
+    const stream = db.createKeyStream({
+      gte: lexico.encode([startBlockNumber.toBuffer()]),
+      lt: lexico.encode([
+        Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
+      ])
+    });
+    const batch = db.batch();
+    for await (const key of stream) batch.del(key);
+    await batch.write();
+  }
+
   private createDelKey(key: Buffer) {
     const blockNum = this.blockNumber.toBuffer();
     return lexico.encode([blockNum, this.address, key]);
@@ -95,62 +116,46 @@ export class ForkTrie extends GanacheTrie {
     // common case.
     const checkpoints = this.metadata.checkpoints;
     for (let i = checkpoints.length - 1; i >= 0; i--) {
-      for (let [data, value] of checkpoints[i].keyValueMap.entries()) {
-        if (!value || value[0] !== 1) {
-          continue;
-        }
-
-        const delKey = lexico.decode(Buffer.from(data, "binary"));
-        //const blockNumber = delKey[0];
-        const address = delKey[1];
-        const deletedKey = delKey[2];
-        if (address.equals(selfAddress) && deletedKey.equals(key)) {
-          return true;
-        }
+      for (let [encodedKeyStr, value] of checkpoints[i].keyValueMap.entries()) {
+        if (!value || !value.equals(DELETED_VALUE)) continue;
+        const encodedKey = Buffer.from(encodedKeyStr, "binary");
+        if (isEqualKey(encodedKey, selfAddress, key)) return true;
       }
     }
 
-    return new Promise((resolve, reject) => {
-      let wasDeleted = false;
-      const stream = this.metadata._leveldb
-        .createReadStream({
-          lte: this.createDelKey(key),
-          reverse: true
-        })
-        .on("data", data => {
-          const { key, value } = data;
-          if (!value || value[0] !== 1) {
-            return;
-          }
-          const delKey = lexico.decode(key);
-          //const blockNumber = delKey[0];
-          const address = delKey[1];
-          const deletedKey = delKey[2];
-          if (address.equals(selfAddress) && deletedKey.equals(key)) {
-            wasDeleted = true;
-            (stream as any).destroy();
-          }
-        })
-        .on("close", () => resolve(wasDeleted))
-        .on("error", reject);
+    // since we didn't find proof of deletion in a checkpoint let's check the
+    // database for it.
+    // We start searching from our database key (blockNum + address + key)
+    // down to the earliest block we know about.
+    // TODO(perf): this is just going to be slow once we get lots of keys
+    // because it just checks every single key we've ever deleted (before this
+    // one).
+    const stream = this.metadata._leveldb.createReadStream({
+      lte: this.createDelKey(key),
+      reverse: true
     });
+    for await (const data of stream) {
+      const { key: encodedKey, value } = (data as unknown) as KVP;
+      if (!value || !value.equals(DELETED_VALUE)) continue;
+      if (isEqualKey(encodedKey, selfAddress, key)) return true;
+    }
+
+    // we didn't find proof of deletion so we return `false`
+    return false;
   }
 
   async del(key: Buffer) {
     await this.lock.wait();
 
-    const hash = keccak(key);
     const delKey = this.createDelKey(key);
+    const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
 
-    const metaDataPutPromise = this.metadata.put(
-      delKey,
-      RPCQUANTITY_ONE.toBuffer()
-    );
-
+    const hash = keccak(key);
     const { node, stack } = await this.findPath(hash);
-
     if (node) await this._deleteNode(hash, stack);
+
     await metaDataPutPromise;
+
     this.lock.signal();
   }
 
@@ -236,14 +241,11 @@ export class ForkTrie extends GanacheTrie {
 
   async get(key: Buffer): Promise<Buffer> {
     const value = await super.get(key);
-    if (value != null) {
-      return value;
-    }
+    if (value != null) return value;
+
     // since we don't have this key in our local trie check if we've have
     // deleted it (locally)
-    if (await this.keyWasDeleted(key)) {
-      return null;
-    }
+    if (await this.keyWasDeleted(key)) return null;
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
@@ -258,12 +260,16 @@ export class ForkTrie extends GanacheTrie {
    * Returns a copy of the underlying trie with the interface of ForkTrie.
    * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
    */
-  copy() {
-    const db = this.db.copy();
+  copy(includeCheckpoints: boolean = true) {
+    const db = this.db.copy() as CheckpointDB;
     const secureTrie = new ForkTrie(db._leveldb, this.root, this.blockchain);
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;
+    if (includeCheckpoints && this.isCheckpoint) {
+      db.checkpoints = [...this.db.checkpoints];
+      secureTrie.metadata.checkpoints = this.metadata.checkpoints.slice(0);
+    }
     return secureTrie;
   }
 }
