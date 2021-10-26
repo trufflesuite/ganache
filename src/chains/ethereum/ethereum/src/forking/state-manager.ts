@@ -5,7 +5,6 @@ import AccountManager from "../data-managers/account-manager";
 import { ForkCache } from "./cache";
 import Common from "@ethereumjs/common";
 import { ForkTrie } from "./trie";
-import { SecureTrie as Trie } from "merkle-patricia-tree";
 
 /**
  * Options for constructing a [[StateManager]].
@@ -69,13 +68,14 @@ export class ForkStateManager extends StateManager {
   }
 
   /**
-   * Gets the storage value associated with the provided `address` and `key`. This method returns
-   * the shortest representation of the stored value.
-   * @param address -  Address of the account to get the storage for
-   * @param key - Key in the account's storage to get the value for. Must be 32 bytes long.
+   * Gets the storage value associated with the provided `address` and `key`.
+   * This method returns the shortest representation of the stored value.
+   * @param address - Address of the account to get the storage for
+   * @param key - Key in the account's storage to get the value for. Must be 32
+   * bytes long.
    * @returns {Promise<Buffer>} - The storage value for the account
-   * corresponding to the provided address at the provided key.
-   * If this does not exist an empty `Buffer` is returned.
+   * corresponding to the provided address at the provided key. If this does not
+   * exist an empty `Buffer` is returned.
    */
   async getContractStorage(address: EJS_Address, key: Buffer): Promise<Buffer> {
     const trie = (await this._getStorageTrie(address)) as ForkTrie;

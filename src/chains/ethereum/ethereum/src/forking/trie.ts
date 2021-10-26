@@ -2,7 +2,7 @@ import { Address } from "@ganache/ethereum-address";
 import {
   keccak,
   BUFFER_EMPTY,
-  BUFFER_ZERO,
+  RPCQUANTITY_ONE,
   RPCQUANTITY_EMPTY,
   Quantity,
   Data
@@ -23,53 +23,20 @@ const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap();
+const MetadataSingletons = new WeakMap<LevelUp, CheckpointDB>();
 const LEVELDOWN_OPTIONS = {
   keyEncoding: "binary",
   valueEncoding: "binary"
 };
-/**
- * Commits a checkpoint to disk, if current checkpoint is not nested.
- * If nested, only sets the parent checkpoint as current checkpoint.
- * @throws If not during a checkpoint phase
- */
-async function commit(this: CheckpointDB) {
-  const { keyValueMap } = this.checkpoints.pop();
-  if (!this.isCheckpoint) {
-    // This was the final checkpoint, we should now commit and flush everything to disk
-    const batchOp = [];
-    keyValueMap.forEach(function (value, key) {
-      if (value === null) {
-        batchOp.push({
-          type: "del",
-          key: Buffer.from(key, "binary")
-        });
-      } else {
-        batchOp.push({
-          type: "put",
-          key: Buffer.from(key, "binary"),
-          value
-        });
-      }
-    });
-    await this.batch(batchOp);
-  } else {
-    // dump everything into the current (higher level) cache
-    const currentKeyValueMap = this.checkpoints[this.checkpoints.length - 1]
-      .keyValueMap;
-    keyValueMap.forEach((value, key) => currentKeyValueMap.set(key, value));
-  }
-}
 
 export class ForkTrie extends GanacheTrie {
   private accounts: AccountManager;
   private address: Buffer | null = null;
-  public blockNumber: Quantity | null = null;
-  private metadata: LevelUp;
+  public blockNumber: Quantity;
+  private metadata: CheckpointDB;
 
   constructor(db: LevelUp | null, root: Buffer, blockchain: Blockchain) {
     super(db, root, blockchain);
-    this.db.commit = commit.bind(this.db);
 
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
@@ -77,7 +44,7 @@ export class ForkTrie extends GanacheTrie {
     if (MetadataSingletons.has(db)) {
       this.metadata = MetadataSingletons.get(db);
     } else {
-      this.metadata = sub(db, "f", LEVELDOWN_OPTIONS);
+      this.metadata = new CheckpointDB(sub(db, "f", LEVELDOWN_OPTIONS));
       MetadataSingletons.set(db, this.metadata);
     }
   }
@@ -88,6 +55,17 @@ export class ForkTrie extends GanacheTrie {
 
   get root() {
     return (this as any)._root;
+  }
+
+  checkpoint() {
+    super.checkpoint();
+    this.metadata.checkpoint(this.root);
+  }
+  async commit() {
+    await Promise.all([super.commit(), this.metadata.commit()]);
+  }
+  async revert() {
+    await Promise.all([super.revert(), this.metadata.revert()]);
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
@@ -105,18 +83,47 @@ export class ForkTrie extends GanacheTrie {
     return lexico.encode([blockNum, this.address, key]);
   }
 
+  /**
+   * Checks if the key was deleted (locally -- not on the fork)
+   * @param key
+   */
   private async keyWasDeleted(key: Buffer) {
+    const selfAddress = this.address === null ? BUFFER_EMPTY : this.address;
+    // check the uncommitted checkpoints for deleted keys before
+    // checking the database itself
+    // TODO(perf): there is probably a better/faster way of doing this for the
+    // common case.
+    const checkpoints = this.metadata.checkpoints;
+    for (let i = checkpoints.length - 1; i >= 0; i--) {
+      for (let [data, value] of checkpoints[i].keyValueMap.entries()) {
+        if (!value || value[0] !== 1) {
+          continue;
+        }
+
+        const delKey = lexico.decode(Buffer.from(data, "binary"));
+        //const blockNumber = delKey[0];
+        const address = delKey[1];
+        const deletedKey = delKey[2];
+        if (address.equals(selfAddress) && deletedKey.equals(key)) {
+          return true;
+        }
+      }
+    }
+
     return new Promise((resolve, reject) => {
-      const selfAddress = this.address === null ? BUFFER_EMPTY : this.address;
       let wasDeleted = false;
-      const stream = this.metadata
-        .createKeyStream({
+      const stream = this.metadata._leveldb
+        .createReadStream({
           lte: this.createDelKey(key),
           reverse: true
         })
         .on("data", data => {
-          const delKey = lexico.decode(data);
-          // const blockNumber = delKey[0];
+          const { key, value } = data;
+          if (!value || value[0] !== 1) {
+            return;
+          }
+          const delKey = lexico.decode(key);
+          //const blockNumber = delKey[0];
           const address = delKey[1];
           const deletedKey = delKey[2];
           if (address.equals(selfAddress) && deletedKey.equals(key)) {
@@ -134,7 +141,11 @@ export class ForkTrie extends GanacheTrie {
 
     const hash = keccak(key);
     const delKey = this.createDelKey(key);
-    const metaDataPutPromise = this.metadata.put(delKey, BUFFER_ZERO);
+
+    const metaDataPutPromise = this.metadata.put(
+      delKey,
+      RPCQUANTITY_ONE.toBuffer()
+    );
 
     const { node, stack } = await this.findPath(hash);
 
@@ -228,6 +239,8 @@ export class ForkTrie extends GanacheTrie {
     if (value != null) {
       return value;
     }
+    // since we don't have this key in our local trie check if we've have
+    // deleted it (locally)
     if (await this.keyWasDeleted(key)) {
       return null;
     }

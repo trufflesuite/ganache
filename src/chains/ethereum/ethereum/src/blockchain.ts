@@ -673,7 +673,7 @@ export default class Blockchain extends Emittery.Typed<
 
       // commit accounts, but for forking.
       const stateManager = <DefaultStateManager>this.vm.stateManager;
-      stateManager.checkpoint();
+      await stateManager.checkpoint();
       initialAccounts.forEach(acc => {
         const a = { buf: acc.address.toBuffer() } as any;
         (stateManager as any)._cache.put(a, acc);
@@ -1173,7 +1173,7 @@ export default class Blockchain extends Emittery.Typed<
       }
 
       const structLog: StructLog = {
-        depth: event.depth,
+        depth: event.depth + 1,
         error: "",
         gas: gasLeft,
         gasCost: 0,
@@ -1391,8 +1391,8 @@ export default class Blockchain extends Emittery.Typed<
       throw new Error("Unknown transaction " + transactionHash);
     }
 
-    const targetBlock = await this.blocks.get(
-      transaction.blockNumber.toBuffer()
+    const targetBlock = await this.blocks.getByHash(
+      transaction.blockHash.toBuffer()
     );
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()

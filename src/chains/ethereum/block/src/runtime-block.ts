@@ -3,7 +3,8 @@ import {
   Quantity,
   BUFFER_EMPTY,
   BUFFER_32_ZERO,
-  BUFFER_8_ZERO
+  BUFFER_8_ZERO,
+  BUFFER_ZERO
 } from "@ganache/utils";
 import { BN, KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { EthereumRawBlockHeader, serialize } from "./serialize";
@@ -128,7 +129,7 @@ export class RuntimeBlock {
       timestamp: new BnExtra(ts),
       baseFeePerGas:
         baseFeePerGas === undefined
-          ? undefined
+          ? new BnExtra(BUFFER_ZERO)
           : new BnExtra(Quantity.from(baseFeePerGas).toBuffer())
     };
   }

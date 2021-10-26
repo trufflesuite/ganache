@@ -35,6 +35,88 @@ function isHttp(
   );
 }
 
+function chunkify(val: any, nameOrIndex: string) {
+  if (Array.isArray(val)) {
+    const l = val.length;
+    if (l === 0) {
+      return Buffer.from("[]");
+    } else {
+      const chunkified = chunkify(val[0], "0");
+      // if the value ends up being nothing (undefined), return null
+      const bufs = [
+        Buffer.from("["),
+        chunkified.length === 0 ? Buffer.from("null") : chunkified
+      ];
+      if (l > 1) {
+        for (let i = 1; i < l; i++) {
+          const v = val[i];
+          bufs.push(Buffer.from(","));
+          const chunkified = chunkify(v, i.toString());
+          // if the value ends up being nothing (undefined), return null
+          bufs.push(chunkified.length === 0 ? Buffer.from("null") : chunkified);
+        }
+      }
+      bufs.push(Buffer.from("]"));
+      return Buffer.concat(bufs);
+    }
+  } else if (Object.prototype.toString.call(val) === "[object Object]") {
+    if ("toJSON" in val) return chunkify(val.toJSON(nameOrIndex), "") as Buffer;
+
+    const entries = Object.entries(val);
+    const l = entries.length;
+    if (l === 0) {
+      return Buffer.from("{}");
+    } else {
+      const [key, value] = entries[0];
+      let i = 0;
+      let bufs = [Buffer.from("{")];
+
+      // find the first non-null property to start the object
+      while (i < l) {
+        const chunkified = chunkify(value, key);
+        // if the chunkified value ends up being nothing (undefined) ignore
+        // the property
+        if (chunkified.length === 0) {
+          i++;
+          continue;
+        }
+
+        bufs.push(
+          ...[Buffer.from(JSON.stringify(key)), Buffer.from(":"), chunkified]
+        );
+        break;
+      }
+      if (l > 1) {
+        for (let i = 1; i < l; i++) {
+          const [key, value] = entries[i];
+          const chunkified = chunkify(value, key);
+          // if the chunkified value ends up being nothing (undefined) ignore
+          // the property
+          if (chunkified.length === 0) continue;
+
+          bufs.push(
+            ...[
+              Buffer.from(","),
+              Buffer.from(JSON.stringify(key)),
+              Buffer.from(":"),
+              chunkified
+            ]
+          );
+        }
+      }
+      bufs.push(Buffer.from("}"));
+      return Buffer.concat(bufs);
+    }
+  } else if (val === null) {
+    return Buffer.from("null");
+  } else if (val === undefined) {
+    // nothing is returned for undefined
+    return Buffer.allocUnsafe(0);
+  } else {
+    return Buffer.from(JSON.stringify(val));
+  }
+}
+
 export class Connector<
     R extends JsonRpcRequest<
       EthereumApi,
@@ -115,7 +197,7 @@ export class Connector<
       );
     } else {
       const json = makeResponse(payload.id, results);
-      return JSON.stringify(json);
+      return chunkify(json, "");
     }
   }
 
