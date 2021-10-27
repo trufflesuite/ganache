@@ -21,9 +21,7 @@ describe("@ganache/utils", () => {
     it("loads binaries on all platforms", () => {
       const buf = Buffer.from([255, 0]);
       const bigint = bufferToBigInt(buf);
-      console.warn(
-        "bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)"
-      );
+      console.warn("test warn");
       assert.strictEqual(bigint, 65280n);
     });
     after(() => {
