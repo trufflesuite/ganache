@@ -21,10 +21,13 @@ import {
   EthereumProviderOptions,
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
+import { bufferify } from "./helpers/bufferify";
 
 type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
+
+const BUFFERIFY_THRESHOLD = 100000;
 
 function isHttp(
   connection: HttpRequest | WebSocket
@@ -33,88 +36,6 @@ function isHttp(
     connection.constructor.name === "uWS.HttpRequest" ||
     connection.constructor.name === "HttpRequest"
   );
-}
-
-function chunkify(val: any, nameOrIndex: string) {
-  if (Array.isArray(val)) {
-    const l = val.length;
-    if (l === 0) {
-      return Buffer.from("[]");
-    } else {
-      const chunkified = chunkify(val[0], "0");
-      // if the value ends up being nothing (undefined), return null
-      const bufs = [
-        Buffer.from("["),
-        chunkified.length === 0 ? Buffer.from("null") : chunkified
-      ];
-      if (l > 1) {
-        for (let i = 1; i < l; i++) {
-          const v = val[i];
-          bufs.push(Buffer.from(","));
-          const chunkified = chunkify(v, i.toString());
-          // if the value ends up being nothing (undefined), return null
-          bufs.push(chunkified.length === 0 ? Buffer.from("null") : chunkified);
-        }
-      }
-      bufs.push(Buffer.from("]"));
-      return Buffer.concat(bufs);
-    }
-  } else if (Object.prototype.toString.call(val) === "[object Object]") {
-    if ("toJSON" in val) return chunkify(val.toJSON(nameOrIndex), "") as Buffer;
-
-    const entries = Object.entries(val);
-    const l = entries.length;
-    if (l === 0) {
-      return Buffer.from("{}");
-    } else {
-      const [key, value] = entries[0];
-      let i = 0;
-      let bufs = [Buffer.from("{")];
-
-      // find the first non-null property to start the object
-      while (i < l) {
-        const chunkified = chunkify(value, key);
-        // if the chunkified value ends up being nothing (undefined) ignore
-        // the property
-        if (chunkified.length === 0) {
-          i++;
-          continue;
-        }
-
-        bufs.push(
-          ...[Buffer.from(JSON.stringify(key)), Buffer.from(":"), chunkified]
-        );
-        break;
-      }
-      if (l > 1) {
-        for (let i = 1; i < l; i++) {
-          const [key, value] = entries[i];
-          const chunkified = chunkify(value, key);
-          // if the chunkified value ends up being nothing (undefined) ignore
-          // the property
-          if (chunkified.length === 0) continue;
-
-          bufs.push(
-            ...[
-              Buffer.from(","),
-              Buffer.from(JSON.stringify(key)),
-              Buffer.from(":"),
-              chunkified
-            ]
-          );
-        }
-      }
-      bufs.push(Buffer.from("}"));
-      return Buffer.concat(bufs);
-    }
-  } else if (val === null) {
-    return Buffer.from("null");
-  } else if (val === undefined) {
-    // nothing is returned for undefined
-    return Buffer.allocUnsafe(0);
-  } else {
-    return Buffer.from(JSON.stringify(val));
-  }
 }
 
 export class Connector<
@@ -136,6 +57,8 @@ export class Connector<
 
     this.#provider = new EthereumProvider(providerOptions, executor);
   }
+
+  public BUFFERIFY_THRESHOLD = BUFFERIFY_THRESHOLD;
 
   async connect() {
     await this.#provider.initialize();
@@ -191,13 +114,28 @@ export class Connector<
           if (result instanceof Error) {
             return makeError(payload.id, result as any);
           } else {
-            return makeResponse(payload.id, result);
+            return this.format(result, payload);
           }
         })
       );
     } else {
       const json = makeResponse(payload.id, results);
-      return chunkify(json, "");
+      if (
+        payload.method === "debug_traceTransaction" &&
+        // for "large" debug_traceTransaction results convert directly to
+        // a Buffer instead of JSON.stringify so we don't hit V8's maximum
+        // string length limit of 1GB. We don't do this for everything
+        // because the bufferfication is so very very slow
+        // TODO(perf): an even better way of solving this would be to convert
+        // `debug_traceTransaction` to a generator that yields chunks (of
+        // Buffer) as soon as they're available. We could then `write` these
+        // individual chunks immediately.
+        results.structLogs.length > this.BUFFERIFY_THRESHOLD
+      ) {
+        return bufferify(json, "");
+      } else {
+        return JSON.stringify(json);
+      }
     }
   }
 
