@@ -1318,6 +1318,7 @@ export default class Blockchain extends Emittery.Typed<
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incantation of RuntimeError
+    await vm.stateManager.checkpoint();
     await runTransactions(vm, newBlock.transactions, newBlock);
 
     // Just to be safe
