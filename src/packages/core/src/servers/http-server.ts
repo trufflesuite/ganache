@@ -180,13 +180,24 @@ export default class HttpServer {
               return;
             }
             const data = connector.format(result, payload);
-            sendResponse(
-              response,
-              HttpResponseCodes.OK,
-              ContentTypes.JSON,
-              data,
-              writeHeaders
-            );
+            if (typeof data.next === "function") {
+              response.cork(() => {
+                response.writeStatus(HttpResponseCodes.OK);
+                writeHeaders(response);
+                response.writeHeader("Content-Type", ContentTypes.JSON);
+
+                for (const datum of data) response.write(datum);
+                response.end();
+              });
+            } else {
+              sendResponse(
+                response,
+                HttpResponseCodes.OK,
+                ContentTypes.JSON,
+                data,
+                writeHeaders
+              );
+            }
           })
           .catch(error => {
             if (aborted) {

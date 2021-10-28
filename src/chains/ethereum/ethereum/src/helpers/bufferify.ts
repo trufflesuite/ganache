@@ -41,32 +41,42 @@ function stringToQuotedBuffer(value: string) {
     return QUOTE_PAIR;
   }
 }
-function arrayToBuffer(value: any[]) {
+function* arrayToBuffer(value: any[]) {
   const l = value.length;
   if (l === 0) {
-    return SQUARE_BRACKET_PAIR;
+    yield SQUARE_BRACKET_PAIR;
+    return;
   } else {
-    const chunkified = bufferify(value[0], "0");
-    const jsonVal = chunkified.length === 0 ? NULL : chunkified;
-    // if the value ends up being nothing (undefined), return null
-    const bufs = [SQUARE_BRACKET_OPEN, jsonVal];
-    let length = 2 + jsonVal.length; // 2 = `[` and `]`
+    let yieldPrefix = true;
+    for (const chunkified of bufferify(value[0], "0")) {
+      // if the value ends up being nothing (undefined), return null
+      const jsonVal = chunkified.length === 0 ? NULL : chunkified;
+      if (yieldPrefix) {
+        yield SQUARE_BRACKET_OPEN;
+        yieldPrefix = false;
+      }
+      yield jsonVal;
+    }
     if (l > 1) {
       for (let i = 1; i < l; i++) {
-        const chunkified = bufferify(value[i], i.toString());
-        const chunkLength = chunkified.length;
-        if (chunkLength === 0) {
-          // if the value ends up being nothing (undefined), return null
-          bufs.push(COMMA, NULL);
-          length += 5;
-        } else {
-          bufs.push(COMMA, chunkified);
-          length += chunkLength + 1;
+        let yieldPrefix = true;
+        for (const chunkified of bufferify(value[i], i.toString())) {
+          const chunkLength = chunkified.length;
+          if (yieldPrefix) {
+            yield COMMA;
+            yieldPrefix = false;
+          }
+          if (chunkLength === 0) {
+            // if the value ends up being nothing (undefined), return null
+            yield NULL;
+          } else {
+            yield chunkified;
+          }
         }
       }
     }
-    bufs.push(SQUARE_BRACKET_CLOSE);
-    return Buffer.concat(bufs, length);
+    yield SQUARE_BRACKET_CLOSE;
+    return;
   }
 }
 function bufferToQuotedBuffer(value: Buffer) {
@@ -78,50 +88,63 @@ function bufferToQuotedBuffer(value: Buffer) {
   return buf;
 }
 
-function objectToBuffer(value: any, nameOrIndex: string) {
-  if ("toJSON" in value)
-    return bufferify(value.toJSON(nameOrIndex), nameOrIndex) as Buffer;
+function* objectToBuffer(value: any, nameOrIndex: string) {
+  if ("toJSON" in value) {
+    yield* bufferify(value.toJSON(nameOrIndex), nameOrIndex);
+    return;
+  }
 
   const entries = Object.entries(value);
   const l = entries.length;
   if (l === 0) {
-    return CURLY_BRACKET_PAIR;
+    yield CURLY_BRACKET_PAIR;
+    return;
   } else {
     let i = 0;
-    let length = 2; // 2 == `{` and `}`
-    const bufs = [CURLY_BRACKET_OPEN];
+    yield CURLY_BRACKET_OPEN;
 
     // find the first non-null property to start the object
     while (i < l) {
       const [key, value] = entries[i];
       i++;
-      const chunkified = bufferify(value, key);
-      // if the chunkified value ends up being nothing (undefined) ignore
-      // the property
-      const chunkLength = chunkified.length;
-      if (chunkLength === 0) {
-        continue;
-      }
 
-      bufs.push(stringToQuotedBuffer(key), COLON, chunkified);
-      length += key.length + 2 + 1 + chunkLength;
+      let yieldPrefix = true;
+      for (const chunkified of bufferify(value, key)) {
+        // if the chunkified value ends up being nothing (undefined) ignore
+        // the property
+        const chunkLength = chunkified.length;
+        if (chunkLength === 0) {
+          continue;
+        }
+
+        if (yieldPrefix) {
+          yield Buffer.concat([stringToQuotedBuffer(key), COLON]);
+          yieldPrefix = null;
+        }
+        yield chunkified;
+      }
       break;
     }
     if (l > 1) {
       for (; i < l; i++) {
         const [key, value] = entries[i];
-        const chunkified = bufferify(value, key);
-        // if the chunkified value ends up being nothing (undefined) ignore
-        // the property
-        const chunkLength = chunkified.length;
-        if (chunkLength === 0) continue;
+        let yieldPrefix = true;
+        for (const chunkified of bufferify(value, key)) {
+          // if the chunkified value ends up being nothing (undefined) ignore
+          // the property
+          const chunkLength = chunkified.length;
+          if (chunkLength === 0) continue;
 
-        bufs.push(COMMA, stringToQuotedBuffer(key), COLON, chunkified);
-        length += 2 + key.length + 2 + chunkLength;
+          if (yieldPrefix) {
+            yield Buffer.concat([COMMA, stringToQuotedBuffer(key), COLON]);
+            yieldPrefix = false;
+          }
+          yield chunkified;
+        }
       }
     }
-    bufs.push(CURLY_BRACKET_CLOSE);
-    return Buffer.concat(bufs, length);
+    yield CURLY_BRACKET_CLOSE;
+    return;
   }
 }
 
@@ -150,23 +173,25 @@ function objectToBuffer(value: any, nameOrIndex: string) {
  * property is used by internal recursive calls to bufferify.
  * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
  */
-export function bufferify(value: any, nameOrIndex: string) {
+export function* bufferify(value: any, nameOrIndex: string): Generator<Buffer> {
   const type = typeof value;
   if (type === "number" || type === "boolean") {
-    return numberToBuffer(value);
+    yield numberToBuffer(value);
   } else if (type === "string") {
-    return stringToQuotedBuffer(value);
+    yield stringToQuotedBuffer(value);
   } else if (Buffer.isBuffer(value)) {
-    return bufferToQuotedBuffer(value);
+    yield bufferToQuotedBuffer(value);
   } else if (Array.isArray(value)) {
-    return arrayToBuffer(value);
+    yield* arrayToBuffer(value);
   } else if (isObj(value)) {
-    return objectToBuffer(value, nameOrIndex);
+    yield* objectToBuffer(value, nameOrIndex);
   } else if (value === null) {
-    return NULL;
+    yield NULL;
   } else if (type === "undefined") {
     // nothing is returned for undefined
-    return _EMPTY;
+    yield _EMPTY;
+  } else if ("toJSON" in value && typeof value.toJSON === "function") {
+    yield* bufferify(value.toJSON(), nameOrIndex);
   } else {
     throw new Error("unsupported value in bufferify");
   }

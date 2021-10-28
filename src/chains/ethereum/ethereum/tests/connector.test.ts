@@ -55,12 +55,20 @@ describe("connector", () => {
     assert.deepStrictEqual(result, expected);
   });
   it("formats results as a Buffer as expected", async () => {
+    function isGeneratorIterator(arg) {
+      return arg.constructor === function* () {}.prototype.constructor;
+    }
     // trigger the buffering optimization without having to actually parse
-    // that much data
+    // the amount of data it usually takes
     connector.BUFFERIFY_THRESHOLD = 1;
-    const bufResult = connector.format(json, payload) as string;
-    assert(Buffer.isBuffer(bufResult));
-    const result = JSON.parse(bufResult.toString("utf-8"));
+
+    const bufResult = connector.format(json, payload);
+    assert(isGeneratorIterator(bufResult));
+    let str = "";
+    for (const datum of bufResult as any) {
+      str += datum.toString("utf-8");
+    }
+    const result = JSON.parse(str);
     assert.deepStrictEqual(result, expected);
   });
 });

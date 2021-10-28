@@ -58,7 +58,10 @@ export interface Connector<
    * @param response
    * @param payload
    */
-  format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
+  format(
+    result: ResponseFormat,
+    payload: RequestFormat
+  ): RecognizedString | Generator<RecognizedString>;
 
   /**
    * Formats the error response
