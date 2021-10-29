@@ -1,32 +1,28 @@
-"use strict";
-const oldWarn = console.warn;
-let failedToLoad = false;
-console.warn = e => {
-  console.log(e);
-  if (
-    e ===
-    "bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)"
-  ) {
-    failedToLoad = true;
-  }
-};
-
-import { bufferToBigInt } from "../src/utils/buffer-to-bigint";
 import assert from "assert";
+import sinon from "sinon";
+const BIGINT_ERROR =
+  "bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)";
 
-const utils = require("..");
-
-describe.only("@ganache/utils", () => {
+describe("@ganache/utils", () => {
   describe("bigint-buffer library", () => {
-    before(() => {});
-    it("loads binaries on all platforms", () => {
-      const buf = Buffer.from([255, 0]);
-      const bigint = bufferToBigInt(buf);
-      assert.strictEqual(failedToLoad, false);
-      assert.strictEqual(bigint, 65280n);
+    let spy: any;
+    before(() => {
+      spy = sinon.spy(console, "warn");
     });
+
+    it("loads without warnings", () => {
+      // make sure we're actually loading this module and not using a cached version
+      delete require.cache[require.resolve("bigint-buffer")];
+      // if prebuilt binaries aren't properly installed, we'll get a warning from
+      // this lib saying that the JS fallback is being used.
+      require("bigint-buffer");
+      // so we'll spy on console.warn to ensure that our bigint-buffer warning
+      // is never called when loading this library
+      assert.strictEqual(spy.withArgs(BIGINT_ERROR).callCount, 0);
+    });
+
     after(() => {
-      console.warn = oldWarn;
+      spy.restore();
     });
   });
 });
