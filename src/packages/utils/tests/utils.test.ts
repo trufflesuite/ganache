@@ -3,7 +3,7 @@ import sinon from "sinon";
 const BIGINT_ERROR =
   "bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)";
 
-describe("@ganache/utils", () => {
+describe.only("@ganache/utils", () => {
   describe("bigint-buffer library", () => {
     let spy: any;
     before(() => {
@@ -16,6 +16,7 @@ describe("@ganache/utils", () => {
       // if prebuilt binaries aren't properly installed, we'll get a warning from
       // this lib saying that the JS fallback is being used.
       require("bigint-buffer");
+      console.warn(BIGINT_ERROR);
       // so we'll spy on console.warn to ensure that our bigint-buffer warning
       // is never called when loading this library
       assert.strictEqual(spy.withArgs(BIGINT_ERROR).callCount, 0);
