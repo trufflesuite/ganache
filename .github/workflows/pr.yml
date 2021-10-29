@@ -61,7 +61,7 @@ jobs:
       #   if: startsWith(matrix.os, 'windows-')
       #   run: npm config set msvs_version 2019 --global
 
-      - run: npm ci
+      - run: npm install
       - run: npm run tsc
       - run: npm test
         env:
