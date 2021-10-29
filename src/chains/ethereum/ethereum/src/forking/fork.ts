@@ -13,8 +13,6 @@ import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 
-const CONFIRMATIONS = 5n;
-
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
   return parseInt(chainIdHex, 16);
