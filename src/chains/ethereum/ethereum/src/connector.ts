@@ -120,7 +120,7 @@ export class Connector<
           if (result instanceof Error) {
             return makeError(payload.id, result as any);
           } else {
-            return this.format(result, payload);
+            return makeResponse(result, payload);
           }
         })
       );
