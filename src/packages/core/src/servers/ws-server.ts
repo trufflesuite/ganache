@@ -76,7 +76,7 @@ export default class WebsocketServer {
           return;
         }
 
-        let response: RecognizedString | Generator<RecognizedString>;
+        let response: RecognizedString;
 
         try {
           const { value } = await connector.handle(payload, ws);
@@ -89,7 +89,7 @@ export default class WebsocketServer {
           const result = await resultEmitter;
           if (ws.closed) return;
 
-          response = connector.format(result, payload);
+          response = connector.format(result, payload, ws);
 
           // if the result is an emitter listen to its `"message"` event
           // We check if `on` is a function rather than check if
@@ -120,19 +120,7 @@ export default class WebsocketServer {
           response = connector.formatError(err, payload);
         }
 
-        if (
-          typeof response === "object" &&
-          Symbol.iterator in response &&
-          typeof response[Symbol.iterator] === "function"
-        ) {
-          ws.cork(() => {
-            // as any because typescript STILL thinks response doesn't have a
-            // `Symbol.iterator` function.
-            for (const chunk of response as any) ws.send(chunk, useBinary);
-          });
-        } else {
-          ws.send(response as RecognizedString, useBinary);
-        }
+        ws.send(response as RecognizedString, useBinary);
       },
 
       drain: (ws: WebSocket) => {

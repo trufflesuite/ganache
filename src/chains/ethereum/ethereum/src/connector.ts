@@ -106,12 +106,19 @@ export class Connector<
 
   format(
     result: any,
-    payload: R
+    payload: R,
+    connection: HttpRequest
   ): RecognizedString | Generator<RecognizedString>;
-  format(results: any[], payloads: R[]): RecognizedString;
+  format(result: any, payload: R, connection: WebSocket): RecognizedString;
+  format(
+    results: any[],
+    payloads: R[],
+    connection: HttpRequest | WebSocket
+  ): RecognizedString;
   format(
     results: any | any[],
-    payload: R | R[]
+    payload: R | R[],
+    connection: HttpRequest | WebSocket
   ): RecognizedString | Generator<RecognizedString> {
     if (Array.isArray(payload)) {
       return JSON.stringify(
@@ -127,6 +134,7 @@ export class Connector<
     } else {
       const json = makeResponse(payload.id, results);
       if (
+        isHttp(connection) &&
         payload.method === "debug_traceTransaction" &&
         // for "large" debug_traceTransaction results we convert to individual
         // parts of the response to Buffers, yielded via a Generator function,

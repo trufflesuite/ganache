@@ -49,7 +49,9 @@ describe("connector", () => {
     await connector.connect();
   });
   it("formats results as a string as expected", async () => {
-    const strResult = connector.format(json, payload) as string;
+    const strResult = connector.format(json, payload, {
+      constructor: { name: "HttpRequest" }
+    } as any) as string;
     assert.strictEqual(typeof strResult, "string");
     const result = JSON.parse(strResult);
     assert.deepStrictEqual(result, expected);
@@ -62,7 +64,9 @@ describe("connector", () => {
     // the amount of data it usually takes
     connector.BUFFERIFY_THRESHOLD = 1;
 
-    const bufResult = connector.format(json, payload);
+    const bufResult = connector.format(json, payload, {
+      constructor: { name: "HttpRequest" }
+    } as any);
     assert(isGeneratorIterator(bufResult));
     let str = "";
     for (const datum of bufResult as any) {
