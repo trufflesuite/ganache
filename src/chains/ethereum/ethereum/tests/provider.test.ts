@@ -178,49 +178,6 @@ describe("provider", () => {
           await provider.send("debug_traceTransaction", [hash]);
         }, controlEvents);
       });
-      it("emits vm:tx:* events for debug_storageRangeAt", async () => {
-        // README
-        // This test is slightly different, as we actually send a transaction to the
-        // contract, and then measure those events, instead of the deployment
-        // transaction itself.
-
-        const {
-          contractAddress
-        } = await provider.send("eth_getTransactionReceipt", [deploymentHash]);
-        const initialValue = "0".repeat(62) + "19"; // 25
-        // call the setValue method so we have some stuff to trace at the
-        // deployed contract
-        let receipt: any;
-        const controlEvents = await testEvents(async () => {
-          const subId = await provider.send("eth_subscribe", ["newHeads"]);
-          const hash = await provider.send("eth_sendTransaction", [
-            {
-              from,
-              to: contractAddress,
-              gas: "0x2fefd8",
-              data: `0x${contract.contract.evm.methodIdentifiers["setValue(uint256)"]}${initialValue}`
-            }
-          ]);
-          await provider.once("message");
-          await provider.send("eth_unsubscribe", [subId]);
-          receipt = await provider.send("eth_getTransactionReceipt", [hash]);
-        });
-        assert(controlEvents.length > 2);
-
-        await testEvents(async () => {
-          try {
-            await provider.send("debug_storageRangeAt", [
-              receipt.blockHash,
-              0,
-              contractAddress,
-              "0x00",
-              2
-            ]);
-          } catch (e) {
-            throw e;
-          }
-        }, controlEvents);
-      });
     });
 
     it("returns things via EIP-1193", async () => {
