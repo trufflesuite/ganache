@@ -86,21 +86,22 @@ export const _DefaultServerOptions = serverDefaults;
 /**
  * @public
  */
-export class Server<
-  T extends FlavorName = typeof DefaultFlavor
-> extends Emittery<{ open: undefined; close: undefined }> {
+export class Server<T = any> extends Emittery<{
+  open: undefined;
+  close: undefined;
+}> {
   #options: InternalOptions;
   #providerOptions: Options<T>;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: ConnectorsByName[T];
+  #connector: any;
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<void>;
 
-  public get provider(): ConnectorsByName[T]["provider"] {
+  public get provider(): any {
     return this.#connector.provider;
   }
 
@@ -129,7 +130,7 @@ export class Server<
     this.#initializer = this.initialize(connector);
   }
 
-  private async initialize(connector: Connector) {
+  private async initialize(connector: any) {
     const _app = (this.#app = uWS.App());
 
     if (this.#options.server.ws) {

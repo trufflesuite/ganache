@@ -66,7 +66,9 @@ export const ServerOptions: Definitions<ServerConfig> = {
     cliDescription:
       "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
     default: (config, flavor) => {
-      switch (flavor) {
+      switch (
+        flavor // TODO: how to handle rpcEndpoint for plugin
+      ) {
         case FilecoinFlavorName:
           return "/rpc/v0";
         case DefaultFlavor:

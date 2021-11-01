@@ -55,7 +55,6 @@
   "devDependencies": {
     "@ganache/ethereum": "0.1.1-canary.1335",
     "@ganache/filecoin": "0.1.1-canary.1335",
-    "@ganache/tezos": "0.1.0",
     "@types/mocha": "8.2.2",
     "cross-env": "7.0.3",
     "mocha": "8.4.0",
@@ -65,7 +64,6 @@
   },
   "dependencies": {
     "@ganache/ethereum-options": "0.1.1-canary.1335",
-    "@ganache/tezos-options": "0.1.0",
     "@ganache/colors": "0.1.1-canary.1335",
     "@ganache/core": "0.1.1-canary.1335",
     "@ganache/flavors": "0.1.1-canary.1335",

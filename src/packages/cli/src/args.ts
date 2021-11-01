@@ -116,11 +116,11 @@ function processOption(
 }
 
 function applyDefaults(
-  flavorDefaults:
-    | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
-    | typeof _DefaultServerOptions,
+  flavorDefaults: any,
+  // | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
+  // | typeof _DefaultServerOptions,
   flavorArgs: yargs.Argv<{}>,
-  flavor: keyof typeof DefaultOptionsByName
+  flavor: any // keyof typeof DefaultOptionsByName
 ) {
   for (const category in flavorDefaults) {
     type GroupType = `${Capitalize<typeof category>}:`;
@@ -177,7 +177,8 @@ export default function (version: string, isDocker: boolean) {
         defaultPort = 7777;
         break;
       case DefaultFlavor:
-        command = ["$0", flavor];
+        // command = ["$0", flavor];
+        command = flavor;
         defaultPort = 8545;
         break;
       default:
@@ -185,43 +186,56 @@ export default function (version: string, isDocker: boolean) {
         defaultPort = 8545;
     }
 
-    args = args.command(
-      command,
-      chalk`Use the {bold ${flavor}} flavor of Ganache`,
-      flavorArgs => {
-        applyDefaults(flavorDefaults, flavorArgs, flavor);
-
-        applyDefaults(_DefaultServerOptions, flavorArgs, flavor);
-
-        flavorArgs = flavorArgs
-          .option("server.host", {
-            group: "Server:",
-            description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
-            alias: ["h", "host", "hostname"],
-            type: "string",
-            default: isDocker ? "0.0.0.0" : "127.0.0.1"
-          })
-          .option("server.port", {
-            group: "Server:",
-            description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
-            alias: ["p", "port"],
-            type: "number",
-            default: defaultPort
-          })
-          .check(argv => {
-            const { "server.port": port, "server.host": host } = argv;
-            if (port < 1 || port > 65535) {
-              throw new Error(`Invalid port number '${port}'`);
-            }
-
-            if (host.trim() === "") {
-              throw new Error("Cannot leave host blank; please provide a host");
-            }
-
-            return true;
-          });
-      }
+    args = createNewCommand(
+      args,
+      flavor,
+      flavorDefaults,
+      _DefaultServerOptions,
+      isDocker,
+      defaultPort
     );
+  }
+
+  // plugins --flavor tezos
+  const pluginFlavor = process.argv[2];
+  let callback = null;
+  // TODO : remove --help, filecoin and @ganache/filecoin from if check
+  if (
+    !["ethereum", "--help", "filecoin", "@ganache/filecoin"].includes(
+      pluginFlavor
+    ) &&
+    !pluginFlavor.includes("-")
+  ) {
+    //const pluginFlavor = args.argv._[0].toString();
+    //if (!DefaultOptionsByName[pluginFlavor]) {
+    const pluginPackage = require("@ganache/" + pluginFlavor);
+    // const pluginOptionsPackage = require("@ganache/" + pluginFlavor + "-options");
+    // const flavorPluginDefaults = pluginOptionsPackage.TezosDefaults;
+    const pluginFlavorDefaults = pluginPackage.ganachePlugin.options.provider;
+    const { port } = pluginPackage.ganachePlugin.options.server;
+    // const pluginDefaultServerOptions =
+    //   pluginPackage.ganachePlugin.options.server.defaultServerOptions;
+
+    // for (let key in pluginDefaultServerOptions) {
+    //   if (!pluginDefaultServerOptions[key])
+    //     delete pluginDefaultServerOptions[key];
+    // }
+
+    // const defaultServerOptions = {
+    //   server: {
+    //     ..._DefaultServerOptions.server // ,
+    //     // ...pluginDefaultServerOptions
+    //   }
+    // };
+    args = createNewCommand(
+      args,
+      pluginFlavor,
+      pluginFlavorDefaults,
+      _DefaultServerOptions,
+      isDocker,
+      port
+    );
+    callback = pluginPackage.ganachePlugin.callback;
   }
 
   args = args
@@ -245,6 +259,53 @@ export default function (version: string, isDocker: boolean) {
       finalArgs[group][option] = parsedArgs[key];
     }
   }
-
+  finalArgs.server.callback = callback;
   return finalArgs;
+}
+function createNewCommand(
+  args: yargs.Argv<{}>,
+  pluginFlavor: string,
+  flavorPluginDefaults: any,
+  defaultServerOptions: any,
+  isDocker: boolean,
+  defaultPort: number
+) {
+  args = args.command(
+    pluginFlavor,
+    chalk`Use the {bold ${pluginFlavor}} flavor of Ganache`,
+    flavorArgs => {
+      applyDefaults(flavorPluginDefaults, flavorArgs, pluginFlavor);
+
+      applyDefaults(defaultServerOptions, flavorArgs, pluginFlavor);
+
+      flavorArgs = flavorArgs
+        .option("server.host", {
+          group: "Server:",
+          description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
+          alias: ["h", "host", "hostname"],
+          type: "string",
+          default: isDocker ? "0.0.0.0" : "127.0.0.1"
+        })
+        .option("server.port", {
+          group: "Server:",
+          description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
+          alias: ["p", "port"],
+          type: "number",
+          default: defaultPort
+        })
+        .check(argv => {
+          const { "server.port": port, "server.host": host } = argv;
+          if (port < 1 || port > 65535) {
+            throw new Error(`Invalid port number '${port}'`);
+          }
+
+          if (host.trim() === "") {
+            throw new Error("Cannot leave host blank; please provide a host");
+          }
+
+          return true;
+        });
+    }
+  );
+  return args;
 }

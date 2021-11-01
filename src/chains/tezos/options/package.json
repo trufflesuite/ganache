@@ -48,6 +48,7 @@
     "truffle"
   ],
   "dependencies": {
+    "@ganache/core": "0.1.1-canary.1335",
     "@ganache/options": "0.1.1-canary.1335",
     "seedrandom": "3.0.5"
   },

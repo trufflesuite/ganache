@@ -15,20 +15,12 @@
       "path": "../../chains/ethereum/ethereum"
     },
     {
-      "name": "@ganache/tezos",
-      "path": "../../chains/tezos/tezos"
-    },
-    {
       "name": "@ganache/utils",
       "path": "../utils"
     },
     {
       "name": "@ganache/ethereum-options",
       "path": "../../chains/ethereum/options"
-    },
-    {
-      "name": "@ganache/tezos-options",
-      "path": "../../chains/tezos/options"
     },
     {
       "name": "@ganache/filecoin",

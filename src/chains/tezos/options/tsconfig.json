@@ -5,11 +5,17 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "references": [
     {
       "name": "@ganache/options",
       "path": "../../../packages/options"
+    },
+    {
+      "name": "@ganache/core",
+      "path": "../../../packages/core"
     }
   ]
 }

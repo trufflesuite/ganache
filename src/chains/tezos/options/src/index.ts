@@ -28,3 +28,5 @@ export const TezosDefaults: Defaults<TezosOptions> = {
 export const TezosOptionsConfig = new OptionsConfig(TezosDefaults);
 
 export * from "./wallet-options";
+
+export * from "./server-options";

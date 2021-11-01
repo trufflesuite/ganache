@@ -4,13 +4,12 @@ import Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import { EthereumFlavorName, FilecoinFlavorName, TezosFlavorName } from "@ganache/flavors";
+import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
-import initializeTezos from "./initialize/tezos";
+import intializePlugin from "./initialize/plugin";
 import type { Provider as FilecoinProvider } from "@ganache/filecoin";
 import type { Provider as EthereumProvider } from "@ganache/ethereum";
-import type { Provider as TezosProvider } from "@ganache/tezos";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -44,6 +43,8 @@ const argv = args(detailedVersion, isDocker);
 const flavor = argv.flavor;
 
 const cliSettings = argv.server;
+
+const callback = argv.server.callback;
 
 console.log(detailedVersion);
 
@@ -137,16 +138,20 @@ async function startGanache(err: Error) {
       );
       break;
     }
-    case TezosFlavorName: {
-      initializeTezos(
-        server.provider as unknown as TezosProvider,
-        cliSettings
-      );
-     break;
-    }
-    case EthereumFlavorName:
-    default: {
+    // case TezosFlavorName: {
+    //   initializeTezos(
+    //     (server.provider as unknown) as TezosProvider,
+    //     cliSettings
+    //   );
+    //   break;
+    // }
+    case EthereumFlavorName: {
       initializeEthereum(server.provider as EthereumProvider, cliSettings);
+      break;
+    }
+    default: {
+      const loggingInfo = callback(server.provider);
+      intializePlugin(loggingInfo);
       break;
     }
   }

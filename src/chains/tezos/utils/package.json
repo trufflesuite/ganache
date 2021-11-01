@@ -44,6 +44,7 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/utils": "0.1.1-canary.1335"
+    "@ganache/utils": "0.1.1-canary.1335",
+    "ttypescript": "1.5.12"
   }
 }

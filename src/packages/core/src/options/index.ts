@@ -12,15 +12,15 @@ import {
   OptionsConfig
 } from "@ganache/options";
 
-export type ProviderOptions<T extends FlavorName> = FlavorOptions<T>;
+export type { ServerConfig } from "./server-options";
+
+export type ProviderOptions<T = any> = FlavorOptions<T>;
 
 export type Options = {
   server: ServerConfig;
 };
 
-export type ServerOptions<
-  T extends FlavorName = typeof DefaultFlavor
-> = Partial<
+export type ServerOptions<T = any> = Partial<
   {
     [K in keyof Options]: ExternalConfig<Options[K]>;
   }
