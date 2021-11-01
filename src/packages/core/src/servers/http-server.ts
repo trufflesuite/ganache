@@ -179,7 +179,7 @@ export default class HttpServer {
               // cause an `Unhandled promise rejection` if we try)
               return;
             }
-            const data = connector.format(result, payload);
+            const data = connector.format(result, payload, this);
             if (typeof data.next === "function") {
               response.cork(() => {
                 response.writeStatus(HttpResponseCodes.OK);
