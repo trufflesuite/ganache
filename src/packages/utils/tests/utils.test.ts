@@ -3,7 +3,7 @@ import sinon from "sinon";
 const BIGINT_ERROR =
   "bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)";
 
-describe.only("@ganache/utils", () => {
+describe("@ganache/utils", () => {
   describe("bigint-buffer library", () => {
     let spy: any;
     before(() => {
