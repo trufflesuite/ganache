@@ -531,19 +531,39 @@ describe("forking", function () {
       return Promise.all(
         blockNumsWithCode.map(async blockNum => {
           const value0 = await get("value0", blockNum);
-          assert.strictEqual(parseInt(value0, 16), 0);
+          assert.strictEqual(
+            parseInt(value0, 16),
+            0,
+            `check failed at value0 block ${blockNum}`
+          );
 
           const value1 = await get("value1", blockNum);
-          assert.strictEqual(parseInt(value1, 16), 2);
+          assert.strictEqual(
+            parseInt(value1, 16),
+            2,
+            `check failed at value1 block ${blockNum}`
+          );
 
           const value2 = await get("value2", blockNum);
-          assert.strictEqual(parseInt(value2, 16), 1);
+          assert.strictEqual(
+            parseInt(value2, 16),
+            1,
+            `check failed at value2 block ${blockNum}`
+          );
 
           const value3 = await get("value3", blockNum);
-          assert.strictEqual(parseInt(value3, 16), 0);
+          assert.strictEqual(
+            parseInt(value3, 16),
+            0,
+            `check failed at value3 block ${blockNum}`
+          );
 
           const value4 = await get("value4", blockNum);
-          assert.strictEqual(parseInt(value4, 16), 1);
+          assert.strictEqual(
+            parseInt(value4, 16),
+            1,
+            `check failed at value4 block ${blockNum}`
+          );
         })
       );
     }

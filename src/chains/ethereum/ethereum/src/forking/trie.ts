@@ -24,7 +24,7 @@ const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap<LevelUp, CheckpointDB>();
+const MetadataSingletons = new WeakMap<LevelUp, LevelUp>();
 
 const LEVELDOWN_OPTIONS = {
   keyEncoding: "binary",
@@ -50,10 +50,11 @@ export class ForkTrie extends GanacheTrie {
     this.blockNumber = this.blockchain.fallback.blockNumber;
 
     if (MetadataSingletons.has(db)) {
-      this.metadata = MetadataSingletons.get(db);
+      this.metadata = new CheckpointDB(MetadataSingletons.get(db));
     } else {
-      this.metadata = new CheckpointDB(sub(db, "f", LEVELDOWN_OPTIONS));
-      MetadataSingletons.set(db, this.metadata);
+      const metadataDb = sub(db, "f", LEVELDOWN_OPTIONS);
+      MetadataSingletons.set(db, metadataDb);
+      this.metadata = new CheckpointDB(metadataDb);
     }
   }
 
