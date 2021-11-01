@@ -127,7 +127,7 @@ export class Connector<
           if (result instanceof Error) {
             return makeError(payload.id, result as any);
           } else {
-            return makeResponse(payload.id, payload);
+            return makeResponse(payload.id, result);
           }
         })
       );
