@@ -61,8 +61,8 @@ jobs:
       #   if: startsWith(matrix.os, 'windows-')
       #   run: npm config set msvs_version 2019 --global
       - run: python -c "import sys; print(sys.version)"
-      - run: npm unisntall -g windows-build-tools
-      - run: npm unisntall -g node-gyp
+      - run: npm uninstall -g windows-build-tools
+      - run: npm uninstall -g node-gyp
       - run: npm install
       - run: npm run tsc
       - run: npm test
