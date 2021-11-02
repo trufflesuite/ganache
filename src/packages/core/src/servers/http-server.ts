@@ -8,6 +8,7 @@ import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
 import { InternalOptions } from "../options";
+import { types } from "util";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -179,14 +180,15 @@ export default class HttpServer {
               // cause an `Unhandled promise rejection` if we try)
               return;
             }
-            const data = connector.format(result, payload, this);
-            if (typeof data.next === "function") {
+            const data = connector.format(result, payload);
+            if (types.isGeneratorObject(data)) {
               response.cork(() => {
                 response.writeStatus(HttpResponseCodes.OK);
                 writeHeaders(response);
                 response.writeHeader("Content-Type", ContentTypes.JSON);
 
-                for (const datum of data) response.write(datum);
+                for (const datum of data)
+                  response.write(datum as RecognizedString);
                 response.end();
               });
             } else {

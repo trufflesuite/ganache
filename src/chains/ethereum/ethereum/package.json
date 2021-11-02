@@ -84,11 +84,11 @@
     "semaphore": "1.1.0",
     "subleveldown": "5.0.1",
     "tmp-promise": "3.0.2",
-    "ws": "7.5.3"
+    "ws": "8.2.3"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.12",
+    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.1",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",

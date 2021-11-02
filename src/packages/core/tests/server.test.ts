@@ -17,7 +17,8 @@ import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
-import { Provider as EthereumProvider } from "@ganache/ethereum";
+import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
+import { Buffer } from "buffer";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -65,6 +66,9 @@ describe("server", () => {
         .post("http://localhost:" + port)
         .send(jsonRpcJson);
       assert.strictEqual(response.status, 200);
+
+      // make sure we aren't including the uwebsockets header
+      assert.strictEqual("uwebsockets" in response.headers, false);
 
       const json = JSON.parse(response.text);
       assert.strictEqual(json.result, `${networkId}`);
@@ -373,14 +377,14 @@ describe("server", () => {
       }
     });
 
-    it("handles chunked requests (note: doesn't test `transfer-encoding: chunked`)", async () => {
+    it("handles chunked requests (note: doesn't test sending with `transfer-encoding: chunked`)", async () => {
       await setup();
       try {
         const req = request.post("http://localhost:" + port);
         const json = JSON.stringify(jsonRpcJson);
 
         // we have to set the content-length because we can't use
-        // `Transfer-Encoding: chunked` with uWebSockets.js as of v15.9.0
+        // `Transfer-Encoding: chunked` to uWebSockets.js as of v15.9.0
         req.set("Content-Length", json.length.toString());
 
         await new Promise((resolve, reject) => {
@@ -399,6 +403,52 @@ describe("server", () => {
           readableStream.pipe(req as any);
         });
       } finally {
+        await teardown();
+      }
+    });
+
+    it.only("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
+      const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
+      // This will trigger bufferication in the Ethereum connector
+      // for calls to debug_traceTransaction that return structLogs that have a
+      // length greater than BUFFERIFY_THRESHOLD
+      Connector.BUFFERIFY_THRESHOLD = 0;
+
+      try {
+        await setup();
+        const [from] = await s.provider.send("eth_accounts");
+        await s.provider.send("eth_subscribe", ["newHeads"]);
+
+        const ops = [
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "RETURN", code: "f3", data: "" }
+        ];
+        // a silly "contract" we can trace later: PUSH 0, PUSH, 0, RETURN
+        const data = "0x" + ops.map(op => op.code + op.data).join("");
+        const hash = s.provider.send("eth_sendTransaction", [{ from, data }]);
+        await s.provider.once("message");
+
+        // send a `debug_traceTransaction` request to the *server* so we can
+        // test for `transfer-encoding: chunked` and bufferfication.
+        const jsonRpcJson: any = {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "debug_traceTransaction",
+          params: [await hash]
+        };
+
+        const { text, header, status } = await request
+          .post("http://localhost:" + port)
+          .send(jsonRpcJson);
+        const { result } = JSON.parse(text);
+
+        assert.strictEqual(header["transfer-encoding"], "chunked");
+        assert.strictEqual(header["content-type"], "application/json");
+        assert.strictEqual(status, 200);
+        assert.strictEqual(result.structLogs.length, ops.length);
+      } finally {
+        Connector.BUFFERIFY_THRESHOLD = originalThreshold;
         await teardown();
       }
     });
@@ -678,18 +728,13 @@ describe("server", () => {
     it("returns the net_version over a websocket", async () => {
       const ws = new WebSocket("ws://localhost:" + port);
 
-      const response: any = await new Promise(resolve => {
+      const { data }: any = await new Promise(resolve => {
         ws.on("open", () => {
           ws.send(JSON.stringify(jsonRpcJson));
         });
-        ws.on("message", resolve);
+        ws.on("message", (data, isBinary) => resolve({ data, isBinary }));
       });
-      assert.strictEqual(
-        typeof response,
-        "string",
-        "response doesn't seem to be a string as expected"
-      );
-      const json = JSON.parse(response);
+      const json = JSON.parse(data);
       assert.strictEqual(json.result, `${networkId}`);
     });
 
@@ -921,6 +966,60 @@ describe("server", () => {
         });
       });
     });
+
+    it("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
+      // this test needs to set BUFFERIFY_THRESHOLD before starting the server
+      await teardown();
+
+      const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
+      // This will trigger bufferication in the Ethereum connector
+      // for calls to debug_traceTransaction that return structLogs that have a
+      // length greater than BUFFERIFY_THRESHOLD
+      Connector.BUFFERIFY_THRESHOLD = 0;
+
+      try {
+        await setup();
+        const [from] = await s.provider.send("eth_accounts");
+        await s.provider.send("eth_subscribe", ["newHeads"]);
+
+        const ops = [
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "RETURN", code: "f3", data: "" }
+        ];
+        // a silly "contract" we can trace later: PUSH 0, PUSH, 0, RETURN
+        const data = "0x" + ops.map(op => op.code + op.data).join("");
+        const hash = s.provider.send("eth_sendTransaction", [{ from, data }]);
+        await s.provider.once("message");
+
+        // send a `debug_traceTransaction` request to the *server* so we can
+        // test for `transfer-encoding: chunked` and bufferfication.
+        const jsonRpcJson: any = {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "debug_traceTransaction",
+          params: [await hash]
+        };
+
+        const ws = new WebSocket("ws://localhost:" + port);
+        ws.binaryType = "fragments";
+        const response: any = await new Promise(resolve => {
+          ws.on("open", () => {
+            ws.send(Buffer.from(JSON.stringify(jsonRpcJson)), {
+              binary: true
+            });
+          });
+          ws.on("message", resolve);
+        });
+
+        assert.strictEqual(Array.isArray(response), true);
+        const { result } = JSON.parse(Buffer.concat(response));
+        assert.strictEqual(result.structLogs.length, ops.length);
+      } finally {
+        Connector.BUFFERIFY_THRESHOLD = originalThreshold;
+        await teardown();
+      }
+    }).timeout(0);
 
     describe("max payload size", () => {
       let ws: WebSocket;

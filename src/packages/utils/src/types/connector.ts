@@ -60,14 +60,9 @@ export interface Connector<
    */
   format(
     result: ResponseFormat,
-    payload: RequestFormat,
-    connection: HttpRequest
+    payload: RequestFormat
   ): RecognizedString | Generator<RecognizedString>;
-  format(
-    result: ResponseFormat,
-    payload: RequestFormat,
-    connection: WebSocket
-  ): RecognizedString;
+  format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
 
   /**
    * Formats the error response

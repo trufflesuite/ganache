@@ -27,8 +27,6 @@ type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 export type Provider = EthereumProvider;
 export const Provider = EthereumProvider;
 
-const BUFFERIFY_THRESHOLD = 100000;
-
 function isHttp(
   connection: HttpRequest | WebSocket
 ): connection is HttpRequest {
@@ -48,6 +46,8 @@ export class Connector<
   implements IConnector<EthereumApi, R | R[], JsonRpcResponse> {
   #provider: EthereumProvider;
 
+  static BUFFERIFY_THRESHOLD: number = 100000;
+
   get provider() {
     return this.#provider;
   }
@@ -58,7 +58,7 @@ export class Connector<
     this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
-  public BUFFERIFY_THRESHOLD = BUFFERIFY_THRESHOLD;
+  public BUFFERIFY_THRESHOLD = Connector.BUFFERIFY_THRESHOLD;
 
   async connect() {
     await this.#provider.initialize();
@@ -106,19 +106,13 @@ export class Connector<
 
   format(
     result: any,
-    payload: R,
-    connection: HttpRequest
+    payload: R
   ): RecognizedString | Generator<RecognizedString>;
-  format(result: any, payload: R, connection: WebSocket): RecognizedString;
-  format(
-    results: any[],
-    payloads: R[],
-    connection: HttpRequest | WebSocket
-  ): RecognizedString;
+  format(result: any, payload: R): RecognizedString;
+  format(results: any[], payloads: R[]): RecognizedString;
   format(
     results: any | any[],
-    payload: R | R[],
-    connection: HttpRequest | WebSocket
+    payload: R | R[]
   ): RecognizedString | Generator<RecognizedString> {
     if (Array.isArray(payload)) {
       return JSON.stringify(
@@ -134,8 +128,9 @@ export class Connector<
     } else {
       const json = makeResponse(payload.id, results);
       if (
-        isHttp(connection) &&
         payload.method === "debug_traceTransaction" &&
+        typeof results === "object" &&
+        Array.isArray(results.structLogs) &&
         // for "large" debug_traceTransaction results we convert to individual
         // parts of the response to Buffers, yielded via a Generator function,
         // instead of using JSON.stringify. This is necessary because we:

@@ -59,11 +59,7 @@ export class Connector<
     return this.#provider._requestRaw(payload);
   }
 
-  format(
-    result: any,
-    payload: R,
-    _connection: HttpRequest | WebSocket
-  ): RecognizedString {
+  format(result: any, payload: R): RecognizedString {
     const json = makeResponse(payload.id, result);
     return JSON.stringify(json);
   }

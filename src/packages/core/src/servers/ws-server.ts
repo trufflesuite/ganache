@@ -6,7 +6,9 @@ import {
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
-import { PromiEvent } from "@ganache/utils";
+import { hasOwn, PromiEvent } from "@ganache/utils";
+import { isGeneratorFunction, isGeneratorObject } from "util/types";
+import { types } from "util";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
@@ -76,7 +78,7 @@ export default class WebsocketServer {
           return;
         }
 
-        let response: RecognizedString;
+        let data: RecognizedString | Generator<RecognizedString>;
 
         try {
           const { value } = await connector.handle(payload, ws);
@@ -89,7 +91,7 @@ export default class WebsocketServer {
           const result = await resultEmitter;
           if (ws.closed) return;
 
-          response = connector.format(result, payload, ws);
+          data = connector.format(result, payload);
 
           // if the result is an emitter listen to its `"message"` event
           // We check if `on` is a function rather than check if
@@ -117,10 +119,40 @@ export default class WebsocketServer {
           // ensure the connector's `handle` fn doesn't throw outside of a Promise
 
           if (ws.closed) return;
-          response = connector.formatError(err, payload);
+          data = connector.formatError(err, payload);
         }
 
-        ws.send(response as RecognizedString, useBinary);
+        if (types.isGeneratorObject(data)) {
+          const localData = data;
+          ws.cork(() => {
+            const { value: first } = localData.next();
+            const COMPRESS = false;
+
+            // get the second fragment, if there is one
+            let { value: next, done } = localData.next();
+
+            // if there wasn't a second fragment, just send it the usual way.
+            if (done) {
+              ws.send(first, useBinary);
+            } else {
+              // send the first fragment
+              ws.sendFirstFragment(first, useBinary, COMPRESS);
+
+              // Now send the rest of the data piece by piece.
+              // We lag behind by one fragment because the last fragment needs
+              // to be sent via the `sendLastFragment` method
+              let prev = next;
+              for (next of localData) {
+                ws.sendFragment(prev, COMPRESS);
+                prev = next;
+              }
+              // finally, send the last fragment
+              ws.sendLastFragment(next, COMPRESS);
+            }
+          });
+        } else {
+          ws.send(data as RecognizedString, useBinary);
+        }
       },
 
       drain: (ws: WebSocket) => {
