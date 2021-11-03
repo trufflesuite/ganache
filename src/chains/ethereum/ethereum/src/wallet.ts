@@ -183,11 +183,11 @@ export default class Wallet {
       accountsCache[i] = strAddress;
       knownAccounts.add(strAddress);
 
-      // if the `secure` option has been set do NOT add these accounts to the
+      // if the `lock` option has been set do NOT add these accounts to the
       // unlockedAccounts, unless the account was already added to
       // unlockedAccounts, in which case we need to add the account's private
       // key.
-      if (opts.secure && !unlockedAccounts.has(strAddress)) continue;
+      if (opts.lock && !unlockedAccounts.has(strAddress)) continue;
 
       unlockedAccounts.set(strAddress, account.privateKey);
     }
