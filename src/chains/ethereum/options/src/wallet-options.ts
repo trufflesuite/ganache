@@ -130,14 +130,14 @@ export type WalletConfig = {
      *
      * @defaultValue false
      */
-    secure: {
+    lock: {
       type: boolean;
       hasDefault: true;
       legacy: {
         /**
-         * @deprecated Use wallet.secure instead
+         * @deprecated Use wallet.lock instead
          */
-        secure: boolean;
+        lock: boolean;
       };
     };
 
@@ -274,13 +274,13 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliAliases: ["u", "unlock"],
     cliType: "array:string"
   },
-  secure: {
+  lock: {
     normalize,
     cliDescription:
       "Lock available accounts by default (good for third party transaction signing).",
     default: () => false,
-    legacyName: "secure",
-    cliAliases: ["n", "secure"],
+    legacyName: "lock",
+    cliAliases: ["n", "secure", "lock", "lock"],
     cliType: "boolean"
   },
   accountKeysPath: {
