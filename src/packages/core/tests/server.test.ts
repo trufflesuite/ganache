@@ -407,7 +407,7 @@ describe("server", () => {
       }
     });
 
-    it.only("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
+    it("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
       const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
       // This will trigger bufferication in the Ethereum connector
       // for calls to debug_traceTransaction that return structLogs that have a
