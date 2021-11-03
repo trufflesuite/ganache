@@ -84,6 +84,8 @@ function sendResponse(
     }
     if (data != null) {
       response.end(data);
+    } else {
+      response.end();
     }
   });
 }
