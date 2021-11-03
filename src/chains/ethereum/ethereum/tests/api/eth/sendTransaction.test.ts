@@ -221,10 +221,10 @@ describe("api", () => {
           );
         });
 
-        it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
+        it.only("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
           const p = await getProvider({
             wallet: {
-              secure: true,
+              lock: true,
               unlockedAccounts: ["0", 1]
             }
           });
