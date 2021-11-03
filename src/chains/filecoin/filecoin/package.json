@@ -59,7 +59,7 @@
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
     "@ganache/filecoin-options": "0.1.1-alpha.1",
     "@ganache/utils": "0.1.1-alpha.1",
-    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.1",
+    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
     "@types/bn.js": "5.1.0",
     "@types/deep-equal": "1.0.1",
     "@types/levelup": "4.3.0",
