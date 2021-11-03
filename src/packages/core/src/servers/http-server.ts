@@ -72,17 +72,19 @@ function prepareCORSResponseHeaders(method: HttpMethods, request: HttpRequest) {
 function sendResponse(
   response: HttpResponse,
   statusCode: HttpResponseCodes,
-  contentType?: RecognizedString,
-  data?: RecognizedString,
+  contentType: RecognizedString | null,
+  data: RecognizedString | null,
   writeHeaders: (response: HttpResponse) => void = noop
 ): void {
   response.cork(() => {
     response.writeStatus(statusCode);
     writeHeaders(response);
-    if (contentType) {
+    if (contentType != null) {
       response.writeHeader("Content-Type", contentType);
     }
-    response.end(data);
+    if (data != null) {
+      response.end(data);
+    }
   });
 }
 
@@ -125,7 +127,7 @@ export default class HttpServer {
           "400 Bad Request"
         );
       } else {
-        // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
+        // all other requests don't mean anything to us, so respond with `404 Not Found`...
         sendResponse(
           response,
           HttpResponseCodes.NOT_FOUND,
@@ -233,8 +235,8 @@ export default class HttpServer {
     sendResponse(
       response,
       HttpResponseCodes.NO_CONTENT,
-      void 0,
-      "",
+      null,
+      null,
       writeHeaders
     );
   };

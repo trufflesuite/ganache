@@ -16,7 +16,10 @@ import allSettled from "promise.allsettled";
 allSettled.shim();
 
 import AggregateError from "aggregate-error";
-import type {TemplatedApp, us_listen_socket} from "@trufflesuite/uws-js-unofficial";
+import type {
+  TemplatedApp,
+  us_listen_socket
+} from "@trufflesuite/uws-js-unofficial";
 import {
   App,
   us_listen_socket_close,

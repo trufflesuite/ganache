@@ -691,7 +691,12 @@ describe("server", () => {
             origin
           );
           assert.strictEqual(resp.header["access-control-max-age"], "600");
-          assert.strictEqual(resp.header["content-length"], "0");
+          // TODO: enable this check once https://github.com/uNetworking/uWebSockets/issues/1370 is fixed
+          // assert.strictEqual(
+          //   "content-length" in resp.header,
+          //   false,
+          //   "RFC 7230: A server MUST NOT send a Content-Length header field in any response with a status code of 1xx (Informational) or 204 (No Content)"
+          // );
           assert.strictEqual(
             resp.header["access-control-allow-credentials"],
             "true"
