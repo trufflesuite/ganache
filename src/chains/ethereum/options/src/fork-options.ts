@@ -302,13 +302,14 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         return;
       }
     },
-    defaultDescription: `Latest block number - 5`
+    defaultDescription: `Latest block number`
     //implies: ["url"]
   },
   blockAge: {
     normalize: rawInput => BigInt(rawInput),
     cliDescription: `Minimum age in seconds of the "latest" block. If the "latest" block is younger than this amount the block immediately preceding the latest block will be used instead.`,
-    default: () => 1n,
+    default: () => 5n,
+    defaultDescription: "5",
     cliType: "number"
   },
   username: {
