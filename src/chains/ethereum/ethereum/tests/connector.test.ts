@@ -2,7 +2,7 @@ import assert from "assert";
 import { Executor, RequestCoordinator } from "@ganache/utils";
 import { Connector } from "../";
 
-describe.only("connector", () => {
+describe("connector", () => {
   const primitives = {
     string: "string",
     empty: "empty",
