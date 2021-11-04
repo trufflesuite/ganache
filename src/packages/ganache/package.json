@@ -31,7 +31,7 @@
     "tsc": "ttsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
-    "start": "cross-env TS_NODE_COMPILER=ttypescript node --require ts-node/register --inspect src/cli.ts"
+    "start": "cross-env TS_NODE_COMPILER=ttypescript node --require ts-node/register src/cli.ts"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -62,6 +62,7 @@
     "cross-env": "7.0.3",
     "crypto-browserify": "3.12.0",
     "events": "3.2.0",
+    "isomorphic-ws": "4.0.1",
     "level-js": "5.0.2",
     "mcl-wasm": "0.7.8",
     "mocha": "8.4.0",

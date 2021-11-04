@@ -24,7 +24,7 @@ const config: webpack.Configuration = merge({}, base, {
     alias: {
       "tmp-promise": require.resolve("./polyfills/browser-tmp-promise"),
       "bigint-buffer": require.resolve("./polyfills/browser-bigint-buffer"),
-      "crypto": require.resolve("./polyfills/browser-crypto"),
+      crypto: require.resolve("./polyfills/browser-crypto"),
       // replace leveldown with a browser version
       leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway
@@ -33,7 +33,9 @@ const config: webpack.Configuration = merge({}, base, {
       // `url` is already a global property in browser
       url: false,
       // mcl-wasm may be needed when creating a new @ethereumjs/vm and requires a browser version for browsers
-      "mcl-wasm": require.resolve("mcl-wasm/browser")
+      "mcl-wasm": require.resolve("mcl-wasm/browser"),
+      // ws doesn't work in the browser, isomorphic-ws does
+      ws: require.resolve("isomorphic-ws/")
     }
   },
   output: {
