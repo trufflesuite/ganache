@@ -276,8 +276,8 @@ export class ForkTrie extends GanacheTrie {
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;
     if (includeCheckpoints && this.isCheckpoint) {
-      db.checkpoints = [...this.db.checkpoints];
-      secureTrie.metadata.checkpoints = this.metadata.checkpoints.slice(0);
+      secureTrie.db.checkpoints = [...this.db.checkpoints];
+      secureTrie.metadata.checkpoints = this.metadata.checkpoints;
     }
     return secureTrie;
   }

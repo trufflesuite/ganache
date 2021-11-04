@@ -57,7 +57,7 @@ export class ForkStateManager extends StateManager {
   async _lookupStorageTrie(address: EJS_Address) {
     // from state trie
     const account = await this.getAccount(address);
-    const storageTrie = this._trie.copy(false) as ForkTrie;
+    const storageTrie = this._trie.copy(true) as ForkTrie;
     storageTrie.setContext(
       account.stateRoot,
       address.buf,

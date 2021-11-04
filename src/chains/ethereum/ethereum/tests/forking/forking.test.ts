@@ -814,11 +814,11 @@ describe("forking", function () {
         snapshotValues: number[]
       ) {
         for await (const snapshotValue of snapshotValues) {
-          // set value0 to {snapshotValue}
-          await set(localProvider, 0, snapshotValue);
+          // set value1 to {snapshotValue}
+          await set(localProvider, 1, snapshotValue);
           const message = await localProvider.once("message");
           const blockNumber = parseInt(message.data.result.number, 16);
-          const checkValue = await get(localProvider, "value0", blockNumber);
+          const checkValue = await get(localProvider, "value1", blockNumber);
           assert.strictEqual(
             Quantity.from(checkValue).toNumber(),
             snapshotValue,
@@ -837,13 +837,13 @@ describe("forking", function () {
         });
         const subId = await localProvider.send("eth_subscribe", ["newHeads"]);
 
-        // set value0 to {initialValue} (delete it)
-        await set(localProvider, 0, initialValue);
+        // set value1 to {initialValue} (delete it)
+        await set(localProvider, 1, initialValue);
         const message = await localProvider.once("message");
         const initialBlockNumber = parseInt(message.data.result.number, 16);
         assert.strictEqual(
           Quantity.from(
-            await get(localProvider, "value0", initialBlockNumber)
+            await get(localProvider, "value1", initialBlockNumber)
           ).toNumber(),
           initialValue
         ); // sanity check
@@ -859,7 +859,7 @@ describe("forking", function () {
 
         assert.strictEqual(
           Quantity.from(
-            await get(localProvider, "value0", initialBlockNumber)
+            await get(localProvider, "value1", initialBlockNumber)
           ).toNumber(),
           initialValue,
           "value was not reverted to `initialValue` after evm_revert"
@@ -900,13 +900,13 @@ describe("forking", function () {
               const subId = await remoteProvider.send("eth_subscribe", [
                 "newHeads"
               ]);
-              // set the remoteProvider's initialValue to {remoteInitialValue}
-              await set(remoteProvider, 0, remoteInitialValue);
+              // set the remoteProvider's value1 initialValue to {remoteInitialValue}
+              await set(remoteProvider, 1, remoteInitialValue);
               const message = await remoteProvider.once("message");
               await remoteProvider.send("eth_unsubscribe", [subId]);
               const blockNumber = parseInt(message.data.result.number, 16);
               assert.strictEqual(
-                parseInt(await get(remoteProvider, "value0", blockNumber), 16),
+                parseInt(await get(remoteProvider, "value1", blockNumber), 16),
                 remoteInitialValue
               ); // sanity check to make sure our initial conditions are correct
 
