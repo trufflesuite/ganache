@@ -237,7 +237,10 @@ export class PersistentCache {
       targetBlock,
       allKnownDescendants
     )
-      .catch(_ => {}) // if it fails, it fails.
+      // we don't care if it fails because this is an optimization that only
+      // matters for _future_ runs of ganache for blocks beyond our current fork
+      // block
+      .catch(_ => {})
       .finally(() => {
         this._reBalancePromise = null;
       });
