@@ -40,6 +40,8 @@ function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
 export class ForkTrie extends GanacheTrie {
   private accounts: AccountManager;
   private address: Buffer | null = null;
+  private preForkBlock = false;
+  private forkBlockNumber: bigint;
   public blockNumber: Quantity;
   private metadata: CheckpointDB;
 
@@ -48,6 +50,7 @@ export class ForkTrie extends GanacheTrie {
 
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
+    this.forkBlockNumber = this.blockNumber.toBigInt();
 
     if (MetadataSingletons.has(db)) {
       this.metadata = new CheckpointDB(MetadataSingletons.get(db));
@@ -81,6 +84,7 @@ export class ForkTrie extends GanacheTrie {
     (this as any)._root = stateRoot;
     this.address = address;
     this.blockNumber = blockNumber;
+    this.preForkBlock = blockNumber.toBigInt() < this.forkBlockNumber;
   }
 
   async put(key: Buffer, val: Buffer): Promise<void> {
@@ -156,14 +160,24 @@ export class ForkTrie extends GanacheTrie {
   async del(key: Buffer) {
     await this.lock.wait();
 
-    const delKey = this.createDelKey(key);
-    const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
+    // we only track if the key was deleted (locally) for state tries _after_
+    // the fork block because we can't possibly delete keys _before_ the fork
+    // block, since those happened before ganache was even started
+    // This little optimization can debug_traceTransaction time _in half_.
+    if (!this.preForkBlock) {
+      const delKey = this.createDelKey(key);
+      const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
 
-    const hash = keccak(key);
-    const { node, stack } = await this.findPath(hash);
-    if (node) await this._deleteNode(hash, stack);
+      const hash = keccak(key);
+      const { node, stack } = await this.findPath(hash);
+      if (node) await this._deleteNode(hash, stack);
 
-    await metaDataPutPromise;
+      await metaDataPutPromise;
+    } else {
+      const hash = keccak(key);
+      const { node, stack } = await this.findPath(hash);
+      if (node) await this._deleteNode(hash, stack);
+    }
 
     this.lock.signal();
   }
@@ -254,7 +268,11 @@ export class ForkTrie extends GanacheTrie {
 
     // since we don't have this key in our local trie check if we've have
     // deleted it (locally)
-    if (await this.keyWasDeleted(key)) return null;
+    // we only check if the key was deleted (locally) for state tries _after_
+    // the fork block because we can't possibly delete keys _before_ the fork
+    // block, since those happened before ganache was even started
+    // This little optimization can debug_traceTransaction time _in half_.
+    if (!this.preForkBlock && (await this.keyWasDeleted(key))) return null;
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
