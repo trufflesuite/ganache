@@ -168,7 +168,7 @@ export class Fork {
     const options = this.#options;
     if (options.deleteCache) await PersistentCache.deleteDb();
     if (options.noCache === false) {
-      // ignore cache start up errors as it is possible there is an open
+      // ignore cache start up errors as it is possible there is an `open`
       // conflict if another ganache fork is running at the time this one is
       // started. The cache isn't required (though performance will be
       // degraded without it)
