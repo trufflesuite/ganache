@@ -2,7 +2,7 @@ import assert from "assert";
 import { Executor, RequestCoordinator } from "@ganache/utils";
 import { Connector } from "../";
 
-describe("connector", () => {
+describe.only("connector", () => {
   const primitives = {
     string: "string",
     empty: "empty",
@@ -18,6 +18,13 @@ describe("connector", () => {
     // `structLogs` triggers an optimization in the connector
     structLogs: [{ ...primitives }, ...Object.values(primitives)],
     emptyArray: [],
+    // notDefined and alsoNotDefined should be removed when JSON stringified/bufferified
+    trickyObject: {
+      notDefined: undefined,
+      defined: true,
+      alsoNotDefined: undefined
+    },
+    trickyArray: [...Object.values(primitives)],
     object: {
       ...primitives,
       emptyObject: {},

@@ -48,6 +48,7 @@ function* arrayToBuffer(value: any[]) {
     return;
   } else {
     let yieldPrefix = true;
+    // sends the first array value:
     for (const chunkified of bufferify(value[0], "0")) {
       // if the value ends up being nothing (undefined), return null
       const jsonVal = chunkified.length === 0 ? NULL : chunkified;
@@ -57,6 +58,7 @@ function* arrayToBuffer(value: any[]) {
       }
       yield jsonVal;
     }
+    // sends the rest of the array values:
     if (l > 1) {
       for (let i = 1; i < l; i++) {
         let yieldPrefix = true;
@@ -103,7 +105,9 @@ function* objectToBuffer(value: any, nameOrIndex: string) {
     let i = 0;
     yield CURLY_BRACKET_OPEN;
 
-    // find the first non-null property to start the object
+    // Find the first non-null property to start the object
+    // The difference betwwen the first property and the rest is is that the
+    // first property is *not* preceded by a comma
     while (i < l) {
       const [key, value] = entries[i];
       i++;
@@ -113,18 +117,18 @@ function* objectToBuffer(value: any, nameOrIndex: string) {
         // if the chunkified value ends up being nothing (undefined) ignore
         // the property
         const chunkLength = chunkified.length;
-        if (chunkLength === 0) {
-          continue;
-        }
+        if (chunkLength === 0) continue;
 
         if (yieldPrefix) {
           yield Buffer.concat([stringToQuotedBuffer(key), COLON]);
-          yieldPrefix = null;
+          yieldPrefix = false;
         }
         yield chunkified;
       }
-      break;
+      // if we sent the prefix we found a non-undefined entry and should break
+      if (yieldPrefix === false) break;
     }
+    // sends the rest of the object fields
     if (l > 1) {
       for (; i < l; i++) {
         const [key, value] = entries[i];
