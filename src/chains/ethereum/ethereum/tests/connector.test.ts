@@ -24,6 +24,8 @@ describe("connector", () => {
       defined: true,
       alsoNotDefined: undefined
     },
+    allUndefinedArray: [undefined, undefined, undefined],
+    allUndefinedObject: { uno: undefined, dos: undefined, tres: undefined },
     trickyArray: [...Object.values(primitives)],
     object: {
       ...primitives,

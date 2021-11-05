@@ -97,7 +97,12 @@ function* objectToBuffer(obj: any, nameOrIndex: string) {
         yieldPrefix = false;
         const quotedKey = stringToQuotedBuffer(key);
         if (!yieldedOpen) {
-          yield Buffer.concat([CURLY_BRACKET_OPEN, quotedKey, chunkified]);
+          yield Buffer.concat([
+            CURLY_BRACKET_OPEN,
+            quotedKey,
+            COLON,
+            chunkified
+          ]);
           yieldedOpen = true;
         } else {
           yield Buffer.concat([COMMA, quotedKey, COLON, chunkified]);
