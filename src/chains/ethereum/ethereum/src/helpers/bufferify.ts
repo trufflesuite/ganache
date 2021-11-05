@@ -18,10 +18,10 @@ const isObj = (val: any) => toStr.call(val) === "[object Object]";
 
 function numberToBuffer(value: number) {
   const str = value.toString();
-  const l = str.length;
-  if (l > 0) {
-    const buf = Buffer.allocUnsafe(l);
-    (buf as any).utf8Write(str, 0, l);
+  const { length } = str;
+  if (length > 0) {
+    const buf = Buffer.allocUnsafe(length);
+    (buf as any).utf8Write(str, 0, length);
     return buf;
   } else {
     return _EMPTY;
@@ -29,11 +29,11 @@ function numberToBuffer(value: number) {
 }
 
 function stringToQuotedBuffer(value: string) {
-  const length = value.length;
+  const { length } = value;
   if (length > 0) {
     const buf = Buffer.allocUnsafe(length + 2); // + 2 for the quotation marks
-    buf[0] = 34; // QUOTE
-    buf[length + 1] = 34; // QUOTE
+    buf[0] = 34; // DOUBLE QUOTE
+    buf[length + 1] = 34; // DOUBLE QUOTE
     (buf as any).utf8Write(value, 1, length);
     return buf;
   } else {
@@ -42,8 +42,8 @@ function stringToQuotedBuffer(value: string) {
 }
 
 function* arrayToBuffer(value: any[]) {
-  const l = value.length;
-  if (l === 0) {
+  const { length } = value;
+  if (length === 0) {
     yield SQUARE_BRACKET_PAIR;
     return;
   } else {
@@ -54,7 +54,7 @@ function* arrayToBuffer(value: any[]) {
       yield chunkified.length === 0 ? NULL : chunkified;
     }
     // sends the rest of the array values:
-    for (let i = 1; i < l; i++) {
+    for (let i = 1; i < length; i++) {
       yield COMMA;
       for (const chunkified of bufferify(value[i], i.toString())) {
         // if the value ends up being nothing (undefined), return null
@@ -67,7 +67,7 @@ function* arrayToBuffer(value: any[]) {
 }
 
 function bufferToQuotedBuffer(value: Buffer) {
-  const length = value.length;
+  const { length } = value;
   const buf = Buffer.allocUnsafe(length + 2);
   buf[0] = 34;
   value.copy(buf, 1, 0, length);
