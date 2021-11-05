@@ -158,7 +158,8 @@ function* objectToBuffer(value: any, nameOrIndex: string) {
  *
  * This is a hack. It:
  *  * Does not support circular references.
- *  * Does not support double quotes within Object keys; just stick with ascii
+ *  * Does not support double quotes within Object keys; only alphanumerics are
+ *    considered safe to use
  *  * Probably doesn't support non-ASCII characters
  *  * Is only tested on transaction traces
  *
