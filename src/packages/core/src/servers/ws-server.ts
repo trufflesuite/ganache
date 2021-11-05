@@ -135,6 +135,8 @@ export default class WebsocketServer {
             if (done) {
               ws.send(first, useBinary);
             } else {
+              // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
+
               // send the first fragment
               ws.sendFirstFragment(first, useBinary, COMPRESS);
 
