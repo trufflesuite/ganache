@@ -129,6 +129,10 @@ export default class WebsocketServer {
             const { value: first } = localData.next();
 
             // get the second fragment, if there is one
+            // Note: we lag behind by one fragment because the last fragment
+            // needs to be sent via the `sendLastFragment` method.
+            // This value acts as a lookahead so we know if we are at the last
+            // value or not.
             let { value: next, done } = localData.next();
 
             // if there wasn't a second fragment, just send it the usual way.
@@ -141,8 +145,6 @@ export default class WebsocketServer {
               ws.sendFirstFragment(first, useBinary, shouldCompress);
 
               // Now send the rest of the data piece by piece.
-              // We lag behind by one fragment because the last fragment needs
-              // to be sent via the `sendLastFragment` method
               let prev = next;
               for (next of localData) {
                 ws.sendFragment(prev, shouldCompress);
