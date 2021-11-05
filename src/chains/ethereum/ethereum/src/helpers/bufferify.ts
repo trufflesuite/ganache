@@ -54,13 +54,11 @@ function* arrayToBuffer(value: any[]) {
       yield chunkified.length === 0 ? NULL : chunkified;
     }
     // sends the rest of the array values:
-    if (l > 1) {
-      for (let i = 1; i < l; i++) {
-        yield COMMA;
-        for (const chunkified of bufferify(value[i], i.toString())) {
-          // if the value ends up being nothing (undefined), return null
-          yield chunkified.length === 0 ? NULL : chunkified;
-        }
+    for (let i = 1; i < l; i++) {
+      yield COMMA;
+      for (const chunkified of bufferify(value[i], i.toString())) {
+        // if the value ends up being nothing (undefined), return null
+        yield chunkified.length === 0 ? NULL : chunkified;
       }
     }
     yield SQUARE_BRACKET_CLOSE;
