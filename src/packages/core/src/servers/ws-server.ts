@@ -125,7 +125,6 @@ export default class WebsocketServer {
         if (types.isGeneratorObject(data)) {
           const localData = data;
           ws.cork(() => {
-            const shouldCompress = false;
             const { value: first } = localData.next();
 
             // get the second fragment, if there is one
@@ -140,6 +139,7 @@ export default class WebsocketServer {
               ws.send(first, useBinary);
             } else {
               // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
+              const shouldCompress = false;
 
               // send the first fragment
               ws.sendFirstFragment(first, useBinary, shouldCompress);
