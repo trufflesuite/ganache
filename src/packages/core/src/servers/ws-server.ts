@@ -125,8 +125,8 @@ export default class WebsocketServer {
         if (types.isGeneratorObject(data)) {
           const localData = data;
           ws.cork(() => {
-            const { value: first } = localData.next();
             const shouldCompress = false;
+            const { value: first } = localData.next();
 
             // get the second fragment, if there is one
             let { value: next, done } = localData.next();
