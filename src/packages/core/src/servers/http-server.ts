@@ -191,8 +191,9 @@ export default class HttpServer {
                 writeHeaders(response);
                 response.writeHeader("Content-Type", ContentTypes.JSON);
 
-                for (const datum of data)
+                for (const datum of data) {
                   response.write(datum as RecognizedString);
+                }
                 response.end();
               });
             } else {
