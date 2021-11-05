@@ -37,7 +37,7 @@ describe("connector", () => {
   };
   let connector: Connector<any>;
   // an arbitrary payload
-  // `debug_traceTransaction` is triggers an optimization in the connector
+  // `debug_traceTransaction` triggers an optimization in the connector
   const payload = {
     jsonrpc: "2.0",
     method: "debug_traceTransaction",
