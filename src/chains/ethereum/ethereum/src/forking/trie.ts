@@ -33,7 +33,7 @@ const LEVELDOWN_OPTIONS = {
 
 function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
   const decodedKey = lexico.decode(encodedKey);
-  const [, keyAddress, deletedKey] = decodedKey;
+  const [_, keyAddress, deletedKey] = decodedKey;
   return keyAddress.equals(address) && deletedKey.equals(key);
 }
 
