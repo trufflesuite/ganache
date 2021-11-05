@@ -40,22 +40,18 @@ function stringToQuotedBuffer(value: string) {
     return QUOTE_PAIR;
   }
 }
+
 function* arrayToBuffer(value: any[]) {
   const l = value.length;
   if (l === 0) {
     yield SQUARE_BRACKET_PAIR;
     return;
   } else {
-    let yieldPrefix = true;
+    yield SQUARE_BRACKET_OPEN;
     // sends the first array value:
     for (const chunkified of bufferify(value[0], "0")) {
       // if the value ends up being nothing (undefined), return null
-      const jsonVal = chunkified.length === 0 ? NULL : chunkified;
-      if (yieldPrefix) {
-        yield SQUARE_BRACKET_OPEN;
-        yieldPrefix = false;
-      }
-      yield jsonVal;
+      yield chunkified.length === 0 ? NULL : chunkified;
     }
     // sends the rest of the array values:
     if (l > 1) {
@@ -80,6 +76,7 @@ function* arrayToBuffer(value: any[]) {
     return;
   }
 }
+
 function bufferToQuotedBuffer(value: Buffer) {
   const length = value.length;
   const buf = Buffer.allocUnsafe(length + 2);
