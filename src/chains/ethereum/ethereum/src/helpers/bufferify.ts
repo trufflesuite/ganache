@@ -31,8 +31,7 @@ function numberToBuffer(value: number) {
 function stringToQuotedBuffer(value: string) {
   const length = value.length;
   if (length > 0) {
-    const l = length + 2;
-    const buf = Buffer.allocUnsafe(l);
+    const buf = Buffer.allocUnsafe(length + 2); // + 2 for the quotation marks
     buf[0] = 34; // QUOTE
     buf[length + 1] = 34; // QUOTE
     (buf as any).utf8Write(value, 1, length);
