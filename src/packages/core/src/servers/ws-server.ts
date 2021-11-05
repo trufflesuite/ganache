@@ -126,7 +126,7 @@ export default class WebsocketServer {
           const localData = data;
           ws.cork(() => {
             const { value: first } = localData.next();
-            const COMPRESS = false;
+            const shouldCompress = false;
 
             // get the second fragment, if there is one
             let { value: next, done } = localData.next();
@@ -138,18 +138,18 @@ export default class WebsocketServer {
               // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
 
               // send the first fragment
-              ws.sendFirstFragment(first, useBinary, COMPRESS);
+              ws.sendFirstFragment(first, useBinary, shouldCompress);
 
               // Now send the rest of the data piece by piece.
               // We lag behind by one fragment because the last fragment needs
               // to be sent via the `sendLastFragment` method
               let prev = next;
               for (next of localData) {
-                ws.sendFragment(prev, COMPRESS);
+                ws.sendFragment(prev, shouldCompress);
                 prev = next;
               }
               // finally, send the last fragment
-              ws.sendLastFragment(next, COMPRESS);
+              ws.sendLastFragment(next, shouldCompress);
             }
           });
         } else {
