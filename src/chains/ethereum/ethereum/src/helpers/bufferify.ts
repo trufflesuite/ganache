@@ -75,64 +75,45 @@ function bufferToQuotedBuffer(value: Buffer) {
   return buf;
 }
 
-function* objectToBuffer(value: any, nameOrIndex: string) {
-  if ("toJSON" in value) {
-    yield* bufferify(value.toJSON(nameOrIndex), nameOrIndex);
+function* objectToBuffer(obj: any, nameOrIndex: string) {
+  if ("toJSON" in obj) {
+    yield* bufferify(obj.toJSON(nameOrIndex), nameOrIndex);
     return;
   }
 
-  const entries = Object.entries(value);
-  const l = entries.length;
-  if (l === 0) {
-    yield CURLY_BRACKET_PAIR;
-    return;
-  } else {
-    let i = 0;
-    yield CURLY_BRACKET_OPEN;
+  let yieldedOpen = false;
+  for (const key in obj) {
+    const value = obj[key];
 
-    // Find the first non-null property to start the object
-    // The difference betwwen the first property and the rest is is that the
-    // first property is *not* preceded by a comma
-    while (i < l) {
-      const [key, value] = entries[i];
-      i++;
+    let yieldPrefix = true;
+    for (const chunkified of bufferify(value, key)) {
+      // if the chunkified value ends up being nothing (undefined) ignore
+      // the property
+      const chunkLength = chunkified.length;
+      if (chunkLength === 0) continue;
 
-      let yieldPrefix = true;
-      for (const chunkified of bufferify(value, key)) {
-        // if the chunkified value ends up being nothing (undefined) ignore
-        // the property
-        const chunkLength = chunkified.length;
-        if (chunkLength === 0) continue;
-
-        if (yieldPrefix) {
-          yield Buffer.concat([stringToQuotedBuffer(key), COLON]);
-          yieldPrefix = false;
+      // only yield the prefix once per `key`
+      if (yieldPrefix) {
+        yieldPrefix = false;
+        const quotedKey = stringToQuotedBuffer(key);
+        if (!yieldedOpen) {
+          yield Buffer.concat([CURLY_BRACKET_OPEN, quotedKey, chunkified]);
+          yieldedOpen = true;
+        } else {
+          yield Buffer.concat([COMMA, quotedKey, COLON, chunkified]);
         }
+      } else {
         yield chunkified;
       }
-      // if we sent the prefix we found a non-undefined entry and should break
-      if (yieldPrefix === false) break;
     }
-    // sends the rest of the object fields
-    if (l > 1) {
-      for (; i < l; i++) {
-        const [key, value] = entries[i];
-        let yieldPrefix = true;
-        for (const chunkified of bufferify(value, key)) {
-          // if the chunkified value ends up being nothing (undefined) ignore
-          // the property
-          const chunkLength = chunkified.length;
-          if (chunkLength === 0) continue;
+  }
 
-          if (yieldPrefix) {
-            yield Buffer.concat([COMMA, stringToQuotedBuffer(key), COLON]);
-            yieldPrefix = false;
-          }
-          yield chunkified;
-        }
-      }
-    }
+  // if we yielded the
+  if (yieldedOpen) {
     yield CURLY_BRACKET_CLOSE;
+    return;
+  } else {
+    yield CURLY_BRACKET_PAIR;
     return;
   }
 }
