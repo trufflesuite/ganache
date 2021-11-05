@@ -18,7 +18,6 @@ import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
 import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
-import { Buffer } from "buffer";
 
 const IS_WINDOWS = process.platform === "win32";
 

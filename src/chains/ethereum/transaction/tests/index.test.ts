@@ -18,7 +18,6 @@ import Wallet from "../../ethereum/src/wallet";
 import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
 import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
-import { Buffer } from "buffer";
 
 describe("@ganache/ethereum-transaction", async () => {
   const common = Common.forCustomChain(
