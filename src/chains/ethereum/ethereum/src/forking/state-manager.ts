@@ -63,6 +63,8 @@ export class ForkStateManager extends StateManager {
       address.buf,
       storageTrie.blockNumber
     );
+    // we copy checkpoints over only for the metadata checkpoints, not the trie
+    // checkpoints.
     storageTrie.db.checkpoints = [];
     return storageTrie;
   }

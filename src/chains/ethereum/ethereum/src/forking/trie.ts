@@ -295,6 +295,17 @@ export class ForkTrie extends GanacheTrie {
     secureTrie.blockNumber = this.blockNumber;
     if (includeCheckpoints && this.isCheckpoint) {
       secureTrie.db.checkpoints = [...this.db.checkpoints];
+
+      // Our `metadata.checkpoints` needs to be the same reference to the
+      // parent's metadata.checkpoints so that we can continue to track these
+      // changes on this copy, otherwise deletions made to a contract's storage
+      // may not be tracked.
+      // Note: db.checkpoints don't need this same treatment because of the way
+      // the statemanager uses a contract's trie: it doesn't ever save to it.
+      // Instead, it saves to it's own internal cache, which eventually gets
+      // reverted or committed (flushed). Our metadata doesn't utilize a central
+      // cache.
+      // secureTrie.metadata.checkpoints = this.metadata.checkpoints;
       secureTrie.metadata.checkpoints = this.metadata.checkpoints;
     }
     return secureTrie;
