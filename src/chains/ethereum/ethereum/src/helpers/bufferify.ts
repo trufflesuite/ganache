@@ -56,19 +56,10 @@ function* arrayToBuffer(value: any[]) {
     // sends the rest of the array values:
     if (l > 1) {
       for (let i = 1; i < l; i++) {
-        let yieldPrefix = true;
+        yield COMMA;
         for (const chunkified of bufferify(value[i], i.toString())) {
-          const chunkLength = chunkified.length;
-          if (yieldPrefix) {
-            yield COMMA;
-            yieldPrefix = false;
-          }
-          if (chunkLength === 0) {
-            // if the value ends up being nothing (undefined), return null
-            yield NULL;
-          } else {
-            yield chunkified;
-          }
+          // if the value ends up being nothing (undefined), return null
+          yield chunkified.length === 0 ? NULL : chunkified;
         }
       }
     }
