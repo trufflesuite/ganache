@@ -439,6 +439,62 @@ export default class Wallet {
     const plaintext = decipher.update(ciphertext);
     return plaintext;
   }
+  /**
+   * Stores a mapping of addresses to either encrypted (if a passphrase is used
+   * or the user specified --lock option) or unencrypted private keys.
+   * @param address The address whose private key is being stored.
+   * @param privateKey The passphrase to store.
+   * @param passphrase The passphrase to use to encrypt the private key. If
+   * passphrase is empty, the private key will not be encrypted.
+   * @param lock Flag to specify that accounts should be encrypted regardless
+   * of if the passphrase is empty.
+   */
+  public async addToKeyFile(
+    address: string,
+    privateKey: Data,
+    passphrase: string,
+    lock: boolean
+  ) {
+    // NOTE: we are avoiding encrypting the keys for an account if the
+    // passphrase is blank purely for startup performance reasons.
+    if (passphrase || lock) {
+      this.keyFiles.set(address.toLowerCase(), {
+        encrypted: true,
+        key: await this.encrypt(privateKey, passphrase)
+      });
+    } else {
+      this.keyFiles.set(address.toLowerCase(), {
+        encrypted: false,
+        key: privateKey.toBuffer()
+      });
+    }
+  }
+  /**
+   * Fetches the private key for a specific address. If the keyFile is encrypted
+   * for the address, the passphrase is used to decrypt.
+   * @param address The address whose private key is to be fetched.
+   * @param passphrase The passphrase used to decrypt the private key.
+   */
+  public async getFromKeyFile(address: string, passphrase: string) {
+    const keyFile = this.keyFiles.get(address.toLowerCase());
+    if (keyFile === undefined || keyFile === null) {
+      throw new Error("no key for given address or file");
+    }
+    if (keyFile.encrypted === true) {
+      return await this.decrypt(keyFile.key, passphrase);
+    } else {
+      // if the keyFile is not marked as encrypted, they should provide no
+      // passphrase. so we'll make it look like they gave the "wrong" passphrase
+      // by throwing the same error that's thrown when decrypting
+      if (passphrase) {
+        throw new Error(
+          'could not decrypt key with given password (default password for accounts created at startup is "")'
+        );
+      } else {
+        return keyFile.key;
+      }
+    }
+  }
 
   /**
    * Stores a mapping of addresses to either encrypted (if a passphrase is used
