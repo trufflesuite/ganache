@@ -2,7 +2,6 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
-import { RpcTransaction } from "@ganache/ethereum-transaction";
 
 describe("api", () => {
   describe("personal", () => {
@@ -518,6 +517,36 @@ describe("api", () => {
             passphrase
           );
         });
+      });
+    });
+
+    describe("startup passphrase", () => {
+      it("uses passphrase supplied at startup", async () => {
+        const passphrase = "this is my passphrase";
+        const provider = await getProvider({
+          wallet: { passphrase: passphrase, lock: true },
+          chain: { hardfork: "berlin" }
+        });
+        const accounts = await provider.send("eth_accounts");
+        await testLockedAccountWithPassphraseViaEth_SendTransaction(
+          provider,
+          accounts[0],
+          passphrase
+        );
+      });
+
+      it("defaults to empty string passphrase", async () => {
+        const passphrase = "";
+        const provider = await getProvider({
+          wallet: { lock: true },
+          chain: { hardfork: "berlin" }
+        });
+        const accounts = await provider.send("eth_accounts");
+        await testLockedAccountWithPassphraseViaEth_SendTransaction(
+          provider,
+          accounts[0],
+          passphrase
+        );
       });
     });
   });
