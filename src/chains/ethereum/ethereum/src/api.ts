@@ -2748,11 +2748,12 @@ export default class EthereumApi implements Api {
     const newAccount = wallet.createRandomAccount();
     const address = newAccount.address;
     const strAddress = address.toString();
-    const encryptedKeyFile = await wallet.encrypt(
+    await wallet.addToKeyFile(
+      strAddress,
       newAccount.privateKey,
-      passphrase
+      passphrase,
+      true
     );
-    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2783,11 +2784,12 @@ export default class EthereumApi implements Api {
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
-    const encryptedKeyFile = await wallet.encrypt(
+    await wallet.addToKeyFile(
+      strAddress,
       newAccount.privateKey,
-      passphrase
+      passphrase,
+      true
     );
-    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2892,10 +2894,7 @@ export default class EthereumApi implements Api {
     const fromString = tx.from.toString();
 
     const wallet = this.#wallet;
-    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
-    if (encryptedKeyFile === undefined) {
-      throw new Error("no key for given address or file");
-    }
+    const secretKey = await wallet.getFromKeyFile(fromString, passphrase);
 
     await autofillDefaultTransactionValues(
       tx,
@@ -2905,12 +2904,7 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    if (encryptedKeyFile !== null) {
-      const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
-      return blockchain.queueTransaction(tx, Data.from(secretKey));
-    } else {
-      return blockchain.queueTransaction(tx);
-    }
+    return blockchain.queueTransaction(tx, Data.from(secretKey));
   }
 
   /**
@@ -2956,12 +2950,7 @@ export default class EthereumApi implements Api {
     const fromString = tx.from.toString();
 
     const wallet = this.#wallet;
-    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
-    if (encryptedKeyFile === undefined || encryptedKeyFile === null) {
-      throw new Error("no key for given address or file");
-    }
-
-    const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
+    const secretKey = await wallet.getFromKeyFile(fromString, passphrase);
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
   }
