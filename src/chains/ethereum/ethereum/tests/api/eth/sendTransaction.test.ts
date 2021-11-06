@@ -221,7 +221,7 @@ describe("api", () => {
           );
         });
 
-        it.only("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
+        it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
           const p = await getProvider({
             wallet: {
               lock: true,
