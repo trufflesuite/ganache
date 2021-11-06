@@ -302,7 +302,7 @@ export class ForkTrie extends GanacheTrie {
       // may not be tracked.
       // Note: db.checkpoints don't need this same treatment because of the way
       // the statemanager uses a contract's trie: it doesn't ever save to it.
-      // Instead, it saves to it's own internal cache, which eventually gets
+      // Instead, it saves to its own internal cache, which eventually gets
       // reverted or committed (flushed). Our metadata doesn't utilize a central
       // cache.
       // secureTrie.metadata.checkpoints = this.metadata.checkpoints;
