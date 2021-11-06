@@ -142,6 +142,16 @@ export type WalletConfig = {
     };
 
     /**
+     * Passphrase to use when locking accounts.
+     *
+     * @defaultValue ""
+     */
+    passphrase: {
+      type: string;
+      hasDefault: true;
+    };
+
+    /**
      * Specifies a file to save accounts and private keys to, for testing.
      *
      * Can be a filename or file descriptor.
@@ -282,6 +292,13 @@ export const WalletOptions: Definitions<WalletConfig> = {
     legacyName: "lock",
     cliAliases: ["n", "secure", "lock", "lock"],
     cliType: "boolean"
+  },
+  passphrase: {
+    normalize,
+    cliDescription: "Passphrase to use when locking accounts.",
+    default: () => "",
+    cliAliases: ["passphrase", "password"],
+    cliType: "string"
   },
   accountKeysPath: {
     normalize,
