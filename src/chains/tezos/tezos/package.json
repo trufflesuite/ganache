@@ -49,7 +49,7 @@
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
     "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "9.0.0",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
     "local-web-server": "4.2.1",

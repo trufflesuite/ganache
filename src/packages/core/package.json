@@ -59,7 +59,7 @@
     "promise.allsettled": "1.0.4"
   },
   "devDependencies": {
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "9.0.0",
     "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
     "cross-env": "7.0.3",

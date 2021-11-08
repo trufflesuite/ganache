@@ -64,7 +64,7 @@
     "@types/deep-equal": "1.0.1",
     "@types/levelup": "4.3.0",
     "@types/lodash.clonedeep": "4.5.6",
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "9.0.0",
     "@types/secp256k1": "4.0.1",
     "@types/seedrandom": "3.0.1",
     "@types/terser-webpack-plugin": "5.0.2",

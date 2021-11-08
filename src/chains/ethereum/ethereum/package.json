@@ -94,7 +94,7 @@
     "@types/keccak": "3.0.1",
     "@types/lodash.clonedeep": "4.5.6",
     "@types/lru-cache": "5.1.1",
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "9.0.0",
     "@types/secp256k1": "4.0.1",
     "@types/seedrandom": "^3.0.1",
     "@types/subleveldown": "4.1.0",
