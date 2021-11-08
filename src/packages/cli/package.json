@@ -57,7 +57,7 @@
     "@ganache/filecoin": "0.1.1-alpha.1",
     "@types/mocha": "8.2.2",
     "cross-env": "7.0.3",
-    "mocha": "8.4.0",
+    "mocha": "9.1.3",
     "ts-node": "9.1.1",
     "ttypescript": "1.5.12",
     "typescript": "4.1.3"
