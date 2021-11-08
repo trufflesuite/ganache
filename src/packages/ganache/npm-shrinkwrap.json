@@ -16,13 +16,6 @@
 			"integrity": "sha512-bdM5cEGCOhDSwminryHJbRmXc1x7dPKg6Pqns3qyTwFlxsqUgxE29lsERS3PlIW1HTjoIGMUqsk1zQQwST1Yxw==",
 			"requires": {
 				"node-gyp-build": "4.3.0"
-			},
-			"dependencies": {
-				"node-gyp-build": {
-					"version": "4.3.0",
-					"resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.3.0.tgz",
-					"integrity": "sha512-iWjXZvmboq0ja1pUGULQBexmxq8CV4xBhX7VDOTbL7ZR4FOowwY/VOtRxBN/yKxmdGoIp4j5ysNT4u3S2pDQ3Q=="
-				}
 			}
 		},
 		"@types/eslint": {
@@ -548,11 +541,12 @@
 			"dev": true
 		},
 		"bufferutil": {
-			"version": "4.0.3",
-			"resolved": "https://registry.npmjs.org/bufferutil/-/bufferutil-4.0.3.tgz",
-			"integrity": "sha512-yEYTwGndELGvfXsImMBLop58eaGW+YdONi1fNjTINSY98tmMmFijBG6WXgdkfuLNt4imzQNtIE+eBp1PVpMCSw==",
+			"version": "4.0.5",
+			"resolved": "https://registry.npmjs.org/bufferutil/-/bufferutil-4.0.5.tgz",
+			"integrity": "sha512-HTm14iMQKK2FjFLRTM5lAVcyaUzOnqbPtesFIvREgXpJHdQm8bWS+GkQgIkfaBYRHuCnea7w8UVNfwiAQhlr9A==",
+			"optional": true,
 			"requires": {
-				"node-gyp-build": "^4.2.0"
+				"node-gyp-build": "^4.3.0"
 			}
 		},
 		"call-bind": {
@@ -1879,9 +1873,9 @@
 			"integrity": "sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA=="
 		},
 		"node-gyp-build": {
-			"version": "4.2.3",
-			"resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.2.3.tgz",
-			"integrity": "sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg=="
+			"version": "4.3.0",
+			"resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.3.0.tgz",
+			"integrity": "sha512-iWjXZvmboq0ja1pUGULQBexmxq8CV4xBhX7VDOTbL7ZR4FOowwY/VOtRxBN/yKxmdGoIp4j5ysNT4u3S2pDQ3Q=="
 		},
 		"node-loader": {
 			"version": "1.0.2",
@@ -2666,11 +2660,12 @@
 			}
 		},
 		"utf-8-validate": {
-			"version": "5.0.4",
-			"resolved": "https://registry.npmjs.org/utf-8-validate/-/utf-8-validate-5.0.4.tgz",
-			"integrity": "sha512-MEF05cPSq3AwJ2C7B7sHAA6i53vONoZbMGX8My5auEVm6W+dJ2Jd/TZPyGJ5CH42V2XtbI5FD28HeHeqlPzZ3Q==",
+			"version": "5.0.7",
+			"resolved": "https://registry.npmjs.org/utf-8-validate/-/utf-8-validate-5.0.7.tgz",
+			"integrity": "sha512-vLt1O5Pp+flcArHGIyKEQq883nBt8nN8tVBcoL0qUXj2XT1n7p70yGIq2VK98I5FdZ1YHc0wk/koOnHjnXWk1Q==",
+			"optional": true,
 			"requires": {
-				"node-gyp-build": "^4.2.0"
+				"node-gyp-build": "^4.3.0"
 			}
 		},
 		"util": {
