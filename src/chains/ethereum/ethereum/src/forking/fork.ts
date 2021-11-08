@@ -82,9 +82,9 @@ export class Fork {
     }
   }
 
-  #setCommonFromChain = async () => {
+  #setCommonFromChain = async (chainIdPromise: Promise<number>) => {
     const [chainId, networkId] = await Promise.all([
-      fetchChainId(this),
+      chainIdPromise,
       fetchNetworkId(this)
     ]);
 
@@ -101,27 +101,27 @@ export class Fork {
     (this.common as any).on = () => {};
   };
 
-  #setBlockDataFromChainAndOptions = async () => {
+  #setBlockDataFromChainAndOptions = async (
+    chainIdPromise: Promise<number>
+  ) => {
     const options = this.#options;
     if (options.blockNumber === Tag.LATEST) {
-      const latestBlock = await fetchBlock(this, Tag.LATEST);
+      const [latestBlock, chainId] = await Promise.all([
+        fetchBlock(this, Tag.LATEST),
+        chainIdPromise
+      ]);
       let blockNumber = parseInt(latestBlock.number, 16);
-      const currentTime = BigInt((Date.now() / 1000) | 0); // current time in seconds
-      // if the "latest" block is less than `blockAge` seconds old we don't use it
-      // because it is possible that the node we connected to hasn't fully synced its
-      // state, so successive calls to this block
-      const useOlderBlock =
-        blockNumber > 0 &&
-        currentTime - BigInt(latestBlock.timestamp) < options.blockAge;
+      const effectiveBlockNumber = KNOWN_CHAINIDS.has(chainId)
+        ? Math.max(blockNumber - options.blockAge, 0)
+        : blockNumber;
       let block;
-      if (useOlderBlock) {
-        blockNumber -= 1;
-        block = await fetchBlock(this, Quantity.from(blockNumber));
+      if (effectiveBlockNumber !== blockNumber) {
+        block = await fetchBlock(this, Quantity.from(effectiveBlockNumber));
       } else {
         block = latestBlock;
       }
-      options.blockNumber = parseInt(block.number, 16);
-      this.blockNumber = Quantity.from(blockNumber);
+      options.blockNumber = effectiveBlockNumber;
+      this.blockNumber = Quantity.from(effectiveBlockNumber);
       this.stateRoot = Data.from(block.stateRoot);
       await this.#syncAccounts(this.blockNumber);
       return block;
@@ -176,11 +176,11 @@ export class Fork {
     } else {
       cacheProm = null;
     }
-
+    const chainIdPromise = fetchChainId(this);
     const [block, cache] = await Promise.all([
-      this.#setBlockDataFromChainAndOptions(),
+      this.#setBlockDataFromChainAndOptions(chainIdPromise),
       cacheProm,
-      this.#setCommonFromChain()
+      this.#setCommonFromChain(chainIdPromise)
     ]);
     this.block = new Block(
       BlockManager.rawFromJSON(block, this.common),

@@ -54,7 +54,7 @@ export const startLocalChain = async (
 ) => {
   const localProvider = await getProvider({
     logging,
-    fork: { blockAge: 0, url: `ws://0.0.0.0:${port}`, ...options },
+    fork: { url: `ws://0.0.0.0:${port}`, ...options },
     wallet: { deterministic: true }
   });
   return {

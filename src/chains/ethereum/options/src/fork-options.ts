@@ -78,8 +78,7 @@ export type ForkConfig = {
      * will be used instead.
      */
     blockAge: {
-      type: bigint;
-      rawType: number;
+      type: number;
       hasDefault: true;
     };
 
@@ -306,9 +305,9 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     //implies: ["url"]
   },
   blockAge: {
-    normalize: rawInput => BigInt(rawInput),
+    normalize,
     cliDescription: `Minimum age in seconds of the "latest" block. If the "latest" block is younger than this amount the block immediately preceding the latest block will be used instead.`,
-    default: () => 5n,
+    default: () => 5,
     defaultDescription: "5",
     cliType: "number"
   },
