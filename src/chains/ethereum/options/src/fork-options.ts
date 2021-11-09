@@ -173,7 +173,7 @@ export type ForkConfig = {
     };
 
     /**
-     * Don't cache forking requests in a persistent db.
+     * Disables caching of all forking requests.
      *
      * @default false
      */
