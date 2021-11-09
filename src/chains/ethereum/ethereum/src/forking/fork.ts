@@ -112,7 +112,7 @@ export class Fork {
       ]);
       let blockNumber = parseInt(latestBlock.number, 16);
       const effectiveBlockNumber = KNOWN_CHAINIDS.has(chainId)
-        ? Math.max(blockNumber - options.blockAge, 0)
+        ? Math.max(blockNumber - options.preLatestConfirmations, 0)
         : blockNumber;
       let block;
       if (effectiveBlockNumber !== blockNumber) {

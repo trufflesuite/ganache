@@ -77,7 +77,7 @@ export type ForkConfig = {
      * younger than this amount the block immediately preceding the latest block
      * will be used instead.
      */
-    blockAge: {
+    preLatestConfirmations: {
       type: number;
       hasDefault: true;
     };
@@ -304,7 +304,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     defaultDescription: `Latest block number`
     //implies: ["url"]
   },
-  blockAge: {
+  preLatestConfirmations: {
     normalize,
     cliDescription: `Minimum age in seconds of the "latest" block. If the "latest" block is younger than this amount the block immediately preceding the latest block will be used instead.`,
     default: () => 5,
