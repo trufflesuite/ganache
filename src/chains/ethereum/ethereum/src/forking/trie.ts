@@ -307,7 +307,6 @@ export class ForkTrie extends GanacheTrie {
       // Instead, it saves to its own internal cache, which eventually gets
       // reverted or committed (flushed). Our metadata doesn't utilize a central
       // cache.
-      // secureTrie.metadata.checkpoints = this.metadata.checkpoints;
       secureTrie.metadata.checkpoints = this.metadata.checkpoints;
     }
     return secureTrie;
