@@ -306,7 +306,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
   },
   preLatestConfirmations: {
     normalize,
-    cliDescription: `Minimum age in seconds of the "latest" block. If the "latest" block is younger than this amount the block immediately preceding the latest block will be used instead.`,
+    cliDescription: `When the `fork.blockNumber` is set to "latest" (default), the number of blocks before the remote node's "latest" block to fork from.`,
     default: () => 5,
     defaultDescription: "5",
     cliType: "number"

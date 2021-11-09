@@ -271,7 +271,7 @@ export class ForkTrie extends GanacheTrie {
     // we only check if the key was deleted (locally) for state tries _after_
     // the fork block because we can't possibly delete keys _before_ the fork
     // block, since those happened before ganache was even started
-    // This little optimization can debug_traceTransaction time _in half_.
+    // This little optimization can cut debug_traceTransaction time _in half_.
     if (!this.isPreForkBlock && (await this.keyWasDeleted(key))) return null;
 
     if (this.address === null) {
