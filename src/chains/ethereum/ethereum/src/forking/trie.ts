@@ -285,7 +285,9 @@ export class ForkTrie extends GanacheTrie {
 
   /**
    * Returns a copy of the underlying trie with the interface of ForkTrie.
-   * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
+   * @param includeCheckpoints - If true and during a checkpoint, the copy will 
+   * contain the checkpointing metadata and will use the same scratch as
+   * underlying db.
    */
   copy(includeCheckpoints: boolean = true) {
     const db = this.db.copy() as CheckpointDB;
