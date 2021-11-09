@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.18.0, 13.x, 14.x, 15.x, 16.x, 17.x]
+        node: [12.18.3, 13.x, 14.x, 15.x, 16.x, 17.x]
         os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11.0]
 
     runs-on: ${{ matrix.os }}
