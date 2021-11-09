@@ -157,7 +157,7 @@ export class BaseHandler {
       // have lost integrity
       throw e;
     });
-    if (raw !== undefined) return { result: JSON.parse(raw).result as T, raw };
+    if (raw != null) return { result: JSON.parse(raw).result as T, raw };
   }
 
   async queueRequest<T>(
