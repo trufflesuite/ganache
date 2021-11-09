@@ -88,7 +88,7 @@ export class HttpHandler extends BaseHandler implements Handler {
   public async request<T>(
     method: string,
     params: unknown[],
-    options = { noCache: false }
+    options = { disableCache: false }
   ) {
     const key = JSON.stringify({ method, params });
     const { protocol, hostname: host, port, pathname, search } = this.url;

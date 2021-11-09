@@ -18,7 +18,7 @@ describe("forking", () => {
         fork: {
           url: URL,
           blockNumber,
-          noCache: true
+          disableCache: true
         }
       });
     });

@@ -170,9 +170,9 @@ export class BaseHandler {
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
     }>,
-    options = { noCache: false }
+    options = { disableCache: false }
   ): Promise<T> {
-    if (!options.noCache) {
+    if (!options.disableCache) {
       const memCached = this.getFromMemCache<T>(key);
       if (memCached !== undefined) return memCached;
 
@@ -189,7 +189,7 @@ export class BaseHandler {
         if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
         if (hasOwn(response, "result")) {
-          if (!options.noCache) {
+          if (!options.disableCache) {
             // cache non-error responses only
             this.valueCache.set(key, raw);
 

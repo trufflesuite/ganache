@@ -177,7 +177,7 @@ export type ForkConfig = {
      *
      * @default false
      */
-    noCache: {
+    disableCache: {
       type: boolean;
       hasDefault: true;
     };
@@ -404,7 +404,7 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
     cliType: "number"
     //implies: ["url"]
   },
-  noCache: {
+  disableCache: {
     normalize,
     default: () => false,
     cliDescription: "Disables caching of all forking requests.",

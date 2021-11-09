@@ -22,9 +22,9 @@ async function fetchNetworkId(fork: Fork) {
   return parseInt(networkIdStr, 10);
 }
 function fetchBlockNumber(fork: Fork) {
-  // {noCache: true} required so we never cache the blockNumber, as forking
+  // {disableCache: true} required so we never cache the blockNumber, as forking
   // shouldn't ever cache a method that can change!
-  return fork.request<string>("eth_blockNumber", [], { noCache: true });
+  return fork.request<string>("eth_blockNumber", [], { disableCache: true });
 }
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
@@ -167,7 +167,7 @@ export class Fork {
     let cacheProm: Promise<PersistentCache>;
     const options = this.#options;
     if (options.deleteCache) await PersistentCache.deleteDb();
-    if (options.noCache === false) {
+    if (options.disableCache === false) {
       // ignore cache start up errors as it is possible there is an `open`
       // conflict if another ganache fork is running at the time this one is
       // started. The cache isn't required (though performance will be
@@ -200,7 +200,7 @@ export class Fork {
   public request<T = unknown>(
     method: string,
     params: unknown[],
-    options = { noCache: false }
+    options = { disableCache: false }
   ): Promise<T> {
     return this.#handler.request<T>(method, params, options);
   }

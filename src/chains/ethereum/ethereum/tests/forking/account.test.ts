@@ -20,7 +20,7 @@ describe("forking", function () {
         fork: {
           url: URL,
           blockNumber,
-          noCache: true
+          disableCache: true
         }
       });
     });

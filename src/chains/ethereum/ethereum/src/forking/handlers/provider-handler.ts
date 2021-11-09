@@ -64,7 +64,7 @@ export class ProviderHandler extends BaseHandler implements Handler {
   public async request<T>(
     method: string,
     params: unknown[],
-    options = { noCache: false }
+    options = { disableCache: false }
   ) {
     // format params via JSON stringification because the params might
     // be Quantity or Data, which aren't valid as `params` themselves,

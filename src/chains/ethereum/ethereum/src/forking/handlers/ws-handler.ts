@@ -56,7 +56,7 @@ export class WsHandler extends BaseHandler implements Handler {
   public async request<T>(
     method: string,
     params: unknown[],
-    options = { noCache: false }
+    options = { disableCache: false }
   ) {
     await this.open;
     if (this.abortSignal.aborted) return Promise.reject(new AbortError());
