@@ -60,8 +60,8 @@ export async function setDbVersion(db: LevelUp, version: Buffer) {
   // set the version if the DB was just created, or error if we already have
   // a version, but it isn't what we expected
   try {
-    const version = await db.get("version");
-    if (!version.equals(version)) {
+    const recordedVersion = await db.get("version");
+    if (!version.equals(recordedVersion)) {
       // in the future this is where database migrations would go
       throw new Error(
         `Persistent cache version "${version.toString()}"" is not understood.`
