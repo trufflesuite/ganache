@@ -40,7 +40,7 @@ function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
 export class ForkTrie extends GanacheTrie {
   private accounts: AccountManager;
   private address: Buffer | null = null;
-  private preForkBlock = false;
+  private isPreForkBlock = false;
   private forkBlockNumber: bigint;
   public blockNumber: Quantity;
   private metadata: CheckpointDB;
@@ -84,7 +84,7 @@ export class ForkTrie extends GanacheTrie {
     (this as any)._root = stateRoot;
     this.address = address;
     this.blockNumber = blockNumber;
-    this.preForkBlock = blockNumber.toBigInt() < this.forkBlockNumber;
+    this.isPreForkBlock = blockNumber.toBigInt() < this.forkBlockNumber;
   }
 
   async put(key: Buffer, val: Buffer): Promise<void> {
@@ -164,7 +164,7 @@ export class ForkTrie extends GanacheTrie {
     // the fork block because we can't possibly delete keys _before_ the fork
     // block, since those happened before ganache was even started
     // This little optimization can cut debug_traceTransaction time _in half_.
-    if (!this.preForkBlock) {
+    if (!this.isPreForkBlock) {
       const delKey = this.createDelKey(key);
       const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
 
@@ -272,7 +272,7 @@ export class ForkTrie extends GanacheTrie {
     // the fork block because we can't possibly delete keys _before_ the fork
     // block, since those happened before ganache was even started
     // This little optimization can debug_traceTransaction time _in half_.
-    if (!this.preForkBlock && (await this.keyWasDeleted(key))) return null;
+    if (!this.isPreForkBlock && (await this.keyWasDeleted(key))) return null;
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
@@ -285,7 +285,7 @@ export class ForkTrie extends GanacheTrie {
 
   /**
    * Returns a copy of the underlying trie with the interface of ForkTrie.
-   * @param includeCheckpoints - If true and during a checkpoint, the copy will 
+   * @param includeCheckpoints - If true and during a checkpoint, the copy will
    * contain the checkpointing metadata and will use the same scratch as
    * underlying db.
    */
