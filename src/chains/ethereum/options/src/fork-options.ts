@@ -407,7 +407,7 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
   noCache: {
     normalize,
     default: () => false,
-    cliDescription: "Don't cache forking requests in a persistent db.",
+    cliDescription: "Disables caching of all forking requests.",
     cliType: "boolean"
   },
   deleteCache: {
