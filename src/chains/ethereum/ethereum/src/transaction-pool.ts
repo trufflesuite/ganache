@@ -1,13 +1,14 @@
 import Emittery from "emittery";
 import Blockchain from "./blockchain";
 import { Heap } from "@ganache/utils";
-import { Data, Quantity, JsonRpcErrorCode, ACCOUNT_ZERO } from "@ganache/utils";
+import { Data, Quantity, JsonRpcErrorCode } from "@ganache/utils";
 import {
   GAS_LIMIT,
   INTRINSIC_GAS_TOO_LOW,
   CodedError,
   UNDERPRICED,
-  REPLACED
+  REPLACED,
+  NO_SECRET_KEY
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
@@ -300,23 +301,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     if (secretKey) {
       transaction.signAndHash(secretKey.toBuffer());
     } else if (transaction.v == null) {
-      // if we don't have the secret key and we aren't already signed,
-      // then we are a "fake transaction", so we sign it with a fake key.
-      const from = transaction.from.toBuffer();
-
-      let fakePrivateKey: Buffer;
-      if (from.equals(ACCOUNT_ZERO)) {
-        // allow signing with the 0x0 address...
-        // always sign with the same fake key, a 31 `0`s followed by a single
-        // `1`. The key is arbitrary. It just must not be all `0`s and must be
-        // deterministic.
-        // see: https://github.com/ethereumjs/ethereumjs-monorepo/issues/829#issue-674385636
-        fakePrivateKey = Buffer.allocUnsafe(32).fill(0, 0, 31);
-        fakePrivateKey[31] = 1;
-      } else {
-        fakePrivateKey = Buffer.concat([from, from.slice(0, 12)]);
-      }
-      transaction.signAndHash(fakePrivateKey);
+      // if we don't have a secret key, the transaction should be signed
+      // already.
+      throw new CodedError(NO_SECRET_KEY, JsonRpcErrorCode.INVALID_INPUT);
     }
 
     switch (transactionPlacement) {
