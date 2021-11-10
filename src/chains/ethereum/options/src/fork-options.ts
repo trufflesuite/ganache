@@ -73,9 +73,8 @@ export type ForkConfig = {
     };
 
     /**
-     * Minimum age in seconds of the "latest" block. If the "latest" block is
-     * younger than this amount the block immediately preceding the latest block
-     * will be used instead.
+     * When the `fork.blockNumber` is set to "latest" (default), the number of
+     * blocks before the remote node's "latest" block to fork from.
      */
     preLatestConfirmations: {
       type: number;
@@ -173,7 +172,7 @@ export type ForkConfig = {
     };
 
     /**
-     * Don't cache forking requests in a persistent db.
+     * Disables caching of all forking requests.
      *
      * @default false
      */
