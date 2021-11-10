@@ -6,7 +6,10 @@ export class Ancestry {
   private db: LevelUp;
   private next: Buffer;
   private knownAncestors: Set<string>;
-  private lock: Map<string, Promise<void>> = new Map();
+  /**
+   * Prevents fetching the same key from the database simultaneously.
+   */
+  private cacheLock: Map<string, Promise<void>> = new Map();
   constructor(db: LevelUp, parent: Tree) {
     this.db = db;
     if (parent == null) {
@@ -22,11 +25,11 @@ export class Ancestry {
 
   private async loadNextAncestor(next: Buffer) {
     const k = next.toString("hex");
-    if (this.lock.has(k)) {
-      throw new Error("could not obtain lock");
+    if (this.cacheLock.has(k)) {
+      throw new Error("couldn't load next ancestor as it is locked");
     }
     let resolver: () => void;
-    this.lock.set(
+    this.cacheLock.set(
       k,
       new Promise<void>(resolve => {
         resolver = resolve;
@@ -38,7 +41,7 @@ export class Ancestry {
       ? null
       : node.closestKnownAncestor;
     this.knownAncestors.add(node.hash.toString("hex"));
-    this.lock.delete(k);
+    this.cacheLock.delete(k);
     resolver();
   }
 
@@ -47,9 +50,9 @@ export class Ancestry {
     if (this.knownAncestors.has(strKey)) {
       return true;
     } else if (this.next) {
-      const lock = this.lock.get(this.next.toString("hex"));
-      if (lock) {
-        await lock;
+      const cacheLock = this.cacheLock.get(this.next.toString("hex"));
+      if (cacheLock) {
+        await cacheLock;
         return this.has(key);
       }
       await this.loadNextAncestor(this.next);
