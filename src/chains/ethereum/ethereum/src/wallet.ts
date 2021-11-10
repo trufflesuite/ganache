@@ -1,5 +1,6 @@
 import { Account } from "@ganache/ethereum-utils";
 import {
+  ACCOUNT_ZERO,
   Data,
   keccak,
   Quantity,
@@ -175,8 +176,9 @@ export default class Wallet {
             throw new Error(`Invalid value specified in unlocked_accounts`);
         }
         if (unlockedAccounts.has(address)) continue;
-        // if we don't have the secretKey for an account we use `null`
-        unlockedAccounts.set(address, null);
+        // if we don't have the secretKey for an account we can make a fake one.
+        const privateKey = this.createFakePrivateKey(address);
+        unlockedAccounts.set(address, privateKey);
       }
     }
     //#endregion
@@ -570,10 +572,12 @@ export default class Wallet {
       throw new Error("cannot add known/personal account");
     }
 
-    const privateKey = Data.from("0x");
+    // this is an unknown account, so we do not have a private key. instead,
+    // we'll need to create a fake one.
+    const privateKey = this.createFakePrivateKey(lowerAddress);
     await this.addToKeyFile(lowerAddress, privateKey, passphrase, true);
     this.knownAccounts.add(lowerAddress);
-    return lowerAddress;
+    return privateKey.toString();
   }
 
   public async removeKnownAccount(lowerAddress: string, passphrase: string) {
@@ -598,6 +602,24 @@ export default class Wallet {
       );
     }
   }
+
+  public createFakePrivateKey(address: string) {
+    let fakePrivateKey: Buffer;
+    const addressBuf = Data.from(address).toBuffer();
+    if (addressBuf.equals(ACCOUNT_ZERO)) {
+      // allow signing with the 0x0 address...
+      // always sign with the same fake key, a 31 `0`s followed by a single
+      // `1`. The key is arbitrary. It just must not be all `0`s and must be
+      // deterministic.
+      // see: https://github.com/ethereumjs/ethereumjs-monorepo/issues/829#issue-674385636
+      fakePrivateKey = Buffer.allocUnsafe(32).fill(0, 0, 31);
+      fakePrivateKey[31] = 1;
+    } else {
+      fakePrivateKey = Buffer.concat([addressBuf, addressBuf.slice(0, 12)]);
+    }
+    return Data.from(fakePrivateKey);
+  }
+
   #lockAccount = (lowerAddress: string) => {
     this.lockTimers.delete(lowerAddress);
     this.unlockedAccounts.delete(lowerAddress);
