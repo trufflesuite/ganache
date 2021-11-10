@@ -1685,12 +1685,8 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    if (isUnlockedAccount) {
-      const secretKey = wallet.unlockedAccounts.get(fromString);
-      return blockchain.queueTransaction(tx, secretKey);
-    } else {
-      return blockchain.queueTransaction(tx);
-    }
+    const secretKey = wallet.unlockedAccounts.get(fromString);
+    return blockchain.queueTransaction(tx, secretKey);
   }
 
   /**
