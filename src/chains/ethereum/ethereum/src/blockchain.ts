@@ -615,7 +615,8 @@ export default class Blockchain extends Emittery.Typed<
   createVmFromStateTrie = async (
     stateTrie: GanacheTrie | ForkTrie,
     allowUnlimitedContractSize: boolean,
-    activatePrecompile: boolean
+    activatePrecompile: boolean,
+    common?: Common
   ) => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
@@ -626,7 +627,7 @@ export default class Blockchain extends Emittery.Typed<
       }
     } as any;
 
-    const common = this.common;
+    common = common || this.common;
 
     const vm = new VM({
       state: stateTrie,
@@ -1002,8 +1003,16 @@ export default class Blockchain extends Emittery.Typed<
     } else {
       to = null;
     }
+
+    const common = this.fallback
+      ? this.fallback.getCommonForBlockNumber(
+          this.common,
+          transaction.block.header.number
+        )
+      : this.common;
+
     const gasLeft =
-      gasLimit - calculateIntrinsicGas(data, hasToAddress, this.common);
+      gasLimit - calculateIntrinsicGas(data, hasToAddress, common);
 
     const transactionContext = {};
     this.emit("ganache:vm:tx:before", {
@@ -1021,7 +1030,8 @@ export default class Blockchain extends Emittery.Typed<
       const vm = await this.createVmFromStateTrie(
         stateTrie,
         this.#options.chain.allowUnlimitedContractSize,
-        false // precompiles have already been initialized in the stateTrie
+        false, // precompiles have already been initialized in the stateTrie
+        common
       );
 
       // take a checkpoint so the `runCall` never writes to the trie. We don't
@@ -1036,7 +1046,7 @@ export default class Blockchain extends Emittery.Typed<
 
       const caller = transaction.from.toBuffer();
 
-      if (this.common.isActivatedEIP(2929)) {
+      if (common.isActivatedEIP(2929)) {
         const stateManager = vm.stateManager as DefaultStateManager;
         // handle Berlin hardfork warm storage reads
         warmPrecompiles(stateManager);
@@ -1118,7 +1128,12 @@ export default class Blockchain extends Emittery.Typed<
       }
     } as any;
 
-    const common = this.common;
+    const common = this.fallback
+      ? this.fallback.getCommonForBlockNumber(
+          this.common,
+          newBlock.header.number
+        )
+      : this.common;
 
     const vm = await VM.create({
       state: trie,

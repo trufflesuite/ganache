@@ -105,12 +105,12 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     } else {
       if (data.chainId) {
         this.chainId = Quantity.from(data.chainId);
-        if (this.common.chainId() !== this.chainId.toNumber()) {
-          throw new CodedError(
-            `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
-            JsonRpcErrorCode.INVALID_INPUT
-          );
-        }
+        // if (this.common.chainId() !== this.chainId.toNumber()) {
+        //   throw new CodedError(
+        //     `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
+        //     JsonRpcErrorCode.INVALID_INPUT
+        //   );
+        // }
       } else {
         this.chainId = Quantity.from(common.chainIdBN().toArrayLike(Buffer));
       }

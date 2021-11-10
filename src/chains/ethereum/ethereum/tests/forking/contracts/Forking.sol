@@ -61,4 +61,10 @@ contract Forking {
   function destruct() public {
     selfdestruct(payable(address(msg.sender)));
   }
+
+  function getChainId() private view returns (uint256 chainId) {
+    assembly {
+      chainId := chainid()
+    }
+  }
 }
