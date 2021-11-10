@@ -70,7 +70,7 @@ describe("transaction pool", async () => {
       },
       "london"
     );
-    // we're spoofing a minimial fake blockchain for the tx pool that just
+    // we're spoofing a minimal fake blockchain for the tx pool that just
     // returns an account's nonce
     blockchain = {
       accounts: {
@@ -318,7 +318,7 @@ describe("transaction pool", async () => {
     assert.strictEqual(originalFound, null);
   });
 
-  it("executes future transactions when the nonce gap is fiiled", async () => {
+  it("executes future transactions when the nonce gap is filled", async () => {
     const txPool = new TransactionPool(options.miner, blockchain, origins);
     const futureNonceTx = TransactionFactory.fromRpc(futureNonceRpc, common);
     const futureIsExecutable = await txPool.prepareTransaction(
