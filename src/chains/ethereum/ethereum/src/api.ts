@@ -517,8 +517,10 @@ export default class EthereumApi implements Api {
    * @param passphrase The passphrase used to encrypt the account's private key.
    * NOTE: this passphrase will be needed for all `personal` namespace calls
    * that require a password.
-   * @returns `address` if the account was successfully added.
-   * Throws an error if the account could not be added.
+   * @returns The added account's private key if the account was successfully
+   * added. Throws an error if the account could not be added. NOTE: The private
+   * key is a fake private key. Don't worry, we haven't figured out how to
+   * derive your private key from a public address (yet).
    * @example
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
