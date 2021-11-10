@@ -728,7 +728,6 @@ export default class Wallet {
     }
     return Data.from(fakePrivateKey);
   }
-
   #lockAccount = (lowerAddress: string) => {
     this.lockTimers.delete(lowerAddress);
     this.unlockedAccounts.delete(lowerAddress);
