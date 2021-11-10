@@ -10,7 +10,7 @@
   "license": "MIT",
   "engines": {
     "node": ">=12.17.0 <17.0.0",
-    "npm": ">=6.4.1"
+    "npm": ">=6.14.4"
   },
   "main": "lib/index.js",
   "typings": "typings",
@@ -30,8 +30,8 @@
   "scripts": {
     "build": "webpack",
     "tsc": "ttsc --build",
-    "test": "ts-node ../../../../scripts/skip-if-gt-than-node-16.ts || nyc --reporter lcov npm run mocha",
-    "mocha": "ts-node ../../../../scripts/skip-if-gt-than-node-16.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "test": "ts-node ../../../../scripts/require-engines.ts || nyc --reporter lcov npm run mocha",
+    "mocha": "ts-node ../../../../scripts/require-engines.ts || cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
