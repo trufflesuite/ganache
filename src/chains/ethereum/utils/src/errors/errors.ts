@@ -38,3 +38,10 @@ export const VM_EXCEPTION = "VM Exception while processing transaction: ";
  */
 export const VM_EXCEPTIONS =
   "Multiple VM Exceptions while processing transactions: : \n\n";
+
+/**
+ * Returned if a transaction was unsigned and sent without a secret key for
+ * signing.
+ */
+export const NO_SECRET_KEY =
+  "unable to sign transaction; no secret key provided";
