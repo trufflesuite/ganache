@@ -10,18 +10,16 @@ export class Tree {
   public key: Buffer;
   public hash: Buffer;
   public closestKnownAncestor: Buffer;
-  public closestKnownDescendants: Buffer[];
+  public closestKnownDescendants: Buffer[] = [];
 
   constructor(
     height: Quantity,
     hash: Data,
-    closestKnownAncestor: Buffer = BUFFER_EMPTY,
-    closestKnownDescendants: Buffer[] = []
+    closestKnownAncestor: Buffer = BUFFER_EMPTY
   ) {
     this.key = Tree.encodeKey(height, hash);
     this.hash = hash.toBuffer();
     this.closestKnownAncestor = closestKnownAncestor;
-    this.closestKnownDescendants = closestKnownDescendants;
   }
 
   public serialize() {
