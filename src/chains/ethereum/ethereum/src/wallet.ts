@@ -564,30 +564,40 @@ export default class Wallet {
     return true;
   }
 
-  public async unlockUnknownAccount(lowerAddress: string, duration: number) {
-    if (this.unlockedAccounts.has(lowerAddress)) {
-      // already unlocked, return `false` since we didn't do anything
-      return false;
-    }
-
-    // if we "know" about this account, it cannot be unlocked this way
+  public async addUnknownAccount(lowerAddress: string, passphrase: string) {
+    // if we "know" about this account, it cannot be added this way
     if (this.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot unlock known/personal account");
+      throw new Error("cannot add known/personal account");
     }
 
-    // a duration <= 0 will remain unlocked
-    const durationMs = (duration * 1000) | 0;
-    if (durationMs > 0) {
-      const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      unref(timeout);
-      this.lockTimers.set(lowerAddress, timeout as any);
-    }
-
-    // otherwise, unlock it!
-    this.unlockedAccounts.set(lowerAddress, null);
-    return true;
+    const privateKey = Data.from("0x");
+    await this.addToKeyFile(lowerAddress, privateKey, passphrase, true);
+    this.knownAccounts.add(lowerAddress);
+    return lowerAddress;
   }
 
+  public async removeKnownAccount(lowerAddress: string, passphrase: string) {
+    // if we don't "know" about this account, it cannot be removed
+    if (!this.knownAccounts.has(lowerAddress)) {
+      throw new Error("cannot remove unknown account");
+    }
+
+    const privatKey = await this.getFromKeyFile(lowerAddress, passphrase);
+    // we don't actually care what the private key is, we just need to know that
+    // the passphrase they supplied is the right one. (empty string is a valid
+    // privateKey for added, previously unknown accounts)
+    if (privatKey != null) {
+      this.keyFiles.delete(lowerAddress);
+      this.knownAccounts.delete(lowerAddress);
+      this.lockTimers.delete(lowerAddress);
+      this.unlockedAccounts.delete(lowerAddress);
+      return lowerAddress;
+    } else {
+      throw new Error(
+        "could not find private key for address/passphrase combination"
+      );
+    }
+  }
   #lockAccount = (lowerAddress: string) => {
     this.lockTimers.delete(lowerAddress);
     this.unlockedAccounts.delete(lowerAddress);

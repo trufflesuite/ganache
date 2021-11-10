@@ -508,52 +508,49 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Unlocks any unknown account.
+   * Adds any arbitrary account to the `personal` namespace.
    *
-   * Note: accounts known to the `personal` namespace and accounts returned by
-   * `eth_accounts` cannot be unlocked using this method.
-   *
-   * @param address The address of the account to unlock.
-   * @param duration (Default: disabled) Duration in seconds how long the account
-   * should remain unlocked for. Set to 0 to disable automatic locking.
-   * @returns `true` if the account was unlocked successfully, `false` if the
-   * account was already unlocked. Throws an error if the account could not be
-   * unlocked.
+   * Note: accounts already known to the `personal` namespace and accounts
+   * returned by `eth_accounts` cannot be re-added using this method.
+   * @param address The address of the account to add to the `personal`
+   * namespace.
+   * @param passphrase The passphrase used to encrypt the account's private key.
+   * NOTE: this passphrase will be needed for all `personal` namespace calls
+   * that require a password.
+   * @returns `address` if the account was successfully added.
+   * Throws an error if the account could not be added.
    * @example
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_unlockUnknownAccount", [address] );
+   * const passphrase = "passphrase"
+   * const result = await provider.send("evm_addAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
-  async evm_unlockUnknownAccount(address: DATA, duration: number = 0) {
-    return this.#wallet.unlockUnknownAccount(address.toLowerCase(), duration);
+  async evm_addAccount(address: DATA, passphrase: string) {
+    return this.#wallet.addUnknownAccount(address.toLowerCase(), passphrase);
   }
 
   /**
-   * Locks any unknown account.
+   * Removes an account from the `personal` namespace.
    *
-   * Note: accounts known to the `personal` namespace and accounts returned by
-   * `eth_accounts` cannot be locked using this method.
-   *
-   * @param address The address of the account to lock.
-   * @returns `true` if the account was locked successfully, `false` if the
-   * account was already locked. Throws an error if the account could not be
-   * locked.
+   * Note: accounts not known to the `personal` namespace cannot be removed
+   * using this method.
+   * @param address The address of the account to remove from the `personal`
+   * namespace.
+   * @param passphrase The passphrase used to decrypt the account's private key.
+   * @returns `address` if the account was successfully removed. Throws an error
+   * if the account could not be removed.
    * @example
    * ```javascript
-   * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_lockUnknownAccount", [address] );
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const passphrase = "passphrase"
+   * const result = await provider.send("evm_removeAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
-  async evm_lockUnknownAccount(address: DATA) {
-    const lowerAddress = address.toLowerCase();
-    // if this is a known account we can't unlock it this way
-    if (this.#wallet.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot lock known/personal account");
-    }
-    return this.#wallet.lockAccount(lowerAddress);
+  async evm_removeAccount(address: DATA, passphrase: string) {
+    return this.#wallet.removeKnownAccount(address.toLowerCase(), passphrase);
   }
 
   //#endregion evm
