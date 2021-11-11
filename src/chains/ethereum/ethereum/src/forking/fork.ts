@@ -91,6 +91,8 @@ export class Fork {
       fetchNetworkId(this)
     ]);
 
+    this.chainId = chainId;
+
     this.common = Common.forCustomChain(
       KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
       {
@@ -237,8 +239,8 @@ export class Fork {
    */
   public getCommonForBlockNumber(common: Common, blockNumber: BN) {
     const bigIntBlockNumber = Quantity.from(blockNumber.toBuffer()).toBigInt();
-    if (bigIntBlockNumber < this.blockNumber.toBigInt()) {
-      // we are before our fork block
+    if (bigIntBlockNumber <= this.blockNumber.toBigInt()) {
+      // we are at or before our fork block
 
       if (KNOWN_CHAINIDS.has(this.chainId)) {
         // we support this chain id, so let's use its rules

@@ -15,7 +15,6 @@ import {
 import compile from "../helpers/compile";
 import path from "path";
 import { CodedError } from "@ganache/ethereum-utils";
-import { parse } from "yargs";
 
 async function deployContract(
   remoteProvider: EthereumProvider,
@@ -976,15 +975,25 @@ describe("forking", function () {
       assert.deepStrictEqual(localBlock, remoteBlock);
     });
   });
+});
 
+describe("forking", () => {
   describe("fork block chainId-aware eth_call", () => {
     let contractAddress: string;
     let methods: { [methodName: string]: string };
-    const blockNumber = 0xb77935;
-    const blockNumHex = `0x${blockNumber.toString(16)}`;
+    // EIP-1344 (which introduced the chainId opcode) was activated at block
+    // 9,069,000 as part of the istanbul hardfork.
+    // 1. create our "fake mainnet" at block 9_068_997
+    // 2. block number is now 9_068_998
+    // 3. deploy at 9_068_999
+    // 4. mine an extra block. now at at 9_069_000
+    // 4. fork at 9_069_000
+    const blockNumber = 9_068_996;
     let provider: EthereumProvider;
     let contractBlockNum: number;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
+    let remoteProvider: EthereumProvider;
+    let remoteAccounts: string[];
 
     before("check skip condition", function () {
       if (!process.env.INFURA_KEY) {
@@ -994,7 +1003,7 @@ describe("forking", function () {
 
     before("configure mainnet", async function () {
       // we fork from mainnet, but configure our fork such that it looks like
-      // mainnet if you queried for it's chainId and networkId
+      // mainnet if you queried for its chainId and networkId
 
       remoteProvider = await getProvider({
         chain: {
@@ -1015,86 +1024,94 @@ describe("forking", function () {
 
     before("deploy contract", async () => {
       // deploy the contract
-      ({ contractAddress, contractBlockNum, methods } = await deployContract(
-        remoteProvider,
-        remoteAccounts
-      ));
+      ({
+        contractBlockNum,
+        contractAddress,
+        contractBlockNum, // 9_068_999
+        methods
+      } = await deployContract(remoteProvider, remoteAccounts));
     });
 
-    before("fork from mainnet at contractBlockNum", async () => {
+    before("fork from mainnet at contractBlockNum + 1", async () => {
+      // progress the remote provider forward 1 additional block so we can call
+      // `eth_call` with the `contractBlockNum` as the _parent_. This will
+      // ensure that the block number of the _transaction_ runs in a block
+      // context _before_ our fork point
+      await remoteProvider.send("evm_mine", [{ blocks: 2 }]);
+
       provider = await getProvider({
         wallet: {
           deterministic: true
         },
         fork: {
           provider: remoteProvider as any,
-          blockNumber: contractBlockNum
+          blockNumber: contractBlockNum + 2 // 9_069_000
         }
       });
     });
 
-    it.only("should differentiate chainId before and after fork block", async () => {
+    it("should differentiate chainId before and after fork block", async () => {
       const tx = {
         from: remoteAccounts[0],
         to: contractAddress,
         data: `0x${methods[`getChainId()`]}`
       };
-      const originalChainId = await remoteProvider.send("eth_chainId");
-      assert.strictEqual(originalChainId, "0x1"); // sanity check
+      const originalChainId = parseInt(
+        await remoteProvider.send("eth_chainId")
+      );
+      assert.strictEqual(originalChainId, 1); // sanity check
 
       const originalChainIdCall = await remoteProvider.send("eth_call", [
         tx,
-        blockNumHex
+        Quantity.from(contractBlockNum).toString()
       ]);
-      assert.strictEqual(originalChainIdCall, originalChainId);
+      assert.strictEqual(parseInt(originalChainIdCall), originalChainId);
 
       // check that our provider returns mainnet's chain id for an eth_call
       // at or before our fork block number
       const forkChainIdAtForkBlockCall = await provider.send("eth_call", [
         tx,
-        blockNumHex
+        Quantity.from(contractBlockNum + 2).toString()
       ]);
-      assert.strictEqual(forkChainIdAtForkBlockCall, originalChainId);
+      assert.strictEqual(parseInt(forkChainIdAtForkBlockCall), originalChainId);
 
       // check that our provider returns our local chain id for an eth_call
       // after our fork block number
-      const forkChainId = await provider.send("eth_chainId");
-      assert.strictEqual(forkChainId, "0x539"); // 1337, sanity check
+      const forkChainId = parseInt(await provider.send("eth_chainId"));
+      assert.strictEqual(forkChainId, 1337); // sanity check
       const forkChainIdAfterForkBlockCall = await provider.send("eth_call", [
         tx,
-        Quantity.from(blockNumber + 1).toString()
+        Quantity.from(contractBlockNum + 3).toString()
       ]);
-      assert.strictEqual(forkChainIdAfterForkBlockCall, forkChainId);
+      assert.strictEqual(parseInt(forkChainIdAfterForkBlockCall), forkChainId);
     });
 
     it("should fail to get chainId before EIP-155 was activated", async () => {
-      // EIP-155 (which introduced the chainId opcode) was activated at this
-      // block as part of the spurious dragon hardfork.
-      const hardforkNumber = 2_675_000;
-
       const tx = {
         from: remoteAccounts[0],
         to: contractAddress,
         data: `0x${methods[`getChainId()`]}`
       };
 
-      const originalChainId = await remoteProvider.send("eth_chainId");
-      assert.strictEqual(originalChainId, "0x1"); // sanity check
+      const originalChainId = parseInt(
+        await remoteProvider.send("eth_chainId")
+      );
+      assert.strictEqual(originalChainId, 1); // sanity check
 
-      const postHardforkChainIdCall = await remoteProvider.send("eth_call", [
+      const postHardforkChainIdCall = await provider.send("eth_call", [
         tx,
-        `0x${hardforkNumber}`
+        `0x${(contractBlockNum + 2).toString(16)}` // 9_068_999
       ]);
-      assert.strictEqual(postHardforkChainIdCall, originalChainId);
+      assert.strictEqual(parseInt(postHardforkChainIdCall), originalChainId);
 
-      const preHardforkChainIdCall = await remoteProvider.send("eth_call", [
+      const preHardforkChainIdCall = await provider.send("eth_call", [
         tx,
-        `0x${hardforkNumber - 1}`
+        `0x${contractBlockNum.toString(16)}` // 9_068_998
       ]);
 
       assert.strictEqual(
         preHardforkChainIdCall,
-        "0x0",
+        "0x",
         "this test *should* only fail once https://github.com/trufflesuite/ganache/issues/1496 is fixed"
       );
     });

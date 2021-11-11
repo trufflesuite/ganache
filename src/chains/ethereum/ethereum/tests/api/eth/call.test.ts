@@ -1,22 +1,25 @@
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
-import compile from "../../helpers/compile";
+import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
 import { BUFFER_EMPTY, Quantity, RPCQUANTITY_EMPTY } from "@ganache/utils";
 import { RETURN_TYPES, RuntimeError } from "@ganache/ethereum-utils";
 
-const contract = compile(join(__dirname, "./contracts/EthCall.sol"), {
-  contractName: "EthCall"
-});
-
 describe("api", () => {
   describe("eth", () => {
     describe("call", () => {
+      let contract: CompileOutput;
       let provider: EthereumProvider;
       let from, to: string;
       let contractAddress: string;
       let tx: object;
+
+      before("compile", () => {
+        contract = compile(join(__dirname, "./contracts/EthCall.sol"), {
+          contractName: "EthCall"
+        });
+      });
 
       before(async () => {
         provider = await getProvider({ wallet: { deterministic: true } });
