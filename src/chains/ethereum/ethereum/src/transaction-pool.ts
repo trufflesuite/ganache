@@ -125,14 +125,14 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     super();
     this.#blockchain = blockchain;
     this.#options = options;
-    this.#origins = origins;
+    this.origins = origins;
     this.#priceBump = options.priceBump;
   }
   public readonly executables: Executables = {
     inProgress: new Set(),
     pending: new Map()
   };
-  readonly #origins: Map<string, Heap<TypedTransaction>>;
+  public readonly origins: Map<string, Heap<TypedTransaction>>;
   readonly #accountPromises = new Map<string, Promise<Quantity>>();
 
   /**
@@ -204,7 +204,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // `executableOriginTransactions` map, always taking the highest of the two.
     let highestNonce = 0n;
 
-    const origins = this.#origins;
+    const origins = this.origins;
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
@@ -389,7 +389,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   }
 
   public clear() {
-    this.#origins.clear();
+    this.origins.clear();
     this.#accountPromises.clear();
     this.executables.pending.clear();
   }
@@ -407,7 +407,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     const { pending, inProgress } = this.executables;
 
     // first search pending transactions
-    for (let [_, transactions] of this.#origins) {
+    for (let [_, transactions] of this.origins) {
       if (transactions === undefined) continue;
       const arr = transactions.array;
       for (let i = 0; i < transactions.length; i++) {

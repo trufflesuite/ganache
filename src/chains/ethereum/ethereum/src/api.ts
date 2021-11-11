@@ -24,12 +24,14 @@ import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   TypedRpcTransaction,
   TransactionFactory,
-  TypedTransaction
+  TypedTransaction,
+  TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
+  Heap,
   Quantity,
   PromiEvent,
   Api,
@@ -3131,5 +3133,55 @@ export default class EthereumApi implements Api {
   async shh_version() {
     return "2";
   }
+  //#endregion
+
+  //#region txpool
+
+  /**
+   * Returns the current content of the transaction pool.
+   *
+   * @returns The transactions currently pending or queued in the transaction pool.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_content");
+   * console.log(pool);
+   * ```
+   */
+  @assertArgLength(0)
+  async txpool_content(): Promise<{
+    pending: Map<string, Map<string, TypedTransactionJSON>>;
+    queued: Map<string, Map<string, TypedTransactionJSON>>;
+  }> {
+    const { transactions, common } = this.#blockchain;
+    const { transactionPool } = transactions;
+
+    const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
+      let res = new Map<string, Map<string, TypedTransactionJSON>>();
+      for (let [_, transactions] of map) {
+        const arr = transactions.array;
+        for (let i = 0; i < transactions.length; ++i) {
+          const tx = arr[i];
+          const from = tx.from.toString();
+          if (res[from] === undefined) {
+            res[from] = {};
+          }
+          // The nonce keys are actual decimal numbers (as strings) and not
+          // hex literals (based on what geth returns).
+          const nonce = tx.nonce.toBigInt().toString();
+          res[from][nonce] = tx.toJSON(common);
+        }
+      }
+      return res;
+    };
+
+    return {
+      pending: processMap(transactionPool.executables.pending),
+      queued: processMap(transactionPool.origins)
+    };
+  }
+
   //#endregion
 }
