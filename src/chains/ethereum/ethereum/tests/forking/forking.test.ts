@@ -983,11 +983,16 @@ describe("forking", () => {
     let methods: { [methodName: string]: string };
     // EIP-1344 (which introduced the chainId opcode) was activated at block
     // 9,069,000 as part of the istanbul hardfork.
-    // 1. create our "fake mainnet" at block 9_068_997
-    // 2. block number is now 9_068_998
-    // 3. deploy at 9_068_999
-    // 4. mine an extra block. now at at 9_069_000
-    // 4. fork at 9_069_000
+    // We can deploy out contract _before_ the hardfork in order to run tests
+    // that will _fail_ because the feature we are testing doesn't exist yet.
+    //  1. create our "fake mainnet" at block 9_068_996
+    //     this test creates a fork of mainnet that _looks_ like mainnet (same
+    //     chainId and networkId) so we can then fork from _that_. Ganache can't
+    //     tell a different between our fake fork and the real thing.
+    //  2. block number is now 9_068_997
+    //  3. deploy at 9_068_998
+    //  4. mine 2 extra blocks. now at at 9_069_000
+    //  5. fork at 9_069_000
     const blockNumber = 9_068_996;
     let provider: EthereumProvider;
     let contractBlockNum: number;
@@ -995,10 +1000,8 @@ describe("forking", () => {
     let remoteProvider: EthereumProvider;
     let remoteAccounts: string[];
 
-    before("check skip condition", function () {
-      if (!process.env.INFURA_KEY) {
-        this.skip();
-      }
+    before("skip if we don't have the INFURA_KEY", function () {
+      if (!process.env.INFURA_KEY) this.skip();
     });
 
     before("configure mainnet", async function () {
@@ -1027,7 +1030,7 @@ describe("forking", () => {
       ({
         contractBlockNum,
         contractAddress,
-        contractBlockNum, // 9_068_999
+        contractBlockNum,
         methods
       } = await deployContract(remoteProvider, remoteAccounts));
     });
@@ -1045,7 +1048,7 @@ describe("forking", () => {
         },
         fork: {
           provider: remoteProvider as any,
-          blockNumber: contractBlockNum + 2 // 9_069_000
+          blockNumber: contractBlockNum + 2
         }
       });
     });
@@ -1100,13 +1103,13 @@ describe("forking", () => {
 
       const postHardforkChainIdCall = await provider.send("eth_call", [
         tx,
-        `0x${(contractBlockNum + 2).toString(16)}` // 9_068_999
+        `0x${(contractBlockNum + 2).toString(16)}`
       ]);
       assert.strictEqual(parseInt(postHardforkChainIdCall), originalChainId);
 
       const preHardforkChainIdCall = await provider.send("eth_call", [
         tx,
-        `0x${contractBlockNum.toString(16)}` // 9_068_998
+        `0x${contractBlockNum.toString(16)}`
       ]);
 
       assert.strictEqual(
