@@ -27,7 +27,8 @@ describe("Forking using a Provider", () => {
 
     const ganacheProviderOptions = {
       logger,
-      seed: "main provider"
+      seed: "main provider",
+      chainId: 1337
     };
 
     forkedContext = await bootstrap(contractRef, ganacheProviderOptions);
