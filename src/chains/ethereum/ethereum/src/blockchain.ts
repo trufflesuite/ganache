@@ -53,7 +53,6 @@ import {
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
-import { runTransactions } from "./helpers/run-transactions";
 import { SimulationTransaction } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
 import {
@@ -673,7 +672,7 @@ export default class Blockchain extends Emittery.Typed<
 
       // commit accounts, but for forking.
       const stateManager = <DefaultStateManager>this.vm.stateManager;
-      stateManager.checkpoint();
+      await stateManager.checkpoint();
       initialAccounts.forEach(acc => {
         const a = { buf: acc.address.toBuffer() } as any;
         (stateManager as any)._cache.put(a, acc);
@@ -798,8 +797,16 @@ export default class Blockchain extends Emittery.Typed<
     return (this.#timeAdjustment = timestamp - Date.now());
   }
 
-  #deleteBlockData = (blocksToDelete: Block[]) => {
-    return this.#database.batch(() => {
+  #deleteBlockData = async (blocksToDelete: Block[]) => {
+    // if we are forking we need to make sure we clean up the forking related
+    // metadata that isn't stored in the trie
+    if ("revertMetaData" in this.trie) {
+      await (this.trie as ForkTrie).revertMetaData(
+        blocksToDelete[blocksToDelete.length - 1].header.number,
+        blocksToDelete[0].header.number
+      );
+    }
+    await this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
       blocksToDelete.forEach(block => {
         block.getTransactions().forEach(tx => {
@@ -908,7 +915,7 @@ export default class Blockchain extends Emittery.Typed<
     if (!currentHash.equals(snapshotHash)) {
       // if we've added blocks since we snapshotted we need to delete them and put
       // some things back the way they were.
-      const blockPromises = [];
+      const blockPromises: Promise<Block>[] = [];
       let blockList = snapshots.blocks;
       while (blockList !== null) {
         if (blockList.current.equals(snapshotHash)) break;
@@ -917,7 +924,8 @@ export default class Blockchain extends Emittery.Typed<
       }
       snapshots.blocks = blockList;
 
-      await Promise.all(blockPromises).then(this.#deleteBlockData);
+      const blockData = await Promise.all(blockPromises);
+      await this.#deleteBlockData(blockData);
 
       setStateRootSync(
         this.vm.stateManager,
@@ -1091,6 +1099,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   #traceTransaction = async (
+    transaction: VmTransaction,
     trie: GanacheTrie,
     newBlock: RuntimeBlock & { transactions: VmTransaction[] },
     options: TransactionTraceOptions,
@@ -1123,7 +1132,6 @@ export default class Blockchain extends Emittery.Typed<
     });
 
     const storage: StorageRecords = {};
-    const transaction = newBlock.transactions[newBlock.transactions.length - 1];
 
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
@@ -1173,7 +1181,7 @@ export default class Blockchain extends Emittery.Typed<
       }
 
       const structLog: StructLog = {
-        depth: event.depth,
+        depth: event.depth + 1,
         error: "",
         gas: gasLeft,
         gasCost: 0,
@@ -1245,53 +1253,6 @@ export default class Blockchain extends Emittery.Typed<
       }
     };
 
-    const afterTxListener = () => {
-      vm.removeListener("step", stepListener);
-      vm.removeListener("afterTransaction", afterTxListener);
-      this.emit("ganache:vm:tx:after", {
-        context: transactionEventContext
-      });
-    };
-
-    const beforeTxListener = async (tx: VmTransaction) => {
-      if (tx === transaction) {
-        this.emit("ganache:vm:tx:before", {
-          context: transactionEventContext
-        });
-        vm.on("step", stepListener);
-        vm.on("afterTx", afterTxListener);
-        if (keys && contractAddress) {
-          const database = this.#database;
-          return Promise.all(
-            keys.map(async key => {
-              // get the raw key using the hashed key
-              let rawKey = await database.storageKeys.get(key);
-
-              const result = await vm.stateManager.getContractStorage(
-                { buf: Address.from(contractAddress).toBuffer() } as any,
-                rawKey
-              );
-
-              storage[Data.from(key, key.length).toString()] = {
-                key: Data.from(rawKey, rawKey.length),
-                value: Data.from(result, 32)
-              };
-            })
-          );
-        }
-      }
-    };
-
-    const removeListeners = () => {
-      vm.removeListener("step", stepListener);
-      vm.removeListener("beforeTx", beforeTxListener);
-      vm.removeListener("afterTx", afterTxListener);
-    };
-
-    // Listen to beforeTx so we know when our target transaction
-    // is processing. This event will add the event listener for getting the trace data.
-    vm.on("beforeTx", beforeTxListener);
-
     // Don't even let the vm try to flush the block's _cache to the stateTrie.
     // When forking some of the data that the traced function may request will
     // exist only on the main chain. Because we pretty much lie to the VM by
@@ -1309,10 +1270,50 @@ export default class Blockchain extends Emittery.Typed<
     // The previous implementation had specific error handling.
     // It's possible we've removed handling specific cases in this implementation.
     // e.g., the previous incantation of RuntimeError
-    await runTransactions(vm, newBlock.transactions, newBlock);
+    await vm.stateManager.checkpoint();
+    try {
+      for (let i = 0, l = newBlock.transactions.length; i < l; i++) {
+        const tx = newBlock.transactions[i] as any;
+        if (tx === transaction) {
+          if (keys && contractAddress) {
+            const database = this.#database;
+            const ejsContractAddress = { buf: contractAddress } as any;
+            await Promise.all(
+              keys.map(async key => {
+                // get the raw key using the hashed key
+                const rawKey = await database.storageKeys.get(key);
 
-    // Just to be safe
-    removeListeners();
+                const result = await vm.stateManager.getContractStorage(
+                  ejsContractAddress,
+                  rawKey
+                );
+
+                storage[Data.from(key, key.length).toString()] = {
+                  key: Data.from(rawKey, rawKey.length),
+                  value: Data.from(result, 32)
+                };
+              })
+            );
+            break;
+          } else {
+            vm.on("step", stepListener);
+            // force the loop to break after running this transaction by setting
+            // the current iteration past the end
+            i = l;
+          }
+        }
+        this.emit("ganache:vm:tx:before", {
+          context: transactionEventContext
+        });
+        await vm.runTx({ tx, block: newBlock as any });
+        this.emit("ganache:vm:tx:after", {
+          context: transactionEventContext
+        });
+      }
+      vm.removeListener("step", stepListener);
+    } finally {
+      await vm.stateManager.revert();
+    }
 
     // send state results back
     return {
@@ -1391,8 +1392,8 @@ export default class Blockchain extends Emittery.Typed<
       throw new Error("Unknown transaction " + transactionHash);
     }
 
-    const targetBlock = await this.blocks.get(
-      transaction.blockNumber.toBuffer()
+    const targetBlock = await this.blocks.getByHash(
+      transaction.blockHash.toBuffer()
     );
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
@@ -1402,12 +1403,6 @@ export default class Blockchain extends Emittery.Typed<
       targetBlock,
       parentBlock,
       transactionHashBuffer
-    );
-
-    // only copy relevant transactions
-    newBlock.transactions = newBlock.transactions.slice(
-      0,
-      1 + transaction.index.toNumber()
     );
 
     // #2 - Set state root of original block
@@ -1427,7 +1422,12 @@ export default class Blockchain extends Emittery.Typed<
       structLogs,
       returnValue,
       storage
-    } = await this.#traceTransaction(trie, newBlock, options);
+    } = await this.#traceTransaction(
+      newBlock.transactions[transaction.index.toNumber()],
+      trie,
+      newBlock,
+      options
+    );
 
     // #4 - Send results back
     return { gas, structLogs, returnValue, storage };
@@ -1556,6 +1556,7 @@ export default class Blockchain extends Emittery.Typed<
     };
 
     const { storage } = await this.#traceTransaction(
+      newBlock.transactions[transaction.index.toNumber()],
       trie,
       newBlock,
       options,

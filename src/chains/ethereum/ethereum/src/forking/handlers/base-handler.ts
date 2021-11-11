@@ -5,6 +5,7 @@ import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
 import { AbortError, CodedError } from "@ganache/ethereum-utils";
+import { PersistentCache } from "../persistent-cache/persistent-cache";
 
 const INVALID_RESPONSE = "Invalid response from fork provider: ";
 
@@ -23,6 +24,7 @@ export class BaseHandler {
   protected limiter: RateLimiter;
   protected headers: Headers;
   protected abortSignal: AbortSignal;
+  private persistentCache: PersistentCache;
 
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
     const forkingOptions = options.fork;
@@ -63,6 +65,10 @@ export class BaseHandler {
       BaseHandler.setUserHeaders(forkingOptions, headers, !isInfura);
       this.headers = headers;
     }
+  }
+
+  public setCache(cache: PersistentCache) {
+    this.persistentCache = cache;
   }
 
   /**
@@ -135,7 +141,7 @@ export class BaseHandler {
     }
   }
 
-  getFromCache<T>(key: string) {
+  getFromMemCache<T>(key: string) {
     const cachedRequest = this.requestCache.get(key);
     if (cachedRequest !== undefined) return cachedRequest as Promise<T>;
 
@@ -143,33 +149,88 @@ export class BaseHandler {
     if (cachedValue !== undefined) return JSON.parse(cachedValue).result as T;
   }
 
+  async getFromSlowCache<T>(method: string, params: any[], key: string) {
+    if (!this.persistentCache) return;
+    const raw = await this.persistentCache.get(method, params, key).catch(e => {
+      if (e.notFound) return null;
+      // I/O or other error, throw as things are getting weird and the cache may
+      // have lost integrity
+      throw e;
+    });
+    if (raw != null) return { result: JSON.parse(raw).result as T, raw };
+  }
+
   async queueRequest<T>(
+    method: string,
+    params: any[],
     key: string,
     send: (
       ...args: unknown[]
     ) => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
-    }>
+    }>,
+    options = { disableCache: false }
   ): Promise<T> {
-    const cached = this.getFromCache<T>(key);
-    if (cached !== undefined) return cached;
+    if (!options.disableCache) {
+      const memCached = this.getFromMemCache<T>(key);
+      if (memCached !== undefined) return memCached;
 
-    const promise = this.limiter.handle(send).then(({ response, raw }) => {
-      if (this.abortSignal.aborted) return Promise.reject(new AbortError());
-
-      if (hasOwn(response, "result")) {
-        // cache non-error responses only
-        this.valueCache.set(key, raw);
-
-        return response.result as T;
-      } else if (hasOwn(response, "error") && response.error != null) {
-        const { error } = response as JsonRpcError;
-        throw new CodedError(error.message, error.code);
+      const diskCached = await this.getFromSlowCache<T>(method, params, key);
+      if (diskCached !== undefined) {
+        this.valueCache.set(key, Buffer.from(diskCached.raw));
+        return diskCached.result;
       }
-      throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
-    });
+    }
+
+    const promise = this.limiter
+      .handle(send)
+      .then(async ({ response, raw }) => {
+        if (this.abortSignal.aborted) return Promise.reject(new AbortError());
+
+        if (hasOwn(response, "result")) {
+          if (!options.disableCache) {
+            // cache non-error responses only
+            this.valueCache.set(key, raw);
+
+            // swallow errors for the persistentCache, since it's not vital that
+            // it always works
+            if (this.persistentCache) {
+              const prom = this.persistentCache
+                .put(
+                  method,
+                  params,
+                  key,
+                  typeof raw === "string" ? Buffer.from(raw) : raw
+                )
+                .catch(_ => {
+                  // the cache.put may fail if the db is closed while a request
+                  // is in flight. This is a "fire and forget" method.
+                });
+
+              // track these unawaited `puts`
+              this.fireForget.add(prom);
+
+              // clean up once complete
+              prom.finally(() => {
+                this.fireForget.delete(prom);
+              });
+            }
+          }
+
+          return response.result as T;
+        } else if (hasOwn(response, "error") && response.error != null) {
+          const { error } = response as JsonRpcError;
+          throw new CodedError(error.message, error.code);
+        }
+        throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
+      });
     this.requestCache.set(key, promise);
     return await promise;
+  }
+  private fireForget = new Set();
+  async close() {
+    await Promise.all(this.fireForget.keys());
+    this.persistentCache && (await this.persistentCache.close());
   }
 }

@@ -16,12 +16,19 @@ import allSettled from "promise.allsettled";
 allSettled.shim();
 
 import AggregateError from "aggregate-error";
+import type {
+  TemplatedApp,
+  us_listen_socket
+} from "@trufflesuite/uws-js-unofficial";
 import {
   App,
-  TemplatedApp,
-  us_listen_socket,
-  us_listen_socket_close
+  us_listen_socket_close,
+  _cfg as setUwsGlobalConfig
 } from "@trufflesuite/uws-js-unofficial";
+
+// Set the "silent" config option so we don't output the "uwebsockets" header
+setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
+
 import {
   Connector,
   ConnectorsByName,

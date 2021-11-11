@@ -1,6 +1,6 @@
 import getProvider from "../helpers/getProvider";
-import Server from "../../../../../packages/core/lib/src/server";
 import EthereumProvider from "../../src/provider";
+import { EthereumProviderOptions } from "@ganache/ethereum-options/typings";
 
 export const logging = {
   logger: {
@@ -48,7 +48,10 @@ export const updateRemotesAccountNonces = async (
   );
 };
 
-export const startLocalChain = async (port: number, options?: any) => {
+export const startLocalChain = async (
+  port: number,
+  options?: EthereumProviderOptions["fork"]
+) => {
   const localProvider = await getProvider({
     logging,
     fork: { url: `ws://0.0.0.0:${port}`, ...options },

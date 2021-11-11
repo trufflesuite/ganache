@@ -11,6 +11,7 @@ import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
+import { PersistentCache } from "./persistent-cache/persistent-cache";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -21,16 +22,14 @@ async function fetchNetworkId(fork: Fork) {
   return parseInt(networkIdStr, 10);
 }
 function fetchBlockNumber(fork: Fork) {
-  return fork.request<string>("eth_blockNumber", []);
+  // {disableCache: true} required so we never cache the blockNumber, as forking
+  // shouldn't ever cache a method that can change!
+  return fork.request<string>("eth_blockNumber", [], { disableCache: true });
 }
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
-async function fetchNonce(
-  fork: Fork,
-  address: Address,
-  blockNumber: Quantity | Tag.LATEST
-) {
+async function fetchNonce(fork: Fork, address: Address, blockNumber: Quantity) {
   const nonce = await fork.request<string>("eth_getTransactionCount", [
     address,
     blockNumber
@@ -83,9 +82,9 @@ export class Fork {
     }
   }
 
-  #setCommonFromChain = async () => {
+  #setCommonFromChain = async (chainIdPromise: Promise<number>) => {
     const [chainId, networkId] = await Promise.all([
-      fetchChainId(this),
+      chainIdPromise,
       fetchNetworkId(this)
     ]);
 
@@ -102,14 +101,27 @@ export class Fork {
     (this.common as any).on = () => {};
   };
 
-  #setBlockDataFromChainAndOptions = async () => {
+  #setBlockDataFromChainAndOptions = async (
+    chainIdPromise: Promise<number>
+  ) => {
     const options = this.#options;
     if (options.blockNumber === Tag.LATEST) {
-      // if our block number option is "latest" override it with the original
-      // chain's current blockNumber
-      const block = await fetchBlock(this, Tag.LATEST);
-      options.blockNumber = parseInt(block.number, 16);
-      this.blockNumber = Quantity.from(options.blockNumber);
+      const [latestBlock, chainId] = await Promise.all([
+        fetchBlock(this, Tag.LATEST),
+        chainIdPromise
+      ]);
+      let blockNumber = parseInt(latestBlock.number, 16);
+      const effectiveBlockNumber = KNOWN_CHAINIDS.has(chainId)
+        ? Math.max(blockNumber - options.preLatestConfirmations, 0)
+        : blockNumber;
+      let block;
+      if (effectiveBlockNumber !== blockNumber) {
+        block = await fetchBlock(this, Quantity.from(effectiveBlockNumber));
+      } else {
+        block = latestBlock;
+      }
+      options.blockNumber = effectiveBlockNumber;
+      this.blockNumber = Quantity.from(effectiveBlockNumber);
       this.stateRoot = Data.from(block.stateRoot);
       await this.#syncAccounts(this.blockNumber);
       return block;
@@ -152,18 +164,45 @@ export class Fork {
   };
 
   public async initialize() {
-    const [block] = await Promise.all([
-      this.#setBlockDataFromChainAndOptions(),
-      this.#setCommonFromChain()
+    let cacheProm: Promise<PersistentCache>;
+    const options = this.#options;
+    if (options.deleteCache) await PersistentCache.deleteDb();
+    if (options.disableCache === false) {
+      // ignore cache start up errors as it is possible there is an `open`
+      // conflict if another ganache fork is running at the time this one is
+      // started. The cache isn't required (though performance will be
+      // degraded without it)
+      cacheProm = PersistentCache.create().catch(_e => null);
+    } else {
+      cacheProm = null;
+    }
+    const chainIdPromise = fetchChainId(this);
+    const [block, cache] = await Promise.all([
+      this.#setBlockDataFromChainAndOptions(chainIdPromise),
+      cacheProm,
+      this.#setCommonFromChain(chainIdPromise)
     ]);
     this.block = new Block(
       BlockManager.rawFromJSON(block, this.common),
       this.common
     );
+    if (cache) await this.initCache(cache);
+  }
+  private async initCache(cache: PersistentCache) {
+    await cache.initialize(
+      this.block.header.number,
+      this.block.hash(),
+      this.request.bind(this)
+    );
+    this.#handler.setCache(cache);
   }
 
-  public request<T = unknown>(method: string, params: unknown[]): Promise<T> {
-    return this.#handler.request<T>(method, params);
+  public request<T = unknown>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false }
+  ): Promise<T> {
+    return this.#handler.request<T>(method, params, options);
   }
 
   public abort() {
@@ -174,8 +213,12 @@ export class Fork {
     return this.#handler.close();
   }
 
+  public isValidForkBlockNumber(blockNumber: Quantity) {
+    return blockNumber.toBigInt() <= this.blockNumber.toBigInt();
+  }
+
   public selectValidForkBlockNumber(blockNumber: Quantity) {
-    return blockNumber.toBigInt() < this.blockNumber.toBigInt()
+    return this.isValidForkBlockNumber(blockNumber)
       ? blockNumber
       : this.blockNumber;
   }

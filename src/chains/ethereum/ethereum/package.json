@@ -30,7 +30,7 @@
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
     "tsc": "ttsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 -t 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -67,6 +67,7 @@
     "abort-controller": "3.0.0",
     "bip39": "3.0.4",
     "emittery": "0.7.2",
+    "env-paths": "2.2.1",
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",
     "ethereumjs-util": "7.1.0",
@@ -83,11 +84,11 @@
     "semaphore": "1.1.0",
     "subleveldown": "5.0.1",
     "tmp-promise": "3.0.2",
-    "ws": "7.5.3"
+    "ws": "8.2.3"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.12",
+    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",
@@ -102,6 +103,7 @@
     "abstract-leveldown": "6.3.0",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
+    "fast-check": "2.17.0",
     "fs-extra": "9.0.1",
     "local-web-server": "4.2.1",
     "mocha": "8.4.0",

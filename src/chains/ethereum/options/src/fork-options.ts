@@ -1,8 +1,9 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-import { Tag } from "@ganache/ethereum-utils";
+import { QUANTITY, Tag } from "@ganache/ethereum-utils";
 import { URL } from "url";
+import { Quantity } from "@ganache/utils";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 
 // we aren't going to treat block numbers as a bigint, so we don't want to
@@ -69,6 +70,15 @@ export type ForkConfig = {
          */
         fork_block_number: number | Tag.LATEST;
       };
+    };
+
+    /**
+     * When the `fork.blockNumber` is set to "latest" (default), the number of
+     * blocks before the remote node's "latest" block to fork from.
+     */
+    preLatestConfirmations: {
+      type: number;
+      hasDefault: true;
     };
 
     /**
@@ -158,6 +168,26 @@ export type ForkConfig = {
      */
     requestsPerSecond: {
       type: number;
+      hasDefault: true;
+    };
+
+    /**
+     * Disables caching of all forking requests.
+     *
+     * @default false
+     */
+    disableCache: {
+      type: boolean;
+      hasDefault: true;
+    };
+
+    /**
+     * Deletes the persistent cache on start up.
+     *
+     * @default false
+     */
+    deleteCache: {
+      type: boolean;
       hasDefault: true;
     };
   };
@@ -270,8 +300,16 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         return;
       }
     },
-    defaultDescription: `"${Tag.LATEST}"`
+    defaultDescription: `Latest block number`
     //implies: ["url"]
+  },
+  preLatestConfirmations: {
+    normalize,
+    cliDescription:
+      'When the `fork.blockNumber` is set to "latest" (default), the number of blocks before the remote node\'s "latest" block to fork from.',
+    default: () => 5,
+    defaultDescription: "5",
+    cliType: "number"
   },
   username: {
     normalize,
@@ -365,5 +403,17 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
       "Restrict the number of requests per second sent to the fork provider. `0` means no limit is applied.",
     cliType: "number"
     //implies: ["url"]
+  },
+  disableCache: {
+    normalize,
+    default: () => false,
+    cliDescription: "Disables caching of all forking requests.",
+    cliType: "boolean"
+  },
+  deleteCache: {
+    normalize,
+    default: () => false,
+    cliDescription: "Deletes the persistent cache before starting.",
+    cliType: "boolean"
   }
 };

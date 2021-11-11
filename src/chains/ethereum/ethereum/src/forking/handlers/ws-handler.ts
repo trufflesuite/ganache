@@ -53,7 +53,11 @@ export class WsHandler extends BaseHandler implements Handler {
     this.connection.onmessage = this.onMessage.bind(this);
   }
 
-  public async request<T>(method: string, params: unknown[]) {
+  public async request<T>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false }
+  ) {
     await this.open;
     if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
@@ -74,7 +78,7 @@ export class WsHandler extends BaseHandler implements Handler {
       this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
-    return await this.queueRequest<T>(key, send);
+    return await this.queueRequest<T>(method, params, key, send, options);
   }
 
   public onMessage(event: WebSocket.MessageEvent) {
@@ -111,8 +115,8 @@ export class WsHandler extends BaseHandler implements Handler {
     return open;
   }
 
-  public close() {
+  public async close() {
+    await super.close();
     this.connection.close();
-    return Promise.resolve();
   }
 }

@@ -85,7 +85,11 @@ export class HttpHandler extends BaseHandler implements Handler {
     });
   }
 
-  public async request<T>(method: string, params: unknown[]) {
+  public async request<T>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false }
+  ) {
     const key = JSON.stringify({ method, params });
     const { protocol, hostname: host, port, pathname, search } = this.url;
     const requestOptions = {
@@ -168,11 +172,6 @@ export class HttpHandler extends BaseHandler implements Handler {
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
 
-    return await this.queueRequest<T>(key, send);
-  }
-
-  public close() {
-    // no op
-    return Promise.resolve();
+    return await this.queueRequest<T>(method, params, key, send, options);
   }
 }
