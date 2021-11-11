@@ -182,11 +182,12 @@ export type WalletConfig = {
      * @defaultValue "m/44'/60'/0'/0/"
      */
     hdPath: {
-      type: string;
+      type: string[];
+      rawType: string;
       hasDefault: true;
       legacy: {
         /**
-         * @deprecated Use wallet.totalAcchdPathounts instead
+         * @deprecated Use wallet.hdPath instead
          */
         hd_path: string;
       };
@@ -300,10 +301,12 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliType: "number"
   },
   hdPath: {
-    normalize,
+    normalize: (path: string) => {
+      return path.split("/");
+    },
     cliDescription:
       "The hierarchical deterministic path to use when generating accounts.",
-    default: () => "m/44'/60'/0'/0/",
+    default: () => ["m", "44'", "60'", "0'", "0"],
     legacyName: "hd_path",
     cliType: "string"
   }
