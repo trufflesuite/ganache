@@ -258,8 +258,7 @@ export default class Wallet {
       WEI * significand + fractional * (WEI / magnitude);
     const etherInWei = Quantity.from(defaultBalanceInWei);
     let accounts: Account[];
-    const passphrase = options.passphrase;
-    const lockAccounts = options.lock;
+    const { passphrase, lockAccounts } = options;
 
     let givenAccounts = options.accounts;
     let accountsLength: number;
