@@ -1668,9 +1668,9 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+    const privateKey = wallet.unlockedAccounts.get(fromString);
 
-    if (!isUnlockedAccount) {
+    if (privateKey === undefined) {
       const msg = isKnownAccount
         ? "authentication needed: password or unlock"
         : "sender account not recognized";
@@ -1685,8 +1685,7 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    const secretKey = wallet.unlockedAccounts.get(fromString);
-    return blockchain.queueTransaction(tx, secretKey);
+    return blockchain.queueTransaction(tx, privateKey);
   }
 
   /**
@@ -1721,17 +1720,16 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+    const privateKey = wallet.unlockedAccounts.get(fromString);
 
-    if (!isUnlockedAccount) {
+    if (privateKey === undefined) {
       const msg = isKnownAccount
         ? "authentication needed: password or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
 
-    const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
-    tx.signAndHash(secretKey);
+    tx.signAndHash(privateKey.toBuffer());
     return Data.from(tx.serialized).toString();
   }
   /**
