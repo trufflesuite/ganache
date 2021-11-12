@@ -290,7 +290,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
       "Lock available accounts by default (good for third party transaction signing).",
     default: () => false,
     legacyName: "lock",
-    cliAliases: ["n", "secure", "lock", "lock"],
+    cliAliases: ["n", "secure", "lock"],
     cliType: "boolean"
   },
   passphrase: {

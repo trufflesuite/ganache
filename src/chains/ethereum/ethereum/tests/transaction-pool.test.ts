@@ -434,7 +434,7 @@ describe("transaction pool", async () => {
     );
   });
 
-  it("rejects unsigned transactions with no secret key pprovided", async () => {
+  it("rejects unsigned transactions with no secret key provided", async () => {
     const txPool = new TransactionPool(options.miner, blockchain, origins);
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
