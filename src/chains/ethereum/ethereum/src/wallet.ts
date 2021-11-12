@@ -587,11 +587,11 @@ export default class Wallet {
       throw new Error("cannot remove unknown account");
     }
 
-    const privatKey = await this.getFromKeyFile(lowerAddress, passphrase);
+    const privateKey = await this.getFromKeyFile(lowerAddress, passphrase);
     // we don't actually care what the private key is, we just need to know that
     // the passphrase they supplied is the right one. (empty string is a valid
     // privateKey for added, previously unknown accounts)
-    if (privatKey != null) {
+    if (privateKey != null) {
       this.keyFiles.delete(lowerAddress);
       this.knownAccounts.delete(lowerAddress);
       this.lockTimers.delete(lowerAddress);
