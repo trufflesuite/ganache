@@ -1672,7 +1672,7 @@ export default class EthereumApi implements Api {
 
     if (privateKey === undefined) {
       const msg = isKnownAccount
-        ? "authentication needed: password or unlock"
+        ? "authentication needed: passphrase or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
@@ -1724,7 +1724,7 @@ export default class EthereumApi implements Api {
 
     if (privateKey === undefined) {
       const msg = isKnownAccount
-        ? "authentication needed: password or unlock"
+        ? "authentication needed: passphrase or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
