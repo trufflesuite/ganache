@@ -16,10 +16,7 @@ import {
   setDbVersion,
   findClosestDescendants
 } from "./helpers";
-import { AbstractIterator } from "abstract-leveldown";
-import { AbstractLevelDOWN } from "abstract-leveldown";
-
-const { mkdir } = promises;
+import { AbstractIterator, AbstractLevelDOWN } from "abstract-leveldown";
 
 const levelupOptions = {
   keyEncoding: "binary",
@@ -114,7 +111,7 @@ export class PersistentCache {
     const cache = new PersistentCache();
 
     const directory = PersistentCache.getDbDirectory(dbSuffix);
-    await mkdir(directory, { recursive: true });
+    await promises.mkdir(directory, { recursive: true });
 
     const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
     const db = await new Promise<LevelUp>((resolve, reject) => {
