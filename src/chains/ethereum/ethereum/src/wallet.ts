@@ -522,7 +522,7 @@ export default class Wallet {
       // by throwing the same error that's thrown when decrypting
       if (passphrase) {
         throw new Error(
-          'could not decrypt key with given password (default password for accounts created at startup is "")'
+          'could not decrypt key with given passphrase (default passphrase for accounts created at startup is "")'
         );
       } else {
         return keyFile.key;
