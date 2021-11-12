@@ -121,13 +121,13 @@ export default class Wallet {
     // create a RNG from our initial starting conditions (opts.mnemonic)
     this.#randomRng = alea("ganache " + opts.mnemonic);
 
-    const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
-      opts
-    ));
-    const l = initialAccounts.length;
+    const initialAccounts = this.#initializeAccounts(opts);
+    this.initialAccounts = Array.from(initialAccounts.values());
+    this.addresses = Array.from(initialAccounts.keys());
+    const l = this.initialAccounts.length;
 
-    const knownAccounts = this.knownAccounts;
     const unlockedAccounts = this.unlockedAccounts;
+
     //#region Unlocked Accounts
     const givenUnlockedAccounts = opts.unlockedAccounts;
     if (givenUnlockedAccounts) {
@@ -135,12 +135,20 @@ export default class Wallet {
       for (let i = 0; i < ul; i++) {
         let arg = givenUnlockedAccounts[i];
         let address: string;
+        let privateKey: Data;
         switch (typeof arg) {
           case "string":
             // `toLowerCase` so we handle uppercase `0X` formats
             const addressOrIndex = arg.toLowerCase();
             if (addressOrIndex.indexOf("0x") === 0) {
               address = addressOrIndex;
+              const account = initialAccounts.get(address);
+              if (account) {
+                privateKey = account.privateKey;
+              } else {
+                // this wasn't one of our initial accounts, so make a priv key.
+                privateKey = this.createFakePrivateKey(address);
+              }
               break;
             } else {
               // try to convert the arg string to a number.
@@ -162,7 +170,7 @@ export default class Wallet {
               // break; // no break, please.
             }
           case "number":
-            const account = initialAccounts[arg];
+            const account = this.initialAccounts[arg];
             if (account == null) {
               throw new Error(
                 `Account at index ${arg} not found. Max index available is ${
@@ -171,34 +179,15 @@ export default class Wallet {
               );
             }
             address = account.address.toString().toLowerCase();
+            privateKey = account.privateKey;
             break;
           default:
             throw new Error(`Invalid value specified in unlocked_accounts`);
         }
         if (unlockedAccounts.has(address)) continue;
-        // if we don't have the secretKey for an account we can make a fake one.
-        const privateKey = this.createFakePrivateKey(address);
+
         unlockedAccounts.set(address, privateKey);
       }
-    }
-    //#endregion
-
-    //#region Configure Known + Unlocked Accounts
-    const accountsCache = (this.addresses = Array(l));
-    for (let i = 0; i < l; i++) {
-      const account = initialAccounts[i];
-      const address = account.address;
-      const strAddress = address.toString();
-      accountsCache[i] = strAddress;
-      knownAccounts.add(strAddress);
-
-      // if the `lock` option has been set do NOT add these accounts to the
-      // unlockedAccounts, unless the account was already added to
-      // unlockedAccounts, in which case we need to add the account's private
-      // key.
-      if (opts.lock && !unlockedAccounts.has(strAddress)) continue;
-
-      unlockedAccounts.set(strAddress, account.privateKey);
     }
     //#endregion
 
@@ -237,7 +226,7 @@ export default class Wallet {
 
   #initializeAccounts = (
     options: EthereumInternalOptions["wallet"]
-  ): Account[] => {
+  ): Map<string, Account> => {
     // convert a potentially fractional balance of Ether to WEI
     const balanceParts = options.defaultBalance.toString().split(".", 2);
     const significand = BigInt(balanceParts[0]);
@@ -247,70 +236,82 @@ export default class Wallet {
     const defaultBalanceInWei =
       WEI * significand + fractional * (WEI / magnitude);
     const etherInWei = Quantity.from(defaultBalanceInWei);
-    let accounts: Account[];
-    const { passphrase, lockAccounts } = options;
+    const accounts: Map<string, Account> = new Map<string, Account>();
+    const { accounts: givenAccounts, hdPath } = options;
 
-    let givenAccounts = options.accounts;
     let accountsLength: number;
     if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
-      const hdKey = this.#hdKey;
-      const hdPath = options.hdPath;
-      accounts = Array(accountsLength);
       for (let i = 0; i < accountsLength; i++) {
-        const account = givenAccounts[i];
-        const secretKey = account.secretKey;
-        let privateKey: Data;
-        let address: Address;
-        if (!secretKey) {
-          const acct = hdKey.derive(hdPath + i);
-          address = uncompressedPublicKeyToAddress(acct.publicKey);
-          privateKey = Data.from(acct.privateKey);
-          accounts[i] = Wallet.createAccount(
-            Quantity.from(account.balance),
-            privateKey,
-            address
-          );
-        } else {
-          privateKey = Data.from(secretKey);
-          const a = (accounts[i] = Wallet.createAccountFromPrivateKey(
-            privateKey
-          ));
-          address = a.address;
-          a.balance = Quantity.from(account.balance);
-        }
-        this.addToKeyFileSync(
-          address.toString(),
-          privateKey,
-          passphrase,
-          lockAccounts
+        const givenAccount = givenAccounts[i];
+        const secretKey = givenAccount.secretKey;
+        const balance = Quantity.from(givenAccount.balance);
+        const account = this.#initializeAccount(
+          balance,
+          options,
+          hdPath + i,
+          secretKey
         );
+        accounts.set(account.address.toString(), account);
       }
     } else {
       const numberOfAccounts = options.totalAccounts;
       if (numberOfAccounts != null) {
-        accounts = Array(numberOfAccounts);
-        const hdPath = options.hdPath;
-        const hdKey = this.#hdKey;
-
-        for (let index = 0; index < numberOfAccounts; index++) {
-          const acct = hdKey.derive(hdPath + index);
-          const address = uncompressedPublicKeyToAddress(acct.publicKey);
-          const privateKey = Data.from(acct.privateKey);
-          accounts[index] = Wallet.createAccount(
+        for (let i = 0; i < numberOfAccounts; i++) {
+          const account = this.#initializeAccount(
             etherInWei,
-            privateKey,
-            address
+            options,
+            hdPath + i
           );
-          this.addToKeyFileSync(
-            address.toString(),
-            privateKey,
-            passphrase,
-            lockAccounts
-          );
+          accounts.set(account.address.toString(), account);
         }
       }
     }
     return accounts;
+  };
+
+  /**
+   * Creates an account and adds the appropriate data to the `keyFiles`,
+   * `knownAccounts`, and `unlockedAccounts` as necessary.
+   * @param balance
+   * @param options
+   * @param fullHdPath
+   * @param secretKey
+   */
+  #initializeAccount = (
+    balance: Quantity,
+    options: EthereumInternalOptions["wallet"],
+    fullHdPath: string,
+    secretKey?: string
+  ) => {
+    const { passphrase, lock: lockAccounts } = options;
+    let account: Account;
+    let privateKey: Data;
+    let address: Address;
+    const knownAccounts = this.knownAccounts;
+    if (!secretKey) {
+      const hdKey = this.#hdKey;
+
+      const acct = hdKey.derive(fullHdPath);
+      address = uncompressedPublicKeyToAddress(acct.publicKey);
+      privateKey = Data.from(acct.privateKey);
+      account = Wallet.createAccount(balance, privateKey, address);
+    } else {
+      privateKey = Data.from(secretKey);
+      account = Wallet.createAccountFromPrivateKey(privateKey);
+      account.balance = balance;
+      address = account.address;
+    }
+
+    const strAddress = address.toString();
+    this.addToKeyFileSync(strAddress, privateKey, passphrase, lockAccounts);
+    knownAccounts.add(strAddress);
+
+    // if the `lock` option has been not been set, we're safe to add this
+    // account to unlockedAccounts
+    if (!lockAccounts) {
+      this.unlockedAccounts.set(strAddress, privateKey);
+    }
+    return account;
   };
 
   public async encrypt(privateKey: Data, passphrase: string) {
@@ -325,6 +326,7 @@ export default class Wallet {
     });
     return this.finishEncryption(derivedKey, privateKey, salt, iv, uuid);
   }
+
   /**
    * Syncronous version of the `encrypt` function.
    * @param privateKey
