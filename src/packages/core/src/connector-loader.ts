@@ -36,14 +36,16 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
   // connector.connect interface
   const connectPromise = connector.connect
     ? connector.connect()
-    : (connector as any).initialize();
+    : ((connector as any).initialize() as Promise<void>);
 
   // The request coordinator is initialized in a "paused" state; when the
   // provider is ready we unpause.. This lets us accept queue requests before
   // we've even fully initialized.
-  connectPromise.then(requestCoordinator.resume);
 
-  return connector;
+  return {
+    connector,
+    promise: connectPromise.then(requestCoordinator.resume)
+  };
 };
 
 /**

@@ -77,9 +77,8 @@ describe("api", () => {
             logger.loggedStuff.includes(
               " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
                 ` > \`${hash}\` has not\n` +
-                " > yet been mined."
-              // TODO: uncomment once we have a valid domain
-              // + " See https://trfl.co/v7-instamine for additional information."
+                " > yet been mined." +
+                " See https://trfl.io/v7-instamine for additional information."
             )
           );
         });

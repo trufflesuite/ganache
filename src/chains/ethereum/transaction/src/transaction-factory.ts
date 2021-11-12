@@ -117,8 +117,15 @@ export class TransactionFactory {
             extra
           );
           if (toEIP1559) {
-            tx.maxFeePerGas = Quantity.from(null);
-            tx.maxPriorityFeePerGas = RPCQUANTITY_ZERO;
+            // they didn't specify the type as eip-1559 (type 2), so we are
+            // upgrading it. BUT, there's still a chance they sent us this data,
+            // so we don't want to overwrite it.
+            if (!txData.maxFeePerGas) {
+              tx.maxFeePerGas = Quantity.from(null);
+            }
+            if (!txData.maxPriorityFeePerGas) {
+              tx.maxPriorityFeePerGas = RPCQUANTITY_ZERO;
+            }
           }
           return tx;
         } else if (txType === TransactionType.Legacy) {

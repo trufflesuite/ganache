@@ -14,6 +14,6 @@ export class ForkCache extends Cache {
    */
   _lookupAccount = async (address: EJS_Address) => {
     const rlp = await (this._trie as ForkTrie).get(address.buf);
-    return Account.fromRlpSerializedAccount(rlp!);
+    return rlp ? Account.fromRlpSerializedAccount(rlp) : new Account();
   };
 }

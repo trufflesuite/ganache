@@ -15,6 +15,8 @@ let secp256k1: {
     message: Uint8Array
   ) => 0 | 1;
   publicKeyConvert: (output: Uint8Array, senderPubKey: Uint8Array) => 0 | 1 | 2;
+  publicKeyCreate: (output: Uint8Array, secretKey: Buffer) => 0 | 1 | 2;
+  privateKeyTweakAdd: (output: Uint8Array, secretKey: Buffer) => 0 | 1 | 2;
   ecdsaSign: (
     output: { signature: Uint8Array; recid: number },
     msgHash: Uint8Array,

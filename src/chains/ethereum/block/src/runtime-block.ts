@@ -3,7 +3,8 @@ import {
   Quantity,
   BUFFER_EMPTY,
   BUFFER_32_ZERO,
-  BUFFER_8_ZERO
+  BUFFER_8_ZERO,
+  BUFFER_ZERO
 } from "@ganache/utils";
 import { BN, KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 import { EthereumRawBlockHeader, serialize } from "./serialize";
@@ -90,6 +91,7 @@ export function makeHeader(
  * A minimal block that can be used by the EVM to run transactions.
  */
 export class RuntimeBlock {
+  private serializeBaseFeePerGas: boolean = true;
   public readonly header: {
     parentHash: Buffer;
     difficulty: BnExtra;
@@ -128,9 +130,14 @@ export class RuntimeBlock {
       timestamp: new BnExtra(ts),
       baseFeePerGas:
         baseFeePerGas === undefined
-          ? undefined
+          ? new BnExtra(BUFFER_ZERO)
           : new BnExtra(Quantity.from(baseFeePerGas).toBuffer())
     };
+    // When forking we might get a block that doesn't have a baseFeePerGas value,
+    // but EIP-1559 might be active on our chain. We need to keep track on if
+    // we should serialize the baseFeePerGas value or not based on that info.
+    // this will be removed as part of https://github.com/trufflesuite/ganache/pull/1537
+    if (baseFeePerGas === undefined) this.serializeBaseFeePerGas = false;
   }
 
   /**
@@ -165,7 +172,7 @@ export class RuntimeBlock {
       BUFFER_32_ZERO, // mixHash
       BUFFER_8_ZERO // nonce
     ];
-    if (header.baseFeePerGas) {
+    if (this.serializeBaseFeePerGas && header.baseFeePerGas !== undefined) {
       rawHeader[15] = header.baseFeePerGas.buf;
     }
 
@@ -196,6 +203,7 @@ export class RuntimeBlock {
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);
+    (block as any).serializeBaseFeePerGas = rawHeader[15] === undefined;
     (block as any)._rawTransactionMetaData = extraTxs;
     (block as any)._size = size;
 

@@ -1,3 +1,9 @@
+<h3 align="center">
+  ⚠ Notice: This documentation describes the alpha release of Ganache. If you are looking to install the stable version of Ganache you can find instructions at https://github.com/trufflesuite/ganache-cli-archive ⚠
+</h3>
+
+---
+
 <!-- Using h2 instead of h1 because npm doesn't support align=center on h1 tags -->
 <h2 align="center">
   <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://trufflesuite.github.io/ganache/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
@@ -40,22 +46,28 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 
 ## Getting Started
 
-Ganache can be used from the [command line](#command-line-use) or [programmatically](#programmatic-use) via Node.js.
+Ganache can be used from the [command line](#command-line-use), [programmatically](#programmatic-use) via Node.js, or [in the browser](#browser-use).
 
 ### Command line use
 
 You must first install [Node.js](https://nodejs.org/) >= v10.13.0 and npm >= 6.4.1.
 
-To install ganache globally, run:
+To install Ganache *alpha* globally, run:
 
 ```console
-$ npm install ganache --global
+$ npm install ganache@alpha --global
+```
+
+For the latest stable release of ganache-cli, run:
+
+```console
+$ npm install ganache-cli@latest --global
 ```
 
 Once installed globally, you can start ganache right from your command line:
 
 ```console
-$ ganache
+$ ganache-cli
 Ganache CLI v6.12.1 (ganache-core: 2.13.1)
 
 Available Accounts
@@ -104,13 +116,13 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install Ganache into an npm project, run:
+To install Ganache alpha into an npm project, run:
 
 ```console
 $ npm install ganache
 ```
 
-You can then add ganache to your package.json scripts:
+You can then add Ganache to your package.json scripts:
 
 ```json
 "scripts": {
@@ -188,6 +200,23 @@ const ganache = require("ganache");
 const provider = new ethers.providers.Web3Provider(ganache.provider());
 ```
 
+### Browser Use
+
+You can also use Ganache in the browser by adding the following script to your HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/ganache@{VERSION}/dist/web/ganache.min.js"></script>
+```
+
+NOTE: the `{VERSION}` in the above path needs to be replaced with a version number or tag that is listed in [npm](https://www.npmjs.com/package/ganache?activeTab=versions).
+
+From there, Ganache is available in your browser for use:
+
+```javascript
+const options = {};
+const provider = Ganache.provider(options);
+```
+
 ## Documentation
 
 New RPC documentation coming soon! See https://github.com/trufflesuite/ganache/tree/master#options for Ganache v2 documentation.
@@ -247,7 +276,7 @@ Currently, we do not await the event listener's return value, however, we'll lik
 
 ## Community
 
-- [Discord](https://trfl.co/truffle-community)
+- [Discord](https://trfl.io/community)
 - [Reddit](https://www.reddit.com/r/Truffle/)
 
 ## Contributing

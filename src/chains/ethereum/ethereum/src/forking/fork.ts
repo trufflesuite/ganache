@@ -10,31 +10,31 @@ import { Block } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
+import { ProviderHandler } from "./handlers/provider-handler";
+import { PersistentCache } from "./persistent-cache/persistent-cache";
 
-function fetchChainId(fork: Fork) {
-  return fork
-    .request<string>("eth_chainId", [])
-    .then(chainIdHex => parseInt(chainIdHex, 16));
+async function fetchChainId(fork: Fork) {
+  const chainIdHex = await fork.request<string>("eth_chainId", []);
+  return parseInt(chainIdHex, 16);
 }
-function fetchNetworkId(fork: Fork) {
-  return fork
-    .request<string>("net_version", [])
-    .then(networkIdStr => parseInt(networkIdStr, 10));
+async function fetchNetworkId(fork: Fork) {
+  const networkIdStr = await fork.request<string>("net_version", []);
+  return parseInt(networkIdStr, 10);
 }
 function fetchBlockNumber(fork: Fork) {
-  return fork.request<string>("eth_blockNumber", []);
+  // {disableCache: true} required so we never cache the blockNumber, as forking
+  // shouldn't ever cache a method that can change!
+  return fork.request<string>("eth_blockNumber", [], { disableCache: true });
 }
 function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
-function fetchNonce(
-  fork: Fork,
-  address: Address,
-  blockNumber: Quantity | Tag.LATEST
-) {
-  return fork
-    .request<string>("eth_getTransactionCount", [address, blockNumber])
-    .then(nonce => Quantity.from(nonce));
+async function fetchNonce(fork: Fork, address: Address, blockNumber: Quantity) {
+  const nonce = await fork.request<string>("eth_getTransactionCount", [
+    address,
+    blockNumber
+  ]);
+  return Quantity.from(nonce);
 }
 
 export class Fork {
@@ -75,50 +75,16 @@ export class Fork {
         }
       }
     } else if (forkingOptions.provider) {
-      let id = 0;
-      this.#handler = {
-        request: <T>(method: string, params: any[]) => {
-          // format params via JSON stringification because the params might
-          // be Quantity or Data, which aren't valid as `params` themselves,
-          // but when JSON stringified they are
-          const paramCopy = JSON.parse(JSON.stringify(params));
-          if (forkingOptions.provider.request) {
-            return forkingOptions.provider.request({
-              method,
-              params: paramCopy
-            }) as Promise<T>;
-          } else if ((forkingOptions.provider as any).send) {
-            // TODO: remove support for legacy providers
-            // legacy `.send`
-            console.warn(
-              "WARNING: Ganache forking only supports EIP-1193-compliant providers. Legacy support for send is currently enabled, but will be removed in a future version _without_ a breaking change. To remove this warning, switch to an EIP-1193 provider. This error is probably caused by an old version of Web3's HttpProvider (or an ganache < v7)"
-            );
-            return new Promise<T>((resolve, reject) => {
-              (forkingOptions.provider as any).send(
-                {
-                  id: id++,
-                  jsonrpc: "2.0",
-                  method,
-                  params: paramCopy
-                },
-                (err: Error, response: { result: T }) => {
-                  if (err) return void reject(err);
-                  resolve(response.result);
-                }
-              );
-            });
-          } else {
-            throw new Error("Forking `provider` must be EIP-1193 compatible");
-          }
-        },
-        close: () => Promise.resolve()
-      };
+      this.#handler = new ProviderHandler(
+        options,
+        this.#abortController.signal
+      );
     }
   }
 
-  #setCommonFromChain = async () => {
+  #setCommonFromChain = async (chainIdPromise: Promise<number>) => {
     const [chainId, networkId] = await Promise.all([
-      fetchChainId(this),
+      chainIdPromise,
       fetchNetworkId(this)
     ]);
 
@@ -135,14 +101,27 @@ export class Fork {
     (this.common as any).on = () => {};
   };
 
-  #setBlockDataFromChainAndOptions = async () => {
+  #setBlockDataFromChainAndOptions = async (
+    chainIdPromise: Promise<number>
+  ) => {
     const options = this.#options;
     if (options.blockNumber === Tag.LATEST) {
-      // if our block number option is "latest" override it with the original
-      // chain's current blockNumber
-      const block = await fetchBlock(this, Tag.LATEST);
-      options.blockNumber = parseInt(block.number, 16);
-      this.blockNumber = Quantity.from(options.blockNumber);
+      const [latestBlock, chainId] = await Promise.all([
+        fetchBlock(this, Tag.LATEST),
+        chainIdPromise
+      ]);
+      let blockNumber = parseInt(latestBlock.number, 16);
+      const effectiveBlockNumber = KNOWN_CHAINIDS.has(chainId)
+        ? Math.max(blockNumber - options.preLatestConfirmations, 0)
+        : blockNumber;
+      let block;
+      if (effectiveBlockNumber !== blockNumber) {
+        block = await fetchBlock(this, Quantity.from(effectiveBlockNumber));
+      } else {
+        block = latestBlock;
+      }
+      options.blockNumber = effectiveBlockNumber;
+      this.blockNumber = Quantity.from(effectiveBlockNumber);
       this.stateRoot = Data.from(block.stateRoot);
       await this.#syncAccounts(this.blockNumber);
       return block;
@@ -185,18 +164,45 @@ export class Fork {
   };
 
   public async initialize() {
-    const [block] = await Promise.all([
-      this.#setBlockDataFromChainAndOptions(),
-      this.#setCommonFromChain()
+    let cacheProm: Promise<PersistentCache>;
+    const options = this.#options;
+    if (options.deleteCache) await PersistentCache.deleteDb();
+    if (options.disableCache === false) {
+      // ignore cache start up errors as it is possible there is an `open`
+      // conflict if another ganache fork is running at the time this one is
+      // started. The cache isn't required (though performance will be
+      // degraded without it)
+      cacheProm = PersistentCache.create().catch(_e => null);
+    } else {
+      cacheProm = null;
+    }
+    const chainIdPromise = fetchChainId(this);
+    const [block, cache] = await Promise.all([
+      this.#setBlockDataFromChainAndOptions(chainIdPromise),
+      cacheProm,
+      this.#setCommonFromChain(chainIdPromise)
     ]);
     this.block = new Block(
       BlockManager.rawFromJSON(block, this.common),
       this.common
     );
+    if (cache) await this.initCache(cache);
+  }
+  private async initCache(cache: PersistentCache) {
+    await cache.initialize(
+      this.block.header.number,
+      this.block.hash(),
+      this.request.bind(this)
+    );
+    this.#handler.setCache(cache);
   }
 
-  public request<T = unknown>(method: string, params: unknown[]): Promise<T> {
-    return this.#handler.request<T>(method, params);
+  public request<T = unknown>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false }
+  ): Promise<T> {
+    return this.#handler.request<T>(method, params, options);
   }
 
   public abort() {
@@ -207,8 +213,12 @@ export class Fork {
     return this.#handler.close();
   }
 
+  public isValidForkBlockNumber(blockNumber: Quantity) {
+    return blockNumber.toBigInt() <= this.blockNumber.toBigInt();
+  }
+
   public selectValidForkBlockNumber(blockNumber: Quantity) {
-    return blockNumber.toBigInt() < this.blockNumber.toBigInt()
+    return this.isValidForkBlockNumber(blockNumber)
       ? blockNumber
       : this.blockNumber;
   }

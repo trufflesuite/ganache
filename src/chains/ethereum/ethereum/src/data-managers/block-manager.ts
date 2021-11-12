@@ -13,7 +13,6 @@ import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawBlockTransactionMetaData,
   TransactionFactory,
-  TransactionType,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
 
@@ -115,13 +114,22 @@ export default class BlockManager extends Manager<Block> {
   }
 
   fromFallback = async (
-    tagOrBlockNumber: string | Buffer | Tag
+    tagOrBlockNumber: string | Quantity
   ): Promise<Buffer> => {
     const fallback = this.#blockchain.fallback;
+    let blockNumber: string;
+    if (typeof tagOrBlockNumber === "string") {
+      blockNumber = tagOrBlockNumber;
+    } else if (!fallback.isValidForkBlockNumber(tagOrBlockNumber)) {
+      // don't get the block if the requested block is _after_ our fallback's
+      // blocknumber because it doesn't exist in our local chain.
+      return null;
+    } else {
+      blockNumber = tagOrBlockNumber.toString();
+    }
+
     const json = await fallback.request<any>("eth_getBlockByNumber", [
-      typeof tagOrBlockNumber === "string"
-        ? tagOrBlockNumber
-        : Quantity.from(tagOrBlockNumber).toString(),
+      blockNumber,
       true
     ]);
     return json == null ? null : BlockManager.rawFromJSON(json, this.#common);
@@ -199,9 +207,7 @@ export default class BlockManager extends Manager<Block> {
     const numBuf = blockNumber.toBuffer();
     return this.getRaw(numBuf).then(block => {
       if (block == null && fallback) {
-        return this.fromFallback(
-          fallback.selectValidForkBlockNumber(blockNumber).toBuffer()
-        );
+        return this.fromFallback(blockNumber);
       }
       return block;
     });

@@ -56,13 +56,13 @@ describe("miner", async () => {
       For the lowGasLimitBlockchain:
           block 1 baseFeePerGas: 875,000,000
           tx1: gasPrice: 990,000,000
-          tx2: maxFeePerGas: 990,000,000, maxPriorityFee: 5,000,000 => effectiveGasPrice = 880,000,000
+          tx2: maxFeePerGas: 990,000,000, maxPriorityFee: 5,630,000 => effectiveGasPrice = 880,630,000
           tx3: gasPrice: 987,000,000
           order of queue should be tx1, tx3, tx2
 
           1 block is mined with tx1 in it
           new baseFeePerGas: 984,375,000
-          tx2: maxFeePerGas: 990,000,000, maxPriorityFee: 5,000,000 => effectiveGasPrice = 990,000,000
+          tx2: maxFeePerGas: 990,000,000, maxPriorityFee: 5,630,000 => effectiveGasPrice = 990,000,000
           tx3: gasPrice 987,000,000
           order of queue should now be tx2, tx3
 
@@ -86,7 +86,7 @@ describe("miner", async () => {
           from: from2,
           to: to,
           maxFeePerGas: "0x3B023380", // 990,000,000
-          maxPriorityFeePerGas: "0x4C4B40", // 5,000,000
+          maxPriorityFeePerGas: "0x55E830", // 5,630,000
           chainId: "0x539",
           gas: "0x5208"
         },

@@ -1,5 +1,9 @@
 import { Account } from "@ganache/ethereum-utils";
 import {
+  createAccountFromSeed,
+  createAccountGeneratorFromSeedAndPath
+} from "./hdkey";
+import {
   Data,
   keccak,
   Quantity,
@@ -10,7 +14,6 @@ import {
 import { privateToAddress } from "ethereumjs-util";
 import secp256k1 from "@ganache/secp256k1";
 import { mnemonicToSeedSync } from "bip39";
-import HDKey from "hdkey";
 import { alea } from "seedrandom";
 import crypto from "crypto";
 import createKeccakHash from "keccak";
@@ -106,10 +109,7 @@ export default class Wallet {
   readonly unlockedAccounts = new Map<string, Data>();
   readonly lockTimers = new Map<string, NodeJS.Timeout>();
 
-  #hdKey: HDKey;
-
   constructor(opts: EthereumInternalOptions["wallet"]) {
-    this.#hdKey = HDKey.fromMasterSeed(mnemonicToSeedSync(opts.mnemonic, null));
     // create a RNG from our initial starting conditions (opts.mnemonic)
     this.#randomRng = alea("ganache " + opts.mnemonic);
 
@@ -229,6 +229,16 @@ export default class Wallet {
   #initializeAccounts = (
     options: EthereumInternalOptions["wallet"]
   ): Account[] => {
+    let makeAccountAtIndex;
+    try {
+      makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
+        mnemonicToSeedSync(options.mnemonic, null),
+        options.hdPath
+      );
+    } catch (e) {
+      console.log(e);
+    }
+
     // convert a potentially fractional balance of Ether to WEI
     const balanceParts = options.defaultBalance.toString().split(".", 2);
     const significand = BigInt(balanceParts[0]);
@@ -243,8 +253,6 @@ export default class Wallet {
     let givenAccounts = options.accounts;
     let accountsLength: number;
     if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
-      const hdKey = this.#hdKey;
-      const hdPath = options.hdPath;
       accounts = Array(accountsLength);
       for (let i = 0; i < accountsLength; i++) {
         const account = givenAccounts[i];
@@ -252,9 +260,9 @@ export default class Wallet {
         let privateKey: Data;
         let address: Address;
         if (!secretKey) {
-          const acct = hdKey.derive(hdPath + i);
-          address = uncompressedPublicKeyToAddress(acct.publicKey);
-          privateKey = Data.from(acct.privateKey);
+          const account = makeAccountAtIndex(i);
+          address = uncompressedPublicKeyToAddress(account.publicKey);
+          privateKey = Data.from(account.privateKey);
           accounts[i] = Wallet.createAccount(
             Quantity.from(account.balance),
             privateKey,
@@ -272,13 +280,11 @@ export default class Wallet {
       const numberOfAccounts = options.totalAccounts;
       if (numberOfAccounts != null) {
         accounts = Array(numberOfAccounts);
-        const hdPath = options.hdPath;
-        const hdKey = this.#hdKey;
 
         for (let index = 0; index < numberOfAccounts; index++) {
-          const acct = hdKey.derive(hdPath + index);
-          const address = uncompressedPublicKeyToAddress(acct.publicKey);
-          const privateKey = Data.from(acct.privateKey);
+          const account = makeAccountAtIndex(index);
+          const address = uncompressedPublicKeyToAddress(account.publicKey);
+          const privateKey = Data.from(account.privateKey);
           accounts[index] = Wallet.createAccount(
             etherInWei,
             privateKey,
@@ -395,7 +401,7 @@ export default class Wallet {
     // create some seeded deterministic psuedo-randomness based on the chain's
     // initial starting conditions
     const seed = this.#randomBytes(128);
-    const acct = HDKey.fromMasterSeed(seed);
+    const acct = createAccountFromSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
     return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);

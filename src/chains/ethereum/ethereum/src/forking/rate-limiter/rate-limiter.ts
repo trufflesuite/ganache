@@ -1,16 +1,15 @@
 import { AbortError } from "@ganache/ethereum-utils";
-import {
-  JsonRpcResponse,
-  JsonRpcError,
-  JsonRpcErrorCode
-} from "@ganache/utils";
+import { JsonRpcError, JsonRpcErrorCode, hasOwn } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
 import Semaphore from "semaphore";
 import { LimitCounter } from "./limit-counter";
 
-type PromiseFn = (
+type PromiseFn<T> = (
   ...args: unknown[]
-) => Promise<JsonRpcResponse | JsonRpcError>;
+) => Promise<{
+  response: { result: any } | { error: { message: string; code: number } };
+  raw: T;
+}>;
 
 type RateLimitError = JsonRpcError & {
   readonly error: {
@@ -66,10 +65,19 @@ function timeTruncate(timestamp: number, duration: number) {
  * @returns true if the result is a JSON-RPC LIMIT_EXCEEDED error
  */
 function isExceededLimitError(
-  result: JsonRpcResponse | JsonRpcError
-): result is RateLimitError {
+  response:
+    | { result: any }
+    | {
+        error: {
+          code: number;
+          message: string;
+        };
+      }
+): response is RateLimitError {
   return (
-    "error" in result && result.error.code === JsonRpcErrorCode.LIMIT_EXCEEDED
+    hasOwn(response, "error") &&
+    response.error != null &&
+    response.error.code === JsonRpcErrorCode.LIMIT_EXCEEDED
   );
 }
 
@@ -182,7 +190,7 @@ export default class RateLimiter {
    * automatically retry with the given `backoff_seconds`
    * @param fn
    */
-  async handle(fn: PromiseFn) {
+  async handle<T>(fn: PromiseFn<T>) {
     // allow scheduling one fn at a time
     await this.take();
     try {
@@ -194,7 +202,7 @@ export default class RateLimiter {
 
   mustBackoff: Promise<void> | null = null;
   counter: number = 0;
-  private async schedule(fn: PromiseFn) {
+  private async schedule<T>(fn: PromiseFn<T>) {
     const signal = this.abortSignal;
     while (true) {
       if (signal.aborted) return Promise.reject(new AbortError());
@@ -215,9 +223,10 @@ export default class RateLimiter {
       } else {
         this.limitCounter.increment(currentWindow);
         const result = await fn();
-        if (isExceededLimitError(result)) {
-          if ("rate" in result.error.data) {
-            const backoffSeconds = result.error.data.rate.backoff_seconds;
+        if (isExceededLimitError(result.response)) {
+          if (hasOwn(result.response.error.data, "rate")) {
+            const backoffSeconds =
+              result.response.error.data.rate.backoff_seconds;
             // console.log(`backing off for ${backoffSeconds}`);
             // console.log(result.error.data.rate);
 
@@ -236,7 +245,8 @@ export default class RateLimiter {
 
             // this is part of an attempt at solving the above comment
             this.requestLimit =
-              result.error.data.rate.allowed_rps * (this.windowSizeMs / 1000);
+              result.response.error.data.rate.allowed_rps *
+              (this.windowSizeMs / 1000);
 
             const limiter = (this.mustBackoff = sleep(
               backoffSeconds * 1000,

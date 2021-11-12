@@ -107,13 +107,14 @@ export class BaseTransaction {
   }
 
   public setExtra(raw: GanacheRawExtraTx) {
-    const [from, hash, blockHash, blockNumber, index] = raw;
+    const [from, hash, blockHash, blockNumber, index, effectiveGasPrice] = raw;
 
     this.from = Address.from(from);
     this.hash = Data.from(hash, 32);
     this.blockHash = Data.from(blockHash, 32);
     this.blockNumber = Quantity.from(blockNumber);
     this.index = Quantity.from(index);
+    this.effectiveGasPrice = Quantity.from(effectiveGasPrice);
   }
 
   public calculateIntrinsicGas() {

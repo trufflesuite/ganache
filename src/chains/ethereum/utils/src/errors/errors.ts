@@ -14,6 +14,11 @@ export const NONCE_TOO_LOW = "nonce too low";
 export const UNDERPRICED = "transaction underpriced";
 
 /**
+ * Returned if a transaction's gas price is below the minimum configured for the transaction pool.
+ */
+export const REPLACED = "transaction replaced by better transaction";
+
+/**
  * Returned if the transaction is specified to use less gas than required to start the invocation.
  */
 export const INTRINSIC_GAS_TOO_LOW = "intrinsic gas too low";

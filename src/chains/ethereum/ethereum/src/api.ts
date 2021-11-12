@@ -427,9 +427,8 @@ export default class EthereumApi implements Api {
   /**
    * Revert the state of the blockchain to a previous snapshot. Takes a single
    * parameter, which is the snapshot id to revert to. This deletes the given
-   * snapshot, as well as any snapshots taken after (Ex: reverting to id 0x1
-   * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is
-   * passed it will revert to the latest snapshot.
+   * snapshot, as well as any snapshots taken after (e.g.: reverting to id 0x1
+   * will delete snapshots with ids 0x1, 0x2, etc.)
    *
    * @param snapshotId The snapshot id to revert.
    * @returns `true` if a snapshot was reverted, otherwise `false`.
@@ -1628,9 +1627,8 @@ export default class EthereumApi implements Api {
         options.logging.logger.log(
           " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
             ` > \`${dataHash.toString()}\` has not\n` +
-            " > yet been mined."
-          // TODO: uncomment once we have a valid domain
-          // + " See https://trfl.co/v7-instamine for additional information."
+            " > yet been mined." +
+            " See https://trfl.io/v7-instamine for additional information."
         );
       }
     }
@@ -1802,6 +1800,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
+   * Identical to eth_signTypedData_v4.
    *
    * @param address Address of the account that will sign the messages.
    * @param typedData Typed structured data to be signed.
@@ -1858,11 +1857,75 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_signTypedData(address: DATA, typedData: TypedData) {
+    return this.eth_signTypedData_v4(address, typedData);
+  }
+
+  /**
+   *
+   * @param address Address of the account that will sign the messages.
+   * @param typedData Typed structured data to be signed.
+   * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
+   * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
+   * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+   *  in big-endian format. Bytes 0...64 contain the `r` parameter, bytes
+   * 64...128 the `s` parameter, and the last byte the `v` parameter. Note
+   * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
+   * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * const typedData = {
+   *  types: {
+   *    EIP712Domain: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'version', type: 'string' },
+   *      { name: 'chainId', type: 'uint256' },
+   *      { name: 'verifyingContract', type: 'address' },
+   *    ],
+   *    Person: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'wallet', type: 'address' }
+   *    ],
+   *    Mail: [
+   *      { name: 'from', type: 'Person' },
+   *      { name: 'to', type: 'Person' },
+   *      { name: 'contents', type: 'string' }
+   *    ],
+   *  },
+   *  primaryType: 'Mail',
+   *  domain: {
+   *    name: 'Ether Mail',
+   *    version: '1',
+   *    chainId: 1,
+   *    verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+   *  },
+   *  message: {
+   *    from: {
+   *      name: 'Cow',
+   *      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+   *    },
+   *    to: {
+   *      name: 'Bob',
+   *      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+   *    },
+   *    contents: 'Hello, Bob!',
+   *  },
+   * };
+   * const signature = await provider.request({ method: "eth_signTypedData_v4", params: [account, typedData] });
+   * console.log(signature);
+   * ```
+   */
+  @assertArgLength(2)
+  async eth_signTypedData_v4(address: DATA, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
     if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
+    }
+
+    if (typeof typedData === "string") {
+      throw new Error("cannot sign data; string sent, expected object");
     }
 
     if (!typedData.types) {
@@ -2431,6 +2494,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
+    const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.header;
@@ -2457,6 +2521,44 @@ export default class EthereumApi implements Api {
       data = Data.from(transaction.data);
     }
 
+    // eth_call doesn't validate that the transaction has a sufficient
+    // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
+    // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
+    // the effectiveGasPrice, which is used to calculate tx costs/refunds.
+    const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+
+    let gasPrice: Quantity;
+    const hasGasPrice = typeof transaction.gasPrice !== "undefined";
+    if (!common.isActivatedEIP(1559)) {
+      gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
+    } else {
+      const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";
+      const hasMaxPriorityFeePerGas =
+        typeof transaction.maxPriorityFeePerGas !== "undefined";
+
+      if (hasGasPrice && (hasMaxFeePerGas || hasMaxPriorityFeePerGas)) {
+        throw new Error(
+          "both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified"
+        );
+      }
+      // User specified 1559 gas fields (or none), use those
+      let maxFeePerGas = 0n;
+      let maxPriorityFeePerGas = 0n;
+      if (hasMaxFeePerGas) {
+        maxFeePerGas = BigInt(transaction.maxFeePerGas);
+      }
+      if (hasMaxPriorityFeePerGas) {
+        maxPriorityFeePerGas = BigInt(transaction.maxPriorityFeePerGas);
+      }
+      if (maxPriorityFeePerGas > 0 || maxFeePerGas > 0) {
+        const a = maxFeePerGas - baseFeePerGasBigInt;
+        const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+        gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
+      } else {
+        gasPrice = Quantity.from(0);
+      }
+    }
+
     const block = new RuntimeBlock(
       parentHeader.number,
       parentHeader.parentHash,
@@ -2466,7 +2568,7 @@ export default class EthereumApi implements Api {
       parentHeader.timestamp,
       options.miner.difficulty,
       parentHeader.totalDifficulty,
-      0n // no baseFeePerGas for eth_call
+      baseFeePerGasBigInt
     );
 
     const simulatedTransaction = {
@@ -2477,9 +2579,7 @@ export default class EthereumApi implements Api {
           ? blockchain.coinbase
           : Address.from(transaction.from),
       to: transaction.to == null ? null : Address.from(transaction.to),
-      gasPrice: Quantity.from(
-        transaction.gasPrice == null ? 0 : transaction.gasPrice
-      ),
+      gasPrice,
       value:
         transaction.value == null ? null : Quantity.from(transaction.value),
       data,

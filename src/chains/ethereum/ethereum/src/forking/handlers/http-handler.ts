@@ -1,6 +1,6 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
-import { AbortError } from "@ganache/ethereum-utils";
+import { AbortError, CodedError } from "@ganache/ethereum-utils";
 // TODO: support http2
 import http, { RequestOptions, Agent as HttpAgent } from "http";
 import https, { Agent as HttpsAgent } from "https";
@@ -85,13 +85,12 @@ export class HttpHandler extends BaseHandler implements Handler {
     });
   }
 
-  public async request(method: string, params: unknown[]) {
-    const data = JSON.stringify({ method, params });
-    if (this.requestCache.has(data)) {
-      //console.log("cache hit: " + data);
-      return this.requestCache.get(data);
-    }
-
+  public async request<T>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false }
+  ) {
+    const key = JSON.stringify({ method, params });
     const { protocol, hostname: host, port, pathname, search } = this.url;
     const requestOptions = {
       protocol,
@@ -108,9 +107,11 @@ export class HttpHandler extends BaseHandler implements Handler {
     const send = () => {
       if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-      //console.log("sending request: " + data);
-      const deferred = Deferred<JsonRpcResponse | JsonRpcError>();
-      const postData = `${JSONRPC_PREFIX}${this.id++},${data.slice(1)}`;
+      const deferred = Deferred<{
+        response: JsonRpcResponse | JsonRpcError;
+        raw: Buffer;
+      }>();
+      const postData = `${JSONRPC_PREFIX}${this.id++},${key.slice(1)}`;
       this.headers["content-length"] = postData.length;
 
       const req = this._request(requestOptions);
@@ -135,7 +136,10 @@ export class HttpHandler extends BaseHandler implements Handler {
         // TODO: handle invalid JSON (throws on parse)?
         buffer.then(buffer => {
           try {
-            deferred.resolve(JSON.parse(buffer));
+            deferred.resolve({
+              response: JSON.parse(buffer),
+              raw: buffer
+            });
           } catch {
             const resStr = buffer.toString();
             let shortStr: string;
@@ -165,22 +169,9 @@ export class HttpHandler extends BaseHandler implements Handler {
       req.write(postData);
       req.end();
 
-      return deferred.promise.finally(() => this.requestCache.delete(data));
+      return deferred.promise.finally(() => this.requestCache.delete(key));
     };
 
-    const promise = this.limiter.handle(send).then(result => {
-      if ("result" in result) {
-        return result.result;
-      } else if ("error" in result) {
-        throw result.error;
-      }
-    });
-    this.requestCache.set(data, promise);
-    return promise;
-  }
-
-  public close() {
-    // no op
-    return Promise.resolve();
+    return await this.queueRequest<T>(method, params, key, send, options);
   }
 }

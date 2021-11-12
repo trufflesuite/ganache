@@ -32,7 +32,7 @@ export class RuntimeError extends CodedError {
 
     super(message, JsonRpcErrorCode.INVALID_INPUT);
 
-    Error.captureStackTrace(this, this.constructor);
+    CodedError.captureStackTraceExtended.bind(this, message);
     this.name = this.constructor.name;
 
     const returnValue = execResult.returnValue;
