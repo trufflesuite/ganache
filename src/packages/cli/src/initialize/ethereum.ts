@@ -86,7 +86,7 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     if (liveOptions.fork.network) {
       location = `Ethereum ${capitalizeFirstLetter(
         liveOptions.fork.network.replace("goerli", "görli")
-      )}`;
+      )}, via Infura`;
     } else {
       location = (liveOptions.fork.url as any).toString();
     }
