@@ -40,6 +40,8 @@ jobs:
 
       - name: Run build
         run: npm run build
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
       - name: Update documentation
         run: |
