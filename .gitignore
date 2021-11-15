@@ -8,3 +8,4 @@ src/**/*/lib
 coverage
 dist/
 typings/
+infura-credentials.ts
