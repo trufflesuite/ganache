@@ -14,8 +14,6 @@ import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
 
-import { INFURA_KEY } from "./infura-credentials";
-
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
   return parseInt(chainIdHex, 16);
@@ -83,10 +81,14 @@ export class Fork {
         this.#abortController.signal
       );
     } else if (network) {
+      let normalizedNetwork: string;
+      if (network === "görli") {
+        forkingOptions.network = normalizedNetwork = "goerli";
+      } else {
+        normalizedNetwork = network;
+      }
       forkingOptions.url = new URL(
-        `wss://${
-          network === "görli" ? "goerli" : network
-        }.infura.io/ws/v3/${INFURA_KEY}`
+        `wss://${normalizedNetwork}.infura.io/ws/v3/${process.env.INFURA_KEY}`
       );
       this.#handler = new WsHandler(options, this.#abortController.signal);
     }

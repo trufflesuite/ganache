@@ -81,7 +81,6 @@ export type ForkConfig = {
          */
         fork: KnownNetworks;
       };
-      hasDefault: true;
     };
 
     /**
@@ -322,15 +321,23 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
     normalize: rawInput => {
       if (typeof rawInput === "string" && KNOWN_NETWORKS.includes(rawInput))
         return rawInput;
+      if (
+        // handle `ganache --fork` case, which gets weird because both url
+        // and network can use the `--fork` flag (the `url` handler ignores
+        // non-strings, like `true` and string that match our known networks)
+        typeof rawInput === "object"
+      ) {
+        if ("url" in rawInput) {
+          const { url } = rawInput as any;
+          if (url === true) {
+            return "mainnet";
+          } else if (KNOWN_NETWORKS.includes(url)) {
+            return (rawInput as any).url;
+          }
+        }
+      }
     },
     cliDescription: "Specify an network name to fork.",
-    default: ({ url, provider }) => {
-      // if we already have a url or provider defined use those instead of the
-      // `network`
-      if (url || provider) return;
-      return "mainnet";
-    },
-    defaultDescription: "mainnet",
     legacyName: "fork",
     conflicts: ["url", "provider"]
   },

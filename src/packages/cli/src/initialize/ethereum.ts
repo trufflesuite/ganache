@@ -3,6 +3,10 @@ import type { Provider } from "@ganache/ethereum";
 import { toChecksumAddress } from "ethereumjs-util";
 import { CliSettings } from "../types";
 
+function capitalizeFirstLetter(string: string) {
+  return string[0].toUpperCase() + string.slice(1);
+}
+
 export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
@@ -74,11 +78,20 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     console.log(liveOptions.miner.callGasLimit.toBigInt());
   }
 
-  if (liveOptions.fork.url) {
+  if (liveOptions.fork.network || liveOptions.fork.url) {
     console.log("");
     console.log("Forked Chain");
     console.log("==================");
-    console.log(`Location:        ${liveOptions.fork.url.toString()}`);
+    let location: string;
+    if (liveOptions.fork.network) {
+      location = `Ethereum ${capitalizeFirstLetter(
+        liveOptions.fork.network.replace("goerli", "görli")
+      )}`;
+    } else {
+      location = (liveOptions.fork.url as any).toString();
+    }
+
+    console.log(`Location:        ${location}`);
     console.log(`Block:           ${liveOptions.fork.blockNumber}`);
     console.log(`Network ID:      ${liveOptions.chain.networkId}`);
     console.log(`Time:            ${new Date().toString()}`);
