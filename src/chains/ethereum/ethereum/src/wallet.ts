@@ -451,7 +451,7 @@ export default class Wallet {
    * of if the passphrase is empty.
    */
   public async addToKeyFile(
-    address: string,
+    address: Address,
     privateKey: Data,
     passphrase: string,
     lock: boolean
@@ -459,12 +459,12 @@ export default class Wallet {
     // NOTE: we are avoiding encrypting the keys for an account if the
     // passphrase is blank purely for startup performance reasons.
     if (passphrase || lock) {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: true,
         key: await this.encrypt(privateKey, passphrase)
       });
     } else {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: false,
         key: privateKey.toBuffer()
       });
@@ -483,7 +483,7 @@ export default class Wallet {
    * of if the passphrase is empty.
    */
   public addToKeyFileSync(
-    address: string,
+    address: Address,
     privateKey: Data,
     passphrase: string,
     lock: boolean
@@ -491,12 +491,12 @@ export default class Wallet {
     // NOTE: we are avoiding encrypting the keys for an account if the
     // passphrase is blank purely for startup performance reasons.
     if (passphrase || lock) {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: true,
         key: this.encryptSync(privateKey, passphrase)
       });
     } else {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: false,
         key: privateKey.toBuffer()
       });
@@ -509,8 +509,8 @@ export default class Wallet {
    * @param address The address whose private key is to be fetched.
    * @param passphrase The passphrase used to decrypt the private key.
    */
-  public async getFromKeyFile(address: string, passphrase: string) {
-    const keyFile = this.keyFiles.get(address.toLowerCase());
+  public async getFromKeyFile(address: Address, passphrase: string) {
+    const keyFile = this.keyFiles.get(address.toString());
     if (keyFile === undefined || keyFile === null) {
       throw new Error("no key for given address or file");
     }
