@@ -300,10 +300,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // (if we have the secret key)
     if (secretKey) {
       transaction.signAndHash(secretKey.toBuffer());
-    } else if (transaction.v == null) {
-      // if we don't have a secret key, the transaction should be signed
-      // already.
-      throw new CodedError(NO_SECRET_KEY, JsonRpcErrorCode.INVALID_INPUT);
     }
 
     switch (transactionPlacement) {
