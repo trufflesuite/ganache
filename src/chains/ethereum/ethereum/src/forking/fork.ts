@@ -14,7 +14,7 @@ import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
 
-import { INFURA_KEY, INFURA_SECRET } from "./infura-credentials";
+import { INFURA_KEY } from "./infura-credentials";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -84,7 +84,7 @@ export class Fork {
       );
     } else if (network) {
       forkingOptions.url = new URL(
-        `wss://:${INFURA_SECRET}@${
+        `wss://${
           network === "görli" ? "goerli" : network
         }.infura.io/ws/v3/${INFURA_KEY}`
       );

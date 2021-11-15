@@ -13,7 +13,6 @@ function write() {
     path,
     `
 export const INFURA_KEY = ${JSON.stringify(process.env.INFURA_KEY)};
-export const INFURA_SECRET = ${JSON.stringify(process.env.INFURA_SECRET)};
   `.trim()
   );
 }
