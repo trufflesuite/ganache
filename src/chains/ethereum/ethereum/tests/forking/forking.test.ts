@@ -1,3 +1,4 @@
+import { KNOWN_NETWORKS } from "@ganache/ethereum-options/src/fork-options";
 import http from "http";
 import ganache from "../../../../../packages/core";
 import assert from "assert";
@@ -150,7 +151,6 @@ describe("forking", function () {
       await assert.rejects(
         () =>
           startLocalChain(PORT, {
-            url: null,
             provider: { request: "not a function" } as any,
             disableCache: true
           }),
@@ -159,7 +159,6 @@ describe("forking", function () {
       await assert.rejects(
         () =>
           startLocalChain(PORT, {
-            url: null,
             provider: { send: "also not a function" } as any,
             disableCache: true
           }),
@@ -173,7 +172,6 @@ describe("forking", function () {
         "start up localProvider fork with remoteProvider",
         async () => {
           const provider = await startLocalChain(PORT, {
-            url: null,
             provider: remoteProvider as any,
             disableCache: true
           });
@@ -250,7 +248,6 @@ describe("forking", function () {
         };
 
         const provider = await startLocalChain(PORT, {
-          url: null,
           provider: remoteProvider as any,
           disableCache: true
         });
@@ -315,6 +312,71 @@ describe("forking", function () {
             }),
           { message: "Coded error", code: 1234 }
         );
+      });
+    });
+  });
+
+  describe("network option", () => {
+    const testData = {
+      mainnet: {
+        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
+        balance: "0x6d3c9dd798891c3455045",
+        block: "0xcfd6e0"
+      },
+      ropsten: {
+        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
+        balance: "0x6cdf802b72c2a000",
+        block: "0xae42fd"
+      },
+      kovan: {
+        address: "0x596e8221A30bFe6e7eFF67Fee664A01C73BA3C56",
+        balance: "0x19b2bed356f3da980e2e3",
+        block: "0x1a36e09"
+      },
+      rinkeby: {
+        address: "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D",
+        balance: "0x11cde6445010582e1ae",
+        block: "0x92c444"
+      },
+      goerli: {
+        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
+        balance: "0x81744abdb769a3b6dc08b",
+        block: "0x595434"
+      },
+      görli: {
+        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
+        balance: "0x81744abdb769a3b6dc08b",
+        block: "0x595434"
+      }
+    };
+    KNOWN_NETWORKS.forEach(network => {
+      let localProvider: EthereumProvider;
+      before("check conditions", function () {
+        if (!process.env.INFURA_KEY) {
+          this.skip();
+        }
+      });
+      beforeEach("set up network provider", async () => {
+        const provider = await startLocalChain(PORT, {
+          network,
+          disableCache: true
+        });
+        localProvider = provider.localProvider;
+      });
+      afterEach(async () => {
+        try {
+          localProvider && (await localProvider.disconnect());
+        } catch (e) {
+          console.log(e);
+        }
+      });
+
+      it("should accept a `network` instead of a url", async () => {
+        const balance = await localProvider.request({
+          method: "eth_getBalance",
+          params: [testData[network].address, testData[network].block]
+        });
+        assert.strictEqual(balance, testData[network].balance);
       });
     });
   });

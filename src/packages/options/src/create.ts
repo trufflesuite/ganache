@@ -60,8 +60,10 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
           propDefinition.conflicts
         );
         const normalized = propDefinition.normalize(namespaceOptions[key]);
-        config[key] = normalized;
-        suppliedOptions.add(key);
+        if (normalized !== undefined) {
+          config[key] = normalized;
+          suppliedOptions.add(key);
+        }
       } else {
         const legacyName = propDefinition.legacyName || key;
         value = options[legacyName];
@@ -73,8 +75,10 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
             propDefinition.conflicts
           );
           const normalized = propDefinition.normalize(value);
-          config[key] = normalized;
-          suppliedOptions.add(key);
+          if (normalized !== undefined) {
+            config[key] = normalized;
+            suppliedOptions.add(key);
+          }
         } else if (hasOwn(propDefinition, "default")) {
           config[key] = propDefinition.default(config, flavor);
         }
@@ -95,8 +99,10 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
           propDefinition.conflicts
         );
         const normalized = propDefinition.normalize(value);
-        config[key] = normalized;
-        suppliedOptions.add(key);
+        if (normalized !== undefined) {
+          config[key] = normalized;
+          suppliedOptions.add(key);
+        }
       } else if (hasOwn(propDefinition, "default")) {
         config[key] = propDefinition.default(config, flavor);
       }

@@ -1,9 +1,8 @@
 import { normalize } from "./helpers";
-import { Definitions } from "@ganache/options";
+import { Definitions, UnionToTuple } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
-import { QUANTITY, Tag } from "@ganache/ethereum-utils";
+import { Tag } from "@ganache/ethereum-utils";
 import { URL } from "url";
-import { Quantity } from "@ganache/utils";
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
 
 // we aren't going to treat block numbers as a bigint, so we don't want to
@@ -12,6 +11,22 @@ const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
 type ForkUrl = URL & { _blockNumber?: number | Tag.LATEST };
+
+type KnownNetworks =
+  | "mainnet"
+  | "ropsten"
+  | "kovan"
+  | "rinkeby"
+  | "goerli"
+  | "görli";
+export const KNOWN_NETWORKS = [
+  "mainnet",
+  "ropsten",
+  "kovan",
+  "rinkeby",
+  "goerli",
+  "görli"
+] as UnionToTuple<KnownNetworks>;
 
 export type ForkConfig = {
   options: {
@@ -56,6 +71,17 @@ export type ForkConfig = {
           readonly params?: readonly unknown[] | object;
         };
       };
+    };
+
+    network: {
+      type: KnownNetworks;
+      legacy: {
+        /**
+         * @deprecated Use fork.provider instead
+         */
+        fork: KnownNetworks;
+      };
+      hasDefault: true;
     };
 
     /**
@@ -191,6 +217,7 @@ export type ForkConfig = {
       hasDefault: true;
     };
   };
+  exclusiveGroups: [["url", "provider", "network"]];
 };
 
 const reColonSplit = /:\s?(?:.+)/;
@@ -224,7 +251,13 @@ export const ForkOptions: Definitions<ForkConfig> = {
   // as the defaults are processed in order, and they rely on the `fork.url`
   url: {
     normalize: rawInput => {
-      if (typeof rawInput !== "string") return;
+      if (
+        typeof rawInput !== "string" ||
+        KNOWN_NETWORKS.includes(rawInput as any)
+      ) {
+        // if the string matches a network name ignore it
+        return;
+      }
       let url = new URL(rawInput) as ForkUrl;
       const path = url.pathname + url.search;
       const lastIndex = path.lastIndexOf("@");
@@ -270,23 +303,42 @@ You can specify Basic Authentication credentials in the URL as well. e.g., \`"ws
 
 Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`,
     legacyName: "fork",
-    cliAliases: ["f", "fork"]
+    cliAliases: ["f", "fork"],
+    conflicts: ["provider", "network"]
   },
   provider: {
     normalize: rawInput => {
-      // if rawInput is a string it will be handled by the `url` handler
-      if (typeof rawInput === "string") return;
+      // if rawInput is a string it will be handled by the `url` or `network`
+      // handlers.
+      if (typeof rawInput === "string" || !("request" in rawInput)) return;
       return rawInput;
     },
     cliDescription: "Specify an EIP-1193 provider to use instead of a url.",
     disableInCLI: true,
-    legacyName: "fork"
+    legacyName: "fork",
+    conflicts: ["url", "network"]
+  },
+  network: {
+    normalize: rawInput => {
+      if (typeof rawInput === "string" && KNOWN_NETWORKS.includes(rawInput))
+        return rawInput;
+    },
+    cliDescription: "Specify an network name to fork.",
+    default: ({ url, provider }) => {
+      // if we already have a url or provider defined use those instead of the
+      // `network`
+      if (url || provider) return;
+      return "mainnet";
+    },
+    defaultDescription: "mainnet",
+    legacyName: "fork",
+    conflicts: ["url", "provider"]
   },
   blockNumber: {
     normalize,
     cliDescription: "Block number the provider should fork from.",
     legacyName: "fork_block_number",
-    default: ({ url, provider }) => {
+    default: ({ url, provider, network }) => {
       if (url) {
         // use the url's _blockNumber, if present, otherwise use "latest"
         if (url._blockNumber) {
@@ -294,7 +346,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         } else {
           return Tag.LATEST;
         }
-      } else if (provider) {
+      } else if (provider || network) {
         return Tag.LATEST;
       } else {
         return;
