@@ -180,7 +180,7 @@ describe("api", () => {
 
         // account is known but locked
         await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         });
 
         // we're added to the personal namespace so we can unlock
