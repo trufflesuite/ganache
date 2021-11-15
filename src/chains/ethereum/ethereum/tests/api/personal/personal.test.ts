@@ -43,7 +43,7 @@ describe("api", () => {
       await assert.rejects(
         provider.send("eth_sendTransaction", [transaction]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "eth_sendTransaction should have rejected due to locked from account without its passphrase"
       );
@@ -86,7 +86,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_lockAccount didn't work"
       );
@@ -110,7 +110,7 @@ describe("api", () => {
       await assert.rejects(
         provider.send("personal_sendTransaction", [transaction, undefined]),
         {
-          message: "could not decrypt key with given password"
+          message: "could not decrypt key with given passphrase"
         },
         "personal_sendTransaction should have rejected due to locked from account without its passphrase"
       );
@@ -134,7 +134,7 @@ describe("api", () => {
               invalidPassphrase as any
             ]),
             {
-              message: "could not decrypt key with given password"
+              message: "could not decrypt key with given passphrase"
             },
             "Transaction should have rejected due to locked from account with wrong passphrase"
           );
@@ -156,7 +156,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_sendTransaction should not unlock the while transaction is bring processed"
       );
@@ -179,7 +179,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_sendTransaction should still be locked the after the transaction is processed"
       );
@@ -202,7 +202,7 @@ describe("api", () => {
       await assert.rejects(
         provider.send("personal_signTransaction", [transaction, undefined]),
         {
-          message: "could not decrypt key with given password"
+          message: "could not decrypt key with given passphrase"
         },
         "personal_sendTransaction should have rejected due to locked from account without its passphrase"
       );
@@ -226,7 +226,7 @@ describe("api", () => {
               invalidPassphrase as any
             ]),
             {
-              message: "could not decrypt key with given password"
+              message: "could not decrypt key with given passphrase"
             },
             "Transaction should have rejected due to locked from account with wrong passphrase"
           );
@@ -246,7 +246,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_signTransaction should not unlock the while transaction is bring processed"
       );
@@ -272,7 +272,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: "0x0" })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_sendTransaction should still be locked the after the transaction is processed"
       );
@@ -370,8 +370,8 @@ describe("api", () => {
         });
       });
 
-      describe("personal_sendTransaction", () => {
-        it("generates locked accounts with passphrase", async () => {
+      describe.only("personal_sendTransaction", () => {
+        it.only("generates locked accounts with passphrase", async () => {
           const provider = await getProvider({
             miner: { defaultGasPrice: 0 },
             // use berlin here because we just want to test if we can use the

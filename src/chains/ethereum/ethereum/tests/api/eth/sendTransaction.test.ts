@@ -242,7 +242,7 @@ describe("api", () => {
           };
           await assert.rejects(
             badSend,
-            "Error: authentication needed: password or unlock"
+            "Error: authentication needed: passphrase or unlock"
           );
 
           await p.send("eth_subscribe", ["newHeads"]);
