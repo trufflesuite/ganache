@@ -318,8 +318,8 @@ export default class Wallet {
     const { passphrase, lock: lockAccounts } = options;
     const knownAccounts = this.knownAccounts;
 
+    this.addToKeyFileSync(address, privateKey, passphrase, lockAccounts);
     const strAddress = address.toString();
-    this.addToKeyFileSync(strAddress, privateKey, passphrase, lockAccounts);
     knownAccounts.add(strAddress);
 
     // if the `lock` option has been not been set, we're safe to add this
@@ -451,7 +451,7 @@ export default class Wallet {
    * of if the passphrase is empty.
    */
   public async addToKeyFile(
-    address: string,
+    address: Address,
     privateKey: Data,
     passphrase: string,
     lock: boolean
@@ -459,12 +459,12 @@ export default class Wallet {
     // NOTE: we are avoiding encrypting the keys for an account if the
     // passphrase is blank purely for startup performance reasons.
     if (passphrase || lock) {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: true,
         key: await this.encrypt(privateKey, passphrase)
       });
     } else {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: false,
         key: privateKey.toBuffer()
       });
@@ -483,7 +483,7 @@ export default class Wallet {
    * of if the passphrase is empty.
    */
   public addToKeyFileSync(
-    address: string,
+    address: Address,
     privateKey: Data,
     passphrase: string,
     lock: boolean
@@ -491,12 +491,12 @@ export default class Wallet {
     // NOTE: we are avoiding encrypting the keys for an account if the
     // passphrase is blank purely for startup performance reasons.
     if (passphrase || lock) {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: true,
         key: this.encryptSync(privateKey, passphrase)
       });
     } else {
-      this.keyFiles.set(address.toLowerCase(), {
+      this.keyFiles.set(address.toString(), {
         encrypted: false,
         key: privateKey.toBuffer()
       });
@@ -509,8 +509,8 @@ export default class Wallet {
    * @param address The address whose private key is to be fetched.
    * @param passphrase The passphrase used to decrypt the private key.
    */
-  public async getFromKeyFile(address: string, passphrase: string) {
-    const keyFile = this.keyFiles.get(address.toLowerCase());
+  public async getFromKeyFile(address: Address, passphrase: string) {
+    const keyFile = this.keyFiles.get(address.toString());
     if (keyFile === undefined || keyFile === null) {
       throw new Error("no key for given address or file");
     }
@@ -559,11 +559,12 @@ export default class Wallet {
   }
 
   public async unlockAccount(
-    lowerAddress: string,
+    address: Address,
     passphrase: string,
     duration: number
   ) {
-    const secretKey = await this.getFromKeyFile(lowerAddress, passphrase);
+    const lowerAddress = address.toString();
+    const secretKey = await this.getFromKeyFile(address, passphrase);
 
     const existingTimer = this.lockTimers.get(lowerAddress);
     if (existingTimer) {
@@ -582,7 +583,8 @@ export default class Wallet {
     return true;
   }
 
-  public async addUnknownAccount(lowerAddress: string, passphrase: string) {
+  public async addUnknownAccount(address: Address, passphrase: string) {
+    const lowerAddress = address.toString();
     // if we "know" about this account, it cannot be added this way
     if (this.knownAccounts.has(lowerAddress)) {
       throw new Error("cannot add known/personal account");
@@ -591,18 +593,19 @@ export default class Wallet {
     // this is an unknown account, so we do not have a private key. instead,
     // we'll need to create a fake one.
     const privateKey = this.createFakePrivateKey(lowerAddress);
-    await this.addToKeyFile(lowerAddress, privateKey, passphrase, true);
+    await this.addToKeyFile(address, privateKey, passphrase, true);
     this.knownAccounts.add(lowerAddress);
     return privateKey.toString();
   }
 
-  public async removeKnownAccount(lowerAddress: string, passphrase: string) {
+  public async removeKnownAccount(address: Address, passphrase: string) {
+    const lowerAddress = address.toString();
     // if we don't "know" about this account, it cannot be removed
     if (!this.knownAccounts.has(lowerAddress)) {
       throw new Error("cannot remove unknown account");
     }
 
-    const privateKey = await this.getFromKeyFile(lowerAddress, passphrase);
+    const privateKey = await this.getFromKeyFile(address, passphrase);
     // we don't actually care what the private key is, we just need to know that
     // the passphrase they supplied is the right one. (empty string is a valid
     // privateKey for added, previously unknown accounts)
