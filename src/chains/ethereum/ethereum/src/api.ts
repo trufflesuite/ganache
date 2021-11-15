@@ -529,8 +529,9 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  async evm_addAccount(address: DATA, passphrase: string) {
-    return this.#wallet.addUnknownAccount(address.toLowerCase(), passphrase);
+  async evm_addAccount(strAddress: DATA, passphrase: string) {
+    const address = new Address(strAddress);
+    return this.#wallet.addUnknownAccount(address, passphrase);
   }
 
   /**
@@ -551,8 +552,9 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  async evm_removeAccount(address: DATA, passphrase: string) {
-    return this.#wallet.removeKnownAccount(address.toLowerCase(), passphrase);
+  async evm_removeAccount(strAddress: DATA, passphrase: string) {
+    const address = new Address(strAddress);
+    return this.#wallet.removeKnownAccount(address, passphrase);
   }
 
   //#endregion evm
@@ -2741,12 +2743,7 @@ export default class EthereumApi implements Api {
     const newAccount = wallet.createRandomAccount();
     const address = newAccount.address;
     const strAddress = address.toString();
-    await wallet.addToKeyFile(
-      strAddress,
-      newAccount.privateKey,
-      passphrase,
-      true
-    );
+    await wallet.addToKeyFile(address, newAccount.privateKey, passphrase, true);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2777,12 +2774,7 @@ export default class EthereumApi implements Api {
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
-    await wallet.addToKeyFile(
-      strAddress,
-      newAccount.privateKey,
-      passphrase,
-      true
-    );
+    await wallet.addToKeyFile(address, newAccount.privateKey, passphrase, true);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2830,15 +2822,12 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2, 3)
   async personal_unlockAccount(
-    address: DATA,
+    strAddress: DATA,
     passphrase: string,
     duration: number = 300
   ) {
-    return this.#wallet.unlockAccount(
-      address.toLowerCase(),
-      passphrase,
-      duration
-    );
+    const address = new Address(strAddress);
+    return this.#wallet.unlockAccount(address, passphrase, duration);
   }
 
   /**
@@ -2884,10 +2873,10 @@ export default class EthereumApi implements Api {
       throw new Error("from not found; is required");
     }
 
-    const fromString = tx.from.toString();
+    const fromAddress = new Address(tx.from.toString());
 
     const wallet = this.#wallet;
-    const secretKey = await wallet.getFromKeyFile(fromString, passphrase);
+    const secretKey = await wallet.getFromKeyFile(fromAddress, passphrase);
 
     await autofillDefaultTransactionValues(
       tx,
@@ -2940,10 +2929,10 @@ export default class EthereumApi implements Api {
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
-    const fromString = tx.from.toString();
+    const fromAddress = new Address(tx.from.toString());
 
     const wallet = this.#wallet;
-    const secretKey = await wallet.getFromKeyFile(fromString, passphrase);
+    const secretKey = await wallet.getFromKeyFile(fromAddress, passphrase);
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
   }
