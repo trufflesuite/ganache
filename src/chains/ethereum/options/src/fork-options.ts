@@ -337,7 +337,11 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         }
       }
     },
-    cliDescription: "Specify an network name to fork.",
+    cliDescription: `A network name to fork from; uses Infura's archive nodes.
+
+Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet at the latest block.
+`,
+    cliChoices: KNOWN_NETWORKS,
     legacyName: "fork",
     conflicts: ["url", "provider"]
   },

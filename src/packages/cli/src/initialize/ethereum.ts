@@ -1,6 +1,8 @@
 import { WEI } from "@ganache/utils";
 import type { Provider } from "@ganache/ethereum";
+import { TruffleColors } from "@ganache/colors";
 import { toChecksumAddress } from "ethereumjs-util";
+import chalk from "chalk";
 import { CliSettings } from "../types";
 
 function capitalizeFirstLetter(string: string) {
@@ -86,7 +88,7 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     if (liveOptions.fork.network) {
       location = `Ethereum ${capitalizeFirstLetter(
         liveOptions.fork.network.replace("goerli", "görli")
-      )}, via Infura`;
+      )}, via ${chalk`{hex("${TruffleColors.infura}") 丕Infura}`}`;
     } else {
       location = (liveOptions.fork.url as any).toString();
     }
