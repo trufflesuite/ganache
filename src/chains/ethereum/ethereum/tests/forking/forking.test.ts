@@ -1036,7 +1036,7 @@ describe("forking", () => {
     });
 
     before("fork from mainnet at contractBlockNum + 1", async () => {
-      // progress the remote provider forward 1 additional block so we can call
+      // progress the remote provider forward 2 additional blocks so we can call
       // `eth_call` with the `contractBlockNum` as the _parent_. This will
       // ensure that the block number of the _transaction_ runs in a block
       // context _before_ our fork point
