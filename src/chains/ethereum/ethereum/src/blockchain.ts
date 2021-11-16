@@ -1107,13 +1107,9 @@ export default class Blockchain extends Emittery.Typed<
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      if (this.#options.chain.vmErrorsOnRPCResponse) {
-        // eth_call transactions don't really have a transaction hash
-        const hash = RPCQUANTITY_EMPTY;
-        throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
-      } else {
-        return Data.from(result.execResult.returnValue || "0x");
-      }
+      // eth_call transactions don't really have a transaction hash
+      const hash = RPCQUANTITY_EMPTY;
+      throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
     }
