@@ -53,14 +53,14 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       const propDefinition = def[key];
       let value = namespaceOptions[key];
       if (value !== undefined) {
-        checkForConflicts(
-          key,
-          namespace,
-          suppliedOptions,
-          propDefinition.conflicts
-        );
         const normalized = propDefinition.normalize(namespaceOptions[key]);
         if (normalized !== undefined) {
+          checkForConflicts(
+            key,
+            namespace,
+            suppliedOptions,
+            propDefinition.conflicts
+          );
           config[key] = normalized;
           suppliedOptions.add(key);
         }
@@ -68,14 +68,14 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         const legacyName = propDefinition.legacyName || key;
         value = options[legacyName];
         if (value !== undefined) {
-          checkForConflicts(
-            key,
-            namespace,
-            suppliedOptions,
-            propDefinition.conflicts
-          );
           const normalized = propDefinition.normalize(value);
           if (normalized !== undefined) {
+            checkForConflicts(
+              key,
+              namespace,
+              suppliedOptions,
+              propDefinition.conflicts
+            );
             config[key] = normalized;
             suppliedOptions.add(key);
           }
@@ -92,14 +92,14 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       const legacyName = propDefinition.legacyName || key;
       const value = options[legacyName];
       if (value !== undefined) {
-        checkForConflicts(
-          key,
-          namespace,
-          suppliedOptions,
-          propDefinition.conflicts
-        );
         const normalized = propDefinition.normalize(value);
         if (normalized !== undefined) {
+          checkForConflicts(
+            key,
+            namespace,
+            suppliedOptions,
+            propDefinition.conflicts
+          );
           config[key] = normalized;
           suppliedOptions.add(key);
         }
