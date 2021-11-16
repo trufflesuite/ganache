@@ -250,6 +250,8 @@ export const ForkOptions: Definitions<ForkConfig> = {
   // as the defaults are processed in order, and they rely on the `fork.url`
   url: {
     normalize: rawInput => {
+      // because `url` is an alias of `fork`, along with `provider` and
+      // `network` the runtime type isn't always going to be `"string"`
       if (
         typeof rawInput !== "string" ||
         KNOWN_NETWORKS.includes(rawInput as any)
@@ -307,6 +309,8 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
   },
   provider: {
     normalize: rawInput => {
+      // because `provider` is an alias of `fork`, along with `network` and
+      // `url` the runtime type isn't always going to match the TypeScript type.
       // if rawInput is a string it will be handled by the `url` or `network`
       // handlers.
       if (typeof rawInput === "string" || !("request" in rawInput)) return;
@@ -319,6 +323,8 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
   },
   network: {
     normalize: rawInput => {
+      // because `network` is an alias of `fork`, along with `provider` and
+      // `url` the runtime type isn't always going to be `"string"`
       if (typeof rawInput === "string" && KNOWN_NETWORKS.includes(rawInput))
         return rawInput;
       if (
