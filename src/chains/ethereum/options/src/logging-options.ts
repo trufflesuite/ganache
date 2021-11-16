@@ -87,12 +87,20 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     legacyName: "debug",
     cliType: "boolean"
   },
+  quiet: {
+    normalize,
+    cliDescription: "Set to `true` to disable logging.",
+    default: () => false,
+    cliAliases: ["q", "quiet"],
+    cliType: "boolean"
+  },
   logger: {
     normalize,
     cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
-    default: () => logger,
+    // disable the default logger if `quiet` is `true`
+    default: config => (config.quiet ? { log: () => {} } : logger),
     legacyName: "logger"
   },
   verbose: {
@@ -101,13 +109,6 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     default: () => false,
     legacyName: "verbose",
     cliAliases: ["v", "verbose"],
-    cliType: "boolean"
-  },
-  quiet: {
-    normalize,
-    cliDescription: "Set to `true` to disable logging.",
-    default: () => false,
-    cliAliases: ["q", "quiet"],
     cliType: "boolean"
   }
 };
