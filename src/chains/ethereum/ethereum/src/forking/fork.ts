@@ -228,12 +228,13 @@ export class Fork {
       : this.blockNumber;
   }
 
-  /**
-   * If the blockNumber is before our fork.blockNumber return a Common instance
-   * applying the rules from the remote chain's via it's original chainId. If
-   * the remote chain's chain id is now "known", return a common with our local
-   * common's rules applied, but with the remote chain's chainId. If the block
-   * is greater than or equal to our fork.blockNumber returns `common`.
+ /**
+   * If the `blockNumber` is before our `fork.blockNumber`, return a `Common`
+   * instance, applying the rules from the remote chain's `common` via its
+   * original `chainId`. If the remote chain's `chainId` is now "known", return
+   * a `Common` with our local `common`'s rules applied, but with the remote
+   * chain's `chainId`. If the block is greater than or equal to our
+   * `fork.blockNumber` return `common`.
    * @param common
    * @param blockNumber
    */
