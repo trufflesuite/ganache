@@ -87,8 +87,16 @@ export class Fork {
       } else {
         normalizedNetwork = network;
       }
+      // Note: `process.env.INFURA_KEY` is replaced by webpack with an infura
+      // key.
+      const infuraKey = process.env.INFURA_KEY;
+      if (!infuraKey) {
+        throw new Error(
+          "The INFURA_KEY environment variable was not given and is required when using Ganache's integrated archive network feature."
+        );
+      }
       forkingOptions.url = new URL(
-        `wss://${normalizedNetwork}.infura.io/ws/v3/${process.env.INFURA_KEY}`
+        `wss://${normalizedNetwork}.infura.io/ws/v3/${infuraKey}`
       );
       this.#handler = new WsHandler(options, this.#abortController.signal);
     }
