@@ -1,35 +1,30 @@
 import assert from "assert";
 import { EthereumDefaults, EthereumOptionsConfig } from "../src";
+import sinon from "sinon";
 
 describe("EthereumOptionsConfig", () => {
   describe("options", () => {
+    let spy: any;
+    beforeEach(() => {
+      spy = sinon.spy(console, "log");
+    });
+    afterEach(() => {
+      spy.restore();
+    });
     it("logs via console.log by default", () => {
       const message = "message";
       const options = EthereumOptionsConfig.normalize({});
-      let logged = false;
-      console.log = (msg: string) => {
-        logged = true;
-        assert.strictEqual(msg, message);
-      };
       options.logging.logger.log(message);
-      assert.strictEqual(logged, true);
+      assert.strictEqual(spy.withArgs(message).callCount, 1);
     });
 
     it("disables the logger when the quiet flag is used", () => {
+      const message = "message";
       const options = EthereumOptionsConfig.normalize({
         logging: { quiet: true }
       });
-      let logged = false;
-      const log = console.log;
-      try {
-        console.log = () => {
-          logged = true;
-        };
-        options.logging.logger.log("message");
-      } finally {
-        console.log = log;
-      }
-      assert.strictEqual(logged, false);
+      options.logging.logger.log(message);
+      assert.strictEqual(spy.withArgs(message).callCount, 0);
     });
   });
   describe(".normalize", () => {

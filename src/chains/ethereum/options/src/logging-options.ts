@@ -77,8 +77,6 @@ export type LoggingConfig = {
   };
 };
 
-const logger: Logger = { log: console.log };
-
 export const LoggingOptions: Definitions<LoggingConfig> = {
   debug: {
     normalize,
@@ -100,7 +98,9 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
     // disable the default logger if `quiet` is `true`
-    default: config => (config.quiet ? { log: () => {} } : logger),
+    default: config => ({
+      log: config.quiet ? () => {} : console.log
+    }),
     legacyName: "logger"
   },
   verbose: {
