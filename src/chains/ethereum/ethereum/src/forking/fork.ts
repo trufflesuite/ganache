@@ -170,7 +170,7 @@ export class Fork {
 
   public async initialize() {
     let cacheProm: Promise<PersistentCache>;
-    const options = this.#options;
+    const { fork: options } = this.#options;
     if (options.deleteCache) await PersistentCache.deleteDb();
     if (options.disableCache === false) {
       // ignore cache start up errors as it is possible there is an `open`
