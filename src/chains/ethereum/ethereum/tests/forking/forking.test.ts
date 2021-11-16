@@ -156,14 +156,6 @@ describe("forking", function () {
           }),
         { message: "Forking `provider` must be EIP-1193 compatible" }
       );
-      await assert.rejects(
-        () =>
-          startLocalChain(PORT, {
-            provider: { send: "also not a function" } as any,
-            disableCache: true
-          }),
-        { message: "Forking `provider` must be EIP-1193 compatible" }
-      );
     });
 
     describe("EIP-1193 providers", () => {
