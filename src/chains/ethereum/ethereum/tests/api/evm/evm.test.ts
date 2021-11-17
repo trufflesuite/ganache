@@ -164,19 +164,17 @@ describe("api", () => {
 
       it("should add an account to the personal namespace", async () => {
         const address = "0x742d35cc6634c0532925a3b844bc454e4438f44e";
-        const expectedKey =
-          "0x742d35cc6634c0532925a3b844bc454e4438f44e742d35cc6634c0532925a3b8";
         const tx: TypedRpcTransaction = { from: address };
         // account is unknown on startup
         await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
           message: "sender account not recognized"
         });
-        const result1 = await provider.send("evm_addAccount", [
+        const result = await provider.send("evm_addAccount", [
           address,
           passphrase
         ]);
 
-        assert.strictEqual(result1, expectedKey);
+        assert.strictEqual(result, true);
 
         // account is known but locked
         await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
@@ -196,11 +194,12 @@ describe("api", () => {
 
       it("should not add an account already known to the personal namespace", async () => {
         const [account] = await provider.send("eth_accounts");
-        // should throw if account was already known
-        await assert.rejects(
-          provider.send("evm_addAccount", [account, passphrase]),
-          { message: "cannot add known/personal account" }
-        );
+        const result = await provider.send("evm_addAccount", [
+          account,
+          passphrase
+        ]);
+        // cannot add account
+        assert.strictEqual(result, false);
       });
     });
 
@@ -218,11 +217,11 @@ describe("api", () => {
         // account is known on startup
         await assert.doesNotReject(provider.send("eth_sendTransaction", [tx]));
 
-        const result1 = await provider.send("evm_removeAccount", [
+        const result = await provider.send("evm_removeAccount", [
           address,
           passphrase
         ]);
-        assert.strictEqual(result1, address);
+        assert.strictEqual(result, true);
 
         // account is no longer known
         await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
@@ -232,12 +231,12 @@ describe("api", () => {
 
       it("should not remove an account that isn't known to the personal namespace", async () => {
         const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-
-        // should throw if account was already known
-        await assert.rejects(
-          provider.send("evm_removeAccount", [address, passphrase]),
-          { message: "cannot remove unknown account" }
-        );
+        const result = await provider.send("evm_addAccount", [
+          address,
+          passphrase
+        ]);
+        // cannot add account
+        assert.strictEqual(result, false);
       });
     });
   });

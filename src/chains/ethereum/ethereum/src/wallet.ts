@@ -587,7 +587,7 @@ export default class Wallet {
     const lowerAddress = address.toString();
     // if we "know" about this account, it cannot be added this way
     if (this.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot add known/personal account");
+      false;
     }
 
     // this is an unknown account, so we do not have a private key. instead,
@@ -595,14 +595,14 @@ export default class Wallet {
     const privateKey = this.createFakePrivateKey(lowerAddress);
     await this.addToKeyFile(address, privateKey, passphrase, true);
     this.knownAccounts.add(lowerAddress);
-    return privateKey.toString();
+    return true;
   }
 
   public async removeKnownAccount(address: Address, passphrase: string) {
     const lowerAddress = address.toString();
     // if we don't "know" about this account, it cannot be removed
     if (!this.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot remove unknown account");
+      false;
     }
 
     const privateKey = await this.getFromKeyFile(address, passphrase);
@@ -614,7 +614,7 @@ export default class Wallet {
       this.knownAccounts.delete(lowerAddress);
       this.lockTimers.delete(lowerAddress);
       this.unlockedAccounts.delete(lowerAddress);
-      return lowerAddress;
+      return true;
     } else {
       throw new Error(
         "could not find private key for address/passphrase combination"
