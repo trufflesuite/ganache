@@ -235,7 +235,7 @@ describe("api", () => {
           address,
           passphrase
         ]);
-        // cannot add account
+        // cannot remove account
         assert.strictEqual(result, false);
       });
     });

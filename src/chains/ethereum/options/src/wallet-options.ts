@@ -137,7 +137,7 @@ export type WalletConfig = {
         /**
          * @deprecated Use wallet.lock instead
          */
-        lock: boolean;
+        secure: boolean;
       };
     };
 
@@ -290,7 +290,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliDescription:
       "Lock available accounts by default (good for third party transaction signing).",
     default: () => false,
-    legacyName: "lock",
+    legacyName: "secure",
     cliAliases: ["n", "secure", "lock"],
     cliType: "boolean"
   },
@@ -298,7 +298,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     normalize,
     cliDescription: "Passphrase to use when locking accounts.",
     default: () => "",
-    cliAliases: ["passphrase", "password"],
+    cliAliases: ["passphrase"],
     cliType: "string"
   },
   accountKeysPath: {
