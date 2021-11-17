@@ -7,8 +7,7 @@ import {
   INTRINSIC_GAS_TOO_LOW,
   CodedError,
   UNDERPRICED,
-  REPLACED,
-  NO_SECRET_KEY
+  REPLACED
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
