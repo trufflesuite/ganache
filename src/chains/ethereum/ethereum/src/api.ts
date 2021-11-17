@@ -2871,10 +2871,8 @@ export default class EthereumApi implements Api {
       throw new Error("from not found; is required");
     }
 
-    const fromAddress = new Address(tx.from.toString());
-
     const wallet = this.#wallet;
-    const secretKey = await wallet.getFromKeyFile(fromAddress, passphrase);
+    const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
 
     await autofillDefaultTransactionValues(
       tx,
@@ -2927,10 +2925,9 @@ export default class EthereumApi implements Api {
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
-    const fromAddress = new Address(tx.from.toString());
 
     const wallet = this.#wallet;
-    const secretKey = await wallet.getFromKeyFile(fromAddress, passphrase);
+    const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
   }
