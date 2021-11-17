@@ -527,9 +527,9 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  async evm_addAccount(strAddress: DATA, passphrase: string) {
-    const address = new Address(strAddress);
-    return this.#wallet.addUnknownAccount(address, passphrase);
+  async evm_addAccount(address: DATA, passphrase: string) {
+    const addy = new Address(address);
+    return this.#wallet.addUnknownAccount(addy, passphrase);
   }
 
   /**
@@ -550,9 +550,9 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  async evm_removeAccount(strAddress: DATA, passphrase: string) {
-    const address = new Address(strAddress);
-    return this.#wallet.removeKnownAccount(address, passphrase);
+  async evm_removeAccount(address: DATA, passphrase: string) {
+    const addy = new Address(address);
+    return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
   //#endregion evm
@@ -2820,12 +2820,12 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2, 3)
   async personal_unlockAccount(
-    strAddress: DATA,
+    address: DATA,
     passphrase: string,
     duration: number = 300
   ) {
-    const address = new Address(strAddress);
-    return this.#wallet.unlockAccount(address, passphrase, duration);
+    const addy = new Address(address);
+    return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
 
   /**
