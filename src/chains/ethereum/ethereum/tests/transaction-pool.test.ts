@@ -433,4 +433,18 @@ describe("transaction pool", async () => {
       transaction.serialized.toString()
     );
   });
+
+  it("rejects unsigned transactions with no secret key provided", async () => {
+    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const transaction = TransactionFactory.fromRpc(rpcTx, common);
+
+    await assert.rejects(
+      txPool.prepareTransaction(transaction),
+      {
+        code: -32000,
+        message: "unable to sign transaction; no secret key provided"
+      },
+      "unsigned transaction with no secret key should have been rejected"
+    );
+  });
 });
