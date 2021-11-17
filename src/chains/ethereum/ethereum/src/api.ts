@@ -687,7 +687,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async web3_sha3(data: DATA) {
-    return Data.from(keccak(Buffer.from(data)));
+    return Data.from(keccak(Data.from(data).toBuffer()));
   }
   //#endregion
 
