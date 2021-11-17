@@ -18,7 +18,7 @@ describe("api", () => {
       );
     });
 
-    it.only("web3_sha should hash the given input", async () => {
+    it("web3_sha should hash the given input", async () => {
       const input = Buffer.from("hello world", "utf-8").toString("hex");
       const result = await provider.send("web3_sha3", [`0x${input}`]);
 
