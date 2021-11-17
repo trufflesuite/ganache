@@ -205,9 +205,10 @@ describe("transaction pool", async () => {
   it("adds immediately executable transactions to the pending queue", async () => {
     const txPool = new TransactionPool(options.miner, blockchain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
-    // we aren't passing in the secretKey just for code coverage. this causes
-    // a code path where a fake key is made to signAndHash
-    const isExecutable = await txPool.prepareTransaction(executableTx);
+    const isExecutable = await txPool.prepareTransaction(
+      executableTx,
+      secretKey
+    );
     assert(isExecutable); // our first transaction is executable
     const { pending } = txPool.executables;
     // our executable transaction should be found in the pending queue
@@ -374,16 +375,11 @@ describe("transaction pool", async () => {
 
   it("sets the transactions nonce appropriately if omitted from the transaction", async () => {
     const txPool = new TransactionPool(options.miner, blockchain, origins);
-    // we're copying the rpcTx but using the 0 address just for code coverage
-    // we'll also omit the secretKey below. This will force a code path where
-    // a fake key is generated for the zero address
-    const newTx = JSON.parse(JSON.stringify(rpcTx));
-    newTx.from = `0x0000000000000000000000000000000000000000`;
-    const transaction = TransactionFactory.fromRpc(newTx, common);
+    const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     // our transaction doesn't have a nonce up front.
     assert.strictEqual(transaction.nonce.valueOf(), undefined);
-    await txPool.prepareTransaction(transaction);
+    await txPool.prepareTransaction(transaction, secretKey);
     // after it's prepared by the txPool, an appropriate nonce for the account is set
     assert.strictEqual(transaction.nonce.valueOf(), Quantity.from(0).valueOf());
   });
@@ -392,7 +388,7 @@ describe("transaction pool", async () => {
     const txPool = new TransactionPool(options.miner, blockchain, origins);
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
-    await txPool.prepareTransaction(transaction);
+    await txPool.prepareTransaction(transaction, secretKey);
     const { pending } = txPool.executables;
     // our executable transaction should be found in the pending queue
     const found = findIn(transaction.hash.toBuffer(), pending);
@@ -424,7 +420,7 @@ describe("transaction pool", async () => {
     const txPool = new TransactionPool(options.miner, blockchain, origins);
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
-    await txPool.prepareTransaction(transaction);
+    await txPool.prepareTransaction(transaction, secretKey);
     const drainPromise = txPool.once("drain");
     txPool.drain();
     await drainPromise;
