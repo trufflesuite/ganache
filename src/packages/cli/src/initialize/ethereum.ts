@@ -11,9 +11,6 @@ function capitalizeFirstLetter(string: string) {
 function color(str: string) {
   return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
-function k(str: string) {
-  return chalk`{hex("${TruffleColors.porsche}").bgHex("#3C2C30") ${str}}`;
-}
 
 export default function (provider: Provider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
