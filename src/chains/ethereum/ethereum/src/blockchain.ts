@@ -625,6 +625,10 @@ export default class Blockchain extends Emittery.Typed<
         return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     } as any;
+    // ethereumjs-vm wants to "copy" the blockchain when `vm.copy` is called.
+    blockchain.copy = () => {
+      return blockchain;
+    };
 
     const common = this.common;
 
