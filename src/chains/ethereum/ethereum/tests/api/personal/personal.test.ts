@@ -370,8 +370,8 @@ describe("api", () => {
         });
       });
 
-      describe.only("personal_sendTransaction", () => {
-        it.only("generates locked accounts with passphrase", async () => {
+      describe("personal_sendTransaction", () => {
+        it("generates locked accounts with passphrase", async () => {
           const provider = await getProvider({
             miner: { defaultGasPrice: 0 },
             // use berlin here because we just want to test if we can use the
