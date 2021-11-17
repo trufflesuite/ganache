@@ -231,7 +231,7 @@ describe("api", () => {
 
       it("should not remove an account that isn't known to the personal namespace", async () => {
         const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-        const result = await provider.send("evm_addAccount", [
+        const result = await provider.send("evm_removeAccount", [
           address,
           passphrase
         ]);
