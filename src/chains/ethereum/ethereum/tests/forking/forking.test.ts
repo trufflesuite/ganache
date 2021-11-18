@@ -208,12 +208,8 @@ describe("forking", function () {
         }
       );
 
-      afterEach(async () => {
-        try {
-          localProvider && (await localProvider.disconnect());
-        } catch (e) {
-          console.log(e);
-        }
+      afterEach("tear down network provider", async () => {
+        localProvider && (await localProvider.disconnect());
       });
 
       it("should accept a provider instead of a url", async () => {
@@ -288,12 +284,9 @@ describe("forking", function () {
           params: ["0x1000000000000000000000000000000000000000"]
         });
       });
-      afterEach(async () => {
-        try {
-          localProvider && (await localProvider.disconnect());
-        } catch (e) {
-          console.log(e);
-        }
+
+      afterEach("tear down network provider", async () => {
+        localProvider && (await localProvider.disconnect());
       });
 
       it("should accept a legacy provider instead of a url", async () => {
@@ -1215,27 +1208,26 @@ describe("forking", function () {
     });
 
     KNOWN_NETWORKS.forEach(network => {
-      beforeEach("set up network provider", async () => {
-        const provider = await startLocalChain(PORT, {
-          network,
-          disableCache: true
+      describe(network, () => {
+        beforeEach("set up network provider", async () => {
+          const provider = await startLocalChain(PORT, {
+            network,
+            disableCache: true
+          });
+          localProvider = provider.localProvider;
         });
-        localProvider = provider.localProvider;
-      });
-      afterEach(async () => {
-        try {
-          localProvider && (await localProvider.disconnect());
-        } catch (e) {
-          console.log(e);
-        }
-      });
 
-      it(`should accept \`"network": "${network}"\``, async () => {
-        const balance = await localProvider.request({
-          method: "eth_getBalance",
-          params: [testData[network].address, testData[network].block]
+        afterEach("tear down network provider", async () => {
+          localProvider && (await localProvider.disconnect());
         });
-        assert.strictEqual(balance, testData[network].balance);
+
+        it(`should accept network`, async () => {
+          const balance = await localProvider.request({
+            method: "eth_getBalance",
+            params: [testData[network].address, testData[network].block]
+          });
+          assert.strictEqual(balance, testData[network].balance);
+        });
       });
     });
   });
