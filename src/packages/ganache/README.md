@@ -1,5 +1,5 @@
 <h3 align="center">
-  ⚠ Notice: This documentation describes the alpha release of Ganache. If you are looking to install the stable version of Ganache you can find instructions at https://github.com/trufflesuite/ganache-cli-archive ⚠
+  ⚠ Notice: This documentation describes the beta release of Ganache. If you are looking to install the stable version of Ganache you can find instructions at https://github.com/trufflesuite/ganache-cli-archive ⚠
 </h3>
 
 ---
@@ -52,10 +52,10 @@ Ganache can be used from the [command line](#command-line-use), [programmaticall
 
 You must first install [Node.js](https://nodejs.org/) >= v10.13.0 and npm >= 6.4.1.
 
-To install Ganache *alpha* globally, run:
+To install Ganache _beta_ globally, run:
 
 ```console
-$ npm install ganache@alpha --global
+$ npm install ganache@beta --global
 ```
 
 For the latest stable release of ganache-cli, run:
@@ -116,7 +116,7 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install Ganache alpha into an npm project, run:
+To install Ganache beta into an npm project, run:
 
 ```console
 $ npm install ganache
