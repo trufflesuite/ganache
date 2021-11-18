@@ -19,12 +19,12 @@ describe("api", () => {
     });
 
     it("web3_sha should hash the given input", async () => {
-      const input = "Tim is a swell guy.";
-      const result = await provider.send("web3_sha3", [input]);
+      const input = Buffer.from("hello world", "utf-8").toString("hex");
+      const result = await provider.send("web3_sha3", [`0x${input}`]);
 
       assert.strictEqual(
         result,
-        "0xee80d4ac03202e2246d51a596c76a18e1a6d899bed9f05246d998fb656d9bd1f"
+        "0x47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad"
       );
     });
   });

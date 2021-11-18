@@ -87,7 +87,7 @@ export class BaseTransaction {
   public s: Quantity | null;
   public effectiveGasPrice: Quantity;
 
-  public from: Data | null;
+  public from: Address | null;
 
   public common: Common;
 

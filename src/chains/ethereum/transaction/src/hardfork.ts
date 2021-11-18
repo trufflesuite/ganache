@@ -5,4 +5,5 @@ export type Hardfork =
   | "istanbul"
   | "muirGlacier"
   | "berlin"
-  | "london";
+  | "london"
+  | "arrowGlacier";

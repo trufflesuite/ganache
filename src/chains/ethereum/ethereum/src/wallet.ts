@@ -1,9 +1,11 @@
 import { Account } from "@ganache/ethereum-utils";
 import {
   createAccountFromSeed,
-  createAccountGeneratorFromSeedAndPath
+  createAccountGeneratorFromSeedAndPath,
+  HDKey
 } from "./hdkey";
 import {
+  ACCOUNT_ZERO,
   Data,
   keccak,
   Quantity,
@@ -66,6 +68,10 @@ const scrypt = (...args: OmitLastType<Params>) => {
   );
 };
 
+const scryptSync = (...args: OmitLastType<Params>) => {
+  return crypto.scryptSync.call(crypto, ...args);
+};
+
 /**
  * A Buffer that can be reused by `uncompressedPublicKeyToAddress`.
  */
@@ -100,12 +106,15 @@ const asUUID = (uuid: Buffer | { length: 16 }) => {
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type EncryptType = ThenArg<ReturnType<Wallet["encrypt"]>>;
+type MaybeEncrypted =
+  | { encrypted: true; key: EncryptType }
+  | { encrypted: false; key: Buffer };
 
 export default class Wallet {
   readonly addresses: string[];
   readonly initialAccounts: Account[];
   readonly knownAccounts = new Set<string>();
-  readonly encryptedKeyFiles = new Map<string, EncryptType>();
+  readonly keyFiles = new Map<string, MaybeEncrypted>();
   readonly unlockedAccounts = new Map<string, Data>();
   readonly lockTimers = new Map<string, NodeJS.Timeout>();
 
@@ -113,13 +122,13 @@ export default class Wallet {
     // create a RNG from our initial starting conditions (opts.mnemonic)
     this.#randomRng = alea("ganache " + opts.mnemonic);
 
-    const initialAccounts = (this.initialAccounts = this.#initializeAccounts(
-      opts
-    ));
-    const l = initialAccounts.length;
+    const initialAccounts = this.#initializeAccounts(opts);
+    this.initialAccounts = Array.from(initialAccounts.values());
+    this.addresses = Array.from(initialAccounts.keys());
+    const l = this.initialAccounts.length;
 
-    const knownAccounts = this.knownAccounts;
     const unlockedAccounts = this.unlockedAccounts;
+
     //#region Unlocked Accounts
     const givenUnlockedAccounts = opts.unlockedAccounts;
     if (givenUnlockedAccounts) {
@@ -127,12 +136,20 @@ export default class Wallet {
       for (let i = 0; i < ul; i++) {
         let arg = givenUnlockedAccounts[i];
         let address: string;
+        let privateKey: Data;
         switch (typeof arg) {
           case "string":
             // `toLowerCase` so we handle uppercase `0X` formats
             const addressOrIndex = arg.toLowerCase();
             if (addressOrIndex.indexOf("0x") === 0) {
               address = addressOrIndex;
+              const account = initialAccounts.get(address);
+              if (account) {
+                privateKey = account.privateKey;
+              } else {
+                // this wasn't one of our initial accounts, so make a priv key.
+                privateKey = this.createFakePrivateKey(address);
+              }
               break;
             } else {
               // try to convert the arg string to a number.
@@ -154,7 +171,7 @@ export default class Wallet {
               // break; // no break, please.
             }
           case "number":
-            const account = initialAccounts[arg];
+            const account = this.initialAccounts[arg];
             if (account == null) {
               throw new Error(
                 `Account at index ${arg} not found. Max index available is ${
@@ -163,33 +180,15 @@ export default class Wallet {
               );
             }
             address = account.address.toString().toLowerCase();
+            privateKey = account.privateKey;
             break;
           default:
             throw new Error(`Invalid value specified in unlocked_accounts`);
         }
         if (unlockedAccounts.has(address)) continue;
-        // if we don't have the secretKey for an account we use `null`
-        unlockedAccounts.set(address, null);
+
+        unlockedAccounts.set(address, privateKey);
       }
-    }
-    //#endregion
-
-    //#region Configure Known + Unlocked Accounts
-    const accountsCache = (this.addresses = Array(l));
-    for (let i = 0; i < l; i++) {
-      const account = initialAccounts[i];
-      const address = account.address;
-      const strAddress = address.toString();
-      accountsCache[i] = strAddress;
-      knownAccounts.add(strAddress);
-
-      // if the `secure` option has been set do NOT add these accounts to the
-      // unlockedAccounts, unless the account was already added to
-      // unlockedAccounts, in which case we need to add the account's private
-      // key.
-      if (opts.secure && !unlockedAccounts.has(strAddress)) continue;
-
-      unlockedAccounts.set(strAddress, account.privateKey);
     }
     //#endregion
 
@@ -228,8 +227,8 @@ export default class Wallet {
 
   #initializeAccounts = (
     options: EthereumInternalOptions["wallet"]
-  ): Account[] => {
-    let makeAccountAtIndex;
+  ): Map<string, Account> => {
+    let makeAccountAtIndex: (index: number) => HDKey;
     try {
       makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
         mnemonicToSeedSync(options.mnemonic, null),
@@ -248,52 +247,87 @@ export default class Wallet {
     const defaultBalanceInWei =
       WEI * significand + fractional * (WEI / magnitude);
     const etherInWei = Quantity.from(defaultBalanceInWei);
-    let accounts: Account[];
+    const accounts: Map<string, Account> = new Map<string, Account>();
+    const givenAccounts = options.accounts;
 
-    let givenAccounts = options.accounts;
     let accountsLength: number;
     if (givenAccounts && (accountsLength = givenAccounts.length) !== 0) {
-      accounts = Array(accountsLength);
       for (let i = 0; i < accountsLength; i++) {
-        const account = givenAccounts[i];
-        const secretKey = account.secretKey;
-        let privateKey: Data;
-        let address: Address;
-        if (!secretKey) {
-          const account = makeAccountAtIndex(i);
-          address = uncompressedPublicKeyToAddress(account.publicKey);
-          privateKey = Data.from(account.privateKey);
-          accounts[i] = Wallet.createAccount(
-            Quantity.from(account.balance),
-            privateKey,
-            address
-          );
+        const givenAccount = givenAccounts[i];
+        const secretKey = givenAccount.secretKey;
+        let account: Account;
+        if (secretKey) {
+          const balance = Quantity.from(givenAccount.balance);
+          account = this.#intializeAccountFromKey(balance, secretKey, options);
         } else {
-          privateKey = Data.from(secretKey);
-          const a = (accounts[i] = Wallet.createAccountFromPrivateKey(
-            privateKey
-          ));
-          a.balance = Quantity.from(account.balance);
+          const acct = makeAccountAtIndex(i);
+          account = this.#initializeAccountWithoutKey(
+            etherInWei,
+            acct,
+            options
+          );
         }
+        accounts.set(account.address.toString(), account);
       }
     } else {
       const numberOfAccounts = options.totalAccounts;
       if (numberOfAccounts != null) {
-        accounts = Array(numberOfAccounts);
-
-        for (let index = 0; index < numberOfAccounts; index++) {
-          const account = makeAccountAtIndex(index);
-          const address = uncompressedPublicKeyToAddress(account.publicKey);
-          const privateKey = Data.from(account.privateKey);
-          accounts[index] = Wallet.createAccount(
+        for (let i = 0; i < numberOfAccounts; i++) {
+          const acct = makeAccountAtIndex(i);
+          const account = this.#initializeAccountWithoutKey(
             etherInWei,
-            privateKey,
-            address
+            acct,
+            options
           );
+          accounts.set(account.address.toString(), account);
         }
       }
     }
     return accounts;
+  };
+
+  #intializeAccountFromKey = (
+    balance: Quantity,
+    secretKey: string,
+    options: EthereumInternalOptions["wallet"]
+  ) => {
+    const privateKey = Data.from(secretKey);
+    const account = Wallet.createAccountFromPrivateKey(privateKey);
+    account.balance = balance;
+    const address = account.address;
+    this.#initializeAccount(address, privateKey, options);
+    return account;
+  };
+
+  #initializeAccountWithoutKey = (
+    balance: Quantity,
+    acct: HDKey,
+    options: EthereumInternalOptions["wallet"]
+  ) => {
+    const address = uncompressedPublicKeyToAddress(acct.publicKey);
+    const privateKey = Data.from(acct.privateKey);
+    const account = Wallet.createAccount(balance, privateKey, address);
+    this.#initializeAccount(address, privateKey, options);
+    return account;
+  };
+
+  #initializeAccount = (
+    address: Address,
+    privateKey: Data,
+    options: EthereumInternalOptions["wallet"]
+  ) => {
+    const { passphrase, lock: lockAccounts } = options;
+    const knownAccounts = this.knownAccounts;
+
+    this.addToKeyFileSync(address, privateKey, passphrase, lockAccounts);
+    const strAddress = address.toString();
+    knownAccounts.add(strAddress);
+
+    // if the `lock` option has been not been set, we're safe to add this
+    // account to unlockedAccounts
+    if (!lockAccounts) {
+      this.unlockedAccounts.set(strAddress, privateKey);
+    }
   };
 
   public async encrypt(privateKey: Data, passphrase: string) {
@@ -306,6 +340,34 @@ export default class Wallet {
       ...SCRYPT_PARAMS,
       N: SCRYPT_PARAMS.n
     });
+    return this.finishEncryption(derivedKey, privateKey, salt, iv, uuid);
+  }
+
+  /**
+   * Syncronous version of the `encrypt` function.
+   * @param privateKey
+   * @param passphrase
+   */
+  public encryptSync(privateKey: Data, passphrase: string) {
+    const random = this.#randomBytes(32 + 16 + 16);
+    const salt = random.slice(0, 32); // first 32 bytes
+    const iv = random.slice(32, 32 + 16); // next 16 bytes
+    const uuid = random.slice(32 + 16); // last 16 bytes
+
+    const derivedKey = scryptSync(passphrase, salt, SCRYPT_PARAMS.dklen, {
+      ...SCRYPT_PARAMS,
+      N: SCRYPT_PARAMS.n
+    });
+    return this.finishEncryption(derivedKey, privateKey, salt, iv, uuid);
+  }
+
+  public finishEncryption(
+    derivedKey: Buffer,
+    privateKey: Data,
+    salt: Buffer,
+    iv: Buffer,
+    uuid: Buffer
+  ) {
     const cipher = crypto.createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
     const ciphertext = Buffer.concat([
       cipher.update(privateKey.toBuffer()),
@@ -367,7 +429,7 @@ export default class Wallet {
     }
 
     if (!localMac || !mac.toBuffer().equals(localMac)) {
-      throw new Error("could not decrypt key with given password");
+      throw new Error("could not decrypt key with given passphrase");
     }
 
     const decipher = crypto.createDecipheriv(
@@ -377,6 +439,96 @@ export default class Wallet {
     );
     const plaintext = decipher.update(ciphertext);
     return plaintext;
+  }
+
+  /**
+   * Stores a mapping of addresses to either encrypted (if a passphrase is used
+   * or the user specified --lock option) or unencrypted private keys.
+   * @param address The address whose private key is being stored.
+   * @param privateKey The passphrase to store.
+   * @param passphrase The passphrase to use to encrypt the private key. If
+   * passphrase is empty, the private key will not be encrypted.
+   * @param lock Flag to specify that accounts should be encrypted regardless
+   * of if the passphrase is empty.
+   */
+  public async addToKeyFile(
+    address: Address,
+    privateKey: Data,
+    passphrase: string,
+    lock: boolean
+  ) {
+    // NOTE: we are avoiding encrypting the keys for an account if the
+    // passphrase is blank purely for startup performance reasons.
+    if (passphrase || lock) {
+      this.keyFiles.set(address.toString(), {
+        encrypted: true,
+        key: await this.encrypt(privateKey, passphrase)
+      });
+    } else {
+      this.keyFiles.set(address.toString(), {
+        encrypted: false,
+        key: privateKey.toBuffer()
+      });
+    }
+  }
+
+  /**
+   * Synchronus version of `addToKeyFile`.
+   * Stores a mapping of addresses to either encrypted (if a passphrase is used
+   * or the user specified --lock option) or unencrypted private keys.
+   * @param address The address whose private key is being stored.
+   * @param privateKey The passphrase to store.
+   * @param passphrase The passphrase to use to encrypt the private key. If
+   * passphrase is empty, the private key will not be encrypted.
+   * @param lock Flag to specify that accounts should be encrypted regardless
+   * of if the passphrase is empty.
+   */
+  public addToKeyFileSync(
+    address: Address,
+    privateKey: Data,
+    passphrase: string,
+    lock: boolean
+  ) {
+    // NOTE: we are avoiding encrypting the keys for an account if the
+    // passphrase is blank purely for startup performance reasons.
+    if (passphrase || lock) {
+      this.keyFiles.set(address.toString(), {
+        encrypted: true,
+        key: this.encryptSync(privateKey, passphrase)
+      });
+    } else {
+      this.keyFiles.set(address.toString(), {
+        encrypted: false,
+        key: privateKey.toBuffer()
+      });
+    }
+  }
+
+  /**
+   * Fetches the private key for a specific address. If the keyFile is encrypted
+   * for the address, the passphrase is used to decrypt.
+   * @param address The address whose private key is to be fetched.
+   * @param passphrase The passphrase used to decrypt the private key.
+   */
+  public async getFromKeyFile(address: Address, passphrase: string) {
+    const keyFile = this.keyFiles.get(address.toString());
+    if (keyFile === undefined || keyFile === null) {
+      throw new Error("no key for given address or file");
+    }
+    if (keyFile.encrypted === true) {
+      return this.decrypt(keyFile.key, passphrase);
+    } else {
+      // if the keyFile is not marked as encrypted, they should provide no
+      // passphrase. so we'll make it look like they gave the "wrong" passphrase
+      // by throwing the same error that's thrown when decrypting
+      if (passphrase) {
+        throw new Error(
+          'could not decrypt key with given passphrase (default passphrase for accounts created at startup is "")'
+        );
+      } else {
+        return keyFile.key;
+      }
+    }
   }
 
   public static createAccount(
@@ -408,15 +560,12 @@ export default class Wallet {
   }
 
   public async unlockAccount(
-    lowerAddress: string,
+    address: Address,
     passphrase: string,
     duration: number
   ) {
-    const encryptedKeyFile = this.encryptedKeyFiles.get(lowerAddress);
-    if (encryptedKeyFile == null) {
-      return false;
-    }
-    const secretKey = await this.decrypt(encryptedKeyFile, passphrase);
+    const lowerAddress = address.toString();
+    const secretKey = await this.getFromKeyFile(address, passphrase);
 
     const existingTimer = this.lockTimers.get(lowerAddress);
     if (existingTimer) {
@@ -435,28 +584,60 @@ export default class Wallet {
     return true;
   }
 
-  public async unlockUnknownAccount(lowerAddress: string, duration: number) {
-    if (this.unlockedAccounts.has(lowerAddress)) {
-      // already unlocked, return `false` since we didn't do anything
+  public async addUnknownAccount(address: Address, passphrase: string) {
+    const lowerAddress = address.toString();
+    // if we "know" about this account, it cannot be added this way
+    if (this.knownAccounts.has(lowerAddress)) {
       return false;
     }
 
-    // if we "know" about this account, it cannot be unlocked this way
-    if (this.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot unlock known/personal account");
-    }
-
-    // a duration <= 0 will remain unlocked
-    const durationMs = (duration * 1000) | 0;
-    if (durationMs > 0) {
-      const timeout = setTimeout(this.#lockAccount, durationMs, lowerAddress);
-      unref(timeout);
-      this.lockTimers.set(lowerAddress, timeout as any);
-    }
-
-    // otherwise, unlock it!
-    this.unlockedAccounts.set(lowerAddress, null);
+    // this is an unknown account, so we do not have a private key. instead,
+    // we'll need to create a fake one.
+    const privateKey = this.createFakePrivateKey(lowerAddress);
+    await this.addToKeyFile(address, privateKey, passphrase, true);
+    this.knownAccounts.add(lowerAddress);
     return true;
+  }
+
+  public async removeKnownAccount(address: Address, passphrase: string) {
+    const lowerAddress = address.toString();
+    // if we don't "know" about this account, it cannot be removed
+    if (!this.knownAccounts.has(lowerAddress)) {
+      return false;
+    }
+
+    const privateKey = await this.getFromKeyFile(address, passphrase);
+    // we don't actually care what the private key is, we just need to know that
+    // the passphrase they supplied is the right one. (empty string is a valid
+    // privateKey for added, previously unknown accounts)
+    if (privateKey != null) {
+      this.keyFiles.delete(lowerAddress);
+      this.knownAccounts.delete(lowerAddress);
+      this.lockTimers.delete(lowerAddress);
+      this.unlockedAccounts.delete(lowerAddress);
+      return true;
+    } else {
+      throw new Error(
+        "could not find private key for address/passphrase combination"
+      );
+    }
+  }
+
+  public createFakePrivateKey(address: string) {
+    let fakePrivateKey: Buffer;
+    const addressBuf = Data.from(address).toBuffer();
+    if (addressBuf.equals(ACCOUNT_ZERO)) {
+      // allow signing with the 0x0 address...
+      // always sign with the same fake key, a 31 `0`s followed by a single
+      // `1`. The key is arbitrary. It just must not be all `0`s and must be
+      // deterministic.
+      // see: https://github.com/ethereumjs/ethereumjs-monorepo/issues/829#issue-674385636
+      fakePrivateKey = Buffer.allocUnsafe(32).fill(0, 0, 31);
+      fakePrivateKey[31] = 1;
+    } else {
+      fakePrivateKey = Buffer.concat([addressBuf, addressBuf.slice(0, 12)]);
+    }
+    return Data.from(fakePrivateKey);
   }
 
   #lockAccount = (lowerAddress: string) => {
