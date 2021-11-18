@@ -960,7 +960,9 @@ describe("forking", function () {
 });
 
 describe("forking", () => {
-  describe("fork block chainId-aware eth_call", () => {
+  describe("fork block chainId-aware eth_call", function () {
+    this.timeout(10000);
+
     describe("contracts", () => {
       let contractAddress: string;
       let methods: { [methodName: string]: string };
