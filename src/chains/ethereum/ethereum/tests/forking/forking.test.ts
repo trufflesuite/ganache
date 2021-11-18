@@ -1101,8 +1101,7 @@ describe("forking", () => {
         await assert.rejects(
           provider.send("eth_call", [tx, `0x${contractBlockNum.toString(16)}`]),
           {
-            message:
-              "RunTime Error: VM Exception while processing transaction: invalid opcode"
+            message: "VM Exception while processing transaction: invalid opcode"
           }
         );
       });
