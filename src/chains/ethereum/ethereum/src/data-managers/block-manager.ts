@@ -132,7 +132,16 @@ export default class BlockManager extends Manager<Block> {
       blockNumber,
       true
     ]);
-    return json == null ? null : BlockManager.rawFromJSON(json, this.#common);
+    if (json == null) {
+      return null;
+    } else {
+      const common = fallback.getCommonForBlockNumber(
+        this.#common,
+        BigInt(json.number)
+      );
+
+      return BlockManager.rawFromJSON(json, common);
+    }
   };
 
   getBlockByTag(tag: Tag) {
@@ -178,23 +187,25 @@ export default class BlockManager extends Manager<Block> {
   async getByHash(hash: string | Buffer | Tag) {
     const number = await this.getNumberFromHash(hash);
     if (number === null) {
-      if (this.#blockchain.fallback) {
-        const fallback = this.#blockchain.fallback;
+      const fallback = this.#blockchain.fallback;
+      if (fallback) {
         const json = await fallback.request<any>("eth_getBlockByHash", [
           Data.from(hash),
           true
         ]);
-        if (json && BigInt(json.number) <= fallback.blockNumber.toBigInt()) {
-          return new Block(
-            BlockManager.rawFromJSON(json, this.#common),
-            this.#common
-          );
-        } else {
-          return null;
+        if (json) {
+          const blockNumber = BigInt(json.number);
+          if (blockNumber <= fallback.blockNumber.toBigInt()) {
+            const common = fallback.getCommonForBlockNumber(
+              this.#common,
+              blockNumber
+            );
+            return new Block(BlockManager.rawFromJSON(json, common), common);
+          }
         }
-      } else {
-        return null;
       }
+
+      return null;
     } else {
       return this.get(number);
     }
@@ -219,10 +230,22 @@ export default class BlockManager extends Manager<Block> {
       if (block) return block;
     }
 
-    const block = await this.getRawByBlockNumber(
-      Quantity.from(tagOrBlockNumber)
-    );
-    if (block) return new Block(block, this.#common);
+    const blockNumber = Quantity.from(tagOrBlockNumber);
+    const block = await this.getRaw(blockNumber.toBuffer());
+    const common = this.#common;
+    if (block) return new Block(block, common);
+    else {
+      const fallback = this.#blockchain.fallback;
+      if (fallback) {
+        const block = await this.fromFallback(blockNumber);
+        if (block) {
+          return new Block(
+            block,
+            fallback.getCommonForBlockNumber(common, blockNumber.toBigInt())
+          );
+        }
+      }
+    }
 
     throw new Error("header not found");
   }
