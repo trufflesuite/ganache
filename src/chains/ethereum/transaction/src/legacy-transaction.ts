@@ -71,6 +71,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   public toJSON(common?: Common): LegacyTransactionJSON {
     const json: LegacyTransactionJSON = {
       hash: this.hash,
+      type: this.type,
       nonce: this.nonce,
       blockHash: this.blockHash ? this.blockHash : null,
       blockNumber: this.blockNumber ? this.blockNumber : null,
