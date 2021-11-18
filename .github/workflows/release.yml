@@ -31,7 +31,7 @@ jobs:
         run: npm test
         env:
           FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
       - name: Update package versions
         # ${GITHUB_REF##*/} is the branch name
