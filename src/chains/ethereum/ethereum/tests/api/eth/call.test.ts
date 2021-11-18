@@ -118,30 +118,28 @@ describe("api", () => {
         );
       });
 
-      it("returns empty result for transactions with insufficient gas when vmErrorsOnRpcResponse is disabled", async () => {
+      it("does not return an empty result for transactions with insufficient gas", async () => {
         const tx = {
           from,
           to: contractAddress,
           data: "0x3fa4f245",
           gasLimit: "0xf"
         };
-        const result = await provider.send("eth_call", [tx, "latest"]);
-        // the vm errored, but since vmErrorsOnRpcResponse is disabled, we just
-        // set the result to 0x
-        assert.strictEqual(result, "0x");
+        await assert.rejects(provider.send("eth_call", [tx, "latest"]), {
+          message: "VM Exception while processing transaction: out of gas"
+        });
       });
 
-      it("rejects transactions with insufficient gas when vmErrorsOnRpcResponse is enabled", async () => {
-        const vmErrorsProvider = await getProvider({
-          wallet: { deterministic: true },
-          chain: { vmErrorsOnRPCResponse: true }
+      it("rejects transactions with insufficient gas", async () => {
+        const provider = await getProvider({
+          wallet: { deterministic: true }
         });
         const tx = {
           from,
           input: contract.code,
           gas: "0xf"
         };
-        const ethCallProm = vmErrorsProvider.send("eth_call", [tx, "latest"]);
+        const ethCallProm = provider.send("eth_call", [tx, "latest"]);
         const result = {
           execResult: {
             exceptionError: { error: "out of gas" },
@@ -149,8 +147,7 @@ describe("api", () => {
             runState: { programCounter: 0 }
           }
         } as any;
-        // since vmErrorsOnRpcResponse is enabled, the vm error should propogate
-        // through to here
+        // the vm error should propagate through to here
         await assert.rejects(
           ethCallProm,
           new RuntimeError(

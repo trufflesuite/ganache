@@ -1098,15 +1098,11 @@ describe("forking", () => {
         ]);
         assert.strictEqual(parseInt(postHardforkChainIdCall), originalChainId);
 
-        const preHardforkChainIdCall = await provider.send("eth_call", [
-          tx,
-          `0x${contractBlockNum.toString(16)}`
-        ]);
-
-        assert.strictEqual(
-          preHardforkChainIdCall,
-          "0x",
-          "this test *should* only fail once https://github.com/trufflesuite/ganache/issues/1496 is fixed"
+        await assert.rejects(
+          provider.send("eth_call", [tx, `0x${contractBlockNum.toString(16)}`]),
+          {
+            message: "VM Exception while processing transaction: invalid opcode"
+          }
         );
       });
     });
