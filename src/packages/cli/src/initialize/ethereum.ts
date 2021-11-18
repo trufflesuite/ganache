@@ -1,12 +1,15 @@
+import chalk from "chalk";
+import { TruffleColors } from "@ganache/colors";
 import { WEI } from "@ganache/utils";
 import type { Provider } from "@ganache/ethereum";
-import { TruffleColors } from "@ganache/colors";
 import { toChecksumAddress } from "ethereumjs-util";
-import chalk from "chalk";
 import { CliSettings } from "../types";
 
 function capitalizeFirstLetter(string: string) {
   return string[0].toUpperCase() + string.slice(1);
+}
+function color(str: string) {
+  return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
 
 export default function (provider: Provider, cliSettings: CliSettings) {
@@ -14,9 +17,10 @@ export default function (provider: Provider, cliSettings: CliSettings) {
   const accounts = provider.getInitialAccounts();
 
   const addresses = Object.keys(accounts);
-  console.log("");
-  console.log("Available Accounts");
-  console.log("==================");
+  const logs = [];
+  logs.push("");
+  logs.push("Available Accounts");
+  logs.push("==================");
   if (addresses.length > 0) {
     addresses.forEach(function (address, index) {
       const balance = accounts[address].balance;
@@ -30,60 +34,64 @@ export default function (provider: Provider, cliSettings: CliSettings) {
         line += " 🔒";
       }
 
-      console.log(line);
+      logs.push(line);
     });
 
-    console.log("");
-    console.log("Private Keys");
-    console.log("==================");
+    logs.push("");
+    logs.push("Private Keys");
+    logs.push("==================");
 
     addresses.forEach(function (address, index) {
-      console.log(`(${index}) ${accounts[address].secretKey}`);
+      logs.push(`(${index}) ${accounts[address].secretKey}`);
     });
 
     if (liveOptions.wallet.accountKeysPath != null) {
-      console.log("");
-      console.log(
+      logs.push("");
+      logs.push(
         `Accounts and keys saved to ${liveOptions.wallet.accountKeysPath}`
       );
     }
   } else {
-    console.log("(no accounts unlocked)");
+    logs.push("(no accounts unlocked)");
   }
 
   if (liveOptions.wallet.accounts == null) {
-    console.log("");
-    console.log("HD Wallet");
-    console.log("==================");
-    console.log(`Mnemonic:      ${liveOptions.wallet.mnemonic}`);
-    console.log(`Base HD Path:  ${liveOptions.wallet.hdPath}{account_index}`);
+    logs.push("");
+    logs.push("HD Wallet");
+    logs.push("==================");
+    logs.push(`Mnemonic:      ${color(liveOptions.wallet.mnemonic)}`);
+    logs.push(
+      `Base HD Path:  ${color(
+        liveOptions.wallet.hdPath.join("/") + "/{account_index}"
+      )}`
+    );
   }
 
   if (liveOptions.miner.defaultGasPrice) {
-    console.log("");
-    console.log("Default Gas Price");
-    console.log("==================");
-    console.log(liveOptions.miner.defaultGasPrice.toBigInt());
+    logs.push("");
+    logs.push("Default Gas Price");
+    logs.push("==================");
+    logs.push(color(liveOptions.miner.defaultGasPrice.toBigInt().toString()));
   }
 
   if (liveOptions.miner.blockGasLimit) {
-    console.log("");
-    console.log("BlockGas Limit");
-    console.log("==================");
-    console.log(liveOptions.miner.blockGasLimit.toBigInt());
+    logs.push("");
+    logs.push("BlockGas Limit");
+    logs.push("==================");
+    logs.push(color(liveOptions.miner.blockGasLimit.toBigInt().toString()));
   }
 
   if (liveOptions.miner.callGasLimit) {
-    console.log("");
-    console.log("Call Gas Limit");
-    console.log("==================");
-    console.log(liveOptions.miner.callGasLimit.toBigInt());
+    logs.push("");
+    logs.push("Call Gas Limit");
+    logs.push("==================");
+    logs.push(color(liveOptions.miner.callGasLimit.toBigInt().toString()));
   }
 
   if (liveOptions.fork.network || liveOptions.fork.url) {
-    console.log("");
-    console.log("Forked Chain");
-    console.log("==================");
+    logs.push("");
+    logs.push("Forked Chain");
+    logs.push("==================");
     let location: string;
     if (liveOptions.fork.network) {
       location = `Ethereum ${capitalizeFirstLetter(
@@ -93,20 +101,30 @@ export default function (provider: Provider, cliSettings: CliSettings) {
       location = (liveOptions.fork.url as any).toString();
     }
 
-    console.log(`Location:        ${location}`);
-    console.log(`Block:           ${liveOptions.fork.blockNumber}`);
-    console.log(`Network ID:      ${liveOptions.chain.networkId}`);
-    console.log(`Time:            ${new Date().toString()}`);
+    logs.push(`Location:        ${color(location)}`);
+    logs.push(
+      `Block:           ${color(liveOptions.fork.blockNumber.toString())}`
+    );
+    logs.push(
+      `Network ID:      ${color(liveOptions.chain.networkId.toString())}`
+    );
+    logs.push(`Time:            ${color(new Date().toString())}`);
+
     if (liveOptions.fork.requestsPerSecond !== 0) {
-      console.log(`Requests/Second: ${liveOptions.fork.requestsPerSecond}`);
+      logs.push(
+        `Requests/Second: ${color(
+          liveOptions.fork.requestsPerSecond.toString()
+        )}`
+      );
     }
   }
 
-  console.log("");
-  console.log("Chain Id");
-  console.log("==================");
-  console.log(liveOptions.chain.chainId);
+  logs.push("");
+  logs.push("Chain Id");
+  logs.push("==================");
+  logs.push(color(liveOptions.chain.chainId.toString()));
 
-  console.log("");
-  console.log("RPC Listening on " + cliSettings.host + ":" + cliSettings.port);
+  logs.push("");
+  logs.push("RPC Listening on " + cliSettings.host + ":" + cliSettings.port);
+  console.log(logs.join("\n"));
 }
