@@ -52,11 +52,11 @@ async function deployContract(
     methods
   };
 }
+const PORT = 9999;
 
 describe("forking", function () {
   this.timeout(10000);
 
-  const PORT = 9999;
   const NETWORK_ID = 1234;
   const REMOTE_ACCOUNT_COUNT = 15;
   let remoteServer: Server;
@@ -341,71 +341,6 @@ describe("forking", function () {
             }),
           { message: "Coded error", code: 1234 }
         );
-      });
-    });
-  });
-
-  describe("network option", () => {
-    const testData = {
-      mainnet: {
-        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
-        balance: "0x6d3c9dd798891c3455045",
-        block: "0xcfd6e0"
-      },
-      ropsten: {
-        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
-        balance: "0x6cdf802b72c2a000",
-        block: "0xae42fd"
-      },
-      kovan: {
-        address: "0x596e8221A30bFe6e7eFF67Fee664A01C73BA3C56",
-        balance: "0x19b2bed356f3da980e2e3",
-        block: "0x1a36e09"
-      },
-      rinkeby: {
-        address: "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D",
-        balance: "0x11cde6445010582e1ae",
-        block: "0x92c444"
-      },
-      goerli: {
-        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
-        balance: "0x81744abdb769a3b6dc08b",
-        block: "0x595434"
-      },
-      görli: {
-        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
-        balance: "0x81744abdb769a3b6dc08b",
-        block: "0x595434"
-      }
-    };
-    KNOWN_NETWORKS.forEach(network => {
-      let localProvider: EthereumProvider;
-      before("check conditions", function () {
-        if (!process.env.INFURA_KEY) {
-          this.skip();
-        }
-      });
-      beforeEach("set up network provider", async () => {
-        const provider = await startLocalChain(PORT, {
-          network,
-          disableCache: true
-        });
-        localProvider = provider.localProvider;
-      });
-      afterEach(async () => {
-        try {
-          localProvider && (await localProvider.disconnect());
-        } catch (e) {
-          console.log(e);
-        }
-      });
-
-      it("should accept a `network` instead of a url", async () => {
-        const balance = await localProvider.request({
-          method: "eth_getBalance",
-          params: [testData[network].address, testData[network].block]
-        });
-        assert.strictEqual(balance, testData[network].balance);
       });
     });
   });
@@ -1230,5 +1165,79 @@ describe("forking", () => {
         assert.strictEqual(preTransaction.type, "0x2");
       });
     });
+  });
+});
+
+describe("forking", function () {
+  // sometimes the network connection seems to take a long time (+10 seconds)
+  // I don't think this is something we can handle on our side so to avoid test
+  // timeouts i've set these tests to a high value.
+  this.timeout(30000);
+
+  describe("network option", () => {
+    const testData = {
+      mainnet: {
+        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
+        balance: "0x6d3c9dd798891c3455045",
+        block: "0xcfd6e0"
+      },
+      ropsten: {
+        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
+        balance: "0x6cdf802b72c2a000",
+        block: "0xae42fd"
+      },
+      kovan: {
+        address: "0x596e8221A30bFe6e7eFF67Fee664A01C73BA3C56",
+        balance: "0x19b2bed356f3da980e2e3",
+        block: "0x1a36e09"
+      },
+      rinkeby: {
+        address: "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D",
+        balance: "0x11cde6445010582e1ae",
+        block: "0x92c444"
+      },
+      goerli: {
+        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
+        balance: "0x81744abdb769a3b6dc08b",
+        block: "0x595434"
+      },
+      görli: {
+        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
+        balance: "0x81744abdb769a3b6dc08b",
+        block: "0x595434"
+      }
+    };
+    for (let i = 0; i < 50; i++) {
+      KNOWN_NETWORKS.forEach(network => {
+        let localProvider: EthereumProvider;
+        before("check conditions", function () {
+          if (!process.env.INFURA_KEY) {
+            this.skip();
+          }
+        });
+        beforeEach("set up network provider", async () => {
+          const provider = await startLocalChain(PORT, {
+            network,
+            disableCache: true
+          });
+          localProvider = provider.localProvider;
+        });
+        afterEach(async () => {
+          try {
+            localProvider && (await localProvider.disconnect());
+          } catch (e) {
+            console.log(e);
+          }
+        });
+
+        it.only(`should accept \`"network": "${network}"\``, async () => {
+          const balance = await localProvider.request({
+            method: "eth_getBalance",
+            params: [testData[network].address, testData[network].block]
+          });
+          assert.strictEqual(balance, testData[network].balance);
+        });
+      });
+    }
   });
 });
