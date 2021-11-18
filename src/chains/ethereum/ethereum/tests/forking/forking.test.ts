@@ -1207,37 +1207,36 @@ describe("forking", function () {
         block: "0x595434"
       }
     };
-    for (let i = 0; i < 50; i++) {
-      KNOWN_NETWORKS.forEach(network => {
-        let localProvider: EthereumProvider;
-        before("check conditions", function () {
-          if (!process.env.INFURA_KEY) {
-            this.skip();
-          }
-        });
-        beforeEach("set up network provider", async () => {
-          const provider = await startLocalChain(PORT, {
-            network,
-            disableCache: true
-          });
-          localProvider = provider.localProvider;
-        });
-        afterEach(async () => {
-          try {
-            localProvider && (await localProvider.disconnect());
-          } catch (e) {
-            console.log(e);
-          }
-        });
+    let localProvider: EthereumProvider;
+    before("check conditions", function () {
+      if (!process.env.INFURA_KEY) {
+        this.skip();
+      }
+    });
 
-        it.only(`should accept \`"network": "${network}"\``, async () => {
-          const balance = await localProvider.request({
-            method: "eth_getBalance",
-            params: [testData[network].address, testData[network].block]
-          });
-          assert.strictEqual(balance, testData[network].balance);
+    KNOWN_NETWORKS.forEach(network => {
+      beforeEach("set up network provider", async () => {
+        const provider = await startLocalChain(PORT, {
+          network,
+          disableCache: true
         });
+        localProvider = provider.localProvider;
       });
-    }
+      afterEach(async () => {
+        try {
+          localProvider && (await localProvider.disconnect());
+        } catch (e) {
+          console.log(e);
+        }
+      });
+
+      it(`should accept \`"network": "${network}"\``, async () => {
+        const balance = await localProvider.request({
+          method: "eth_getBalance",
+          params: [testData[network].address, testData[network].block]
+        });
+        assert.strictEqual(balance, testData[network].balance);
+      });
+    });
   });
 });
