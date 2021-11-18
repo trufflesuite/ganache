@@ -12,6 +12,7 @@ import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
+import { BN } from "ethereumjs-util";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -41,16 +42,18 @@ export class Fork {
   public common: Common;
   #abortController = new AbortController();
   #handler: Handler;
-  #options: EthereumInternalOptions["fork"];
+  #options: EthereumInternalOptions;
   #accounts: Account[];
   #hardfork: string;
 
   public blockNumber: Quantity;
   public stateRoot: Data;
   public block: Block;
+  public chainId: number;
 
   constructor(options: EthereumInternalOptions, accounts: Account[]) {
-    const forkingOptions = (this.#options = options.fork);
+    this.#options = options;
+    const forkingOptions = options.fork;
     this.#hardfork = options.chain.hardfork;
     this.#accounts = accounts;
 
@@ -88,13 +91,15 @@ export class Fork {
       fetchNetworkId(this)
     ]);
 
+    this.chainId = chainId;
+
     this.common = Common.forCustomChain(
       KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
       {
         name: "ganache-fork",
         defaultHardfork: this.#hardfork,
         networkId,
-        chainId,
+        chainId: this.#options.chain.chainId,
         comment: "Local test network fork"
       }
     );
@@ -104,7 +109,7 @@ export class Fork {
   #setBlockDataFromChainAndOptions = async (
     chainIdPromise: Promise<number>
   ) => {
-    const options = this.#options;
+    const { fork: options } = this.#options;
     if (options.blockNumber === Tag.LATEST) {
       const [latestBlock, chainId] = await Promise.all([
         fetchBlock(this, Tag.LATEST),
@@ -165,7 +170,7 @@ export class Fork {
 
   public async initialize() {
     let cacheProm: Promise<PersistentCache>;
-    const options = this.#options;
+    const { fork: options } = this.#options;
     if (options.deleteCache) await PersistentCache.deleteDb();
     if (options.disableCache === false) {
       // ignore cache start up errors as it is possible there is an `open`
@@ -221,5 +226,38 @@ export class Fork {
     return this.isValidForkBlockNumber(blockNumber)
       ? blockNumber
       : this.blockNumber;
+  }
+
+ /**
+   * If the `blockNumber` is before our `fork.blockNumber`, return a `Common`
+   * instance, applying the rules from the remote chain's `common` via its
+   * original `chainId`. If the remote chain's `chainId` is now "known", return
+   * a `Common` with our local `common`'s rules applied, but with the remote
+   * chain's `chainId`. If the block is greater than or equal to our
+   * `fork.blockNumber` return `common`.
+   * @param common
+   * @param blockNumber
+   */
+  public getCommonForBlockNumber(common: Common, blockNumber: BN) {
+    const bigIntBlockNumber = Quantity.from(blockNumber.toBuffer()).toBigInt();
+    if (bigIntBlockNumber <= this.blockNumber.toBigInt()) {
+      // we are at or before our fork block
+
+      if (KNOWN_CHAINIDS.has(this.chainId)) {
+        // we support this chain id, so let's use its rules
+        const common = new Common({ chain: this.chainId });
+        common.setHardforkByBlockNumber(blockNumber);
+        return common;
+      } else {
+        // we don't know about this chain, so just carry on per usual
+        return Common.forCustomChain(
+          1,
+          { chainId: this.chainId },
+          common.hardfork()
+        );
+      }
+    } else {
+      return common;
+    }
   }
 }

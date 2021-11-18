@@ -1,3 +1,4 @@
+import getProvider from "../helpers/getProvider";
 import http from "http";
 import ganache from "../../../../../packages/core";
 import assert from "assert";
@@ -14,6 +15,42 @@ import {
 import compile from "../helpers/compile";
 import path from "path";
 import { CodedError } from "@ganache/ethereum-utils";
+
+async function deployContract(
+  remoteProvider: EthereumProvider,
+  remoteAccounts: string[]
+) {
+  const contract = compile(path.join(__dirname, "contracts", "Forking.sol"));
+  const subscriptionId = await remoteProvider.send("eth_subscribe", [
+    "newHeads"
+  ]);
+  const deploymentHash = await remoteProvider.send("eth_sendTransaction", [
+    {
+      from: remoteAccounts[0],
+      data: contract.code,
+      gas: `0x${(3141592).toString(16)}`
+    }
+  ]);
+  await remoteProvider.once("message");
+  await remoteProvider.send("eth_unsubscribe", [subscriptionId]);
+  const deploymentTxReceipt = await remoteProvider.send(
+    "eth_getTransactionReceipt",
+    [deploymentHash]
+  );
+  const { contractAddress } = deploymentTxReceipt;
+  const contractBlockNum = parseInt(deploymentTxReceipt.blockNumber, 16);
+  const methods = contract.contract.evm.methodIdentifiers;
+
+  const contractCode = await remoteProvider.send("eth_getCode", [
+    contractAddress
+  ]);
+  return {
+    contractAddress,
+    contractCode,
+    contractBlockNum,
+    methods
+  };
+}
 
 describe("forking", function () {
   this.timeout(10000);
@@ -619,32 +656,12 @@ describe("forking", function () {
     }
 
     beforeEach("deploy contract", async () => {
-      const contract = compile(
-        path.join(__dirname, "contracts", "Forking.sol")
-      );
-      const subscriptionId = await remoteProvider.send("eth_subscribe", [
-        "newHeads"
-      ]);
-      const deploymentHash = await remoteProvider.send("eth_sendTransaction", [
-        {
-          from: remoteAccounts[0],
-          data: contract.code,
-          gas: `0x${(3141592).toString(16)}`
-        }
-      ]);
-      await remoteProvider.once("message");
-      await remoteProvider.send("eth_unsubscribe", [subscriptionId]);
-      const deploymentTxReceipt = await remoteProvider.send(
-        "eth_getTransactionReceipt",
-        [deploymentHash]
-      );
-      ({ contractAddress } = deploymentTxReceipt);
-      contractBlockNum = parseInt(deploymentTxReceipt.blockNumber, 16);
-      methods = contract.contract.evm.methodIdentifiers;
-
-      contractCode = await remoteProvider.send("eth_getCode", [
-        contractAddress
-      ]);
+      ({
+        contractAddress,
+        contractCode,
+        contractBlockNum,
+        methods
+      } = await deployContract(remoteProvider, remoteAccounts));
     });
 
     it("should fetch contract code from the remote chain via the local chain", async () => {
@@ -956,6 +973,150 @@ describe("forking", function () {
         )
       );
       assert.deepStrictEqual(localBlock, remoteBlock);
+    });
+  });
+});
+
+describe("forking", () => {
+  describe("fork block chainId-aware eth_call", () => {
+    let contractAddress: string;
+    let methods: { [methodName: string]: string };
+    // EIP-1344 (which introduced the chainId opcode) was activated at block
+    // 9,069,000 as part of the istanbul hardfork.
+    // We can deploy out contract _before_ the hardfork in order to run tests
+    // that will _fail_ because the feature we are testing doesn't exist yet.
+    //  1. create our "fake mainnet" at block 9_068_996
+    //     this test creates a fork of mainnet that _looks_ like mainnet (same
+    //     chainId and networkId) so we can then fork from _that_. Ganache can't
+    //     tell a different between our fake fork and the real thing.
+    //  2. block number is now 9_068_997
+    //  3. deploy at 9_068_998
+    //  4. mine 2 extra blocks. now at at 9_069_000
+    //  5. fork at 9_069_000
+    const blockNumber = 9_068_996;
+    let provider: EthereumProvider;
+    let contractBlockNum: number;
+    const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
+    let remoteProvider: EthereumProvider;
+    let remoteAccounts: string[];
+
+    before("skip if we don't have the INFURA_KEY", function () {
+      if (!process.env.INFURA_KEY) this.skip();
+    });
+
+    before("configure mainnet", async function () {
+      // we fork from mainnet, but configure our fork such that it looks like
+      // mainnet if you queried for its chainId and networkId
+
+      remoteProvider = await getProvider({
+        chain: {
+          // force our external identifiers to match mainnet
+          chainId: 1,
+          networkId: 1
+        },
+        wallet: {
+          deterministic: true
+        },
+        fork: {
+          url: URL,
+          blockNumber
+        }
+      });
+      remoteAccounts = Object.keys(remoteProvider.getInitialAccounts());
+    });
+
+    before("deploy contract", async () => {
+      // deploy the contract
+      ({
+        contractBlockNum,
+        contractAddress,
+        contractBlockNum,
+        methods
+      } = await deployContract(remoteProvider, remoteAccounts));
+    });
+
+    before("fork from mainnet at contractBlockNum + 1", async () => {
+      // progress the remote provider forward 2 additional blocks so we can call
+      // `eth_call` with the `contractBlockNum` as the _parent_. This will
+      // ensure that the block number of the _transaction_ runs in a block
+      // context _before_ our fork point
+      await remoteProvider.send("evm_mine", [{ blocks: 2 }]);
+
+      provider = await getProvider({
+        wallet: {
+          deterministic: true
+        },
+        fork: {
+          provider: remoteProvider as any,
+          blockNumber: contractBlockNum + 2
+        }
+      });
+    });
+
+    it("should differentiate chainId before and after fork block", async () => {
+      const tx = {
+        from: remoteAccounts[0],
+        to: contractAddress,
+        data: `0x${methods[`getChainId()`]}`
+      };
+      const originalChainId = parseInt(
+        await remoteProvider.send("eth_chainId")
+      );
+      assert.strictEqual(originalChainId, 1); // sanity check
+
+      const originalChainIdCall = await remoteProvider.send("eth_call", [
+        tx,
+        Quantity.from(contractBlockNum).toString()
+      ]);
+      assert.strictEqual(parseInt(originalChainIdCall), originalChainId);
+
+      // check that our provider returns mainnet's chain id for an eth_call
+      // at or before our fork block number
+      const forkChainIdAtForkBlockCall = await provider.send("eth_call", [
+        tx,
+        Quantity.from(contractBlockNum + 2).toString()
+      ]);
+      assert.strictEqual(parseInt(forkChainIdAtForkBlockCall), originalChainId);
+
+      // check that our provider returns our local chain id for an eth_call
+      // after our fork block number
+      const forkChainId = parseInt(await provider.send("eth_chainId"));
+      assert.strictEqual(forkChainId, 1337); // sanity check
+      const forkChainIdAfterForkBlockCall = await provider.send("eth_call", [
+        tx,
+        Quantity.from(contractBlockNum + 3).toString()
+      ]);
+      assert.strictEqual(parseInt(forkChainIdAfterForkBlockCall), forkChainId);
+    });
+
+    it("should fail to get chainId before EIP-155 was activated", async () => {
+      const tx = {
+        from: remoteAccounts[0],
+        to: contractAddress,
+        data: `0x${methods[`getChainId()`]}`
+      };
+
+      const originalChainId = parseInt(
+        await remoteProvider.send("eth_chainId")
+      );
+      assert.strictEqual(originalChainId, 1); // sanity check
+
+      const postHardforkChainIdCall = await provider.send("eth_call", [
+        tx,
+        `0x${(contractBlockNum + 2).toString(16)}`
+      ]);
+      assert.strictEqual(parseInt(postHardforkChainIdCall), originalChainId);
+
+      const preHardforkChainIdCall = await provider.send("eth_call", [
+        tx,
+        `0x${contractBlockNum.toString(16)}`
+      ]);
+
+      assert.strictEqual(
+        preHardforkChainIdCall,
+        "0x",
+        "this test *should* only fail once https://github.com/trufflesuite/ganache/issues/1496 is fixed"
+      );
     });
   });
 });
