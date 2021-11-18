@@ -248,7 +248,7 @@ export class Fork {
       : this.blockNumber;
   }
 
- /**
+  /**
    * If the `blockNumber` is before our `fork.blockNumber`, return a `Common`
    * instance, applying the rules from the remote chain's `common` via its
    * original `chainId`. If the remote chain's `chainId` is now "known", return
