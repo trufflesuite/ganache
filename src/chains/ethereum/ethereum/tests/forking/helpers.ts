@@ -52,9 +52,13 @@ export const startLocalChain = async (
   port: number,
   options?: EthereumProviderOptions["fork"]
 ) => {
+  const fork: EthereumProviderOptions["fork"] = { ...options };
+  if (!fork.network && !fork.url && !fork.provider) {
+    (fork as any).url = `ws://0.0.0.0:${port}`;
+  }
   const localProvider = await getProvider({
     logging,
-    fork: { url: `ws://0.0.0.0:${port}`, ...options },
+    fork: fork,
     wallet: { deterministic: true }
   });
   return {

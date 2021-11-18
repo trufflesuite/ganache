@@ -12,7 +12,7 @@ import { Account } from "@ganache/ethereum-utils";
 import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
-import { BN } from "ethereumjs-util";
+import { URL } from "url";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -57,7 +57,7 @@ export class Fork {
     this.#hardfork = options.chain.hardfork;
     this.#accounts = accounts;
 
-    const { url } = forkingOptions;
+    const { url, network } = forkingOptions;
     if (url) {
       const { protocol } = url;
 
@@ -82,6 +82,25 @@ export class Fork {
         options,
         this.#abortController.signal
       );
+    } else if (network) {
+      let normalizedNetwork: string;
+      if (network === "görli") {
+        forkingOptions.network = normalizedNetwork = "goerli";
+      } else {
+        normalizedNetwork = network;
+      }
+      // Note: `process.env.INFURA_KEY` is replaced by webpack with an infura
+      // key.
+      const infuraKey = process.env.INFURA_KEY;
+      if (!infuraKey) {
+        throw new Error(
+          "The INFURA_KEY environment variable was not given and is required when using Ganache's integrated archive network feature."
+        );
+      }
+      forkingOptions.url = new URL(
+        `wss://${normalizedNetwork}.infura.io/ws/v3/${infuraKey}`
+      );
+      this.#handler = new WsHandler(options, this.#abortController.signal);
     }
   }
 
@@ -98,11 +117,18 @@ export class Fork {
       {
         name: "ganache-fork",
         defaultHardfork: this.#hardfork,
+        // use the remote chain's network id mostly because truffle's debugger
+        // needs it to match in order to fetch sources
         networkId,
+        // we use ganache's own chain id for blocks _after_ the fork to prevent
+        // replay attacks
         chainId: this.#options.chain.chainId,
         comment: "Local test network fork"
       }
     );
+    // disable listeners to common since we don't actually cause any `emit`s,
+    // but other EVM parts to listen and will make node complain about too
+    // many listeners.
     (this.common as any).on = () => {};
   };
 
@@ -130,7 +156,10 @@ export class Fork {
       this.stateRoot = Data.from(block.stateRoot);
       await this.#syncAccounts(this.blockNumber);
       return block;
-    } else if (typeof options.blockNumber === "number") {
+    } else if (
+      Number.isInteger(options.blockNumber) &&
+      options.blockNumber >= 0
+    ) {
       const blockNumber = Quantity.from(options.blockNumber);
       const [block] = await Promise.all([
         fetchBlock(this, blockNumber).then(async block => {
@@ -187,10 +216,11 @@ export class Fork {
       cacheProm,
       this.#setCommonFromChain(chainIdPromise)
     ]);
-    this.block = new Block(
-      BlockManager.rawFromJSON(block, this.common),
-      this.common
+    const common = this.getCommonForBlockNumber(
+      this.common,
+      this.blockNumber.toBigInt()
     );
+    this.block = new Block(BlockManager.rawFromJSON(block, common), common);
     if (cache) await this.initCache(cache);
   }
   private async initCache(cache: PersistentCache) {
@@ -228,7 +258,7 @@ export class Fork {
       : this.blockNumber;
   }
 
- /**
+  /**
    * If the `blockNumber` is before our `fork.blockNumber`, return a `Common`
    * instance, applying the rules from the remote chain's `common` via its
    * original `chainId`. If the remote chain's `chainId` is now "known", return
@@ -238,24 +268,34 @@ export class Fork {
    * @param common
    * @param blockNumber
    */
-  public getCommonForBlockNumber(common: Common, blockNumber: BN) {
-    const bigIntBlockNumber = Quantity.from(blockNumber.toBuffer()).toBigInt();
-    if (bigIntBlockNumber <= this.blockNumber.toBigInt()) {
+  public getCommonForBlockNumber(common: Common, blockNumber: BigInt) {
+    if (blockNumber <= this.blockNumber.toBigInt()) {
       // we are at or before our fork block
 
       if (KNOWN_CHAINIDS.has(this.chainId)) {
         // we support this chain id, so let's use its rules
-        const common = new Common({ chain: this.chainId });
-        common.setHardforkByBlockNumber(blockNumber);
-        return common;
-      } else {
-        // we don't know about this chain, so just carry on per usual
-        return Common.forCustomChain(
-          1,
-          { chainId: this.chainId },
-          common.hardfork()
-        );
+        let hardfork;
+        // hardforks are iterated from earliest to latest
+        for (const hf of common.hardforks()) {
+          if (hf.block === null) continue;
+          if (blockNumber >= BigInt(hf.block)) {
+            hardfork = hf.name;
+          } else {
+            break;
+          }
+        }
+        return new Common({ chain: this.chainId, hardfork });
       }
+
+      // we don't know about this chain or hardfork, so just carry on per usual,
+      // but with the fork's chainId (instead of our local chainId)
+      return Common.forCustomChain(
+        1,
+        {
+          chainId: this.chainId
+        },
+        common.hardfork()
+      );
     } else {
       return common;
     }

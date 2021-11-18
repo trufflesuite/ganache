@@ -586,7 +586,14 @@ export default class Blockchain extends Emittery.Typed<
   ) => {
     await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
-    return this.#miner.mine(nextBlock, maxTransactions, onlyOneBlock);
+    return {
+      transactions: await this.#miner.mine(
+        nextBlock,
+        maxTransactions,
+        onlyOneBlock
+      ),
+      blockNumber: nextBlock.header.number.toBuffer()
+    };
   };
 
   #isPaused = () => {
@@ -1011,7 +1018,7 @@ export default class Blockchain extends Emittery.Typed<
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
-          transaction.block.header.number
+          BigInt(transaction.block.header.number.toString())
         )
       : this.common;
 
@@ -1135,7 +1142,7 @@ export default class Blockchain extends Emittery.Typed<
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
-          newBlock.header.number
+          BigInt(newBlock.header.number.toString())
         )
       : this.common;
 

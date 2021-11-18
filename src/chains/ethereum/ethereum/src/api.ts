@@ -308,17 +308,26 @@ export default class EthereumApi implements Api {
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const transactions = await blockchain.mine(
+        const { transactions, blockNumber } = await blockchain.mine(
           Capacity.FillBlock,
           timestamp,
           true
         );
+        // wait until the blocks are fully saved before mining the next ones
+        await new Promise(resolve => {
+          const off = blockchain.on("block", block => {
+            if (block.header.number.toBuffer().equals(blockNumber)) {
+              off();
+              resolve(void 0);
+            }
+          });
+        });
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
       }
     } else {
-      const transactions = await blockchain.mine(
+      const { transactions } = await blockchain.mine(
         Capacity.FillBlock,
         arg as number | null,
         true
@@ -577,7 +586,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
     if (this.#options.miner.legacyInstamine === true) {
-      const transactions = await this.#blockchain.resume(threads);
+      const { transactions } = await this.#blockchain.resume(threads);
       if (transactions != null && this.#options.chain.vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
