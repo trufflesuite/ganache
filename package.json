@@ -15,6 +15,7 @@
     "postinstall": "ts-node scripts/postinstall",
     "reinstall": "npm run clean && npm install",
     "prepublishOnly": "ts-node ./scripts/filter-shrinkwrap.ts \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
+    "postpublish": "git restore \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "ttsc --build src",
