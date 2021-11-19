@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [alpha, canary]
+    branches: [beta, alpha, canary]
 
 jobs:
   release:
@@ -13,7 +13,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v1
         with:
-          node-version: 16
+          # use node 14 until we can evaluate using npm 7+ and lock file version 2
+          node-version: 14
 
       - name: Set git identity
         run: |
@@ -30,7 +31,7 @@ jobs:
         run: npm test
         env:
           FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
       - name: Update package versions
         # ${GITHUB_REF##*/} is the branch name
@@ -40,6 +41,8 @@ jobs:
 
       - name: Run build
         run: npm run build
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
       - name: Update documentation
         run: |

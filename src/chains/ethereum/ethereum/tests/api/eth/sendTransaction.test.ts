@@ -135,38 +135,29 @@ describe("api", () => {
 
               const revertString =
                 "0x08c379a0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0";
-              if (opts.chain.vmErrorsOnRPCResponse) {
-                const result = await prom.catch(e => e);
-                assert.strictEqual(
-                  result.code,
-                  -32000,
-                  "Error code should be -32000"
-                );
-                assert.strictEqual(
-                  result.data.reason,
-                  null,
-                  "The reason is undecodable, and thus should be null"
-                );
-                assert.strictEqual(
-                  result.data.message,
-                  "revert",
-                  "The message should not have a reason string included"
-                );
-                assert.strictEqual(
-                  result.data.result,
-                  revertString,
-                  "The revert reason should be encoded as hex"
-                );
-              } else {
-                assert.strictEqual(
-                  await prom,
-                  revertString,
-                  "The revert reason should be encoded as hex"
-                );
-              }
+              const result = await prom.catch(e => e);
+              assert.strictEqual(
+                result.code,
+                -32000,
+                "Error code should be -32000"
+              );
+              assert.strictEqual(
+                result.data.reason,
+                null,
+                "The reason is undecodable, and thus should be null"
+              );
+              assert.strictEqual(
+                result.data.message,
+                "revert",
+                "The message should not have a reason string included"
+              );
+              assert.strictEqual(
+                result.data.result,
+                revertString,
+                "The revert reason should be encoded as hex"
+              );
             }
-            await test({ chain: { vmErrorsOnRPCResponse: false } });
-            await test({ chain: { vmErrorsOnRPCResponse: true } });
+            await test({});
           });
         });
       });
@@ -224,7 +215,7 @@ describe("api", () => {
         it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
           const p = await getProvider({
             wallet: {
-              secure: true,
+              lock: true,
               unlockedAccounts: ["0", 1]
             }
           });
@@ -242,7 +233,7 @@ describe("api", () => {
           };
           await assert.rejects(
             badSend,
-            "Error: authentication needed: password or unlock"
+            "Error: authentication needed: passphrase or unlock"
           );
 
           await p.send("eth_subscribe", ["newHeads"]);

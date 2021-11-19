@@ -308,17 +308,26 @@ export default class EthereumApi implements Api {
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const transactions = await blockchain.mine(
+        const { transactions, blockNumber } = await blockchain.mine(
           Capacity.FillBlock,
           timestamp,
           true
         );
+        // wait until the blocks are fully saved before mining the next ones
+        await new Promise(resolve => {
+          const off = blockchain.on("block", block => {
+            if (block.header.number.toBuffer().equals(blockNumber)) {
+              off();
+              resolve(void 0);
+            }
+          });
+        });
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
       }
     } else {
-      const transactions = await blockchain.mine(
+      const { transactions } = await blockchain.mine(
         Capacity.FillBlock,
         arg as number | null,
         true
@@ -508,52 +517,51 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Unlocks any unknown account.
+   * Adds any arbitrary account to the `personal` namespace.
    *
-   * Note: accounts known to the `personal` namespace and accounts returned by
-   * `eth_accounts` cannot be unlocked using this method.
-   *
-   * @param address The address of the account to unlock.
-   * @param duration (Default: disabled) Duration in seconds how long the account
-   * should remain unlocked for. Set to 0 to disable automatic locking.
-   * @returns `true` if the account was unlocked successfully, `false` if the
-   * account was already unlocked. Throws an error if the account could not be
-   * unlocked.
+   * Note: accounts already known to the `personal` namespace and accounts
+   * returned by `eth_accounts` cannot be re-added using this method.
+   * @param address The address of the account to add to the `personal`
+   * namespace.
+   * @param passphrase The passphrase used to encrypt the account's private key.
+   * NOTE: this passphrase will be needed for all `personal` namespace calls
+   * that require a password.
+   * @returns `true` if  the account was successfully added. `false` if the
+   * account is already in the `personal` namespace.
    * @example
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_unlockUnknownAccount", [address] );
+   * const passphrase = "passphrase"
+   * const result = await provider.send("evm_addAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
-  async evm_unlockUnknownAccount(address: DATA, duration: number = 0) {
-    return this.#wallet.unlockUnknownAccount(address.toLowerCase(), duration);
+  async evm_addAccount(address: DATA, passphrase: string) {
+    const addy = new Address(address);
+    return this.#wallet.addUnknownAccount(addy, passphrase);
   }
 
   /**
-   * Locks any unknown account.
+   * Removes an account from the `personal` namespace.
    *
-   * Note: accounts known to the `personal` namespace and accounts returned by
-   * `eth_accounts` cannot be locked using this method.
-   *
-   * @param address The address of the account to lock.
-   * @returns `true` if the account was locked successfully, `false` if the
-   * account was already locked. Throws an error if the account could not be
-   * locked.
+   * Note: accounts not known to the `personal` namespace cannot be removed
+   * using this method.
+   * @param address The address of the account to remove from the `personal`
+   * namespace.
+   * @param passphrase The passphrase used to decrypt the account's private key.
+   * @returns `true` if the account was successfully removed. `false` if the
+   * account was not in the `personal` namespace.
    * @example
    * ```javascript
-   * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_lockUnknownAccount", [address] );
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const passphrase = "passphrase"
+   * const result = await provider.send("evm_removeAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
-  async evm_lockUnknownAccount(address: DATA) {
-    const lowerAddress = address.toLowerCase();
-    // if this is a known account we can't unlock it this way
-    if (this.#wallet.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot lock known/personal account");
-    }
-    return this.#wallet.lockAccount(lowerAddress);
+  async evm_removeAccount(address: DATA, passphrase: string) {
+    const addy = new Address(address);
+    return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
   //#endregion evm
@@ -578,7 +586,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
     if (this.#options.miner.legacyInstamine === true) {
-      const transactions = await this.#blockchain.resume(threads);
+      const { transactions } = await this.#blockchain.resume(threads);
       if (transactions != null && this.#options.chain.vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
@@ -687,7 +695,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async web3_sha3(data: DATA) {
-    return Data.from(keccak(Buffer.from(data)));
+    return Data.from(keccak(Data.from(data).toBuffer()));
   }
   //#endregion
 
@@ -1669,11 +1677,11 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+    const privateKey = wallet.unlockedAccounts.get(fromString);
 
-    if (!isUnlockedAccount) {
+    if (privateKey === undefined) {
       const msg = isKnownAccount
-        ? "authentication needed: password or unlock"
+        ? "authentication needed: passphrase or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
@@ -1686,12 +1694,7 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    if (isUnlockedAccount) {
-      const secretKey = wallet.unlockedAccounts.get(fromString);
-      return blockchain.queueTransaction(tx, secretKey);
-    } else {
-      return blockchain.queueTransaction(tx);
-    }
+    return blockchain.queueTransaction(tx, privateKey);
   }
 
   /**
@@ -1726,17 +1729,16 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+    const privateKey = wallet.unlockedAccounts.get(fromString);
 
-    if (!isUnlockedAccount) {
+    if (privateKey === undefined) {
       const msg = isKnownAccount
-        ? "authentication needed: password or unlock"
+        ? "authentication needed: passphrase or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
 
-    const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
-    tx.signAndHash(secretKey);
+    tx.signAndHash(privateKey.toBuffer());
     return Data.from(tx.serialized).toString();
   }
   /**
@@ -2748,11 +2750,7 @@ export default class EthereumApi implements Api {
     const newAccount = wallet.createRandomAccount();
     const address = newAccount.address;
     const strAddress = address.toString();
-    const encryptedKeyFile = await wallet.encrypt(
-      newAccount.privateKey,
-      passphrase
-    );
-    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
+    await wallet.addToKeyFile(address, newAccount.privateKey, passphrase, true);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2783,11 +2781,7 @@ export default class EthereumApi implements Api {
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
-    const encryptedKeyFile = await wallet.encrypt(
-      newAccount.privateKey,
-      passphrase
-    );
-    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
+    await wallet.addToKeyFile(address, newAccount.privateKey, passphrase, true);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2839,11 +2833,8 @@ export default class EthereumApi implements Api {
     passphrase: string,
     duration: number = 300
   ) {
-    return this.#wallet.unlockAccount(
-      address.toLowerCase(),
-      passphrase,
-      duration
-    );
+    const addy = new Address(address);
+    return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
 
   /**
@@ -2889,13 +2880,8 @@ export default class EthereumApi implements Api {
       throw new Error("from not found; is required");
     }
 
-    const fromString = tx.from.toString();
-
     const wallet = this.#wallet;
-    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
-    if (encryptedKeyFile === undefined) {
-      throw new Error("no key for given address or file");
-    }
+    const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
 
     await autofillDefaultTransactionValues(
       tx,
@@ -2905,12 +2891,7 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    if (encryptedKeyFile !== null) {
-      const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
-      return blockchain.queueTransaction(tx, Data.from(secretKey));
-    } else {
-      return blockchain.queueTransaction(tx);
-    }
+    return blockchain.queueTransaction(tx, Data.from(secretKey));
   }
 
   /**
@@ -2953,15 +2934,9 @@ export default class EthereumApi implements Api {
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
-    const fromString = tx.from.toString();
 
     const wallet = this.#wallet;
-    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
-    if (encryptedKeyFile === undefined || encryptedKeyFile === null) {
-      throw new Error("no key for given address or file");
-    }
-
-    const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
+    const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
   }

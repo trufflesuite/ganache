@@ -65,7 +65,11 @@ export default class TransactionManager extends Manager<NoOp> {
       index.toBuffer(),
       Quantity.from(tx.gasPrice).toBuffer()
     ];
-    const runTx = TransactionFactory.fromRpc(tx, fallback.common, extra);
+    const common = fallback.getCommonForBlockNumber(
+      fallback.common,
+      blockNumber.toBigInt()
+    );
+    const runTx = TransactionFactory.fromRpc(tx, common, extra);
     return runTx.serializeForDb(blockHash, blockNumber, index);
   };
 

@@ -1,6 +1,26 @@
 import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
 
+let INFURA_KEY = process.env.INFURA_KEY;
+// if we don't have an INFURA_KEY at build time we should bail!
+if (
+  !INFURA_KEY &&
+  process.env.CREATE_BROKEN_BUILD !== "I WILL NOT PUBLISH THIS"
+) {
+  throw new Error(
+    'The `INFURA_KEY` environment variable was not supplied at build time. To bypass this check set the environment variable `CREATE_BROKEN_BUILD` to `"I WILL NOT PUBLISH THIS"`.'
+  );
+}
+
+// validate INFURA_KEY
+if (INFURA_KEY) {
+  if (!/[a-z0-9]{32}/.test(INFURA_KEY)) {
+    throw new Error(
+      "INFURA_KEY must 32 characters long and contain only the characters a-f0-9"
+    );
+  }
+}
+
 const base: webpack.Configuration = {
   mode: "production",
   entry: "./index.ts",
@@ -50,7 +70,13 @@ const base: webpack.Configuration = {
         }
       })
     ]
-  }
+  },
+  plugins: [
+    new webpack.DefinePlugin({
+      // replace process.env.INFURA_KEY in our code
+      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY)
+    })
+  ]
 };
 
 export default base;

@@ -9,24 +9,39 @@ export const Params = {
 
   /**
    * Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions.
+   * Ganache supports eth_call and debuging old transactions that should be run
+   * in the context of their original hardfork, so hardforks we don't support
+   * are listed here.
    */
   TRANSACTION_DATA_NON_ZERO_GAS: new Map<
-    | "constantinople"
+    | "chainstart"
+    | "homestead"
+    | "dao"
+    | "tangerineWhistle"
+    | "spuriousDragon"
     | "byzantium"
+    | "constantinople"
     | "petersburg"
     | "istanbul"
     | "muirGlacier"
     | "berlin"
-    | "london",
+    | "london"
+    | "arrowGlacier",
     bigint
   >([
-    ["constantinople", 68n],
+    ["chainstart", 68n],
+    ["homestead", 68n],
+    ["dao", 68n],
+    ["tangerineWhistle", 68n],
+    ["spuriousDragon", 68n],
     ["byzantium", 68n],
+    ["constantinople", 68n],
     ["petersburg", 68n],
     ["istanbul", 16n],
     ["muirGlacier", 16n],
     ["berlin", 16n],
-    ["london", 16n]
+    ["london", 16n],
+    ["arrowGlacier", 16n]
   ]),
 
   /**
@@ -39,7 +54,6 @@ export const Params = {
    */
   TRANSACTION_CREATION: 32000n,
 
-  /* ... */
   /**
    * Gas cost per address in an EIP-2930 Access List transaction
    */

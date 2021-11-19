@@ -144,6 +144,9 @@ process.stdout.write(`${COLORS.Reset}`);
 
     const pkg = {
       name: packageName,
+      publishConfig: {
+        access: "public"
+      },
       version,
       description: "",
       author: packageAuthor || rootPackageJson.author,
