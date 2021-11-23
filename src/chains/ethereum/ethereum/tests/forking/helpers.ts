@@ -38,14 +38,13 @@ export const updateRemotesAccountNonces = async (
   remoteAccounts: string[]
 ) => {
   // sets different starting nonces for each account
-  await Promise.all(
-    remoteAccounts.map((account, i) =>
-      remoteProvider.send("evm_setAccountNonce", [
-        account,
-        `0x${(i + 1).toString(16)}`
-      ])
-    )
-  );
+  for (let i = 0; i < remoteAccounts.length; i++) {
+    const account = remoteAccounts[i];
+    await remoteProvider.send("evm_setAccountNonce", [
+      account,
+      `0x${(i + 1).toString(16)}`
+    ]);
+  }
 };
 
 export const startLocalChain = async (
