@@ -12,6 +12,7 @@ export const DATA_EMPTY = Data.from(BUFFER_EMPTY);
 export const RPCQUANTITY_EMPTY = Quantity.from(BUFFER_EMPTY, true);
 export const RPCQUANTITY_ZERO = Quantity.from(BUFFER_ZERO);
 export const RPCQUANTITY_ONE = Quantity.from(1n);
+export const RPCQUANTITY_GWEI = Quantity.from(1000000000);
 export const WEI = 1000000000000000000n as const;
 
 export const KNOWN_CHAINIDS = new Set([1, 3, 4, 5, 42]);

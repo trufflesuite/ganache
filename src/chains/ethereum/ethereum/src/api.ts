@@ -36,7 +36,8 @@ import {
   keccak,
   RPCQUANTITY_ZERO,
   RPCQUANTITY_EMPTY,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  RPCQUANTITY_GWEI
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -58,6 +59,7 @@ async function autofillDefaultTransactionValues(
     tx: TypedRpcTransaction,
     tag: QUANTITY | Tag
   ) => Promise<Quantity>,
+  eth_maxPriorityFeePerGas: () => Promise<Quantity>,
   transaction: TypedRpcTransaction,
   blockchain: Blockchain,
   options: EthereumInternalOptions
@@ -80,6 +82,10 @@ async function autofillDefaultTransactionValues(
     tx.maxFeePerGas = Quantity.from(
       Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
     );
+  }
+
+  if ("maxPriorityFeePerGas" in tx && tx.maxPriorityFeePerGas.isNull()) {
+    tx.maxPriorityFeePerGas = await eth_maxPriorityFeePerGas();
   }
 }
 
@@ -1354,6 +1360,20 @@ export default class EthereumApi implements Api {
   }
 
   /**
+   * Returns a `maxPriorityFeePerGas` value suitable for quick transaction inclusion.
+   * @returns The maxPriorityFeePerGas in wei.
+   * @example
+   * ```javascript
+   * const suggestedTip = await provider.request({ method: "eth_maxPriorityFeePerGas", params: [] });
+   * console.log(suggestedTip);
+   * ```
+   */
+  @assertArgLength(0)
+  async eth_maxPriorityFeePerGas() {
+    return RPCQUANTITY_GWEI;
+  }
+
+  /**
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
    * @example
@@ -1689,6 +1709,7 @@ export default class EthereumApi implements Api {
     await autofillDefaultTransactionValues(
       tx,
       this.eth_estimateGas.bind(this),
+      this.eth_maxPriorityFeePerGas,
       transaction,
       blockchain,
       this.#options
@@ -2886,6 +2907,7 @@ export default class EthereumApi implements Api {
     await autofillDefaultTransactionValues(
       tx,
       this.eth_estimateGas.bind(this),
+      this.eth_maxPriorityFeePerGas,
       transaction,
       blockchain,
       this.#options
