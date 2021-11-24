@@ -103,11 +103,18 @@ jobs:
             trufflesuite/ganache
             ghcr.io/${{ github.repository}}
 
+      - name: Set TAG and VERSION
+        run: |
+          echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
           file: ./src/packages/ganache/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', env.TAG, env.VERSION) }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            INFURA_KEY=${{ secrets.INFURA_KEY }}
