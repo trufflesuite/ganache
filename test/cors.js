@@ -35,11 +35,12 @@ function test(host, port) {
             "Access-Control-Allow-Headers should be equals to Access-Control-Request-Headers"
           );
           assert.strictEqual(methodHeader, "POST", "Access-Control-Allow-Methods should be equals to 'POST'");
-          assert.strictEqual(
-            contentLengthHeader,
-            "0",
-            "Content-Length header should be equal to 0 for browser compatibility reasons"
-          );
+          // ganache v7 content-length header is no longer sent
+          // assert.strictEqual(
+          //   contentLengthHeader,
+          //   "0",
+          //   "Content-Length header should be equal to 0 for browser compatibility reasons"
+          // );
           assert.strictEqual(statusCode, 204, "response.statusCode should be '204'");
 
           done();
@@ -123,7 +124,7 @@ describe("HTTP Server:", function() {
     await pify(server.listen.bind(server))(port);
   });
 
-  after("Shutdown server", async() => {
+  after("Shutdown server", async () => {
     await server.close();
   });
 
