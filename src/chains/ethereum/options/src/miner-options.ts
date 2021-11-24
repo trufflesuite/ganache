@@ -166,7 +166,7 @@ export type MinerConfig = {
      */
     priceBump: {
       type: bigint;
-      rawType: number | bigint;
+      rawType: string | number | bigint;
       hasDefault: true;
       cliType: string;
     };
