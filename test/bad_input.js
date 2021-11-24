@@ -164,7 +164,7 @@ var tests = function(web3) {
             assert.deepEqual(
               err.message,
               regex(
-                /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/
+                /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account \(0x[a-z0-9]+?\) only has: \d+/
               ),
               `Unexpected error message. Got ${err.message}.`
             );
@@ -176,7 +176,7 @@ var tests = function(web3) {
           assert.deepEqual(
             result.error.message,
             regex(
-              /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account only has: \d+/
+              /sender doesn't have enough funds to send tx. The upfront cost is: \d+ and the sender's account \(0x[a-z0-9]+\) only has: \d+/
             ),
             `Unexpected error message. Got ${result.error.message}.`
           );
