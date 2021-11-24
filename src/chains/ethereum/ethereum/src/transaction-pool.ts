@@ -111,6 +111,9 @@ export enum TriageOption {
 export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   #options: EthereumInternalOptions["miner"];
 
+  /**
+   * Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.
+   */
   #priceBump: bigint;
 
   #blockchain: Blockchain;
