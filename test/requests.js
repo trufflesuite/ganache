@@ -975,7 +975,7 @@ const tests = function(web3) {
 
     it("should represent the block number correctly in the Oracle contract (oracle.blockhash0)", async function() {
       const { result: oracleOutput } = compile("./test/contracts/misc/", "Oracle");
-      await web3.eth.personal.unlockAccount(accounts[0], "password");
+      await web3.eth.personal.unlockAccount(accounts[0], "");
 
       const contract = new web3.eth.Contract(oracleOutput.contracts["Oracle.sol"].Oracle.abi);
       const oracle = await contract
