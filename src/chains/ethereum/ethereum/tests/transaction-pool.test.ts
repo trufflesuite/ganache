@@ -33,7 +33,11 @@ describe("transaction pool", async () => {
   let common: Common;
   let blockchain: any;
   let origins: Map<string, Heap<TypedTransaction>>;
-  const optionsJson = { wallet: { deterministic: true } };
+  const priceBump = 10n;
+  const optionsJson = {
+    wallet: { deterministic: true },
+    miner: { priceBump: priceBump }
+  };
   const options = EthereumOptionsConfig.normalize(optionsJson);
   let futureNonceRpc, executableRpc: TypedRpcTransaction;
   before(function () {
@@ -44,12 +48,14 @@ describe("transaction pool", async () => {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffffff",
+      maxPriorityFeePerGas: "0xff",
       gasLimit: "0xffff"
     };
     executableRpc = {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffffff",
+      maxPriorityFeePerGas: "0xff",
       gasLimit: "0xffff",
       nonce: "0x0"
     };
@@ -57,6 +63,7 @@ describe("transaction pool", async () => {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffff",
+      maxPriorityFeePerGas: "0xff",
       gasLimit: "0xffff",
       nonce: "0x2"
     };
@@ -165,9 +172,47 @@ describe("transaction pool", async () => {
       found.serialized.toString(),
       executableTx.serialized.toString()
     );
-    // the second time around, the gas price won't be high enough to replace, so it'll throw
+
+    const replacementRpc = JSON.parse(JSON.stringify(executableRpc));
+    replacementRpc.maxPriorityFeePerGas = "0xffff";
+    const replacementTx1 = TransactionFactory.fromRpc(replacementRpc, common);
+    // even if the tip is high enough, the max fee isn't enough to replace, so it'll throw
     await assert.rejects(
-      txPool.prepareTransaction(executableTx, secretKey),
+      txPool.prepareTransaction(replacementTx1, secretKey),
+      {
+        code: -32003,
+        message: "transaction underpriced"
+      },
+      "replacement transaction with insufficient gas price to replace should have been rejected"
+    );
+
+    replacementRpc.maxPriorityFeePerGas = executableRpc.maxPriorityFeePerGas;
+    replacementRpc.maxFeePerGas = "0xffffffffff";
+    const replacementTx2 = TransactionFactory.fromRpc(replacementRpc, common);
+    // even if the maxFee is high enough, the tip isn't enough to replace, so it'll throw
+    await assert.rejects(
+      txPool.prepareTransaction(replacementTx2, secretKey),
+      {
+        code: -32003,
+        message: "transaction underpriced"
+      },
+      "replacement transaction with insufficient gas price to replace should have been rejected"
+    );
+
+    const legacyReplacementRpc: TypedRpcTransaction = {
+      from: from,
+      type: "0x0",
+      gasPrice: "0xffffffff",
+      gasLimit: "0xffff",
+      nonce: "0x0"
+    };
+    const replacementTx3 = TransactionFactory.fromRpc(
+      legacyReplacementRpc,
+      common
+    );
+    // the gasPrice is higher than the tip but lower than the maxFee, which isn't enough, so it'll throw
+    await assert.rejects(
+      txPool.prepareTransaction(replacementTx3, secretKey),
       {
         code: -32003,
         message: "transaction underpriced"
@@ -251,12 +296,19 @@ describe("transaction pool", async () => {
       executableTx.serialized.toString()
     );
 
+    // raise our replacement transaction's prices by exactly the price bump amount
+    const originalMaxFee = Quantity.from(executableRpc.maxFeePerGas).toBigInt();
+    const originalTip = Quantity.from(
+      executableRpc.maxPriorityFeePerGas
+    ).toBigInt();
+    const maxFeePremium = originalMaxFee + (originalMaxFee * priceBump) / 100n;
+    const tipPremium = originalTip + (originalTip * priceBump) / 100n;
     // our replacement transaction needs to have a sufficiently higher gasPrice
     const replacementRpc: TypedRpcTransaction = {
       from: from,
       type: "0x2",
-      maxFeePerGas: "0xffffffffff",
-      maxPriorityFeePerGas: "0xffffffff",
+      maxFeePerGas: Quantity.from(maxFeePremium).toString(),
+      maxPriorityFeePerGas: Quantity.from(tipPremium).toString(),
       gasLimit: "0xffff",
       nonce: "0x0"
     };
@@ -298,6 +350,7 @@ describe("transaction pool", async () => {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffffffff",
+      maxPriorityFeePerGas: "0xffff",
       gasLimit: "0xffff",
       nonce: "0x2"
     };
