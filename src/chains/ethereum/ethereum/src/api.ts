@@ -1361,7 +1361,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns a `maxPriorityFeePerGas` value suitable for quick transaction inclusion.
-   * @returns Integer of the maxPriorityFeePerGas in wei.
+   * @returns The maxPriorityFeePerGas in wei.
    * @example
    * ```javascript
    * const suggestedTip = await provider.request({ method: "eth_maxPriorityFeePerGas", params: [] });
