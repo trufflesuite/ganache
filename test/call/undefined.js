@@ -20,7 +20,8 @@ describe("Undefined", () => {
       context = await bootstrap(contractRef, ganacheProviderOptions);
     });
 
-    it("should return `0x` when eth_call fails (web3.eth call)", async() => {
+    // in ganache v7 eth call actually throws on failure
+    it.skip("should return `0x` when eth_call fails (web3.eth call)", async() => {
       const { instance, web3 } = context;
 
       // test raw JSON RPC value:
@@ -31,7 +32,8 @@ describe("Undefined", () => {
       assert.strictEqual(result, "0x");
     });
 
-    it("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", async() => {
+    // in ganache v7 eth call actually throws on failure
+    it.skip("should throw due to returned value of `0x` when eth_call fails (compiled contract call)", async() => {
       const { instance } = context;
       await assert.rejects(
         () => instance.methods.causeReturnValueOfUndefined().call(),

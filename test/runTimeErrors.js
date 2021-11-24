@@ -41,7 +41,7 @@ function tests(ganacheProviderOptions) {
         });
     });
 
-    it("Should fail to estimate gas when the transaction is invalid", async () => {
+    it("Should fail to estimate gas when the transaction is invalid", async() => {
       const { accounts, instance, send } = context;
       const txParams = {
         from: accounts[0],
@@ -138,21 +138,16 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
-        // null & undefined are equivalent for equality tests, but I'm being
-        // pedantic here for readability's sake
-        assert(response.error !== null);
-        assert(response.error !== undefined);
-        assert(response.result === undefined || response.result === null);
+      // null & undefined are equivalent for equality tests, but I'm being
+      // pedantic here for readability's sake
+      assert(response.error !== null);
+      assert(response.error !== undefined);
+      assert(response.result === undefined || response.result === null);
 
-        assert(
-          /revert/.test(response.error.message),
-          `Expected error message (${response.error.message}) to contain 'revert'`
-        );
-      } else {
-        assert(response.error === undefined);
-        assert(response.result === "0x");
-      }
+      assert(
+        /revert/.test(response.error.message),
+        `Expected error message (${response.error.message}) to contain 'revert'`
+      );
     });
 
     it("should have correct return value when calling a method that reverts without message", async function() {
@@ -166,21 +161,16 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
-        // null & undefined are equivalent for equality tests, but I'm being
-        // pedantic here for readability's sake
-        assert(response.error !== null);
-        assert(response.error !== undefined);
-        assert(response.result === undefined || response.result === null);
+      // null & undefined are equivalent for equality tests, but I'm being
+      // pedantic here for readability's sake
+      assert(response.error !== null);
+      assert(response.error !== undefined);
+      assert(response.result === undefined || response.result === null);
 
-        assert(
-          /revert/.test(response.error.message),
-          `Expected error message (${response.error.message}) to contain 'revert'`
-        );
-      } else {
-        assert(response.error === undefined);
-        assert(response.result === "0x");
-      }
+      assert(
+        /revert/.test(response.error.message),
+        `Expected error message (${response.error.message}) to contain 'revert'`
+      );
     });
 
     it("should have correct return value when calling a method that reverts with message", async function() {
@@ -194,31 +184,21 @@ function tests(ganacheProviderOptions) {
         gas: to.hex(3141592)
       });
 
-      if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse) {
-        // null & undefined are equivalent for equality tests, but I'm being
-        // pedantic here for readability's sake
-        assert(response.error !== null);
-        assert(response.error !== undefined);
-        assert(response.result === undefined || response.result === null);
+      // null & undefined are equivalent for equality tests, but I'm being
+      // pedantic here for readability's sake
+      assert(response.error !== null);
+      assert(response.error !== undefined);
+      assert(response.result === undefined || response.result === null);
 
-        // RuntimeError.sol reverts with revert("Message")
-        assert(
-          /Message/.test(response.error.message),
-          `Expected error message (${response.error.message}) to contain revert reason "Message"`
-        );
-        assert(
-          /revert/.test(response.error.message),
-          `Expected error message (${response.error.message}) to contain 'revert'`
-        );
-      } else {
-        assert(response.error === undefined);
-        assert(
-          response.result ===
-            "0x08c379a000000000000000000000000000000000000000000000000000000000000000" +
-              "2000000000000000000000000000000000000000000000000000000000000000074d6573" +
-              "7361676500000000000000000000000000000000000000000000000000"
-        );
-      }
+      // RuntimeError.sol reverts with revert("Message")
+      assert(
+        /Message/.test(response.error.message),
+        `Expected error message (${response.error.message}) to contain revert reason "Message"`
+      );
+      assert(
+        /revert/.test(response.error.message),
+        `Expected error message (${response.error.message}) to contain 'revert'`
+      );
     });
 
     if (ganacheProviderOptions.chain.vmErrorsOnRPCResponse === true) {
