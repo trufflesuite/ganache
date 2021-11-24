@@ -46,6 +46,30 @@ describe("api", () => {
         });
       });
 
+      describe("insufficient funds", () => {
+        it("returns an error when account has insufficient funds to send the transaction", async () => {
+          const p = await getProvider({
+            miner: { legacyInstamine: true },
+            chain: { vmErrorsOnRPCResponse: true }
+          });
+          const [from, to] = await p.send("eth_accounts");
+          const balance = await p.send("eth_getBalance", [from]);
+          const types = ["0x0", "0x1", "0x2"] as const;
+          for (let i = 0; i < types.length; i++) {
+            await assert.rejects(
+              p.send("eth_sendTransaction", [
+                { type: types[i], from, to, value: balance }
+              ]),
+              {
+                message: `VM Exception while processing transaction: sender doesn't have enough funds to send tx. The upfront cost is: 1000000099667968750000 and the sender's account (${from}) only has: ${BigInt(
+                  balance
+                )} (vm hf=london -> block -> tx)`
+              }
+            );
+          }
+        });
+      });
+
       describe("contracts", () => {
         const contractDir = join(__dirname, "contracts");
         describe("out of gas", () => {
