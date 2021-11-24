@@ -112,10 +112,18 @@ export class Server<T = any> extends Emittery<{
   constructor(
     providerAndServerOptions: ServerOptions<T> = {
       flavor: DefaultFlavor
-    } as ServerOptions<T>
+    } as ServerOptions<T>,
+    pluginServerOptionsConfig: any = null
   ) {
     super();
-    this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
+    if (providerAndServerOptions.flavor !== DefaultFlavor) {
+      this.#options = pluginServerOptionsConfig.normalize(
+        providerAndServerOptions
+      );
+    } else {
+      this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
+    }
+
     this.#providerOptions = providerAndServerOptions;
     this.#status = ServerStatus.ready;
 

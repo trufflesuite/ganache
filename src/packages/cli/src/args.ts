@@ -146,7 +146,11 @@ function applyDefaults(
   }
 }
 
-export default function (version: string, isDocker: boolean) {
+export default function (
+  version: string,
+  isDocker: boolean,
+  pluginPackage?: any
+) {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
@@ -196,46 +200,15 @@ export default function (version: string, isDocker: boolean) {
     );
   }
 
-  // plugins --flavor tezos
-  const pluginFlavor = process.argv[2];
   let callback = null;
   // TODO : remove --help, filecoin and @ganache/filecoin from if check
-  if (
-    !["ethereum", "--help", "filecoin", "@ganache/filecoin"].includes(
-      pluginFlavor
-    ) &&
-    !pluginFlavor.includes("-")
-  ) {
-    //const pluginFlavor = args.argv._[0].toString();
-    //if (!DefaultOptionsByName[pluginFlavor]) {
-    const pluginPackage = require("@ganache/" + pluginFlavor);
-    // const pluginOptionsPackage = require("@ganache/" + pluginFlavor + "-options");
-    // const flavorPluginDefaults = pluginOptionsPackage.TezosDefaults;
-    const pluginFlavorDefaults = pluginPackage.ganachePlugin.options.provider;
-    const { port } = pluginPackage.ganachePlugin.options.server;
-    // const pluginDefaultServerOptions =
-    //   pluginPackage.ganachePlugin.options.server.defaultServerOptions;
-
-    // for (let key in pluginDefaultServerOptions) {
-    //   if (!pluginDefaultServerOptions[key])
-    //     delete pluginDefaultServerOptions[key];
-    // }
-
-    // const defaultServerOptions = {
-    //   server: {
-    //     ..._DefaultServerOptions.server // ,
-    //     // ...pluginDefaultServerOptions
-    //   }
-    // };
-    args = createNewCommand(
+  if (pluginPackage) {
+    ({ args, callback } = setupPluginArgs(
+      pluginPackage,
       args,
-      pluginFlavor,
-      pluginFlavorDefaults,
-      _DefaultServerOptions,
       isDocker,
-      port
-    );
-    callback = pluginPackage.ganachePlugin.callback;
+      callback
+    ));
   }
 
   args = args
@@ -262,6 +235,40 @@ export default function (version: string, isDocker: boolean) {
   finalArgs.server.callback = callback;
   return finalArgs;
 }
+function setupPluginArgs(
+  pluginPackage: any,
+  args: yargs.Argv<{}>,
+  isDocker: boolean,
+  callback: any
+) {
+  const pluginFlavorDefaults = pluginPackage.ganachePlugin.options.provider;
+  const { port } = pluginPackage.ganachePlugin.options.server;
+  const pluginDefaultServerOptions =
+    pluginPackage.ganachePlugin.options.server.defaultServerOptions;
+
+  for (let key in pluginDefaultServerOptions) {
+    if (!pluginDefaultServerOptions[key])
+      delete pluginDefaultServerOptions[key];
+  }
+
+  const defaultServerOptions = {
+    server: {
+      ..._DefaultServerOptions.server,
+      ...pluginDefaultServerOptions
+    }
+  };
+  args = createNewCommand(
+    args,
+    pluginPackage.flavor,
+    pluginFlavorDefaults,
+    defaultServerOptions,
+    isDocker,
+    port
+  );
+  callback = pluginPackage.ganachePlugin.callback;
+  return { args, callback };
+}
+
 function createNewCommand(
   args: yargs.Argv<{}>,
   pluginFlavor: string,

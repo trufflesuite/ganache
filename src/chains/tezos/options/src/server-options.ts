@@ -1,5 +1,4 @@
-import { ServerConfig } from "@ganache/core";
-import { Definitions } from "@ganache/options";
+import { Definitions, ServerConfig } from "@ganache/options";
 import { normalize } from "./helpers";
 
 export const ServerOptions: Definitions<ServerConfig> = {

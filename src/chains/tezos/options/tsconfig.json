@@ -12,10 +12,6 @@
     {
       "name": "@ganache/options",
       "path": "../../../packages/options"
-    },
-    {
-      "name": "@ganache/core",
-      "path": "../../../packages/core"
     }
   ]
 }

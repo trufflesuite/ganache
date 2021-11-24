@@ -143,4 +143,4 @@ export type Options<T = any> = T extends "filecoin"
   ? FilecoinOptions<T>
   : T extends "ethereum"
   ? EthereumOptions<T>
-  : never;
+  : any;

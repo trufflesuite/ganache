@@ -8,7 +8,7 @@
   "author": "Satyajeet Kolhapure <satyajeet.kolhapure@consensys.net>",
   "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/chains/tezos/options#readme",
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "lib/src/index.js",
   "typings": "typings",
   "source": "index.ts",
   "directories": {
@@ -48,7 +48,6 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/core": "0.1.1-canary.1335",
     "@ganache/options": "0.1.1-canary.1335",
     "seedrandom": "3.0.5"
   },

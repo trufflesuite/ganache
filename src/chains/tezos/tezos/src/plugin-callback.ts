@@ -1,4 +1,4 @@
-import { GanachePlugin } from "@ganache/options";
+import { GanachePlugin, OptionsConfig } from "@ganache/options";
 import { ServerOptions, TezosDefaults } from "@ganache/tezos-options";
 import { Provider } from "..";
 
@@ -40,21 +40,24 @@ export const ganachePlugin: GanachePlugin = {
   options: {
     provider: TezosDefaults,
     server: {
-      port: 8546,
-      defaultServerOptions: {
-        rpcEndpoint: {
-          normalize,
-          cliDescription:
-            "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
-          default: () => {
-            return "/tz";
-          },
-          defaultDescription: '"/tz" (Tezos)'
-        },
-        ws: undefined,
-        wsBinary: undefined
-      }
+      port: 8545
     }
   },
   callback: tezosCallback
 };
+
+export const serverDefaults = {
+  server: {
+    rpcEndpoint: {
+      normalize,
+      cliDescription:
+        "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
+      default: (config, flavor) => {
+        return "/tz";
+      },
+      defaultDescription: '"/tz" (Tezos)'
+    }
+  }
+};
+
+export const serverOptionsConfig = new OptionsConfig(serverDefaults as any);

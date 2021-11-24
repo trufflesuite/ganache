@@ -1,18 +1,13 @@
-import {
-  DefaultFlavor,
-  FlavorName,
-  Options as FlavorOptions
-} from "@ganache/flavors";
-import { ServerConfig, ServerOptions } from "./server-options";
+import { Options as FlavorOptions } from "@ganache/flavors";
 import {
   Defaults,
   Definitions,
   ExternalConfig,
   InternalConfig,
-  OptionsConfig
+  OptionsConfig,
+  ServerConfig,
+  ServerOptions
 } from "@ganache/options";
-
-export type { ServerConfig } from "./server-options";
 
 export type ProviderOptions<T = any> = FlavorOptions<T>;
 

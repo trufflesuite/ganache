@@ -1,5 +1,5 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
-import { DefaultFlavor, FlavorName } from "@ganache/flavors";
+import { DefaultFlavor } from "@ganache/flavors";
 import { GetConnector, Options as ProviderOptions } from "@ganache/flavors";
 
 const initialize = <T = any>(

@@ -38,7 +38,22 @@ const detailedVersion = `ganache v ${version} (@ganache/cli: ${cliVersion}, @gan
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-const argv = args(detailedVersion, isDocker);
+// check if plugin flavor is used
+let pluginPackage = null;
+let pluginServerOptionsConfig = null;
+const pluginFlavor = process.argv[2];
+if (
+  !["ethereum", "--help", "filecoin", "@ganache/filecoin"].includes(
+    pluginFlavor
+  ) &&
+  !pluginFlavor.includes("-")
+) {
+  pluginPackage = require("@ganache/" + pluginFlavor);
+  pluginPackage.flavor = pluginFlavor;
+  pluginServerOptionsConfig = pluginPackage.serverOptionsConfig;
+}
+
+const argv = args(detailedVersion, isDocker, pluginPackage);
 
 const flavor = argv.flavor;
 
@@ -50,7 +65,7 @@ console.log(detailedVersion);
 
 let server: ReturnType<typeof Ganache.server>;
 try {
-  server = Ganache.server(argv);
+  server = Ganache.server(argv, pluginServerOptionsConfig);
 } catch (error) {
   console.error(error.message);
   process.exit(1);
