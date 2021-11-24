@@ -60,7 +60,7 @@ describe("Transaction rejection", function() {
       {
         from: accounts[1]
       },
-      "authentication needed: password or unlock"
+      "authentication needed: passphrase or unlock"
     );
   });
 
