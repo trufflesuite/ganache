@@ -36,6 +36,16 @@ function shouldReplace(
   if (replaceeNonce !== replacerNonce) {
     return false;
   }
+
+  // if the transaction being replaced is in the middle of being mined, we can't
+  // replpace it so let's back out early
+  if (replacee.locked) {
+    throw new CodedError(
+      TRANSACTION_LOCKED,
+      JsonRpcErrorCode.TRANSACTION_REJECTED
+    );
+  }
+
   const replacerTip =
     "maxPriorityFeePerGas" in replacer
       ? replacer.maxPriorityFeePerGas.toBigInt()
@@ -56,14 +66,10 @@ function shouldReplace(
   const tipPremium = replaceeTip + (replaceeTip * priceBump) / 100n;
   const maxFeePremium = replaceeMaxFee + (replaceeMaxFee * priceBump) / 100n;
 
-  // if our replacer's price is `gasPrice * priceBumpPercent` better than our
-  // replacee's price, we should do the replacement!.
-  if (replacee.locked) {
-    throw new CodedError(
-      TRANSACTION_LOCKED,
-      JsonRpcErrorCode.TRANSACTION_REJECTED
-    );
-  } else if (replacerTip < tipPremium || replacerMaxFee < maxFeePremium) {
+  // if both the tip and max fee of the new transaction aren't
+  // `priceBumpPercent` more than the existing transaction, this transaction is
+  // underpriced
+  if (replacerTip < tipPremium || replacerMaxFee < maxFeePremium) {
     throw new CodedError(UNDERPRICED, JsonRpcErrorCode.TRANSACTION_REJECTED);
   } else {
     return true;
