@@ -43,4 +43,4 @@ export const VM_EXCEPTIONS =
  * Returned if a replacement transaction is sent while the potentially replaced transaction is being mined.
  */
 export const TRANSACTION_LOCKED =
-  "transaction can't be replaced, mining has already started. (we don't really know how you got here, couldy you open an issue with reproduction steps? https://github.com/trufflesuite/ganache/issues/new)";
+  "transaction can't be replaced, mining has already started. (please open an issue with reproduction steps: https://github.com/trufflesuite/ganache/issues/new)";
