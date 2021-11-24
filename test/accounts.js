@@ -147,7 +147,8 @@ describe("Accounts", () => {
     assert.strictEqual(balanceInEther, 5);
   });
 
-  it("errors when we try to sign a transaction from an account we're impersonating", async function() {
+  // in ganache v7 we don't treat this as an error: https://github.com/trufflesuite/ganache/issues/1660
+  it.skip("errors when we try to sign a transaction from an account we're impersonating", async function() {
     const options = {
       mnemonic,
       secure: true,
