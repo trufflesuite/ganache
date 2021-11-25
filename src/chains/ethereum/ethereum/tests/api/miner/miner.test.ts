@@ -67,6 +67,14 @@ describe("api", () => {
         const provider = await getProvider({ miner: { blockTime: 1 } });
         await testStopStartMining(provider);
       }).timeout(4000);
+
+      it("should not throw an error when miner was already started when calling miner_start", async () => {
+        const provider = await getProvider({
+          miner: { blockTime: 1, legacyInstamine: true }
+        });
+        await assert.doesNotReject(provider.send("miner_start"));
+        await assert.doesNotReject(provider.send("miner_start"));
+      }).timeout(4000);
     });
 
     describe("miner_setEtherbase", () => {

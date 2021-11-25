@@ -14,10 +14,15 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
   // processing. The RequestCoordinator _can_ be used to coordinate the number
   // of requests being processed, but we don't use it for that (yet), instead
   // of "all" (0) or just 1 as we are doing here:
-  const asyncRequestProcessing =
-    "chain" in options
-      ? options["chain"].asyncRequestProcessing
-      : options["asyncRequestProcessing"];
+  let asyncRequestProcessing: boolean;
+
+  if ("chain" in options && "asyncRequestProcessing" in options["chain"]) {
+    asyncRequestProcessing = options["chain"].asyncRequestProcessing;
+  } else if ("asyncRequestProcessing" in options) {
+    asyncRequestProcessing = options["asyncRequestProcessing"];
+  } else {
+    asyncRequestProcessing = true;
+  }
   const requestCoordinator = new RequestCoordinator(
     asyncRequestProcessing ? 0 : 1
   );

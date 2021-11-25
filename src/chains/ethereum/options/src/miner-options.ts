@@ -158,6 +158,18 @@ export type MinerConfig = {
       type: Data;
       hasDefault: true;
     };
+
+    /**
+     * Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.
+     *
+     * @defaultValue ""
+     */
+    priceBump: {
+      type: bigint;
+      rawType: string | number | bigint;
+      hasDefault: true;
+      cliType: string;
+    };
   };
 };
 
@@ -261,6 +273,13 @@ export const MinerOptions: Definitions<MinerConfig> = {
     },
     cliDescription: "Set the extraData block header field a miner can include.",
     default: () => DATA_EMPTY,
+    cliType: "string"
+  },
+  priceBump: {
+    normalize: BigInt,
+    cliDescription:
+      "Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.",
+    default: () => 10n,
     cliType: "string"
   }
 };

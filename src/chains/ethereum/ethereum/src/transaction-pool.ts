@@ -7,7 +7,8 @@ import {
   INTRINSIC_GAS_TOO_LOW,
   CodedError,
   UNDERPRICED,
-  REPLACED
+  REPLACED,
+  TRANSACTION_LOCKED
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
@@ -27,7 +28,7 @@ import { TypedTransaction } from "@ganache/ethereum-transaction";
 function shouldReplace(
   replacee: TypedTransaction,
   replacerNonce: bigint,
-  replacerGasPrice: bigint,
+  replacer: TypedTransaction,
   priceBump: bigint
 ): boolean {
   const replaceeNonce = replacee.nonce.toBigInt();
@@ -36,15 +37,42 @@ function shouldReplace(
     return false;
   }
 
-  const gasPrice = replacee.effectiveGasPrice.toBigInt();
-  const thisPricePremium = gasPrice + (gasPrice * priceBump) / 100n;
+  // if the transaction being replaced is in the middle of being mined, we can't
+  // replpace it so let's back out early
+  if (replacee.locked) {
+    throw new CodedError(
+      TRANSACTION_LOCKED,
+      JsonRpcErrorCode.TRANSACTION_REJECTED
+    );
+  }
 
-  // if our replacer's price is `gasPrice * priceBumpPercent` better than our
-  // replacee's price, we should do the replacement!.
-  if (!replacee.locked && replacerGasPrice > thisPricePremium) {
-    return true;
-  } else {
+  const replacerTip =
+    "maxPriorityFeePerGas" in replacer
+      ? replacer.maxPriorityFeePerGas.toBigInt()
+      : replacer.effectiveGasPrice.toBigInt();
+  const replacerMaxFee =
+    "maxFeePerGas" in replacer
+      ? replacer.maxFeePerGas.toBigInt()
+      : replacer.effectiveGasPrice.toBigInt();
+  const replaceeTip =
+    "maxPriorityFeePerGas" in replacee
+      ? replacee.maxPriorityFeePerGas.toBigInt()
+      : replacee.effectiveGasPrice.toBigInt();
+  const replaceeMaxFee =
+    "maxFeePerGas" in replacee
+      ? replacee.maxFeePerGas.toBigInt()
+      : replacee.effectiveGasPrice.toBigInt();
+
+  const tipPremium = replaceeTip + (replaceeTip * priceBump) / 100n;
+  const maxFeePremium = replaceeMaxFee + (replaceeMaxFee * priceBump) / 100n;
+
+  // if both the tip and max fee of the new transaction aren't
+  // `priceBumpPercent` more than the existing transaction, this transaction is
+  // underpriced
+  if (replacerTip < tipPremium || replacerMaxFee < maxFeePremium) {
     throw new CodedError(UNDERPRICED, JsonRpcErrorCode.TRANSACTION_REJECTED);
+  } else {
+    return true;
   }
 }
 
@@ -84,9 +112,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
   #options: EthereumInternalOptions["miner"];
 
   /**
-   * Minimum price bump percentage to replace an already existing transaction (nonce)
+   * Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.
    */
-  #priceBump: bigint = 10n;
+  #priceBump: bigint;
 
   #blockchain: Blockchain;
   constructor(
@@ -98,6 +126,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     this.#blockchain = blockchain;
     this.#options = options;
     this.#origins = origins;
+    this.#priceBump = options.priceBump;
   }
   public readonly executables: Executables = {
     inProgress: new Set(),
@@ -183,7 +212,6 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     let executableOriginTransactions = executables.get(origin);
 
     const priceBump = this.#priceBump;
-    const newGasPrice = transaction.effectiveGasPrice.toBigInt();
     let length: number;
     if (
       executableOriginTransactions &&
@@ -197,7 +225,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       // necessarily sorted
       for (let i = 0; i < length; i++) {
         const pendingTx = pendingArray[i];
-        if (shouldReplace(pendingTx, txNonce, newGasPrice, priceBump)) {
+        if (shouldReplace(pendingTx, txNonce, transaction, priceBump)) {
           // do an in-place replace without triggering a re-sort because we
           // already know where this transaction should go in this "byNonce"
           // heap.
@@ -277,7 +305,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       // necessarily sorted
       for (let i = 0; i < length; i++) {
         const queuedTx = queuedArray[i];
-        if (shouldReplace(queuedTx, txNonce, newGasPrice, priceBump)) {
+        if (shouldReplace(queuedTx, txNonce, transaction, priceBump)) {
           // do an in-place replace without triggering a re-sort because we
           // already know where this transaction should go in this "byNonce"
           // heap.
