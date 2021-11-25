@@ -592,9 +592,14 @@ export default class EthereumApi implements Api {
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
     if (this.#options.miner.legacyInstamine === true) {
-      const { transactions } = await this.#blockchain.resume(threads);
-      if (transactions != null && this.#options.chain.vmErrorsOnRPCResponse) {
-        assertExceptionalTransactions(transactions);
+      const resumption = await this.#blockchain.resume(threads);
+      // resumption can be undefined if the blockchain isn't currently paused
+      if (
+        resumption &&
+        resumption.transactions != null &&
+        this.#options.chain.vmErrorsOnRPCResponse
+      ) {
+        assertExceptionalTransactions(resumption.transactions);
       }
     } else {
       this.#blockchain.resume(threads);
