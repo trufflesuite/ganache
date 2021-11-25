@@ -96,7 +96,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 144,
+											"line": 150,
 											"character": 27
 										}
 									]
@@ -181,7 +181,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 151,
+									"line": 157,
 									"character": 27
 								}
 							]
@@ -199,7 +199,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 150,
+									"line": 156,
 									"character": 22
 								}
 							],
@@ -221,7 +221,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 147,
+									"line": 153,
 									"character": 19
 								}
 							],
@@ -359,7 +359,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 146,
+									"line": 152,
 									"character": 17
 								}
 							],
@@ -382,7 +382,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 149,
+									"line": 155,
 									"character": 19
 								}
 							],
@@ -404,7 +404,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 148,
+									"line": 154,
 									"character": 25
 								}
 							],
@@ -460,7 +460,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 151,
+									"line": 157,
 									"character": 18
 								}
 							],
@@ -526,7 +526,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 249,
+									"line": 255,
 									"character": 16
 								}
 							]
@@ -588,7 +588,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 262,
+									"line": 268,
 									"character": 16
 								}
 							]
@@ -681,7 +681,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 234,
+									"line": 240,
 									"character": 17
 								}
 							]
@@ -774,7 +774,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 201,
+									"line": 207,
 									"character": 20
 								}
 							]
@@ -883,7 +883,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 218,
+									"line": 224,
 									"character": 17
 								}
 							]
@@ -992,13 +992,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 185,
+									"line": 191,
 									"character": 20
 								}
 							]
 						},
 						{
-							"id": 628,
+							"id": 630,
 							"name": "debug_storageRangeAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1007,7 +1007,7 @@
 							},
 							"signatures": [
 								{
-									"id": 629,
+									"id": 631,
 									"name": "debug_storageRangeAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1026,7 +1026,7 @@
 									},
 									"parameters": [
 										{
-											"id": 630,
+											"id": 632,
 											"name": "blockHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1042,7 +1042,7 @@
 											}
 										},
 										{
-											"id": 631,
+											"id": 633,
 											"name": "transactionIndex",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1058,7 +1058,7 @@
 											}
 										},
 										{
-											"id": 632,
+											"id": 634,
 											"name": "contractAddress",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1074,7 +1074,7 @@
 											}
 										},
 										{
-											"id": 633,
+											"id": 635,
 											"name": "startKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1090,7 +1090,7 @@
 											}
 										},
 										{
-											"id": 634,
+											"id": 636,
 											"name": "maxResult",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1121,13 +1121,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2697,
+									"line": 2723,
 									"character": 28
 								}
 							]
 						},
 						{
-							"id": 624,
+							"id": 626,
 							"name": "debug_traceTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1136,7 +1136,7 @@
 							},
 							"signatures": [
 								{
-									"id": 625,
+									"id": 627,
 									"name": "debug_traceTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1156,7 +1156,7 @@
 									},
 									"parameters": [
 										{
-											"id": 626,
+											"id": 628,
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1172,7 +1172,7 @@
 											}
 										},
 										{
-											"id": 627,
+											"id": 629,
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1204,13 +1204,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2647,
+									"line": 2673,
 									"character": 30
 								}
 							]
 						},
 						{
-							"id": 506,
+							"id": 508,
 							"name": "eth_accounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1231,7 +1231,7 @@
 							],
 							"signatures": [
 								{
-									"id": 507,
+									"id": 509,
 									"name": "eth_accounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1266,13 +1266,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1366,
+									"line": 1391,
 									"character": 20
 								}
 							]
 						},
 						{
-							"id": 508,
+							"id": 510,
 							"name": "eth_blockNumber",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1293,7 +1293,7 @@
 							],
 							"signatures": [
 								{
-									"id": 509,
+									"id": 511,
 									"name": "eth_blockNumber",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1325,13 +1325,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1380,
+									"line": 1405,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 620,
+							"id": 622,
 							"name": "eth_call",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1353,7 +1353,7 @@
 							],
 							"signatures": [
 								{
-									"id": 621,
+									"id": 623,
 									"name": "eth_call",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1373,7 +1373,7 @@
 									},
 									"parameters": [
 										{
-											"id": 622,
+											"id": 624,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1389,7 +1389,7 @@
 											}
 										},
 										{
-											"id": 623,
+											"id": 625,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1430,13 +1430,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2497,
+									"line": 2523,
 									"character": 16
 								}
 							]
 						},
 						{
-							"id": 510,
+							"id": 512,
 							"name": "eth_chainId",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1457,7 +1457,7 @@
 							],
 							"signatures": [
 								{
-									"id": 511,
+									"id": 513,
 									"name": "eth_chainId",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1493,7 +1493,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1397,
+									"line": 1422,
 									"character": 19
 								}
 							]
@@ -1552,7 +1552,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 869,
+									"line": 880,
 									"character": 20
 								}
 							]
@@ -1657,7 +1657,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 776,
+									"line": 787,
 									"character": 23
 								}
 							]
@@ -1716,13 +1716,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1352,
+									"line": 1363,
 									"character": 20
 								}
 							]
 						},
 						{
-							"id": 512,
+							"id": 514,
 							"name": "eth_getBalance",
 							"kind": 2048,
 							"kindString": "Method",
@@ -1744,7 +1744,7 @@
 							],
 							"signatures": [
 								{
-									"id": 513,
+									"id": 515,
 									"name": "eth_getBalance",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -1763,7 +1763,7 @@
 									},
 									"parameters": [
 										{
-											"id": 514,
+											"id": 516,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1779,7 +1779,7 @@
 											}
 										},
 										{
-											"id": 515,
+											"id": 517,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -1820,7 +1820,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1417,
+									"line": 1442,
 									"character": 22
 								}
 							]
@@ -3524,7 +3524,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 967,
+									"line": 978,
 									"character": 26
 								}
 							]
@@ -5237,7 +5237,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 909,
+									"line": 920,
 									"character": 28
 								}
 							]
@@ -5314,7 +5314,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1023,
+									"line": 1034,
 									"character": 42
 								}
 							]
@@ -5397,13 +5397,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 986,
+									"line": 997,
 									"character": 44
 								}
 							]
 						},
 						{
-							"id": 516,
+							"id": 518,
 							"name": "eth_getCode",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5425,7 +5425,7 @@
 							],
 							"signatures": [
 								{
-									"id": 517,
+									"id": 519,
 									"name": "eth_getCode",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5444,7 +5444,7 @@
 									},
 									"parameters": [
 										{
-											"id": 518,
+											"id": 520,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5460,7 +5460,7 @@
 											}
 										},
 										{
-											"id": 519,
+											"id": 521,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5501,7 +5501,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1456,
+									"line": 1481,
 									"character": 19
 								}
 							]
@@ -5563,13 +5563,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1045,
+									"line": 1056,
 									"character": 24
 								}
 							]
 						},
 						{
-							"id": 584,
+							"id": 586,
 							"name": "eth_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5590,7 +5590,7 @@
 							],
 							"signatures": [
 								{
-									"id": 585,
+									"id": 587,
 									"name": "eth_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5609,7 +5609,7 @@
 									},
 									"parameters": [
 										{
-											"id": 586,
+											"id": 588,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5643,13 +5643,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2301,
+									"line": 2327,
 									"character": 28
 								}
 							]
 						},
 						{
-							"id": 590,
+							"id": 592,
 							"name": "eth_getFilterLogs",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5670,7 +5670,7 @@
 							],
 							"signatures": [
 								{
-									"id": 591,
+									"id": 593,
 									"name": "eth_getFilterLogs",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -5689,7 +5689,7 @@
 									},
 									"parameters": [
 										{
-											"id": 592,
+											"id": 594,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -5713,7 +5713,7 @@
 												"elementType": {
 													"type": "reflection",
 													"declaration": {
-														"id": 593,
+														"id": 595,
 														"name": "__type",
 														"kind": 65536,
 														"kindString": "Type literal",
@@ -5722,7 +5722,7 @@
 														},
 														"children": [
 															{
-																"id": 594,
+																"id": 596,
 																"name": "address",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5742,7 +5742,7 @@
 																}
 															},
 															{
-																"id": 595,
+																"id": 597,
 																"name": "blockHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5762,7 +5762,7 @@
 																}
 															},
 															{
-																"id": 596,
+																"id": 598,
 																"name": "blockNumber",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5782,7 +5782,7 @@
 																}
 															},
 															{
-																"id": 597,
+																"id": 599,
 																"name": "data",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5814,7 +5814,7 @@
 																}
 															},
 															{
-																"id": 598,
+																"id": 600,
 																"name": "logIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5834,7 +5834,7 @@
 																}
 															},
 															{
-																"id": 599,
+																"id": 601,
 																"name": "removed",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5854,7 +5854,7 @@
 																}
 															},
 															{
-																"id": 600,
+																"id": 602,
 																"name": "topics",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5886,7 +5886,7 @@
 																}
 															},
 															{
-																"id": 601,
+																"id": 603,
 																"name": "transactionHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5906,7 +5906,7 @@
 																}
 															},
 															{
-																"id": 602,
+																"id": 604,
 																"name": "transactionIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -5931,15 +5931,15 @@
 																"title": "Variables",
 																"kind": 32,
 																"children": [
-																	594,
-																	595,
 																	596,
 																	597,
 																	598,
 																	599,
 																	600,
 																	601,
-																	602
+																	602,
+																	603,
+																	604
 																]
 															}
 														]
@@ -5954,13 +5954,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2371,
+									"line": 2397,
 									"character": 25
 								}
 							]
 						},
 						{
-							"id": 603,
+							"id": 605,
 							"name": "eth_getLogs",
 							"kind": 2048,
 							"kindString": "Method",
@@ -5981,7 +5981,7 @@
 							],
 							"signatures": [
 								{
-									"id": 604,
+									"id": 606,
 									"name": "eth_getLogs",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6001,7 +6001,7 @@
 									},
 									"parameters": [
 										{
-											"id": 605,
+											"id": 607,
 											"name": "filter",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6025,7 +6025,7 @@
 												"elementType": {
 													"type": "reflection",
 													"declaration": {
-														"id": 606,
+														"id": 608,
 														"name": "__type",
 														"kind": 65536,
 														"kindString": "Type literal",
@@ -6034,7 +6034,7 @@
 														},
 														"children": [
 															{
-																"id": 607,
+																"id": 609,
 																"name": "address",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6054,7 +6054,7 @@
 																}
 															},
 															{
-																"id": 608,
+																"id": 610,
 																"name": "blockHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6074,7 +6074,7 @@
 																}
 															},
 															{
-																"id": 609,
+																"id": 611,
 																"name": "blockNumber",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6094,7 +6094,7 @@
 																}
 															},
 															{
-																"id": 610,
+																"id": 612,
 																"name": "data",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6126,7 +6126,7 @@
 																}
 															},
 															{
-																"id": 611,
+																"id": 613,
 																"name": "logIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6146,7 +6146,7 @@
 																}
 															},
 															{
-																"id": 612,
+																"id": 614,
 																"name": "removed",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6166,7 +6166,7 @@
 																}
 															},
 															{
-																"id": 613,
+																"id": 615,
 																"name": "topics",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6198,7 +6198,7 @@
 																}
 															},
 															{
-																"id": 614,
+																"id": 616,
 																"name": "transactionHash",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6218,7 +6218,7 @@
 																}
 															},
 															{
-																"id": 615,
+																"id": 617,
 																"name": "transactionIndex",
 																"kind": 32,
 																"kindString": "Variable",
@@ -6243,15 +6243,15 @@
 																"title": "Variables",
 																"kind": 32,
 																"children": [
-																	607,
-																	608,
 																	609,
 																	610,
 																	611,
 																	612,
 																	613,
 																	614,
-																	615
+																	615,
+																	616,
+																	617
 																]
 															}
 														]
@@ -6266,13 +6266,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2428,
+									"line": 2454,
 									"character": 19
 								}
 							]
 						},
 						{
-							"id": 520,
+							"id": 522,
 							"name": "eth_getStorageAt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -6294,7 +6294,7 @@
 							],
 							"signatures": [
 								{
-									"id": 521,
+									"id": 523,
 									"name": "eth_getStorageAt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -6313,7 +6313,7 @@
 									},
 									"parameters": [
 										{
-											"id": 522,
+											"id": 524,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6329,7 +6329,7 @@
 											}
 										},
 										{
-											"id": 523,
+											"id": 525,
 											"name": "position",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6345,7 +6345,7 @@
 											}
 										},
 										{
-											"id": 524,
+											"id": 526,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -6386,7 +6386,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1491,
+									"line": 1516,
 									"character": 24
 								}
 							]
@@ -6813,7 +6813,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1083,
+									"line": 1094,
 									"character": 45
 								}
 							]
@@ -7249,13 +7249,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1129,
+									"line": 1140,
 									"character": 47
 								}
 							]
 						},
 						{
-							"id": 525,
+							"id": 527,
 							"name": "eth_getTransactionByHash",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7276,7 +7276,7 @@
 							],
 							"signatures": [
 								{
-									"id": 526,
+									"id": 528,
 									"name": "eth_getTransactionByHash",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7295,7 +7295,7 @@
 									},
 									"parameters": [
 										{
-											"id": 527,
+											"id": 529,
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7317,7 +7317,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-													"id": 528,
+													"id": 530,
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -7326,7 +7326,7 @@
 													},
 													"children": [
 														{
-															"id": 532,
+															"id": 534,
 															"name": "blockHash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7346,7 +7346,7 @@
 															}
 														},
 														{
-															"id": 533,
+															"id": 535,
 															"name": "blockNumber",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7366,7 +7366,7 @@
 															}
 														},
 														{
-															"id": 535,
+															"id": 537,
 															"name": "from",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7386,7 +7386,7 @@
 															}
 														},
 														{
-															"id": 538,
+															"id": 540,
 															"name": "gas",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7406,7 +7406,7 @@
 															}
 														},
 														{
-															"id": 539,
+															"id": 541,
 															"name": "gasPrice",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7426,7 +7426,7 @@
 															}
 														},
 														{
-															"id": 529,
+															"id": 531,
 															"name": "hash",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7446,7 +7446,7 @@
 															}
 														},
 														{
-															"id": 540,
+															"id": 542,
 															"name": "input",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7466,7 +7466,7 @@
 															}
 														},
 														{
-															"id": 531,
+															"id": 533,
 															"name": "nonce",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7486,7 +7486,7 @@
 															}
 														},
 														{
-															"id": 542,
+															"id": 544,
 															"name": "r",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7506,7 +7506,7 @@
 															}
 														},
 														{
-															"id": 543,
+															"id": 545,
 															"name": "s",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7526,7 +7526,7 @@
 															}
 														},
 														{
-															"id": 536,
+															"id": 538,
 															"name": "to",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7546,7 +7546,7 @@
 															}
 														},
 														{
-															"id": 534,
+															"id": 536,
 															"name": "transactionIndex",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7566,7 +7566,7 @@
 															}
 														},
 														{
-															"id": 530,
+															"id": 532,
 															"name": "type",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7587,7 +7587,7 @@
 															}
 														},
 														{
-															"id": 541,
+															"id": 543,
 															"name": "v",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7607,7 +7607,7 @@
 															}
 														},
 														{
-															"id": 537,
+															"id": 539,
 															"name": "value",
 															"kind": 32,
 															"kindString": "Variable",
@@ -7632,21 +7632,21 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-																532,
-																533,
+																534,
 																535,
-																538,
-																539,
-																529,
+																537,
 																540,
+																541,
 																531,
 																542,
-																543,
+																533,
+																544,
+																545,
+																538,
 																536,
-																534,
-																530,
-																541,
-																537
+																532,
+																543,
+																539
 															]
 														}
 													]
@@ -7660,13 +7660,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1564,
+									"line": 1589,
 									"character": 32
 								}
 							]
 						},
 						{
-							"id": 616,
+							"id": 618,
 							"name": "eth_getTransactionCount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7688,7 +7688,7 @@
 							],
 							"signatures": [
 								{
-									"id": 617,
+									"id": 619,
 									"name": "eth_getTransactionCount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7707,7 +7707,7 @@
 									},
 									"parameters": [
 										{
-											"id": 618,
+											"id": 620,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7723,7 +7723,7 @@
 											}
 										},
 										{
-											"id": 619,
+											"id": 621,
 											"name": "blockNumber",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7764,13 +7764,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2451,
+									"line": 2477,
 									"character": 31
 								}
 							]
 						},
 						{
-							"id": 544,
+							"id": 546,
 							"name": "eth_getTransactionReceipt",
 							"kind": 2048,
 							"kindString": "Method",
@@ -7791,7 +7791,7 @@
 							],
 							"signatures": [
 								{
-									"id": 545,
+									"id": 547,
 									"name": "eth_getTransactionReceipt",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -7811,7 +7811,7 @@
 									},
 									"parameters": [
 										{
-											"id": 546,
+											"id": 548,
 											"name": "transactionHash",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -7842,7 +7842,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1601,
+									"line": 1626,
 									"character": 33
 								}
 							]
@@ -9544,7 +9544,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1209,
+									"line": 1220,
 									"character": 39
 								}
 							]
@@ -11255,7 +11255,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1248,
+									"line": 1259,
 									"character": 41
 								}
 							]
@@ -11332,7 +11332,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1154,
+									"line": 1165,
 									"character": 36
 								}
 							]
@@ -11418,7 +11418,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1169,
+									"line": 1180,
 									"character": 38
 								}
 							]
@@ -11516,7 +11516,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1269,
+									"line": 1280,
 									"character": 19
 								}
 							]
@@ -11575,8 +11575,67 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1338,
+									"line": 1349,
 									"character": 20
+								}
+							]
+						},
+						{
+							"id": 506,
+							"name": "eth_maxPriorityFeePerGas",
+							"kind": 2048,
+							"kindString": "Method",
+							"flags": {
+								"isExported": true
+							},
+							"decorators": [
+								{
+									"name": "assertArgLength",
+									"type": {
+										"type": "reference",
+										"name": "assertArgLength"
+									},
+									"arguments": {
+										"min": "0"
+									}
+								}
+							],
+							"signatures": [
+								{
+									"id": 507,
+									"name": "eth_maxPriorityFeePerGas",
+									"kind": 4096,
+									"kindString": "Call signature",
+									"flags": {
+										"isExported": true
+									},
+									"comment": {
+										"shortText": "Returns a `maxPriorityFeePerGas` value suitable for quick transaction inclusion.",
+										"returns": "The maxPriorityFeePerGas in wei.",
+										"tags": [
+											{
+												"tag": "example",
+												"text": "\n```javascript\nconst suggestedTip = await provider.request({ method: \"eth_maxPriorityFeePerGas\", params: [] });\nconsole.log(suggestedTip);\n```\n"
+											}
+										]
+									},
+									"type": {
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "reference",
+												"name": "Quantity"
+											}
+										],
+										"name": "Promise"
+									}
+								}
+							],
+							"sources": [
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 1377,
+									"character": 32
 								}
 							]
 						},
@@ -11634,13 +11693,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1323,
+									"line": 1334,
 									"character": 18
 								}
 							]
 						},
 						{
-							"id": 577,
+							"id": 579,
 							"name": "eth_newBlockFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11661,7 +11720,7 @@
 							],
 							"signatures": [
 								{
-									"id": 578,
+									"id": 580,
 									"name": "eth_newBlockFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11693,13 +11752,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2137,
+									"line": 2163,
 									"character": 26
 								}
 							]
 						},
 						{
-							"id": 581,
+							"id": 583,
 							"name": "eth_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11721,7 +11780,7 @@
 							],
 							"signatures": [
 								{
-									"id": 582,
+									"id": 584,
 									"name": "eth_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11741,7 +11800,7 @@
 									},
 									"parameters": [
 										{
-											"id": 583,
+											"id": 585,
 											"name": "filter",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -11773,13 +11832,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2223,
+									"line": 2249,
 									"character": 21
 								}
 							]
 						},
 						{
-							"id": 579,
+							"id": 581,
 							"name": "eth_newPendingTransactionFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11800,7 +11859,7 @@
 							],
 							"signatures": [
 								{
-									"id": 580,
+									"id": 582,
 									"name": "eth_newPendingTransactionFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11832,7 +11891,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2164,
+									"line": 2190,
 									"character": 39
 								}
 							]
@@ -11891,13 +11950,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 834,
+									"line": 845,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 553,
+							"id": 555,
 							"name": "eth_sendRawTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11918,7 +11977,7 @@
 							],
 							"signatures": [
 								{
-									"id": 554,
+									"id": 556,
 									"name": "eth_sendRawTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -11937,7 +11996,7 @@
 									},
 									"parameters": [
 										{
-											"id": 555,
+											"id": 557,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -11968,13 +12027,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1757,
+									"line": 1783,
 									"character": 30
 								}
 							]
 						},
 						{
-							"id": 547,
+							"id": 549,
 							"name": "eth_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -11995,7 +12054,7 @@
 							],
 							"signatures": [
 								{
-									"id": 548,
+									"id": 550,
 									"name": "eth_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12015,7 +12074,7 @@
 									},
 									"parameters": [
 										{
-											"id": 549,
+											"id": 551,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12046,13 +12105,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1669,
+									"line": 1694,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 556,
+							"id": 558,
 							"name": "eth_sign",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12073,7 +12132,7 @@
 							],
 							"signatures": [
 								{
-									"id": 557,
+									"id": 559,
 									"name": "eth_sign",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12093,7 +12152,7 @@
 									},
 									"parameters": [
 										{
-											"id": 558,
+											"id": 560,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12109,7 +12168,7 @@
 											}
 										},
 										{
-											"id": 559,
+											"id": 561,
 											"name": "message",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12140,13 +12199,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1790,
+									"line": 1816,
 									"character": 16
 								}
 							]
 						},
 						{
-							"id": 550,
+							"id": 552,
 							"name": "eth_signTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12167,7 +12226,7 @@
 							],
 							"signatures": [
 								{
-									"id": 551,
+									"id": 553,
 									"name": "eth_signTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12187,7 +12246,7 @@
 									},
 									"parameters": [
 										{
-											"id": 552,
+											"id": 554,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12218,13 +12277,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1721,
+									"line": 1747,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 560,
+							"id": 562,
 							"name": "eth_signTypedData",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12245,7 +12304,7 @@
 							],
 							"signatures": [
 								{
-									"id": 561,
+									"id": 563,
 									"name": "eth_signTypedData",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12268,7 +12327,7 @@
 									},
 									"parameters": [
 										{
-											"id": 562,
+											"id": 564,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12284,7 +12343,7 @@
 											}
 										},
 										{
-											"id": 563,
+											"id": 565,
 											"name": "typedData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12296,7 +12355,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"id": 719,
+												"id": 724,
 												"name": "TypedData"
 											}
 										}
@@ -12316,13 +12375,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1861,
+									"line": 1887,
 									"character": 25
 								}
 							]
 						},
 						{
-							"id": 564,
+							"id": 566,
 							"name": "eth_signTypedData_v4",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12343,7 +12402,7 @@
 							],
 							"signatures": [
 								{
-									"id": 565,
+									"id": 567,
 									"name": "eth_signTypedData_v4",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12365,7 +12424,7 @@
 									},
 									"parameters": [
 										{
-											"id": 566,
+											"id": 568,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12381,7 +12440,7 @@
 											}
 										},
 										{
-											"id": 567,
+											"id": 569,
 											"name": "typedData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12393,7 +12452,7 @@
 											},
 											"type": {
 												"type": "reference",
-												"id": 719,
+												"id": 724,
 												"name": "TypedData"
 											}
 										}
@@ -12413,7 +12472,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1921,
+									"line": 1947,
 									"character": 28
 								}
 							]
@@ -12506,7 +12565,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1309,
+									"line": 1320,
 									"character": 26
 								}
 							]
@@ -12615,13 +12674,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1290,
+									"line": 1301,
 									"character": 22
 								}
 							]
 						},
 						{
-							"id": 568,
+							"id": 570,
 							"name": "eth_subscribe",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12643,7 +12702,7 @@
 							],
 							"signatures": [
 								{
-									"id": 569,
+									"id": 571,
 									"name": "eth_subscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12662,7 +12721,7 @@
 									},
 									"parameters": [
 										{
-											"id": 570,
+											"id": 572,
 											"name": "subscriptionName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12690,7 +12749,7 @@
 									}
 								},
 								{
-									"id": 571,
+									"id": 573,
 									"name": "eth_subscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12703,7 +12762,7 @@
 									},
 									"parameters": [
 										{
-											"id": 572,
+											"id": 574,
 											"name": "subscriptionName",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12727,7 +12786,7 @@
 											}
 										},
 										{
-											"id": 573,
+											"id": 575,
 											"name": "options",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12758,17 +12817,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1969,
+									"line": 1995,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1982,
+									"line": 2008,
 									"character": 15
 								},
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 1987,
+									"line": 2013,
 									"character": 15
 								}
 							]
@@ -12827,13 +12886,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 855,
+									"line": 866,
 									"character": 19
 								}
 							]
 						},
 						{
-							"id": 587,
+							"id": 589,
 							"name": "eth_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12854,7 +12913,7 @@
 							],
 							"signatures": [
 								{
-									"id": 588,
+									"id": 590,
 									"name": "eth_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12873,7 +12932,7 @@
 									},
 									"parameters": [
 										{
-											"id": 589,
+											"id": 591,
 											"name": "filterId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12904,13 +12963,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2327,
+									"line": 2353,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 574,
+							"id": 576,
 							"name": "eth_unsubscribe",
 							"kind": 2048,
 							"kindString": "Method",
@@ -12931,7 +12990,7 @@
 							],
 							"signatures": [
 								{
-									"id": 575,
+									"id": 577,
 									"name": "eth_unsubscribe",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -12950,7 +13009,7 @@
 									},
 									"parameters": [
 										{
-											"id": 576,
+											"id": 578,
 											"name": "subscriptionId",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -12981,7 +13040,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2113,
+									"line": 2139,
 									"character": 23
 								}
 							]
@@ -13063,7 +13122,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 539,
+									"line": 545,
 									"character": 22
 								}
 							]
@@ -13149,7 +13208,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 393,
+									"line": 399,
 									"character": 24
 								}
 							]
@@ -13264,7 +13323,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 292,
+																	"line": 298,
 																	"character": 10
 																}
 															],
@@ -13285,7 +13344,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 291,
+																	"line": 297,
 																	"character": 13
 																}
 															],
@@ -13308,7 +13367,7 @@
 													"sources": [
 														{
 															"fileName": "chains/ethereum/ethereum/src/api.ts",
-															"line": 290,
+															"line": 296,
 															"character": 25
 														}
 													]
@@ -13331,17 +13390,17 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 289,
-									"character": 16
-								},
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 290,
-									"character": 16
-								},
-								{
-									"fileName": "chains/ethereum/ethereum/src/api.ts",
 									"line": 295,
+									"character": 16
+								},
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 296,
+									"character": 16
+								},
+								{
+									"fileName": "chains/ethereum/ethereum/src/api.ts",
+									"line": 301,
 									"character": 16
 								}
 							]
@@ -13423,7 +13482,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 562,
+									"line": 568,
 									"character": 25
 								}
 							]
@@ -13500,7 +13559,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 474,
+									"line": 480,
 									"character": 18
 								}
 							]
@@ -13594,7 +13653,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 361,
+									"line": 367,
 									"character": 27
 								}
 							]
@@ -13686,7 +13745,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 420,
+									"line": 426,
 									"character": 19
 								}
 							]
@@ -13733,7 +13792,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 515,
+									"line": 521,
 									"character": 20
 								}
 							]
@@ -13810,7 +13869,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 645,
+									"line": 656,
 									"character": 26
 								}
 							]
@@ -13887,7 +13946,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 660,
+									"line": 671,
 									"character": 22
 								}
 							]
@@ -13964,7 +14023,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 629,
+									"line": 640,
 									"character": 25
 								}
 							]
@@ -14044,7 +14103,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 587,
+									"line": 593,
 									"character": 19
 								}
 							]
@@ -14103,7 +14162,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 612,
+									"line": 623,
 									"character": 18
 								}
 							]
@@ -14162,7 +14221,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 726,
+									"line": 737,
 									"character": 21
 								}
 							]
@@ -14221,7 +14280,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 739,
+									"line": 750,
 									"character": 21
 								}
 							]
@@ -14280,13 +14339,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 713,
+									"line": 724,
 									"character": 19
 								}
 							]
 						},
 						{
-							"id": 640,
+							"id": 642,
 							"name": "personal_importRawKey",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14307,7 +14366,7 @@
 							],
 							"signatures": [
 								{
-									"id": 641,
+									"id": 643,
 									"name": "personal_importRawKey",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14326,7 +14385,7 @@
 									},
 									"parameters": [
 										{
-											"id": 642,
+											"id": 644,
 											"name": "rawKey",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14342,7 +14401,7 @@
 											}
 										},
 										{
-											"id": 643,
+											"id": 645,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14373,13 +14432,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2775,
+									"line": 2801,
 									"character": 29
 								}
 							]
 						},
 						{
-							"id": 635,
+							"id": 637,
 							"name": "personal_listAccounts",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14400,7 +14459,7 @@
 							],
 							"signatures": [
 								{
-									"id": 636,
+									"id": 638,
 									"name": "personal_listAccounts",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14435,13 +14494,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2726,
+									"line": 2752,
 									"character": 29
 								}
 							]
 						},
 						{
-							"id": 644,
+							"id": 646,
 							"name": "personal_lockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14462,7 +14521,7 @@
 							],
 							"signatures": [
 								{
-									"id": 645,
+									"id": 647,
 									"name": "personal_lockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14481,7 +14540,7 @@
 									},
 									"parameters": [
 										{
-											"id": 646,
+											"id": 648,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14512,13 +14571,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2802,
+									"line": 2828,
 									"character": 28
 								}
 							]
 						},
 						{
-							"id": 637,
+							"id": 639,
 							"name": "personal_newAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14539,7 +14598,7 @@
 							],
 							"signatures": [
 								{
-									"id": 638,
+									"id": 640,
 									"name": "personal_newAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14558,7 +14617,7 @@
 									},
 									"parameters": [
 										{
-											"id": 639,
+											"id": 641,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14589,13 +14648,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2744,
+									"line": 2770,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 652,
+							"id": 654,
 							"name": "personal_sendTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14616,7 +14675,7 @@
 							],
 							"signatures": [
 								{
-									"id": 653,
+									"id": 655,
 									"name": "personal_sendTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14636,7 +14695,7 @@
 									},
 									"parameters": [
 										{
-											"id": 654,
+											"id": 656,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14649,7 +14708,7 @@
 											}
 										},
 										{
-											"id": 655,
+											"id": 657,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14680,13 +14739,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2872,
+									"line": 2898,
 									"character": 32
 								}
 							]
 						},
 						{
-							"id": 656,
+							"id": 658,
 							"name": "personal_signTransaction",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14707,7 +14766,7 @@
 							],
 							"signatures": [
 								{
-									"id": 657,
+									"id": 659,
 									"name": "personal_signTransaction",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14727,7 +14786,7 @@
 									},
 									"parameters": [
 										{
-											"id": 658,
+											"id": 660,
 											"name": "transaction",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14743,7 +14802,7 @@
 											}
 										},
 										{
-											"id": 659,
+											"id": 661,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14771,13 +14830,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2927,
+									"line": 2954,
 									"character": 32
 								}
 							]
 						},
 						{
-							"id": 647,
+							"id": 649,
 							"name": "personal_unlockAccount",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14799,7 +14858,7 @@
 							],
 							"signatures": [
 								{
-									"id": 648,
+									"id": 650,
 									"name": "personal_unlockAccount",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14819,7 +14878,7 @@
 									},
 									"parameters": [
 										{
-											"id": 649,
+											"id": 651,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14835,7 +14894,7 @@
 											}
 										},
 										{
-											"id": 650,
+											"id": 652,
 											"name": "passphrase",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14851,7 +14910,7 @@
 											}
 										},
 										{
-											"id": 651,
+											"id": 653,
 											"name": "duration",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -14883,13 +14942,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2831,
+									"line": 2857,
 									"character": 30
 								}
 							]
 						},
 						{
-							"id": 660,
+							"id": 662,
 							"name": "rpc_modules",
 							"kind": 2048,
 							"kindString": "Method",
@@ -14910,7 +14969,7 @@
 							],
 							"signatures": [
 								{
-									"id": 661,
+									"id": 663,
 									"name": "rpc_modules",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -14933,7 +14992,7 @@
 											{
 												"type": "reflection",
 												"declaration": {
-													"id": 662,
+													"id": 664,
 													"name": "__type",
 													"kind": 65536,
 													"kindString": "Type literal",
@@ -14942,7 +15001,7 @@
 													},
 													"children": [
 														{
-															"id": 663,
+															"id": 665,
 															"name": "eth",
 															"kind": 32,
 															"kindString": "Variable",
@@ -14952,7 +15011,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 94,
+																	"line": 100,
 																	"character": 5
 																}
 															],
@@ -14963,7 +15022,7 @@
 															"defaultValue": "\"1.0\""
 														},
 														{
-															"id": 667,
+															"id": 669,
 															"name": "evm",
 															"kind": 32,
 															"kindString": "Variable",
@@ -14973,70 +15032,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 98,
-																	"character": 5
-																}
-															],
-															"type": {
-																"type": "stringLiteral",
-																"value": "1.0"
-															},
-															"defaultValue": "\"1.0\""
-														},
-														{
-															"id": 664,
-															"name": "net",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 95,
-																	"character": 5
-																}
-															],
-															"type": {
-																"type": "stringLiteral",
-																"value": "1.0"
-															},
-															"defaultValue": "\"1.0\""
-														},
-														{
-															"id": 668,
-															"name": "personal",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 99,
-																	"character": 10
-																}
-															],
-															"type": {
-																"type": "stringLiteral",
-																"value": "1.0"
-															},
-															"defaultValue": "\"1.0\""
-														},
-														{
-															"id": 665,
-															"name": "rpc",
-															"kind": 32,
-															"kindString": "Variable",
-															"flags": {
-																"isExported": true
-															},
-															"sources": [
-																{
-																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 96,
+																	"line": 104,
 																	"character": 5
 																}
 															],
@@ -15048,6 +15044,69 @@
 														},
 														{
 															"id": 666,
+															"name": "net",
+															"kind": 32,
+															"kindString": "Variable",
+															"flags": {
+																"isExported": true
+															},
+															"sources": [
+																{
+																	"fileName": "chains/ethereum/ethereum/src/api.ts",
+																	"line": 101,
+																	"character": 5
+																}
+															],
+															"type": {
+																"type": "stringLiteral",
+																"value": "1.0"
+															},
+															"defaultValue": "\"1.0\""
+														},
+														{
+															"id": 670,
+															"name": "personal",
+															"kind": 32,
+															"kindString": "Variable",
+															"flags": {
+																"isExported": true
+															},
+															"sources": [
+																{
+																	"fileName": "chains/ethereum/ethereum/src/api.ts",
+																	"line": 105,
+																	"character": 10
+																}
+															],
+															"type": {
+																"type": "stringLiteral",
+																"value": "1.0"
+															},
+															"defaultValue": "\"1.0\""
+														},
+														{
+															"id": 667,
+															"name": "rpc",
+															"kind": 32,
+															"kindString": "Variable",
+															"flags": {
+																"isExported": true
+															},
+															"sources": [
+																{
+																	"fileName": "chains/ethereum/ethereum/src/api.ts",
+																	"line": 102,
+																	"character": 5
+																}
+															],
+															"type": {
+																"type": "stringLiteral",
+																"value": "1.0"
+															},
+															"defaultValue": "\"1.0\""
+														},
+														{
+															"id": 668,
 															"name": "web3",
 															"kind": 32,
 															"kindString": "Variable",
@@ -15057,7 +15116,7 @@
 															"sources": [
 																{
 																	"fileName": "chains/ethereum/ethereum/src/api.ts",
-																	"line": 97,
+																	"line": 103,
 																	"character": 6
 																}
 															],
@@ -15073,12 +15132,12 @@
 															"title": "Variables",
 															"kind": 32,
 															"children": [
-																663,
-																667,
-																664,
-																668,
 																665,
-																666
+																669,
+																666,
+																670,
+																667,
+																668
 															]
 														}
 													]
@@ -15092,13 +15151,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2955,
+									"line": 2982,
 									"character": 19
 								}
 							]
 						},
 						{
-							"id": 676,
+							"id": 678,
 							"name": "shh_addToGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15119,7 +15178,7 @@
 							],
 							"signatures": [
 								{
-									"id": 677,
+									"id": 679,
 									"name": "shh_addToGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15138,7 +15197,7 @@
 									},
 									"parameters": [
 										{
-											"id": 678,
+											"id": 680,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15169,13 +15228,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3012,
+									"line": 3039,
 									"character": 22
 								}
 							]
 						},
 						{
-							"id": 686,
+							"id": 688,
 							"name": "shh_getFilterChanges",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15196,7 +15255,7 @@
 							],
 							"signatures": [
 								{
-									"id": 687,
+									"id": 689,
 									"name": "shh_getFilterChanges",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15215,7 +15274,7 @@
 									},
 									"parameters": [
 										{
-											"id": 688,
+											"id": 690,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15249,13 +15308,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3060,
+									"line": 3087,
 									"character": 28
 								}
 							]
 						},
 						{
-							"id": 689,
+							"id": 691,
 							"name": "shh_getMessages",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15276,7 +15335,7 @@
 							],
 							"signatures": [
 								{
-									"id": 690,
+									"id": 692,
 									"name": "shh_getMessages",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15295,7 +15354,7 @@
 									},
 									"parameters": [
 										{
-											"id": 691,
+											"id": 693,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15326,13 +15385,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3075,
+									"line": 3102,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 671,
+							"id": 673,
 							"name": "shh_hasIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15353,7 +15412,7 @@
 							],
 							"signatures": [
 								{
-									"id": 672,
+									"id": 674,
 									"name": "shh_hasIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15372,7 +15431,7 @@
 									},
 									"parameters": [
 										{
-											"id": 673,
+											"id": 675,
 											"name": "address",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15403,13 +15462,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2987,
+									"line": 3014,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 679,
+							"id": 681,
 							"name": "shh_newFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15430,7 +15489,7 @@
 							],
 							"signatures": [
 								{
-									"id": 680,
+									"id": 682,
 									"name": "shh_newFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15449,7 +15508,7 @@
 									},
 									"parameters": [
 										{
-											"id": 681,
+											"id": 683,
 											"name": "to",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15465,7 +15524,7 @@
 											}
 										},
 										{
-											"id": 682,
+											"id": 684,
 											"name": "topics",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15499,13 +15558,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3029,
+									"line": 3056,
 									"character": 21
 								}
 							]
 						},
 						{
-							"id": 674,
+							"id": 676,
 							"name": "shh_newGroup",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15526,7 +15585,7 @@
 							],
 							"signatures": [
 								{
-									"id": 675,
+									"id": 677,
 									"name": "shh_newGroup",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15552,13 +15611,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2997,
+									"line": 3024,
 									"character": 20
 								}
 							]
 						},
 						{
-							"id": 669,
+							"id": 671,
 							"name": "shh_newIdentity",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15579,7 +15638,7 @@
 							],
 							"signatures": [
 								{
-									"id": 670,
+									"id": 672,
 									"name": "shh_newIdentity",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15611,13 +15670,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 2972,
+									"line": 2999,
 									"character": 23
 								}
 							]
 						},
 						{
-							"id": 692,
+							"id": 694,
 							"name": "shh_post",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15638,7 +15697,7 @@
 							],
 							"signatures": [
 								{
-									"id": 693,
+									"id": 695,
 									"name": "shh_post",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15657,7 +15716,7 @@
 									},
 									"parameters": [
 										{
-											"id": 694,
+											"id": 696,
 											"name": "postData",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15686,13 +15745,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3090,
+									"line": 3117,
 									"character": 16
 								}
 							]
 						},
 						{
-							"id": 683,
+							"id": 685,
 							"name": "shh_uninstallFilter",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15713,7 +15772,7 @@
 							],
 							"signatures": [
 								{
-									"id": 684,
+									"id": 686,
 									"name": "shh_uninstallFilter",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15732,7 +15791,7 @@
 									},
 									"parameters": [
 										{
-											"id": 685,
+											"id": 687,
 											"name": "id",
 											"kind": 32768,
 											"kindString": "Parameter",
@@ -15763,13 +15822,13 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3045,
+									"line": 3072,
 									"character": 27
 								}
 							]
 						},
 						{
-							"id": 695,
+							"id": 697,
 							"name": "shh_version",
 							"kind": 2048,
 							"kindString": "Method",
@@ -15790,7 +15849,7 @@
 							],
 							"signatures": [
 								{
-									"id": 696,
+									"id": 698,
 									"name": "shh_version",
 									"kind": 4096,
 									"kindString": "Call signature",
@@ -15822,7 +15881,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 3104,
+									"line": 3131,
 									"character": 19
 								}
 							]
@@ -15881,7 +15940,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 681,
+									"line": 692,
 									"character": 26
 								}
 							]
@@ -15958,7 +16017,7 @@
 							"sources": [
 								{
 									"fileName": "chains/ethereum/ethereum/src/api.ts",
-									"line": 697,
+									"line": 708,
 									"character": 17
 								}
 							]
@@ -15994,54 +16053,55 @@
 								31,
 								35,
 								26,
-								628,
-								624,
-								506,
+								630,
+								626,
 								508,
-								620,
 								510,
+								622,
+								512,
 								112,
 								104,
 								504,
-								512,
+								514,
 								194,
 								114,
 								277,
 								274,
-								516,
+								518,
 								280,
-								584,
-								590,
-								603,
-								520,
+								586,
+								592,
+								605,
+								522,
 								282,
 								302,
-								525,
-								616,
-								544,
+								527,
+								618,
+								546,
 								328,
 								408,
 								322,
 								325,
 								488,
 								502,
+								506,
 								500,
-								577,
-								581,
 								579,
+								583,
+								581,
 								108,
-								553,
-								547,
-								556,
-								550,
-								560,
-								564,
+								555,
+								549,
+								558,
+								552,
+								562,
+								566,
 								496,
 								491,
-								568,
+								570,
 								110,
-								587,
-								574,
+								589,
+								576,
 								71,
 								60,
 								48,
@@ -16058,24 +16118,24 @@
 								100,
 								102,
 								98,
-								640,
-								635,
-								644,
+								642,
 								637,
-								652,
-								656,
-								647,
-								660,
+								646,
+								639,
+								654,
+								658,
+								649,
+								662,
+								678,
+								688,
+								691,
+								673,
+								681,
 								676,
-								686,
-								689,
 								671,
-								679,
-								674,
-								669,
-								692,
-								683,
-								695,
+								694,
+								685,
+								697,
 								93,
 								95
 							]
@@ -16084,7 +16144,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 143,
+							"line": 149,
 							"character": 32
 						}
 					],
@@ -16096,7 +16156,7 @@
 					]
 				},
 				{
-					"id": 719,
+					"id": 724,
 					"name": "TypedData",
 					"kind": 4194304,
 					"kindString": "Type alias",
@@ -16104,7 +16164,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 104,
+							"line": 110,
 							"character": 14
 						}
 					],
@@ -16147,7 +16207,7 @@
 					}
 				},
 				{
-					"id": 709,
+					"id": 714,
 					"name": "CLIENT_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -16157,7 +16217,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 91,
+							"line": 97,
 							"character": 20
 						}
 					],
@@ -16168,7 +16228,7 @@
 					"defaultValue": "`Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`"
 				},
 				{
-					"id": 710,
+					"id": 715,
 					"name": "PROTOCOL_VERSION",
 					"kind": 32,
 					"kindString": "Variable",
@@ -16178,7 +16238,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 92,
+							"line": 98,
 							"character": 22
 						}
 					],
@@ -16189,7 +16249,7 @@
 					"defaultValue": "Data.from(\"0x3f\")"
 				},
 				{
-					"id": 711,
+					"id": 716,
 					"name": "RPC_MODULES",
 					"kind": 32,
 					"kindString": "Variable",
@@ -16199,21 +16259,21 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 93,
+							"line": 99,
 							"character": 17
 						}
 					],
 					"type": {
 						"type": "reflection",
 						"declaration": {
-							"id": 712,
+							"id": 717,
 							"name": "__type",
 							"kind": 65536,
 							"kindString": "Type literal",
 							"flags": {},
 							"children": [
 								{
-									"id": 713,
+									"id": 718,
 									"name": "eth",
 									"kind": 32,
 									"kindString": "Variable",
@@ -16221,7 +16281,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 94,
+											"line": 100,
 											"character": 5
 										}
 									],
@@ -16232,7 +16292,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 717,
+									"id": 722,
 									"name": "evm",
 									"kind": 32,
 									"kindString": "Variable",
@@ -16240,7 +16300,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 98,
+											"line": 104,
 											"character": 5
 										}
 									],
@@ -16251,7 +16311,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 714,
+									"id": 719,
 									"name": "net",
 									"kind": 32,
 									"kindString": "Variable",
@@ -16259,7 +16319,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 95,
+											"line": 101,
 											"character": 5
 										}
 									],
@@ -16270,7 +16330,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 718,
+									"id": 723,
 									"name": "personal",
 									"kind": 32,
 									"kindString": "Variable",
@@ -16278,7 +16338,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 99,
+											"line": 105,
 											"character": 10
 										}
 									],
@@ -16289,7 +16349,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 715,
+									"id": 720,
 									"name": "rpc",
 									"kind": 32,
 									"kindString": "Variable",
@@ -16297,7 +16357,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 96,
+											"line": 102,
 											"character": 5
 										}
 									],
@@ -16308,7 +16368,7 @@
 									"defaultValue": "\"1.0\""
 								},
 								{
-									"id": 716,
+									"id": 721,
 									"name": "web3",
 									"kind": 32,
 									"kindString": "Variable",
@@ -16316,7 +16376,7 @@
 									"sources": [
 										{
 											"fileName": "chains/ethereum/ethereum/src/api.ts",
-											"line": 97,
+											"line": 103,
 											"character": 6
 										}
 									],
@@ -16332,12 +16392,12 @@
 									"title": "Variables",
 									"kind": 32,
 									"children": [
-										713,
-										717,
-										714,
 										718,
-										715,
-										716
+										722,
+										719,
+										723,
+										720,
+										721
 									]
 								}
 							]
@@ -16346,7 +16406,7 @@
 					"defaultValue": "{\n  eth: \"1.0\",\n  net: \"1.0\",\n  rpc: \"1.0\",\n  web3: \"1.0\",\n  evm: \"1.0\",\n  personal: \"1.0\"\n} as const"
 				},
 				{
-					"id": 708,
+					"id": 713,
 					"name": "version",
 					"kind": 32,
 					"kindString": "Variable",
@@ -16354,7 +16414,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 87,
+							"line": 93,
 							"character": 15
 						}
 					],
@@ -16364,21 +16424,21 @@
 					}
 				},
 				{
-					"id": 720,
+					"id": 725,
 					"name": "assertExceptionalTransactions",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-							"id": 721,
+							"id": 726,
 							"name": "assertExceptionalTransactions",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 722,
+									"id": 727,
 									"name": "transactions",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -16401,27 +16461,27 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 111,
+							"line": 117,
 							"character": 38
 						}
 					]
 				},
 				{
-					"id": 697,
+					"id": 699,
 					"name": "autofillDefaultTransactionValues",
 					"kind": 64,
 					"kindString": "Function",
 					"flags": {},
 					"signatures": [
 						{
-							"id": 698,
+							"id": 700,
 							"name": "autofillDefaultTransactionValues",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"parameters": [
 								{
-									"id": 699,
+									"id": 701,
 									"name": "tx",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -16432,7 +16492,7 @@
 									}
 								},
 								{
-									"id": 700,
+									"id": 702,
 									"name": "eth_estimateGas",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -16440,21 +16500,21 @@
 									"type": {
 										"type": "reflection",
 										"declaration": {
-											"id": 701,
+											"id": 703,
 											"name": "__type",
 											"kind": 65536,
 											"kindString": "Type literal",
 											"flags": {},
 											"signatures": [
 												{
-													"id": 702,
+													"id": 704,
 													"name": "__call",
 													"kind": 4096,
 													"kindString": "Call signature",
 													"flags": {},
 													"parameters": [
 														{
-															"id": 703,
+															"id": 705,
 															"name": "tx",
 															"kind": 32768,
 															"kindString": "Parameter",
@@ -16465,7 +16525,7 @@
 															}
 														},
 														{
-															"id": 704,
+															"id": 706,
 															"name": "tag",
 															"kind": 32768,
 															"kindString": "Parameter",
@@ -16500,7 +16560,7 @@
 											"sources": [
 												{
 													"fileName": "chains/ethereum/ethereum/src/api.ts",
-													"line": 57,
+													"line": 58,
 													"character": 18
 												}
 											]
@@ -16508,7 +16568,50 @@
 									}
 								},
 								{
-									"id": 705,
+									"id": 707,
+									"name": "eth_maxPriorityFeePerGas",
+									"kind": 32768,
+									"kindString": "Parameter",
+									"flags": {},
+									"type": {
+										"type": "reflection",
+										"declaration": {
+											"id": 708,
+											"name": "__type",
+											"kind": 65536,
+											"kindString": "Type literal",
+											"flags": {},
+											"signatures": [
+												{
+													"id": 709,
+													"name": "__call",
+													"kind": 4096,
+													"kindString": "Call signature",
+													"flags": {},
+													"type": {
+														"type": "reference",
+														"typeArguments": [
+															{
+																"type": "reference",
+																"name": "Quantity"
+															}
+														],
+														"name": "Promise"
+													}
+												}
+											],
+											"sources": [
+												{
+													"fileName": "chains/ethereum/ethereum/src/api.ts",
+													"line": 62,
+													"character": 27
+												}
+											]
+										}
+									}
+								},
+								{
+									"id": 710,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -16519,7 +16622,7 @@
 									}
 								},
 								{
-									"id": 706,
+									"id": 711,
 									"name": "blockchain",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -16530,7 +16633,7 @@
 									}
 								},
 								{
-									"id": 707,
+									"id": 712,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -16556,7 +16659,7 @@
 					"sources": [
 						{
 							"fileName": "chains/ethereum/ethereum/src/api.ts",
-							"line": 55,
+							"line": 56,
 							"character": 47
 						}
 					]
@@ -16574,25 +16677,25 @@
 					"title": "Type aliases",
 					"kind": 4194304,
 					"children": [
-						719
+						724
 					]
 				},
 				{
 					"title": "Variables",
 					"kind": 32,
 					"children": [
-						709,
-						710,
-						711,
-						708
+						714,
+						715,
+						716,
+						713
 					]
 				},
 				{
 					"title": "Functions",
 					"kind": 64,
 					"children": [
-						720,
-						697
+						725,
+						699
 					]
 				}
 			],
