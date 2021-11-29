@@ -10,17 +10,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # We start at Node 10.18.0 because it is the first version filecoin's
-        # CBOR package will let us install. Once filecoin is moved out of the
-        # monorepo we want to use 10.7.0 (earliest version the Ethereum side
-        # supports) or 10.13.0 (first node 10 LTS version).
-        node: [10.18.0, 10.x, 11.x, 12.x, 13.x, 14.x]
+        node: [12.0.0, 12.x, 13.x, 14.x, 15.x, 16.x, 17.x]
         os: [ubuntu-20.04]
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
@@ -39,8 +37,8 @@ jobs:
         # CBOR package will let us install. Once filecoin is moved out of the
         # monorepo we want to use 10.7.0 (earliest version the Ethereum side
         # supports) or 10.13.0 (first node 10 LTS version).
-        node: [10.18.0, 10.x, 11.x, 12.x, 13.x, 14.x]
-        os: [windows-2019, ubuntu-16.04, ubuntu-18.04]
+        node: [10.18.0, 10.x, 11.x, 12.x, 13.x, 14.x, 15.x, 16.x]
+        os: [windows-2019, ubuntu-18.04, ubuntu-20.04]
 
     runs-on: ${{ matrix.os }}
 
@@ -48,7 +46,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
@@ -87,3 +86,4 @@ jobs:
       - run: npm test
         env:
           FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}

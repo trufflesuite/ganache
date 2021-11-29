@@ -2,13 +2,13 @@
 
 ## Getting set up
 
-- Use Node.js v10.13.0.
-  - Why v10.13.0? Because this is the first version prettier supports.
+- Use Node.js v12.0.0.
+  - Why v12.0.0? Because this is the first LTS release of Node.js v12 and is the earliest version Ganache supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
-    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v10.13.0.
-- `git clone git@github.com:trufflesuite/ganache-core.git`
-- `cd ganache-core`
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v12.0.0.
+- `git clone git@github.com:trufflesuite/ganache.git`
+- `cd ganache`
 - `npm install` (use npm v6)
 - On Linux and macOS: run `source completions.sh` to enable autocomplete for npm scripts.
 
@@ -153,7 +153,7 @@ index 2a2aa9e..57cbf21 100644
 
 These are guidelines, not rules. :-)
 
-- Use Node.js v10.13.0 for most local development.
+- Use Node.js v12.0.0 for most local development.
 - Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
 - Write tests.
@@ -169,7 +169,7 @@ These are guidelines, not rules. :-)
   support, and make sure it's absolutely necessary.
 - Pin all dependencies, even dev dependencies.
 - Use npm; do not use yarn.
-- Don't use web3, ethers, etc in ganache-core core code. (Tests are fine)
+- Don't use web3, ethers, etc in ganache core code. (Tests are fine)
 - Ensure a smooth development experience on Windows, Mac, and Linux.
 - Do not use bash scripts for critical development or configuration.
 - Do not use CLI commands in npm scripts or build scripts that aren't available by default on supported platforms.

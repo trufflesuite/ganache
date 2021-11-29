@@ -2,7 +2,6 @@ import { Address } from "@ganache/ethereum-address";
 import {
   keccak,
   BUFFER_EMPTY,
-  BUFFER_ZERO,
   RPCQUANTITY_EMPTY,
   Quantity,
   Data
@@ -17,68 +16,48 @@ import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
+type KVP = { key: Buffer; value: Buffer };
 
+const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";
 const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap();
+const MetadataSingletons = new WeakMap<LevelUp, LevelUp>();
+
 const LEVELDOWN_OPTIONS = {
   keyEncoding: "binary",
   valueEncoding: "binary"
 };
-/**
- * Commits a checkpoint to disk, if current checkpoint is not nested.
- * If nested, only sets the parent checkpoint as current checkpoint.
- * @throws If not during a checkpoint phase
- */
-async function commit(this: CheckpointDB) {
-  const { keyValueMap } = this.checkpoints.pop();
-  if (!this.isCheckpoint) {
-    // This was the final checkpoint, we should now commit and flush everything to disk
-    const batchOp = [];
-    keyValueMap.forEach(function (value, key) {
-      if (value === null) {
-        batchOp.push({
-          type: "del",
-          key: Buffer.from(key, "binary")
-        });
-      } else {
-        batchOp.push({
-          type: "put",
-          key: Buffer.from(key, "binary"),
-          value
-        });
-      }
-    });
-    await this.batch(batchOp);
-  } else {
-    // dump everything into the current (higher level) cache
-    const currentKeyValueMap = this.checkpoints[this.checkpoints.length - 1]
-      .keyValueMap;
-    keyValueMap.forEach((value, key) => currentKeyValueMap.set(key, value));
-  }
+
+function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
+  const decodedKey = lexico.decode(encodedKey);
+  const [_, keyAddress, deletedKey] = decodedKey;
+  return keyAddress.equals(address) && deletedKey.equals(key);
 }
 
 export class ForkTrie extends GanacheTrie {
   private accounts: AccountManager;
   private address: Buffer | null = null;
-  public blockNumber: Quantity | null = null;
-  private metadata: LevelUp;
+  private isPreForkBlock = false;
+  private forkBlockNumber: bigint;
+  public blockNumber: Quantity;
+  private metadata: CheckpointDB;
 
   constructor(db: LevelUp | null, root: Buffer, blockchain: Blockchain) {
     super(db, root, blockchain);
-    this.db.commit = commit.bind(this.db);
 
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
+    this.forkBlockNumber = this.blockNumber.toBigInt();
 
     if (MetadataSingletons.has(db)) {
-      this.metadata = MetadataSingletons.get(db);
+      this.metadata = new CheckpointDB(MetadataSingletons.get(db));
     } else {
-      this.metadata = sub(db, "f", LEVELDOWN_OPTIONS);
-      MetadataSingletons.set(db, this.metadata);
+      const metadataDb = sub(db, "f", LEVELDOWN_OPTIONS);
+      MetadataSingletons.set(db, metadataDb);
+      this.metadata = new CheckpointDB(metadataDb);
     }
   }
 
@@ -90,14 +69,47 @@ export class ForkTrie extends GanacheTrie {
     return (this as any)._root;
   }
 
+  checkpoint() {
+    super.checkpoint();
+    this.metadata.checkpoint(this.root);
+  }
+  async commit() {
+    await Promise.all([super.commit(), this.metadata.commit()]);
+  }
+  async revert() {
+    await Promise.all([super.revert(), this.metadata.revert()]);
+  }
+
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
     (this as any)._root = stateRoot;
     this.address = address;
     this.blockNumber = blockNumber;
+    this.isPreForkBlock = blockNumber.toBigInt() < this.forkBlockNumber;
   }
 
   async put(key: Buffer, val: Buffer): Promise<void> {
     return super.put(key, val);
+  }
+
+  /**
+   * Removes saved metadata from the given block range (inclusive)
+   * @param startBlockNumber (inclusive)
+   * @param endBlockNumber (inclusive)
+   */
+  public async revertMetaData(
+    startBlockNumber: Quantity,
+    endBlockNumber: Quantity
+  ) {
+    const db = this.metadata._leveldb;
+    const stream = db.createKeyStream({
+      gte: lexico.encode([startBlockNumber.toBuffer()]),
+      lt: lexico.encode([
+        Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
+      ])
+    });
+    const batch = db.batch();
+    for await (const key of stream) batch.del(key);
+    await batch.write();
   }
 
   private createDelKey(key: Buffer) {
@@ -105,41 +117,68 @@ export class ForkTrie extends GanacheTrie {
     return lexico.encode([blockNum, this.address, key]);
   }
 
+  /**
+   * Checks if the key was deleted (locally -- not on the fork)
+   * @param key
+   */
   private async keyWasDeleted(key: Buffer) {
-    return new Promise((resolve, reject) => {
-      const selfAddress = this.address === null ? BUFFER_EMPTY : this.address;
-      let wasDeleted = false;
-      const stream = this.metadata
-        .createKeyStream({
-          lte: this.createDelKey(key),
-          reverse: true
-        })
-        .on("data", data => {
-          const delKey = lexico.decode(data);
-          // const blockNumber = delKey[0];
-          const address = delKey[1];
-          const deletedKey = delKey[2];
-          if (address.equals(selfAddress) && deletedKey.equals(key)) {
-            wasDeleted = true;
-            (stream as any).destroy();
-          }
-        })
-        .on("close", () => resolve(wasDeleted))
-        .on("error", reject);
+    const selfAddress = this.address === null ? BUFFER_EMPTY : this.address;
+    // check the uncommitted checkpoints for deleted keys before
+    // checking the database itself
+    // TODO(perf): there is probably a better/faster way of doing this for the
+    // common case.
+    const checkpoints = this.metadata.checkpoints;
+    for (let i = checkpoints.length - 1; i >= 0; i--) {
+      for (let [encodedKeyStr, value] of checkpoints[i].keyValueMap.entries()) {
+        if (!value || !value.equals(DELETED_VALUE)) continue;
+        const encodedKey = Buffer.from(encodedKeyStr, "binary");
+        if (isEqualKey(encodedKey, selfAddress, key)) return true;
+      }
+    }
+
+    // since we didn't find proof of deletion in a checkpoint let's check the
+    // database for it.
+    // We start searching from our database key (blockNum + address + key)
+    // down to the earliest block we know about.
+    // TODO(perf): this is just going to be slow once we get lots of keys
+    // because it just checks every single key we've ever deleted (before this
+    // one).
+    const stream = this.metadata._leveldb.createReadStream({
+      lte: this.createDelKey(key),
+      reverse: true
     });
+    for await (const data of stream) {
+      const { key: encodedKey, value } = (data as unknown) as KVP;
+      if (!value || !value.equals(DELETED_VALUE)) continue;
+      if (isEqualKey(encodedKey, selfAddress, key)) return true;
+    }
+
+    // we didn't find proof of deletion so we return `false`
+    return false;
   }
 
   async del(key: Buffer) {
     await this.lock.wait();
 
-    const hash = keccak(key);
-    const delKey = this.createDelKey(key);
-    const metaDataPutPromise = this.metadata.put(delKey, BUFFER_ZERO);
+    // we only track if the key was deleted (locally) for state tries _after_
+    // the fork block because we can't possibly delete keys _before_ the fork
+    // block, since those happened before ganache was even started
+    // This little optimization can cut debug_traceTransaction time _in half_.
+    if (!this.isPreForkBlock) {
+      const delKey = this.createDelKey(key);
+      const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
 
-    const { node, stack } = await this.findPath(hash);
+      const hash = keccak(key);
+      const { node, stack } = await this.findPath(hash);
+      if (node) await this._deleteNode(hash, stack);
 
-    if (node) await this._deleteNode(hash, stack);
-    await metaDataPutPromise;
+      await metaDataPutPromise;
+    } else {
+      const hash = keccak(key);
+      const { node, stack } = await this.findPath(hash);
+      if (node) await this._deleteNode(hash, stack);
+    }
+
     this.lock.signal();
   }
 
@@ -173,15 +212,22 @@ export class ForkTrie extends GanacheTrie {
 
     // because code requires additional asynchronous processing, we await and
     // process it ASAP
-    const codeHex = await codeProm;
-    if (codeHex !== "0x") {
-      const code = Data.from(codeHex).toBuffer();
-      // the codeHash is just the keccak hash of the code itself
-      account.codeHash = keccak(code);
-      if (!account.codeHash.equals(KECCAK256_NULL)) {
-        // insert the code directly into the database with a key of `codeHash`
-        promises[2] = this.db.put(account.codeHash, code);
+    try {
+      const codeHex = await codeProm;
+      if (codeHex !== "0x") {
+        const code = Data.from(codeHex).toBuffer();
+        // the codeHash is just the keccak hash of the code itself
+        account.codeHash = keccak(code);
+        if (!account.codeHash.equals(KECCAK256_NULL)) {
+          // insert the code directly into the database with a key of `codeHash`
+          promises[2] = this.db.put(account.codeHash, code);
+        }
       }
+    } catch (e) {
+      // Since we fired off some promises that may throw themselves we need to
+      // catch these errors and discard them.
+      Promise.all(promises).catch(e => {});
+      throw e;
     }
 
     // finally, set the `nonce` and `balance` on the account before returning
@@ -218,12 +264,15 @@ export class ForkTrie extends GanacheTrie {
 
   async get(key: Buffer): Promise<Buffer> {
     const value = await super.get(key);
-    if (value != null) {
-      return value;
-    }
-    if (await this.keyWasDeleted(key)) {
-      return null;
-    }
+    if (value != null) return value;
+
+    // since we don't have this key in our local trie check if we've have
+    // deleted it (locally)
+    // we only check if the key was deleted (locally) for state tries _after_
+    // the fork block because we can't possibly delete keys _before_ the fork
+    // block, since those happened before ganache was even started
+    // This little optimization can cut debug_traceTransaction time _in half_.
+    if (!this.isPreForkBlock && (await this.keyWasDeleted(key))) return null;
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
@@ -236,14 +285,30 @@ export class ForkTrie extends GanacheTrie {
 
   /**
    * Returns a copy of the underlying trie with the interface of ForkTrie.
-   * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
+   * @param includeCheckpoints - If true and during a checkpoint, the copy will
+   * contain the checkpointing metadata and will use the same scratch as
+   * underlying db.
    */
-  copy() {
-    const db = this.db.copy();
+  copy(includeCheckpoints: boolean = true) {
+    const db = this.db.copy() as CheckpointDB;
     const secureTrie = new ForkTrie(db._leveldb, this.root, this.blockchain);
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;
+    if (includeCheckpoints && this.isCheckpoint) {
+      secureTrie.db.checkpoints = [...this.db.checkpoints];
+
+      // Our `metadata.checkpoints` needs to be the same reference to the
+      // parent's metadata.checkpoints so that we can continue to track these
+      // changes on this copy, otherwise deletions made to a contract's storage
+      // may not be tracked.
+      // Note: db.checkpoints don't need this same treatment because of the way
+      // the statemanager uses a contract's trie: it doesn't ever save to it.
+      // Instead, it saves to its own internal cache, which eventually gets
+      // reverted or committed (flushed). Our metadata doesn't utilize a central
+      // cache.
+      secureTrie.metadata.checkpoints = this.metadata.checkpoints;
+    }
     return secureTrie;
   }
 }

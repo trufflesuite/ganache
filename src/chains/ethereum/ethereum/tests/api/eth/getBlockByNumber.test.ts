@@ -47,11 +47,16 @@ describe("api", () => {
             const block = await provider.send("eth_getBlockByNumber", [
               `0x${numberOfBlocksToMine.toString(16)}`
             ]);
+            assert(
+              block,
+              `\`block\` is \`null\`; didn't correctly mine ${numberOfBlocksToMine} blocks`
+            );
             assert.strictEqual(
               block.totalDifficulty,
               `0x${((numberOfBlocksToMine + 1) * DEFAULT_DIFFICULTY).toString(
                 16
-              )}`
+              )}`,
+              `Mined total difficulty, ${block.totalDifficulty} differs from sum of preceding block's difficulties.`
             );
           });
         });
@@ -81,9 +86,14 @@ describe("api", () => {
             const block = await provider.send("eth_getBlockByNumber", [
               `0x${numberOfBlocksToMine.toString(16)}`
             ]);
+            assert(
+              block,
+              `\`block\` is \`null\`; didn't correctly mine ${numberOfBlocksToMine} blocks`
+            );
             assert.strictEqual(
               block.totalDifficulty,
-              `0x${((numberOfBlocksToMine + 1) * difficulty).toString(16)}`
+              `0x${((numberOfBlocksToMine + 1) * difficulty).toString(16)}`,
+              `Mined total difficulty, ${block.totalDifficulty} differs from sum of preceding block's difficulties.`
             );
           });
         });

@@ -2,9 +2,7 @@ import base from "./webpack.common.config";
 import webpack from "webpack";
 import path from "path";
 import merge from "webpack-merge";
-
-let moduleCounter = 0;
-let nodeModules = {};
+import DeduplicatePlugin from "./deduplicate-plugin";
 
 const config: webpack.Configuration = merge({}, base, {
   target: "node10.7",
@@ -17,13 +15,14 @@ const config: webpack.Configuration = merge({}, base, {
     path: path.resolve(__dirname, "../", "dist", "node")
   },
   plugins: [
-    // add a shebang at the top of the generated `ganache-cli.min.js`
+    // add a shebang at the top of the generated `cli.js`
     new webpack.BannerPlugin({
       entryOnly: true,
       include: "cli.js",
       banner: "#!/usr/bin/env node",
       raw: true
-    })
+    }),
+    new DeduplicatePlugin()
   ],
   optimization: {
     splitChunks: {
@@ -35,12 +34,16 @@ const config: webpack.Configuration = merge({}, base, {
     chunkIds: "total-size"
   },
   externals: [
-    "bigint-buffer",
+    //#region dependencies that have the potential to compile something at install time
+    "@trufflesuite/bigint-buffer",
     "leveldown",
     "secp256k1",
     "keccak",
+    // our µWebSockets.js uses `ws`, as does some other libs. `ws` likes to use
+    // `bufferutil` and `utf-8-validate`, if available, to make it go faster
     "bufferutil",
     "utf-8-validate",
+    //#endregion
     "@ganache/filecoin"
   ],
   module: {

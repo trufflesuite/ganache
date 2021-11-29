@@ -8,6 +8,7 @@ import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
 import { InternalOptions } from "../options";
+import { types } from "util";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -71,17 +72,21 @@ function prepareCORSResponseHeaders(method: HttpMethods, request: HttpRequest) {
 function sendResponse(
   response: HttpResponse,
   statusCode: HttpResponseCodes,
-  contentType?: RecognizedString,
-  data?: RecognizedString,
+  contentType: RecognizedString | null,
+  data: RecognizedString | null,
   writeHeaders: (response: HttpResponse) => void = noop
 ): void {
   response.cork(() => {
     response.writeStatus(statusCode);
     writeHeaders(response);
-    if (contentType) {
+    if (contentType != null) {
       response.writeHeader("Content-Type", contentType);
     }
-    response.end(data);
+    if (data != null) {
+      response.end(data);
+    } else {
+      response.end();
+    }
   });
 }
 
@@ -125,7 +130,7 @@ export default class HttpServer {
           "400 Bad Request"
         );
       } else {
-        // all other requests don't mean anything to us, so respond with `404 NOT FOUND`...
+        // all other requests don't mean anything to us, so respond with `404 Not Found`...
         sendResponse(
           response,
           HttpResponseCodes.NOT_FOUND,
@@ -181,13 +186,26 @@ export default class HttpServer {
               return;
             }
             const data = connector.format(result, payload);
-            sendResponse(
-              response,
-              HttpResponseCodes.OK,
-              ContentTypes.JSON,
-              data,
-              writeHeaders
-            );
+            if (types.isGeneratorObject(data)) {
+              response.cork(() => {
+                response.writeStatus(HttpResponseCodes.OK);
+                writeHeaders(response);
+                response.writeHeader("Content-Type", ContentTypes.JSON);
+
+                for (const datum of data) {
+                  response.write(datum as RecognizedString);
+                }
+                response.end();
+              });
+            } else {
+              sendResponse(
+                response,
+                HttpResponseCodes.OK,
+                ContentTypes.JSON,
+                data,
+                writeHeaders
+              );
+            }
           })
           .catch(error => {
             if (aborted) {
@@ -221,8 +239,8 @@ export default class HttpServer {
     sendResponse(
       response,
       HttpResponseCodes.NO_CONTENT,
-      void 0,
-      "",
+      null,
+      null,
       writeHeaders
     );
   };

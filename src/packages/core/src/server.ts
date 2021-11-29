@@ -6,11 +6,31 @@ import {
 } from "./options";
 
 import allSettled from "promise.allsettled";
+
+// This `shim()` is necessary for `Promise.allSettled` to be shimmed
+// in `node@10`. We cannot use `allSettled([...])` directly due to
+// https://github.com/es-shims/Promise.allSettled/issues/5 without
+// upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
+// then this line could be removed and `Promise.allSettled` below
+// could replaced with `allSettled`.
+allSettled.shim();
+
 import AggregateError from "aggregate-error";
-import uWS, {
+import type {
   TemplatedApp,
   us_listen_socket
 } from "@trufflesuite/uws-js-unofficial";
+import {
+  App,
+  us_listen_socket_close,
+  _cfg as setUwsGlobalConfig
+} from "@trufflesuite/uws-js-unofficial";
+
+// Set the "silent" config option so we don't output the "uwebsockets" header
+// we check for truthiness because `uws` is omitted from the browser build
+setUwsGlobalConfig &&
+  setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
+
 import {
   Connector,
   ConnectorsByName,
@@ -99,7 +119,7 @@ export class Server<T = any> extends Emittery<{
   #connector: any;
   #websocketServer: WebsocketServer | null = null;
 
-  #initializer: Promise<void>;
+  #initializer: Promise<[void, void]>;
 
   public get provider(): any {
     return this.#connector.provider;
@@ -132,14 +152,20 @@ export class Server<T = any> extends Emittery<{
     //   const server = Ganache.server();
     //   const provider = server.provider;
     //   await server.listen(8545)
-    const connector = (this.#connector = ConnectorLoader.initialize(
-      this.#providerOptions
-    ));
-    this.#initializer = this.initialize(connector);
+    const loader = ConnectorLoader.initialize(this.#providerOptions);
+    const connector = (this.#connector = loader["connector"]);
+
+    // Since the ConnectorLoader starts an async promise that we intentionally
+    // don't await yet we keep the promise around for something else to handle
+    // later.
+    this.#initializer = Promise.all([
+      loader["promise"],
+      this.initialize(connector)
+    ]);
   }
 
-  private async initialize(connector: any) {
-    const _app = (this.#app = uWS.App());
+  private async initialize(connector: Connector) {
+    const _app = (this.#app = App());
 
     if (this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
@@ -187,20 +213,10 @@ export class Server<T = any> extends Emittery<{
 
     this.#status = ServerStatus.opening;
 
-    const initializePromise = this.#initializer;
-
-    // This `shim()` is necessary for `Promise.allSettled` to be shimmed
-    // in `node@10`. We cannot use `allSettled([...])` directly due to
-    // https://github.com/es-shims/Promise.allSettled/issues/5 without
-    // upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
-    // then this line could be removed and `Promise.allSettled` below
-    // could replaced with `allSettled`.
-    allSettled.shim();
-
     const promise = Promise.allSettled([
-      initializePromise,
+      this.#initializer,
       new Promise(
-        (resolve: (listenSocket: false | uWS.us_listen_socket) => void) => {
+        (resolve: (listenSocket: false | us_listen_socket) => void) => {
           // Make sure we have *exclusive* use of this port.
           // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
           const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
@@ -277,7 +293,7 @@ export class Server<T = any> extends Emittery<{
     this.#listenSocket = null;
     // close the socket to prevent any more connections
     if (_listenSocket !== null) {
-      uWS.us_listen_socket_close(_listenSocket);
+      us_listen_socket_close(_listenSocket);
     }
     // close all the connected websockets:
     if (this.#websocketServer !== null) {

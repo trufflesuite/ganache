@@ -3,7 +3,7 @@ import {
   Data,
   Quantity,
   ACCOUNT_ZERO,
-  BUFFER_EMPTY,
+  DATA_EMPTY,
   RPCQUANTITY_EMPTY,
   RPCQUANTITY_ONE
 } from "@ganache/utils";
@@ -158,6 +158,18 @@ export type MinerConfig = {
       type: Data;
       hasDefault: true;
     };
+
+    /**
+     * Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.
+     *
+     * @defaultValue ""
+     */
+    priceBump: {
+      type: bigint;
+      rawType: string | number | bigint;
+      hasDefault: true;
+      cliType: string;
+    };
   };
 };
 
@@ -260,7 +272,14 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return bytes;
     },
     cliDescription: "Set the extraData block header field a miner can include.",
-    default: () => Data.from(BUFFER_EMPTY),
+    default: () => DATA_EMPTY,
+    cliType: "string"
+  },
+  priceBump: {
+    normalize: BigInt,
+    cliDescription:
+      "Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.",
+    default: () => 10n,
     cliType: "string"
   }
 };

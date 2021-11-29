@@ -1,6 +1,6 @@
 import getProvider from "../helpers/getProvider";
-import Server from "../../../../../packages/core/lib/src/server";
 import EthereumProvider from "../../src/provider";
+import { EthereumProviderOptions } from "@ganache/ethereum-options/typings";
 
 export const logging = {
   logger: {
@@ -38,20 +38,26 @@ export const updateRemotesAccountNonces = async (
   remoteAccounts: string[]
 ) => {
   // sets different starting nonces for each account
-  await Promise.all(
-    remoteAccounts.map((account, i) =>
-      remoteProvider.send("evm_setAccountNonce", [
-        account,
-        `0x${(i + 1).toString(16)}`
-      ])
-    )
-  );
+  for (let i = 0; i < remoteAccounts.length; i++) {
+    const account = remoteAccounts[i];
+    await remoteProvider.send("evm_setAccountNonce", [
+      account,
+      `0x${(i + 1).toString(16)}`
+    ]);
+  }
 };
 
-export const startLocalChain = async (port: number) => {
+export const startLocalChain = async (
+  port: number,
+  options?: EthereumProviderOptions["fork"]
+) => {
+  const fork: EthereumProviderOptions["fork"] = { ...options };
+  if (!fork.network && !fork.url && !fork.provider) {
+    (fork as any).url = `ws://0.0.0.0:${port}`;
+  }
   const localProvider = await getProvider({
     logging,
-    fork: { url: `ws://0.0.0.0:${port}` },
+    fork: fork,
     wallet: { deterministic: true }
   });
   return {

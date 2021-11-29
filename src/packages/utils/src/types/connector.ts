@@ -10,7 +10,7 @@ import { KnownKeys } from "../types";
 import Emittery from "emittery";
 
 /**
- * Connects an arbitrary public chain provider to ganache-core
+ * Connects an arbitrary public chain provider to ganache
  */
 export interface Connector<
   ApiImplementation extends Api,
@@ -65,6 +65,10 @@ export interface Connector<
    * @param response
    * @param payload
    */
+  format(
+    result: ResponseFormat,
+    payload: RequestFormat
+  ): RecognizedString | Generator<RecognizedString>;
   format(result: ResponseFormat, payload: RequestFormat): RecognizedString;
 
   /**

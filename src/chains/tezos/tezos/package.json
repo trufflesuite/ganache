@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
@@ -30,7 +30,7 @@
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",
@@ -65,7 +65,7 @@
   "devDependencies": {
     "@ganache/options": "0.1.1-canary.1335",
     "@trufflesuite/typedoc-default-themes": "0.6.1",
-    "@trufflesuite/uws-js-unofficial": "18.14.0-unofficial.3",
+    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
     "@types/bs58check": "2.1.0",
     "@types/libsodium-wrappers": "0.7.9",
     "@types/reflect-metadata": "0.1.0",

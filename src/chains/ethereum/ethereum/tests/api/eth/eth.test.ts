@@ -1,3 +1,4 @@
+import { RPCQUANTITY_GWEI } from "@ganache/utils";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
@@ -42,6 +43,13 @@ describe("api", () => {
       it("should return hashrate of zero", async () => {
         const result = await provider.send("eth_hashrate");
         assert.deepStrictEqual(result, "0x0");
+      });
+    });
+
+    describe("eth_maxPriorityFeePerGas", () => {
+      it("should return 1 GWEI", async () => {
+        const tip = await provider.send("eth_maxPriorityFeePerGas");
+        assert.strictEqual(tip, RPCQUANTITY_GWEI.toString());
       });
     });
 
@@ -95,8 +103,13 @@ describe("api", () => {
 
       it("should use the default chain id when signing transactions", async () => {
         await provider.send("eth_subscribe", ["newHeads"]);
+        const gasPrice = await provider.send("eth_gasPrice", []);
         const txHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], to: accounts[0] }
+          {
+            from: accounts[0],
+            to: accounts[0],
+            gasPrice
+          }
         ]);
         await provider.once("message");
         const tx = await provider.send("eth_getTransactionByHash", [txHash]);
@@ -412,11 +425,13 @@ describe("api", () => {
 
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
+      const gasPrice = await provider.send("eth_gasPrice", []);
       const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
-          value: "0x1"
+          value: "0x1",
+          gasPrice
         }
       ]);
       await provider.once("message");
@@ -439,11 +454,13 @@ describe("api", () => {
 
     it("eth_getTransactionByBlockHashAndIndex", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
+      const gasPrice = await provider.send("eth_gasPrice", []);
       const txHash = await provider.send("eth_sendTransaction", [
         {
           from: accounts[0],
           to: accounts[1],
-          value: "0x1"
+          value: "0x1",
+          gasPrice
         }
       ]);
       const _message = await provider.once("message");
@@ -482,17 +499,32 @@ describe("api", () => {
 
     it("eth_getTransactionByHash", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
-      const hash = await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: "0x1"
-        }
-      ]);
+      const txJson = {
+        type: "0x2",
+        chainId: "0x539",
+        nonce: "0x0",
+        from: accounts[0],
+        to: accounts[1],
+        value: "0x1",
+        maxPriorityFeePerGas: "0xf",
+        maxFeePerGas: "0xfffffffff",
+        gas: "0x15f90",
+        input: "0x01",
+        accessList: []
+      } as any;
+      const hash = await provider.send("eth_sendTransaction", [txJson]);
       const _message = await provider.once("message");
+      // we want these values set for when we check against the return data,
+      // but they shouldn't be used in eth_sendTransaction, so we'll set them now
+      txJson.transactionIndex = "0x0";
+      txJson.gasPrice = "0x342770cf";
 
       const tx = await provider.send("eth_getTransactionByHash", [hash]);
-      assert(tx.transactionIndex, "0x0");
+
+      // loop over all of the data we set to verify it matches
+      for (const [key, value] of Object.entries(txJson)) {
+        assert.deepStrictEqual(value, tx[key]);
+      }
     });
   });
 });

@@ -9,13 +9,15 @@ import * as assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
+import { MAX_PAYLOAD_SIZE as WS_MAX_PAYLOAD_SIZE } from "../src/servers/ws-server";
+
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
 import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
-import { Provider as EthereumProvider } from "@ganache/ethereum";
+import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -64,10 +66,23 @@ describe("server", () => {
         .send(jsonRpcJson);
       assert.strictEqual(response.status, 200);
 
+      // make sure we aren't including the uwebsockets header
+      assert.strictEqual("uwebsockets" in response.headers, false);
+
       const json = JSON.parse(response.text);
       assert.strictEqual(json.result, `${networkId}`);
       return response;
     }
+
+    it("handles connector initialization errors by rejecting on .listen", async () => {
+      // This Ganache.server({...}) here will cause an internal error in the
+      // Ethereum provider initialization. We don't want to throw an unhandled
+      // promise reject; so we handle it in the `listen` method.
+      const s = Ganache.server({
+        fork: { url: "https://mainnet.infura.io/v3/INVALID_URL" }
+      });
+      await assert.rejects(s.listen(port));
+    });
 
     it("returns its status", async () => {
       const s = Ganache.server();
@@ -163,7 +178,7 @@ describe("server", () => {
       await setup();
       try {
         await s.close();
-        assert.rejects(s.close(), {
+        await assert.rejects(s.close(), {
           message: "Server is already closing or closed."
         });
       } finally {
@@ -175,7 +190,7 @@ describe("server", () => {
       await setup();
       try {
         s.close();
-        assert.rejects(s.close(), {
+        await assert.rejects(s.close(), {
           message: "Server is already closing or closed."
         });
       } finally {
@@ -193,15 +208,18 @@ describe("server", () => {
           `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         );
       } finally {
-        await teardown();
-        server.close();
+        await Promise.all([
+          teardown(),
+          new Promise<void>((resolve, reject) =>
+            server.close(err => (err ? reject(err) : resolve()))
+          )
+        ]);
       }
     });
 
     it("fails to listen if the socket is already in use by 3rd party, Callback", async () => {
       const server = http.createServer();
       server.listen(port);
-
       try {
         // @ts-ignore - `s` errors if you run tsc and then test
         // because it tries to compare the built declaration file to
@@ -212,8 +230,12 @@ describe("server", () => {
           message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
         });
       } finally {
-        await teardown();
-        server.close();
+        await Promise.all([
+          teardown(),
+          new Promise<void>((resolve, reject) =>
+            server.close(err => (err ? reject(err) : resolve()))
+          )
+        ]);
       }
     });
 
@@ -221,25 +243,74 @@ describe("server", () => {
     (IS_WINDOWS ? xit : it)(
       "fails to listen if the socket is already in use by Ganache",
       async () => {
-        await setup();
-        // @ts-ignore - `s` errors if you run tsc and then test
-        // because it tries to compare the built declaration file to
-        // the TS file, causing missing #<var> private variables
-        const s2 = Ganache.server();
+        await new Promise<void>(async resolve => {
+          await setup();
 
-        try {
-          await assert.rejects(s2.listen(port), {
-            message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-          });
-        } catch (e) {
-          // in case of failure, make sure we properly shut things down
-          if (s2.status & ServerStatus.open) {
-            await s2.close().catch(e => e);
+          // @ts-ignore - `s` errors if you run tsc and then test
+          // because it tries to compare the built declaration file to
+          // the TS file, causing missing #<var> private variables
+          const s2 = Ganache.server();
+
+          const expectedErrorRegex = new RegExp(`EADDRINUSE.*${port}`);
+
+          const localTearDown = async () => {
+            process.removeListener(
+              "uncaughtException",
+              handleUncaughtException
+            );
+            process.on("uncaughtException", mochaListener);
+            try {
+              await s2.close();
+            } catch (e) {
+              if (
+                e.message !== "Cannot close server while it is opening." &&
+                e.message !== "Server is already closing or closed."
+              ) {
+                throw e;
+              }
+            }
+            await teardown();
+          };
+
+          let uncaughtExceptionOccurred = false;
+          const handleUncaughtException = async err => {
+            uncaughtExceptionOccurred = true;
+            await localTearDown();
+            assert.notStrictEqual(
+              expectedErrorRegex.exec(err.message),
+              `Received unexpected error: ${err.message}`
+            );
+            resolve();
+          };
+
+          const mochaListener = process.listeners("uncaughtException").pop();
+          process.removeListener("uncaughtException", mochaListener);
+          process.on("uncaughtException", handleUncaughtException);
+
+          try {
+            await s2.listen(port);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (!uncaughtExceptionOccurred) {
+              assert.fail(
+                "Successfully listened twice on the same port instead of erroring"
+              );
+            }
+          } catch (e) {
+            if (e.code === "ERR_ASSERTION") {
+              throw e;
+            } else {
+              assert.notStrictEqual(
+                expectedErrorRegex.exec(e.message),
+                `Received unexpected error: ${e.message}`
+              );
+            }
+          } finally {
+            if (!uncaughtExceptionOccurred) {
+              await localTearDown();
+              resolve();
+            }
           }
-          throw e;
-        } finally {
-          await teardown();
-        }
+        });
       }
     );
 
@@ -305,14 +376,14 @@ describe("server", () => {
       }
     });
 
-    it("handles chunked requests (note: doesn't test `transfer-encoding: chunked`)", async () => {
+    it("handles chunked requests (note: doesn't test sending with `transfer-encoding: chunked`)", async () => {
       await setup();
       try {
         const req = request.post("http://localhost:" + port);
         const json = JSON.stringify(jsonRpcJson);
 
         // we have to set the content-length because we can't use
-        // `Transfer-Encoding: chunked` with uWebSockets.js as of v15.9.0
+        // `Transfer-Encoding: chunked` to uWebSockets.js as of v15.9.0
         req.set("Content-Length", json.length.toString());
 
         await new Promise((resolve, reject) => {
@@ -331,6 +402,52 @@ describe("server", () => {
           readableStream.pipe(req as any);
         });
       } finally {
+        await teardown();
+      }
+    });
+
+    it("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
+      const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
+      // This will trigger bufferication in the Ethereum connector
+      // for calls to debug_traceTransaction that return structLogs that have a
+      // length greater than BUFFERIFY_THRESHOLD
+      Connector.BUFFERIFY_THRESHOLD = 0;
+
+      try {
+        await setup();
+        const [from] = await s.provider.send("eth_accounts");
+        await s.provider.send("eth_subscribe", ["newHeads"]);
+
+        const ops = [
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "RETURN", code: "f3", data: "" }
+        ];
+        // a silly "contract" we can trace later: PUSH 0, PUSH, 0, RETURN
+        const data = "0x" + ops.map(op => op.code + op.data).join("");
+        const hash = s.provider.send("eth_sendTransaction", [{ from, data }]);
+        await s.provider.once("message");
+
+        // send a `debug_traceTransaction` request to the *server* so we can
+        // test for `transfer-encoding: chunked` and bufferfication.
+        const jsonRpcJson: any = {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "debug_traceTransaction",
+          params: [await hash]
+        };
+
+        const { text, header, status } = await request
+          .post("http://localhost:" + port)
+          .send(jsonRpcJson);
+        const { result } = JSON.parse(text);
+
+        assert.strictEqual(header["transfer-encoding"], "chunked");
+        assert.strictEqual(header["content-type"], "application/json");
+        assert.strictEqual(status, 200);
+        assert.strictEqual(result.structLogs.length, ops.length);
+      } finally {
+        Connector.BUFFERIFY_THRESHOLD = originalThreshold;
         await teardown();
       }
     });
@@ -573,7 +690,12 @@ describe("server", () => {
             origin
           );
           assert.strictEqual(resp.header["access-control-max-age"], "600");
-          assert.strictEqual(resp.header["content-length"], "0");
+          // TODO: enable this check once https://github.com/uNetworking/uWebSockets/issues/1370 is fixed
+          // assert.strictEqual(
+          //   "content-length" in resp.header,
+          //   false,
+          //   "RFC 7230: A server MUST NOT send a Content-Length header field in any response with a status code of 1xx (Informational) or 204 (No Content)"
+          // );
           assert.strictEqual(
             resp.header["access-control-allow-credentials"],
             "true"
@@ -610,13 +732,13 @@ describe("server", () => {
     it("returns the net_version over a websocket", async () => {
       const ws = new WebSocket("ws://localhost:" + port);
 
-      const response: any = await new Promise(resolve => {
+      const { data }: any = await new Promise(resolve => {
         ws.on("open", () => {
           ws.send(JSON.stringify(jsonRpcJson));
         });
-        ws.on("message", resolve);
+        ws.on("message", (data, isBinary) => resolve({ data, isBinary }));
       });
-      const json = JSON.parse(response);
+      const json = JSON.parse(data);
       assert.strictEqual(json.result, `${networkId}`);
     });
 
@@ -633,7 +755,7 @@ describe("server", () => {
       assert.strictEqual(
         response.constructor,
         Buffer,
-        "response doesn't seem to be a Buffer as expect"
+        "response doesn't seem to be a Buffer as expected"
       );
       const json = JSON.parse(response);
       assert.strictEqual(
@@ -846,6 +968,108 @@ describe("server", () => {
           };
           ws.send(JSON.stringify(subscribeJson));
         });
+      });
+    });
+
+    it("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
+      // this test needs to set BUFFERIFY_THRESHOLD before starting the server
+      await teardown();
+
+      const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
+      // This will trigger bufferication in the Ethereum connector
+      // for calls to debug_traceTransaction that return structLogs that have a
+      // length greater than BUFFERIFY_THRESHOLD
+      Connector.BUFFERIFY_THRESHOLD = 0;
+
+      try {
+        await setup();
+        const [from] = await s.provider.send("eth_accounts");
+        await s.provider.send("eth_subscribe", ["newHeads"]);
+
+        const ops = [
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "PUSH1", code: "60", data: "00" },
+          { op: "RETURN", code: "f3", data: "" }
+        ];
+        // a silly "contract" we can trace later: PUSH 0, PUSH, 0, RETURN
+        const data = "0x" + ops.map(op => op.code + op.data).join("");
+        const hash = s.provider.send("eth_sendTransaction", [{ from, data }]);
+        await s.provider.once("message");
+
+        // send a `debug_traceTransaction` request to the *server* so we can
+        // test for `transfer-encoding: chunked` and bufferfication.
+        const jsonRpcJson: any = {
+          jsonrpc: "2.0",
+          id: "1",
+          method: "debug_traceTransaction",
+          params: [await hash]
+        };
+
+        const ws = new WebSocket("ws://localhost:" + port);
+        ws.binaryType = "fragments";
+        const response: any = await new Promise(resolve => {
+          ws.on("open", () => {
+            ws.send(Buffer.from(JSON.stringify(jsonRpcJson)), {
+              binary: true
+            });
+          });
+          ws.on("message", resolve);
+        });
+
+        assert.strictEqual(Array.isArray(response), true);
+        const { result } = JSON.parse(Buffer.concat(response));
+        assert.strictEqual(result.structLogs.length, ops.length);
+      } finally {
+        Connector.BUFFERIFY_THRESHOLD = originalThreshold;
+        await teardown();
+      }
+    }).timeout(0);
+
+    describe("max payload size", () => {
+      let ws: WebSocket;
+      beforeEach(() => {
+        ws = new WebSocket("ws://localhost:" + port);
+      });
+      afterEach(() => {
+        if (ws) {
+          ws.close();
+        }
+      });
+
+      const canSendPayloadWithoutSocketClose = (payload: Buffer) => {
+        return new Promise<boolean>(resolve => {
+          const handleClose = code => {
+            resolve(false);
+          };
+          ws.on("open", () => ws.send(payload));
+          ws.on("close", handleClose);
+          ws.once("message", () => {
+            ws.off("close", handleClose);
+            resolve(true);
+          });
+        });
+      };
+
+      it("can handle payloads up to max payload size", async () => {
+        // This payload is invalid JSON-RPC, but we are just testing if the
+        // server will receive it _at all_. It _should_ reject it as invalid
+        // data, but *not* close the connection.
+        const largePayload = Buffer.alloc(WS_MAX_PAYLOAD_SIZE);
+        assert.strictEqual(
+          await canSendPayloadWithoutSocketClose(largePayload),
+          true
+        );
+      });
+
+      it("can not send payload greater than max payload size; ws is closed on large payloads", async () => {
+        // This payload is invalid JSON-RPC, but we are just testing if the
+        // server will receive it _at all_. It _should_ close the websocket
+        // connection, not just reject the data.
+        const tooLargePayload = Buffer.alloc(WS_MAX_PAYLOAD_SIZE + 1);
+        assert.strictEqual(
+          await canSendPayloadWithoutSocketClose(tooLargePayload),
+          false
+        );
       });
     });
 

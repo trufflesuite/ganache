@@ -3,10 +3,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1335",
+  "version": "0.1.1-beta.1",
   "description": "Truffle's colors, hex encoded",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache-core/tree/develop/src/packages/colors#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/colors#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trufflesuite/ganache-core.git",
+    "url": "https://github.com/trufflesuite/ganache.git",
     "directory": "src/packages/colors"
   },
   "scripts": {
@@ -30,7 +30,7 @@
     "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
-    "url": "https://github.com/trufflesuite/ganache-core/issues"
+    "url": "https://github.com/trufflesuite/ganache/issues"
   },
   "keywords": [
     "ganache",
@@ -40,9 +40,9 @@
     "truffle-colors"
   ],
   "devDependencies": {
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
-    "mocha": "8.4.0",
+    "mocha": "9.1.3",
     "ts-node": "9.1.1",
     "ttypescript": "1.5.12",
     "typescript": "4.1.3"

@@ -3,7 +3,9 @@ import getProvider from "../helpers/getProvider";
 import EthereumProvider from "../../src/provider";
 import request from "superagent";
 
-describe("forking", () => {
+describe("forking", function () {
+  this.timeout(10000);
+
   describe("accounts", function () {
     const accountAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
     const blockNumber = 0xb77935;
@@ -17,7 +19,8 @@ describe("forking", () => {
       provider = await getProvider({
         fork: {
           url: URL,
-          blockNumber
+          blockNumber,
+          disableCache: true
         }
       });
     });

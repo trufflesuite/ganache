@@ -20,11 +20,11 @@ import {
   TransactionTraceOptions,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  EthereumRawTx,
-  RpcTransaction,
-  RuntimeTransaction
+  TypedRpcTransaction,
+  TransactionFactory,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
@@ -36,10 +36,11 @@ import {
   keccak,
   RPCQUANTITY_ZERO,
   RPCQUANTITY_EMPTY,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  RPCQUANTITY_GWEI
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
-import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
+import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 
@@ -49,7 +50,44 @@ import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
-import { GanacheRawBlock } from "@ganache/ethereum-block/src/serialize";
+import { GanacheRawBlock } from "@ganache/ethereum-block";
+import { Capacity } from "./miner/miner";
+
+async function autofillDefaultTransactionValues(
+  tx: TypedTransaction,
+  eth_estimateGas: (
+    tx: TypedRpcTransaction,
+    tag: QUANTITY | Tag
+  ) => Promise<Quantity>,
+  eth_maxPriorityFeePerGas: () => Promise<Quantity>,
+  transaction: TypedRpcTransaction,
+  blockchain: Blockchain,
+  options: EthereumInternalOptions
+) {
+  if (tx.gas.isNull()) {
+    const defaultLimit = options.miner.defaultTransactionGasLimit;
+    if (defaultLimit === RPCQUANTITY_EMPTY) {
+      // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+      tx.gas = await eth_estimateGas(transaction, Tag.LATEST);
+    } else {
+      tx.gas = defaultLimit;
+    }
+  }
+  if ("gasPrice" in tx && tx.gasPrice.isNull()) {
+    tx.gasPrice = options.miner.defaultGasPrice;
+  }
+
+  if ("maxFeePerGas" in tx && tx.maxFeePerGas.isNull()) {
+    const block = blockchain.blocks.latest;
+    tx.maxFeePerGas = Quantity.from(
+      Block.calcNBlocksMaxBaseFee(3, <BaseFeeHeader>block.header)
+    );
+  }
+
+  if ("maxPriorityFeePerGas" in tx && tx.maxPriorityFeePerGas.isNull()) {
+    tx.maxPriorityFeePerGas = await eth_maxPriorityFeePerGas();
+  }
+}
 
 // Read in the current ganache version from core's package.json
 const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
@@ -76,7 +114,7 @@ type TypedData = Exclude<
 //#endregion
 
 //#region helpers
-function assertExceptionalTransactions(transactions: RuntimeTransaction[]) {
+function assertExceptionalTransactions(transactions: TypedTransaction[]) {
   let baseError: string = null;
   let errors: string[];
   const data = {};
@@ -276,13 +314,30 @@ export default class EthereumApi implements Api {
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const transactions = await blockchain.mine(-1, timestamp, true);
+        const { transactions, blockNumber } = await blockchain.mine(
+          Capacity.FillBlock,
+          timestamp,
+          true
+        );
+        // wait until the blocks are fully saved before mining the next ones
+        await new Promise(resolve => {
+          const off = blockchain.on("block", block => {
+            if (block.header.number.toBuffer().equals(blockNumber)) {
+              off();
+              resolve(void 0);
+            }
+          });
+        });
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
       }
     } else {
-      const transactions = await blockchain.mine(-1, arg as number, true);
+      const { transactions } = await blockchain.mine(
+        Capacity.FillBlock,
+        arg as number | null,
+        true
+      );
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
@@ -325,7 +380,7 @@ export default class EthereumApi implements Api {
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
-    await blockchain.mine(0);
+    await blockchain.mine(Capacity.Empty);
     return true;
   }
 
@@ -387,9 +442,8 @@ export default class EthereumApi implements Api {
   /**
    * Revert the state of the blockchain to a previous snapshot. Takes a single
    * parameter, which is the snapshot id to revert to. This deletes the given
-   * snapshot, as well as any snapshots taken after (Ex: reverting to id 0x1
-   * will delete snapshots with ids 0x1, 0x2, etc... If no snapshot id is
-   * passed it will revert to the latest snapshot.
+   * snapshot, as well as any snapshots taken after (e.g.: reverting to id 0x1
+   * will delete snapshots with ids 0x1, 0x2, etc.)
    *
    * @param snapshotId The snapshot id to revert.
    * @returns `true` if a snapshot was reverted, otherwise `false`.
@@ -469,52 +523,51 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Unlocks any unknown account.
+   * Adds any arbitrary account to the `personal` namespace.
    *
-   * Note: accounts known to the `personal` namespace and accounts returned by
-   * `eth_accounts` cannot be unlocked using this method.
-   *
-   * @param address The address of the account to unlock.
-   * @param duration (Default: disabled) Duration in seconds how long the account
-   * should remain unlocked for. Set to 0 to disable automatic locking.
-   * @returns `true` if the account was unlocked successfully, `false` if the
-   * account was already unlocked. Throws an error if the account could not be
-   * unlocked.
+   * Note: accounts already known to the `personal` namespace and accounts
+   * returned by `eth_accounts` cannot be re-added using this method.
+   * @param address The address of the account to add to the `personal`
+   * namespace.
+   * @param passphrase The passphrase used to encrypt the account's private key.
+   * NOTE: this passphrase will be needed for all `personal` namespace calls
+   * that require a password.
+   * @returns `true` if  the account was successfully added. `false` if the
+   * account is already in the `personal` namespace.
    * @example
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_unlockUnknownAccount", [address] );
+   * const passphrase = "passphrase"
+   * const result = await provider.send("evm_addAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
-  async evm_unlockUnknownAccount(address: DATA, duration: number = 0) {
-    return this.#wallet.unlockUnknownAccount(address.toLowerCase(), duration);
+  async evm_addAccount(address: DATA, passphrase: string) {
+    const addy = new Address(address);
+    return this.#wallet.addUnknownAccount(addy, passphrase);
   }
 
   /**
-   * Locks any unknown account.
+   * Removes an account from the `personal` namespace.
    *
-   * Note: accounts known to the `personal` namespace and accounts returned by
-   * `eth_accounts` cannot be locked using this method.
-   *
-   * @param address The address of the account to lock.
-   * @returns `true` if the account was locked successfully, `false` if the
-   * account was already locked. Throws an error if the account could not be
-   * locked.
+   * Note: accounts not known to the `personal` namespace cannot be removed
+   * using this method.
+   * @param address The address of the account to remove from the `personal`
+   * namespace.
+   * @param passphrase The passphrase used to decrypt the account's private key.
+   * @returns `true` if the account was successfully removed. `false` if the
+   * account was not in the `personal` namespace.
    * @example
    * ```javascript
-   * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-   * const result = await provider.send("evm_lockUnknownAccount", [address] );
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const passphrase = "passphrase"
+   * const result = await provider.send("evm_removeAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
-  async evm_lockUnknownAccount(address: DATA) {
-    const lowerAddress = address.toLowerCase();
-    // if this is a known account we can't unlock it this way
-    if (this.#wallet.knownAccounts.has(lowerAddress)) {
-      throw new Error("cannot lock known/personal account");
-    }
-    return this.#wallet.lockAccount(lowerAddress);
+  async evm_removeAccount(address: DATA, passphrase: string) {
+    const addy = new Address(address);
+    return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
   //#endregion evm
@@ -539,9 +592,14 @@ export default class EthereumApi implements Api {
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
     if (this.#options.miner.legacyInstamine === true) {
-      const transactions = await this.#blockchain.resume(threads);
-      if (transactions != null && this.#options.chain.vmErrorsOnRPCResponse) {
-        assertExceptionalTransactions(transactions);
+      const resumption = await this.#blockchain.resume(threads);
+      // resumption can be undefined if the blockchain isn't currently paused
+      if (
+        resumption &&
+        resumption.transactions != null &&
+        this.#options.chain.vmErrorsOnRPCResponse
+      ) {
+        assertExceptionalTransactions(resumption.transactions);
       }
     } else {
       this.#blockchain.resume(threads);
@@ -648,7 +706,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async web3_sha3(data: DATA) {
-    return Data.from(keccak(Buffer.from(data)));
+    return Data.from(keccak(Data.from(data).toBuffer()));
   }
   //#endregion
 
@@ -727,7 +785,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: any,
+    transaction: TypedRpcTransaction,
     blockNumber: QUANTITY | Tag = Tag.LATEST
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
@@ -741,7 +799,7 @@ export default class EthereumApi implements Api {
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
-      const tx = new RuntimeTransaction(transaction, this.#blockchain.common);
+      const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
       if (tx.from == null) {
         tx.from = coinbase;
       }
@@ -755,9 +813,11 @@ export default class EthereumApi implements Api {
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas.toBuffer(),
+        parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
-        parentHeader.totalDifficulty
+        parentHeader.totalDifficulty,
+        0n // no baseFeePerGas for estimates
       );
       const runArgs = {
         tx: tx.toVmTransaction(),
@@ -858,7 +918,9 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
-    const block = await this.#blockchain.blocks.get(number).catch(_ => null);
+    const block = await this.#blockchain.blocks
+      .get(number)
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -916,7 +978,7 @@ export default class EthereumApi implements Api {
   async eth_getBlockByHash(hash: DATA, transactions = false) {
     const block = await this.#blockchain.blocks
       .getByHash(hash)
-      .catch(_ => null);
+      .catch<Block>(_ => null);
     return block ? block.toJSON(transactions) : null;
   }
 
@@ -1030,12 +1092,15 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
-    const block = await this.eth_getBlockByHash(hash, true);
-    if (block) {
-      const tx = block.transactions[Quantity.from(index).toNumber()];
-      if (tx) return tx;
-    }
-    return null;
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks
+      .getByHash(hash)
+      .catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1076,8 +1141,13 @@ export default class EthereumApi implements Api {
     number: QUANTITY | Tag,
     index: QUANTITY
   ) {
-    const block = await this.eth_getBlockByNumber(number, true);
-    return block.transactions[parseInt(Quantity.from(index).toString(), 10)];
+    const blockchain = this.#blockchain;
+    const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+      blockchain.common
+    );
   }
 
   /**
@@ -1292,6 +1362,20 @@ export default class EthereumApi implements Api {
   @assertArgLength(0)
   async eth_gasPrice() {
     return this.#options.miner.defaultGasPrice;
+  }
+
+  /**
+   * Returns a `maxPriorityFeePerGas` value suitable for quick transaction inclusion.
+   * @returns The maxPriorityFeePerGas in wei.
+   * @example
+   * ```javascript
+   * const suggestedTip = await provider.request({ method: "eth_maxPriorityFeePerGas", params: [] });
+   * console.log(suggestedTip);
+   * ```
+   */
+  @assertArgLength(0)
+  async eth_maxPriorityFeePerGas() {
+    return RPCQUANTITY_GWEI;
   }
 
   /**
@@ -1514,9 +1598,9 @@ export default class EthereumApi implements Api {
     if (transaction === null) {
       // if we can't find it in the list of pending transactions, check the db!
       const tx = transactions.transactionPool.find(hashBuffer);
-      return tx ? tx.toJSON() : null;
+      return tx ? tx.toJSON(this.#blockchain.common) : null;
     } else {
-      return transaction.toJSON();
+      return transaction.toJSON(this.#blockchain.common);
     }
   }
 
@@ -1540,7 +1624,12 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: DATA) {
-    const { transactions, transactionReceipts, blocks } = this.#blockchain;
+    const {
+      transactions,
+      transactionReceipts,
+      blocks,
+      common
+    } = this.#blockchain;
     const dataHash = Data.from(transactionHash);
     const txHash = dataHash.toBuffer();
 
@@ -1555,7 +1644,7 @@ export default class EthereumApi implements Api {
       blockPromise
     ]);
     if (transaction) {
-      return receipt.toJSON(block, transaction);
+      return receipt.toJSON(block, transaction, common);
     }
 
     // if we are performing non-legacy instamining, then check to see if the
@@ -1571,7 +1660,8 @@ export default class EthereumApi implements Api {
         options.logging.logger.log(
           " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
             ` > \`${dataHash.toString()}\` has not\n` +
-            " > yet been mined. See https://trfl.co/v7-instamine for additional information."
+            " > yet been mined." +
+            " See https://trfl.io/v7-instamine for additional information."
         );
       }
     }
@@ -1601,9 +1691,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: RpcTransaction) {
+  async eth_sendTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
@@ -1611,36 +1702,27 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+    const privateKey = wallet.unlockedAccounts.get(fromString);
 
-    if (!isUnlockedAccount) {
+    if (privateKey === undefined) {
       const msg = isKnownAccount
-        ? "authentication needed: password or unlock"
+        ? "authentication needed: passphrase or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
 
-    if (tx.gas.isNull()) {
-      const defaultLimit = this.#options.miner.defaultTransactionGasLimit;
-      if (defaultLimit === RPCQUANTITY_EMPTY) {
-        // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-        tx.gas = await this.eth_estimateGas(transaction, Tag.LATEST);
-      } else {
-        tx.gas = defaultLimit;
-      }
-    }
+    await autofillDefaultTransactionValues(
+      tx,
+      this.eth_estimateGas.bind(this),
+      this.eth_maxPriorityFeePerGas,
+      transaction,
+      blockchain,
+      this.#options
+    );
 
-    if (tx.gasPrice.isNull()) {
-      tx.gasPrice = this.#options.miner.defaultGasPrice;
-    }
-
-    if (isUnlockedAccount) {
-      const secretKey = wallet.unlockedAccounts.get(fromString);
-      return blockchain.queueTransaction(tx, secretKey);
-    } else {
-      return blockchain.queueTransaction(tx);
-    }
+    return blockchain.queueTransaction(tx, privateKey);
   }
+
   /**
    * Signs a transaction that can be submitted to the network at a later time using `eth_sendRawTransaction`.
    *
@@ -1662,9 +1744,9 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: RpcTransaction) {
+  async eth_signTransaction(transaction: TypedRpcTransaction) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -1673,17 +1755,16 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const isUnlockedAccount = wallet.unlockedAccounts.has(fromString);
+    const privateKey = wallet.unlockedAccounts.get(fromString);
 
-    if (!isUnlockedAccount) {
+    if (privateKey === undefined) {
       const msg = isKnownAccount
-        ? "authentication needed: password or unlock"
+        ? "authentication needed: passphrase or unlock"
         : "sender account not recognized";
       throw new Error(msg);
     }
 
-    const secretKey = wallet.unlockedAccounts.get(fromString).toBuffer();
-    tx.signAndHash(secretKey);
+    tx.signAndHash(privateKey.toBuffer());
     return Data.from(tx.serialized).toString();
   }
   /**
@@ -1700,10 +1781,8 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
-    const data = Data.from(transaction).toBuffer();
-    const raw = decode<EthereumRawTx>(data);
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(raw, blockchain.common);
+    const tx = TransactionFactory.fromString(transaction, blockchain.common);
     return blockchain.queueTransaction(tx);
   }
 
@@ -1749,6 +1828,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
+   * Identical to eth_signTypedData_v4.
    *
    * @param address Address of the account that will sign the messages.
    * @param typedData Typed structured data to be signed.
@@ -1805,11 +1885,75 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_signTypedData(address: DATA, typedData: TypedData) {
+    return this.eth_signTypedData_v4(address, typedData);
+  }
+
+  /**
+   *
+   * @param address Address of the account that will sign the messages.
+   * @param typedData Typed structured data to be signed.
+   * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
+   * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
+   * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+   *  in big-endian format. Bytes 0...64 contain the `r` parameter, bytes
+   * 64...128 the `s` parameter, and the last byte the `v` parameter. Note
+   * that the `v` parameter includes the chain id as specified in [EIP-155](https://eips.ethereum.org/EIPS/eip-155).
+   * @EIP [712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+   * @example
+   * ```javascript
+   * const [account] = await provider.request({ method: "eth_accounts", params: [] });
+   * const typedData = {
+   *  types: {
+   *    EIP712Domain: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'version', type: 'string' },
+   *      { name: 'chainId', type: 'uint256' },
+   *      { name: 'verifyingContract', type: 'address' },
+   *    ],
+   *    Person: [
+   *      { name: 'name', type: 'string' },
+   *      { name: 'wallet', type: 'address' }
+   *    ],
+   *    Mail: [
+   *      { name: 'from', type: 'Person' },
+   *      { name: 'to', type: 'Person' },
+   *      { name: 'contents', type: 'string' }
+   *    ],
+   *  },
+   *  primaryType: 'Mail',
+   *  domain: {
+   *    name: 'Ether Mail',
+   *    version: '1',
+   *    chainId: 1,
+   *    verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+   *  },
+   *  message: {
+   *    from: {
+   *      name: 'Cow',
+   *      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+   *    },
+   *    to: {
+   *      name: 'Bob',
+   *      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+   *    },
+   *    contents: 'Hello, Bob!',
+   *  },
+   * };
+   * const signature = await provider.request({ method: "eth_signTypedData_v4", params: [account, typedData] });
+   * console.log(signature);
+   * ```
+   */
+  @assertArgLength(2)
+  async eth_signTypedData_v4(address: DATA, typedData: TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
     if (privateKey == null) {
       throw new Error("cannot sign data; no private key");
+    }
+
+    if (typeof typedData === "string") {
+      throw new Error("cannot sign data; string sent, expected object");
     }
 
     if (!typedData.types) {
@@ -1898,6 +2042,9 @@ export default class EthereumApi implements Api {
             transactionsRoot: header.transactionsRoot,
             sha3Uncles: header.sha3Uncles
           };
+          if (header.baseFeePerGas !== undefined) {
+            (result as any).baseFeePerGas = header.baseFeePerGas;
+          }
 
           // TODO: move the JSON stringification closer to where the message
           // is actually sent to the listener
@@ -1945,7 +2092,7 @@ export default class EthereumApi implements Api {
 
         const unsubscribe = this.#blockchain.on(
           "pendingTransaction",
-          (transaction: RuntimeTransaction) => {
+          (transaction: TypedTransaction) => {
             const result = transaction.hash.toString();
             promiEvent.emit("message", {
               type: "eth_subscription",
@@ -2043,7 +2190,7 @@ export default class EthereumApi implements Api {
   async eth_newPendingTransactionFilter() {
     const unsubscribe = this.#blockchain.on(
       "pendingTransaction",
-      (transaction: RuntimeTransaction) => {
+      (transaction: TypedTransaction) => {
         value.updates.push(transaction.hash);
       }
     );
@@ -2375,6 +2522,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.LATEST) {
     const blockchain = this.#blockchain;
+    const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.header;
@@ -2401,14 +2549,54 @@ export default class EthereumApi implements Api {
       data = Data.from(transaction.data);
     }
 
+    // eth_call doesn't validate that the transaction has a sufficient
+    // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
+    // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
+    // the effectiveGasPrice, which is used to calculate tx costs/refunds.
+    const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+
+    let gasPrice: Quantity;
+    const hasGasPrice = typeof transaction.gasPrice !== "undefined";
+    if (!common.isActivatedEIP(1559)) {
+      gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
+    } else {
+      const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";
+      const hasMaxPriorityFeePerGas =
+        typeof transaction.maxPriorityFeePerGas !== "undefined";
+
+      if (hasGasPrice && (hasMaxFeePerGas || hasMaxPriorityFeePerGas)) {
+        throw new Error(
+          "both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified"
+        );
+      }
+      // User specified 1559 gas fields (or none), use those
+      let maxFeePerGas = 0n;
+      let maxPriorityFeePerGas = 0n;
+      if (hasMaxFeePerGas) {
+        maxFeePerGas = BigInt(transaction.maxFeePerGas);
+      }
+      if (hasMaxPriorityFeePerGas) {
+        maxPriorityFeePerGas = BigInt(transaction.maxPriorityFeePerGas);
+      }
+      if (maxPriorityFeePerGas > 0 || maxFeePerGas > 0) {
+        const a = maxFeePerGas - baseFeePerGasBigInt;
+        const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+        gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
+      } else {
+        gasPrice = Quantity.from(0);
+      }
+    }
+
     const block = new RuntimeBlock(
       parentHeader.number,
       parentHeader.parentHash,
       blockchain.coinbase,
       gas.toBuffer(),
+      parentHeader.gasUsed.toBuffer(),
       parentHeader.timestamp,
       options.miner.difficulty,
-      parentHeader.totalDifficulty
+      parentHeader.totalDifficulty,
+      baseFeePerGasBigInt
     );
 
     const simulatedTransaction = {
@@ -2419,9 +2607,7 @@ export default class EthereumApi implements Api {
           ? blockchain.coinbase
           : Address.from(transaction.from),
       to: transaction.to == null ? null : Address.from(transaction.to),
-      gasPrice: Quantity.from(
-        transaction.gasPrice == null ? 0 : transaction.gasPrice
-      ),
+      gasPrice,
       value:
         transaction.value == null ? null : Quantity.from(transaction.value),
       data,
@@ -2590,11 +2776,7 @@ export default class EthereumApi implements Api {
     const newAccount = wallet.createRandomAccount();
     const address = newAccount.address;
     const strAddress = address.toString();
-    const encryptedKeyFile = await wallet.encrypt(
-      newAccount.privateKey,
-      passphrase
-    );
-    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
+    await wallet.addToKeyFile(address, newAccount.privateKey, passphrase, true);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2625,11 +2807,7 @@ export default class EthereumApi implements Api {
     const newAccount = Wallet.createAccountFromPrivateKey(Data.from(rawKey));
     const address = newAccount.address;
     const strAddress = address.toString();
-    const encryptedKeyFile = await wallet.encrypt(
-      newAccount.privateKey,
-      passphrase
-    );
-    wallet.encryptedKeyFiles.set(strAddress, encryptedKeyFile);
+    await wallet.addToKeyFile(address, newAccount.privateKey, passphrase, true);
     wallet.addresses.push(strAddress);
     wallet.knownAccounts.add(strAddress);
     return newAccount.address;
@@ -2681,11 +2859,8 @@ export default class EthereumApi implements Api {
     passphrase: string,
     duration: number = 300
   ) {
-    return this.#wallet.unlockAccount(
-      address.toLowerCase(),
-      passphrase,
-      duration
-    );
+    const addy = new Address(address);
+    return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
 
   /**
@@ -2720,29 +2895,32 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async personal_sendTransaction(transaction: any, passphrase: string) {
+  async personal_sendTransaction(
+    transaction: TypedRpcTransaction,
+    passphrase: string
+  ) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     const from = tx.from;
     if (from == null) {
       throw new Error("from not found; is required");
     }
 
-    const fromString = tx.from.toString();
-
     const wallet = this.#wallet;
-    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
-    if (encryptedKeyFile === undefined) {
-      throw new Error("no key for given address or file");
-    }
+    const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
 
-    if (encryptedKeyFile !== null) {
-      const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
-      tx.signAndHash(secretKey);
-    }
+    await autofillDefaultTransactionValues(
+      tx,
+      this.eth_estimateGas.bind(this),
+      this.eth_maxPriorityFeePerGas,
+      transaction,
+      blockchain,
+      this.#options
+    );
 
-    return blockchain.queueTransaction(tx);
+    return blockchain.queueTransaction(tx, Data.from(secretKey));
   }
+
   /**
    * Validates the given passphrase and signs a transaction that can be
    * submitted to the network at a later time using `eth_sendRawTransaction`.
@@ -2774,24 +2952,18 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: RpcTransaction,
+    transaction: TypedRpcTransaction,
     passphrase: string
   ) {
     const blockchain = this.#blockchain;
-    const tx = new RuntimeTransaction(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
-    const fromString = tx.from.toString();
 
     const wallet = this.#wallet;
-    const encryptedKeyFile = wallet.encryptedKeyFiles.get(fromString);
-    if (encryptedKeyFile === undefined || encryptedKeyFile === null) {
-      throw new Error("no key for given address or file");
-    }
-
-    const secretKey = await wallet.decrypt(encryptedKeyFile, passphrase);
+    const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
     tx.signAndHash(secretKey);
     return Data.from(tx.serialized).toString();
   }

@@ -4,7 +4,17 @@ import { LevelUp } from "levelup";
 import { Quantity, Data } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import Blockchain from "../blockchain";
-import { Block } from "@ganache/ethereum-block";
+import {
+  Block,
+  EthereumRawBlockHeader,
+  serialize
+} from "@ganache/ethereum-block";
+import { Address } from "@ganache/ethereum-address";
+import {
+  GanacheRawBlockTransactionMetaData,
+  TransactionFactory,
+  TypedDatabaseTransaction
+} from "@ganache/ethereum-transaction";
 
 const NOTFOUND = 404;
 
@@ -54,17 +64,84 @@ export default class BlockManager extends Manager<Block> {
     this.#blockIndexes = blockIndexes;
   }
 
+  static rawFromJSON(json: any, common: Common) {
+    const header: EthereumRawBlockHeader = [
+      Data.from(json.parentHash).toBuffer(),
+      Data.from(json.sha3Uncles).toBuffer(),
+      Address.from(json.miner).toBuffer(),
+      Data.from(json.stateRoot).toBuffer(),
+      Data.from(json.transactionsRoot).toBuffer(),
+      Data.from(json.receiptsRoot).toBuffer(),
+      Data.from(json.logsBloom).toBuffer(),
+      Quantity.from(json.difficulty).toBuffer(),
+      Quantity.from(json.number).toBuffer(),
+      Quantity.from(json.gasLimit).toBuffer(),
+      Quantity.from(json.gasUsed).toBuffer(),
+      Quantity.from(json.timestamp).toBuffer(),
+      Data.from(json.extraData).toBuffer(),
+      Data.from(json.mixHash).toBuffer(),
+      Data.from(json.nonce).toBuffer()
+    ];
+    // only add baseFeePerGas if the block's JSON already has it
+    if (json.baseFeePerGas !== undefined) {
+      header[15] = Data.from(json.baseFeePerGas).toBuffer();
+    }
+    const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
+    const txs: TypedDatabaseTransaction[] = [];
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
+    json.transactions.forEach((tx, index) => {
+      const blockExtra = [
+        Quantity.from(tx.from).toBuffer(),
+        Quantity.from(tx.hash).toBuffer()
+      ] as any;
+      const txExtra = [
+        ...blockExtra,
+        Data.from(json.hash).toBuffer(),
+        Quantity.from(json.number).toBuffer(),
+        index
+      ] as any;
+      const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
+      const raw = typedTx.toEthRawTransaction(
+        typedTx.v.toBuffer(),
+        typedTx.r.toBuffer(),
+        typedTx.s.toBuffer()
+      );
+      txs.push(<TypedDatabaseTransaction>raw);
+      extraTxs.push(blockExtra);
+    });
+
+    return serialize([header, txs, [], totalDifficulty, extraTxs]).serialized;
+  }
+
   fromFallback = async (
-    tagOrBlockNumber: string | Buffer | Tag
+    tagOrBlockNumber: string | Quantity
   ): Promise<Buffer> => {
     const fallback = this.#blockchain.fallback;
+    let blockNumber: string;
+    if (typeof tagOrBlockNumber === "string") {
+      blockNumber = tagOrBlockNumber;
+    } else if (!fallback.isValidForkBlockNumber(tagOrBlockNumber)) {
+      // don't get the block if the requested block is _after_ our fallback's
+      // blocknumber because it doesn't exist in our local chain.
+      return null;
+    } else {
+      blockNumber = tagOrBlockNumber.toString();
+    }
+
     const json = await fallback.request<any>("eth_getBlockByNumber", [
-      typeof tagOrBlockNumber === "string"
-        ? tagOrBlockNumber
-        : Quantity.from(tagOrBlockNumber).toString(),
+      blockNumber,
       true
     ]);
-    return json == null ? null : Block.rawFromJSON(json);
+    if (json == null) {
+      return null;
+    } else {
+      const common = fallback.getCommonForBlockNumber(
+        this.#common,
+        BigInt(json.number)
+      );
+
+      return BlockManager.rawFromJSON(json, common);
+    }
   };
 
   getBlockByTag(tag: Tag) {
@@ -88,7 +165,9 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST): Quantity {
+  getEffectiveNumber(
+    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+  ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) {
@@ -108,20 +187,25 @@ export default class BlockManager extends Manager<Block> {
   async getByHash(hash: string | Buffer | Tag) {
     const number = await this.getNumberFromHash(hash);
     if (number === null) {
-      if (this.#blockchain.fallback) {
-        const fallback = this.#blockchain.fallback;
+      const fallback = this.#blockchain.fallback;
+      if (fallback) {
         const json = await fallback.request<any>("eth_getBlockByHash", [
           Data.from(hash),
           true
         ]);
-        if (json && BigInt(json.number) <= fallback.blockNumber.toBigInt()) {
-          return new Block(Block.rawFromJSON(json), this.#common);
-        } else {
-          return null;
+        if (json) {
+          const blockNumber = BigInt(json.number);
+          if (blockNumber <= fallback.blockNumber.toBigInt()) {
+            const common = fallback.getCommonForBlockNumber(
+              this.#common,
+              blockNumber
+            );
+            return new Block(BlockManager.rawFromJSON(json, common), common);
+          }
         }
-      } else {
-        return null;
       }
+
+      return null;
     } else {
       return this.get(number);
     }
@@ -134,9 +218,7 @@ export default class BlockManager extends Manager<Block> {
     const numBuf = blockNumber.toBuffer();
     return this.getRaw(numBuf).then(block => {
       if (block == null && fallback) {
-        return this.fromFallback(
-          fallback.selectValidForkBlockNumber(blockNumber).toBuffer()
-        );
+        return this.fromFallback(blockNumber);
       }
       return block;
     });
@@ -148,10 +230,22 @@ export default class BlockManager extends Manager<Block> {
       if (block) return block;
     }
 
-    const block = await this.getRawByBlockNumber(
-      Quantity.from(tagOrBlockNumber)
-    );
-    if (block) return new Block(block, this.#common);
+    const blockNumber = Quantity.from(tagOrBlockNumber);
+    const block = await this.getRaw(blockNumber.toBuffer());
+    const common = this.#common;
+    if (block) return new Block(block, common);
+    else {
+      const fallback = this.#blockchain.fallback;
+      if (fallback) {
+        const block = await this.fromFallback(blockNumber);
+        if (block) {
+          return new Block(
+            block,
+            fallback.getCommonForBlockNumber(common, blockNumber.toBigInt())
+          );
+        }
+      }
+    }
 
     throw new Error("header not found");
   }

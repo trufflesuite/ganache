@@ -130,15 +130,25 @@ export type WalletConfig = {
      *
      * @defaultValue false
      */
-    secure: {
+    lock: {
       type: boolean;
       hasDefault: true;
       legacy: {
         /**
-         * @deprecated Use wallet.secure instead
+         * @deprecated Use wallet.lock instead
          */
         secure: boolean;
       };
+    };
+
+    /**
+     * Passphrase to use when locking accounts.
+     *
+     * @defaultValue ""
+     */
+    passphrase: {
+      type: string;
+      hasDefault: true;
     };
 
     /**
@@ -182,11 +192,12 @@ export type WalletConfig = {
      * @defaultValue "m/44'/60'/0'/0/"
      */
     hdPath: {
-      type: string;
+      type: string[];
+      rawType: string;
       hasDefault: true;
       legacy: {
         /**
-         * @deprecated Use wallet.totalAcchdPathounts instead
+         * @deprecated Use wallet.hdPath instead
          */
         hd_path: string;
       };
@@ -274,14 +285,21 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliAliases: ["u", "unlock"],
     cliType: "array:string"
   },
-  secure: {
+  lock: {
     normalize,
     cliDescription:
       "Lock available accounts by default (good for third party transaction signing).",
     default: () => false,
     legacyName: "secure",
-    cliAliases: ["n", "secure"],
+    cliAliases: ["n", "secure", "lock"],
     cliType: "boolean"
+  },
+  passphrase: {
+    normalize,
+    cliDescription: "Passphrase to use when locking accounts.",
+    default: () => "",
+    cliAliases: ["passphrase"],
+    cliType: "string"
   },
   accountKeysPath: {
     normalize,
@@ -300,10 +318,12 @@ export const WalletOptions: Definitions<WalletConfig> = {
     cliType: "number"
   },
   hdPath: {
-    normalize,
+    normalize: (path: string) => {
+      return path.split("/");
+    },
     cliDescription:
       "The hierarchical deterministic path to use when generating accounts.",
-    default: () => "m/44'/60'/0'/0/",
+    default: () => ["m", "44'", "60'", "0'", "0"],
     legacyName: "hd_path",
     cliType: "string"
   }

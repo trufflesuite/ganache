@@ -1,13 +1,12 @@
 import seedrandom from "seedrandom";
-
 export class RandomNumberGenerator {
-  readonly rng: seedrandom.prng;
+  readonly rng: ReturnType<seedrandom.Callback>;
 
   // I was planning on using `state` here to restore the RNG
   // from a saved state (via the db on run or upon a revert),
   // but this functionality was postponed. I'm keeping the arg
   // here as it still applies and is valid code.
-  // https://github.com/trufflesuite/ganache-core/issues/756
+  // https://github.com/trufflesuite/ganache/issues/756
   constructor(seed?: string | null, state?: seedrandom.State) {
     if (typeof seed === "string" && typeof state === "undefined") {
       this.rng = seedrandom.alea(seed, { state: true });

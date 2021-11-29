@@ -2,13 +2,23 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
-import { RpcTransaction } from "@ganache/ethereum-transaction";
 
 describe("api", () => {
   describe("personal", () => {
     describe("listAccounts", () => {
       it("matches eth_accounts", async () => {
-        const provider = await getProvider({ wallet: { seed: "temet nosce" } });
+        const provider = await getProvider({
+          wallet: { seed: "temet nosce" },
+          chain: {
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            hardfork: "berlin"
+          }
+        });
         const accounts = await provider.send("eth_accounts");
         const personalAccounts = await provider.send("personal_listAccounts");
         assert.deepStrictEqual(personalAccounts, accounts);
@@ -33,7 +43,7 @@ describe("api", () => {
       await assert.rejects(
         provider.send("eth_sendTransaction", [transaction]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "eth_sendTransaction should have rejected due to locked from account without its passphrase"
       );
@@ -76,7 +86,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_lockAccount didn't work"
       );
@@ -100,7 +110,7 @@ describe("api", () => {
       await assert.rejects(
         provider.send("personal_sendTransaction", [transaction, undefined]),
         {
-          message: "could not decrypt key with given password"
+          message: "could not decrypt key with given passphrase"
         },
         "personal_sendTransaction should have rejected due to locked from account without its passphrase"
       );
@@ -124,7 +134,7 @@ describe("api", () => {
               invalidPassphrase as any
             ]),
             {
-              message: "could not decrypt key with given password"
+              message: "could not decrypt key with given passphrase"
             },
             "Transaction should have rejected due to locked from account with wrong passphrase"
           );
@@ -146,7 +156,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_sendTransaction should not unlock the while transaction is bring processed"
       );
@@ -169,7 +179,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_sendTransaction should still be locked the after the transaction is processed"
       );
@@ -192,7 +202,7 @@ describe("api", () => {
       await assert.rejects(
         provider.send("personal_signTransaction", [transaction, undefined]),
         {
-          message: "could not decrypt key with given password"
+          message: "could not decrypt key with given passphrase"
         },
         "personal_sendTransaction should have rejected due to locked from account without its passphrase"
       );
@@ -216,7 +226,7 @@ describe("api", () => {
               invalidPassphrase as any
             ]),
             {
-              message: "could not decrypt key with given password"
+              message: "could not decrypt key with given passphrase"
             },
             "Transaction should have rejected due to locked from account with wrong passphrase"
           );
@@ -236,7 +246,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: 1 })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_signTransaction should not unlock the while transaction is bring processed"
       );
@@ -262,7 +272,7 @@ describe("api", () => {
           Object.assign({}, transaction, { nonce: "0x0" })
         ]),
         {
-          message: "authentication needed: password or unlock"
+          message: "authentication needed: passphrase or unlock"
         },
         "personal_sendTransaction should still be locked the after the transaction is processed"
       );
@@ -362,7 +372,16 @@ describe("api", () => {
 
       describe("personal_sendTransaction", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
+          const provider = await getProvider({
+            miner: { defaultGasPrice: 0 },
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            chain: { hardfork: "berlin" }
+          });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [
@@ -378,7 +397,16 @@ describe("api", () => {
       });
       describe("personal_signTransaction", () => {
         it("signs transaction from locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
+          const provider = await getProvider({
+            miner: { defaultGasPrice: 0 },
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            chain: { hardfork: "berlin" }
+          });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_newAccount", [
@@ -414,7 +442,16 @@ describe("api", () => {
 
       describe("personal_unlockAccount ➡ eth_sendTransaction ➡ personal_lockAccount", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
+          const provider = await getProvider({
+            miner: { defaultGasPrice: 0 },
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            chain: { hardfork: "berlin" }
+          });
           const passphrase = "this is my passphrase";
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [
@@ -432,7 +469,16 @@ describe("api", () => {
 
       describe("personal_sendTransaction", () => {
         it("generates locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
+          const provider = await getProvider({
+            miner: { defaultGasPrice: 0 },
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            chain: { hardfork: "berlin" }
+          });
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [
             secretKey,
@@ -449,7 +495,16 @@ describe("api", () => {
 
       describe("personal_signTransaction", () => {
         it("signs transaction from locked accounts with passphrase", async () => {
-          const provider = await getProvider({ miner: { defaultGasPrice: 0 } });
+          const provider = await getProvider({
+            miner: { defaultGasPrice: 0 },
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            chain: { hardfork: "berlin" }
+          });
           // generate an account
           const newAccount = await provider.send("personal_importRawKey", [
             secretKey,
@@ -462,6 +517,36 @@ describe("api", () => {
             passphrase
           );
         });
+      });
+    });
+
+    describe("startup passphrase", () => {
+      it("uses passphrase supplied at startup", async () => {
+        const passphrase = "this is my passphrase";
+        const provider = await getProvider({
+          wallet: { passphrase: passphrase, lock: true },
+          chain: { hardfork: "berlin" }
+        });
+        const accounts = await provider.send("eth_accounts");
+        await testLockedAccountWithPassphraseViaEth_SendTransaction(
+          provider,
+          accounts[0],
+          passphrase
+        );
+      });
+
+      it("defaults to empty string passphrase", async () => {
+        const passphrase = "";
+        const provider = await getProvider({
+          wallet: { lock: true },
+          chain: { hardfork: "berlin" }
+        });
+        const accounts = await provider.send("eth_accounts");
+        await testLockedAccountWithPassphraseViaEth_SendTransaction(
+          provider,
+          accounts[0],
+          passphrase
+        );
       });
     });
   });

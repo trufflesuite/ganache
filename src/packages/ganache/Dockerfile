@@ -9,6 +9,9 @@ COPY . .
 RUN npm run clean
 RUN npm ci --unsafe-perm
 
+# import INFURA_KEY environment variable (build-arg)
+ARG INFURA_KEY
+
 # build application
 RUN npm run build
 

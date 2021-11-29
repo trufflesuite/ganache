@@ -3,7 +3,9 @@ import getProvider from "../helpers/getProvider";
 import EthereumProvider from "../../src/provider";
 import request from "superagent";
 
-describe("forking", () => {
+describe("forking", function () {
+  this.timeout(10000);
+
   describe("blocks", () => {
     const blockNumber = 0xb77935;
     const blockNumHex = `0x${blockNumber.toString(16)}`;
@@ -16,7 +18,8 @@ describe("forking", () => {
       provider = await getProvider({
         fork: {
           url: URL,
-          blockNumber
+          blockNumber,
+          disableCache: true
         }
       });
     });
@@ -45,10 +48,6 @@ describe("forking", () => {
         params: [blockNumHex, true]
       });
       const remoteBlock = JSON.parse(res.text).result;
-
-      remoteBlock.transactions.forEach(tx => {
-        delete tx.type;
-      });
 
       const block = await provider.send("eth_getBlockByNumber", [
         blockNumHex,

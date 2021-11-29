@@ -1,15 +1,9 @@
-import {
-  BUFFER_EMPTY,
-  BUFFER_32_ZERO,
-  Data,
-  Quantity,
-  BUFFER_ZERO
-} from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
+import { GanacheRawExtraTx } from "./raw";
 
 const MAX_UINT64 = 1n << (64n - 1n);
 
@@ -82,8 +76,8 @@ export const calculateIntrinsicGas = (
 };
 
 export class BaseTransaction {
+  public type: Quantity;
   public nonce: Quantity;
-  public gasPrice: Quantity;
   public gas: Quantity;
   public to: Address | null;
   public value: Quantity;
@@ -91,56 +85,41 @@ export class BaseTransaction {
   public v: Quantity | null;
   public r: Quantity | null;
   public s: Quantity | null;
+  public effectiveGasPrice: Quantity;
 
-  public from: Data | null;
+  public from: Address | null;
 
   public common: Common;
 
-  constructor(common: Common) {
+  // from, index, hash, blockNumber, and blockHash are extra data we store to
+  // support account masquerading, quick receipts:
+  // public from: Address;
+  public index: Quantity;
+  public hash: Data;
+  public blockNumber: Quantity;
+  public blockHash: Data;
+
+  constructor(common: Common, extra?: GanacheRawExtraTx) {
     this.common = common;
+    if (extra) {
+      this.setExtra(extra);
+    }
   }
 
-  public toVmTransaction() {
-    const sender = this.from.toBuffer();
-    const to = this.to.toBuffer();
-    const data = this.data.toBuffer();
-    return {
-      hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      gasPrice: new BN(this.gasPrice.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
-      data,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
-      }),
-      /**
-       * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
-       */
-      getBaseFee: () => {
-        const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
-      },
-      getUpfrontCost: () => {
-        const { gas, gasPrice, value } = this;
-        try {
-          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-          return new BN(Quantity.from(c).toBuffer());
-        } catch (e) {
-          throw e;
-        }
-      }
-    };
+  public setExtra(raw: GanacheRawExtraTx) {
+    const [from, hash, blockHash, blockNumber, index, effectiveGasPrice] = raw;
+
+    this.from = Address.from(from);
+    this.hash = Data.from(hash, 32);
+    this.blockHash = Data.from(blockHash, 32);
+    this.blockNumber = Quantity.from(blockNumber);
+    this.index = Quantity.from(index);
+    this.effectiveGasPrice = Quantity.from(effectiveGasPrice);
   }
+
   public calculateIntrinsicGas() {
     const hasToAddress =
       this.to != null && !this.to.toBuffer().equals(BUFFER_EMPTY);
     return calculateIntrinsicGas(this.data, hasToAddress, this.common);
   }
-  public toJSON: () => any;
 }

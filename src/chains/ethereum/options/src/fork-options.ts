@@ -1,5 +1,5 @@
 import { normalize } from "./helpers";
-import { Definitions } from "@ganache/options";
+import { Definitions, UnionToTuple } from "@ganache/options";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { Tag } from "@ganache/ethereum-utils";
 import { URL } from "url";
@@ -11,6 +11,22 @@ const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
 type ForkUrl = URL & { _blockNumber?: number | Tag.LATEST };
+
+type KnownNetworks =
+  | "mainnet"
+  | "ropsten"
+  | "kovan"
+  | "rinkeby"
+  | "goerli"
+  | "görli";
+export const KNOWN_NETWORKS = [
+  "mainnet",
+  "ropsten",
+  "kovan",
+  "rinkeby",
+  "goerli",
+  "görli"
+] as UnionToTuple<KnownNetworks>;
 
 export type ForkConfig = {
   options: {
@@ -57,6 +73,16 @@ export type ForkConfig = {
       };
     };
 
+    network: {
+      type: KnownNetworks;
+      legacy: {
+        /**
+         * @deprecated Use fork.provider instead
+         */
+        fork: KnownNetworks;
+      };
+    };
+
     /**
      * Block number the provider should fork from.
      */
@@ -69,6 +95,15 @@ export type ForkConfig = {
          */
         fork_block_number: number | Tag.LATEST;
       };
+    };
+
+    /**
+     * When the `fork.blockNumber` is set to "latest" (default), the number of
+     * blocks before the remote node's "latest" block to fork from.
+     */
+    preLatestConfirmations: {
+      type: number;
+      hasDefault: true;
     };
 
     /**
@@ -160,7 +195,28 @@ export type ForkConfig = {
       type: number;
       hasDefault: true;
     };
+
+    /**
+     * Disables caching of all forking requests.
+     *
+     * @default false
+     */
+    disableCache: {
+      type: boolean;
+      hasDefault: true;
+    };
+
+    /**
+     * Deletes the persistent cache on start up.
+     *
+     * @default false
+     */
+    deleteCache: {
+      type: boolean;
+      hasDefault: true;
+    };
   };
+  exclusiveGroups: [["url", "provider", "network"]];
 };
 
 const reColonSplit = /:\s?(?:.+)/;
@@ -194,7 +250,15 @@ export const ForkOptions: Definitions<ForkConfig> = {
   // as the defaults are processed in order, and they rely on the `fork.url`
   url: {
     normalize: rawInput => {
-      if (typeof rawInput !== "string") return;
+      // because `url` is an alias of `fork`, along with `provider` and
+      // `network` the runtime type isn't always going to be `"string"`
+      if (
+        typeof rawInput !== "string" ||
+        KNOWN_NETWORKS.includes(rawInput as any)
+      ) {
+        // if the string matches a network name ignore it
+        return;
+      }
       let url = new URL(rawInput) as ForkUrl;
       const path = url.pathname + url.search;
       const lastIndex = path.lastIndexOf("@");
@@ -240,23 +304,58 @@ You can specify Basic Authentication credentials in the URL as well. e.g., \`"ws
 
 Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`,
     legacyName: "fork",
-    cliAliases: ["f", "fork"]
+    cliAliases: ["f", "fork"],
+    conflicts: ["provider", "network"]
   },
   provider: {
     normalize: rawInput => {
-      // if rawInput is a string it will be handled by the `url` handler
-      if (typeof rawInput === "string") return;
+      // because `provider` is an alias of `fork`, along with `network` and
+      // `url` the runtime type isn't always going to match the TypeScript type.
+      // if rawInput is a string it will be handled by the `url` or `network`
+      // handlers.
+      if (typeof rawInput === "string" || !("request" in rawInput)) return;
       return rawInput;
     },
     cliDescription: "Specify an EIP-1193 provider to use instead of a url.",
     disableInCLI: true,
-    legacyName: "fork"
+    legacyName: "fork",
+    conflicts: ["url", "network"]
+  },
+  network: {
+    normalize: rawInput => {
+      // because `network` is an alias of `fork`, along with `provider` and
+      // `url` the runtime type isn't always going to be `"string"`
+      if (typeof rawInput === "string" && KNOWN_NETWORKS.includes(rawInput))
+        return rawInput;
+      if (
+        // handle `ganache --fork` case, which gets weird because both url
+        // and network can use the `--fork` flag (the `url` handler ignores
+        // non-strings, like `true` and string that match our known networks)
+        typeof rawInput === "object"
+      ) {
+        if ("url" in rawInput) {
+          const { url } = rawInput as any;
+          if (url === true) {
+            return "mainnet";
+          } else if (KNOWN_NETWORKS.includes(url)) {
+            return (rawInput as any).url;
+          }
+        }
+      }
+    },
+    cliDescription: `A network name to fork from; uses Infura's archive nodes.
+
+Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet at the latest block.
+`,
+    cliChoices: KNOWN_NETWORKS,
+    legacyName: "fork",
+    conflicts: ["url", "provider"]
   },
   blockNumber: {
     normalize,
     cliDescription: "Block number the provider should fork from.",
     legacyName: "fork_block_number",
-    default: ({ url, provider }) => {
+    default: ({ url, provider, network }) => {
       if (url) {
         // use the url's _blockNumber, if present, otherwise use "latest"
         if (url._blockNumber) {
@@ -264,14 +363,22 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         } else {
           return Tag.LATEST;
         }
-      } else if (provider) {
+      } else if (provider || network) {
         return Tag.LATEST;
       } else {
         return;
       }
     },
-    defaultDescription: `"${Tag.LATEST}"`
+    defaultDescription: `Latest block number`
     //implies: ["url"]
+  },
+  preLatestConfirmations: {
+    normalize,
+    cliDescription:
+      'When the `fork.blockNumber` is set to "latest" (default), the number of blocks before the remote node\'s "latest" block to fork from.',
+    default: () => 5,
+    defaultDescription: "5",
+    cliType: "number"
   },
   username: {
     normalize,
@@ -365,5 +472,17 @@ Defaults to: \`["User-Agent: Ganache/VERSION (https://www.trufflesuite.com/ganac
       "Restrict the number of requests per second sent to the fork provider. `0` means no limit is applied.",
     cliType: "number"
     //implies: ["url"]
+  },
+  disableCache: {
+    normalize,
+    default: () => false,
+    cliDescription: "Disables caching of all forking requests.",
+    cliType: "boolean"
+  },
+  deleteCache: {
+    normalize,
+    default: () => false,
+    cliDescription: "Deletes the persistent cache before starting.",
+    cliType: "boolean"
   }
 };

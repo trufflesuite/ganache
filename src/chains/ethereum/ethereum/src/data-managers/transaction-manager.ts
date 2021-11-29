@@ -7,12 +7,19 @@ import PromiseQueue from "@ganache/promise-queue";
 import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import {
-  FrozenTransaction,
-  RpcTransaction,
-  RuntimeTransaction
+  GanacheRawExtraTx,
+  TransactionFactory,
+  TypedRpcTransaction,
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 
-export default class TransactionManager extends Manager<FrozenTransaction> {
+// since our Manager needs to receive and Instantiable class with a
+// consistent return type and our transaction factory can return
+// any number of transaction types, we pass in this empty
+// no op class to fool the Manager
+
+class NoOp {}
+export default class TransactionManager extends Manager<NoOp> {
   public readonly transactionPool: TransactionPool;
 
   readonly #queue = new PromiseQueue<boolean>();
@@ -28,7 +35,7 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     blockchain: Blockchain,
     base: LevelUp
   ) {
-    super(base, FrozenTransaction, common);
+    super(base, TransactionFactory, common);
     this.#blockchain = blockchain;
 
     this.transactionPool = new TransactionPool(options, blockchain);
@@ -36,17 +43,34 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
 
   fromFallback = async (transactionHash: Buffer) => {
     const { fallback } = this.#blockchain;
-    const tx = await fallback.request<RpcTransaction>(
+    const tx = await fallback.request<TypedRpcTransaction>(
       "eth_getTransactionByHash",
       [Data.from(transactionHash).toString()]
     );
     if (tx == null) return null;
-    const runTx = new RuntimeTransaction(tx, fallback.common);
-    return runTx.serializeForDb(
-      Data.from((tx as any).blockHash, 32),
-      Quantity.from((tx as any).blockNumber),
-      Quantity.from((tx as any).transactionIndex)
+
+    const blockHash = Data.from((tx as any).blockHash, 32);
+    const blockNumber = Quantity.from((tx as any).blockNumber);
+    const index = Quantity.from((tx as any).transactionIndex);
+
+    // don't get the transaction if the requested transaction is _after_ our
+    // fallback's blocknumber because it doesn't exist in our local chain.
+    if (!fallback.isValidForkBlockNumber(blockNumber)) return null;
+
+    const extra: GanacheRawExtraTx = [
+      Data.from(tx.from, 20).toBuffer(),
+      Data.from((tx as any).hash, 32).toBuffer(),
+      blockHash.toBuffer(),
+      blockNumber.toBuffer(),
+      index.toBuffer(),
+      Quantity.from(tx.gasPrice).toBuffer()
+    ];
+    const common = fallback.getCommonForBlockNumber(
+      fallback.common,
+      blockNumber.toBigInt()
     );
+    const runTx = TransactionFactory.fromRpc(tx, common, extra);
+    return runTx.serializeForDb(blockHash, blockNumber, index);
   };
 
   public async getRaw(transactionHash: Buffer): Promise<Buffer> {
@@ -58,6 +82,11 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
     });
   }
 
+  public async get(key: string | Buffer) {
+    const factory = (await super.get(key)) as TransactionFactory;
+    if (!factory) return null;
+    return factory.tx;
+  }
   /**
    * Adds the transaction to the transaction pool.
    *
@@ -68,7 +97,7 @@ export default class TransactionManager extends Manager<FrozenTransaction> {
    * @returns `true` if the `transaction` is immediately executable, `false` if
    * it may be valid in the future. Throws if the transaction is invalid.
    */
-  public async add(transaction: RuntimeTransaction, secretKey?: Data) {
+  public async add(transaction: TypedTransaction, secretKey?: Data) {
     if (this.#paused) {
       await this.#resumer;
     }

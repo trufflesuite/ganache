@@ -32,7 +32,7 @@ contract Forking {
   // initial value is 0, set to 1 in constructor
   uint public value4 = 0;
 
-  constructor() public payable {
+  constructor() payable {
     value1 = 2;
     value3 = 0;
     value4 = 1;
@@ -60,5 +60,11 @@ contract Forking {
   // self destructs the contract
   function destruct() public {
     selfdestruct(payable(address(msg.sender)));
+  }
+
+  function getChainId() public pure returns (uint256 chainId) {
+    assembly {
+      chainId := chainid()
+    }
   }
 }

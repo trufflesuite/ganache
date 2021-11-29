@@ -14,10 +14,15 @@ const initialize = <T = any>(
   // processing. The RequestCoordinator _can_ be used to coordinate the number
   // of requests being processed, but we don't use it for that (yet), instead
   // of "all" (0) or just 1 as we are doing here:
-  const asyncRequestProcessing =
-    "chain" in options
-      ? options["chain"].asyncRequestProcessing
-      : options["asyncRequestProcessing"];
+  let asyncRequestProcessing: boolean;
+
+  if ("chain" in options && "asyncRequestProcessing" in options["chain"]) {
+    asyncRequestProcessing = options["chain"].asyncRequestProcessing;
+  } else if ("asyncRequestProcessing" in options) {
+    asyncRequestProcessing = options["asyncRequestProcessing"];
+  } else {
+    asyncRequestProcessing = true;
+  }
   const requestCoordinator = new RequestCoordinator(
     asyncRequestProcessing ? 0 : 1
   );
@@ -37,13 +42,18 @@ const initialize = <T = any>(
   const connectPromise = connector["connect"]
     ? connector["connect"]()
     : (connector as any).initialize();
+  // const connectPromise = connector.connect
+  //   ? connector.connect()
+  //   : ((connector as any).initialize() as Promise<void>);
 
   // The request coordinator is initialized in a "paused" state; when the
   // provider is ready we unpause.. This lets us accept queue requests before
   // we've even fully initialized.
-  connectPromise.then(requestCoordinator.resume);
 
-  return connector;
+  return {
+    connector,
+    promise: connectPromise.then(requestCoordinator.resume)
+  };
 };
 
 /**
