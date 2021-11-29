@@ -181,8 +181,8 @@ export default function (
         defaultPort = 7777;
         break;
       case DefaultFlavor:
-        // command = ["$0", flavor];
-        command = flavor;
+        command = ["$0", flavor];
+        // command = flavor;
         defaultPort = 8545;
         break;
       default:
@@ -203,12 +203,7 @@ export default function (
   let callback = null;
   // TODO : remove --help, filecoin and @ganache/filecoin from if check
   if (pluginPackage) {
-    ({ args, callback } = setupPluginArgs(
-      pluginPackage,
-      args,
-      isDocker,
-      callback
-    ));
+    ({ args, callback } = setupPluginArgs(pluginPackage, args, isDocker));
   }
 
   args = args
@@ -232,14 +227,13 @@ export default function (
       finalArgs[group][option] = parsedArgs[key];
     }
   }
-  finalArgs.server.callback = callback;
+  if (finalArgs.server) finalArgs.server.callback = callback;
   return finalArgs;
 }
 function setupPluginArgs(
   pluginPackage: any,
   args: yargs.Argv<{}>,
-  isDocker: boolean,
-  callback: any
+  isDocker: boolean
 ) {
   const pluginFlavorDefaults = pluginPackage.ganachePlugin.options.provider;
   const { port } = pluginPackage.ganachePlugin.options.server;
@@ -265,7 +259,7 @@ function setupPluginArgs(
     isDocker,
     port
   );
-  callback = pluginPackage.ganachePlugin.callback;
+  const callback = pluginPackage.ganachePlugin.callback;
   return { args, callback };
 }
 

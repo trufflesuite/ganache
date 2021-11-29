@@ -43,6 +43,7 @@ let pluginPackage = null;
 let pluginServerOptionsConfig = null;
 const pluginFlavor = process.argv[2];
 if (
+  pluginFlavor !== undefined &&
   !["ethereum", "--help", "filecoin", "@ganache/filecoin"].includes(
     pluginFlavor
   ) &&
@@ -59,7 +60,8 @@ const flavor = argv.flavor;
 
 const cliSettings = argv.server;
 
-const callback = argv.server.callback;
+let callback;
+if (argv.server) callback = argv.server.callback;
 
 console.log(detailedVersion);
 

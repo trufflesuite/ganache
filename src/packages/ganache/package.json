@@ -51,9 +51,9 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/cli": "0.1.1-beta.1",
-    "@ganache/core": "0.1.1-beta.1",
-    "@ganache/flavors": "0.1.1-beta.1",
+    "@ganache/cli": "0.1.1-canary.1335",
+    "@ganache/core": "0.1.1-canary.1335",
+    "@ganache/flavors": "0.1.1-canary.1335",
     "@types/mocha": "9.0.0",
     "@types/node": "16.11.6",
     "assert": "2.0.0",
