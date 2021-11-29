@@ -1,4 +1,4 @@
-import { JsonRpcTypes } from "@ganache/utils";
+import { JsonRpcRequest } from "@ganache/utils";
 import assert from "assert";
 import TezosApi from "../src/api";
 import TezosProvider from "../src/provider";
@@ -21,7 +21,7 @@ describe("provider", () => {
     });
 
     it("returns accounts", async () => {
-      const jsonRpcRequest: JsonRpcTypes.Request<TezosApi> = {
+      const jsonRpcRequest: JsonRpcRequest<TezosApi, "net_version"> = {
         id: "1",
         jsonrpc: "2.0",
         method: "tez_accounts"
