@@ -101,6 +101,15 @@ export default class TezosProvider
   public removeListener = this.off;
 
   /**
+   * @param method - the params
+   * @param params - the params
+   * @ignore Non standard! Do not use.
+   */
+  public send<Method extends RequestMethods>(
+    method: Method,
+    params?: OverloadedParameters<TezosApi[typeof method]>
+  ): cleanAndMergePromiseGenerics<ReturnType<TezosApi[typeof method]>>;
+  /**
    * @param payload - payload
    * @param callback - callback
    * @deprecated Use the `request` method

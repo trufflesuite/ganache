@@ -57,7 +57,7 @@ export default class TezosApi implements Api {
    * Returns a list of addresses owned by client.
    * @returns Array of 20 Bytes - addresses owned by the client.
    */
-  async tez_accounts() {
+  async tez_accounts(): Promise<any[]> {
     return this.#wallet.initialAccounts.map(m => m.pkh);
   }
 
