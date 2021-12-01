@@ -207,7 +207,7 @@ const provider = Ganache.provider(options);
 
 ## Documentation
 
-New RPC documentation coming soon! See https://github.com/trufflesuite/ganache/tree/master#options for Ganache v2 documentation.
+New interactive RPC documentation coming soon! Give this repository a star and watch for releases to be notified of its official launch!
 
 ### Ganache Provider Events
 
