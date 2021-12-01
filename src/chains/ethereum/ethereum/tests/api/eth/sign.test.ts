@@ -45,13 +45,7 @@ describe("api", () => {
         const r = Buffer.from(sgn.slice(0, 64), "hex");
         const s = Buffer.from(sgn.slice(64, 128), "hex");
         const v = parseInt(sgn.slice(128), 16);
-        const pub = ecrecover(
-          msgHash,
-          v,
-          r,
-          s,
-          provider.getOptions().chain.chainId
-        );
+        const pub = ecrecover(msgHash, v, r, s);
         const addr = fromSigned(pubToAddress(pub));
         const strAddr = "0x" + addr.toString("hex");
         assert.strictEqual(strAddr, accounts[0].toLowerCase());
@@ -71,13 +65,7 @@ describe("api", () => {
         const r = Buffer.from(sgn.slice(0, 64), "hex");
         const s = Buffer.from(sgn.slice(64, 128), "hex");
         const v = parseInt(sgn.slice(128), 16);
-        const pub = ecrecover(
-          msgHash,
-          v,
-          r,
-          s,
-          provider.getOptions().chain.chainId
-        );
+        const pub = ecrecover(msgHash, v, r, s);
         const addr = fromSigned(pubToAddress(pub));
         const strAddr = "0x" + addr.toString("hex");
         assert.deepStrictEqual(strAddr, accounts[0].toLowerCase());
