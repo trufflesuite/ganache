@@ -1,9 +1,3 @@
-<h3 align="center">
-  ⚠ Notice: This documentation describes the beta release of Ganache. If you are looking to install the stable version of Ganache you can find instructions at https://github.com/trufflesuite/ganache-cli-archive ⚠
-</h3>
-
----
-
 <!-- Using h2 instead of h1 because npm doesn't support align=center on h1 tags -->
 <h2 align="center">
   <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://trufflesuite.github.io/ganache/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
@@ -52,22 +46,16 @@ Ganache can be used from the [command line](#command-line-use), [programmaticall
 
 You must first install [Node.js](https://nodejs.org/) >= v10.13.0 and npm >= 6.4.1.
 
-To install Ganache _beta_ globally, run:
+To install Ganache globally, run:
 
 ```console
-$ npm install ganache@beta --global
-```
-
-For the latest stable release of ganache-cli, run:
-
-```console
-$ npm install ganache-cli@latest --global
+$ npm install ganache --global
 ```
 
 Once installed globally, you can start ganache right from your command line:
 
 ```console
-$ ganache-cli
+$ ganache
 Ganache CLI v6.12.1 (ganache-core: 2.13.1)
 
 Available Accounts
@@ -116,7 +104,7 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install Ganache beta into an npm project, run:
+To install Ganache into an npm project, run:
 
 ```console
 $ npm install ganache
