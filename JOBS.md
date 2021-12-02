@@ -37,7 +37,7 @@ Skills you'll learn, or improve upon if you're already knowledgeable:
  * Connect with ConsenSys engineers from MetaMask, Infura, Pegasys, Protocol Labs, etc to coordinate and build software to further foster the Ethereum ecosystem
  * Help build the future of economy by creating the tools used in its development
  * Attend and speak at conferences around the world (DevCon, TruffleCon, more!)
- * Be mentored by some of the best minds in Ethereum and Cryptocurrencies
+ * Be mentored by some of the best minds in Ethereum, crypto, and web3
  * Live anywhere with a quality Internet connection
  * Enjoy unlimited vacation and time off
 
