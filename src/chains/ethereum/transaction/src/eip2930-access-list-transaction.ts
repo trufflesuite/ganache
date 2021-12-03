@@ -153,6 +153,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
+    const from = this.from;
     const sender = this.from.toBuffer();
     const to = this.to.toBuffer();
     const data = this.data.toBuffer();
@@ -170,7 +171,10 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       AccessListJSON: this.accessListJSON,
       getSenderAddress: () => ({
         buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
+        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
+        toString() {
+          return from.toString();
+        }
       }),
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
