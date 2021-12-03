@@ -1821,10 +1821,9 @@ export default class EthereumApi implements Api {
       throw new Error("cannot sign data; no private key");
     }
 
-    const chainId = this.#options.chain.chainId;
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
-    const { v, r, s } = ecsign(messageHash, privateKey.toBuffer(), chainId);
-    return toRpcSig(v, r, s, chainId);
+    const { v, r, s } = ecsign(messageHash, privateKey.toBuffer());
+    return toRpcSig(v, r, s);
   }
 
   /**
