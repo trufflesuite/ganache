@@ -943,7 +943,7 @@ describe("forking", function () {
         // calling eth_estimateGas shouldn't change actual state, which is `2`
         const expectedValue = 2;
         const testValue = 0;
-        assert.notStrictEqual(
+        assert.strictEqual(
           testValue,
           0,
           "the test value must be 0 in order to make sure the change doesn't get stuck in the delete cache"
