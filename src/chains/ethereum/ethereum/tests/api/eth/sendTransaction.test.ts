@@ -60,11 +60,11 @@ describe("api", () => {
               p.send("eth_sendTransaction", [
                 { type: types[i], from, to, value: balance }
               ]),
-              {
-                message: `VM Exception while processing transaction: sender doesn't have enough funds to send tx. The upfront cost is: 1000000099667968750000 and the sender's account (${from}) only has: ${BigInt(
+              new RegExp(
+                `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: ${BigInt(
                   balance
-                )} (vm hf=london -> block -> tx)`
-              }
+                )} \\(vm hf=london -> block -> tx\\)`
+              )
             );
           }
         });
