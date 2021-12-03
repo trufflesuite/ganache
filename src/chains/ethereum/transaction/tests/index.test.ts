@@ -327,9 +327,13 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.from, tx.from);
       assert.strictEqual(jsonTx.to, tx.to);
       assert.strictEqual(jsonTx.value, tx.value);
+      // when this value is omitted, we set a default
+      assert.strictEqual(jsonTx.value.toString(), "0x0");
       assert.strictEqual(jsonTx.gas, tx.gas);
       assert.strictEqual(jsonTx.gasPrice, tx.gasPrice);
       assert.strictEqual(jsonTx.input, tx.data);
+      // when this value is omitted, we set a default
+      assert.strictEqual(jsonTx.input.toString(), "0x");
       assert.strictEqual(jsonTx.v, tx.v);
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
@@ -398,9 +402,13 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.from, tx.from);
       assert.strictEqual(jsonTx.to, tx.to);
       assert.strictEqual(jsonTx.value, tx.value);
+      // when this value is omitted, we set a default
+      assert.strictEqual(jsonTx.value.toString(), "0x0");
       assert.strictEqual(jsonTx.gas, tx.gas);
       assert.strictEqual(jsonTx.gasPrice, tx.gasPrice);
       assert.strictEqual(jsonTx.input, tx.data);
+      // when this value is omitted, we set a default
+      assert.strictEqual(jsonTx.input.toString(), "0x");
       assert.strictEqual(jsonTx.v, tx.v);
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
@@ -473,11 +481,15 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.from, tx.from);
       assert.strictEqual(jsonTx.to, tx.to);
       assert.strictEqual(jsonTx.value, tx.value);
+      // when this value is omitted, we set a default
+      assert.strictEqual(jsonTx.value.toString(), "0x0");
       assert.strictEqual(jsonTx.gas, tx.gas);
       assert.strictEqual(jsonTx.maxPriorityFeePerGas, tx.maxPriorityFeePerGas);
       assert.strictEqual(jsonTx.maxFeePerGas, tx.maxFeePerGas);
       assert.strictEqual(jsonTx.gasPrice, tx.effectiveGasPrice);
       assert.strictEqual(jsonTx.input, tx.data);
+      // when this value is omitted, we set a default
+      assert.strictEqual(jsonTx.input.toString(), "0x");
       assert.strictEqual(jsonTx.v, tx.v);
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
