@@ -97,13 +97,14 @@ export type ChainConfig = {
      */
     readonly time: {
       type: Date;
-      rawType: Date | string;
+      rawType: Date | string | number;
       legacy: {
         /**
          * @deprecated Use chain.time instead
          */
         time: Date | string;
       };
+      cliType: string;
     };
 
     /**
@@ -175,17 +176,21 @@ export const ChainOptions: Definitions<ChainConfig> = {
     cliType: "number"
   },
   time: {
-    normalize: rawInput => {
-      if (typeof rawInput === "string") {
-        return new Date(rawInput);
-      } else {
-        return rawInput;
-      }
-    },
+    normalize: rawInput => new Date(rawInput),
     cliDescription: "Date that the first block should start.",
     legacyName: "time",
     cliAliases: ["t", "time"],
-    cliType: "number"
+    cliType: "string",
+    cliCoerce: (input: string) => {
+      // try parsing the input as a number, if it works use the number
+      // otherwise pass the string along
+      const asNum = (input as any) / 1;
+      if (isNaN(asNum)) {
+        return input;
+      } else {
+        return asNum;
+      }
+    }
   },
   hardfork: {
     normalize,
