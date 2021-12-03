@@ -504,25 +504,27 @@ describe("forking", function () {
     }
 
     function set(provider: EthereumProvider, key: number, value: number) {
-      const encodedKey = Quantity.from(key)
-        .toBuffer()
-        .toString("hex")
-        .padStart(64, "0");
-      const encodedValue = Quantity.from(value)
-        .toBuffer()
-        .toString("hex")
-        .padStart(64, "0");
+      const tx = makeTxForSet(key, value) as any;
+      tx.gas = `0x${(3141592).toString(16)}`;
 
-      return provider.send("eth_sendTransaction", [
-        {
-          from: remoteAccounts[0],
-          to: contractAddress,
-          data: `0x${
-            methods[`setValueFor(uint8,uint256)`]
-          }${encodedKey}${encodedValue}`,
-          gas: `0x${(3141592).toString(16)}`
-        }
-      ]);
+      return provider.send("eth_sendTransaction", [tx]);
+    }
+
+    function encodeValue(val: number) {
+      return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
+    }
+
+    function makeTxForSet(key: number, value: number) {
+      const encodedKey = encodeValue(key);
+      const encodedValue = encodeValue(value);
+
+      return {
+        from: remoteAccounts[0],
+        to: contractAddress,
+        data: `0x${
+          methods[`setValueFor(uint8,uint256)`]
+        }${encodedKey}${encodedValue}`
+      };
     }
 
     async function getBlockNumber(provider: EthereumProvider) {
@@ -929,6 +931,43 @@ describe("forking", function () {
           }
         }
       }
+    });
+
+    describe("gas estimation", () => {
+      it("should not affect live state", async () => {
+        const { localProvider } = await startLocalChain(PORT, {
+          disableCache: true
+        });
+        const blockNum = await getBlockNumber(localProvider);
+
+        // calling eth_estimateGas shouldn't change actual state, which is `2`
+        const expectedValue = 2;
+        const testValue = 0;
+        assert.notStrictEqual(
+          testValue,
+          0,
+          "the test value must be 0 in order to make sure the change doesn't get stuck in the delete cache"
+        );
+        const actualValueBefore = parseInt(
+          await get(localProvider, "value1", blockNum)
+        );
+        assert.strictEqual(actualValueBefore, expectedValue);
+
+        // make a tx that sets a value 1 to 0, we'll only use this for gas
+        // estimation
+        const tx = makeTxForSet(1, testValue);
+        const est = await localProvider.request({
+          method: "eth_estimateGas",
+          params: [tx]
+        });
+        assert.notStrictEqual(est, "0x");
+
+        // make sure the call to eth_estimateGas didn't change anything!
+        const actualValueAfter = parseInt(
+          await get(localProvider, "value1", blockNum)
+        );
+        assert.strictEqual(actualValueAfter, expectedValue);
+      });
     });
   });
 
