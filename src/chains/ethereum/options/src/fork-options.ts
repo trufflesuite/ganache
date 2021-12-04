@@ -313,8 +313,16 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
       // `url` the runtime type isn't always going to match the TypeScript type.
       // if rawInput is a string it will be handled by the `url` or `network`
       // handlers.
-      if (typeof rawInput === "string" || !("request" in rawInput)) return;
-      return rawInput;
+      if (
+        typeof rawInput === "string" || // like `--fork http://url` (url shorthand)
+        (typeof rawInput === "object" &&
+          (typeof (rawInput as any).url === "string" || // like `--fork.url http://url`
+            typeof (rawInput as any).url == "boolean")) // like `--fork` (implied "mainnet" network shorthand)
+      ) {
+        return;
+      } else {
+        return rawInput;
+      }
     },
     cliDescription: "Specify an EIP-1193 provider to use instead of a url.",
     disableInCLI: true,
@@ -330,7 +338,7 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
       if (
         // handle `ganache --fork` case, which gets weird because both url
         // and network can use the `--fork` flag (the `url` handler ignores
-        // non-strings, like `true` and string that match our known networks)
+        // non-strings, like `true` and strings that match our known networks)
         typeof rawInput === "object"
       ) {
         if ("url" in rawInput) {

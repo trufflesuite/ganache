@@ -267,7 +267,7 @@ describe("forking", function () {
           // now that forking has initialized we need to put the `request` method
           // back because `provider.send` uses it internally :-)
           if (!(remoteProvider as any).request) {
-            (remoteProvider as any).request = request;
+            remoteProvider.request = request;
           }
           return send.apply(remoteProvider, args);
         };
