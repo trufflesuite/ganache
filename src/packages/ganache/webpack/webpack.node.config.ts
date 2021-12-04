@@ -14,6 +14,14 @@ const config: webpack.Configuration = merge({}, base, {
     filename: "[name].js",
     path: path.resolve(__dirname, "../", "dist", "node")
   },
+  resolve: {
+    extensions: [".ts", ".js"],
+    alias: {
+      // we don't use the debug module internally, so let's just not include it
+      // in any package.
+      debug: require.resolve("./polyfills/debug")
+    }
+  },
   plugins: [
     // add a shebang at the top of the generated `cli.js`
     new webpack.BannerPlugin({
