@@ -181,7 +181,7 @@ NOTE: depending on your web3 version, you may need to set a number of confirmati
 const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks: 1 });
 ```
 
-#### As an [ethers.js]() provider:
+#### As an [ethers.js](https://www.npmjs.com/package/ethers) provider:
 
 ```javascript
 const ganache = require("ganache");
