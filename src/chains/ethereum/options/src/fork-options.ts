@@ -317,7 +317,9 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         typeof rawInput === "string" || // like `--fork http://url` (url shorthand)
         (typeof rawInput === "object" &&
           (typeof (rawInput as any).url === "string" || // like `--fork.url http://url`
-            typeof (rawInput as any).url == "boolean")) // like `--fork` (implied "mainnet" network shorthand)
+            typeof (rawInput as any).url === "boolean" || // like `--fork` (implied "mainnet" network shorthand)
+            typeof (rawInput as any).network === "string" || // like `--fork.network mainnet`
+            typeof (rawInput as any).network === "boolean")) // like `--fork.network true`
       ) {
         return;
       } else {
