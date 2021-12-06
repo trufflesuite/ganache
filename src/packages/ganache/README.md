@@ -222,7 +222,7 @@ ganache --namespace.option="value"
 for CLI use, and
 
 ```TypeScript
-const options = { namespace: {option: "value"}};
+const options = { namespace: { option: "value"}};
 const provider = ganache.provider(options);
 ```
 
