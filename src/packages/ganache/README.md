@@ -209,6 +209,259 @@ const provider = Ganache.provider(options);
 
 New interactive RPC documentation coming soon! Give this repository a star and watch for releases to be notified of its official launch! In the meantime, Ganache Ethereum JSON-RPC documentation can be found [here](/src/chains/ethereum/ethereum/RPC-METHODS.md).
 
+### Startup Options
+
+The startup options are grouped in the `chain`, `database`, `fork`, `logging`, `miner`, and `wallet` namespaces, and should be used as such on startup, i.e.
+
+```console
+ganache --namespace.option="value"
+```
+
+for CLI use, and
+
+```TypeScript
+const options = { namespace: {option: "value"}};
+const provider = ganache.provider(options);
+```
+
+for programmatic use.
+
+The following options are listed for command line use, but can also be used when running Ganache programatically in your project.
+
+```console
+Chain:
+  --chain.allowUnlimitedContractSize    Allows unlimited contract sizes while debugging. Setting this to true
+                                        will cause ganache to behave differently than production environments.
+                                                                                    [boolean] [default: false]
+
+  --chain.asyncRequestProcessing        When set to false only one request will be processed at a time.
+                                                                                     [boolean] [default: true]
+
+  --chain.chainId                       The currently configured chain id.            [number] [default: 1337]
+
+  -i, --chain.networkId                 The id of the network returned by the RPC method net_version.
+                                        deprecated aliases: --networkId
+                                                            [number] [default: System time at process start or
+                                                               Network ID of forked blockchain if configured.]
+
+  -t, --chain.time                      Date that the first block should start.
+                                        deprecated aliases: --time                                    [number]
+
+  -k, --chain.hardfork                  Set the hardfork rules for the EVM.
+                                        deprecated aliases: --hardfork
+                                               [string] [choices: "constantinople", "byzantium", "petersburg",
+                                                 "istanbul", "muirGlacier", "berlin", "london","arrowGlacier"]
+                                                                                             [default: london]
+
+  --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
+                                                                                    [boolean] [default: false]
+
+
+Database:
+  --database.dbPath                     Specify a path to a directory to save the chain database.
+                                        deprecated aliases: --db, --db_path                           [string]
+
+Logging:
+  --logging.debug                       Set to true to log EVM opcodes.             [boolean] [default: false]
+
+  -q, --logging.quiet                   Set to true to disable logging.
+                                        deprecated aliases: --quiet                 [boolean] [default: false]
+
+  -v, --logging.verbose                 Set to true to log all RPC requests and responses.
+                                        deprecated aliases: --verbose               [boolean] [default: false]
+
+
+Miner:
+  -b, --miner.blockTime                 Sets the blockTime in seconds for automatic mining. A blockTime of 0
+                                        enables "instamine mode", where new executable transactions will be
+                                        mined instantly.
+                                        deprecated aliases: --blockTime                  [number] [default: 0]
+
+  -g, --miner.defaultGasPrice           Sets the default gas price in WEI for transactions if not otherwise
+                                        specified.
+                                        deprecated aliases: --gasPrice          [string] [default: 0x77359400]
+
+  -l, --miner.blockGasLimit             Sets the block gas limit in WEI.
+                                        deprecated aliases: --gasLimit            [string] [default: 0xb71b00]
+
+  --miner.defaultTransactionGasLimit    Sets the default transaction gas limit in WEI. Set to "estimate" to
+                                        use an estimate (slows down transaction execution by 40%+).
+                                                                                   [string] [default: 0x15f90]
+
+  --miner.difficulty                    Sets the block difficulty.                     [string] [default: 0x1]
+
+  --miner.callGasLimit                  Sets the transaction gas limit in WEI for eth_call and eth_estimateGas
+                                        calls.
+                                                                          [string] [default: 0x1fffffffffffff]
+  --miner.legacyInstamine               Enables legacy instamine mode, where transactions are fully mined
+                                        before the transaction's hash is returned to the caller.
+                                                                                    [boolean] [default: false]
+
+  --miner.coinbase                      Sets the address where mining rewards will go.
+                                                         [default: 0x0000000000000000000000000000000000000000]
+
+  --miner.extraData                     Set the extraData block header field a miner can include.
+                                                                                        [string] [default: 0x]
+
+  --miner.priceBump                     Minimum price bump percentage needed to replace a transaction that
+                                        already exists in the transaction pool.         [string] [default: 10]
+
+
+Wallet:
+  --wallet.accounts                     Account data in the form <private_key>,<initial_balance>, can be
+                                        specified multiple times. Note that private keys are 64 characters
+                                        long and must be entered as an 0x-prefixed hex string. Balance can
+                                        either be input as an integer, or as a 0x-prefixed hex string with
+                                        either form specifying the initial balance in wei.
+                                        deprecated aliases: --account                                  [array]
+
+  -a, --wallet.totalAccounts            Number of accounts to generate at startup.
+                                        deprecated aliases: --accounts                  [number] [default: 10]
+
+  -d, --wallet.deterministic            Use pre-defined, deterministic seed.
+                                        deprecated aliases: --deterministic         [boolean] [default: false]
+
+  -s, --wallet.seed                     Seed to use to generate a mnemonic.
+                                        deprecated aliases: --seed
+                                                                                                      [string]
+                                             [default: Random value, unless wallet.deterministic is specified]
+
+  -m, --wallet.mnemonic                 Use a specific HD wallet mnemonic to generate initial addresses.
+                                        deprecated aliases: --mnemonic                                [string]
+                                                                         [default: Generated from wallet.seed]
+
+  -u, --wallet.unlockedAccounts         Array of addresses or address indexes specifying which accounts should
+                                        be unlocked.
+                                        deprecated aliases: --unlock                                   [array]
+
+  -n, --wallet.lock                     Lock available accounts by default (good for third party transaction
+                                        signing).
+                                        deprecated aliases: --secure, --lock        [boolean] [default: false]
+
+  --wallet.passphrase                   Passphrase to use when locking accounts.
+                                        deprecated aliases: --passphrase                              [string]
+
+  --wallet.accountKeysPath              Specifies a file to save accounts and private keys to, for testing.
+                                        deprecated aliases: --account_keys_path, --acctKeys           [string]
+
+  -e, --wallet.defaultBalance           The default account balance, specified in ether.
+                                        deprecated aliases: --defaultBalanceEther     [number] [default: 1000]
+
+  --wallet.hdPath                       The hierarchical deterministic path to use when generating accounts.
+                                                                            [string] [default: m,44',60',0',0]
+
+
+Fork:
+  -f, --fork.url                        Fork from another currently running Ethereum client at a given block.
+                                        Input should be the URL of the node, e.g. "http://localhost:1337". You
+                                        can optionally specify the block to fork from using an @ sign:
+                                        "http://localhost:1337@8675309".
+
+                                        You can specify Basic Authentication credentials in the URL as well.
+                                        e.g., "wss://user:password@example.com/". If you need to use an Infura
+                                        Project Secret, you would use it like this:
+                                        "wss://:{YOUR-PROJECT-SECRET}@mainnet.infura.com/..."
+
+                                        Alternatively, you can use the fork.username and fork.password
+                                        options.
+                                        deprecated aliases: --fork
+
+  --fork.network                        A network name to fork from; uses Infura's archive nodes.
+
+                                        Use the shorthand command ganache --fork to automatically fork from
+                                        Mainnet at the latest block.
+                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli"]
+
+  --fork.blockNumber                    Block number the provider should fork from.
+                                                                                [default: Latest block number]
+
+  --fork.preLatestConfirmations         When the fork.blockNumber is set to "latest" (default), the number of
+                                        blocks before the remote node's "latest" block to fork from.
+                                                                                         [number] [default: 5]
+
+  --fork.username                       Username to use for Basic Authentication. Does not require setting
+                                        fork.password.
+
+                                        When combined with fork.password, is shorthand for fork: { headers: {
+                                        "Authorization": "Basic {ENCODED-BASIC-HEADER}" } }
+
+                                        If the fork.headers option specifies an "Authorization" header, it
+                                        will be be inserted after this Basic token.
+
+  --fork.password                       Password to use for Basic Authentication. Does not require setting
+                                        fork.username.
+
+                                        When combined with fork.username, is shorthand for fork: { headers: {
+                                        "Authorization": "Basic {ENCODED-BASIC-HEADER}" } }
+
+                                        If the fork.headers option specifies an "Authorization" header, it
+                                        will be be inserted after this Basic token.
+
+  --fork.jwt                            Encoded JSON Web Token (JWT) used for authenticating to some servers.
+
+                                        Shorthand for fork:
+                                          { headers: { "Authorization": "Bearer {YOUR-ENCODED-JWT}" } }
+
+                                        If the fork.headers option specifies an "Authorization" header, it
+                                        will be be inserted after the JWT Bearer token.
+
+  --fork.userAgent                      The User-Agent header sent to the fork on each request.
+
+                                        Sent as Api-User-Agent when used in the browser.
+
+                                        Will be overridden by a "User-Agent" defined in the fork.headers
+                                        option, if provided.
+
+                                                                                [default: Ganache/7.0.0-beta.0
+                                          (https://www.trufflesuite.com/ganache; ganache<at>trufflesuite.com)]
+
+  --fork.origin                         The Origin header sent to the fork on each request.
+
+                                        Ignored in the browser.
+
+                                        Will be overridden by an "Origin" value defined in the fork.headers
+                                        option, if provided.
+
+  --fork.headers                        Headers to supply on each request to the forked provider.
+
+                                        Headers set here override headers set by other options, unless
+                                        otherwise specified.
+
+                                                                    Defaults to: ["User-Agent: Ganache/VERSION
+                                         (https://www.trufflesuite.com/ganache; ganache<at>trufflesuite.com)"]
+                                                                                                       [array]
+
+  --fork.requestsPerSecond              Restrict the number of requests per second sent to the fork provider.
+                                        0 means no limit is applied.                     [number] [default: 0]
+
+  --fork.disableCache                   Disables caching of all forking requests.   [boolean] [default: false]
+
+  --fork.deleteCache                    Deletes the persistent cache before starting.
+                                                                                    [boolean] [default: false]
+
+
+Server:
+  --server.ws                           Enable a websocket server.                   [boolean] [default: true]
+
+  --server.wsBinary                     Whether or not websockets should response with binary data
+                                        (ArrayBuffers) or strings.
+                                                                            [choices: "true", "false", "auto"]
+                                                                                               [default: auto]
+
+  --server.rpcEndpoint                  Defines the endpoint route the HTTP and WebSocket servers will listen
+                                        on.
+                                                               [default: "/" (Ethereum), "/rpc/v0" (Filecoin)]
+
+  -h, --server.host                     Hostname to listen on.
+                                        deprecated aliases: --host, --hostname
+                                                                               [string] [default: "127.0.0.1"]
+
+  -p, --server.port, --port             Port to listen on.
+                                        deprecated aliases: --port
+                                                                                      [number] [default: 8545]
+
+```
+
 ### Ganache Provider Events
 
 In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 3 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
