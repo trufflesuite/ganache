@@ -207,7 +207,8 @@ const provider = Ganache.provider(options);
 
 ## Documentation
 
-New interactive RPC documentation coming soon! Give this repository a star and watch for releases to be notified of its official launch! In the meantime, Ganache Ethereum JSON-RPC documentation can be found [here](/src/chains/ethereum/ethereum/RPC-METHODS.md).
+New interactive RPC documentation coming soon!
+In the meantime, check out our [Ethereum JSON-RPC documentation](/src/chains/ethereum/ethereum/RPC-METHODS.md).
 
 ### Startup Options
 
