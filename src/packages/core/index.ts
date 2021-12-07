@@ -42,8 +42,8 @@ const Ganache = {
    * `options.flavor` which defaults to `ethereum`.
    */
   provider: <T = any>(options?: ProviderOptions<T>): any => {
-    const connector = ConnectorLoader.initialize<T>(options);
-    return connector["provider"];
+    const loader = ConnectorLoader.initialize<T>(options);
+    return loader.connector["provider"];
   }
 };
 
