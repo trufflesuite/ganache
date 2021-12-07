@@ -1,5 +1,16 @@
 import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
+import path from "path";
+
+const VERSION = require(path.join(__dirname, "../package.json")).version;
+const CLI_VERSION = require(path.join(__dirname, "../../cli/package.json"))
+  .version;
+const CORE_VERSION = require(path.join(__dirname, "../../core/package.json"))
+  .version;
+const GANACHE_FILECOIN_VERSION = require(path.join(
+  __dirname,
+  "../../../chains/filecoin/filecoin/package.json"
+)).version;
 
 let INFURA_KEY = process.env.INFURA_KEY;
 // if we don't have an INFURA_KEY at build time we should bail!
@@ -73,11 +84,18 @@ const base: webpack.Configuration = {
   },
   plugins: [
     new webpack.EnvironmentPlugin({
-      // replace process.env.INFURA_KEY in our code
-      INFURA_KEY,
       // replace process.env.DEBUG in our code, because we don't use it but
       // ethereumjs packages do, but we don't implement everything required
-      DEBUG: false
+      DEBUG: false,
+      // set ganache version
+      VERSION,
+      CLI_VERSION,
+      CORE_VERSION,
+      GANACHE_FILECOIN_VERSION
+    }),
+    new webpack.DefinePlugin({
+      // replace process.env.INFURA_KEY in our code
+      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY)
     })
   ]
 };

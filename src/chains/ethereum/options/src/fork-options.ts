@@ -1,9 +1,8 @@
 import { normalize } from "./helpers";
 import { Definitions, UnionToTuple } from "@ganache/options";
-import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { Tag } from "@ganache/ethereum-utils";
 import { URL } from "url";
-const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
+const version = process.env.VERSION;
 
 // we aren't going to treat block numbers as a bigint, so we don't want to
 // accept block numbers we can't add to
