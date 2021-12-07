@@ -94,8 +94,14 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         data.to == null
           ? RPCQUANTITY_EMPTY
           : toValidLengthAddress(data.to, "to");
-      this.value = Quantity.from(data.value);
-      this.data = Data.from(data.data == null ? data.input : data.data);
+      this.value = Quantity.from(data.value || 0);
+      const dataVal =
+        data.data == null
+          ? data.input == null
+            ? "0x"
+            : data.input
+          : data.data;
+      this.data = Data.from(dataVal);
     }
   }
 

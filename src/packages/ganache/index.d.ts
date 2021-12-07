@@ -24,7 +24,7 @@ declare module "ganache" {
       listener: (message: ProviderMessage) => void
     ): Provider;
 
-    disconnect: Promise<void>;
+    disconnect: () => Promise<void>;
   };
 
   export type Server = {

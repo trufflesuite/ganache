@@ -72,9 +72,12 @@ const base: webpack.Configuration = {
     ]
   },
   plugins: [
-    new webpack.DefinePlugin({
+    new webpack.EnvironmentPlugin({
       // replace process.env.INFURA_KEY in our code
-      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY)
+      INFURA_KEY,
+      // replace process.env.DEBUG in our code, because we don't use it but
+      // ethereumjs packages do, but we don't implement everything required
+      DEBUG: false
     })
   ]
 };
