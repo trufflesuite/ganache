@@ -1,6 +1,6 @@
 import getProvider from "../helpers/getProvider";
 import EthereumProvider from "../../src/provider";
-import { EthereumProviderOptions } from "@ganache/ethereum-options/typings";
+import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 export const logging = {
   logger: {

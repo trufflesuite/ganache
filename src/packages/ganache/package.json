@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "dist/node/core.js",
   "browser": "dist/web/ganache.min.js",
-  "typings": "lib/index.d.ts",
+  "typings": "dist/ganache.d.ts",
   "source": "index.ts",
   "bin": {
     "ganache": "dist/node/cli.js",
@@ -54,6 +54,7 @@
     "@ganache/cli": "0.1.1-beta.1",
     "@ganache/core": "0.1.1-beta.1",
     "@ganache/flavors": "0.1.1-beta.1",
+    "@microsoft/api-extractor": "7.18.21",
     "@types/mocha": "9.0.0",
     "@types/node": "16.11.6",
     "assert": "2.0.0",

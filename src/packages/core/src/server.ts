@@ -28,7 +28,8 @@ import {
 
 // Set the "silent" config option so we don't output the "uwebsockets" header
 // we check for truthiness because `uws` is omitted from the browser build
-setUwsGlobalConfig && setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
+setUwsGlobalConfig &&
+  setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
 
 import {
   Connector,
