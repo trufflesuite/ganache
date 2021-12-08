@@ -2979,7 +2979,7 @@ export default class EthereumApi implements Api {
   async rpc_modules() {
     return RPC_MODULES;
   }
-  //endregion
+  //#endregion
 
   //#region shh
 
