@@ -1,3 +1,0 @@
-# `@ganache/utils`
-
-> TODO: description
