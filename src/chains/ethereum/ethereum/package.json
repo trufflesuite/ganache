@@ -110,7 +110,6 @@
     "solc": "0.7.4",
     "superagent": "6.1.0",
     "ts-node": "9.1.1",
-    "ts-transformer-inline-file": "0.1.1",
     "ttypescript": "1.5.12",
     "typedoc": "0.17.8",
     "typescript": "4.1.3"
