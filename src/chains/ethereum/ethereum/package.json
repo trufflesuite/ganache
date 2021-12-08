@@ -66,7 +66,7 @@
     "@ganache/utils": "0.1.1-beta.1",
     "abort-controller": "3.0.0",
     "bip39": "3.0.4",
-    "emittery": "0.7.2",
+    "emittery": "0.10.0",
     "env-paths": "2.2.1",
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",

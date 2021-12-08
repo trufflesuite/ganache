@@ -71,20 +71,18 @@ const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
 const refresher = (item: TypedTransaction, context: Quantity) =>
   item.updateEffectiveGasPrice(context);
 
-export default class Miner extends Emittery.Typed<
-  {
-    block: {
-      block: Block;
-      serialized: Buffer;
-      storageKeys: StorageKeys;
-      transactions: TypedTransaction[];
-    };
-    "ganache:vm:tx:step": VmStepEvent;
-    "ganache:vm:tx:before": VmBeforeTransactionEvent;
-    "ganache:vm:tx:after": VmAfterTransactionEvent;
-  },
-  "idle"
-> {
+export default class Miner extends Emittery<{
+  block: {
+    block: Block;
+    serialized: Buffer;
+    storageKeys: StorageKeys;
+    transactions: TypedTransaction[];
+  };
+  "ganache:vm:tx:step": VmStepEvent;
+  "ganache:vm:tx:before": VmBeforeTransactionEvent;
+  "ganache:vm:tx:after": VmAfterTransactionEvent;
+  idle: undefined;
+}> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
   #pending: boolean;

@@ -54,7 +54,7 @@
     "@ganache/ethereum-address": "0.1.1-beta.1",
     "@ganache/rlp": "0.1.1-beta.1",
     "@ganache/utils": "0.1.1-beta.1",
-    "emittery": "0.7.2",
+    "emittery": "0.10.0",
     "ethereumjs-abi": "0.6.8",
     "ethereumjs-util": "7.1.3"
   },

@@ -31,7 +31,8 @@ import {
   DataEvent,
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
-  VmStepEvent
+  VmStepEvent,
+  MessageEvent
 } from "./provider-events";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
@@ -113,17 +114,16 @@ type RequestParams<Method extends RequestMethods> = {
   readonly params: OverloadedParameters<EthereumApi[Method]> | undefined;
 };
 export default class EthereumProvider
-  extends Emittery.Typed<
-    {
-      message: MessageEvent;
-      data: DataEvent;
-      error: Error;
-      "ganache:vm:tx:step": VmStepEvent;
-      "ganache:vm:tx:before": VmBeforeTransactionEvent;
-      "ganache:vm:tx:after": VmAfterTransactionEvent;
-    },
-    "connect" | "disconnect"
-  >
+  extends Emittery<{
+    message: MessageEvent;
+    data: DataEvent;
+    error: Error;
+    "ganache:vm:tx:step": VmStepEvent;
+    "ganache:vm:tx:before": VmBeforeTransactionEvent;
+    "ganache:vm:tx:after": VmAfterTransactionEvent;
+    connect: undefined;
+    disconnect: undefined;
+  }>
   implements Provider<EthereumApi> {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
@@ -206,7 +206,7 @@ export default class EthereumProvider
   /**
    * Remove an event subscription
    */
-  public removeListener = this.off;
+  public removeListener: Emittery["off"] = this.off;
 
   /**
    * @param method - the params

@@ -37,7 +37,14 @@ const emitteryMethods = [
   "onAny"
 ] as const;
 
-@Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
+// A hack to fix Emittery's `mixin` type.
+// issue: https://github.com/sindresorhus/emittery/issues/79
+const mixin = Emittery.mixin.bind(Emittery) as (
+  emitteryPropertyName: string | symbol,
+  methodNames?: readonly string[]
+) => <T extends { new (...args: any): any }>(klass: T) => T;
+
+@mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiEvent<T> extends Promise<T> {
   constructor(
     executor: (

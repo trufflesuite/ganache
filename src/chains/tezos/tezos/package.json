@@ -44,7 +44,7 @@
   "dependencies": {
     "@ganache/options": "0.1.1-beta.1",
     "@ganache/utils": "0.1.1-beta.1",
-    "emittery": "0.7.2"
+    "emittery": "0.10.0"
   },
   "devDependencies": {
     "@trufflesuite/typedoc-default-themes": "0.6.1",

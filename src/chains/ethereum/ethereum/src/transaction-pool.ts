@@ -109,7 +109,7 @@ export enum TriageOption {
    */
   ReplacesFutureTransaction = 3
 }
-export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
+export default class TransactionPool extends Emittery<{ drain: undefined }> {
   #options: EthereumInternalOptions["miner"];
 
   /**

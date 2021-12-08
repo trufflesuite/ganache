@@ -95,8 +95,9 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  ready: undefined;
+  stop: undefined;
 };
-type BlockchainEvents = "ready" | "stop";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -167,10 +168,7 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   return common;
 }
 
-export default class Blockchain extends Emittery.Typed<
-  BlockchainTypedEvents,
-  BlockchainEvents
-> {
+export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
   #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
@@ -554,7 +552,8 @@ export default class Blockchain extends Emittery.Typed<
       .then(() => this.#saveNewBlock(blockData))
       .then(this.#emitNewBlock);
 
-    return this.#blockBeingSavedPromise;
+    await this.#blockBeingSavedPromise;
+    return;
   };
 
   coinbase: Address;

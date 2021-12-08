@@ -48,7 +48,7 @@ import DealInfoManager from "./data-managers/deal-info-manager";
 import * as bls from "noble-bls12-381";
 
 export type BlockchainEvents = {
-  ready(): void;
+  ready: undefined;
   tipset: Tipset;
   minerEnabled: boolean;
   dealUpdate: DealInfo;
@@ -57,10 +57,7 @@ export type BlockchainEvents = {
 // Reference implementation: https://git.io/JtEVW
 const BurntFundsAddress = Address.fromId(99, true);
 
-export default class Blockchain extends Emittery.Typed<
-  BlockchainEvents,
-  keyof BlockchainEvents
-> {
+export default class Blockchain extends Emittery<BlockchainEvents> {
   public tipsetManager: TipsetManager | null;
   public blockHeaderManager: BlockHeaderManager | null;
   public accountManager: AccountManager | null;

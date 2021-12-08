@@ -42,7 +42,7 @@ export class Connector<
       KnownKeys<EthereumApi>
     > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
   >
-  extends Emittery.Typed<undefined, "ready" | "close">
+  extends Emittery<{ ready: undefined; close: undefined }>
   implements IConnector<EthereumApi, R | R[], JsonRpcResponse> {
   #provider: EthereumProvider;
 
