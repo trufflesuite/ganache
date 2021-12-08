@@ -228,15 +228,10 @@ export default class Wallet {
   #initializeAccounts = (
     options: EthereumInternalOptions["wallet"]
   ): Map<string, Account> => {
-    let makeAccountAtIndex: (index: number) => HDKey;
-    try {
-      makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
-        mnemonicToSeedSync(options.mnemonic, null),
-        options.hdPath
-      );
-    } catch (e) {
-      console.log(e);
-    }
+    const makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
+      mnemonicToSeedSync(options.mnemonic, null),
+      options.hdPath
+    );
 
     // convert a potentially fractional balance of Ether to WEI
     const balanceParts = options.defaultBalance.toString().split(".", 2);

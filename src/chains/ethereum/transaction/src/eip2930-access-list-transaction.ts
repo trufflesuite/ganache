@@ -188,12 +188,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        try {
-          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-          return new BN(Quantity.from(c).toBuffer());
-        } catch (e) {
-          throw e;
-        }
+        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
+        return new BN(Quantity.from(c).toBuffer());
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);

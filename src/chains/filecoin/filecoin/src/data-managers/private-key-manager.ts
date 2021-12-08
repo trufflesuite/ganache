@@ -18,7 +18,7 @@ export default class PrivateKeyManager {
         PrivateKeyManager.AccountsWithPrivateKeysKey
       );
       addressesWithPrivateKeys = JSON.parse(result.toString());
-    } catch (e) {
+    } catch (e: any) {
       if (e.status === NOTFOUND) {
         // if the array doesn't exist yet, initialize it
         addressesWithPrivateKeys = [];
@@ -46,7 +46,7 @@ export default class PrivateKeyManager {
     try {
       const privateKey: Buffer = await this.base.get(Buffer.from(address));
       return privateKey.toString("hex");
-    } catch (e) {
+    } catch (e: any) {
       if (e.status === NOTFOUND) {
         return null;
       }
@@ -101,7 +101,7 @@ export default class PrivateKeyManager {
 
   async setDefault(address: string) {
     address = address.toLowerCase();
-    if (this.hasPrivateKey(address)) {
+    if (await this.hasPrivateKey(address)) {
       this.#addressesWithPrivateKeys = this.#addressesWithPrivateKeys.filter(
         a => a !== address
       );

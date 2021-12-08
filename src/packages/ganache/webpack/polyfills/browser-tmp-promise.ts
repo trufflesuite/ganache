@@ -42,7 +42,7 @@ async function _garbageCollector() {
   while (_removeObjects.length) {
     try {
       _removeObjects[0]();
-    } catch (e) {
+    } catch {
       // already removed?
     }
   }
@@ -63,7 +63,7 @@ function _randomChars(howMany: number) {
   // make sure that we do not fail because we ran out of entropy
   try {
     rnd = randomBytes(howMany);
-  } catch (e) {
+  } catch {
     rnd = pseudoRandomBytes(howMany);
   }
 

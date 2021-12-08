@@ -222,7 +222,7 @@ export default class EthereumProvider
    * @param callback - callback
    * @deprecated Use the `request` method
    */
-  public send<Method extends KnownKeys<EthereumApi>>(
+  public send<Method extends RequestMethods>(
     payload: JsonRpcRequest<EthereumApi, Method>,
     callback?: Callback
   ): undefined;
@@ -233,16 +233,19 @@ export default class EthereumProvider
    * @deprecated Batch transactions have been deprecated. Send payloads
    * individually via the `request` method.
    */
-  public send<Method extends KnownKeys<EthereumApi>>(
+  public send<Method extends RequestMethods>(
     payloads: JsonRpcRequest<EthereumApi, Method>[],
     callback?: BatchedCallback
   ): undefined;
-  public send<Method extends KnownKeys<EthereumApi>>(
+  public send<Method extends RequestMethods>(
     arg1:
-      | RequestMethods
+      | Method
       | JsonRpcRequest<EthereumApi, Method>
       | JsonRpcRequest<EthereumApi, Method>[],
-    arg2?: Callback | BatchedCallback
+    arg2?:
+      | OverloadedParameters<EthereumApi[Method]>
+      | Callback
+      | BatchedCallback
   ) {
     return this.#send(arg1, arg2);
   }
@@ -283,12 +286,15 @@ export default class EthereumProvider
     this.#send(arg1, arg2);
   }
 
-  #send = <Method extends KnownKeys<EthereumApi>>(
+  #send = <Method extends RequestMethods>(
     arg1:
       | RequestMethods
       | JsonRpcRequest<EthereumApi, Method>
       | JsonRpcRequest<EthereumApi, Method>[],
-    arg2?: Callback | BatchedCallback
+    arg2?:
+      | OverloadedParameters<EthereumApi[Method]>
+      | Callback
+      | BatchedCallback
   ): Promise<{}> | void => {
     let method: RequestMethods;
     let params: any;
@@ -437,7 +443,7 @@ export default class EthereumProvider
         error: null as JsonRpcError,
         result: makeResponse(payload.id, JSON.parse(JSON.stringify(result)))
       };
-    } catch (error) {
+    } catch (error: any) {
       let result: any;
       // In order to provide `vmErrorsOnRPCResponse`, the `error` might have
       // a `result` property that we need to move to the result field. Yes,

@@ -48,7 +48,7 @@ console.log(detailedVersion);
 let server: ReturnType<typeof Ganache.server>;
 try {
   server = Ganache.server(argv);
-} catch (error) {
+} catch (error: any) {
   console.error(error.message);
   process.exit(1);
 }
@@ -85,7 +85,7 @@ const closeHandler = async () => {
     // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
     // anything other than act as a place to anchor this comment :-)
     process.exitCode = 0;
-  } catch (err) {
+  } catch (err: any) {
     logAndForceExit(
       [
         "\nReceived an error while attempting to shut down the server: ",

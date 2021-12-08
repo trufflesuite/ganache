@@ -830,7 +830,7 @@ describe("forking", function () {
           // set value1 to {snapshotValue}
           await set(localProvider, 1, snapshotValue);
           const message = await localProvider.once("message");
-          const blockNumber = parseInt(message.data.result.number, 16);
+          const blockNumber = parseInt((message.data.result as any).number, 16);
           const checkValue = await get(localProvider, "value1", blockNumber);
           assert.strictEqual(
             Quantity.from(checkValue).toNumber(),
@@ -853,7 +853,10 @@ describe("forking", function () {
         // set value1 to {initialValue} (delete it)
         await set(localProvider, 1, initialValue);
         const message = await localProvider.once("message");
-        const initialBlockNumber = parseInt(message.data.result.number, 16);
+        const initialBlockNumber = parseInt(
+          (message.data.result as any).number,
+          16
+        );
         assert.strictEqual(
           Quantity.from(
             await get(localProvider, "value1", initialBlockNumber)
@@ -917,7 +920,10 @@ describe("forking", function () {
               await set(remoteProvider, 1, remoteInitialValue);
               const message = await remoteProvider.once("message");
               await remoteProvider.send("eth_unsubscribe", [subId]);
-              const blockNumber = parseInt(message.data.result.number, 16);
+              const blockNumber = parseInt(
+                (message.data.result as any).number,
+                16
+              );
               assert.strictEqual(
                 parseInt(await get(remoteProvider, "value1", blockNumber), 16),
                 remoteInitialValue

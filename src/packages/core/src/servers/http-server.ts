@@ -164,7 +164,7 @@ export default class HttpServer {
             ? Buffer.concat([buffer, chunk], buffer.length + chunk.length)
             : chunk;
           payload = connector.parse(message);
-        } catch (e) {
+        } catch (e: any) {
           sendResponse(
             response,
             HttpResponseCodes.BAD_REQUEST,

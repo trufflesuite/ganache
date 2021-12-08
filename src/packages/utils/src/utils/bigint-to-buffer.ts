@@ -28,7 +28,7 @@ try {
       return toBufferBE(value, size);
     }
   };
-} catch (e) {
+} catch {
   _bigIntToBuffer = (value: bigint): Buffer => {
     if (value <= MAX_SAFE_INTEGER) {
       // if this value can be handled as a JS number safely, convert it that way

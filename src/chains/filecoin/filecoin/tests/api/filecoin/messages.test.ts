@@ -175,7 +175,7 @@ describe("api", () => {
           await client.mpoolPushMessage(message, messageSendSpec);
           expectedHeight++; // if we succeeded to send, this will get mined
           assert.fail("Successfully sent message without enough funds");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -210,7 +210,7 @@ describe("api", () => {
           await client.mpoolPushMessage(message, messageSendSpec);
           expectedHeight++; // if we succeeded to send, this will get mined
           assert.fail("Successfully sent message without enough funds");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -243,7 +243,7 @@ describe("api", () => {
           await client.mpoolPushMessage(message, messageSendSpec);
           expectedHeight++; // if we succeeded to send, this will get mined
           assert.fail("Successfully sent unsigned message with non-zero nonce");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -283,7 +283,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent unsigned message with non-zero method"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -341,7 +341,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent unsigned message with an account we don't have the private key for"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -379,7 +379,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with the wrong version"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -413,7 +413,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with an empty To field"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -452,7 +452,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with an empty From field"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -492,7 +492,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with the To field being the zero address"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -527,7 +527,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a negative Value"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -565,7 +565,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a value greater than the total filecoin supply"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -600,7 +600,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a negative GasFeeCap"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -638,7 +638,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a negative GasPremium"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -676,7 +676,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a GasPremium > GasFeeCap"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -714,7 +714,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a GasLimit > BlockGasLimit"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -754,7 +754,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent an unsigned message with a GasLimit < minGas"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -912,7 +912,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with the wrong signature"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -958,7 +958,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with the wrong version"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1000,7 +1000,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with an empty To field"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1040,7 +1040,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with an empty To field"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1086,7 +1086,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with the To field being the zero address"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1129,7 +1129,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a negative Value"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1175,7 +1175,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a value greater than the total filecoin supply"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1223,7 +1223,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a negative GasFeeCap"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1269,7 +1269,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a negative GasPremium"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1315,7 +1315,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a GasPremium > GasFeeCap"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1361,7 +1361,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a GasLimit > BlockGasLimit"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -1409,7 +1409,7 @@ describe("api", () => {
           assert.fail(
             "Successfully sent a signed message with a GasLimit < minGas"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }

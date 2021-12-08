@@ -261,7 +261,7 @@ describe("server", () => {
             process.on("uncaughtException", mochaListener);
             try {
               await s2.close();
-            } catch (e) {
+            } catch (e: any) {
               if (
                 e.message !== "Cannot close server while it is opening." &&
                 e.message !== "Server is already closing or closed."
@@ -295,7 +295,7 @@ describe("server", () => {
                 "Successfully listened twice on the same port instead of erroring"
               );
             }
-          } catch (e) {
+          } catch (e: any) {
             if (e.code === "ERR_ASSERTION") {
               throw e;
             } else {

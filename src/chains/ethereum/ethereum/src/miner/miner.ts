@@ -478,7 +478,7 @@ export default class Miner extends Emittery<{
         tx: tx.toVmTransaction() as any,
         block: block as any
       });
-    } catch (err) {
+    } catch (err: any) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
       // Update the `priced` heap with the next best transaction from this

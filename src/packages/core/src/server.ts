@@ -250,7 +250,7 @@ export class Server<
         this.#status = ServerStatus.unknown;
         try {
           await this.close();
-        } catch (e) {
+        } catch (e: any) {
           errors.push(e);
         }
         if (errors.length > 1) {

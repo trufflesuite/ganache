@@ -67,7 +67,7 @@ export async function setDbVersion(db: LevelUp, version: Buffer) {
         `Persistent cache version "${version.toString()}"" is not understood.`
       );
     }
-  } catch (e) {
+  } catch (e: any) {
     if (!e.notFound) throw e;
 
     // if we didn't have a `version` key we need to set one
@@ -106,7 +106,7 @@ export async function resolveTargetAndClosestAncestor(
           previousClosestAncestor.key
         )) || previousClosestAncestor;
     }
-  } catch (e) {
+  } catch (e: any) {
     // something bad happened (I/O failure?), bail
     if (!e.notFound) throw e;
 

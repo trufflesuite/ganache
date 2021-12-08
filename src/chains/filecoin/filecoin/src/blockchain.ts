@@ -713,7 +713,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
         timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
       });
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -745,7 +745,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
         fileStream = fs.createWriteStream(`${ref.path}.partial`, {
           encoding: "binary"
         });
-      } catch (e) {
+      } catch (e: any) {
         throw new Error(
           `Could not create file.\n  CID: ${cid}\n  Path: ${
             ref.path
@@ -772,7 +772,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
               }
             });
           });
-        } catch (e) {
+        } catch (e: any) {
           throw new Error(
             `Could not save file.\n  CID: ${cid}\n  Path: ${
               ref.path

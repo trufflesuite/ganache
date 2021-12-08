@@ -70,7 +70,7 @@ export class Connector<
   parse(message: Buffer) {
     try {
       return JSON.parse(message) as R;
-    } catch (e) {
+    } catch (e: any) {
       throw new CodedError(e.message, JsonRpcErrorCode.PARSE_ERROR);
     }
   }
