@@ -88,7 +88,7 @@ async function autofillDefaultTransactionValues(
   }
 }
 
-const version = process.env.VERSION;
+const version = process.env.VERSION || "DEV";
 //#endregion
 
 //#region Constants

@@ -5,7 +5,7 @@ import {
   Definitions
 } from "./serializable-object";
 
-const GanacheFilecoinVersion = process.env.GANACHE_FILECOIN_VERSION;
+const GanacheFilecoinVersion = process.env.GANACHE_FILECOIN_VERSION || "DEV";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#Version
 
