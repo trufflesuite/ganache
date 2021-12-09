@@ -335,7 +335,7 @@ describe("api", () => {
 
         try {
           await client.clientRetrieve(madeUpOrder, fileRef);
-        } catch (e) {
+        } catch (e: any) {
           error = e;
         }
 
