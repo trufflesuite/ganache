@@ -1,7 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
-const { version } = require("../../../../../../packages/ganache/package.json");
 
 describe("api", () => {
   describe("web3", () => {
@@ -14,7 +13,7 @@ describe("api", () => {
       const result = await provider.send("web3_clientVersion");
       assert.deepStrictEqual(
         result,
-        `Ganache/v${version}/EthereumJS TestRPC/v${version}/ethereum-js`
+        `Ganache/vDEV/EthereumJS TestRPC/vDEV/ethereum-js`
       );
     });
 
