@@ -42,11 +42,7 @@ const base: webpack.Configuration = {
         test: /\.tsx?$/,
         use: [
           {
-            loader: "ts-loader",
-            options: {
-              // we need to use ttypescript because we use ts transformers
-              compiler: "ttypescript"
-            }
+            loader: "ts-loader"
           }
         ]
       }
