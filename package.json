@@ -28,7 +28,6 @@
     "@types/node": "16.11.6",
     "@types/prettier": "2.4.1",
     "@types/yargs": "16.0.0",
-    "@zerollup/ts-transform-paths": "1.7.18",
     "camelcase": "6.2.0",
     "chalk": "4.1.0",
     "cli-highlight": "2.1.10",

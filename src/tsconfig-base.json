@@ -16,12 +16,6 @@
     "noImplicitAny": false,
     "newLine": "lf",
     "lib": ["ES2020"],
-    "experimentalDecorators": true,
-    "plugins": [
-      {
-        "transform": "@zerollup/ts-transform-paths",
-        "exclude": "*"
-      }
-    ]
+    "experimentalDecorators": true
   }
 }
