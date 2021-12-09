@@ -25,7 +25,7 @@
     "directory": "src/packages/flavors"
   },
   "scripts": {
-    "tsc": "ttsc --build",
+    "tsc": "tsc --build",
     "test": "echo 'no tests'"
   },
   "bugs": {

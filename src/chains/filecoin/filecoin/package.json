@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "webpack",
-    "tsc": "ttsc --build",
+    "tsc": "tsc --build",
     "test": "ts-node ../../../../scripts/require-engines.ts || nyc --reporter lcov npm run mocha",
     "mocha": "ts-node ../../../../scripts/require-engines.ts || cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.test.json mocha --timeout 60000 --no-parallel --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },

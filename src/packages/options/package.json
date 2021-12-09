@@ -24,7 +24,7 @@
     "directory": "src/packages/options"
   },
   "scripts": {
-    "tsc": "ttsc --build",
+    "tsc": "tsc --build",
     "test": "echo 'no tests'"
   },
   "bugs": {

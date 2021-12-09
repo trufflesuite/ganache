@@ -25,7 +25,7 @@
     "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
-    "tsc": "ttsc --build",
+    "tsc": "tsc --build",
     "test": "echo 'no tests'"
   },
   "bugs": {
