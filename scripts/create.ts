@@ -166,10 +166,10 @@ process.stdout.write(`${COLORS.Reset}`);
         directory: `src/${location}/${folderName}`
       },
       scripts: {
-        tsc: "ttsc --build",
+        tsc: "tsc --build",
         test: "nyc npm run mocha",
         mocha:
-          "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+          "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
       },
       bugs: {
         url: "https://github.com/trufflesuite/ganache/issues"

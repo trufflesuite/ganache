@@ -42,7 +42,6 @@ import {
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
-import { $INLINE_JSON } from "ts-transformer-inline-file";
 
 import Emittery from "emittery";
 import estimateGas from "./helpers/gas-estimator";
@@ -89,8 +88,7 @@ async function autofillDefaultTransactionValues(
   }
 }
 
-// Read in the current ganache version from core's package.json
-const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
+const version = process.env.VERSION || "DEV";
 //#endregion
 
 //#region Constants

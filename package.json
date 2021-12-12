@@ -18,7 +18,7 @@
     "postpublish": "git restore \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
-    "tsc": "ttsc --build src",
+    "tsc": "tsc --build src",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings"
   },
   "devDependencies": {
@@ -28,7 +28,6 @@
     "@types/node": "16.11.6",
     "@types/prettier": "2.4.1",
     "@types/yargs": "16.0.0",
-    "@zerollup/ts-transform-paths": "1.7.18",
     "camelcase": "6.2.0",
     "chalk": "4.1.0",
     "cli-highlight": "2.1.10",
@@ -49,8 +48,6 @@
     "semver": "7.3.5",
     "shx": "0.3.3",
     "ts-node": "9.1.1",
-    "ts-transformer-inline-file": "0.1.1",
-    "ttypescript": "1.5.12",
     "typescript": "4.1.3",
     "validate-npm-package-name": "3.0.0",
     "yargs": "16.2.0"

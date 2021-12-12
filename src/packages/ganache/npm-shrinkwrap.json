@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.0.0-alpha.2",
+	"version": "7.0.0-beta.1",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
@@ -2621,15 +2621,6 @@
 					"integrity": "sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==",
 					"dev": true
 				}
-			}
-		},
-		"ttypescript": {
-			"version": "1.5.12",
-			"resolved": "https://registry.npmjs.org/ttypescript/-/ttypescript-1.5.12.tgz",
-			"integrity": "sha512-1ojRyJvpnmgN9kIHmUnQPlEV1gq+VVsxVYjk/NfvMlHSmYxjK5hEvOOU2MQASrbekTUiUM7pR/nXeCc8bzvMOQ==",
-			"dev": true,
-			"requires": {
-				"resolve": ">=1.9.0"
 			}
 		},
 		"typescript": {
