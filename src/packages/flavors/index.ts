@@ -2,6 +2,8 @@ import {
   Connector as EthereumConnector,
   Provider as EthereumProvider
 } from "@ganache/ethereum";
+export type {Provider as EthereumProvider} from "@ganache/ethereum";
+export type {Provider as FilecoinProvider} from "@ganache/filecoin";
 import type {
   Connector as FilecoinConnector,
   Provider as FilecoinProvider

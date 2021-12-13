@@ -14,9 +14,9 @@
  * On average, logarithmic in the distance of the length of the array: Performs
  * approximately `log2(N)+1` element comparisons (where `N` is this length).
  *
- * @param array
- * @param val Value of the upper bound to search for in the range.
- * @param comp A function that accepts two arguments (the first is always
+ * @param array -
+ * @param val - Value of the upper bound to search for in the range.
+ * @param comp - A function that accepts two arguments (the first is always
  * `val`, and the second from the given `array`) and returns bool. The value
  * returned indicates whether the first argument is considered to go before the
  * second.

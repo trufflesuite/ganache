@@ -8,8 +8,8 @@ const unseededRng = seedrandom();
 /**
  * WARNING: to maintain compatibility with ganache v2 this RNG only generates
  * numbers from 0-254 instead of 0-255! Hence the name, `notVeryRandomBytes`
- * @param length
- * @param rng
+ * @param length -
+ * @param rng -
  */
 function notVeryRandomBytes(length: number, rng: () => number) {
   const buf = Buffer.allocUnsafe(length);

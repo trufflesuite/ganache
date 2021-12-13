@@ -6,7 +6,7 @@ const allocUnsafe = Buffer.allocUnsafe;
 let _bigIntToBuffer: (val: bigint) => Buffer;
 /**
  * Returns the number of bytes contained in this given `value`.
- * @param value
+ * @param value -
  */
 function bigIntByteLength(value: bigint) {
   let length = 1;

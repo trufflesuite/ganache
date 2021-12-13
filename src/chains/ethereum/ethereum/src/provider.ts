@@ -64,8 +64,8 @@ function parseCoinbase(
 /**
  * Detects when a ganache:vm:tx:step listener is active and signals the onChange
  * function when the status changes
- * @param provider
- * @param onChange
+ * @param provider -
+ * @param onChange -
  */
 function hookEventSystem(
   provider: EthereumProvider,
@@ -211,7 +211,7 @@ export default class EthereumProvider
   /**
    * @param method - the params
    * @param params - the params
-   * @ignore Non standard! Do not use.
+   * @internal Non standard! Do not use.
    */
   public send<Method extends RequestMethods>(
     method: Method,
@@ -278,7 +278,6 @@ export default class EthereumProvider
   ): undefined;
   public sendAsync<Method extends KnownKeys<EthereumApi>>(
     arg1:
-      | RequestMethods
       | JsonRpcRequest<EthereumApi, Method>
       | JsonRpcRequest<EthereumApi, Method>[],
     arg2?: Callback | BatchedCallback
@@ -330,7 +329,7 @@ export default class EthereumProvider
 
   /**
    * EIP-1193 style request method
-   * @param args - the args
+   * @param args - 
    * @returns A Promise that resolves with the method's result or rejects with a CodedError
    * @EIP [1193](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md)
    */

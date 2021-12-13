@@ -76,7 +76,7 @@
     "levelup": "4.4.0",
     "lodash.clonedeep": "4.5.0",
     "lru-cache": "6.0.0",
-    "mcl-wasm": "0.7.8",
+    "mcl-wasm": "0.9.0",
     "merkle-patricia-tree": "^4.2.2",
     "scrypt-js": "3.0.1",
     "seedrandom": "3.0.5",

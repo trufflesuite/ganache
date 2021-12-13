@@ -100,6 +100,7 @@ export enum ServerStatus {
  * For private use. May change in the future.
  * I don't don't think these options should be held in this `core` package.
  * @ignore
+ * @internal
  */
 export const _DefaultServerOptions = serverDefaults;
 

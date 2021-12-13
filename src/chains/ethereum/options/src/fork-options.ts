@@ -32,11 +32,11 @@ export type ForkConfig = {
     /**
      * Fork from another currently running Ethereum client. Input should be the
      * URL of the node, e.g. http://localhost:8545. You can optionally specify
-     * the block to fork from using an @ sign: http://localhost:8545@1599200
+     * the block to fork from using an \@ sign: http://localhost:8545\@1599200
      *
      * You can specify Basic Authentication credentials in the URL as well. e.g.,
-     * wss://user:password@example.com/. If you need to use an Infura Project
-     * Secret, you would use it like this: wss://:{YOUR-PROJECT-SECRET}@mainnet.infura.com/...
+     * wss://user:password\@example.com/. If you need to use an Infura Project
+     * Secret, you would use it like this: wss://:\{YOUR-PROJECT-SECRET\}\@mainnet.infura.com/...
      *
      * Alternatively, you can use the `fork.username` and `fork.password` options.
      */
@@ -147,7 +147,7 @@ export type ForkConfig = {
      *
      * Will be overridden by a `"User-Agent"` value defined in the `fork.headers` option, if provided.
      *
-     * @default "Ganache/VERSION (https://www.trufflesuite.com/ganache; ganache＠trufflesuite.com) ＠ganache/ethereum/VERSION"
+     * @defaultValue "Ganache/VERSION (https://www.trufflesuite.com/ganache; ganache＠trufflesuite.com) ＠ganache/ethereum/VERSION"
      */
     userAgent: {
       type: string;
@@ -170,7 +170,7 @@ export type ForkConfig = {
      *
      * Headers set here override headers set by other options, unless otherwise specified.
      *
-     * @default
+     * @defaultValue
      * ```json
      * [{
      *   "name": "User-Agent",
@@ -188,7 +188,7 @@ export type ForkConfig = {
     /**
      * Limit the number of requests per second sent to the fork provider. `0` means no limit is applied.
      *
-     * @default 0
+     * @defaultValue 0
      */
     requestsPerSecond: {
       type: number;
@@ -198,7 +198,7 @@ export type ForkConfig = {
     /**
      * Disables caching of all forking requests.
      *
-     * @default false
+     * @defaultValue false
      */
     disableCache: {
       type: boolean;
@@ -208,7 +208,7 @@ export type ForkConfig = {
     /**
      * Deletes the persistent cache on start up.
      *
-     * @default false
+     * @defaultValue false
      */
     deleteCache: {
       type: boolean;

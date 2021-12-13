@@ -136,7 +136,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
   /**
    * Initializes the receipt and logs
-   * @param result
+   * @param result -
    * @returns RLP encoded data for use in a transaction trie
    */
   public fillFromResult(result: RunTxResult, cumulativeGasUsed: bigint) {
@@ -238,7 +238,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    *
    * Note: it is possible to be confirmed AND have an error
    *
-   * @param event "finalized"
+   * @param event - "finalized"
    */
   public once(_event: "finalized") {
     return this.finalized;
@@ -250,8 +250,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    *
    * Note:
    *
-   * @param status
-   * @param error
+   * @param status -
+   * @param error -
    */
   public finalize(status: "confirmed" | "rejected", error: Error = null): void {
     // resolves the `#finalized` promise

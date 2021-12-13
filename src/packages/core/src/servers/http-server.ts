@@ -20,8 +20,8 @@ const noop = () => {};
  * know the status code until the provider returns asynchronously.
  * So this does request-related work immediately and returns a function to do the
  * rest of the work later.
- * @param method
- * @param request
+ * @param method -
+ * @param request -
  */
 function prepareCORSResponseHeaders(method: HttpMethods, request: HttpRequest) {
   // https://fetch.spec.whatwg.org/#http-requests

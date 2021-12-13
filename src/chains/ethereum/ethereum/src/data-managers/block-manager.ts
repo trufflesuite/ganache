@@ -252,7 +252,7 @@ export default class BlockManager extends Manager<Block> {
 
   /**
    * Writes the block object to the underlying database.
-   * @param block
+   * @param block -
    */
   async putBlock(number: Buffer, hash: Data, serialized: Buffer) {
     let key = number;

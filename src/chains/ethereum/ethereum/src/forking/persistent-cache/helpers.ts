@@ -173,8 +173,8 @@ export async function* findRelated(
 
 /**
  *
- * @param height Search only before this block height (exclusive)
- * @param upTo Search up to this key (inclusive)
+ * @param height - Search only before this block height (exclusive)
+ * @param upTo - Search up to this key (inclusive)
  * @returns the closest known ancestor, or `upTo` if we know of no ancestors
  */
 export async function findClosestAncestor(
@@ -195,7 +195,7 @@ export async function findClosestAncestor(
 
 /**
  *
- * @param height Search only after this block height (exclusive)
+ * @param height - Search only after this block height (exclusive)
  * @returns the closest known descendants, or null
  */
 export async function* findClosestDescendants(

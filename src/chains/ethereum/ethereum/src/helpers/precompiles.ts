@@ -96,7 +96,7 @@ const makeAccount = (i: number): Address => {
 
 /**
  * Puts the precompile accounts into the state tree
- * @param stateManager
+ * @param stateManager -
  */
 export const activatePrecompiles = async (stateManager: StateManager) => {
   await stateManager.checkpoint();
@@ -111,7 +111,7 @@ export const activatePrecompiles = async (stateManager: StateManager) => {
 
 /**
  * Puts the precompile accounts into the warmed addresses
- * @param stateManager
+ * @param stateManager -
  */
 export const warmPrecompiles = async (stateManager: DefaultStateManager) => {
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {

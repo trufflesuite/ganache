@@ -196,7 +196,7 @@
     /**
      * (REQUIRED) Whether to generate the .d.ts rollup file.
      */
-    "enabled": true
+    "enabled": true,
     /**
      * Specifies the output path for a .d.ts rollup file to be generated without any trimming.
      * This file will include all declarations that are exported by the main entry point.
@@ -233,7 +233,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: ""
      */
-    // "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts",
+    "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
     /**
      * When a declaration is trimmed, by default it will be replaced by a code comment such as
      * "Excluded from this release type: exampleMember". Set "omitTrimmingComments" to true to remove the
@@ -241,7 +241,7 @@
      *
      * DEFAULT VALUE: false
      */
-    // "omitTrimmingComments": true
+    "omitTrimmingComments": false
   },
   /**
    * Configures how the tsdoc-metadata.json file will be generated.
@@ -333,8 +333,13 @@
      */
     "extractorMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "none"
         // "addToApiReportFile": false
+      },
+      "ae-forgotten-export": {
+        // api-extractor _really_ wants to complain about this one, so much so
+        // that setting the `"default"` to "none" (above) has no affect!
+        "logLevel": "none"
       }
       // "ae-extra-release-tag": {
       //   "logLevel": "warning",
@@ -352,7 +357,7 @@
      */
     "tsdocMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "none"
         // "addToApiReportFile": false
       }
       // "tsdoc-link-tag-unescaped-text": {

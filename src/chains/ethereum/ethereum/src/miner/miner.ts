@@ -128,7 +128,7 @@ export default class Miner extends Emittery<{
     refresher
   );
   /*
-   * @param executables A live Map of pending transactions from the transaction
+   * @param executables - A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
    * and putting them in new blocks.
    */
@@ -154,9 +154,9 @@ export default class Miner extends Emittery<{
   }
 
   /**
-   * @param maxTransactions: maximum number of transactions per block. If `-1`,
+   * @param maxTransactions: - maximum number of transactions per block. If `-1`,
    * unlimited.
-   * @param onlyOneBlock: set to `true` if only 1 block should be mined.
+   * @param onlyOneBlock: - set to `true` if only 1 block should be mined.
    *
    * @returns the transactions mined in the _first_ block
    */

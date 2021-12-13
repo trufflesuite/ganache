@@ -267,8 +267,8 @@ export class Fork {
    * a `Common` with our local `common`'s rules applied, but with the remote
    * chain's `chainId`. If the block is greater than or equal to our
    * `fork.blockNumber` return `common`.
-   * @param common
-   * @param blockNumber
+   * @param common -
+   * @param blockNumber -
    */
   public getCommonForBlockNumber(common: Common, blockNumber: BigInt) {
     if (blockNumber <= this.blockNumber.toBigInt()) {

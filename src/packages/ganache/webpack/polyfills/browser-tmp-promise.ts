@@ -52,7 +52,7 @@ async function _garbageCollector() {
  * Random name generator based on crypto.
  * Adapted from http://blog.tompawlak.org/how-to-generate-random-values-nodejs-javascript
  *
- * @param {number} howMany
+ * @param {number} - howMany
  * @returns {string} the generated random name
  * @private
  */
@@ -78,7 +78,7 @@ function _randomChars(howMany: number) {
  * Helper which determines whether a string s is blank, that is undefined, or empty or null.
  *
  * @private
- * @param {string} s
+ * @param {string} - s
  * @returns {Boolean} true whether the string s is blank, false otherwise
  */
 function _isBlank(s: string) {
@@ -88,7 +88,7 @@ function _isBlank(s: string) {
 /**
  * Checks whether the `obj` parameter is defined or not.
  *
- * @param {Object} obj
+ * @param {Object} - obj
  * @returns {boolean} true if the object is undefined
  * @private
  */
@@ -99,7 +99,7 @@ function _isUndefined(obj: Object) {
 /**
  * Generates a new temporary name.
  *
- * @param {Object} opts
+ * @param {Object} - opts
  * @returns {string} the new random name according to opts
  * @private
  */
@@ -146,7 +146,7 @@ function _indexedDbExists(name: string) {
 /**
  * Gets a temporary file name.
  *
- * @param {(Options)} opts options
+ * @param {(Options)} - opts options
  */
 function tmpName(options: TmpNameOptions) {
   const opts = _parseArguments(options);
@@ -241,8 +241,8 @@ function _assertAndSanitizeOptions(options: DirOptions) {
  * The specified name might include relative path components, e.g. ../
  * so we need to resolve in order to be sure that is is located inside tmpDir
  *
- * @param name
- * @param tmpDir
+ * @param name -
+ * @param tmpDir -
  * @returns {string}
  * @private
  */
@@ -258,7 +258,7 @@ function _resolvePath(name: string, tmpDir: string) {
 /**
  * Sanitize the specified path name by removing all quote characters.
  *
- * @param name
+ * @param name -
  * @returns {string}
  * @private
  */
@@ -272,9 +272,9 @@ function _sanitizeName(name: string) {
 /**
  * Asserts whether specified name is relative to the specified tmpDir.
  *
- * @param {string} name
- * @param {string} option
- * @param {string} tmpDir
+ * @param {string} - name
+ * @param {string} - option
+ * @param {string} - tmpDir
  * @throws {Error}
  * @private
  */
@@ -327,7 +327,7 @@ function _parseArguments(options: DirOptions): DirOptions {
 /**
  * Creates a temporary directory.
  *
- * @param {(Options)} opts the options
+ * @param {(Options)} - opts the options
  */
 export async function dir(options: DirOptions) {
   const opts = _parseArguments(options);
@@ -354,7 +354,7 @@ export function setGracefulCleanup() {
  * Returns the currently configured tmp dir.
  *
  * @private
- * @param {?Options} options
+ * @param {?Options} - options
  * @returns {string} the currently configured tmp dir
  */
 function _getTmpDir(options: TmpNameOptions) {
