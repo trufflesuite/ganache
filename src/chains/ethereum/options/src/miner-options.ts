@@ -98,7 +98,7 @@ export type MinerConfig = {
      * Sets the transaction gas limit in WEI for `eth_call` and
      * eth_estimateGas` calls.
      *
-     * @defaultValue 9_007_199_254_740_991 // 2**53 - 1
+     * @defaultValue 50_000_000
      */
     callGasLimit: {
       type: Quantity;
@@ -241,7 +241,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     normalize: Quantity.from,
     cliDescription:
       "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
-    default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
+    default: () => Quantity.from(50_000_000),
     legacyName: "callGasLimit",
     cliType: "string",
     cliCoerce: toBigIntOrString
