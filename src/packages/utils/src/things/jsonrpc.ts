@@ -13,7 +13,7 @@ export type JsonRpcRequest<
   readonly id: string;
   readonly jsonrpc: string;
   readonly method: Method;
-  readonly params?: OverloadedParameters<Ledger[keyof Ledger]>;
+  readonly params?: OverloadedParameters<Ledger[Method]>;
 };
 export type JsonRpcResponse = JsonRpc & {
   readonly result: any;

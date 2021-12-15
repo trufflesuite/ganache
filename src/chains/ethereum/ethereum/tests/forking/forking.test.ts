@@ -170,7 +170,7 @@ describe("forking", function () {
           () =>
             localProvider.request({
               // the mock server returns junk for calls to `eth_getBalance`
-              method: "eth_getBalance" as any,
+              method: "eth_getBalance",
               params: ["0x2000000000000000000000000000000000000000"]
             }),
           {
@@ -269,7 +269,7 @@ describe("forking", function () {
           if (!(remoteProvider as any).request) {
             remoteProvider.request = request;
           }
-          return send.apply(remoteProvider, args);
+          return (send as any).apply(remoteProvider, args);
         };
 
         const provider = await startLocalChain(PORT, {

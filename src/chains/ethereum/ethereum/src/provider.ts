@@ -329,7 +329,7 @@ export default class EthereumProvider
 
   /**
    * EIP-1193 style request method
-   * @param args - 
+   * @param args -
    * @returns A Promise that resolves with the method's result or rejects with a CodedError
    * @EIP [1193](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md)
    */
