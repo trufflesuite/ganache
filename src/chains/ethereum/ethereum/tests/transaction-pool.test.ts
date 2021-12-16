@@ -81,8 +81,12 @@ describe("transaction pool", async () => {
     // returns an account's nonce
     blockchain = {
       accounts: {
-        getNonce: async () => {
-          return Quantity.from("0x0");
+        getNonceAndBalance: async () => {
+          return {
+            nonce: Quantity.from("0x0"),
+            // 1000 ether
+            balance: Quantity.from("0x3635c9adc5dea00000")
+          };
         }
       },
       common,
@@ -137,8 +141,8 @@ describe("transaction pool", async () => {
     // so if we send a tx with nonce 0, it should reject
     const fakeNonceChain = {
       accounts: {
-        getNonce: async () => {
-          return Quantity.from(1);
+        getNonceAndBalance: async () => {
+          return { nonce: Quantity.from(1), balance: Quantity.from(1e15) };
         }
       },
       common,

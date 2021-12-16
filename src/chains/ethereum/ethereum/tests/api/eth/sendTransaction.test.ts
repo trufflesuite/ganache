@@ -49,39 +49,55 @@ describe("api", () => {
       describe("insufficient funds", () => {
         const types = ["0x0", "0x1", "0x2"] as const;
         it("returns an error when account has insufficient funds to transfer the value", async () => {
-          const p = await getProvider({
+          const gasCost = 99967968750001;
+          const provider = await getProvider({
             miner: { legacyInstamine: true },
             chain: { vmErrorsOnRPCResponse: true }
           });
-          const [from, to] = await p.send("eth_accounts");
-          const balance = await p.send("eth_getBalance", [from]);
+          const accounts = await provider.send("eth_accounts");
+          const to = accounts.pop();
+          const getBalance = acct => provider.send("eth_getBalance", [acct]);
+          const sendTx = tx => provider.send("eth_sendTransaction", [tx]);
           for (let i = 0; i < types.length; i++) {
-            await assert.rejects(
-              p.send("eth_sendTransaction", [
-                { type: types[i], from, to, value: balance }
-              ]),
-              new RegExp(
-                `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: ${BigInt(
-                  balance
-                )} \\(vm hf=london -> block -> tx\\)`
-              )
-            );
+            const snapshot = await provider.send("evm_snapshot");
+            try {
+              const from = accounts[i];
+              const balance = parseInt(await getBalance(from), 16);
+              // fire a transaction without awaiting it in order to spend some
+              // gas
+              const tx = { type: types[i], from, to };
+              sendTx(tx);
+              await assert.rejects(
+                sendTx({
+                  ...tx,
+                  // attempt to zero out the account. this tx will fail because
+                  // the previous (pending transaction) will spend some it's
+                  // balance, not leaving enough left over for this transaction.
+                  value: `0x${(balance - gasCost).toString(16)}`
+                }),
+                new RegExp(
+                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=london -> block -> tx\\)`
+                )
+              );
+            } finally {
+              await provider.send("evm_revert", [snapshot]);
+            }
           }
         });
 
-        it("returns insufficient funds error when the package doesn't have enough funds to send the transaction", async () => {
-          const p = await getProvider();
-          const [from, to] = await p.send("eth_accounts");
+        it("returns an `insufficient funds` error when the package doesn't have enough funds to send the transaction", async () => {
+          const provider = await getProvider();
+          const [from, to] = await provider.send("eth_accounts");
+          const getBalance = acct => provider.send("eth_getBalance", [acct]);
           for (let i = 0; i < types.length; i++) {
-            let tx = {
+            const tx = {
               type: types[i],
               from,
               to,
-              // a potentially super expensive transaction
-              gasLimit: `0x${(12_000_000 - 1).toString(16)}`
+              value: await getBalance(from)
             };
             await assert.rejects(
-              p.send("eth_sendTransaction", [tx]),
+              provider.send("eth_sendTransaction", [tx]),
               new RegExp(`insufficient funds`)
             );
           }
