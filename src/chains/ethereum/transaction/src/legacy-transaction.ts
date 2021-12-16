@@ -68,6 +68,10 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
   }
 
+  public maxGasPrice() {
+    return this.gasPrice;
+  }
+
   public toJSON(common?: Common): LegacyTransactionJSON {
     const json: LegacyTransactionJSON = {
       hash: this.hash,

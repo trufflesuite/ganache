@@ -133,7 +133,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     pending: new Map()
   };
   readonly #origins: Map<string, Heap<TypedTransaction>>;
-  readonly #accountPromises = new Map<string, Promise<Quantity>>();
+  readonly #accountPromises = new Map<
+    string,
+    Promise<{ balance: Quantity; nonce: Quantity }>
+  >();
 
   /**
    * Inserts a transaction into the pending queue, if executable, or future pool
@@ -170,9 +173,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // account's pending executable transactions, not the account...
     // But another transaction might currently be getting the nonce from the
     // account, if it is, we need to wait for it to be done doing that. Hence:
-    let transactorNoncePromise = this.#accountPromises.get(origin);
-    if (transactorNoncePromise) {
-      await transactorNoncePromise;
+    let transactorPromise = this.#accountPromises.get(origin);
+    if (transactorPromise) {
+      await transactorPromise;
     }
     // if the user called sendTransaction or sendRawTransaction, effectiveGasPrice
     // hasn't been set yet on the tx. calculating the effectiveGasPrice requires
@@ -203,6 +206,22 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the
     // `executableOriginTransactions` map, always taking the highest of the two.
     let highestNonce = 0n;
+
+    if (!transactorPromise) {
+      transactorPromise = this.#blockchain.accounts.getNonceAndBalance(from);
+      this.#accountPromises.set(origin, transactorPromise);
+      transactorPromise.then(() => {
+        this.#accountPromises.delete(origin);
+      });
+    }
+    const transactor = await transactorPromise;
+
+    const cost =
+      transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
+      transaction.value.toBigInt();
+    if (transactor.balance.toBigInt() > cost) {
+      throw new Error("insufficient funds for gas * price + value");
+    }
 
     const origins = this.#origins;
     const queuedOriginTransactions = origins.get(origin);
@@ -260,16 +279,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     } else {
       // since we don't have any executable transactions at the moment, we need
       // to find our nonce from the account itself...
-      if (!transactorNoncePromise) {
-        transactorNoncePromise = this.#blockchain.accounts.getNonce(from);
-        this.#accountPromises.set(origin, transactorNoncePromise);
-        transactorNoncePromise.then(() => {
-          this.#accountPromises.delete(origin);
-        });
-      }
-      const transactor = await transactorNoncePromise;
-
-      const transactorNonce = transactor ? transactor.toBigInt() : 0n;
+      const transactorNonce = transactor.nonce.toBigInt();
       if (txNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
         // nonce and mark as executable
