@@ -1023,7 +1023,7 @@ describe("server", () => {
         Connector.BUFFERIFY_THRESHOLD = originalThreshold;
         await teardown();
       }
-    }).timeout(0);
+    });
 
     describe("max payload size", () => {
       let ws: WebSocket;
