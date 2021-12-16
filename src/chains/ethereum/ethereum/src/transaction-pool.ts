@@ -219,7 +219,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
     const cost =
       transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
       transaction.value.toBigInt();
-    if (transactor.balance.toBigInt() > cost) {
+    if (transactor.balance.toBigInt() < cost) {
       throw new Error("insufficient funds for gas * price + value");
     }
 
