@@ -78,7 +78,7 @@ describe("Transaction rejection", function() {
       {
         value: "0x3635c9adc5dea00000" // 100000 ether
       },
-      "VM Exception while processing transaction: sender doesn't have enough funds to send tx"
+      "insufficient funds for gas * price + value"
     );
   });
 
