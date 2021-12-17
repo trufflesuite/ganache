@@ -96,7 +96,7 @@ export type MinerConfig = {
 
     /**
      * Sets the transaction gas limit in WEI for `eth_call` and
-     * eth_estimateGas` calls.
+     * `eth_estimateGas` calls.
      *
      * @defaultValue 50_000_000
      */
@@ -176,7 +176,7 @@ export type MinerConfig = {
 /**
  * Attempts to convert strings that don't start with `0x` to a BigInt
  *
- * @param str a string that represents a bigint, number, or hex number
+ * @param str - a string that represents a bigint, number, or hex number
  */
 const toBigIntOrString = (str: string) => {
   if (str.startsWith("0x")) {

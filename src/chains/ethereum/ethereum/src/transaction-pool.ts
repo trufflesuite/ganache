@@ -20,11 +20,11 @@ import { TypedTransaction } from "@ganache/ethereum-transaction";
  * in the transaction pool queue. Replacement eligibility requires that
  * the transactions have the same nonce and the `replacer` has a gas price
  * that is `gasPrice * priceBump` better than our `replacee`.
- * @param replacee
- * @param replaceeNonce
- * @param replacerNonce
- * @param replacerGasPrice
- * @param priceBump
+ * @param replacee -
+ * @param replaceeNonce -
+ * @param replacerNonce -
+ * @param replacerGasPrice -
+ * @param priceBump -
  */
 function shouldReplace(
   replacee: TypedTransaction,
@@ -109,7 +109,7 @@ export enum TriageOption {
    */
   ReplacesFutureTransaction = 3
 }
-export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
+export default class TransactionPool extends Emittery<{ drain: undefined }> {
   #options: EthereumInternalOptions["miner"];
 
   /**
@@ -143,8 +143,8 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
    * Inserts a transaction into the pending queue, if executable, or future pool
    * if not.
    *
-   * @param transaction
-   * @param secretKey
+   * @param transaction -
+   * @param secretKey -
    * @returns data that can be used to drain the queue
    */
   public async prepareTransaction(
@@ -416,7 +416,7 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
    * likely rare, so leaving this slow so other code paths can be faster might
    * be okay.
    *
-   * @param transactionHash
+   * @param transactionHash -
    */
   public find(transactionHash: Buffer) {
     const { pending, inProgress } = this.executables;

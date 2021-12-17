@@ -2,7 +2,7 @@ import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
-import { TypedRpcTransaction } from "@ganache/ethereum-transaction/typings";
+import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;

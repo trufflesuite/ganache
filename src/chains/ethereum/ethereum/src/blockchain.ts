@@ -95,8 +95,9 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  ready: undefined;
+  stop: undefined;
 };
-type BlockchainEvents = "ready" | "stop";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -126,8 +127,8 @@ export type BlockchainOptions = {
  * Useful if you know the state manager is not in a checkpoint and its internal
  * cache is safe to discard.
  *
- * @param stateManager
- * @param stateRoot
+ * @param stateManager -
+ * @param stateRoot -
  */
 function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
   (stateManager as any)._trie.root = stateRoot;
@@ -167,10 +168,7 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   return common;
 }
 
-export default class Blockchain extends Emittery.Typed<
-  BlockchainTypedEvents,
-  BlockchainEvents
-> {
+export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
   #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
@@ -206,7 +204,7 @@ export default class Blockchain extends Emittery.Typed<
    *
    * Emits a `ready` event once the database and all dependencies are fully
    * initialized.
-   * @param options
+   * @param options -
    */
   constructor(
     options: EthereumInternalOptions,
@@ -554,7 +552,8 @@ export default class Blockchain extends Emittery.Typed<
       .then(() => this.#saveNewBlock(blockData))
       .then(this.#emitNewBlock);
 
-    return this.#blockBeingSavedPromise;
+    await this.#blockBeingSavedPromise;
+    return;
   };
 
   coinbase: Address;
@@ -791,7 +790,7 @@ export default class Blockchain extends Emittery.Typed<
   };
 
   /**
-   * @param seconds
+   * @param seconds -
    * @returns the total time offset *in milliseconds*
    */
   public increaseTime(seconds: number) {
@@ -802,7 +801,7 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   /**
-   * @param seconds
+   * @param seconds -
    * @returns the total time offset *in milliseconds*
    */
   public setTime(timestamp: number) {
@@ -1399,8 +1398,8 @@ export default class Blockchain extends Emittery.Typed<
    *  3. Rerun every transaction in that block prior to and including the requested transaction
    *  4. Send trace results back.
    *
-   * @param transactionHash
-   * @param options
+   * @param transactionHash -
+   * @param options -
    */
   public async traceTransaction(
     transactionHash: string,
@@ -1470,11 +1469,11 @@ export default class Blockchain extends Emittery.Typed<
    *  5. Rerun every transaction in that block prior to and including the requested transaction
    *  6. Send storage results back
    *
-   * @param blockHash
-   * @param txIndex
-   * @param contractAddress
-   * @param startKey
-   * @param maxResult
+   * @param blockHash -
+   * @param txIndex -
+   * @param contractAddress -
+   * @param startKey -
+   * @param maxResult -
    */
   public async storageRangeAt(
     blockHash: string,

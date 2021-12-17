@@ -6,7 +6,7 @@ const allocUnsafe = Buffer.allocUnsafe;
 let _bigIntToBuffer: (val: bigint) => Buffer;
 /**
  * Returns the number of bytes contained in this given `value`.
- * @param value
+ * @param value -
  */
 function bigIntByteLength(value: bigint) {
   let length = 1;
@@ -28,7 +28,7 @@ try {
       return toBufferBE(value, size);
     }
   };
-} catch (e) {
+} catch {
   _bigIntToBuffer = (value: bigint): Buffer => {
     if (value <= MAX_SAFE_INTEGER) {
       // if this value can be handled as a JS number safely, convert it that way

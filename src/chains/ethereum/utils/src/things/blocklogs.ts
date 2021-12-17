@@ -61,7 +61,7 @@ export class BlockLogs {
 
   /**
    *
-   * @param blockHash Creates an BlogLogs entity with an empty internal logs
+   * @param blockHash - Creates an BlogLogs entity with an empty internal logs
    * array.
    */
   static create(blockHash: Data) {
@@ -79,9 +79,9 @@ export class BlockLogs {
 
   /**
    * Appends the data to the internal logs array
-   * @param transactionIndex
-   * @param transactionHash
-   * @param log
+   * @param transactionIndex -
+   * @param transactionHash -
+   * @param log -
    */
   public append(
     /*removed: boolean, */ transactionIndex: Quantity,
@@ -182,10 +182,10 @@ export class BlockLogs {
 
   /**
    *
-   * @param log
-   * @param logIndex The index this log appears in the block
-   * @param blockHash The hash of the block
-   * @param blockNumber The block number
+   * @param log -
+   * @param logIndex - The index this log appears in the block
+   * @param blockHash - The hash of the block
+   * @param blockNumber - The block number
    */
   protected static logToJSON(
     log: BlockLog,
@@ -223,8 +223,8 @@ export class BlockLogs {
    *  ▸ [null, B] "anything in first position AND B in second position (and anything after)"
    *  ▸ [A, B] "A" in first position AND B in second position (and anything after)"
    *  ▸ [[A, B], [A, B]] "(A OR B) in first position AND (A OR B) in second position (and anything after)"
-   * @param expectedAddresses
-   * @param expectedTopics
+   * @param expectedAddresses -
+   * @param expectedTopics -
    * @returns JSON representation of the filtered logs
    */
   *filter(expectedAddresses: Buffer[], expectedTopics: (string | string[])[]) {

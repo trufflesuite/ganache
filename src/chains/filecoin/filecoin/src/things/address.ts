@@ -288,10 +288,10 @@ class Address extends SerializableLiteral<AddressConfig> {
 
   /**
    * Creates an AddressProtocol.ID address
-   * @param id A positive integer for the id.
-   * @param isSingletonSystemActor If false, it adds Address.FirstNonSingletonActorId to the id.
+   * @param id - A positive integer for the id.
+   * @param isSingletonSystemActor - If false, it adds Address.FirstNonSingletonActorId to the id.
    * Almost always `false`. See https://git.io/JtgqL for examples of singleton system actors.
-   * @param network The AddressNetwork prefix for the address; usually AddressNetwork.Testnet for Ganache.
+   * @param network - The AddressNetwork prefix for the address; usually AddressNetwork.Testnet for Ganache.
    */
   static fromId(
     id: number,

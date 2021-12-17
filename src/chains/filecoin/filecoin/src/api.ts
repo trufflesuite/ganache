@@ -118,7 +118,7 @@ export default class FilecoinApi implements Api {
    *
    * Reference implementation entry point: https://git.io/JtO3a
    *
-   * @param rpcId This parameter is not provided by the user, but
+   * @param rpcId - This parameter is not provided by the user, but
    * injected by the internal system.
    * @returns An object with the subscription ID and an unsubscribe
    * function.
@@ -195,7 +195,7 @@ export default class FilecoinApi implements Api {
    * Receives the `xrpc.ch.close` method which cancels a
    * subscription.
    *
-   * @param subscriptionId The subscription ID to cancel.
+   * @param subscriptionId - The subscription ID to cancel.
    * @returns `false` if the subscription ID doesn't exist or
    * if the subscription is already canceled, `true` otherwise.
    */
@@ -217,7 +217,7 @@ export default class FilecoinApi implements Api {
   /**
    * Returns the tipset for the provided tipset key.
    *
-   * @param serializedTipsetKey an array of the Block RootCIDs
+   * @param serializedTipsetKey - an array of the Block RootCIDs
    * that are part of the tipset. Must be an exact match and
    * must include exactly the same number of blocks that are
    * actually in the tipset.
@@ -237,9 +237,9 @@ export default class FilecoinApi implements Api {
   /**
    * Returns the tipset for the provided tipset height.
    *
-   * @param height A `number` which indicates the `tipset.Height`
+   * @param height - A `number` which indicates the `tipset.Height`
    * that you would like to retrieve.
-   * @param serializedTipsetKey An optional tipset key, an array
+   * @param serializedTipsetKey - An optional tipset key, an array
    * of the Block RootCIDs that are part of the tipset. Must be
    * an exact match and must include exactly the same number of
    * blocks that are actually in the tipset.
@@ -269,7 +269,7 @@ export default class FilecoinApi implements Api {
   /**
    * Returns a block for the given RootCID.
    *
-   * @param serializedBlockCid The RootCID of the block.
+   * @param serializedBlockCid - The RootCID of the block.
    * @returns The matched Block.
    */
   async "Filecoin.ChainGetBlock"(
@@ -293,7 +293,7 @@ export default class FilecoinApi implements Api {
    * Returns the BlockMessages object, or all of the messages
    * that are part of a block, for a given block RootCID.
    *
-   * @param serializedBlockCid The RootCID of the block.
+   * @param serializedBlockCid - The RootCID of the block.
    * @returns The matched BlockMessages object.
    */
   async "Filecoin.ChainGetBlockMessages"(
@@ -316,7 +316,7 @@ export default class FilecoinApi implements Api {
   /**
    * Returns a Message for a given RootCID.
    *
-   * @param serializedMessageCid The RootCID of the message.
+   * @param serializedMessageCid - The RootCID of the message.
    * @returns The matched Message object.
    */
   async "Filecoin.ChainGetMessage"(
@@ -340,7 +340,7 @@ export default class FilecoinApi implements Api {
    * Gets the next nonce of an address, including any pending
    * messages in the current message pool.
    *
-   * @param address A `string` of the public address.
+   * @param address - A `string` of the public address.
    * @returns A `number` of the next nonce.
    */
   async "Filecoin.MpoolGetNonce"(address: string): Promise<number> {
@@ -376,7 +376,7 @@ export default class FilecoinApi implements Api {
    *
    * Only value transfers are supported (`Method = 0`).
    *
-   * @param signedMessage The SignedMessage object.
+   * @param signedMessage - The SignedMessage object.
    * @returns The RootCID of the signed message.
    */
   async "Filecoin.MpoolPush"(
@@ -404,7 +404,7 @@ export default class FilecoinApi implements Api {
    *
    * Reference implementation: https://git.io/JtgeG
    *
-   * @param signedMessages The array of SignedMessage objects.
+   * @param signedMessages - The array of SignedMessage objects.
    * @returns An array of RootCIDs for signed messages that
    * were valid and added to the message pool. The order of the
    * output array matches the order of the input array.
@@ -445,8 +445,8 @@ export default class FilecoinApi implements Api {
    *
    * Only value transfers are supported (`Method = 0`).
    *
-   * @param message The Message object.
-   * @param spec The MessageSendSpec object which defines
+   * @param message - The Message object.
+   * @param spec - The MessageSendSpec object which defines
    * the MaxFee.
    * @returns The corresponding SignedMessage that was added
    * to the message pool.
@@ -485,8 +485,8 @@ export default class FilecoinApi implements Api {
    *
    * Reference implementation: https://git.io/JtgeU
    *
-   * @param messages The array of Message objects.
-   * @param spec The MessageSendSpec object which defines
+   * @param messages - The array of Message objects.
+   * @param spec - The MessageSendSpec object which defines
    * the MaxFee.
    * @returns An array of SignedMessages that were valid and
    * added to the message pool. The order of the output array
@@ -522,7 +522,7 @@ export default class FilecoinApi implements Api {
    * the pool will not be processed in the next tipset/block
    * mine.
    *
-   * @param local In a normal Lotus node, setting this to `true`
+   * @param local - In a normal Lotus node, setting this to `true`
    * will only clear local messages from the message pool. Since
    * Filecoin-flavored Ganache doesn't have a network, all messages
    * are local, and therefore all messages from the message pool
@@ -536,7 +536,7 @@ export default class FilecoinApi implements Api {
    * Returns a list of messages in the current pending message
    * pool.
    *
-   * @param tipsetKey A normal Lotus node accepts an optional single
+   * @param tipsetKey - A normal Lotus node accepts an optional single
    * parameter of the TipsetKey to refer to the pending messages.
    * However, with the design of Filecoin-flavored Ganache, this
    * parameter is not used.
@@ -558,11 +558,11 @@ export default class FilecoinApi implements Api {
    *
    * Reference implementation: https://git.io/Jt24C
    *
-   * @param tipsetKey A normal Lotus node accepts an optional
+   * @param tipsetKey - A normal Lotus node accepts an optional
    * parameter of the TipsetKey to refer to the pending messages.
    * However, with the design of Filecoin-flavored Ganache, this
    * parameter is not used in Ganache.
-   * @param ticketQuality Since all messages are included in the next
+   * @param ticketQuality - Since all messages are included in the next
    * block in Ganache, this number is ignored. A normal Lotus node uses
    * this number to help determine which messages are going to be included
    * in the next block. This parameter is also not used in Ganache.
@@ -619,7 +619,7 @@ export default class FilecoinApi implements Api {
    * verified client will be augmented by a multiplier."
    * https://docs.filecoin.io/reference/glossary/#quality-adjusted-storage-power
    *
-   * @param minerAddress The miner address to get miner power for.
+   * @param minerAddress - The miner address to get miner power for.
    * @returns The MinerPower object.
    */
   async "Filecoin.StateMinerPower"(
@@ -659,8 +659,8 @@ export default class FilecoinApi implements Api {
   /**
    * Returns the miner info for the given miner address.
    *
-   * @param minerAddress
-   * @param tipsetKey A normal Lotus node uses tipsetKey to get the
+   * @param minerAddress -
+   * @param tipsetKey - A normal Lotus node uses tipsetKey to get the
    * miner info at that Tipset. However, the miner info in
    * Filecoin-flavored Ganache will not change based on the tipset,
    * so this parameter is ignored by Ganache.
@@ -698,7 +698,7 @@ export default class FilecoinApi implements Api {
    * if you are using a persisted database with `database.db` or
    * `database.dbPath` options.
    *
-   * @param address The public address to set as the default address. Must be an address
+   * @param address - The public address to set as the default address. Must be an address
    * that is in the wallet; see `Filecoin.WalletList` to get a list of addresses
    * in the wallet.
    */
@@ -710,7 +710,7 @@ export default class FilecoinApi implements Api {
   /**
    * Returns the balance of any address.
    *
-   * @param address The public address to retrieve the balance for.
+   * @param address - The public address to retrieve the balance for.
    * @returns A `string` of the `attoFIL` balance of `address`,
    * encoded in base-10 (aka decimal format).
    */
@@ -726,7 +726,7 @@ export default class FilecoinApi implements Api {
    * address is persisted across Ganache sessions if you are using
    * a persisted database with `database.db` or `database.dbPath` options.
    *
-   * @param keyType The key type (`bls` or `secp256k1`) to use
+   * @param keyType - The key type (`bls` or `secp256k1`) to use
    * to generate the address. KeyType of `secp256k1-ledger` is
    * not supported in Filecoin-flavored Ganache.
    * @returns The public address as a `string`.
@@ -770,7 +770,7 @@ export default class FilecoinApi implements Api {
   /**
    * Checks whether or not the wallet includes the provided address.
    *
-   * @param address The public address of type `string` to check.
+   * @param address - The public address of type `string` to check.
    * @returns `true` if the address is in the wallet, `false` otherwise.
    */
   async "Filecoin.WalletHas"(address: string): Promise<boolean> {
@@ -787,7 +787,7 @@ export default class FilecoinApi implements Api {
    * sessions if you are using a persisted database with
    * `database.db` or `database.dbPath` options.
    *
-   * @param address A `string` of the public address to remove.
+   * @param address - A `string` of the public address to remove.
    */
   async "Filecoin.WalletDelete"(address: string): Promise<void> {
     await this.#blockchain.waitForReady();
@@ -798,7 +798,7 @@ export default class FilecoinApi implements Api {
   /**
    * Exports the private key information from an address stored in the wallet.
    *
-   * @param address A `string` of the public address to export.
+   * @param address - A `string` of the public address to export.
    * @returns The KeyInfo object.
    */
   async "Filecoin.WalletExport"(address: string): Promise<SerializedKeyInfo> {
@@ -830,7 +830,7 @@ export default class FilecoinApi implements Api {
    * to the wallet will persist between Ganache sessions if you are using
    * a persisted database with with `database.db` or `database.dbPath` options.
    *
-   * @param serializedKeyInfo The private key KeyInfo object for the address to import.
+   * @param serializedKeyInfo - The private key KeyInfo object for the address to import.
    * @returns The corresponding public address of type `string`.
    */
   async "Filecoin.WalletImport"(
@@ -868,9 +868,9 @@ export default class FilecoinApi implements Api {
    * Signs an arbitrary byte string using the private key info
    * stored in the wallet.
    *
-   * @param address A `string` of the public address in the wallet to
+   * @param address - A `string` of the public address in the wallet to
    * sign with.
-   * @param data A `string` of a base-64 encoded byte array to sign.
+   * @param data - A `string` of a base-64 encoded byte array to sign.
    * @returns A Signature object which contains the signature details.
    */
   async "Filecoin.WalletSign"(
@@ -899,9 +899,9 @@ export default class FilecoinApi implements Api {
   /**
    * Signs a Message using the private key info stored in the wallet.
    *
-   * @param address A `string` of the public address in the wallet to
+   * @param address - A `string` of the public address in the wallet to
    * sign with.
-   * @param serializedMessage A Message object that needs signing.
+   * @param serializedMessage - A Message object that needs signing.
    * @returns The corresponding SignedMessage object.
    */
   async "Filecoin.WalletSignMessage"(
@@ -933,11 +933,11 @@ export default class FilecoinApi implements Api {
    * Verifies the validity of a signature for a given address
    * and unsigned byte string.
    *
-   * @param inputAddress A `string` of the public address that
+   * @param inputAddress - A `string` of the public address that
    * supposedly signed `data` with `serializedSignature`
-   * @param data A `string` of the data that was signed, encoded
+   * @param data - A `string` of the data that was signed, encoded
    * in base-64.
-   * @param serializedSignature A Signature object of the signature
+   * @param serializedSignature - A Signature object of the signature
    * you're trying to verify.
    * @returns `true` if valid, `false` otherwise.
    */
@@ -973,8 +973,8 @@ export default class FilecoinApi implements Api {
   /**
    * Checks the validity of a given public address.
    *
-   * @param inputAddress The `string` of the public address to check.
-   * @returns If successful, it returns the address back as a `string.
+   * @param inputAddress - The `string` of the public address to check.
+   * @returns If successful, it returns the address back as a `string`.
    * Otherwise returns an error.
    */
   async "Filecoin.WalletValidateAddress"(
@@ -996,8 +996,8 @@ export default class FilecoinApi implements Api {
    * each tipset from one state to the next towards the
    * StorageDealStatusActive state.
    *
-   * @param serializedProposal A StartDealParams object of the deal details.
-   * @returns The RootCID of the new `DealInfo` => `DealInfo.ProposalCid`
+   * @param serializedProposal - A StartDealParams object of the deal details.
+   * @returns The RootCID of the new `DealInfo` =\> `DealInfo.ProposalCid`
    */
   async "Filecoin.ClientStartDeal"(
     serializedProposal: SerializedStartDealParams
@@ -1026,7 +1026,7 @@ export default class FilecoinApi implements Api {
    *
    * Reference implementation: https://git.io/JthfU
    *
-   * @param serializedCid The `DealInfo.ProposalCid` RootCID for the
+   * @param serializedCid - The `DealInfo.ProposalCid` RootCID for the
    * deal you're searching for
    * @returns A DealInfo object.
    */
@@ -1055,7 +1055,7 @@ export default class FilecoinApi implements Api {
    *
    * Reference implementation: https://git.io/JqUXg
    *
-   * @param statusCode A `number` that's stored in `DealInfo.State`
+   * @param statusCode - A `number` that's stored in `DealInfo.State`
    * which represents the current state of a storage deal.
    * @returns A `string` representation of the provided `statusCode`.
    */
@@ -1071,7 +1071,7 @@ export default class FilecoinApi implements Api {
    * Starts a subscription to receive updates when storage deals
    * change state.
    *
-   * @param rpcId This parameter is not provided by the user, but
+   * @param rpcId - This parameter is not provided by the user, but
    * injected by the internal system.
    * @returns An object with the subscription ID and an unsubscribe
    * function.
@@ -1122,7 +1122,7 @@ export default class FilecoinApi implements Api {
   /**
    * Ask the node to search for data stored in the IPFS node.
    *
-   * @param rootCid The RootCID to search for.
+   * @param rootCid - The RootCID to search for.
    * @returns A QueryOffer with details of the data for further
    * retrieval.
    */
@@ -1140,7 +1140,7 @@ export default class FilecoinApi implements Api {
    * requested. Since Filecoin-flavored Ganache doesn't connect
    * to any external networks, all data on the IPFS node is local.
    *
-   * @param rootCid The RootCID to serach for.
+   * @param rootCid - The RootCID to serach for.
    * @returns `true` if the local IPFS node has the data,
    * `false` otherwise.
    */
@@ -1154,9 +1154,9 @@ export default class FilecoinApi implements Api {
    * Download the contents of a storage deal to disk (local
    * to Ganache).
    *
-   * @param retrievalOrder A RetrievalOrder object detailing
+   * @param retrievalOrder - A RetrievalOrder object detailing
    * the deal, retrieval price, etc.
-   * @param ref A FileRef object specifying where the file
+   * @param ref - A FileRef object specifying where the file
    * should be saved to.
    */
   async "Filecoin.ClientRetrieve"(
@@ -1215,7 +1215,7 @@ export default class FilecoinApi implements Api {
    * A subscription method that provides an update
    * whenever the miner is enabled or disabled.
    *
-   * @param rpcId This parameter is not provided by the user, but
+   * @param rpcId - This parameter is not provided by the user, but
    * injected by the internal system.
    * @returns An object with the subscription ID and an unsubscribe
    * function.
@@ -1271,7 +1271,7 @@ export default class FilecoinApi implements Api {
   /**
    * Retrieves an internal `DealInfo` by its `DealID`.
    *
-   * @param dealId A `number` corresponding to the `DealInfo.DealID`
+   * @param dealId - A `number` corresponding to the `DealInfo.DealID`
    * for the deal to retrieve.
    * @returns The matched DealInfo object.
    */

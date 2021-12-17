@@ -27,7 +27,7 @@ export default class FilecoinProvider<
       KnownKeys<FilecoinApi>
     > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
   >
-  extends Emittery.Typed<{}, "connect" | "disconnect">
+  extends Emittery<{ connect: undefined; disconnect: undefined }>
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
   implements Provider<FilecoinApi> {
   #options: FilecoinInternalOptions;

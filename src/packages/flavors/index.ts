@@ -2,6 +2,8 @@ import {
   Connector as EthereumConnector,
   Provider as EthereumProvider
 } from "@ganache/ethereum";
+export type {Provider as EthereumProvider} from "@ganache/ethereum";
+export type {Provider as FilecoinProvider} from "@ganache/filecoin";
 import type {
   Connector as FilecoinConnector,
   Provider as FilecoinProvider
@@ -81,7 +83,7 @@ export function GetConnector<T extends FlavorName>(
         return new Connector(providerOptions, executor);
       }
     }
-  } catch (e) {
+  } catch (e: any) {
     if (e.message.includes(`Cannot find module '${flavor}'`)) {
       // we print and exit rather than throw to prevent webpack output from being
       // spat out for the line number

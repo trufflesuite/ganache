@@ -70,7 +70,7 @@ describe("connector", () => {
     // be duck punched. This test is supposed to ensure that _real_ non-function
     // own properties (and __proto__ properties) can't be executed.
     (p as any)._engine._api.__proto__.illegalProperty = true;
-    await assert.rejects(p.send("illegalProperty" as any, []), {
+    await assert.rejects(p.send("illegalProperty" as any, [] as any), {
       message: "`The method illegalProperty does not exist/is not available`"
     });
   });

@@ -61,7 +61,7 @@ describe("api", () => {
               method: method as any,
               params: []
             });
-          } catch (e) {
+          } catch (e: any) {
             assert.strictEqual(
               e.message,
               `The method ${method} does not exist/is not available`
@@ -181,7 +181,7 @@ describe("api", () => {
           assert.fail(
             "Successfully received tipset with incorrect tipset key/height"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }

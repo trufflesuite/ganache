@@ -97,7 +97,9 @@ export class Fork {
           "The INFURA_KEY environment variable was not given and is required when using Ganache's integrated archive network feature."
         );
       }
-      forkingOptions.url = new URL(
+      // any because the `network` check above narrowed the type to one
+      // that doesn't include `url`, but we still want to add it.
+      (forkingOptions as any).url = new URL(
         `wss://${normalizedNetwork}.infura.io/ws/v3/${infuraKey}`
       );
       this.#handler = new WsHandler(options, this.#abortController.signal);
@@ -265,8 +267,8 @@ export class Fork {
    * a `Common` with our local `common`'s rules applied, but with the remote
    * chain's `chainId`. If the block is greater than or equal to our
    * `fork.blockNumber` return `common`.
-   * @param common
-   * @param blockNumber
+   * @param common -
+   * @param blockNumber -
    */
   public getCommonForBlockNumber(common: Common, blockNumber: BigInt) {
     if (blockNumber <= this.blockNumber.toBigInt()) {
