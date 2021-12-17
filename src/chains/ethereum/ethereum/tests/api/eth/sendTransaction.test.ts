@@ -48,8 +48,8 @@ describe("api", () => {
 
       describe("insufficient funds", () => {
         const types = ["0x0", "0x1", "0x2"] as const;
-        it("returns an error when account has insufficient funds to transfer the value", async () => {
-          const gasCost = 99967968750001;
+        it("returns a VM error when the account has insufficient funds to transfer the value at runtime", async () => {
+          const approximateGasCost = 99967968750001;
           const provider = await getProvider({
             miner: { legacyInstamine: true },
             chain: { vmErrorsOnRPCResponse: true }
@@ -71,9 +71,9 @@ describe("api", () => {
                 sendTx({
                   ...tx,
                   // attempt to zero out the account. this tx will fail because
-                  // the previous (pending transaction) will spend some it's
+                  // the previous (pending transaction) will spend some of its
                   // balance, not leaving enough left over for this transaction.
-                  value: `0x${(balance - gasCost).toString(16)}`
+                  value: `0x${(balance - approximateGasCost).toString(16)}`
                 }),
                 new RegExp(
                   `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=london -> block -> tx\\)`
@@ -85,7 +85,7 @@ describe("api", () => {
           }
         });
 
-        it("returns an `insufficient funds` error when the package doesn't have enough funds to send the transaction", async () => {
+        it("returns an `insufficient funds` error when the account doesn't have enough funds to send the transaction", async () => {
           const provider = await getProvider();
           const [from, to] = await provider.send("eth_accounts");
           const getBalance = acct => provider.send("eth_getBalance", [acct]);
@@ -96,10 +96,10 @@ describe("api", () => {
               to,
               value: await getBalance(from)
             };
-            await assert.rejects(
-              provider.send("eth_sendTransaction", [tx]),
-              new RegExp(`insufficient funds`)
-            );
+            await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
+              message: "insufficient funds for gas * price + value",
+              code: -32003
+            });
           }
         });
       });

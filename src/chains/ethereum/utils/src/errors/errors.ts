@@ -44,3 +44,8 @@ export const VM_EXCEPTIONS =
  */
 export const TRANSACTION_LOCKED =
   "transaction can't be replaced, mining has already started. (please open an issue with reproduction steps: https://github.com/trufflesuite/ganache/issues/new)";
+
+/**
+ * Returned if a transaction may require more funds than than account currently has available.
+ */
+export const INSUFFICIENT_FUNDS = "insufficient funds for gas * price + value";

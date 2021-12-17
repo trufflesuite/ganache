@@ -1,6 +1,7 @@
 import assert from "assert";
 import Common from "@ethereumjs/common";
 import {
+  EIP1559FeeMarketRpcTransaction,
   TransactionFactory,
   TypedRpcTransaction,
   TypedTransaction
@@ -248,6 +249,27 @@ describe("transaction pool", async () => {
         message: "transaction underpriced"
       },
       "replacement transaction with insufficient gas price to replace should have been rejected"
+    );
+  });
+
+  it("rejects transactions whose potential cost is more than the account's balance", async () => {
+    const expensiveRpc: EIP1559FeeMarketRpcTransaction = {
+      from,
+      type: "0x2",
+      value: "0xfffffffffffffffffff",
+      maxFeePerGas: "0xffffff",
+      maxPriorityFeePerGas: "0xff",
+      gasLimit: "0xffff"
+    };
+    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const expensiveTx = TransactionFactory.fromRpc(expensiveRpc, common);
+    await assert.rejects(
+      txPool.prepareTransaction(expensiveTx, secretKey),
+      {
+        code: -32003,
+        message: "insufficient funds for gas * price + value"
+      },
+      "transaction whose potential cost is more than the account's balance should have been rejected"
     );
   });
 

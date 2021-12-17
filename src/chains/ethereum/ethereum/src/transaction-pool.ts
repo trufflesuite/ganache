@@ -8,7 +8,8 @@ import {
   CodedError,
   UNDERPRICED,
   REPLACED,
-  TRANSACTION_LOCKED
+  TRANSACTION_LOCKED,
+  INSUFFICIENT_FUNDS
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
@@ -220,7 +221,10 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
       transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
       transaction.value.toBigInt();
     if (transactor.balance.toBigInt() < cost) {
-      throw new Error("insufficient funds for gas * price + value");
+      throw new CodedError(
+        INSUFFICIENT_FUNDS,
+        JsonRpcErrorCode.TRANSACTION_REJECTED
+      );
     }
 
     const origins = this.#origins;
@@ -288,8 +292,9 @@ export default class TransactionPool extends Emittery.Typed<{}, "drain"> {
         transactionPlacement = TriageOption.Executable;
       } else if (txNonce < transactorNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
-        throw new Error(
-          `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${txNonce}`
+        throw new CodedError(
+          `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${txNonce}`,
+          JsonRpcErrorCode.INVALID_INPUT
         );
       } else if (txNonce === transactorNonce) {
         transactionPlacement = TriageOption.Executable;
