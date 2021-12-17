@@ -353,7 +353,7 @@ const tests = function(web3) {
       const r = Buffer.from(sgn.slice(0, 64), "hex");
       const s = Buffer.from(sgn.slice(64, 128), "hex");
       const v = parseInt(sgn.slice(128), 16);
-      const pub = utils.ecrecover(msgHash, v, r, s, 1);
+      const pub = utils.ecrecover(msgHash, v, r, s);
       let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
       addr = to.hex(addr);
       assert.deepStrictEqual(addr, accounts[0]);
@@ -372,7 +372,7 @@ const tests = function(web3) {
       const r = Buffer.from(sgn.slice(0, 64), "hex");
       const s = Buffer.from(sgn.slice(64, 128), "hex");
       const v = parseInt(sgn.slice(128), 16);
-      const pub = utils.ecrecover(msgHash, v, r, s, 1);
+      const pub = utils.ecrecover(msgHash, v, r, s);
       let addr = utils.setLength(utils.fromSigned(utils.pubToAddress(pub)), 20);
       addr = to.hex(addr);
       assert.deepStrictEqual(addr, accounts[0]);
