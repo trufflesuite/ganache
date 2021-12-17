@@ -118,6 +118,10 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     }
   }
 
+  public maxGasPrice() {
+    return this.maxFeePerGas;
+  }
+
   public toJSON(_common?: Common): EIP1559FeeMarketTransactionJSON {
     return {
       type: this.type,

@@ -123,6 +123,10 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     }
   }
 
+  public maxGasPrice() {
+    return this.gasPrice;
+  }
+
   public toJSON(_common?: Common): EIP2930AccessListTransactionJSON {
     return {
       hash: this.hash,

@@ -79,5 +79,5 @@ describe("connector", () => {
     }
     const result = JSON.parse(str);
     assert.deepStrictEqual(result, expected);
-  });
+  }).timeout(10000);
 });
