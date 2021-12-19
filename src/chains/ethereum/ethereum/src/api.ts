@@ -406,7 +406,7 @@ export default class EthereumApi implements Api {
    * Sets the internal clock time to the given timestamp.
    *
    * Warning: This will allow you to move *backwards* in time, which may cause
-   * new blocks to appear to be mined before old blocks. This is will result in
+   * new blocks to appear to be mined before old blocks. This will result in
    * an invalid state.
    *
    * @param time - JavaScript timestamp (millisecond precision).
