@@ -9,7 +9,7 @@ const version = process.env.VERSION || "DEV";
 const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
-type ForkUrl = URL & { _blockNumber?: number | Tag.LATEST };
+type ForkUrl = URL & { _blockNumber?: number | typeof Tag.latest };
 
 type KnownNetworks =
   | "mainnet"
@@ -86,13 +86,13 @@ export type ForkConfig = {
      * Block number the provider should fork from.
      */
     blockNumber: {
-      type: number | Tag.LATEST;
+      type: number | typeof Tag.latest;
       hasDefault: true;
       legacy: {
         /**
          * @deprecated Use fork.blockNumber instead
          */
-        fork_block_number: number | Tag.LATEST;
+        fork_block_number: number | typeof Tag.latest;
       };
     };
 
@@ -266,11 +266,11 @@ export const ForkOptions: Definitions<ForkConfig> = {
         // remove everything after the last @
         url = new URL(path.substr(0, lastIndex), url);
         const blockNumber = path.substr(lastIndex + 1);
-        if (blockNumber && blockNumber !== Tag.LATEST) {
+        if (blockNumber && blockNumber !== Tag.latest) {
           // don't use parseInt because strings like `"123abc"` parse
           // to `123`, and there is probably an error on the user's side we'd
           // want to uncover.
-          const asNum = ((blockNumber as unknown) as number) - 0;
+          const asNum = (blockNumber as unknown as number) - 0;
           // don't allow invalid, negative, or decimals
           if (
             isNaN(asNum) ||
@@ -370,10 +370,10 @@ Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet 
         if (url._blockNumber) {
           return url._blockNumber;
         } else {
-          return Tag.LATEST;
+          return Tag.latest;
         }
       } else if (provider || network) {
-        return Tag.LATEST;
+        return Tag.latest;
       } else {
         return;
       }

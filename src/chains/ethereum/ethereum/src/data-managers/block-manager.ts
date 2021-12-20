@@ -145,28 +145,22 @@ export default class BlockManager extends Manager<Block> {
   };
 
   getBlockByTag(tag: Tag) {
-    switch (Tag.normalize(tag as Tag)) {
-      case Tag.LATEST:
+    switch (tag) {
+      case "latest":
         return this.latest;
-      case void 0:
-      case null:
-        // the key is probably a hex string, let nature takes its course.
-        break;
-      case Tag.PENDING:
+      case "pending":
         // TODO: build a real pending block!
         return this.latest; // this.createBlock(this.latest.header);
-      case Tag.EARLIEST:
+      case "earliest":
         return this.earliest;
       default:
-        // this probably can't happen. but if someone passed something like
-        // `toString` in as a block tag and it got this far... maybe we'd
-        // get here...
-        throw new Error(`Invalid block Tag: ${tag}`);
+        // the key is probably a hex string, let nature takes its course.
+        break;
     }
   }
 
   getEffectiveNumber(
-    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+    tagOrBlockNumber: QUANTITY | Buffer | Tag = typeof Tag.latest
   ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
