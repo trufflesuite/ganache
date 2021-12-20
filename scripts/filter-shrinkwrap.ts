@@ -25,21 +25,23 @@ const shrinkwrap: Root = require(shrinkwrapFile);
 let removeCount = 0;
 
 function walk(leaf: Leaf, mutate: (leaf: Leaf) => void) {
-  if (leaf.dependencies) {
+  const dependencies = leaf.dependencies;
+  if (dependencies) {
     mutate(leaf);
-    Object.entries(leaf.dependencies).forEach(([name, entry]) => {
+    Object.entries(dependencies).forEach(([name, entry]) => {
       walk(entry, mutate);
     });
   }
 }
 
 function deleteDevDepsFromLeaf(leaf: Leaf) {
-  if (leaf.dependencies) {
-    Object.entries(leaf.dependencies).forEach(([name, entry]) => {
+  const dependencies = leaf.dependencies;
+  if (dependencies) {
+    Object.entries(dependencies).forEach(([name, entry]) => {
       if (entry.dev) {
         console.log(`removing ${name} from shrinkwrap`);
         removeCount++;
-        delete leaf.dependencies[name];
+        delete dependencies[name];
       }
     });
   }
