@@ -27,7 +27,7 @@ function fetchBlockNumber(fork: Fork) {
   // shouldn't ever cache a method that can change!
   return fork.request<string>("eth_blockNumber", [], { disableCache: true });
 }
-function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
+function fetchBlock(fork: Fork, blockNumber: Quantity | typeof Tag.latest) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
 async function fetchNonce(fork: Fork, address: Address, blockNumber: Quantity) {
@@ -138,9 +138,9 @@ export class Fork {
     chainIdPromise: Promise<number>
   ) => {
     const { fork: options } = this.#options;
-    if (options.blockNumber === Tag.LATEST) {
+    if (options.blockNumber === Tag.latest) {
       const [latestBlock, chainId] = await Promise.all([
-        fetchBlock(this, Tag.LATEST),
+        fetchBlock(this, Tag.latest),
         chainIdPromise
       ]);
       let blockNumber = parseInt(latestBlock.number, 16);

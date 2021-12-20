@@ -124,7 +124,7 @@ export async function resolveTargetAndClosestAncestor(
       closestAncestor = null;
       targetBlock = new Tree(targetHeight, targetHash);
     } else {
-      const earliestBlock = await getBlockByNumber(request, Tag.EARLIEST);
+      const earliestBlock = await getBlockByNumber(request, Tag.earliest);
       if (!earliestBlock) throw new Error('Could not find "earliest" block.');
 
       const { hash: earliestHash, number: earliestNumber } = earliestBlock;
@@ -158,7 +158,7 @@ export async function* findRelated(
   });
 
   for await (const pair of readStream) {
-    const { key, value } = (pair as unknown) as { key: Buffer; value: Buffer };
+    const { key, value } = pair as unknown as { key: Buffer; value: Buffer };
     const node = Tree.deserialize(key, value);
     const { height: candidateHeight } = node.decodeKey();
     const block = await getBlockByNumber(request, candidateHeight);

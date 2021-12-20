@@ -67,7 +67,7 @@ async function autofillDefaultTransactionValues(
     const defaultLimit = options.miner.defaultTransactionGasLimit;
     if (defaultLimit === RPCQUANTITY_EMPTY) {
       // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-      tx.gas = await eth_estimateGas(transaction, Tag.LATEST);
+      tx.gas = await eth_estimateGas(transaction, Tag.latest);
     } else {
       tx.gas = defaultLimit;
     }
@@ -147,7 +147,10 @@ function assertExceptionalTransactions(transactions: TypedTransaction[]) {
 export default class EthereumApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-  readonly #getId = (id => () => Quantity.from(++id))(0);
+  readonly #getId = (
+    id => () =>
+      Quantity.from(++id)
+  )(0);
   readonly #filters = new Map<string, Filter>();
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
   readonly #options: EthereumInternalOptions;
@@ -784,7 +787,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_estimateGas(
     transaction: TypedRpcTransaction,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -1439,7 +1442,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getBalance(
     address: DATA,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ) {
     return this.#blockchain.accounts.getBalance(
       Address.from(address),
@@ -1476,7 +1479,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.LATEST) {
+  async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.latest) {
     const { accounts } = this.#blockchain;
     return accounts.getCode(Address.from(address), blockNumber);
   }
@@ -1514,7 +1517,7 @@ export default class EthereumApi implements Api {
   async eth_getStorageAt(
     address: DATA,
     position: QUANTITY,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ) {
     const blockchain = this.#blockchain;
     const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
@@ -1622,12 +1625,8 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: DATA) {
-    const {
-      transactions,
-      transactionReceipts,
-      blocks,
-      common
-    } = this.#blockchain;
+    const { transactions, transactionReceipts, blocks, common } =
+      this.#blockchain;
     const dataHash = Data.from(transactionHash);
     const txHash = dataHash.toBuffer();
 
@@ -2473,7 +2472,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getTransactionCount(
     address: DATA,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ) {
     return this.#blockchain.accounts.getNonce(
       Address.from(address),
@@ -2517,7 +2516,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.LATEST) {
+  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.latest) {
     const blockchain = this.#blockchain;
     const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
