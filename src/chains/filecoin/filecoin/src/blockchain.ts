@@ -48,7 +48,7 @@ import DealInfoManager from "./data-managers/deal-info-manager";
 import * as bls from "noble-bls12-381";
 
 export type BlockchainEvents = {
-  ready(): void;
+  ready: undefined;
   tipset: Tipset;
   minerEnabled: boolean;
   dealUpdate: DealInfo;
@@ -57,10 +57,7 @@ export type BlockchainEvents = {
 // Reference implementation: https://git.io/JtEVW
 const BurntFundsAddress = Address.fromId(99, true);
 
-export default class Blockchain extends Emittery.Typed<
-  BlockchainEvents,
-  keyof BlockchainEvents
-> {
+export default class Blockchain extends Emittery<BlockchainEvents> {
   public tipsetManager: TipsetManager | null;
   public blockHeaderManager: BlockHeaderManager | null;
   public accountManager: AccountManager | null;
@@ -716,7 +713,7 @@ export default class Blockchain extends Emittery.Typed<
         timeout: 500 // Enforce a timeout; otherwise will hang if CID not found
       });
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -748,7 +745,7 @@ export default class Blockchain extends Emittery.Typed<
         fileStream = fs.createWriteStream(`${ref.path}.partial`, {
           encoding: "binary"
         });
-      } catch (e) {
+      } catch (e: any) {
         throw new Error(
           `Could not create file.\n  CID: ${cid}\n  Path: ${
             ref.path
@@ -775,7 +772,7 @@ export default class Blockchain extends Emittery.Typed<
               }
             });
           });
-        } catch (e) {
+        } catch (e: any) {
           throw new Error(
             `Could not save file.\n  CID: ${cid}\n  Path: ${
               ref.path

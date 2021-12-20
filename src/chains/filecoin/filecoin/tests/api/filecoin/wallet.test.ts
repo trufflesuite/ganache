@@ -89,7 +89,7 @@ describe("api", () => {
           assert.fail(
             "Successfully created an account for KeyType secp256k1-ledger"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -189,7 +189,7 @@ describe("api", () => {
           assert.fail(
             "Successfully imported an account with KeyType secp256k1-ledger"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -247,7 +247,7 @@ describe("api", () => {
           const buffer = Buffer.from([0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55]);
           await client.walletSign(address.value, buffer.toString("base64"));
           assert.fail("Successfully signed a buffer with an unknown address");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -307,7 +307,7 @@ describe("api", () => {
           };
           await client.walletSignMessage(address.value, serializedMessage);
           assert.fail("Successfully signed a Message with an unknown address");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }

@@ -72,7 +72,7 @@ export default class WebsocketServer {
         const useBinary = autoBinary ? isBinary : (wsBinary as boolean);
         try {
           payload = connector.parse(Buffer.from(message));
-        } catch (err) {
+        } catch (err: any) {
           const response = connector.formatError(err, payload);
           ws.send(response, useBinary);
           return;
@@ -115,7 +115,7 @@ export default class WebsocketServer {
             // keep track of listeners to dispose off when the ws disconnects
             connections.get(ws).add(resultEmitterPromiEvent.dispose);
           }
-        } catch (err) {
+        } catch (err: any) {
           // ensure the connector's `handle` fn doesn't throw outside of a Promise
 
           if (ws.closed) return;

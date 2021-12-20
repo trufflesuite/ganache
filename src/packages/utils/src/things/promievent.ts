@@ -5,7 +5,7 @@ import Emittery from "emittery";
 declare var Promise: {
   /**
    * Attaches a callback for only the rejection of the Promise.
-   * @param onrejected The callback to execute when the Promise is rejected.
+   * @param onrejected - The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of the callback.
    */
   catch<TResult = never>(
@@ -17,7 +17,7 @@ declare var Promise: {
 
   /**
    * Creates a new resolved promievent for the provided value.
-   * @param value A promise.
+   * @param value - A promise.
    * @returns A promievent whose internal state matches the provided promise.
    */
   resolve<T>(value: T | PromiseLike<T>): PromiEvent<T>;
@@ -37,7 +37,14 @@ const emitteryMethods = [
   "onAny"
 ] as const;
 
-@Emittery.mixin(Symbol.for("emittery"), emitteryMethods)
+// A hack to fix Emittery's `mixin` type.
+// issue: https://github.com/sindresorhus/emittery/issues/79
+const mixin = Emittery.mixin.bind(Emittery) as (
+  emitteryPropertyName: string | symbol,
+  methodNames?: readonly string[]
+) => <T extends { new (...args: any): any }>(klass: T) => T;
+
+@mixin(Symbol.for("emittery"), emitteryMethods)
 class PromiEvent<T> extends Promise<T> {
   constructor(
     executor: (
@@ -50,7 +57,7 @@ class PromiEvent<T> extends Promise<T> {
 
   /**
    * Attaches a callback for only the rejection of the Promise.
-   * @param onrejected The callback to execute when the Promise is rejected.
+   * @param onrejected - The callback to execute when the Promise is rejected.
    * @returns A PromiEvent for the completion of the callback.
    */
   catch<TResult = never>(
@@ -76,7 +83,7 @@ class PromiEvent<T> extends Promise<T> {
   static resolve(): PromiEvent<void>;
   /**
    * Creates a new resolved promievent for the provided value.
-   * @param value A promise.
+   * @param value - A promise.
    * @returns A promievent whose internal state matches the provided promise.
    */
   static resolve<T = never>(value: T | PromiseLike<T>): PromiEvent<T>;

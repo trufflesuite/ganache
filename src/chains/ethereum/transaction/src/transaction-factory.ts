@@ -224,7 +224,7 @@ export class TransactionFactory {
         raw = decode<TypedDatabasePayload>(
           txType === TransactionType.Legacy ? data : data.slice(1)
         );
-      } catch (e) {
+      } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }
       return this._fromData(raw, txType, common);
@@ -232,7 +232,7 @@ export class TransactionFactory {
       let raw: TypedDatabasePayload;
       try {
         raw = decode<LegacyDatabasePayload>(data);
-      } catch (e) {
+      } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }
       return this._fromData(raw, TransactionType.Legacy, common);

@@ -228,15 +228,10 @@ export default class Wallet {
   #initializeAccounts = (
     options: EthereumInternalOptions["wallet"]
   ): Map<string, Account> => {
-    let makeAccountAtIndex: (index: number) => HDKey;
-    try {
-      makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
-        mnemonicToSeedSync(options.mnemonic, null),
-        options.hdPath
-      );
-    } catch (e) {
-      console.log(e);
-    }
+    const makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
+      mnemonicToSeedSync(options.mnemonic, null),
+      options.hdPath
+    );
 
     // convert a potentially fractional balance of Ether to WEI
     const balanceParts = options.defaultBalance.toString().split(".", 2);
@@ -345,8 +340,8 @@ export default class Wallet {
 
   /**
    * Syncronous version of the `encrypt` function.
-   * @param privateKey
-   * @param passphrase
+   * @param privateKey -
+   * @param passphrase -
    */
   public encryptSync(privateKey: Data, passphrase: string) {
     const random = this.#randomBytes(32 + 16 + 16);
@@ -444,11 +439,11 @@ export default class Wallet {
   /**
    * Stores a mapping of addresses to either encrypted (if a passphrase is used
    * or the user specified --lock option) or unencrypted private keys.
-   * @param address The address whose private key is being stored.
-   * @param privateKey The passphrase to store.
-   * @param passphrase The passphrase to use to encrypt the private key. If
+   * @param address - The address whose private key is being stored.
+   * @param privateKey - The passphrase to store.
+   * @param passphrase - The passphrase to use to encrypt the private key. If
    * passphrase is empty, the private key will not be encrypted.
-   * @param lock Flag to specify that accounts should be encrypted regardless
+   * @param lock - Flag to specify that accounts should be encrypted regardless
    * of if the passphrase is empty.
    */
   public async addToKeyFile(
@@ -476,11 +471,11 @@ export default class Wallet {
    * Synchronus version of `addToKeyFile`.
    * Stores a mapping of addresses to either encrypted (if a passphrase is used
    * or the user specified --lock option) or unencrypted private keys.
-   * @param address The address whose private key is being stored.
-   * @param privateKey The passphrase to store.
-   * @param passphrase The passphrase to use to encrypt the private key. If
+   * @param address - The address whose private key is being stored.
+   * @param privateKey - The passphrase to store.
+   * @param passphrase - The passphrase to use to encrypt the private key. If
    * passphrase is empty, the private key will not be encrypted.
-   * @param lock Flag to specify that accounts should be encrypted regardless
+   * @param lock - Flag to specify that accounts should be encrypted regardless
    * of if the passphrase is empty.
    */
   public addToKeyFileSync(
@@ -507,8 +502,8 @@ export default class Wallet {
   /**
    * Fetches the private key for a specific address. If the keyFile is encrypted
    * for the address, the passphrase is used to decrypt.
-   * @param address The address whose private key is to be fetched.
-   * @param passphrase The passphrase used to decrypt the private key.
+   * @param address - The address whose private key is to be fetched.
+   * @param passphrase - The passphrase used to decrypt the private key.
    */
   public async getFromKeyFile(address: Address, passphrase: string) {
     const keyFile = this.keyFiles.get(address.toString());

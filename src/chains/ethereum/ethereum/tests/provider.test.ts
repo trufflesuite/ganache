@@ -211,7 +211,10 @@ describe("provider", () => {
     it("asserts invalid arg lengths", async () => {
       await assert.rejects(
         () =>
-          provider.request({ method: "eth_accounts", params: ["invalid arg"] }),
+          provider.request({
+            method: "eth_accounts",
+            params: ["invalid arg"] as any
+          }),
         {
           message:
             "Incorrect number of arguments. 'eth_accounts' requires exactly 0 arguments."

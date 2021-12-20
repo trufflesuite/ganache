@@ -141,7 +141,7 @@ export async function verifyMessageSignature(
     case SigType.SigTypeSecp256k1: {
       const serialized = signedMessage.message.serialize();
       const encoded = cbor.encode(serialized);
-      const verified = address.verifySignature(
+      const verified = await address.verifySignature(
         encoded,
         signedMessage.signature
       );

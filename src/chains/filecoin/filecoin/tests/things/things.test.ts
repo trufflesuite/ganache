@@ -76,7 +76,7 @@ describe("things", () => {
 
       try {
         new CID();
-      } catch (e) {
+      } catch (e: any) {
         error = e;
       }
 

@@ -3,8 +3,10 @@ import { Address } from "@ganache/ethereum-address";
 import { BUFFER_ZERO, Data, Quantity } from "@ganache/utils";
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
-import { TransactionFactory } from "@ganache/ethereum-transaction";
-import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
+import {
+  TypedRpcTransaction,
+  TransactionFactory
+} from "@ganache/ethereum-transaction";
 import Blockchain from "../../ethereum/src/blockchain";
 import { EthereumOptionsConfig } from "../../options/src/index";
 
@@ -12,7 +14,7 @@ describe("@ganache/ethereum-block", async () => {
   describe("baseFeePerGas calculations", () => {
     let blockchain: Blockchain;
     before(async function () {
-      this.timeout(5000);
+      this.timeout(10000);
       const privKey = `0x${"46".repeat(32)}`;
       const privKeyData = Data.from(privKey);
       const options = EthereumOptionsConfig.normalize({

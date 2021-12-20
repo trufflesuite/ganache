@@ -57,7 +57,7 @@ class PromiseQueue<T> {
 
   /**
    * Adds the promise to the end of the queue.
-   * @param promise
+   * @param promise -
    * @returns a promise that resolves with the given promise's result. If the
    * queue was `clear`ed before the promise could be shifted off the return
    * value will be the `value` passed to `clear`.

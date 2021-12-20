@@ -27,7 +27,7 @@ function fetchBlockNumber(fork: Fork) {
   // shouldn't ever cache a method that can change!
   return fork.request<string>("eth_blockNumber", [], { disableCache: true });
 }
-function fetchBlock(fork: Fork, blockNumber: Quantity | Tag.LATEST) {
+function fetchBlock(fork: Fork, blockNumber: Quantity | typeof Tag.latest) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
 }
 async function fetchNonce(fork: Fork, address: Address, blockNumber: Quantity) {
@@ -97,7 +97,9 @@ export class Fork {
           "The INFURA_KEY environment variable was not given and is required when using Ganache's integrated archive network feature."
         );
       }
-      forkingOptions.url = new URL(
+      // any because the `network` check above narrowed the type to one
+      // that doesn't include `url`, but we still want to add it.
+      (forkingOptions as any).url = new URL(
         `wss://${normalizedNetwork}.infura.io/ws/v3/${infuraKey}`
       );
       this.#handler = new WsHandler(options, this.#abortController.signal);
@@ -136,9 +138,9 @@ export class Fork {
     chainIdPromise: Promise<number>
   ) => {
     const { fork: options } = this.#options;
-    if (options.blockNumber === Tag.LATEST) {
+    if (options.blockNumber === Tag.latest) {
       const [latestBlock, chainId] = await Promise.all([
-        fetchBlock(this, Tag.LATEST),
+        fetchBlock(this, Tag.latest),
         chainIdPromise
       ]);
       let blockNumber = parseInt(latestBlock.number, 16);
@@ -265,8 +267,8 @@ export class Fork {
    * a `Common` with our local `common`'s rules applied, but with the remote
    * chain's `chainId`. If the block is greater than or equal to our
    * `fork.blockNumber` return `common`.
-   * @param common
-   * @param blockNumber
+   * @param common -
+   * @param blockNumber -
    */
   public getCommonForBlockNumber(common: Common, blockNumber: BigInt) {
     if (blockNumber <= this.blockNumber.toBigInt()) {

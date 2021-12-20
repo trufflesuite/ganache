@@ -51,7 +51,7 @@ export default class DealInfoManager extends Manager<DealInfo, DealInfoConfig> {
     try {
       const result: Buffer = await this.base.get(DealInfoManager.Deals);
       return JSON.parse(result.toString());
-    } catch (e) {
+    } catch (e: any) {
       if (e.status === NOTFOUND) {
         await this.base.put(
           DealInfoManager.Deals,
@@ -100,7 +100,7 @@ export default class DealInfoManager extends Manager<DealInfo, DealInfoConfig> {
         Buffer.from(proposalId.root.value)
       );
       return parseInt(result.toString(), 10);
-    } catch (e) {
+    } catch (e: any) {
       if (e.status === NOTFOUND) {
         return null;
       }

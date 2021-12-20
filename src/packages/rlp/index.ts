@@ -20,7 +20,7 @@ export type EncodedPart = {
  * Begin RLP encoding of `items`, from `start` until `length`. Call `RLP.digest` to
  * finish encoding.
  *
- * @param input
+ * @param input -
  **/
 export function encodeRange<
   T extends EncodingInput | Readonly<EncodingInput>,
@@ -46,7 +46,7 @@ export function encodeRange<
 /**
  * Finishes encoding started by `encodeRange`.
  *
- * @param ranges
+ * @param ranges -
  * @returns returns a Buffer of encoded data
  */
 export function digest(ranges: Readonly<Buffer[]>[], length: number) {
@@ -69,7 +69,7 @@ export function digest(ranges: Readonly<Buffer[]>[], length: number) {
 
 /**
  * RLP Encoding based on: https://github.com/ethereum/wiki/wiki/%5BEnglish%5D-RLP
- * @param input
+ * @param input -
  * @returns returns a Buffer of encoded data
  **/
 export function encode(input: Input | Readonly<Input>): Buffer {

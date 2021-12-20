@@ -47,8 +47,27 @@ describe("api", () => {
           miner: { legacyInstamine: true },
           chain: { vmErrorsOnRPCResponse: true }
         }).then(async provider => {
-          const accounts = await provider.send("eth_accounts");
+          const [from, to] = await provider.send("eth_accounts");
+          const balance = parseInt(
+            await provider.send("eth_getBalance", [from]),
+            16
+          );
+          const gasCost = 99967968750001;
+          // send a transaction that will spend some of the balance
+          provider.request({
+            method: "eth_sendTransaction",
+            params: [
+              {
+                from,
+                to
+              }
+            ]
+          });
 
+          // send another transaction while the previous transaction is still
+          // pending. this transaction appears to have enough balance to run,
+          // so the transaction pool will accept it, but when it runs in the VM
+          // it won't have enough balance to run.
           provider.send(
             {
               jsonrpc: "2.0",
@@ -56,9 +75,9 @@ describe("api", () => {
               method: "eth_sendTransaction",
               params: [
                 {
-                  from: accounts[0],
-                  to: accounts[1],
-                  value: "0x76bc75e2d631000000"
+                  from,
+                  to,
+                  value: `0x${(balance - gasCost).toString(16)}`
                 }
               ]
             },

@@ -61,12 +61,12 @@ describe("api", () => {
       it("should stop mining, then mine when started", async () => {
         const provider = await getProvider();
         await testStopStartMining(provider);
-      }).timeout(3000);
+      }).timeout(6000);
 
       it("should stop mining, then mine when started", async () => {
         const provider = await getProvider({ miner: { blockTime: 1 } });
         await testStopStartMining(provider);
-      }).timeout(4000);
+      }).timeout(8000);
 
       it("should not throw an error when miner was already started when calling miner_start", async () => {
         const provider = await getProvider({

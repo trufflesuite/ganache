@@ -166,7 +166,7 @@ describe("api", () => {
 
         const txCount3 = await provider.send("eth_getTransactionCount", [
           accounts[0],
-          message1.data.result.number
+          (message1.data.result as any).number
         ]);
         assert.strictEqual(txCount3, "0x1");
 
@@ -179,7 +179,7 @@ describe("api", () => {
 
         const txCount4 = await provider.send("eth_getTransactionCount", [
           accounts[0],
-          message2.data.result.number
+          (message2.data.result as any).number
         ]);
         assert.strictEqual(txCount4, "0x3");
 
@@ -187,7 +187,7 @@ describe("api", () => {
 
         const txCount5 = await provider.send("eth_getTransactionCount", [
           accounts[0],
-          message1.data.result.number
+          (message1.data.result as any).number
         ]);
         assert.strictEqual(txCount5, txCount3);
 

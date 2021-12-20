@@ -41,7 +41,7 @@ type PackageInfo = {
 };
 
 function flat(arrays: any[][]) {
-  return [].concat.apply([], arrays);
+  return [].concat.apply([], arrays as any);
 }
 
 function getConfigByName(name: string) {
@@ -73,7 +73,9 @@ function updateConfig(config: PackageInfo) {
   tsConfigReferences = tsConfigReferences.filter(tsConfigReference => {
     const existingRefPath = resolve(path, tsConfigReference.path);
     const stillExists = references.some(name => {
-      const relPath = getConfigByName(name).path;
+      const config = getConfigByName(name);
+      if (!config) return false;
+      const relPath = config.path;
       if (relPath === existingRefPath) {
         return true;
       } else {
@@ -91,10 +93,12 @@ function updateConfig(config: PackageInfo) {
   // add package.json deps to tsconfig references:
   references.forEach(name => {
     const referenceConfig = getConfigByName(name);
+    if(!referenceConfig) throw new Error(`missing config ${name}`);
+
     // projects that are referenced by other projects must have the `composite: true` in their tsconfig compileOptions
     if (
-      !referenceConfig.tsConfig.compilerOptions ||
-      !referenceConfig.tsConfig.compilerOptions.composite
+      (!referenceConfig.tsConfig.compilerOptions ||
+      !referenceConfig.tsConfig.compilerOptions.composite)
     ) {
       if (!referenceConfig.tsConfig.compilerOptions)
         referenceConfig.tsConfig.compilerOptions = {};
@@ -148,12 +152,12 @@ const packageDirectories = flat(
   })
 ).filter(dir => existsSync(join(dir, "package.json")));
 
-function keys(object: {}) {
+function keys(object: {} | undefined) {
   return object ? Object.keys(object) : [];
 }
 
 // get all configs
-const configs: PackageInfo[] = packageDirectories.map(pkg => {
+const configs: PackageInfo[] = packageDirectories.map((pkg: any) => {
   const tsConfigFile = join(pkg, "tsconfig.json");
   let tsConfig: TsConfigFile;
   let packageJson: PackageJson;

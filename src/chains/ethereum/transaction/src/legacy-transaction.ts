@@ -68,6 +68,10 @@ export class LegacyTransaction extends RuntimeTransaction {
     }
   }
 
+  public maxGasPrice() {
+    return this.gasPrice;
+  }
+
   public toJSON(common?: Common): LegacyTransactionJSON {
     const json: LegacyTransactionJSON = {
       hash: this.hash,
@@ -115,7 +119,8 @@ export class LegacyTransaction extends RuntimeTransaction {
     return new LegacyTransaction(data, common);
   }
   public toVmTransaction() {
-    const sender = this.from.toBuffer();
+    const from = this.from;
+    const sender = from.toBuffer();
     const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
@@ -131,7 +136,10 @@ export class LegacyTransaction extends RuntimeTransaction {
       data,
       getSenderAddress: () => ({
         buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
+        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
+        toString() {
+          return from.toString();
+        }
       }),
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
@@ -142,12 +150,8 @@ export class LegacyTransaction extends RuntimeTransaction {
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        try {
-          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-          return new BN(Quantity.from(c).toBuffer());
-        } catch (e) {
-          throw e;
-        }
+        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
+        return new BN(Quantity.from(c).toBuffer());
       },
       supports: (capability: Capability) => {
         return false;

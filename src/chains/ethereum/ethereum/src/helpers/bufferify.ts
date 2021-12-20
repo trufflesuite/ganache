@@ -144,8 +144,8 @@ function* objectToBuffer(obj: any, nameOrIndex: string) {
  * CAUTION: This method is approx 3 - 20 times slower than using:
  * `Buffer.from(JSON.stringify(value), "utf-8")`
  *
- * @param value A JavaScript value, usually an object or array, to be converted.
- * @param nameOrIndex JSON.stringify calls an object's toJSON method, and this
+ * @param value - A JavaScript value, usually an object or array, to be converted.
+ * @param nameOrIndex - JSON.stringify calls an object's toJSON method, and this
  * property is used by internal recursive calls to bufferify.
  * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
  */

@@ -2,7 +2,7 @@ import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
-import { TypedRpcTransaction } from "@ganache/ethereum-transaction/typings";
+import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;
@@ -164,6 +164,16 @@ describe("api", () => {
 
       it("should add an account to the personal namespace", async () => {
         const address = "0x742d35cc6634c0532925a3b844bc454e4438f44e";
+        // fund the account
+        const [from] = await provider.request({
+          method: "eth_accounts",
+          params: []
+        });
+        await provider.send("eth_subscribe", ["newHeads"]);
+        await provider.send("eth_sendTransaction", [
+          { from, to: address, value: "0xffffffffffffffff" }
+        ]);
+        await provider.once("message");
         const tx: TypedRpcTransaction = { from: address };
         // account is unknown on startup
         await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
@@ -173,7 +183,6 @@ describe("api", () => {
           address,
           passphrase
         ]);
-
         assert.strictEqual(result, true);
 
         // account is known but locked
