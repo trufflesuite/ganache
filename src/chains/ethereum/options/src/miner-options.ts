@@ -66,7 +66,7 @@ export type MinerConfig = {
     /**
      * Sets the block gas limit in WEI.
      *
-     * @defaultValue 12_000_000
+     * @defaultValue 30_000_000
      */
     blockGasLimit: {
       type: Quantity;
@@ -215,7 +215,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   blockGasLimit: {
     normalize: Quantity.from,
     cliDescription: "Sets the block gas limit in WEI.",
-    default: () => Quantity.from(12_000_000),
+    default: () => Quantity.from(30_000_000),
     legacyName: "gasLimit",
     cliAliases: ["l", "gasLimit"],
     cliType: "string",
