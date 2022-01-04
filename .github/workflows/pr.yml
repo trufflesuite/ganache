@@ -34,6 +34,12 @@ jobs:
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.1
 
+      - name: Update node-gyp
+        # we need node-gyp@8.4.1+ on windows-2022 (for Visual Studio 2022)
+        # https://github.com/nodejs/node-gyp/releases/tag/v8.4.0
+        if: startsWith(matrix.os, 'windows-2022')
+        run: npm install --global node-gyp@8.4.1
+
       - run: npm ci
       - run: npm run tsc
       - run: npm test

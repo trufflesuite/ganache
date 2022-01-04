@@ -70,6 +70,12 @@ jobs:
         if: startsWith(matrix.os, 'windows-')
         run: npm install --global node-gyp@7.1.2
 
+      - name: update node-gyp
+        # we need node-gyp@8.4.1+ on windows-2022 (for Visual Studio 2022)
+        # https://github.com/nodejs/node-gyp/releases/tag/v8.4.0
+        if: startsWith(matrix.os, 'windows-2022')
+        run: npm install --global node-gyp@8.4.1
+
       - name: Set node config to use python2.7
         if: startsWith(matrix.os, 'windows-')
         run: npm config set python python2.7
