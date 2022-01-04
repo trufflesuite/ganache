@@ -1,6 +1,6 @@
 import getProvider from "../helpers/getProvider";
 import EthereumProvider from "../../src/provider";
-import { EthereumProviderOptions } from "@ganache/ethereum-options/typings";
+import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 export const logging = {
   logger: {
@@ -68,8 +68,8 @@ export const startLocalChain = async (
 
 /**
  *
- * @param min min number, inclusive
- * @param max min number, inclusive
+ * @param min - min number, inclusive
+ * @param max - min number, inclusive
  */
 export function range(min: number, max: number) {
   return Array.from({ length: 1 + max - min }, (_, k) => k + min);

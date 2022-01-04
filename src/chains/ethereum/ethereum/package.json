@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-beta.1",
+  "version": "0.1.1-beta.2",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/ethereum/ethereum#readme",
@@ -28,9 +28,9 @@
     "docs.build": "rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../../docs/typedoc --json ../../../../docs/typedoc/api.json src/api.ts",
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
-    "tsc": "ttsc --build",
+    "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_COMPILER=ttypescript TS_NODE_FILES=true mocha -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -54,19 +54,19 @@
     "@ethereumjs/common": "2.6.0",
     "@ethereumjs/tx": "3.4.0",
     "@ethereumjs/vm": "5.6.0",
-    "@ganache/ethereum-address": "0.1.1-beta.1",
-    "@ganache/ethereum-block": "0.1.1-beta.1",
-    "@ganache/ethereum-options": "0.1.1-beta.1",
-    "@ganache/ethereum-transaction": "0.1.1-beta.1",
-    "@ganache/ethereum-utils": "0.1.1-beta.1",
-    "@ganache/options": "0.1.1-beta.1",
-    "@ganache/promise-queue": "0.1.1-beta.1",
-    "@ganache/rlp": "0.1.1-beta.1",
-    "@ganache/secp256k1": "0.1.1-beta.1",
-    "@ganache/utils": "0.1.1-beta.1",
+    "@ganache/ethereum-address": "0.1.1-beta.2",
+    "@ganache/ethereum-block": "0.1.1-beta.2",
+    "@ganache/ethereum-options": "0.1.1-beta.2",
+    "@ganache/ethereum-transaction": "0.1.1-beta.2",
+    "@ganache/ethereum-utils": "0.1.1-beta.2",
+    "@ganache/options": "0.1.1-beta.2",
+    "@ganache/promise-queue": "0.1.1-beta.2",
+    "@ganache/rlp": "0.1.1-beta.2",
+    "@ganache/secp256k1": "0.1.1-beta.2",
+    "@ganache/utils": "0.1.1-beta.2",
     "abort-controller": "3.0.0",
     "bip39": "3.0.4",
-    "emittery": "0.7.2",
+    "emittery": "0.10.0",
     "env-paths": "2.2.1",
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",
@@ -76,7 +76,7 @@
     "levelup": "4.4.0",
     "lodash.clonedeep": "4.5.0",
     "lru-cache": "6.0.0",
-    "mcl-wasm": "0.7.8",
+    "mcl-wasm": "0.9.0",
     "merkle-patricia-tree": "^4.2.2",
     "scrypt-js": "3.0.1",
     "seedrandom": "3.0.5",
@@ -86,7 +86,6 @@
     "ws": "8.2.3"
   },
   "devDependencies": {
-    "@trufflesuite/typedoc-default-themes": "0.6.1",
     "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
@@ -109,11 +108,9 @@
     "nyc": "15.1.0",
     "solc": "0.7.4",
     "superagent": "6.1.0",
-    "ts-node": "9.1.1",
-    "ts-transformer-inline-file": "0.1.1",
-    "ttypescript": "1.5.12",
-    "typedoc": "0.17.8",
-    "typescript": "4.1.3"
+    "ts-node": "10.4.0",
+    "typedoc": "0.22.10",
+    "typescript": "4.5.2"
   },
   "optionalDependencies": {
     "bufferutil": "4.0.5",

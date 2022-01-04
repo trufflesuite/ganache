@@ -132,7 +132,7 @@ function deriveChild(
           "The tweak was out of range or the resulted private key is invalid"
         );
     }
-  } catch (err) {
+  } catch {
     return deriveChild(index + 1, isHardened, privateKey, publicKey, chainCode);
   }
 }

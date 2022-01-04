@@ -17,7 +17,7 @@ if (typeof (Buffer.prototype as any).latin1Slice === "function") {
  * Trims leading 0s from a buffer and returns a key representing the buffer's
  * trimmed value (`Buffer.from([0, 0, 12, 0])` => `1200`).
  *
- * @param buffer
+ * @param buffer -
  */
 export function bufferToMinHexKey(buffer: Buffer) {
   for (let i = 0, length = buffer.byteLength; i < length; i++) {

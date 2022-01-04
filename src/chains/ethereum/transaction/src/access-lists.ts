@@ -4,6 +4,12 @@ import {
   AccessListItem,
   isAccessList
 } from "@ethereumjs/tx";
+export {
+  AccessList,
+  AccessListBuffer,
+  AccessListItem,
+  isAccessList
+} from "@ethereumjs/tx";
 import { Data } from "@ganache/utils";
 import { Params } from "./params";
 

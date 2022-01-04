@@ -85,10 +85,10 @@ export class BatchManager {
 
   /**
    * traverse up all descendants to fix those relationships
-   * @param block
-   * @param network
-   * @param parent
-   * @param allKnownDescendants
+   * @param block -
+   * @param network -
+   * @param parent -
+   * @param allKnownDescendants -
    */
   fixDescendants(
     block: Ref,
@@ -114,8 +114,8 @@ export class BatchManager {
   }
 
   /**
-   * @param of collect descendants of this block
-   * @param acc an accumulator
+   * @param of - collect descendants of this block
+   * @param acc - an accumulator
    */
   collectDescendants(of: Ref, acc = new Set<string>()) {
     for (const child of of.children) {

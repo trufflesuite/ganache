@@ -1,27 +1,13 @@
-export enum Tag {
-  EARLIEST = "earliest",
-  LATEST = "latest",
-  PENDING = "pending"
-}
-enum _Tag {
-  earliest,
-  latest,
-  pending
+export enum InternalTag {
+  earliest = "earliest",
+  latest = "latest",
+  pending = "pending"
 }
 
+export type Tag = keyof typeof InternalTag;
+
 export namespace Tag {
-  export function normalize(tag: keyof typeof _Tag | Tag): Tag {
-    if (typeof tag === "string") {
-      return (<any>Tag)[tag.toUpperCase()];
-    } else {
-      switch (tag) {
-        case _Tag.earliest:
-          return Tag.EARLIEST;
-        case _Tag.latest:
-          return Tag.LATEST;
-        case _Tag.pending:
-          return Tag.PENDING;
-      }
-    }
-  }
+  export const latest = "latest";
+  export const earliest = "earliest";
+  export const pending = "pending";
 }

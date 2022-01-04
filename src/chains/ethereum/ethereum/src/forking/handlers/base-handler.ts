@@ -75,8 +75,8 @@ export class BaseHandler {
    * Adds Authorization headers from the given options to the provided `headers`
    * object. Overwrites an existing `Authorization` header value.
    *
-   * @param options
-   * @param headers
+   * @param options -
+   * @param headers -
    */
   static setAuthHeaders(
     options: EthereumInternalOptions["fork"],
@@ -101,9 +101,9 @@ export class BaseHandler {
    * (Bearer===Bearer, Basic===Basic) the values are merged. Note: if the
    * `permitMultiAuth` option is `false` Bearer tokens can not be merged.
    *
-   * @param options
-   * @param headers
-   * @param permitMultiAuth
+   * @param options -
+   * @param headers -
+   * @param permitMultiAuth -
    */
   static setUserHeaders(
     options: EthereumInternalOptions["fork"],

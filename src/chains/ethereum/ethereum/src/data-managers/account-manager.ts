@@ -18,7 +18,7 @@ export default class AccountManager {
 
   public async get(
     address: Address,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: Buffer | Tag = Tag.latest
   ): Promise<Account | null> {
     const raw = await this.getRaw(address, blockNumber);
     if (raw == null) return null;
@@ -27,7 +27,7 @@ export default class AccountManager {
 
   public async getRaw(
     address: Address,
-    blockNumber: string | Buffer | Tag = Tag.LATEST
+    blockNumber: string | Buffer | Tag = Tag.latest
   ): Promise<Buffer | null> {
     const { trie, blocks } = this.#blockchain;
 
@@ -43,7 +43,7 @@ export default class AccountManager {
   public async getStorageAt(
     address: Address,
     key: Buffer,
-    blockNumber: Buffer | Tag = Tag.LATEST
+    blockNumber: Buffer | Tag = Tag.latest
   ) {
     const { trie, blocks } = this.#blockchain;
 
@@ -58,7 +58,7 @@ export default class AccountManager {
 
   public async getNonce(
     address: Address,
-    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
     const data = await this.getRaw(address, blockNumber);
 
@@ -70,7 +70,7 @@ export default class AccountManager {
 
   public async getBalance(
     address: Address,
-    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
     const data = await this.getRaw(address, blockNumber);
 
@@ -80,9 +80,25 @@ export default class AccountManager {
     return balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance);
   }
 
+  public async getNonceAndBalance(
+    address: Address,
+    blockNumber: QUANTITY | Buffer | Tag = Tag.latest
+  ) {
+    const data = await this.getRaw(address, blockNumber);
+
+    if (data == null)
+      return { nonce: RPCQUANTITY_ZERO, balance: RPCQUANTITY_ZERO };
+
+    const [nonce, balance] = decode<EthereumRawAccount>(data);
+    return {
+      nonce: nonce.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(nonce),
+      balance: balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance)
+    };
+  }
+
   public async getCode(
     address: Address,
-    blockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Data> {
     const data = await this.getRaw(address, blockNumber);
 

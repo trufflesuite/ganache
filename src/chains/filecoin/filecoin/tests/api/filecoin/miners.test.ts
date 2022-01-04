@@ -74,7 +74,7 @@ describe("api", () => {
           assert.fail(
             `Should not have retrieved a miner info for miner ${otherMiner.value}, but receive: ${minerInfo}`
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }

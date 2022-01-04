@@ -93,8 +93,8 @@ export class ForkTrie extends GanacheTrie {
 
   /**
    * Removes saved metadata from the given block range (inclusive)
-   * @param startBlockNumber (inclusive)
-   * @param endBlockNumber (inclusive)
+   * @param startBlockNumber - (inclusive)
+   * @param endBlockNumber - (inclusive)
    */
   public async revertMetaData(
     startBlockNumber: Quantity,
@@ -119,7 +119,7 @@ export class ForkTrie extends GanacheTrie {
 
   /**
    * Checks if the key was deleted (locally -- not on the fork)
-   * @param key
+   * @param key -
    */
   private async keyWasDeleted(key: Buffer) {
     const selfAddress = this.address === null ? BUFFER_EMPTY : this.address;
@@ -185,9 +185,9 @@ export class ForkTrie extends GanacheTrie {
   /**
    * Gets an account from the fork/fallback.
    *
-   * @param address the address of the account
-   * @param blockNumber the block number at which to query the fork/fallback.
-   * @param stateRoot the state root at the given blockNumber
+   * @param address - the address of the account
+   * @param blockNumber - the block number at which to query the fork/fallback.
+   * @param stateRoot - the state root at the given blockNumber
    */
   private accountFromFallback = async (
     address: Address,

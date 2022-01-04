@@ -10,7 +10,7 @@ const MAX_UINT32 = 0xffffffff;
  * the contents of the newly created Buffer are unknown and may contain
  * sensitive data.
  *
- * @param {number} size count of octets to allocate
+ * @param {number} - size count of octets to allocate
  */
 const allocUnsafe = Buffer.allocUnsafe;
 
@@ -18,7 +18,7 @@ const allocUnsafe = Buffer.allocUnsafe;
  * Converts positive whole numbers that are 32 bits of fewer to a Buffer. Any
  * more bits and who knows what will happen!?!1?!
  *
- * @param num A positive whole number less than 33 bits wide, i.e. a uint32.
+ * @param num - A positive whole number less than 33 bits wide, i.e. a uint32.
  * @returns an optimally sized buffer holding `num` in big-endian order (LSB is
  * the _last_ value in the Buffer)
  */
@@ -84,7 +84,7 @@ function uint32ToBuf(num: number) {
  * `Number.MAX_SAFE_INTEGER` to a Buffer. If your value is less than 2**32 you
  * should use `uint32ToBuf` instead.
  *
- * @param num A positive whole number <= `Number.MAX_SAFE_INTEGER`
+ * @param num - A positive whole number <= `Number.MAX_SAFE_INTEGER`
  * @returns an optimally sized buffer holding `num` in big-endian order (LSB is
  * the _last_ value in the Buffer)
  */
@@ -172,7 +172,7 @@ function uintWideToBuf(num: number) {
  * return very unexpected results. Numbers that are greater than
  * `Number.MAX_SAFE_INTEGER` will return unexpected results.
  *
- * @param num A positive whole number <= `Number.MAX_SAFE_INTEGER`
+ * @param num - A positive whole number <= `Number.MAX_SAFE_INTEGER`
  */
 export function uintToBuffer(num: number) {
   return num > MAX_UINT32 ? uintWideToBuf(num) : uint32ToBuf(num);

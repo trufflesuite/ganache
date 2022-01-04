@@ -29,10 +29,10 @@ const intToBuffer = (value: number) =>
  * //                               ^  ^  ^  ^
  * ```
  *
- * @param source A Buffer to copy from.
- * @param target A Buffer to copy into.
- * @param targetStart The offset within `target` at which to begin writing.
- * @param length The amount of bytes to copy or fill into the `target`.
+ * @param source - A Buffer to copy from.
+ * @param target - A Buffer to copy into.
+ * @param targetStart - The offset within `target` at which to begin writing.
+ * @param length - The amount of bytes to copy or fill into the `target`.
  */
 function copyOrFill(
   source: Buffer,
@@ -64,11 +64,11 @@ export const isValidSigRecovery = (recovery: number) => {
 
 /**
  *
- * @param sharedBuffer A Buffer, where bytes 0 - 97 are to be used by this function
- * @param r
- * @param s
- * @param msgHash
- * @param recovery
+ * @param sharedBuffer - A Buffer, where bytes 0 - 97 are to be used by this function
+ * @param r -
+ * @param s -
+ * @param msgHash -
+ * @param recovery -
  */
 export const ecdsaRecover = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
@@ -128,8 +128,8 @@ function _ecdsaRecover(
 
 /**
  *
- * @param sharedBuffer A Buffer, bytes 0 - 65 will be overwritten
- * @param senderPubKey
+ * @param sharedBuffer - A Buffer, bytes 0 - 65 will be overwritten
+ * @param senderPubKey -
  */
 export const publicKeyConvert = (
   sharedBuffer: Buffer,

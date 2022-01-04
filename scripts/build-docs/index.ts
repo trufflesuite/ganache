@@ -20,13 +20,14 @@ const markedOptions = {
   highlight: highlight().fn
 };
 
+type Child = {
+  children: Child[];
+} & Method;
 const api = JSON.parse(
   readFileSync(join(__dirname, "../../docs/typedoc/api.json"), "utf8")
-);
+) as Child;
 
-const ethereum = api.children[0].children.filter(
-  a => a.name === "EthereumApi"
-)[0];
+const ethereum = api.children[0];
 
 function x(unsafe: string) {
   return unsafe
@@ -43,9 +44,7 @@ function e(s: string) {
 
 const methods = ethereum.children.filter(
   (method: Method) =>
-    method.name !== "constructor" &&
-    method.kindString === "Method" &&
-    method.flags.isExported
+    method.name !== "constructor" && method.kindString === "Method"
 ) as Method[];
 
 type Tag = {
@@ -53,20 +52,39 @@ type Tag = {
   text: string;
 };
 
+type Type = {
+  name: string;
+  type: string;
+  types: Type[];
+  typeArguments: Type[];
+  elements: Type[];
+  elementType: Type;
+  value?: any;
+};
+
+type Comment = {
+  shortText: string;
+  text: string;
+  tags: Tag[];
+  returns: string;
+};
+
 type Method = {
   name: string;
   signatures: {
     name: string;
-    type: any;
-    parameters: any[];
-    comment: {
-      shortText: string;
-      text: string;
-      tags: Tag[];
-      returns: string;
-    };
+    type: Type;
+    parameters: {
+      name: string;
+      type: Type;
+      flags: {
+        isOptional: boolean;
+      };
+      comment?: Comment;
+    }[];
+    comment: Comment;
   }[];
-  type: any;
+  type: Type;
   kindString: string;
   flags: any;
   sources: any[];
@@ -246,7 +264,7 @@ function renderTags(method: Method) {
   return "";
 }
 
-function getTypeAsString(type: any) {
+function getTypeAsString(type: Type): string {
   switch (type.type) {
     case "union":
       return type.types.map(getTypeAsString).join(" | ");
@@ -261,7 +279,7 @@ function getTypeAsString(type: any) {
       return `[${
         type.elements ? type.elements.map(getTypeAsString).join(", ") : ""
       }]`;
-    case "stringLiteral":
+    case "literal":
       // outputs a string literal like `He said, "hello, world"!` as
       // the string `"He said, \"hello, world\"!"`
       return `"${type.value.replace(/"/g, '\\"')}"`;
@@ -276,7 +294,7 @@ function renderReturnType(method: Method) {
   let returnType = signature.type.name;
   if (signature.type.typeArguments.length) {
     let typeArgs = signature.type.typeArguments.map(getTypeAsString);
-    typeArgs = typeArgs.map(arg => {
+    typeArgs = typeArgs.map((arg: string) => {
       if (arg.includes("Quantity")) {
         return arg.replace("Quantity", "QUANTITY");
       } else if (arg.includes("Data")) {
@@ -292,7 +310,7 @@ function renderReturnType(method: Method) {
 
 function renderSignature(method: Method) {
   const signature = method.signatures[0];
-  let params = [];
+  let params: string[] = [];
   if (signature.parameters) {
     params = signature.parameters.map(param => {
       let type = getTypeAsString(param.type);
@@ -312,8 +330,8 @@ function renderSignature(method: Method) {
     .value.replace('<span class="hljs-keyword">function</span>', "");
 }
 
-const methodList = [];
-const methodDocs = [];
+const methodList: string[] = [];
+const methodDocs: string[] = [];
 methods.forEach(method => {
   methodList.push(renderMethodLink(method));
   methodDocs.push(renderMethodDocs(method));

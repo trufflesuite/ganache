@@ -286,7 +286,7 @@ describe("bad values", function () {
     let result;
     try {
       result = RLP.decode(val);
-    } catch (e) {}
+    } catch {}
     assert.strictEqual(result, undefined);
   });
 
@@ -299,7 +299,7 @@ describe("bad values", function () {
     let result;
     try {
       result = RLP.decode(a);
-    } catch (e) {}
+    } catch {}
     assert.strictEqual(result, undefined);
   });
 
@@ -312,7 +312,7 @@ describe("bad values", function () {
     let result;
     try {
       result = RLP.decode(a);
-    } catch (e) {}
+    } catch {}
     assert.strictEqual(result, undefined);
   });
 
@@ -325,7 +325,7 @@ describe("bad values", function () {
     let result;
     try {
       result = RLP.decode(a);
-    } catch (e) {}
+    } catch {}
     assert.strictEqual(result, undefined);
   });
 
@@ -338,7 +338,7 @@ describe("bad values", function () {
     let result;
     try {
       result = RLP.decode(a);
-    } catch (e) {}
+    } catch {}
     assert.strictEqual(result, undefined);
   });
 });

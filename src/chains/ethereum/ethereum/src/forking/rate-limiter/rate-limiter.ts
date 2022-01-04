@@ -29,8 +29,8 @@ type RateLimitError = JsonRpcError & {
  * the signal's `"abort"` event is invoked while sleeping, the the promise
  * rejects with an `AbortError`.
  *
- * @param ms the number of milliseconds to wait before resolving
- * @param abortSignal the
+ * @param ms - the number of milliseconds to wait before resolving
+ * @param abortSignal - the
  * @returns a promise that resolves when `ms`milliseconds have elapsed, or
  * rejects if the `signal` is aborted.
  */
@@ -51,8 +51,8 @@ const sleep = (ms: number, signal: AbortSignal) => {
 };
 
 /**
- * @param timestamp
- * @param duration
+ * @param timestamp -
+ * @param duration -
  * @returns the result of rounding `timestamp` toward zero to a multiple of
  * `duration`.
  */
@@ -61,7 +61,7 @@ function timeTruncate(timestamp: number, duration: number) {
 }
 
 /**
- * @param result
+ * @param result -
  * @returns true if the result is a JSON-RPC LIMIT_EXCEEDED error
  */
 function isExceededLimitError(
@@ -141,8 +141,8 @@ export default class RateLimiter {
   }
 
   /**
-   * @param now
-   * @param currentWindow
+   * @param now -
+   * @param currentWindow -
    * @returns the current request rate and the allowed execution time of the
    * next request
    */
@@ -188,7 +188,7 @@ export default class RateLimiter {
    * Executes the given fn within the confines of the configured rate limit. If
    * the function's return value is a JSON-RPC LIMIT_EXCEEDED error, it will
    * automatically retry with the given `backoff_seconds`
-   * @param fn
+   * @param fn -
    */
   async handle<T>(fn: PromiseFn<T>) {
     // allow scheduling one fn at a time

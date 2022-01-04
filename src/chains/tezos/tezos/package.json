@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-beta.1",
+  "version": "0.1.1-beta.2",
   "description": "Ganache's Tezos client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/tezos/tezos#readme",
@@ -25,7 +25,7 @@
     "directory": "src/chains/tezos/tezos"
   },
   "scripts": {
-    "tsc": "ttsc --build",
+    "tsc": "tsc --build",
     "test": "echo 'no tests'"
   },
   "bugs": {
@@ -42,21 +42,19 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/options": "0.1.1-beta.1",
-    "@ganache/utils": "0.1.1-beta.1",
-    "emittery": "0.7.2"
+    "@ganache/options": "0.1.1-beta.2",
+    "@ganache/utils": "0.1.1-beta.2",
+    "emittery": "0.10.0"
   },
   "devDependencies": {
-    "@trufflesuite/typedoc-default-themes": "0.6.1",
     "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
     "@types/mocha": "9.0.0",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
     "local-web-server": "4.2.1",
     "mocha": "9.1.3",
-    "ts-node": "9.1.1",
-    "ttypescript": "1.5.12",
-    "typedoc": "0.17.8",
-    "typescript": "4.1.3"
+    "ts-node": "10.4.0",
+    "typedoc": "0.22.10",
+    "typescript": "4.5.2"
   }
 }

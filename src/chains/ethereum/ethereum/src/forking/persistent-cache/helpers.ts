@@ -67,7 +67,7 @@ export async function setDbVersion(db: LevelUp, version: Buffer) {
         `Persistent cache version "${version.toString()}"" is not understood.`
       );
     }
-  } catch (e) {
+  } catch (e: any) {
     if (!e.notFound) throw e;
 
     // if we didn't have a `version` key we need to set one
@@ -106,7 +106,7 @@ export async function resolveTargetAndClosestAncestor(
           previousClosestAncestor.key
         )) || previousClosestAncestor;
     }
-  } catch (e) {
+  } catch (e: any) {
     // something bad happened (I/O failure?), bail
     if (!e.notFound) throw e;
 
@@ -124,7 +124,7 @@ export async function resolveTargetAndClosestAncestor(
       closestAncestor = null;
       targetBlock = new Tree(targetHeight, targetHash);
     } else {
-      const earliestBlock = await getBlockByNumber(request, Tag.EARLIEST);
+      const earliestBlock = await getBlockByNumber(request, Tag.earliest);
       if (!earliestBlock) throw new Error('Could not find "earliest" block.');
 
       const { hash: earliestHash, number: earliestNumber } = earliestBlock;
@@ -158,7 +158,7 @@ export async function* findRelated(
   });
 
   for await (const pair of readStream) {
-    const { key, value } = (pair as unknown) as { key: Buffer; value: Buffer };
+    const { key, value } = pair as unknown as { key: Buffer; value: Buffer };
     const node = Tree.deserialize(key, value);
     const { height: candidateHeight } = node.decodeKey();
     const block = await getBlockByNumber(request, candidateHeight);
@@ -173,8 +173,8 @@ export async function* findRelated(
 
 /**
  *
- * @param height Search only before this block height (exclusive)
- * @param upTo Search up to this key (inclusive)
+ * @param height - Search only before this block height (exclusive)
+ * @param upTo - Search up to this key (inclusive)
  * @returns the closest known ancestor, or `upTo` if we know of no ancestors
  */
 export async function findClosestAncestor(
@@ -195,7 +195,7 @@ export async function findClosestAncestor(
 
 /**
  *
- * @param height Search only after this block height (exclusive)
+ * @param height - Search only after this block height (exclusive)
  * @returns the closest known descendants, or null
  */
 export async function* findClosestDescendants(

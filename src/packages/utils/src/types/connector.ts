@@ -15,7 +15,7 @@ export interface Connector<
   ApiImplementation extends Api,
   RequestFormat,
   ResponseFormat
-> extends Emittery.Typed<undefined, "ready" | "close"> {
+> extends Emittery<{ ready: undefined; close: undefined }> {
   provider: Provider<ApiImplementation>;
 
   /**
@@ -27,13 +27,13 @@ export interface Connector<
 
   /**
    * Parses a raw message into something that can be handled by `handle`
-   * @param message
+   * @param message -
    */
   parse(message: Buffer): RequestFormat;
 
   /**
    * Handles a parsed message
-   * @param payload
+   * @param payload -
    */
   handle:
     | ((
@@ -55,8 +55,8 @@ export interface Connector<
 
   /**
    * Formats the response (returned from `handle`)
-   * @param response
-   * @param payload
+   * @param response -
+   * @param payload -
    */
   format(
     result: ResponseFormat,
@@ -66,8 +66,8 @@ export interface Connector<
 
   /**
    * Formats the error response
-   * @param error
-   * @param payload
+   * @param error -
+   * @param payload -
    */
   formatError(error: Error, payload: RequestFormat): RecognizedString;
 

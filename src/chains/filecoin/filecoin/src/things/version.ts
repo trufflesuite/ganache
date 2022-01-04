@@ -4,9 +4,8 @@ import {
   SerializedObject,
   Definitions
 } from "./serializable-object";
-import { $INLINE_JSON } from "ts-transformer-inline-file";
 
-const { version: GanacheFilecoinVersion } = $INLINE_JSON("../../package.json");
+const GanacheFilecoinVersion = process.env.GANACHE_FILECOIN_VERSION || "DEV";
 
 // https://pkg.go.dev/github.com/filecoin-project/lotus@v1.4.0/api#Version
 

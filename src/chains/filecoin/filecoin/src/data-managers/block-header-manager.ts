@@ -17,7 +17,7 @@ export default class BlockHeaderManager extends Manager<
 
   /**
    * Writes the blockHeader object to the underlying database.
-   * @param blockHeader
+   * @param blockHeader -
    */
   async putBlockHeader(blockHeader: BlockHeader) {
     await super.set(blockHeader.cid.value, blockHeader);

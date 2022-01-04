@@ -4,7 +4,7 @@ type Count = {
 };
 
 /**
- * @param timestamp
+ * @param timestamp -
  * @returns the milliseconds that have elapsed since `timestamp`
  */
 function timeSince(timestamp: number) {
