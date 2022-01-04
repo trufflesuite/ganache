@@ -126,14 +126,14 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     super();
     this.#blockchain = blockchain;
     this.#options = options;
-    this.#origins = origins;
+    this.origins = origins;
     this.#priceBump = options.priceBump;
   }
   public readonly executables: Executables = {
     inProgress: new Set(),
     pending: new Map()
   };
-  readonly #origins: Map<string, Heap<TypedTransaction>>;
+  public readonly origins: Map<string, Heap<TypedTransaction>>;
   readonly #accountPromises = new Map<
     string,
     Promise<{ balance: Quantity; nonce: Quantity }>
@@ -227,7 +227,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       );
     }
 
-    const origins = this.#origins;
+    const origins = this.origins;
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
@@ -404,7 +404,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
   }
 
   public clear() {
-    this.#origins.clear();
+    this.origins.clear();
     this.#accountPromises.clear();
     this.executables.pending.clear();
   }
@@ -422,7 +422,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const { pending, inProgress } = this.executables;
 
     // first search pending transactions
-    for (let [_, transactions] of this.#origins) {
+    for (let [_, transactions] of this.origins) {
       if (transactions === undefined) continue;
       const arr = transactions.array;
       for (let i = 0; i < transactions.length; i++) {
