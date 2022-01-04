@@ -5,7 +5,7 @@ import solc, { CompilerInputSourceCode, CompilerInputSourceFile } from "solc";
   // https://github.com/chriseth/browser-solidity/issues/167
   const listeners = process.listeners("unhandledRejection");
   const solcListener = listeners[listeners.length - 1];
-  if (solcListener && solcListener.name === "abort") {
+  if (solcListener && solcListener.name === "" && solcListener.length === 1) {
     process.removeListener("unhandledRejection", solcListener);
   } else {
     throw new Error(
