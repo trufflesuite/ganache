@@ -104,7 +104,7 @@ interface Logger {
 }
 
 /**
- * An `Overrides` may be passed injected as a param into any Api method. These
+ * An `Overrides` may be injected as a param into any Api method. These
  * overrides can be used to alter the behavior of a call to an Api method.
  *
  * For example: HTTP requests to `eth_sendTransaction`,
