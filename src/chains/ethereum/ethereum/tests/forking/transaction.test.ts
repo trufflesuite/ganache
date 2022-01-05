@@ -5,7 +5,7 @@ import request from "superagent";
 
 describe("forking", () => {
   describe("transactions", function () {
-    this.timeout(5000);
+    this.timeout(10000);
 
     const blockNumber = 0xcb6169;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
