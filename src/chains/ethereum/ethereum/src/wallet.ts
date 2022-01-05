@@ -149,6 +149,10 @@ export default class Wallet {
               } else {
                 // this wasn't one of our initial accounts, so make a priv key.
                 privateKey = this.createFakePrivateKey(address);
+
+                // add the account to the list of addresses because we want
+                // `eth_accounts` to return this account.
+                this.addresses.push(address);
               }
               break;
             } else {
@@ -156,7 +160,7 @@ export default class Wallet {
               // don't use parseInt because strings like `"123abc"` parse
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
-              const index = ((arg as any) as number) - 0;
+              const index = (arg as any as number) - 0;
               // if we don't have a valid number, or the number isn't a valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
@@ -591,6 +595,7 @@ export default class Wallet {
     const privateKey = this.createFakePrivateKey(lowerAddress);
     await this.addToKeyFile(address, privateKey, passphrase, true);
     this.knownAccounts.add(lowerAddress);
+    this.addresses.push(lowerAddress);
     return true;
   }
 
@@ -608,6 +613,7 @@ export default class Wallet {
     if (privateKey != null) {
       this.keyFiles.delete(lowerAddress);
       this.knownAccounts.delete(lowerAddress);
+      this.addresses.splice(this.addresses.indexOf(lowerAddress), 1);
       this.lockTimers.delete(lowerAddress);
       this.unlockedAccounts.delete(lowerAddress);
       return true;
