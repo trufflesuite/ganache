@@ -41,7 +41,7 @@ import {
   JsonRpcErrorCode,
   RPCQUANTITY_GWEI
 } from "@ganache/utils";
-import Blockchain from "./blockchain";
+import Blockchain, { Overrides } from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
@@ -53,6 +53,16 @@ import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
+
+function getOverrides(args: ArrayLike<any>): Overrides | null {
+  const length = args.length;
+  const maybeOverrides = args[length - 1];
+  if (maybeOverrides instanceof Overrides) {
+    return maybeOverrides;
+  } else {
+    return null;
+  }
+}
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
@@ -1719,7 +1729,7 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    return blockchain.queueTransaction(tx, privateKey);
+    return blockchain.queueTransaction(tx, privateKey, getOverrides(arguments));
   }
 
   /**
@@ -1782,7 +1792,7 @@ export default class EthereumApi implements Api {
   async eth_sendRawTransaction(transaction: string) {
     const blockchain = this.#blockchain;
     const tx = TransactionFactory.fromString(transaction, blockchain.common);
-    return blockchain.queueTransaction(tx);
+    return blockchain.queueTransaction(tx, undefined, getOverrides(arguments));
   }
 
   /**
@@ -2921,7 +2931,8 @@ export default class EthereumApi implements Api {
       this.#options
     );
 
-    return blockchain.queueTransaction(tx, Data.from(secretKey));
+    const privateKey = Data.from(secretKey);
+    return blockchain.queueTransaction(tx, privateKey, getOverrides(arguments));
   }
 
   /**

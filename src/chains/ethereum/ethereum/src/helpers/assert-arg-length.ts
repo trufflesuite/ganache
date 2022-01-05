@@ -1,7 +1,8 @@
+import { Overrides } from "../blockchain";
+
 type UnknownFn = (this: unknown, ...args: any[]) => unknown;
-type FunctionPropertyDescriptor<T extends UnknownFn> = TypedPropertyDescriptor<
-  T
->;
+type FunctionPropertyDescriptor<T extends UnknownFn> =
+  TypedPropertyDescriptor<T>;
 export function assertArgLength(min: number, max: number = min) {
   return function <O extends Object, T extends UnknownFn>(
     target: O,
@@ -11,7 +12,11 @@ export function assertArgLength(min: number, max: number = min) {
     const original = descriptor.value;
     descriptor.value = function (this: unknown) {
       const length = arguments.length;
-      if (length < min || length > max) {
+      // if the arguments include an Overrides don't count it
+      const includesOverrides =
+        arguments[arguments.length - 1] instanceof Overrides;
+      const argCount = includesOverrides ? length - 1 : length;
+      if (argCount < min || argCount > max) {
         throw new Error(
           `Incorrect number of arguments. '${propertyKey}' requires ${
             min === max

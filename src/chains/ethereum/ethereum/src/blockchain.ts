@@ -103,6 +103,28 @@ interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
 }
 
+/**
+ * An `Overrides` may be passed injected as a param into any Api method. These
+ * overrides can be used to alter the behavior of a call to an Api method.
+ *
+ * For example: HTTP requests to `eth_sendTransaction`,
+ * `eth_sendRawTransaction`, and `personal_sendTransaction` include an override
+ * with `legacyInstamine` set to `true`. This is needed because there is no way
+ * to subscribe to `newHeads` over HTTP connections, so it becomes impossible
+ * for the user to detect when a new block is created (when a transaction is
+ * mined) without polling -- which is slow.
+ */
+export class Overrides {
+  public legacyInstamine: boolean;
+  constructor(
+    { legacyInstamine }: { legacyInstamine: boolean } = {
+      legacyInstamine: false
+    }
+  ) {
+    this.legacyInstamine = legacyInstamine;
+  }
+}
+
 export type BlockchainOptions = {
   db?: string | object;
   db_path?: string;
@@ -339,9 +361,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             options.miner.blockGasLimit,
             initialAccounts
           );
-          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
-            ({ block }) => block
-          );
+          blocks.earliest = blocks.latest =
+            await this.#blockBeingSavedPromise.then(({ block }) => block);
         }
       }
 
@@ -959,7 +980,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   public async queueTransaction(
     transaction: TypedTransaction,
-    secretKey?: Data
+    secretKey?: Data,
+    overrides?: Overrides
   ) {
     // NOTE: this.transactions.add *must* be awaited before returning the
     // `transaction.hash()`, as the transactionPool may change the transaction
@@ -975,7 +997,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
-      if (this.#instamine && this.#options.miner.legacyInstamine) {
+      if (
+        this.#instamine &&
+        (this.#options.miner.legacyInstamine || overrides?.legacyInstamine)
+      ) {
         // in legacyInstamine mode we must wait for the transaction to be saved
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
@@ -1438,17 +1463,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
-    const {
-      gas,
-      structLogs,
-      returnValue,
-      storage
-    } = await this.#traceTransaction(
-      newBlock.transactions[transaction.index.toNumber()],
-      trie,
-      newBlock,
-      options
-    );
+    const { gas, structLogs, returnValue, storage } =
+      await this.#traceTransaction(
+        newBlock.transactions[transaction.index.toNumber()],
+        trie,
+        newBlock,
+        options
+      );
 
     // #4 - Send results back
     return { gas, structLogs, returnValue, storage };

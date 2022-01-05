@@ -23,7 +23,7 @@ import {
 } from "@ganache/ethereum-options";
 import cloneDeep from "lodash.clonedeep";
 import Wallet from "./wallet";
-import Blockchain from "./blockchain";
+import Blockchain, { Overrides } from "./blockchain";
 import { Fork } from "./forking/fork";
 import { ITraceData, Account } from "@ganache/ethereum-utils";
 import { Address } from "@ganache/ethereum-address";
@@ -124,7 +124,8 @@ export default class EthereumProvider
     connect: undefined;
     disconnect: undefined;
   }>
-  implements Provider<EthereumApi> {
+  implements Provider<EthereumApi>
+{
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: Executor;
@@ -302,7 +303,7 @@ export default class EthereumProvider
       // this signature is (not) non-standard and is only a ganache thing!!!
       // we should probably remove it, but I really like it so I haven't yet.
       method = arg1;
-      params = (arg2 as unknown) as OverloadedParameters<EthereumApi[Method]>;
+      params = arg2 as unknown as OverloadedParameters<EthereumApi[Method]>;
       response = this.request({ method, params });
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
@@ -347,11 +348,12 @@ export default class EthereumProvider
    * Promise chain.
    * @param request - the request
    */
-  public async _requestRaw<Method extends RequestMethods>({
-    method,
-    params
-  }: RequestParams<Method>) {
+  public async _requestRaw<Method extends RequestMethods>(
+    { method, params }: RequestParams<Method>,
+    overrides?: Overrides
+  ) {
     this.#logRequest(method, params);
+    if (overrides) (params as any).push(overrides);
 
     const result = await this.#executor.execute(this.#api, method, params);
     const promise = result.value as cleanAndMergePromiseGenerics<

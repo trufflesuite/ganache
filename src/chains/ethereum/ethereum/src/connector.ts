@@ -22,6 +22,7 @@ import {
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 import { bufferify } from "./helpers/bufferify";
+import { Overrides } from "./blockchain";
 
 type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 export type Provider = EthereumProvider;
@@ -36,6 +37,14 @@ function isHttp(
   );
 }
 
+function isSendTransaction(method: string) {
+  return (
+    method === "eth_sendTransaction" ||
+    method === "eth_sendRawTransaction" ||
+    method === "personal_sendTransaction"
+  );
+}
+
 export class Connector<
     R extends JsonRpcRequest<
       EthereumApi,
@@ -43,7 +52,8 @@ export class Connector<
     > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<EthereumApi, R | R[], JsonRpcResponse> {
+  implements IConnector<EthereumApi, R | R[], JsonRpcResponse>
+{
   #provider: EthereumProvider;
 
   static BUFFERIFY_THRESHOLD: number = 100000;
@@ -99,9 +109,22 @@ export class Connector<
           )
         );
       }
+    } else {
+      const params = payload.params as Parameters<EthereumApi[typeof method]>;
+      if (isHttp(connection) && isSendTransaction(method)) {
+        // force legacyInstamine for transactions sent over HTTP
+        // (`ganache.provider` and Websocket transactions aren't affected)
+        return this.#provider._requestRaw(
+          {
+            method,
+            params
+          },
+          new Overrides({ legacyInstamine: true })
+        );
+      } else {
+        return this.#provider._requestRaw({ method, params });
+      }
     }
-    const params = payload.params as Parameters<EthereumApi[typeof method]>;
-    return this.#provider._requestRaw({ method, params });
   };
 
   format(
