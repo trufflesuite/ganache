@@ -2551,11 +2551,16 @@ export default class EthereumApi implements Api {
     // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
     // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
     // the effectiveGasPrice, which is used to calculate tx costs/refunds.
-    const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+    const baseFeePerGasBigInt = parentBlock.header.baseFeePerGas
+      ? parentBlock.header.baseFeePerGas.toBigInt()
+      : undefined;
 
     let gasPrice: Quantity;
     const hasGasPrice = typeof transaction.gasPrice !== "undefined";
-    if (!common.isActivatedEIP(1559)) {
+    // if the original block didn't have a `baseFeePerGas` (baseFeePerGasBigInt
+    // is undefined) then EIP-1559 was not active on that block and we can't use
+    // type 2 fee values (as they rely on the baseFee)
+    if (!common.isActivatedEIP(1559) || baseFeePerGasBigInt === undefined) {
       gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
     } else {
       const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";

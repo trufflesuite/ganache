@@ -125,7 +125,7 @@ describe("api", () => {
 
       assert.strictEqual(lastop.op, "STOP");
       assert.strictEqual(lastop.gasCost, 0);
-      assert.strictEqual(lastop.pc, 202); // This will change if you edit Debug.sol
+      assert.strictEqual(lastop.pc, 166); // This will change if you edit Debug.sol
 
       // This makes sure we get the initial value back (the first transaction to setValue())
       // and not the value of the second setValue() transaction
@@ -176,7 +176,7 @@ describe("api", () => {
       // in the final trace is found through execution. Again,
       // this test is meant as a change detector, not necessarily a
       // failure detector.
-      const expectedObjectsInFinalTrace = 30900;
+      const expectedObjectsInFinalTrace = 126539;
       const timesToRunLoop = 100;
       const from = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
       const privateKey = Data.from(

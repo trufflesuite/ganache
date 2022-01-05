@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.4;
+pragma solidity ^0.8.11;
 
 contract Forking {
   // These top level `value*` variables are useful for testing state over time
@@ -62,7 +62,7 @@ contract Forking {
     selfdestruct(payable(address(msg.sender)));
   }
 
-  function getChainId() public pure returns (uint256 chainId) {
+  function getChainId() public view returns (uint256 chainId) {
     assembly {
       chainId := chainid()
     }
