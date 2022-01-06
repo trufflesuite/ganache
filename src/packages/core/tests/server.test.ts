@@ -953,7 +953,9 @@ describe("server", () => {
               return;
             }
             // the above message should never be received
-            reject("Got a subscription message when we shouldn't have!");
+            reject(
+              new Error("Got a subscription message when we shouldn't have!")
+            );
           });
 
           // make sure we leave enough time for things to crash if it does end

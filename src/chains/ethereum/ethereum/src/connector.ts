@@ -109,22 +109,20 @@ export class Connector<
           )
         );
       }
-    } else {
+    } else if (isHttp(connection) && isSendTransaction(method)) {
       const params = payload.params as Parameters<EthereumApi[typeof method]>;
-      if (isHttp(connection) && isSendTransaction(method)) {
-        // force legacyInstamine for transactions sent over HTTP
-        // (`ganache.provider` and Websocket transactions aren't affected)
-        return this.#provider._requestRaw(
-          {
-            method,
-            params
-          },
-          new Overrides({ legacyInstamine: true })
-        );
-      } else {
-        return this.#provider._requestRaw({ method, params });
-      }
+      // force legacyInstamine for transactions sent over HTTP
+      // (`ganache.provider` and Websocket transactions aren't affected)
+      return this.#provider._requestRaw(
+        {
+          method,
+          params
+        },
+        new Overrides({ legacyInstamine: true })
+      );
     }
+    const params = payload.params as Parameters<EthereumApi[typeof method]>;
+    return this.#provider._requestRaw({ method, params });
   };
 
   format(
