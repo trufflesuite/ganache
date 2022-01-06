@@ -106,6 +106,6 @@ describe("forking", () => {
           endOnFailure: true
         }
       );
-    }).timeout(60000);
+    }).timeout(120000);
   });
 });
