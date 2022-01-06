@@ -999,7 +999,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     } else {
       if (
         this.#instamine &&
-        (this.#options.miner.legacyInstamine || overrides?.legacyInstamine)
+        (this.#options.miner.legacyInstamine ||
+          (overrides && overrides.legacyInstamine))
       ) {
         // in legacyInstamine mode we must wait for the transaction to be saved
         // before we can return the hash

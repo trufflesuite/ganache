@@ -14,7 +14,7 @@ describe("connector", () => {
       requestCoordinator.resume();
     });
     afterEach(async () => {
-      await connector?.close();
+      connector && (await connector.close());
     });
     const primitives = {
       string: "string",
@@ -107,7 +107,7 @@ describe("connector", () => {
       requestCoordinator.resume();
     });
     afterEach(async () => {
-      await connector?.close();
+      connector && (await connector.close());
     });
 
     const connectionTypes = [
