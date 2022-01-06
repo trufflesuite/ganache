@@ -88,7 +88,7 @@
     "@trufflesuite/bigint-buffer": "1.1.9",
     "emittery": "0.10.0",
     "keccak": "3.0.1",
-    "leveldown": "5.6.0",
+    "leveldown": "6.1.0",
     "secp256k1": "4.0.2"
   },
   "optionalDependencies": {
