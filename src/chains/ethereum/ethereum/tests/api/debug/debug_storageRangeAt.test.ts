@@ -304,9 +304,7 @@ describe("api", () => {
             ])
           ]);
 
-          console.log("miner_start");
           await provider.send("miner_start");
-          console.log("wait for message");
           await provider.once("message");
 
           const [txReceipt1, txReceipt2, txReceipt3] = await Promise.all([

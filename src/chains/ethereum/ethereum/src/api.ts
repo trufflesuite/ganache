@@ -614,7 +614,6 @@ export default class EthereumApi implements Api {
     } else {
       this.#blockchain.resume(threads);
     }
-    console.log("return true");
     return true;
   }
 
