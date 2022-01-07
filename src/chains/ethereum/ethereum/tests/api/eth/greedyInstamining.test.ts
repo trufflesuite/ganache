@@ -3,10 +3,10 @@ import assert from "assert";
 
 describe("api", () => {
   describe("eth", () => {
-    describe("legacy", () => {
-      it("when not in legacy mode, does not mine before returning the tx hash", async () => {
+    describe("greedy", () => {
+      it("when in strict instamine mode, does not mine before returning the tx hash", async () => {
         const provider = await getProvider({
-          miner: { legacyInstamine: false }
+          miner: { instamine: "strict" }
         });
         const accounts = await provider.send("eth_accounts");
 
@@ -23,9 +23,9 @@ describe("api", () => {
         assert.strictEqual(receipt, null);
       });
 
-      it("when in legacy mode, mines before returns in the tx hash", async () => {
+      it("when in greedy instamine mode, mines before returns in the tx hash", async () => {
         const provider = await getProvider({
-          miner: { legacyInstamine: true }
+          miner: { instamine: "greedy" }
         });
         const accounts = await provider.send("eth_accounts");
 
@@ -44,7 +44,7 @@ describe("api", () => {
 
       it("handles transaction balance errors, callback style", done => {
         getProvider({
-          miner: { legacyInstamine: true },
+          miner: { instamine: "greedy" },
           chain: { vmErrorsOnRPCResponse: true }
         }).then(async provider => {
           const [from, to] = await provider.send("eth_accounts");

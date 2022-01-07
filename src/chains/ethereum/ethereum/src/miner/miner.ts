@@ -223,7 +223,6 @@ export default class Miner extends Emittery<{
 
     let keepMining = true;
     const priced = this.#priced;
-    const legacyInstamine = this.#options.legacyInstamine;
     const storageKeys: StorageKeys = new Map();
     let blockTransactions: TypedTransaction[];
     do {
@@ -424,13 +423,7 @@ export default class Miner extends Emittery<{
         storageKeys
       );
       block = finalizedBlockData.block;
-      const emitBlockProm = this.emit("block", finalizedBlockData);
-      if (legacyInstamine === true) {
-        // we need to wait for each block to be done mining when in legacy
-        // mode because things like `mine` and `miner_start` must wait for the
-        // first mine operation to be fully complete.
-        await emitBlockProm;
-      }
+      this.emit("block", finalizedBlockData);
 
       if (onlyOneBlock) {
         this.#currentlyExecutingPrice = 0n;

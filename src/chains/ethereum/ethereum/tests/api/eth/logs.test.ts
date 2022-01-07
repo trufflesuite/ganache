@@ -179,9 +179,10 @@ describe("api", () => {
             }
           ]); // 0x3
           await provider.once("message");
-          const {
-            blockNumber
-          } = await provider.send("eth_getTransactionReceipt", [txHash]);
+          const { blockNumber } = await provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
 
           async function testGetLogs(
             fromBlock: string,
@@ -296,18 +297,21 @@ describe("api", () => {
           }
 
           // tests blockHash
-          let {
-            hash: genesisBlockHash
-          } = await provider.send("eth_getBlockByNumber", [genesisBlockNumber]);
+          let { hash: genesisBlockHash } = await provider.send(
+            "eth_getBlockByNumber",
+            [genesisBlockNumber]
+          );
           await testGetLogs(blockHash, 4);
           await testGetLogs(genesisBlockHash, 0);
-          let {
-            hash: deployBlockHash
-          } = await provider.send("eth_getBlockByNumber", [deployBlockNumber]);
+          let { hash: deployBlockHash } = await provider.send(
+            "eth_getBlockByNumber",
+            [deployBlockNumber]
+          );
           await testGetLogs(deployBlockHash, 1, null);
-          let {
-            hash: emptyBlockHash
-          } = await provider.send("eth_getBlockByNumber", [emptyBlockNumber]);
+          let { hash: emptyBlockHash } = await provider.send(
+            "eth_getBlockByNumber",
+            [emptyBlockNumber]
+          );
           await testGetLogs(emptyBlockHash, 0);
           const invalidBlockHash = "0x123456789";
           await testGetLogs(invalidBlockHash, 0);

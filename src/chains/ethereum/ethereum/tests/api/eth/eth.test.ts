@@ -1,7 +1,7 @@
 import { RPCQUANTITY_GWEI } from "@ganache/utils";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
-import getProvider from "../../helpers/getProvider";
+import getProvider, { mnemonic } from "../../helpers/getProvider";
 
 function hex(length: number) {
   return `0x${Buffer.allocUnsafe(length).fill(0).toString("hex")}`;
@@ -13,7 +13,10 @@ describe("api", () => {
     let accounts: string[];
 
     beforeEach(async () => {
-      provider = await getProvider();
+      provider = await getProvider({
+        miner: { instamine: "strict" },
+        wallet: { mnemonic }
+      });
 
       accounts = await provider.send("eth_accounts");
     });

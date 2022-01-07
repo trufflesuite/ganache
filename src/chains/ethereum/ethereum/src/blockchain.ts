@@ -115,7 +115,7 @@ export type BlockchainOptions = {
   coinbase: Account;
   chainId: number;
   common: Common;
-  legacyInstamine: boolean;
+  instamine: "greedy" | "strict";
   vmErrorsOnRPCResponse: boolean;
   logger: Logger;
 };
@@ -218,28 +218,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const instamine = (this.#instamine =
       !options.miner.blockTime || options.miner.blockTime <= 0);
-    const legacyInstamine = options.miner.legacyInstamine;
 
     {
-      // warnings and errors
-      if (legacyInstamine) {
+      // warnings
+      if (
+        options.chain.vmErrorsOnRPCResponse &&
+        options.miner.instamine === "greedy"
+      ) {
         console.info(
-          "Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future."
+          "Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero"
         );
-      }
-
-      if (!instamine) {
-        if (legacyInstamine) {
-          console.info(
-            "Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero"
-          );
-        }
-
-        if (options.chain.vmErrorsOnRPCResponse) {
-          console.info(
-            "Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero"
-          );
-        }
       }
     }
 
@@ -339,9 +327,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             options.miner.blockGasLimit,
             initialAccounts
           );
-          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
-            ({ block }) => block
-          );
+          blocks.earliest = blocks.latest =
+            await this.#blockBeingSavedPromise.then(({ block }) => block);
         }
       }
 
@@ -476,6 +463,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     });
   };
 
+  /**
+   * Emit the block now that everything has been fully saved to the database
+   */
   #emitNewBlock = async (blockInfo: {
     block: Block;
     blockLogs: BlockLogs;
@@ -484,15 +474,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const options = this.#options;
     const { block, blockLogs, transactions } = blockInfo;
 
-    // emit the block once everything has been fully saved to the database
     transactions.forEach(transaction => {
       transaction.finalize("confirmed", transaction.execException);
     });
 
-    if (this.#instamine && options.miner.legacyInstamine) {
-      // in legacy instamine mode we must delay the broadcast of new blocks
+    if (this.#instamine && options.miner.instamine === "greedy") {
+      // in greedy instamine mode we must delay the broadcast of new blocks
       await new Promise(resolve => {
-        process.nextTick(async () => {
+        // we delay emitting blocks and blockLogs because we need to allow for:
+        // ```
+        //  provider.request({"method": "eth_sendTransaction"...)
+        //  provider.once("message")
+        // ```
+        // If we don't have this delay here the messages will be sent before
+        // the call has a chance to listen to the event.
+        setImmediate(async () => {
           // emit block logs first so filters can pick them up before
           // block listeners are notified
           await Promise.all([
@@ -975,11 +971,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
-      if (this.#instamine && this.#options.miner.legacyInstamine) {
-        // in legacyInstamine mode we must wait for the transaction to be saved
+      if (this.#instamine && this.#options.miner.instamine === "greedy") {
+        // in greedy instamine mode we must wait for the transaction to be saved
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
-        // in legacyInstamine mode we must throw on all rejected transaction
+        // in greedy instamine mode we must throw on all rejected transaction
         // errors. We must also throw on `confirmed` transactions when
         // vmErrorsOnRPCResponse is enabled.
         if (
@@ -1438,17 +1434,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
-    const {
-      gas,
-      structLogs,
-      returnValue,
-      storage
-    } = await this.#traceTransaction(
-      newBlock.transactions[transaction.index.toNumber()],
-      trie,
-      newBlock,
-      options
-    );
+    const { gas, structLogs, returnValue, storage } =
+      await this.#traceTransaction(
+        newBlock.transactions[transaction.index.toNumber()],
+        trie,
+        newBlock,
+        options
+      );
 
     // #4 - Send results back
     return { gas, structLogs, returnValue, storage };

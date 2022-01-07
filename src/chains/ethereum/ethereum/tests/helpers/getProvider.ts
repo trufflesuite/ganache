@@ -2,7 +2,7 @@ import { RequestCoordinator, Executor } from "@ganache/utils";
 import EthereumProvider from "../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
-const mnemonic =
+export const mnemonic =
   "into trim cross then helmet popular suit hammer cart shrug oval student";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -12,7 +12,9 @@ const getProvider = async (
     wallet: { mnemonic: mnemonic }
   }
 ) => {
+  options.wallet = options.wallet || {};
   options.chain = options.chain || {};
+  options.miner = options.miner || {};
   options.logging = options.logging || { logger: { log: () => {} } };
 
   // set `asyncRequestProcessing` to `true` by default
@@ -22,7 +24,11 @@ const getProvider = async (
 
   // don't write to stdout in tests
   if (!options.logging.logger) {
+    throw new Error("doesn't ever get here");
     options.logging.logger = { log: () => {} };
+  }
+  if (!options.miner.instamine) {
+    options.miner.instamine = "greedy";
   }
 
   const requestCoordinator = new RequestCoordinator(doAsync ? 0 : 1);

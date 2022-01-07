@@ -114,23 +114,23 @@ export type MinerConfig = {
     };
 
     /**
-     * Enables legacy instamine mode, where transactions are fully mined before
-     * the transaction's hash is returned to the caller. If `legacyInstamine` is
-     * `true`, `blockTime` must be `0` (default).
+     * Set the instamine mode to either "greedy" (default) or "strict".
+     *  * In "greedy" mode a transaction will be included in a block before the
+     * its hash is returned to the caller.
+     *  * In "strict" mode a transaction's hash is returned to the caller before
+     * the transaction is included in a block.
+     * `instamine` has no effect if `blockTime` is *not* `0` (the default).
      *
-     * @defaultValue false
-     * @deprecated Will be removed in v4
+     * @defaultValue greedy
      */
-    legacyInstamine: {
-      type: boolean;
+    instamine: {
+      type: "greedy" | "strict";
       hasDefault: true;
-      // legacyInstamine is _not_ a legacy option, but it is used as one so users
-      // can use it just as they would other legacy options (without a namespace)
+      // `instamine` is _not_ a legacy option, but it is used as one so users
+      // can use it just as they would other legacy options, i.e., without a
+      //  namespace
       legacy: {
-        /**
-         * @deprecated Use miner.legacyInstamine instead. Will be removed in v4.
-         */
-        legacyInstamine: boolean;
+        instamine: "greedy" | "strict";
       };
     };
 
@@ -246,13 +246,17 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliType: "string",
     cliCoerce: toBigIntOrString
   },
-  legacyInstamine: {
+  instamine: {
     normalize,
-    cliDescription:
-      "Enables legacy instamine mode, where transactions are fully mined before the transaction's hash is returned to the caller.",
-    default: () => false,
-    legacyName: "legacyInstamine",
-    cliType: "boolean"
+    cliDescription: `Set the instamine mode to either "greedy" (default) or "strict".
+ * In "greedy" mode a transaction will be included in a block before the its hash is returned to the caller.
+ * In "strict" mode a transaction's hash is returned to the caller before the transaction is included in a block.
+\`instamine\` has no effect if \`blockTime\` is *not* \`0\` (the default).`,
+    default: () => "greedy",
+    legacyName: "instamine",
+    cliAliases: ["i", "instamine"],
+    cliType: "string",
+    cliChoices: ["greedy", "strict"]
   },
   coinbase: {
     normalize: rawType => {

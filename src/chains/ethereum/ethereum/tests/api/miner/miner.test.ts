@@ -70,7 +70,7 @@ describe("api", () => {
 
       it("should not throw an error when miner was already started when calling miner_start", async () => {
         const provider = await getProvider({
-          miner: { blockTime: 1, legacyInstamine: true }
+          miner: { blockTime: 1, instamine: "greedy" }
         });
         await assert.doesNotReject(provider.send("miner_start"));
         await assert.doesNotReject(provider.send("miner_start"));
@@ -100,10 +100,10 @@ describe("api", () => {
           { from: accounts[0], to: accounts[0] }
         ]);
         await provider.once("message");
-        const {
-          status,
-          blockNumber
-        } = await provider.send("eth_getTransactionReceipt", [txHash]);
+        const { status, blockNumber } = await provider.send(
+          "eth_getTransactionReceipt",
+          [txHash]
+        );
         assert.strictEqual(status, "0x1");
         const { miner } = await provider.send("eth_getBlockByNumber", [
           blockNumber

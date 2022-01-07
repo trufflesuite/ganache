@@ -1,4 +1,4 @@
-import getProvider from "../../helpers/getProvider";
+import getProvider, { mnemonic } from "../../helpers/getProvider";
 import assert from "assert";
 import EthereumProvider from "../../../src/provider";
 
@@ -21,7 +21,10 @@ describe("api", () => {
             }
           }
         };
-        provider = await getProvider({ logging: { logger } });
+        provider = await getProvider({
+          logging: { logger },
+          wallet: { mnemonic }
+        });
         [from] = await provider.send("eth_accounts");
       });
 
@@ -61,16 +64,23 @@ describe("api", () => {
         );
       });
 
-      describe("legacy instamine detection and notice", () => {
+      describe("strict instamine detection and notice", () => {
         it("logs a warning if the transaction hasn't been mined yet", async () => {
-          const hash = await provider.send("eth_sendTransaction", [
-            { from, to: from }
-          ]);
+          const strictInstamineProvider = await getProvider({
+            logging: { logger },
+            miner: { instamine: "strict" },
+            wallet: { mnemonic }
+          });
+          const hash = await strictInstamineProvider.send(
+            "eth_sendTransaction",
+            [{ from, to: from }]
+          );
 
           // do not wait for the tx to be mined which will create a warning
-          const result = await provider.send("eth_getTransactionReceipt", [
-            hash
-          ]);
+          const result = await strictInstamineProvider.send(
+            "eth_getTransactionReceipt",
+            [hash]
+          );
 
           assert.strictEqual(result, null);
           assert(
@@ -125,26 +135,26 @@ describe("api", () => {
           );
         });
 
-        it("doesn't log if legacyInstamine is enabled", async () => {
-          const legacyInstamineProvider = await getProvider({
+        it("doesn't log if instamine is set to 'greedy' (default)", async () => {
+          const greedyInstamineProvider = await getProvider({
             logging: { logger },
-            miner: { legacyInstamine: true }
+            miner: { instamine: "greedy" }
           });
 
-          const [from] = await legacyInstamineProvider.send("eth_accounts");
+          const [from] = await greedyInstamineProvider.send("eth_accounts");
 
-          const hash = await legacyInstamineProvider.send(
+          const hash = await greedyInstamineProvider.send(
             "eth_sendTransaction",
             [{ from, to: from }]
           );
 
-          const result = await legacyInstamineProvider.send(
+          const result = await greedyInstamineProvider.send(
             "eth_getTransactionReceipt",
             [hash]
           );
 
           // the tx is mined before sending the tx hash back to the user
-          // if legacyInstamine is enabled - so they will get a receipt
+          // if greedyInstamine is enabled - so they will get a receipt
           assert(result);
           assert(
             !logger.loggedStuff.includes(

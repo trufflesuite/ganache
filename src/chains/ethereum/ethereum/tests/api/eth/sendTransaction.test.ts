@@ -51,7 +51,7 @@ describe("api", () => {
         it("returns a VM error when the account has insufficient funds to transfer the value at runtime", async () => {
           const approximateGasCost = 99967968750001;
           const provider = await getProvider({
-            miner: { legacyInstamine: true },
+            miner: { instamine: "greedy" },
             chain: { vmErrorsOnRPCResponse: true }
           });
           const accounts = await provider.send("eth_accounts");
