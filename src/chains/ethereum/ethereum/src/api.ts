@@ -313,6 +313,7 @@ export default class EthereumApi implements Api {
       if (blocks == null) {
         blocks = 1;
       }
+      const strictMiner = options.miner.instamine === "strict";
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
       // Developers like to move the blockchain forward by thousands of blocks
@@ -324,14 +325,13 @@ export default class EthereumApi implements Api {
           true
         );
 
-        if (options.miner.instamine === "strict") {
+        if (strictMiner) {
           // in strict mode we have to wait until the blocks are fully saved
           // before mining the next ones, in greedy mode they've already been
           // saved
           await new Promise(resolve => {
-            const off = blockchain.on("block", block => {
-              console.log(block.header.number);
-              if (block.header.number.toBuffer().equals(blockNumber)) {
+            const off = blockchain.on("block", ({ header: { number } }) => {
+              if (number.toBuffer().equals(blockNumber)) {
                 off();
                 resolve(void 0);
               }
