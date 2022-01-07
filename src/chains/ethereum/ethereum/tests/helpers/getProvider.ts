@@ -21,11 +21,6 @@ const getProvider = async (
   doAsync = options.chain.asyncRequestProcessing =
     doAsync != null ? doAsync : true;
 
-  // don't write to stdout in tests
-  if (!options.logging.logger) {
-    throw new Error("doesn't ever get here");
-    options.logging.logger = { log: () => {} };
-  }
   if (!options.miner.instamine) {
     options.miner.instamine = "greedy";
   }
