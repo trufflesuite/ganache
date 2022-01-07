@@ -20,7 +20,7 @@ export const updateRemotesAccountsBalances = async (
   const subscription = await remoteProvider.send("eth_subscribe", ["newHeads"]);
   // send some ether from each account to another account
   await remoteProvider.send("miner_stop", []);
-  const rs = await Promise.all(
+  await Promise.all(
     remoteAccounts.map((account, i) =>
       remoteProvider.send("eth_sendTransaction", [
         {
