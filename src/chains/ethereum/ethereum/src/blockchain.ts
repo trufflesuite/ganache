@@ -483,8 +483,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await new Promise(resolve => {
         // we delay emitting blocks and blockLogs because we need to allow for:
         // ```
-        //  provider.request({"method": "eth_sendTransaction"...)
-        //  provider.once("message")
+        //  await provider.request({"method": "eth_sendTransaction"...)
+        //  await provider.once("message") // <- should work
         // ```
         // If we don't have this delay here the messages will be sent before
         // the call has a chance to listen to the event.
