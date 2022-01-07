@@ -12,7 +12,6 @@ const getProvider = async (
     wallet: { mnemonic: mnemonic }
   }
 ) => {
-  options.wallet = options.wallet || {};
   options.chain = options.chain || {};
   options.miner = options.miner || {};
   options.logging = options.logging || { logger: { log: () => {} } };
