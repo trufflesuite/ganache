@@ -114,23 +114,23 @@ export type MinerConfig = {
     };
 
     /**
-     * Set the instamine mode to either "greedy" (default) or "strict".
-     *  * In "greedy" mode a transaction will be included in a block before the
+     * Set the instamine mode to either "eager" (default) or "strict".
+     *  * In "eager" mode a transaction will be included in a block before the
      * its hash is returned to the caller.
      *  * In "strict" mode a transaction's hash is returned to the caller before
      * the transaction is included in a block.
      * `instamine` has no effect if `blockTime` is *not* `0` (the default).
      *
-     * @defaultValue greedy
+     * @defaultValue eager
      */
     instamine: {
-      type: "greedy" | "strict";
+      type: "eager" | "strict";
       hasDefault: true;
       // `instamine` is _not_ a legacy option, but it is used as one so users
       // can use it just as they would other legacy options, i.e., without a
       //  namespace
       legacy: {
-        instamine: "greedy" | "strict";
+        instamine: "eager" | "strict";
       };
     };
 
@@ -248,15 +248,15 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   instamine: {
     normalize,
-    cliDescription: `Set the instamine mode to either "greedy" (default) or "strict".
- * In "greedy" mode a transaction will be included in a block before the its hash is returned to the caller.
+    cliDescription: `Set the instamine mode to either "eager" (default) or "strict".
+ * In "eager" mode a transaction will be included in a block before the its hash is returned to the caller.
  * In "strict" mode a transaction's hash is returned to the caller before the transaction is included in a block.
 \`instamine\` has no effect if \`blockTime\` is *not* \`0\` (the default).`,
-    default: () => "greedy",
+    default: () => "eager",
     legacyName: "instamine",
     cliAliases: ["i", "instamine"],
     cliType: "string",
-    cliChoices: ["greedy", "strict"]
+    cliChoices: ["eager", "strict"]
   },
   coinbase: {
     normalize: rawType => {

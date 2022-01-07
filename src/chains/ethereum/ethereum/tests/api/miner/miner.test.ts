@@ -70,7 +70,7 @@ describe("api", () => {
 
       it("should not throw an error when miner was already started when calling miner_start", async () => {
         const provider = await getProvider({
-          miner: { blockTime: 1, instamine: "greedy" }
+          miner: { blockTime: 1, instamine: "eager" }
         });
         await assert.doesNotReject(provider.send("miner_start"));
         await assert.doesNotReject(provider.send("miner_start"));

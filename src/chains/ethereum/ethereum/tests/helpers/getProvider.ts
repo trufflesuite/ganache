@@ -22,7 +22,7 @@ const getProvider = async (
     doAsync != null ? doAsync : true;
 
   if (!options.miner.instamine) {
-    options.miner.instamine = "greedy";
+    options.miner.instamine = "eager";
   }
 
   const requestCoordinator = new RequestCoordinator(doAsync ? 0 : 1);

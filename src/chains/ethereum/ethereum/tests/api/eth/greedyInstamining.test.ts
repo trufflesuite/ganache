@@ -3,7 +3,7 @@ import assert from "assert";
 
 describe("api", () => {
   describe("eth", () => {
-    describe("greedy", () => {
+    describe("eager", () => {
       it("when in strict instamine mode, does not mine before returning the tx hash", async () => {
         const provider = await getProvider({
           miner: { instamine: "strict" }
@@ -23,9 +23,9 @@ describe("api", () => {
         assert.strictEqual(receipt, null);
       });
 
-      it("when in greedy instamine mode, mines before returns in the tx hash", async () => {
+      it("when in eager instamine mode, mines before returns in the tx hash", async () => {
         const provider = await getProvider({
-          miner: { instamine: "greedy" }
+          miner: { instamine: "eager" }
         });
         const accounts = await provider.send("eth_accounts");
 
@@ -44,7 +44,7 @@ describe("api", () => {
 
       it("handles transaction balance errors, callback style", done => {
         getProvider({
-          miner: { instamine: "greedy" },
+          miner: { instamine: "eager" },
           chain: { vmErrorsOnRPCResponse: true }
         }).then(async provider => {
           const [from, to] = await provider.send("eth_accounts");

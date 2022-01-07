@@ -327,7 +327,7 @@ export default class EthereumApi implements Api {
 
         if (strictMiner) {
           // in strict mode we have to wait until the blocks are fully saved
-          // before mining the next ones, in greedy mode they've already been
+          // before mining the next ones, in eager mode they've already been
           // saved
           await new Promise(resolve => {
             const off = blockchain.on("block", ({ header: { number } }) => {
@@ -601,7 +601,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
-    if (this.#options.miner.instamine === "greedy") {
+    if (this.#options.miner.instamine === "eager") {
       const resumption = await this.#blockchain.resume(threads);
       // resumption can be undefined if the blockchain isn't currently paused
       if (

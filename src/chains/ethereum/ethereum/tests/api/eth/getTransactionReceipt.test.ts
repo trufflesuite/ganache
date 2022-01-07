@@ -135,26 +135,26 @@ describe("api", () => {
           );
         });
 
-        it("doesn't log if instamine is set to 'greedy' (default)", async () => {
-          const greedyInstamineProvider = await getProvider({
+        it("doesn't log if instamine is set to 'eager' (default)", async () => {
+          const eagerInstamineProvider = await getProvider({
             logging: { logger },
-            miner: { instamine: "greedy" }
+            miner: { instamine: "eager" }
           });
 
-          const [from] = await greedyInstamineProvider.send("eth_accounts");
+          const [from] = await eagerInstamineProvider.send("eth_accounts");
 
-          const hash = await greedyInstamineProvider.send(
+          const hash = await eagerInstamineProvider.send(
             "eth_sendTransaction",
             [{ from, to: from }]
           );
 
-          const result = await greedyInstamineProvider.send(
+          const result = await eagerInstamineProvider.send(
             "eth_getTransactionReceipt",
             [hash]
           );
 
           // the tx is mined before sending the tx hash back to the user
-          // if greedyInstamine is enabled - so they will get a receipt
+          // if eagerInstamine is enabled - so they will get a receipt
           assert(result);
           assert(
             !logger.loggedStuff.includes(

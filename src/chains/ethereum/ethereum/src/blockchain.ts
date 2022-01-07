@@ -115,7 +115,7 @@ export type BlockchainOptions = {
   coinbase: Account;
   chainId: number;
   common: Common;
-  instamine: "greedy" | "strict";
+  instamine: "eager" | "strict";
   vmErrorsOnRPCResponse: boolean;
   logger: Logger;
 };
@@ -223,7 +223,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // warnings
       if (
         options.chain.vmErrorsOnRPCResponse &&
-        options.miner.instamine === "greedy"
+        options.miner.instamine === "eager"
       ) {
         console.info(
           "Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero"
@@ -478,8 +478,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       transaction.finalize("confirmed", transaction.execException);
     });
 
-    if (this.#instamine && options.miner.instamine === "greedy") {
-      // in greedy instamine mode we must delay the broadcast of new blocks
+    if (this.#instamine && options.miner.instamine === "eager") {
+      // in eager instamine mode we must delay the broadcast of new blocks
       await new Promise(resolve => {
         // we delay emitting blocks and blockLogs because we need to allow for:
         // ```
@@ -971,11 +971,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
-      if (this.#instamine && this.#options.miner.instamine === "greedy") {
-        // in greedy instamine mode we must wait for the transaction to be saved
+      if (this.#instamine && this.#options.miner.instamine === "eager") {
+        // in eager instamine mode we must wait for the transaction to be saved
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
-        // in greedy instamine mode we must throw on all rejected transaction
+        // in eager instamine mode we must throw on all rejected transaction
         // errors. We must also throw on `confirmed` transactions when
         // vmErrorsOnRPCResponse is enabled.
         if (
