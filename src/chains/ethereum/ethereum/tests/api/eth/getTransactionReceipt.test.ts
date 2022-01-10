@@ -154,7 +154,7 @@ describe("api", () => {
           );
 
           // the tx is mined before sending the tx hash back to the user
-          // if eagerInstamine is enabled - so they will get a receipt
+          // if instamine is set to 'eager' - so they will get a receipt
           assert(result);
           assert(
             !logger.loggedStuff.includes(
