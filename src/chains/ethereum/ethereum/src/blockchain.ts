@@ -215,24 +215,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     this.#options = options;
     this.fallback = fallback;
-
-    const instamine = (this.#instamine =
-      !options.miner.blockTime || options.miner.blockTime <= 0);
-
-    {
-      // warnings
-      if (
-        options.chain.vmErrorsOnRPCResponse &&
-        options.miner.instamine === "eager"
-      ) {
-        console.info(
-          "Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero"
-        );
-      }
-    }
-
     this.coinbase = coinbase;
-
     this.#database = new Database(options.database, this);
   }
 
