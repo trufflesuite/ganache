@@ -1654,7 +1654,7 @@ export default class EthereumApi implements Api {
     }
 
     // if we are performing "strict" instamining, then check to see if the
-    // transaction is pending so as to warn about the v7 breaking change
+    // transaction is pending so as to warn about the v7 instamine changes
     const options = this.#options;
     if (
       options.miner.blockTime <= 0 &&
