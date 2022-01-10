@@ -115,13 +115,13 @@ export type MinerConfig = {
 
     /**
      * Set the instamine mode to either "eager" (default) or "strict".
-     *  * In "eager" mode a transaction will be included in a block before the
+     *  * In "eager" mode a transaction will be included in a block before
      * its hash is returned to the caller.
      *  * In "strict" mode a transaction's hash is returned to the caller before
      * the transaction is included in a block.
      * `instamine` has no effect if `blockTime` is *not* `0` (the default).
      *
-     * @defaultValue eager
+     * @defaultValue "eager"
      */
     instamine: {
       type: "eager" | "strict";
@@ -249,7 +249,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   instamine: {
     normalize,
     cliDescription: `Set the instamine mode to either "eager" (default) or "strict".
- * In "eager" mode a transaction will be included in a block before the its hash is returned to the caller.
+ * In "eager" mode a transaction will be included in a block before its hash is returned to the caller.
  * In "strict" mode a transaction's hash is returned to the caller before the transaction is included in a block.
 \`instamine\` has no effect if \`blockTime\` is *not* \`0\` (the default).`,
     default: () => "eager",
