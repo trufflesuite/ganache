@@ -305,13 +305,15 @@ export default class EthereumApi implements Api {
     arg?: number | { timestamp?: number; blocks?: number }
   ): Promise<"0x0"> {
     const blockchain = this.#blockchain;
-    const vmErrorsOnRPCResponse = this.#options.chain.vmErrorsOnRPCResponse;
+    const options = this.#options;
+    const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
       let { blocks, timestamp } = arg;
       if (blocks == null) {
         blocks = 1;
       }
+      const strictMiner = options.miner.instamine === "strict";
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
       // Developers like to move the blockchain forward by thousands of blocks
@@ -322,15 +324,20 @@ export default class EthereumApi implements Api {
           timestamp,
           true
         );
-        // wait until the blocks are fully saved before mining the next ones
-        await new Promise(resolve => {
-          const off = blockchain.on("block", block => {
-            if (block.header.number.toBuffer().equals(blockNumber)) {
-              off();
-              resolve(void 0);
-            }
+
+        if (strictMiner) {
+          // in strict mode we have to wait until the blocks are fully saved
+          // before mining the next ones, in eager mode they've already been
+          // saved
+          await new Promise(resolve => {
+            const off = blockchain.on("block", ({ header: { number } }) => {
+              if (number.toBuffer().equals(blockNumber)) {
+                off();
+                resolve(void 0);
+              }
+            });
           });
-        });
+        }
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
@@ -594,7 +601,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
-    if (this.#options.miner.legacyInstamine === true) {
+    if (this.#options.miner.instamine === "eager") {
       const resumption = await this.#blockchain.resume(threads);
       // resumption can be undefined if the blockchain isn't currently paused
       if (
@@ -1646,12 +1653,12 @@ export default class EthereumApi implements Api {
       return receipt.toJSON(block, transaction, common);
     }
 
-    // if we are performing non-legacy instamining, then check to see if the
-    // transaction is pending so as to warn about the v7 breaking change
+    // if we are performing "strict" instamining, then check to see if the
+    // transaction is pending so as to warn about the v7 instamine changes
     const options = this.#options;
     if (
       options.miner.blockTime <= 0 &&
-      options.miner.legacyInstamine !== true &&
+      options.miner.instamine === "strict" &&
       this.#blockchain.isStarted()
     ) {
       const tx = this.#blockchain.transactions.transactionPool.find(txHash);
