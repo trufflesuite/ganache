@@ -197,10 +197,10 @@ const provider = new ethers.providers.Web3Provider(ganache.provider());
 You can also use Ganache in the browser by adding the following script to your HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/ganache@latest/dist/web/ganache.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ganache@{VERSION}/dist/web/ganache.min.js"></script>
 ```
 
-NOTE: the `latest` in the above path can be replaced with a version number or tag that is listed in [npm](https://www.npmjs.com/package/ganache?activeTab=versions).
+NOTE: the `{VERSION}` in the above path needs to be replaced with a version number or tag that is listed in [npm](https://www.npmjs.com/package/ganache?activeTab=versions).
 
 From there, Ganache is available in your browser for use:
 
