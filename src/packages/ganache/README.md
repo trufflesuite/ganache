@@ -209,6 +209,8 @@ const options = {};
 const provider = Ganache.provider(options);
 ```
 
+NOTE: currently forking does not work in the browser, but we plan to add support in the future.
+
 ## Documentation
 
 New interactive RPC documentation coming soon!
