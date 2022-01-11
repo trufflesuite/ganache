@@ -160,7 +160,10 @@ server.listen(PORT, err => {
 
   console.log(`ganache listening on port ${PORT}...`);
   const provider = server.provider;
-  const accounts = await provider.request({ method: "eth_accounts", params:[] });
+  const accounts = await provider.request({
+    method: "eth_accounts",
+    params: []
+  });
 });
 ```
 
@@ -295,9 +298,12 @@ Miner:
   --miner.callGasLimit                  Sets the transaction gas limit in WEI for eth_call and eth_estimateGas
                                         calls.
                                                                           [string] [default: 0x1fffffffffffff]
-  --miner.legacyInstamine               Enables legacy instamine mode, where transactions are fully mined
-                                        before the transaction's hash is returned to the caller.
-                                                                                    [boolean] [default: false]
+  --miner.instamine                     Set the instamine mode to either "eager" (default) or "strict". In
+                                        "eager" mode a transaction will be included in a block before its hash
+                                        is returned to the caller. In "strict" mode a transaction's hash is
+                                        returned to the caller before the transaction is included in a block.
+                                        This value has no effect if `blockTime` is *not* `0` (the default).`
+                                                      [string] [choices: "eager", "strict"] [default: "eager"]
 
   --miner.coinbase                      Sets the address where mining rewards will go.
                                                          [default: 0x0000000000000000000000000000000000000000]
