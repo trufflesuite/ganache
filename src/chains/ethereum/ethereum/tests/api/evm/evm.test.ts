@@ -190,6 +190,14 @@ describe("api", () => {
           message: "authentication needed: passphrase or unlock"
         });
 
+        // account is included in eth_accounts
+        assert((await provider.send("eth_accounts", [])).includes(address));
+
+        // account is included in personal_listAccounts
+        assert(
+          (await provider.send("personal_listAccounts", [])).includes(address)
+        );
+
         // we're added to the personal namespace so we can unlock
         const unlocked = await provider.send("personal_unlockAccount", [
           address,

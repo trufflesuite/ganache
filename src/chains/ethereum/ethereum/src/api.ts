@@ -24,12 +24,14 @@ import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   TypedRpcTransaction,
   TransactionFactory,
-  TypedTransaction
+  TypedTransaction,
+  TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
+  Heap,
   Quantity,
   PromiEvent,
   Api,
@@ -303,13 +305,15 @@ export default class EthereumApi implements Api {
     arg?: number | { timestamp?: number; blocks?: number }
   ): Promise<"0x0"> {
     const blockchain = this.#blockchain;
-    const vmErrorsOnRPCResponse = this.#options.chain.vmErrorsOnRPCResponse;
+    const options = this.#options;
+    const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
       let { blocks, timestamp } = arg;
       if (blocks == null) {
         blocks = 1;
       }
+      const strictMiner = options.miner.instamine === "strict";
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
       // Developers like to move the blockchain forward by thousands of blocks
@@ -320,15 +324,20 @@ export default class EthereumApi implements Api {
           timestamp,
           true
         );
-        // wait until the blocks are fully saved before mining the next ones
-        await new Promise(resolve => {
-          const off = blockchain.on("block", block => {
-            if (block.header.number.toBuffer().equals(blockNumber)) {
-              off();
-              resolve(void 0);
-            }
+
+        if (strictMiner) {
+          // in strict mode we have to wait until the blocks are fully saved
+          // before mining the next ones, in eager mode they've already been
+          // saved
+          await new Promise(resolve => {
+            const off = blockchain.on("block", ({ header: { number } }) => {
+              if (number.toBuffer().equals(blockNumber)) {
+                off();
+                resolve(void 0);
+              }
+            });
           });
-        });
+        }
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
@@ -409,7 +418,7 @@ export default class EthereumApi implements Api {
    * Sets the internal clock time to the given timestamp.
    *
    * Warning: This will allow you to move *backwards* in time, which may cause
-   * new blocks to appear to be mined before old blocks. This is will result in
+   * new blocks to appear to be mined before old blocks. This will result in
    * an invalid state.
    *
    * @param time - JavaScript timestamp (millisecond precision).
@@ -592,7 +601,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
-    if (this.#options.miner.legacyInstamine === true) {
+    if (this.#options.miner.instamine === "eager") {
       const resumption = await this.#blockchain.resume(threads);
       // resumption can be undefined if the blockchain isn't currently paused
       if (
@@ -1644,12 +1653,12 @@ export default class EthereumApi implements Api {
       return receipt.toJSON(block, transaction, common);
     }
 
-    // if we are performing non-legacy instamining, then check to see if the
-    // transaction is pending so as to warn about the v7 breaking change
+    // if we are performing "strict" instamining, then check to see if the
+    // transaction is pending so as to warn about the v7 instamine changes
     const options = this.#options;
     if (
       options.miner.blockTime <= 0 &&
-      options.miner.legacyInstamine !== true &&
+      options.miner.instamine === "strict" &&
       this.#blockchain.isStarted()
     ) {
       const tx = this.#blockchain.transactions.transactionPool.find(txHash);
@@ -2549,11 +2558,16 @@ export default class EthereumApi implements Api {
     // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
     // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
     // the effectiveGasPrice, which is used to calculate tx costs/refunds.
-    const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+    const baseFeePerGasBigInt = parentBlock.header.baseFeePerGas
+      ? parentBlock.header.baseFeePerGas.toBigInt()
+      : undefined;
 
     let gasPrice: Quantity;
     const hasGasPrice = typeof transaction.gasPrice !== "undefined";
-    if (!common.isActivatedEIP(1559)) {
+    // if the original block didn't have a `baseFeePerGas` (baseFeePerGasBigInt
+    // is undefined) then EIP-1559 was not active on that block and we can't use
+    // type 2 fee values (as they rely on the baseFee)
+    if (!common.isActivatedEIP(1559) || baseFeePerGasBigInt === undefined) {
       gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
     } else {
       const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";
@@ -3127,5 +3141,55 @@ export default class EthereumApi implements Api {
   async shh_version() {
     return "2";
   }
+  //#endregion
+
+  //#region txpool
+
+  /**
+   * Returns the current content of the transaction pool.
+   *
+   * @returns The transactions currently pending or queued in the transaction pool.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_content");
+   * console.log(pool);
+   * ```
+   */
+  @assertArgLength(0)
+  async txpool_content(): Promise<{
+    pending: Map<string, Map<string, TypedTransactionJSON>>;
+    queued: Map<string, Map<string, TypedTransactionJSON>>;
+  }> {
+    const { transactions, common } = this.#blockchain;
+    const { transactionPool } = transactions;
+
+    const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
+      let res = new Map<string, Map<string, TypedTransactionJSON>>();
+      for (let [_, transactions] of map) {
+        const arr = transactions.array;
+        for (let i = 0; i < transactions.length; ++i) {
+          const tx = arr[i];
+          const from = tx.from.toString();
+          if (res[from] === undefined) {
+            res[from] = {};
+          }
+          // The nonce keys are actual decimal numbers (as strings) and not
+          // hex literals (based on what geth returns).
+          const nonce = tx.nonce.toBigInt().toString();
+          res[from][nonce] = tx.toJSON(common);
+        }
+      }
+      return res;
+    };
+
+    return {
+      pending: processMap(transactionPool.executables.pending),
+      queued: processMap(transactionPool.origins)
+    };
+  }
+
   //#endregion
 }
