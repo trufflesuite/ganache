@@ -53,7 +53,7 @@ Ganache can be used from the [command line](#command-line-use), [programmaticall
 
 You must first install [Node.js](https://nodejs.org/) >= v10.13.0 and npm >= 6.4.1.
 
-To install Ganache _rc_ globally, run:
+To install the Ganache release candidate (rc) globally, run:
 
 ```console
 $ npm install ganache@rc --global
@@ -117,10 +117,10 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install Ganache rc into an npm project, run:
+To install the Ganache release candidate (rc) into an npm project, run:
 
 ```console
-$ npm install ganache
+$ npm install ganache@rc
 ```
 
 You can then add Ganache to your package.json scripts:
