@@ -19,7 +19,8 @@
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
     "tsc": "tsc --build src",
-    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings"
+    "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings",
+    "make-release-notes": "cd scripts && ts-node make-release-notes"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
