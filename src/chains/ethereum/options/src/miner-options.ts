@@ -254,7 +254,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
 \`instamine\` has no effect if \`blockTime\` is *not* \`0\` (the default).`,
     default: () => "eager",
     legacyName: "instamine",
-    cliAliases: ["i", "instamine"],
+    cliAliases: ["instamine"],
     cliType: "string",
     cliChoices: ["eager", "strict"]
   },
