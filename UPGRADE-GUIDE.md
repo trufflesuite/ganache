@@ -117,7 +117,7 @@ it defaulted to `true`.
 
 Ganache now _disables_ `vmErrorsOnRPCResponse` by default.
 
-If you rely on tranasction
+If you rely on transaction
 
 
 1 yarn and pnpm doesn't support dependency lock files, like npm's npm-shrinkwrap.json,
