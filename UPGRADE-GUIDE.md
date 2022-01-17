@@ -5,7 +5,7 @@
 ### Installing
 
 The Ganache npm packages have been combined and renamed from `ganache-cli` and
-`ganache-core` to `ganache`. You will need to uninstall these packages before
+`ganache-core` to `ganache`. You may need to uninstall the old packages before
 installing the new ganache.
 
 There are two ways you may have the old packages installed, globally or locally.
@@ -110,8 +110,6 @@ Previously, Ganache allowed transaction signatures to original from 3 chains
  ids: `1`, `chainId`, and `networkId`. Ganache now permits only the `chainId`.
 
 #### `_chainId` and `_chainIdRpc` options removed
-
-TODO: verify chainId option names
 
 If you relied on the EVM's `CHAINID` opcode and the RPC method for `eth_chainId`
 to return different values you'll need to fix your code so that it only uses one
