@@ -128,7 +128,7 @@ ganache.provider({
 ```
 
 If you want to use the new default mode but still be able to get the reason for
-a transaction failure you need to resend your transaction with an `eth_call`.
+a transaction failure, you need to resend your transaction with an `eth_call`.
 This will return the revert reason in nearly all cases[^2].
 
 #### Dropped support for Node v8 and v10
