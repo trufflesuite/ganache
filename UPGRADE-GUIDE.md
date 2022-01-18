@@ -66,7 +66,7 @@ the replacement is exactly the same:
 const ganache = require("ganache");
 ```
 
-In your package.json scripts:
+You can also run Ganache directly from your package.json scripts:
 
 ```json
 {
