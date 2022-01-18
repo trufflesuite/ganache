@@ -28,12 +28,12 @@ manager when installing security-critical applications like Ganache._
 
 You will now be able to run `ganache` from your command line.
 
-_note: you may need to uninstall using yarn, or another node package manager,
+_NOTE: you may need to uninstall using yarn, or another node package manager,
 depending on how you originally installed ganache-cli or ganache-core._
 
 #### Locally installed
 
-A local installation makes it possible to `import` or `require` Ganache from 
+A local installation makes it possible to `import` or `require` Ganache  
 programmatically from JavaScript or TypeScript. Additionally, you can run the
 command line version of Ganache from your [package.json scripts](https://docs.npmjs.com/cli/v8/using-npm/scripts) or directly
 from the command line using `npx ganache` ([what is npx?](https://www.npmjs.com/package/npx)).
@@ -58,7 +58,7 @@ Or in other words:
 const ganache = require("ganache");
 ```
 
-If you `require` or `import` the `ganache-cli` package instead of ganache-core
+If you `require` or `import` the `ganache-cli` package instead of ganache-core,
 the replacement is exactly the same:
 
 ```javascript
@@ -76,10 +76,10 @@ You can also run Ganache directly from your package.json scripts:
 }
 ```
 
-_Note: we've aliased ganache-cli to ganache, so you can continue using the
+_NOTE: we've aliased ganache-cli to ganache, so you can continue using the
 ganache-cli command in your npm scripts and in your terminal._
 
-_note: you may need to uninstall using yarn, or another node package manager,
+_NOTE: you may need to uninstall using yarn, or another node package manager,
 depending on how you originally installed ganache-cli or ganache-core._
 
 
@@ -88,7 +88,7 @@ depending on how you originally installed ganache-cli or ganache-core._
 
 #### Allowed transaction signature changes
 
-Previously, Ganache allowed transaction signatures to original from 3 chains
+Previously, Ganache allowed transaction signatures to originate from 3 chains
  ids: `1`, `chainId`, and `networkId`. Ganache now permits only the `chainId`.
 
 #### `_chainId` and `_chainIdRpc` options removed
@@ -112,7 +112,7 @@ and it defaulted to `true`.
 
 Ganache now _disables_ the `vmErrorsOnRPCResponse` functionality by default.
 
-If your code relies on these non-standard errors on transaction failure you'll 
+If your code relies on these non-standard errors on transaction failure, you'll 
 need to _enable_ the `vmErrorsOnRpcResponse` flag to restore this behavior:
 
 ```console
@@ -128,13 +128,13 @@ ganache.provider({
 ```
 
 If you want to use the new default mode but still be able to get the reason for
-a transaction failure you need to resend your transaction with an `eth_call`.
+a transaction failure, you need to resend your transaction with an `eth_call`.
 This will return the revert reason in nearly all cases[^2].
 
 #### Dropped support for Node v8 and v10
 
 We no longer support Node v8 - v11. You'll need to update to Node v12.0.0 or
-later. Note: Support for Node.js v12.x.x will be dropped shortly after the
+later. NOTE: Support for Node.js v12.x.x will be dropped shortly after the
 Node.js Foundation stops supporting it in April 2022.
 
 #### DockerHub repo has been moved to trufflesuite/ganache
