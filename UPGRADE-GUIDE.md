@@ -82,7 +82,7 @@ ganache-cli command in your npm scripts and in your terminal._
 _NOTE: you may need to uninstall using yarn, or another node package manager,
 depending on how you originally installed ganache-cli or ganache-core._
 
-
+---
 
 ### Breaking changes
 
