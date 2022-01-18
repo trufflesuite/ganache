@@ -14,9 +14,9 @@ The uninstall and installation process are slightly different for each.
 #### Globally installed
 
 A global installation makes it possible to run Ganache from your command line at
-any working directory: `$~ ganache [...options]`.
+any working directory: `ganache [...options]`.
 
-To upgrade a global installation using [`npm`](____) run these two commands:
+To upgrade a global installation using `npm` run these two commands:
 
 ```console
 $ npm uninstall --global ganache-cli ganache-core
@@ -26,7 +26,7 @@ $ npm install --global ganache
 _For security reasons[^1] we do not recommend using yarn or pnpm as your package
 manager when installing security-critical applications like Ganache._
 
-You will now be able to run `$~ ganache` from your command line.
+You will now be able to run `ganache` from your command line.
 
 _note: you may need to uninstall using yarn, or another node package manager,
 depending on how you originally installed ganache-cli or ganache-core._
