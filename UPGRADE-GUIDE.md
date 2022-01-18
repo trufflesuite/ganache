@@ -45,7 +45,7 @@ $ npm uninstall ganache-cli ganache-core
 $ npm install --save-dev ganache
 ```
 
-_For security reasons[1] we do not recommend using yarn or pnpm as your package
+_For security reasons[^1] we do not recommend using yarn or pnpm as your package
 manager when installing security-critical applications like Ganache._
 
 You will now be able to run Ganache programmatically from within your JavaScript
@@ -147,7 +147,7 @@ ganache.provider({
 
 If you want to use the new default mode but still be able to get the reason for
 a transaction failure you need to resend your transaction with an `eth_call`.
-This will return the revert reason in nearly all cases[2].
+This will return the revert reason in nearly all cases[^2].
 
 #### `db` and dp_path
 
@@ -455,12 +455,12 @@ sending account to cover the maximum cost.
 
 ---
 
-1 yarn and pnpm doesn't support dependency lock files, like npm's npm-shrinkwrap.json,
+[^1]: yarn and pnpm doesn't support dependency lock files, like npm's npm-shrinkwrap.json,
 which permits supply-chain attacks through automatic transitive dependency
-updates, like the [uWs attack](), the [left-pad attack](), mostly recently the
-[colors and ____ attack]().
+updates, like the [left-pad attack](https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm.html) and mostly recently the
+[colors and faker attack](https://security.snyk.io/vuln/SNYK-JS-COLORS-2331906).
 
-2 `eth_call` can't always perfectly reproduce the state that the original
+[^2]: `eth_call` can't always perfectly reproduce the state that the original
 transaction was run in if other transactions run before it in a block. This is
 very rare in testing scenarios, but should be something you are aware of. We'll
 be addressing this shortcoming in a future EIP and release by extending eth_call
