@@ -213,7 +213,7 @@ ganache.provider({
 
 Ganache's provider and server internals are no longer leaking. This means you
 can’t manipulate the vm directly anymore. Open a
-[new issue](https://github.com/trufflesuite/ganache/issues/new?milestone=7.0.0)
+[new issue](https://github.com/trufflesuite/ganache/issues/new)
 if you relied on these removed internals and need us to build in public and
 stable access to them.
 
@@ -287,7 +287,7 @@ Ganache's old database format is incompatible with this version. We've decided
 to hold off on building migration tools for this. If you will need a migration
 tool (you use the `db` flag or the `db_path` option and are unable to recreate 
 your initial DB state) please
-[open an issue](https://github.com/trufflesuite/ganache/issues/new?milestone=7.0.0)
+[open an issue](https://github.com/trufflesuite/ganache/issues/new)
 to let us know.
 
 #### Non-consecutive transaction nonces no longer throw an error
