@@ -112,7 +112,7 @@ and it defaulted to `true`.
 
 Ganache now _disables_ the `vmErrorsOnRPCResponse` functionality by default.
 
-If your code relies on these non-standard errors on transaction failure you'll 
+If your code relies on these non-standard errors on transaction failure, you'll 
 need to _enable_ the `vmErrorsOnRpcResponse` flag to restore this behavior:
 
 ```console
