@@ -1,86 +1,86 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Commits
+# name: Commits
 
-on: [push]
+# on: [push]
 
-jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 17.x]
-        os: [ubuntu-20.04]
+# jobs:
+#   build:
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         node: [12.0.0, 12.x, 14.x, 16.x, 17.x]
+#         os: [ubuntu-20.04]
 
-    runs-on: ${{ matrix.os }}
+#     runs-on: ${{ matrix.os }}
 
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-      - run: npm ci
-      - run: npm run tsc
-      - run: npm test
-        env:
-          FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           token: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Use Node.js ${{ matrix.node }}
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: ${{ matrix.node }}
+#       - run: npm ci
+#       - run: npm run tsc
+#       - run: npm test
+#         env:
+#           FORCE_COLOR: 1
+#           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
-  build-all:
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 17.x]
-        os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
+#   build-all:
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         node: [12.0.0, 12.x, 14.x, 16.x, 17.x]
+#         os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
 
-    runs-on: ${{ matrix.os }}
+#     runs-on: ${{ matrix.os }}
 
-    if: github.ref == 'refs/heads/develop'
+#     if: github.ref == 'refs/heads/develop'
 
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           token: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Use Node.js ${{ matrix.node }}
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: ${{ matrix.node }}
 
-      - name: Add msbuild to PATH
-        # we need msbuild tools for the `bigint-buffer` module
-        if: startsWith(matrix.os, 'windows-')
-        uses: microsoft/setup-msbuild@v1.0.2
+#       - name: Add msbuild to PATH
+#         # we need msbuild tools for the `bigint-buffer` module
+#         if: startsWith(matrix.os, 'windows-')
+#         uses: microsoft/setup-msbuild@v1.0.2
 
-      - name: install node tools
-        # we don't need to install the windows-build-tools package, as we
-        # already have almost everything we need. We only need to install
-        # python 2.7. Also windows-build-tools@4 fails to install because some
-        # resources it downloads no longer exist, and windows-build-tools@5
-        # fails to install Python (it will wait on the python installer forever)
-        if: startsWith(matrix.os, 'windows-')
-        uses: actions/setup-python@v2
-        with:
-          python-version: "2.7"
+#       - name: install node tools
+#         # we don't need to install the windows-build-tools package, as we
+#         # already have almost everything we need. We only need to install
+#         # python 2.7. Also windows-build-tools@4 fails to install because some
+#         # resources it downloads no longer exist, and windows-build-tools@5
+#         # fails to install Python (it will wait on the python installer forever)
+#         if: startsWith(matrix.os, 'windows-')
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: "2.7"
 
-      - name: install node-gyp
-        if: startsWith(matrix.os, 'windows-')
-        run: npm install --global node-gyp@7.1.2
+#       - name: install node-gyp
+#         if: startsWith(matrix.os, 'windows-')
+#         run: npm install --global node-gyp@7.1.2
 
-      - name: Set node config to use python2.7
-        if: startsWith(matrix.os, 'windows-')
-        run: npm config set python python2.7
+#       - name: Set node config to use python2.7
+#         if: startsWith(matrix.os, 'windows-')
+#         run: npm config set python python2.7
 
-      - name: Set node config to set msvs_version to 2019
-        if: startsWith(matrix.os, 'windows-')
-        run: npm config set msvs_version 2019 --global
+#       - name: Set node config to set msvs_version to 2019
+#         if: startsWith(matrix.os, 'windows-')
+#         run: npm config set msvs_version 2019 --global
 
-      - run: npm ci
-      - run: npm run tsc
-      - run: npm test
-        env:
-          FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+#       - run: npm ci
+#       - run: npm run tsc
+#       - run: npm test
+#         env:
+#           FORCE_COLOR: 1
+#           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
