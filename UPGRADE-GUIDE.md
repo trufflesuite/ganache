@@ -33,7 +33,7 @@ depending on how you originally installed ganache-cli or ganache-core._
 
 #### Locally installed
 
-A local installation makes it possible to `import` or `require` Ganache from 
+A local installation makes it possible to `import` or `require` Ganache  
 programmatically from JavaScript or TypeScript. Additionally, you can run the
 command line version of Ganache from your [package.json scripts](https://docs.npmjs.com/cli/v8/using-npm/scripts) or directly
 from the command line using `npx ganache` ([what is npx?](https://www.npmjs.com/package/npx)).
