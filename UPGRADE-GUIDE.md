@@ -134,7 +134,7 @@ This will return the revert reason in nearly all cases[^2].
 #### Dropped support for Node v8 and v10
 
 We no longer support Node v8 - v11. You'll need to update to Node v12.0.0 or
-later. Note: Support for Node.js v12.x.x will be dropped shortly after the
+later. NOTE: Support for Node.js v12.x.x will be dropped shortly after the
 Node.js Foundation stops supporting it in April 2022.
 
 #### DockerHub repo has been moved to trufflesuite/ganache
