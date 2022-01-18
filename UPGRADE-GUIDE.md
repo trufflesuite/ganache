@@ -88,7 +88,7 @@ depending on how you originally installed ganache-cli or ganache-core._
 
 #### Allowed transaction signature changes
 
-Previously, Ganache allowed transaction signatures to original from 3 chains
+Previously, Ganache allowed transaction signatures to originate from 3 chains
  ids: `1`, `chainId`, and `networkId`. Ganache now permits only the `chainId`.
 
 #### `_chainId` and `_chainIdRpc` options removed
