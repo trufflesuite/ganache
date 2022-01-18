@@ -58,7 +58,7 @@ Or in other words:
 const ganache = require("ganache");
 ```
 
-If you `require` or `import` the `ganache-cli` package instead of ganache-core
+If you `require` or `import` the `ganache-cli` package instead of ganache-core,
 the replacement is exactly the same:
 
 ```javascript
