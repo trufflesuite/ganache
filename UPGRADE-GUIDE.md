@@ -453,7 +453,7 @@ sending account to cover the maximum cost.
 - `sender doesn't have enough funds to send tx` errors are now prefixed with `VM Exception while processing transaction`
 - `logs` subscription events are emitted before `newHeads` events
 
----
+
 
 [^1]: yarn and pnpm doesn't support dependency lock files, like npm's npm-shrinkwrap.json,
 which permits supply-chain attacks through automatic transitive dependency
