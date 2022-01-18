@@ -34,12 +34,12 @@ jobs:
           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
       - name: Set TAG for master to latest
-        if: ${{ github.ref == 'refs/heads/master-release-automation' }}
+        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           echo "TAG=latest" >> $GITHUB_ENV
 
       - name: Set TAG for non-master to the branch name
-        if: ${{ github.ref != 'refs/heads/master-release-automation' }}
+        if: ${{ github.ref != 'refs/heads/master' }}
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
