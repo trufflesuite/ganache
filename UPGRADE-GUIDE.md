@@ -76,7 +76,7 @@ You can also run Ganache directly from your package.json scripts:
 }
 ```
 
-_Note: we've aliased ganache-cli to ganache, so you can continue using the
+_NOTE: we've aliased ganache-cli to ganache, so you can continue using the
 ganache-cli command in your npm scripts and in your terminal._
 
 _note: you may need to uninstall using yarn, or another node package manager,
