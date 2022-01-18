@@ -35,10 +35,10 @@ depending on how you originally installed ganache-cli or ganache-core._
 
 A local installation makes it possible to `import` or `require` Ganache from 
 programmatically from JavaScript or TypeScript. Additionally, you can run the
-command line version of Ganache from your [package.json scripts] or directly
-from the command line using `npx ganache` ([what is npx?](______)).
+command line version of Ganache from your [package.json scripts](https://docs.npmjs.com/cli/v8/using-npm/scripts) or directly
+from the command line using `npx ganache` ([what is npx?](https://www.npmjs.com/package/npx)).
 
-To upgrade a local installation using [`npm`](____) run these two commands:
+To upgrade a local installation using `npm` run these two commands:
 
 ```console
 $ npm uninstall ganache-cli ganache-core
@@ -149,9 +149,6 @@ If you want to use the new default mode but still be able to get the reason for
 a transaction failure you need to resend your transaction with an `eth_call`.
 This will return the revert reason in nearly all cases[^2].
 
-#### `db` and dp_path
-
-
 #### Dropped support for Node v8 and v10
 
 We no longer support Node v8 - v11. You'll need to update to Node v12.0.0 or
@@ -161,7 +158,7 @@ Node.js Foundation stops supporting it in April 2022.
 #### DockerHub repo has been moved to trufflesuite/ganache
 
 You may want to remove your old Docker images and containers and then pull
-Ganache from the new location before updating, but it this is not required.
+Ganache from the new location before updating, but this step is not required.
 
 > Note: Before updating you may want to prune your docker images and containers.
  Read more on [docker pruning](https://docs.docker.com/config/pruning/).
@@ -306,8 +303,9 @@ likely enable this in the future.
 
 Ganache's old database format is incompatible with this version. We've decided
 to hold off on building migration tools for this. If you will need a migration
-tool (you use the db_path flag and are unable to recreate your initial DB state)
-please [open an issue](https://github.com/trufflesuite/ganache/issues/new?milestone=7.0.0)
+tool (you use the `db` flag or the `db_path` option and are unable to recreate 
+your initial DB state) please
+[open an issue](https://github.com/trufflesuite/ganache/issues/new?milestone=7.0.0)
 to let us know.
 
 #### Non-consecutive transaction nonces no longer throw an error
@@ -354,9 +352,7 @@ ganache.provider({
 });
 ```
 
-#### Legacy transactions sent via eth_sendTransaction are automatically upgraded to "Type 2" (EIP-1559) transactions.
-
-## Legacy transactions sent via `eth_sendTransaction` are automatically upgraded to "Type 2" ([EIP-1559](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)) transactions.
+#### Legacy transactions sent via `eth_sendTransaction` are automatically upgraded to "Type 2" ([EIP-1559](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)) transactions.
 
 If you send a transaction with `eth_sendTransaction` and that transaction doesn't have a `gasPrice` field the transaction will be automatically "upgraded" to a type 2 transaction. Type 2 transactions will have many different fields for an identical legacy transaction sent pre-london.
 
@@ -421,7 +417,7 @@ ganache.provider({
 });
 ```
 
-#### Reject transactions with insufficient funds
+#### We now reject transactions with insufficient funds
 
 The ganache-cli v6 and ganache-core v2 packages used to allow transactions with
 a `tx.gasLimit * tx.gasPrice + tx.value < account.balance` into the transaction
