@@ -51,24 +51,6 @@ manager when installing security-critical applications like Ganache._
 You will now be able to run Ganache programmatically from within your JavaScript
 or TypeScript files.
 
-An example diff might look like:
-
-```diff
-diff --git a/index.js b/index.js
-index abcdefg..hijklmn 123456
---- a/index.js
-+++ b/index.js
-@@ -0,7 +0,7 @@
- const Web3 = require("web3");
- const debug = require("debug");
- const helpers = require("./helpers");
--const ganache = require("ganache-core");
-+const ganache = require("ganache");
- const provider = ganache.provider();
- const web3 = new Web3(provider);
-
-```
-
 Or in other words:
 
 ```javascript
