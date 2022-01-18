@@ -1,8 +1,8 @@
-name: Release
+name: TestRelease
 
 on:
   push:
-    branches: [alpha, beta, rc, master]
+    branches: [master-release-automation]
 
 jobs:
   release:
@@ -17,12 +17,9 @@ jobs:
           node-version: 14
 
       - name: Run installation
-        run: sudo chown -R runner:runner ./
-
-      - name: Run installation
         run: npm ci
 
-      - name: Set git identity
+            - name: Set git identity
         run: |
           git config --global user.name 'Robot'
           git config --global user.email 'robot@trufflesuite.com'
@@ -75,12 +72,12 @@ jobs:
         run: |
           git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
-      # # TODO: sign the last commit and tag
+      # TODO: sign the last commit and tag
       - name: Tag the amended release commit
         run: |
           git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
 
-      - name: Push changes to git
+      - name: DO NOT Push changes to git
         run: |
           git tag -l | grep '7.0.0'
 
@@ -89,50 +86,10 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Smoke test release
-      #   TODO: set up verdaccio to mock npm https://verdaccio.org/
-
       # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
-      - name: Release to npm
+      - name: NOT Release to npm
         run: |
           echo "$TAG"
-          git diff HEAD~1
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Test env.
-        run: echo "${{ env.TAG }}" && echo "${{ env.VERSION }}""
-
-      # publish to docker and github packages
-      # - name: Log in to Docker Hub
-      #   uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-
-      # - name: Log in to the Container registry
-      #   uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Extract metadata (tags, labels) for Docker
-      #   id: meta
-      #   uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-      #   with:
-      #     images: |
-      #       trufflesuite/ganache
-      #       ghcr.io/${{ github.repository}}
-
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-      #   with:
-      #     context: .
-      #     file: ./src/packages/ganache/Dockerfile
-      #     push: true
-      #     tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', env.TAG, env.VERSION) }}
-      #     labels: ${{ steps.meta.outputs.labels }}
-      #     build-args: |
-      #       INFURA_KEY=${{ secrets.INFURA_KEY }}
