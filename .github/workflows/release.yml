@@ -70,13 +70,11 @@ jobs:
 
       - name: Commit all staged changes
         run: |
-          VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')
           git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
-      # # TODO: sign the last commit and tag
+      # TODO: sign the last commit and tag
       - name: Tag the amended release commit
         run: |
-          VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')
           git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
 
       - name: Push changes to git
