@@ -23,7 +23,7 @@ $ npm uninstall --global ganache-cli ganache-core
 $ npm install --global ganache
 ```
 
-_For security reasons[1] we do not recommend using yarn or pnpm as your package
+_For security reasons[^1] we do not recommend using yarn or pnpm as your package
 manager when installing security-critical applications like Ganache._
 
 You will now be able to run `$~ ganache` from your command line.
