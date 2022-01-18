@@ -28,7 +28,7 @@ manager when installing security-critical applications like Ganache._
 
 You will now be able to run `ganache` from your command line.
 
-_note: you may need to uninstall using yarn, or another node package manager,
+_NOTE: you may need to uninstall using yarn, or another node package manager,
 depending on how you originally installed ganache-cli or ganache-core._
 
 #### Locally installed
