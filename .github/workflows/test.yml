@@ -19,7 +19,7 @@ jobs:
       - name: Run installation
         run: npm ci
 
-            - name: Set git identity
+      - name: Set git identity
         run: |
           git config --global user.name 'Robot'
           git config --global user.email 'robot@trufflesuite.com'
