@@ -296,7 +296,7 @@ We now support the `pendingTransactions` event and will soon support actual
 `pending` blocks.
 
 Previously, if you sent a transaction with a nonce that did not match the
-account's transaction count that transaction would be immediately rejected. In
+account's transaction count, that transaction would be immediately rejected. In
 v7 that transaction will be placed in the node's transaction queue.
 
 You can replace these queued transactions the same way you'd replace the
@@ -306,12 +306,12 @@ nonce but a higher gas price.
 Currently the eviction mechanism is not tunable, but we plan on exposing options
 to change the behavior in the near future.
 
-Note: currently, the number of queued transactions does not have an upper bound
+NOTE: currently, the number of queued transactions does not have an upper bound
 and you can continue adding new transactions until your process runs out of
 memory and crashes. We consider this a memory leak and a bug. Expect this
 unbounded behavior to change in a patch-level release in the future.
 
-Note 2: if you use the persisted DB option: we have never stored unexecuted
+NOTE: if you use the persisted DB option: we have never stored unexecuted
 transactions to disk and do not plan to do so. The same is true of these queued
 transactions.
 
@@ -336,7 +336,7 @@ ganache.provider({
 
 #### Legacy transactions sent via `eth_sendTransaction` are automatically upgraded to "Type 2" ([EIP-1559](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)) transactions.
 
-If you send a transaction with `eth_sendTransaction` and that transaction doesn't have a `gasPrice` field the transaction will be automatically "upgraded" to a type 2 transaction. Type 2 transactions will have many different fields for an identical legacy transaction sent pre-london.
+If you send a transaction with `eth_sendTransaction` and that transaction doesn't have a `gasPrice` field, the transaction will be automatically "upgraded" to a type 2 transaction. Type 2 transactions will have many different fields for an identical legacy transaction sent pre-london.
 
 ```typescript
 // send a "legacy" transaction
@@ -408,7 +408,7 @@ condition with an `"insufficient funds for gas * price + value"` error message
 (with a `code` of `-32003`).
 
 You'll need to change your transaction so that the maximum possible gas cost is
-less than the sending account's balance, or provider enough funds to to the
+less than the sending account's balance, or provide enough funds to the
 sending account to cover the maximum cost.
 
 ### Other breaking changes that you probably won't notice
@@ -433,7 +433,7 @@ sending account to cover the maximum cost.
 
 
 
-[^1]: yarn and pnpm doesn't support dependency lock files, like npm's npm-shrinkwrap.json,
+[^1]: yarn and pnpm don't support dependency lock files, like npm's npm-shrinkwrap.json,
 which permits supply-chain attacks through automatic transitive dependency
 updates, like the [left-pad attack](https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm.html) and mostly recently the
 [colors and faker attack](https://security.snyk.io/vuln/SNYK-JS-COLORS-2331906).
