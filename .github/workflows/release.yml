@@ -77,8 +77,8 @@ jobs:
 
       - name: Push changes to git
         run: |
-          # git push origin ${GITHUB_REF##*/}
-          # git push origin --tags
+#          git push origin ${GITHUB_REF##*/}
+#          git push origin --tags
           git tag | grep '7.0.0'
 
       # - name: Set up auth for npm publish
