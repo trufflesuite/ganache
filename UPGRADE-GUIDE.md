@@ -152,7 +152,7 @@ You can view the list of local Docker containers by running:
 $ docker container ls
 ```
 
-and remove a container using
+and [remove a container](https://docs.docker.com/engine/reference/commandline/container_rm/) using
 
 ```console
 $ docker container rm <CONTAINER ID>
@@ -164,7 +164,7 @@ You can view the list of local Docker images by running:
 $ docker image ls
 ```
 
-and [remove an image](https://docs.docker.com/engine/reference/commandline/rm/)
+and [remove an image](https://docs.docker.com/engine/reference/commandline/image_rm/)
 using
 
 ```console
@@ -212,7 +212,7 @@ ganache.provider({
 
 #### Ganache's provider and server interfaces have changed
 
-Ganache's provider and server internals are no longer leaking. This means you
+Ganache's provider and server internals are no longer addressable. This means you
 can’t manipulate the vm directly anymore. Open a
 [new issue](https://github.com/trufflesuite/ganache/issues/new)
 if you relied on these removed internals and need us to build in public and
