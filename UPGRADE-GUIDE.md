@@ -168,7 +168,7 @@ $ docker container ls
 and remove a container using
 
 ```console
-$ docker container rm 
+$ docker container rm <CONTAINER ID>
 ```
 
 To install the Ganache v7 Docker container run:
