@@ -95,8 +95,8 @@ Previously, Ganache allowed transaction signatures to originate from 3 chains
 #### `_chainId` and `_chainIdRpc` options removed
 
 If you relied on the EVM's `CHAINID` opcode and the RPC method for `eth_chainId`
-to return different values you'll need to fix your code so that it only uses one
-of these values.
+to return different values you'll need to update your code so that it uses the
+actual chain id only, as these values are now properly aligned.
 
 The `_chainId` and `_chainIdRpc` options were a workaround for a legacy bug. We
 have not carried over this bug into Ganache v7. Use the `chainId` option from
