@@ -143,10 +143,22 @@ Node.js Foundation stops supporting it in April 2022.
 You may want to remove your old Docker images and containers and then pull
 Ganache from the new location before updating, but this step is not required.
 
-> Note: Before updating you may want to prune your docker images and containers.
+> Note: Before updating you may want to prune your Docker images and containers.
  Read more on [docker pruning](https://docs.docker.com/config/pruning/).
 
-You can view a list of local Docker images by running:
+You can view the list of local Docker containers by running:
+
+```console
+$ docker container ls
+```
+
+and remove a container using
+
+```console
+$ docker container rm <CONTAINER ID>
+```
+
+You can view the list of local Docker images by running:
 
 ```console
 $ docker image ls
@@ -157,18 +169,6 @@ using
 
 ```console
 $ docker image rm <IMAGE ID>
-```
-
-You can view your list of local Docker containers by running:
-
-```console
-$ docker container ls
-```
-
-and remove a container using
-
-```console
-$ docker container rm <CONTAINER ID>
 ```
 
 To install the Ganache v7 Docker container run:
