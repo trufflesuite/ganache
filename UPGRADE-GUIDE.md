@@ -304,7 +304,7 @@ You can replace these queued transactions the same way you'd replace the
 transaction on Mainnet or tests, by sending another transaction with the same
 nonce but a higher gas price.
 
-Currently the eviction mechanism is not tunable, but we plan on exposing options
+Currently the eviction mechanism is not tunable beyond the `miner.priceBump` option, but we plan on exposing additional options
 to change the behavior in the near future.
 
 NOTE: currently, the number of queued transactions does not have an upper bound
