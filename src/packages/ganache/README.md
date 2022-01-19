@@ -53,6 +53,8 @@ To install Ganache globally, run:
 $ npm install ganache --global
 ```
 
+In case youe're upgrading from a previous version of Ganache, we've also written up [this handy guide](https://github.com/trufflesuite/ganache/blob/develop/UPGRADE-GUIDE.md) on how to upgrade/install Ganache and to document all breaking changes to look out for.
+
 Once installed globally, you can start ganache right from your command line:
 
 ```console
