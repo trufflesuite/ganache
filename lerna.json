@@ -3,7 +3,7 @@
   "version": "independent",
   "command": {
     "version": {
-      "allowBranch": ["alpha", "beta", "rc"]
+      "allowBranch": ["alpha", "beta", "rc", "master"]
     },
     "bootstrap": {
       "reject-cycles": true
