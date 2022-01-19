@@ -1,4 +1,4 @@
-import { AccessListBuffer } from "@ethereumjs/tx";
+import { AccessListBuffer } from "./access-lists";
 /**
  * The raw data for an ethereum transaction.
  */

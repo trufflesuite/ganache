@@ -15,18 +15,7 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "newLine": "lf",
-    "lib": [
-      "ES2020"
-    ],
-    "experimentalDecorators": true,
-    "plugins": [
-      {
-        "transform": "ts-transformer-inline-file/transformer"
-      },
-      {
-        "transform": "@zerollup/ts-transform-paths",
-        "exclude": "*"
-      }
-    ]
+    "lib": ["ES2020"],
+    "experimentalDecorators": true
   }
 }

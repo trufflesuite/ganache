@@ -49,7 +49,7 @@ describe("api", () => {
           assert.fail(
             "Successfully retrieved status string for invalid status code"
           );
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -162,7 +162,7 @@ describe("api", () => {
             params: [1337]
           });
           assert.fail("Successfully retrieved a deal for an invalid ID");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -187,7 +187,7 @@ describe("api", () => {
             "bafyreifi6tnqdabvaid7o4qezjpcavkwtibctpfzuarr4erfxjqds52bba";
           await client.clientGetDealInfo({ "/": invalidCid });
           assert.fail("Successfully retrieved a deal for an invalid CID");
-        } catch (e) {
+        } catch (e: any) {
           if (e.code === "ERR_ASSERTION") {
             throw e;
           }
@@ -335,7 +335,7 @@ describe("api", () => {
 
         try {
           await client.clientRetrieve(madeUpOrder, fileRef);
-        } catch (e) {
+        } catch (e: any) {
           error = e;
         }
 

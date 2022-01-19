@@ -54,8 +54,8 @@ export type BlockHeader = {
  * we stored things geth does, i.e., `totalDfficulty` is not usually stored in
  * the block header.
  *
- * @param serialized
- * @param totalDifficulty
+ * @param serialized -
+ * @param totalDifficulty -
  */
 export function getBlockSize(serialized: Buffer, totalDifficulty: Buffer) {
   return serialized.length - totalDifficulty.length;

@@ -82,7 +82,9 @@ export type DataEvent = {
 };
 
 export type MessageEvent = {
-  jsonrpc: "2.0";
-  method: "eth_subscription";
-  params: any; // TODO
+  readonly type: "eth_subscription";
+  readonly data: {
+    readonly subscription: string;
+    readonly result: unknown;
+  };
 };

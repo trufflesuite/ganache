@@ -19,8 +19,7 @@ import {
   GanacheRawExtraTx,
   TypedDatabaseTransaction
 } from "./raw";
-import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
-import { AccessLists } from "./access-lists";
+import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
 import { computeIntrinsicsFeeMarketTx } from "./signing";
 import {
   Capability,
@@ -118,6 +117,10 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     }
   }
 
+  public maxGasPrice() {
+    return this.maxFeePerGas;
+  }
+
   public toJSON(_common?: Common): EIP1559FeeMarketTransactionJSON {
     return {
       type: this.type,
@@ -151,7 +154,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
-    const sender = this.from.toBuffer();
+    const from = this.from;
+    const sender = from.toBuffer();
     const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
@@ -169,7 +173,10 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       AccessListJSON: this.accessListJSON,
       getSenderAddress: () => ({
         buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf)
+        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
+        toString() {
+          return from.toString();
+        }
       }),
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)

@@ -11,8 +11,8 @@ export class Heap<T, U = any> {
    * as determined by the `less` function, is at the tip/root of the heap.
    * To read the highest priority element without removing it call peek(). To
    * read and remove the element call `shift()`
-   * @param less the comparator function
-   * @param refresher the refresher function
+   * @param less - the comparator function
+   * @param refresher - the refresher function
    */
   constructor(less: Comparator<T>, refresher?: (item: T, context: U) => void) {
     this.less = less;
@@ -30,12 +30,12 @@ export class Heap<T, U = any> {
   /**
    * Updates all entries by calling the Heap's `refresher` function for each
    * item in the heap and then re-sorting.
-   * @param context
+   * @param context -
    */
   /**
    * Updates all entries by calling the Heap's `refresher` function for each
    * item in the heap and then re-sorting.
-   * @param context
+   * @param context -
    */
   public refresh(context: U) {
     const length = this.length;
@@ -51,7 +51,7 @@ export class Heap<T, U = any> {
 
   /**
    * Pushes a new element onto the heap
-   * @param value
+   * @param value -
    */
   public push(value: T) {
     const i = this.length++;
@@ -110,7 +110,7 @@ export class Heap<T, U = any> {
    * `replace(0, newValue);`.
    * If you call this on an empty heap (`this.size() === 0`) you may find
    * unexpected behavior.
-   * @param newValue
+   * @param newValue -
    */
   public replaceBest(newValue: T) {
     this.array[0] = newValue;
@@ -121,8 +121,8 @@ export class Heap<T, U = any> {
    * Replaces the element at position `i` with the `newValue`. If the element at
    * position `i` doesn't exist, or if `i < 0` or `i > this.size()` you may
    * find unexpected behavior.
-   * @param i
-   * @param newValue
+   * @param i -
+   * @param newValue -
    */
   public replace(i: number, newValue: T) {
     this.array[i] = newValue;
@@ -132,7 +132,7 @@ export class Heap<T, U = any> {
   /**
    * Removes the element at position `i`.
    * The complexity is O(log n) where n = this.size().
-   * @param i the element to remove
+   * @param i - the element to remove
    */
   public remove(i: number) {
     const newLength = --this.length;
@@ -174,7 +174,7 @@ export class Heap<T, U = any> {
    * calling fix is equivalent to, but faster than, calling
    * `remove(i); push(newValue);`.
    * The complexity is O(log n) where n = this.size().
-   * @param i
+   * @param i -
    */
   public fix(i: number) {
     if (!this.down(i, this.length)) {
@@ -209,8 +209,8 @@ export class Heap<T, U = any> {
 
   /**
    * Swaps the elements in the heap
-   * @param i The first element
-   * @param j The second element
+   * @param i - The first element
+   * @param j - The second element
    */
   private swap(i: number, j: number) {
     const array = this.array;
@@ -222,9 +222,9 @@ export class Heap<T, U = any> {
   /**
    * Heap initialization helper for when you only know of a single item for the
    * heap.
-   * @param item
-   * @param less
-   * @param refresher
+   * @param item -
+   * @param less -
+   * @param refresher -
    */
   public static from<T, U>(
     item: T,

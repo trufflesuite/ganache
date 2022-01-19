@@ -158,6 +158,17 @@ describe("api", () => {
           "didn't reject transaction with insufficient gas"
         );
       });
+
+      it("uses the correct baseFee", async () => {
+        const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+        const tx = {
+          from,
+          to: contractAddress,
+          data: `0x${contract.contract.evm.methodIdentifiers["getBaseFee()"]}`
+        };
+        const result = await provider.send("eth_call", [tx, "latest"]);
+        assert.strictEqual(BigInt(result), BigInt(block.baseFeePerGas));
+      });
     });
   });
 });

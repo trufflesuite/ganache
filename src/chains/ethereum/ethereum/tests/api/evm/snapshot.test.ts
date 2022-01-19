@@ -17,7 +17,7 @@ describe("api", () => {
         const contract = compile(join(__dirname, "./snapshot.sol"));
 
         const p = await getProvider({
-          miner: { defaultTransactionGasLimit: 6721975 }
+          miner: { defaultTransactionGasLimit: 6721975, instamine: "strict" }
         });
         const accounts = await p.send("eth_accounts");
         const from = accounts[3];
@@ -526,13 +526,11 @@ describe("api", () => {
 
         const finalLaterTxsReceiptsProm = Promise.all(txHashes.map(getReceipt));
         const finalLaterTxsTransactionsProm = Promise.all(txHashes.map(getTx));
-        const [
-          finalLaterTxsReceipts,
-          finalLaterTxsTransactions
-        ] = await Promise.all([
-          finalLaterTxsReceiptsProm,
-          finalLaterTxsTransactionsProm
-        ]);
+        const [finalLaterTxsReceipts, finalLaterTxsTransactions] =
+          await Promise.all([
+            finalLaterTxsReceiptsProm,
+            finalLaterTxsTransactionsProm
+          ]);
 
         // verify that we do have the receipts
         finalLaterTxsReceipts.forEach(receipt => {

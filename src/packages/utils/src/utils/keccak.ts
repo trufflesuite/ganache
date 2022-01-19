@@ -14,7 +14,7 @@ const instance = makeKeccak("keccak256") as {
 
 /**
  * keccak256, but faster if you use it a lot.
- * @param buffer
+ * @param buffer -
  */
 export function keccak(buffer: Buffer) {
   instance._state.absorb(buffer);

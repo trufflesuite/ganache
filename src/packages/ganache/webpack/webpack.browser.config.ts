@@ -35,7 +35,10 @@ const config: webpack.Configuration = merge({}, base, {
       // mcl-wasm may be needed when creating a new @ethereumjs/vm and requires a browser version for browsers
       "mcl-wasm": require.resolve("mcl-wasm/browser"),
       // ws doesn't work in the browser, isomorphic-ws does
-      ws: require.resolve("isomorphic-ws/")
+      ws: require.resolve("isomorphic-ws/"),
+      // we don't use the debug module internally, so let's just not include it
+      // in any package.
+      debug: require.resolve("./polyfills/debug")
     }
   },
   output: {

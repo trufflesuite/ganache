@@ -11,8 +11,8 @@ const _hasOwn: hasOwn = {}.hasOwnProperty.call.bind({}.hasOwnProperty) as any;
  *
  * Safe for use on user-supplied data.
  *
- * @param obj The object that will be checked.
- * @param v A property name.
+ * @param obj - The object that will be checked.
+ * @param v - A property name.
  * @returns `true` if the object has a property with the specified name,
  * otherwise false.
  */

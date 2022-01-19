@@ -24,12 +24,14 @@ import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   TypedRpcTransaction,
   TransactionFactory,
-  TypedTransaction
+  TypedTransaction,
+  TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
 import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
+  Heap,
   Quantity,
   PromiEvent,
   Api,
@@ -42,7 +44,6 @@ import {
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
-import { $INLINE_JSON } from "ts-transformer-inline-file";
 
 import Emittery from "emittery";
 import estimateGas from "./helpers/gas-estimator";
@@ -68,7 +69,7 @@ async function autofillDefaultTransactionValues(
     const defaultLimit = options.miner.defaultTransactionGasLimit;
     if (defaultLimit === RPCQUANTITY_EMPTY) {
       // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
-      tx.gas = await eth_estimateGas(transaction, Tag.LATEST);
+      tx.gas = await eth_estimateGas(transaction, Tag.latest);
     } else {
       tx.gas = defaultLimit;
     }
@@ -89,8 +90,7 @@ async function autofillDefaultTransactionValues(
   }
 }
 
-// Read in the current ganache version from core's package.json
-const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
+const version = process.env.VERSION || "DEV";
 //#endregion
 
 //#region Constants
@@ -149,7 +149,10 @@ function assertExceptionalTransactions(transactions: TypedTransaction[]) {
 export default class EthereumApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-  readonly #getId = (id => () => Quantity.from(++id))(0);
+  readonly #getId = (
+    id => () =>
+      Quantity.from(++id)
+  )(0);
   readonly #filters = new Map<string, Filter>();
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
   readonly #options: EthereumInternalOptions;
@@ -160,9 +163,9 @@ export default class EthereumApi implements Api {
    * This is the Ethereum API that the provider interacts with.
    * The only methods permitted on the prototype are the supported json-rpc
    * methods.
-   * @param options
-   * @param wallet
-   * @param emitter
+   * @param options -
+   * @param wallet -
+   * @param emitter -
    */
   constructor(
     options: EthereumInternalOptions,
@@ -302,13 +305,15 @@ export default class EthereumApi implements Api {
     arg?: number | { timestamp?: number; blocks?: number }
   ): Promise<"0x0"> {
     const blockchain = this.#blockchain;
-    const vmErrorsOnRPCResponse = this.#options.chain.vmErrorsOnRPCResponse;
+    const options = this.#options;
+    const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
       let { blocks, timestamp } = arg;
       if (blocks == null) {
         blocks = 1;
       }
+      const strictMiner = options.miner.instamine === "strict";
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
       // Developers like to move the blockchain forward by thousands of blocks
@@ -319,15 +324,20 @@ export default class EthereumApi implements Api {
           timestamp,
           true
         );
-        // wait until the blocks are fully saved before mining the next ones
-        await new Promise(resolve => {
-          const off = blockchain.on("block", block => {
-            if (block.header.number.toBuffer().equals(blockNumber)) {
-              off();
-              resolve(void 0);
-            }
+
+        if (strictMiner) {
+          // in strict mode we have to wait until the blocks are fully saved
+          // before mining the next ones, in eager mode they've already been
+          // saved
+          await new Promise(resolve => {
+            const off = blockchain.on("block", ({ header: { number } }) => {
+              if (number.toBuffer().equals(blockNumber)) {
+                off();
+                resolve(void 0);
+              }
+            });
           });
-        });
+        }
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
@@ -386,7 +396,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Jump forward in time by the given amount of time, in seconds.
-   * @param seconds Number of seconds to jump forward in time by. Must be greater than or equal to `0`.
+   * @param seconds - Number of seconds to jump forward in time by. Must be greater than or equal to `0`.
    * @returns Returns the total time adjustment, in seconds.
    * @example
    * ```javascript
@@ -408,10 +418,10 @@ export default class EthereumApi implements Api {
    * Sets the internal clock time to the given timestamp.
    *
    * Warning: This will allow you to move *backwards* in time, which may cause
-   * new blocks to appear to be mined before old blocks. This is will result in
+   * new blocks to appear to be mined before old blocks. This will result in
    * an invalid state.
    *
-   * @param time JavaScript timestamp (millisecond precision).
+   * @param time - JavaScript timestamp (millisecond precision).
    * @returns The amount of *seconds* between the given timestamp and now.
    * @example
    * ```javascript
@@ -445,7 +455,7 @@ export default class EthereumApi implements Api {
    * snapshot, as well as any snapshots taken after (e.g.: reverting to id 0x1
    * will delete snapshots with ids 0x1, 0x2, etc.)
    *
-   * @param snapshotId The snapshot id to revert.
+   * @param snapshotId - The snapshot id to revert.
    * @returns `true` if a snapshot was reverted, otherwise `false`.
    *
    * @example
@@ -527,9 +537,9 @@ export default class EthereumApi implements Api {
    *
    * Note: accounts already known to the `personal` namespace and accounts
    * returned by `eth_accounts` cannot be re-added using this method.
-   * @param address The address of the account to add to the `personal`
+   * @param address - The address of the account to add to the `personal`
    * namespace.
-   * @param passphrase The passphrase used to encrypt the account's private key.
+   * @param passphrase - The passphrase used to encrypt the account's private key.
    * NOTE: this passphrase will be needed for all `personal` namespace calls
    * that require a password.
    * @returns `true` if  the account was successfully added. `false` if the
@@ -552,9 +562,9 @@ export default class EthereumApi implements Api {
    *
    * Note: accounts not known to the `personal` namespace cannot be removed
    * using this method.
-   * @param address The address of the account to remove from the `personal`
+   * @param address - The address of the account to remove from the `personal`
    * namespace.
-   * @param passphrase The passphrase used to decrypt the account's private key.
+   * @param passphrase - The passphrase used to decrypt the account's private key.
    * @returns `true` if the account was successfully removed. `false` if the
    * account was not in the `personal` namespace.
    * @example
@@ -577,7 +587,7 @@ export default class EthereumApi implements Api {
    * Resume the CPU mining process with the given number of threads.
    *
    * Note: `threads` is ignored.
-   * @param threads Number of threads to resume the CPU mining process with.
+   * @param threads - Number of threads to resume the CPU mining process with.
    * @returns `true`.
    * @example
    * ```javascript
@@ -591,7 +601,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
-    if (this.#options.miner.legacyInstamine === true) {
+    if (this.#options.miner.instamine === "eager") {
       const resumption = await this.#blockchain.resume(threads);
       // resumption can be undefined if the blockchain isn't currently paused
       if (
@@ -629,7 +639,7 @@ export default class EthereumApi implements Api {
    * Sets the default accepted gas price when mining transactions.
    * Any transactions that don't specify a gas price will use this amount.
    * Transactions that are below this limit are excluded from the mining process.
-   * @param number Default accepted gas price.
+   * @param number - Default accepted gas price.
    * @returns `true`.
    * @example
    * ```javascript
@@ -644,7 +654,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Sets the etherbase, where mining rewards will go.
-   * @param address The address where the mining rewards will go.
+   * @param address - The address where the mining rewards will go.
    * @returns `true`.
    * @example
    * ```javascript
@@ -660,7 +670,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Set the extraData block header field a miner can include.
-   * @param extra The `extraData` to include.
+   * @param extra - The `extraData` to include.
    * @returns If successfully set returns `true`, otherwise returns an error.
    * @example
    * ```javascript
@@ -770,8 +780,8 @@ export default class EthereumApi implements Api {
    * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
-   * @param transaction The transaction call object as seen in source.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param transaction - The transaction call object as seen in source.
+   * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns The amount of gas used.
@@ -786,7 +796,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_estimateGas(
     transaction: TypedRpcTransaction,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -851,10 +861,10 @@ export default class EthereumApi implements Api {
    *
    * @returns An object with sync status data or `false`, when not syncing.
    *
-   * * `startingBlock`: {bigint} The block at which the import started (will
+   * * `startingBlock`: \{bigint\} The block at which the import started (will
    *     only be reset, after the sync reached his head).
-   * * `currentBlock`: {bigint} The current block, same as `eth_blockNumber`.
-   * * `highestBlock`: {bigint} The estimated highest block.
+   * * `currentBlock`: \{bigint\} The current block, same as `eth_blockNumber`.
+   * * `highestBlock`: \{bigint\} The estimated highest block.
    *
    * @example
    * ```javascript
@@ -883,9 +893,9 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a block by block number.
-   * @param number Integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * @param number - Integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
-   * @param transactions If `true` it returns the full transaction objects, if `false` only the hashes of the
+   * @param transactions - If `true` it returns the full transaction objects, if `false` only the hashes of the
    * transactions.
    * @returns The block, `null` if the block doesn't exist.
    *
@@ -926,8 +936,8 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a block by block hash.
-   * @param hash Hash of a block.
-   * @param transactions If `true` it returns the full transaction objects, if `false` only the hashes of the
+   * @param hash - Hash of a block.
+   * @param transactions - If `true` it returns the full transaction objects, if `false` only the hashes of the
    * transactions.
    * @returns The block, `null` if the block doesn't exist.
    *
@@ -984,7 +994,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block number.
-   * @param number Integer of a block number, or the string "earliest", "latest" or "pending", as in the
+   * @param number - Integer of a block number, or the string "earliest", "latest" or "pending", as in the
    * default block parameter.
    * @returns Integer of the number of transactions in the block.
    * @example
@@ -1006,7 +1016,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of transactions in a block from a block matching the given block hash.
-   * @param hash Hash of a block.
+   * @param hash - Hash of a block.
    * @returns Number of transactions in the block.
    * @example
    * ```javascript
@@ -1059,8 +1069,8 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a transaction by block hash and transaction index position.
-   * @param hash Hash of a block.
-   * @param index Integer of the transaction index position.
+   * @param hash - Hash of a block.
+   * @param index - Integer of the transaction index position.
    * @returns The transaction object or `null` if no transaction was found.
    *
    * * `hash`: `DATA`, 32 Bytes - The transaction hash.
@@ -1105,8 +1115,8 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns information about a transaction by block number and transaction index position.
-   * @param number A block number, or the string "earliest", "latest" or "pending".
-   * @param index Integer of the transaction index position.
+   * @param number - A block number, or the string "earliest", "latest" or "pending".
+   * @param index - Integer of the transaction index position.
    * @returns The transaction object or `null` if no transaction was found.
    *
    * * `hash`: `DATA`, 32 Bytes - The transaction hash.
@@ -1152,7 +1162,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param hash Hash of a block.
+   * @param hash - Hash of a block.
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
@@ -1168,7 +1178,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the number of uncles in a block from a block matching the given block hash.
-   * @param blockNumber A block number, or the string "earliest", "latest" or "pending".
+   * @param blockNumber - A block number, or the string "earliest", "latest" or "pending".
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
@@ -1184,8 +1194,8 @@ export default class EthereumApi implements Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param hash Hash of a block.
-   * @param index The uncle's index position.
+   * @param hash - Hash of a block.
+   * @param index - The uncle's index position.
    * @returns A block object or `null` when no block is found.
    *
    * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
@@ -1224,8 +1234,8 @@ export default class EthereumApi implements Api {
   /**
    * Returns information about a uncle of a block by hash and uncle index position.
    *
-   * @param blockNumber A block number, or the string "earliest", "latest" or "pending".
-   * @param uncleIndex The uncle's index position.
+   * @param blockNumber - A block number, or the string "earliest", "latest" or "pending".
+   * @param uncleIndex - The uncle's index position.
    * @returns A block object or `null` when no block is found.
    *
    * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
@@ -1269,12 +1279,12 @@ export default class EthereumApi implements Api {
    * 2: `DATA`, 32 Bytes - the seed hash used for the DAG.
    * 3: `DATA`, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
    *
-   * @param filterId A filter id.
+   * @param filterId - A filter id.
    * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
    * @example
    * ```javascript
    * console.log(await provider.send("eth_getWork", ["0x0"] ));
-   *  ```
+   * ```
    */
   @assertArgLength(1)
   async eth_getWork(filterId: QUANTITY) {
@@ -1284,9 +1294,9 @@ export default class EthereumApi implements Api {
   /**
    * Used for submitting a proof-of-work solution.
    *
-   * @param nonce The nonce found (64 bits).
-   * @param powHash The header's pow-hash (256 bits).
-   * @param digest The mix digest (256 bits).
+   * @param nonce - The nonce found (64 bits).
+   * @param powHash - The header's pow-hash (256 bits).
+   * @param digest - The mix digest (256 bits).
    * @returns `true` if the provided solution is valid, otherwise `false`.
    * @example
    * ```javascript
@@ -1305,8 +1315,8 @@ export default class EthereumApi implements Api {
   /**
    * Used for submitting mining hashrate.
    *
-   * @param hashRate A hexadecimal string representation (32 bytes) of the hash rate.
-   * @param clientID A random hexadecimal(32 bytes) ID identifying the client.
+   * @param hashRate - A hexadecimal string representation (32 bytes) of the hash rate.
+   * @param clientID - A random hexadecimal(32 bytes) ID identifying the client.
    * @returns `true` if submitting went through succesfully and `false` otherwise.
    * @example
    * ```javascript
@@ -1425,8 +1435,8 @@ export default class EthereumApi implements Api {
 
   /**
    * Returns the balance of the account of given address.
-   * @param address Address to check for balance.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param address - Address to check for balance.
+   * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns Integer of the account balance in wei.
@@ -1441,7 +1451,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getBalance(
     address: DATA,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ) {
     return this.#blockchain.accounts.getBalance(
       Address.from(address),
@@ -1452,8 +1462,8 @@ export default class EthereumApi implements Api {
   /**
    * Returns code at a given address.
    *
-   * @param address Address.
-   * @param blockNumber Integer block number, or the string "latest", "earliest" or "pending".
+   * @param address - Address.
+   * @param blockNumber - Integer block number, or the string "latest", "earliest" or "pending".
    * @returns The code from the given address.
    * @example
    * ```javascript
@@ -1478,16 +1488,16 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.LATEST) {
+  async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.latest) {
     const { accounts } = this.#blockchain;
     return accounts.getCode(Address.from(address), blockNumber);
   }
 
   /**
    * Returns the value from a storage position at a given address.
-   * @param address Address of the storage.
-   * @param position Integer of the position in the storage.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param address - Address of the storage.
+   * @param position - Integer of the position in the storage.
+   * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    * @returns The value in storage at the requested position.
    * @example
@@ -1516,7 +1526,7 @@ export default class EthereumApi implements Api {
   async eth_getStorageAt(
     address: DATA,
     position: QUANTITY,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ) {
     const blockchain = this.#blockchain;
     const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
@@ -1556,7 +1566,7 @@ export default class EthereumApi implements Api {
   /**
    * Returns the information about a transaction requested by transaction hash.
    *
-   * @param transactionHash Hash of a transaction.
+   * @param transactionHash - Hash of a transaction.
    * @returns The transaction object or `null` if no transaction was found.
    *
    * * `hash`: `DATA`, 32 Bytes - The transaction hash.
@@ -1609,7 +1619,7 @@ export default class EthereumApi implements Api {
    *
    * Note: The receipt is not available for pending transactions.
    *
-   * @param transactionHash Hash of a transaction.
+   * @param transactionHash - Hash of a transaction.
    * @returns Returns the receipt of a transaction by transaction hash.
    * @example
    * ```javascript
@@ -1624,12 +1634,8 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(transactionHash: DATA) {
-    const {
-      transactions,
-      transactionReceipts,
-      blocks,
-      common
-    } = this.#blockchain;
+    const { transactions, transactionReceipts, blocks, common } =
+      this.#blockchain;
     const dataHash = Data.from(transactionHash);
     const txHash = dataHash.toBuffer();
 
@@ -1647,12 +1653,12 @@ export default class EthereumApi implements Api {
       return receipt.toJSON(block, transaction, common);
     }
 
-    // if we are performing non-legacy instamining, then check to see if the
-    // transaction is pending so as to warn about the v7 breaking change
+    // if we are performing "strict" instamining, then check to see if the
+    // transaction is pending so as to warn about the v7 instamine changes
     const options = this.#options;
     if (
       options.miner.blockTime <= 0 &&
-      options.miner.legacyInstamine !== true &&
+      options.miner.instamine === "strict" &&
       this.#blockchain.isStarted()
     ) {
       const tx = this.#blockchain.transactions.transactionPool.find(txHash);
@@ -1769,7 +1775,7 @@ export default class EthereumApi implements Api {
   }
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
-   * @param transaction The signed transaction data.
+   * @param transaction - The signed transaction data.
    * @returns The transaction hash.
    * @example
    * ```javascript
@@ -1796,8 +1802,8 @@ export default class EthereumApi implements Api {
    *
    * Note the address to sign with must be unlocked.
    *
-   * @param address Address to sign with.
-   * @param message Message to sign.
+   * @param address - Address to sign with.
+   * @param message - Message to sign.
    * @returns Signature - a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
    * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
@@ -1821,17 +1827,16 @@ export default class EthereumApi implements Api {
       throw new Error("cannot sign data; no private key");
     }
 
-    const chainId = this.#options.chain.chainId;
     const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
-    const { v, r, s } = ecsign(messageHash, privateKey.toBuffer(), chainId);
-    return toRpcSig(v, r, s, chainId);
+    const { v, r, s } = ecsign(messageHash, privateKey.toBuffer());
+    return toRpcSig(v, r, s);
   }
 
   /**
    * Identical to eth_signTypedData_v4.
    *
-   * @param address Address of the account that will sign the messages.
-   * @param typedData Typed structured data to be signed.
+   * @param address - Address of the account that will sign the messages.
+   * @param typedData - Typed structured data to be signed.
    * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
    * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
@@ -1890,8 +1895,8 @@ export default class EthereumApi implements Api {
 
   /**
    *
-   * @param address Address of the account that will sign the messages.
-   * @param typedData Typed structured data to be signed.
+   * @param address - Address of the account that will sign the messages.
+   * @param typedData - Typed structured data to be signed.
    * @returns Signature. As in `eth_sign`, it is a hex encoded 129 byte array
    * starting with `0x`. It encodes the `r`, `s`, and `v` parameters from
    * appendix F of the [yellow paper](https://ethereum.github.io/yellowpaper/paper.pdf)
@@ -1984,7 +1989,7 @@ export default class EthereumApi implements Api {
    * the subscription a JSON-RPC notification with event details and
    * subscription ID will be sent to a client.
    *
-   * @param subscriptionName Name for the subscription.
+   * @param subscriptionName - Name for the subscription.
    * @returns A subscription id.
    * @example
    * ```javascript
@@ -1998,8 +2003,8 @@ export default class EthereumApi implements Api {
    * the subscription a JSON-RPC notification with event details and
    * subscription ID will be sent to a client.
    *
-   * @param subscriptionName
-   * @param options Filter options:
+   * @param subscriptionName -
+   * @param options - Filter options:
    *  * `address`: either an address or an array of addresses. Only logs that
    *    are created from these addresses are returned
    *  * `topics`, only logs which match the specified topics
@@ -2126,7 +2131,7 @@ export default class EthereumApi implements Api {
    * Cancel a subscription to a particular event. Returns a boolean indicating
    * if the subscription was successfully cancelled.
    *
-   * @param subscriptionId The ID of the subscription to unsubscribe to.
+   * @param subscriptionId - The ID of the subscription to unsubscribe to.
    * @returns `true` if subscription was cancelled successfully, otherwise `false`.
    * @example
    * ```javascript
@@ -2236,7 +2241,7 @@ export default class EthereumApi implements Api {
    * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
    * be an array of `DATA` with "or" options.
    *
-   * @param filter The filter options as seen in source.
+   * @param filter - The filter options as seen in source.
    *
    * @returns A filter id.
    * @example
@@ -2272,7 +2277,7 @@ export default class EthereumApi implements Api {
    * or transaction hashes, depending on the filter type, which occurred since
    * last poll.
    *
-   * @param filterId The filter id.
+   * @param filterId - The filter id.
    * @returns An array of logs, block hashes, or transaction hashes, depending
    * on the filter type, which occurred since last poll.
    *
@@ -2339,7 +2344,7 @@ export default class EthereumApi implements Api {
    * Uninstalls a filter with given id. Should always be called when watch is
    * no longer needed.
    *
-   * @param filterId The filter id.
+   * @param filterId - The filter id.
    * @returns `true` if the filter was successfully uninstalled, otherwise
    * `false`.
    * @example
@@ -2361,7 +2366,7 @@ export default class EthereumApi implements Api {
   /**
    * Returns an array of all logs matching filter with given id.
    *
-   * @param filterId The filter id.
+   * @param filterId - The filter id.
    * @returns Array of log objects, or an empty array.
    * @example
    * ```javascript
@@ -2417,7 +2422,7 @@ export default class EthereumApi implements Api {
    * * `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,
    * then neither `fromBlock` or `toBlock` are allowed.
    *
-   * @param filter The filter options as seen in source.
+   * @param filter - The filter options as seen in source.
    * @returns Array of log objects, or an empty array.
    * @example
    * ```javascript
@@ -2458,8 +2463,8 @@ export default class EthereumApi implements Api {
   /**
    * Returns the number of transactions sent from an address.
    *
-   * @param address `DATA`, 20 Bytes - The address to get number of transactions sent from
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param address - `DATA`, 20 Bytes - The address to get number of transactions sent from
+   * @param blockNumber - Integer block number, or the string "latest", "earliest"
    * or "pending".
    * @returns Number of transactions sent from this address.
    * @example
@@ -2476,7 +2481,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getTransactionCount(
     address: DATA,
-    blockNumber: QUANTITY | Tag = Tag.LATEST
+    blockNumber: QUANTITY | Tag = Tag.latest
   ) {
     return this.#blockchain.accounts.getNonce(
       Address.from(address),
@@ -2496,7 +2501,7 @@ export default class EthereumApi implements Api {
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
    * @param transaction - The transaction call object as seen in source.
-   * @param blockNumber Integer block number, or the string "latest", "earliest"
+   * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
    * @returns The return value of executed contract.
@@ -2520,7 +2525,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.LATEST) {
+  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.latest) {
     const blockchain = this.#blockchain;
     const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
@@ -2553,11 +2558,16 @@ export default class EthereumApi implements Api {
     // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
     // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
     // the effectiveGasPrice, which is used to calculate tx costs/refunds.
-    const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+    const baseFeePerGasBigInt = parentBlock.header.baseFeePerGas
+      ? parentBlock.header.baseFeePerGas.toBigInt()
+      : undefined;
 
     let gasPrice: Quantity;
     const hasGasPrice = typeof transaction.gasPrice !== "undefined";
-    if (!common.isActivatedEIP(1559)) {
+    // if the original block didn't have a `baseFeePerGas` (baseFeePerGasBigInt
+    // is undefined) then EIP-1559 was not active on that block and we can't use
+    // type 2 fee values (as they rely on the baseFee)
+    if (!common.isActivatedEIP(1559) || baseFeePerGasBigInt === undefined) {
       gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
     } else {
       const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";
@@ -2634,7 +2644,7 @@ export default class EthereumApi implements Api {
    * * `disableMemory`: \{boolean\} Setting this to `true` will disable memory capture (default = `false`).
    * * `disableStack`: \{boolean\} Setting this to `true` will disable stack capture (default = `false`).
    *
-   * @param transactionHash Hash of the transaction to trace.
+   * @param transactionHash - Hash of the transaction to trace.
    * @param options - See options in source.
    * @returns Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction.
    *
@@ -2682,11 +2692,11 @@ export default class EthereumApi implements Api {
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
    *
-   * @param blockHash Hash of a block.
-   * @param transactionIndex Integer of the transaction index position.
-   * @param contractAddress Address of the contract.
-   * @param startKey Hash of the start key for grabbing storage entries.
-   * @param maxResult Integer of maximum number of storage entries to return.
+   * @param blockHash - Hash of a block.
+   * @param transactionIndex - Integer of the transaction index position.
+   * @param contractAddress - Address of the contract.
+   * @param startKey - Hash of the start key for grabbing storage entries.
+   * @param maxResult - Integer of maximum number of storage entries to return.
    * @returns Returns a storage object with the keys being keccak-256 hashes of the storage keys,
    * and the values being the raw, unhashed key and value for that specific storage slot. Also
    * returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
@@ -2757,7 +2767,7 @@ export default class EthereumApi implements Api {
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
-   * @param passphrase The passphrase to encrypt the private key with.
+   * @param passphrase - The passphrase to encrypt the private key with.
    * @returns The new account's address.
    * @example
    * ```javascript
@@ -2785,8 +2795,8 @@ export default class EthereumApi implements Api {
   /**
    * Imports the given unencrypted private key (hex string) into the key store, encrypting it with the passphrase.
    *
-   * @param rawKey The raw, unencrypted private key to import.
-   * @param passphrase The passphrase to encrypt with.
+   * @param rawKey - The raw, unencrypted private key to import.
+   * @param passphrase - The passphrase to encrypt with.
    * @returns Returns the address of the new account.
    * @example
    * ```javascript
@@ -2815,7 +2825,7 @@ export default class EthereumApi implements Api {
 
   /**
    * Locks the account. The account can no longer be used to send transactions.
-   * @param address The account address to be locked.
+   * @param address - The account address to be locked.
    * @returns Returns `true` if the account was locked, otherwise `false`.
    * @example
    * ```javascript
@@ -2982,7 +2992,7 @@ export default class EthereumApi implements Api {
   async rpc_modules() {
     return RPC_MODULES;
   }
-  //endregion
+  //#endregion
 
   //#region shh
 
@@ -3106,7 +3116,7 @@ export default class EthereumApi implements Api {
   /**
    * Creates a whisper message and injects it into the network for distribution.
    *
-   * @param postData
+   * @param postData -
    * @returns Returns `true` if the message was sent, otherwise `false`.
    * @example
    * ```javascript
@@ -3131,5 +3141,55 @@ export default class EthereumApi implements Api {
   async shh_version() {
     return "2";
   }
+  //#endregion
+
+  //#region txpool
+
+  /**
+   * Returns the current content of the transaction pool.
+   *
+   * @returns The transactions currently pending or queued in the transaction pool.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_content");
+   * console.log(pool);
+   * ```
+   */
+  @assertArgLength(0)
+  async txpool_content(): Promise<{
+    pending: Map<string, Map<string, TypedTransactionJSON>>;
+    queued: Map<string, Map<string, TypedTransactionJSON>>;
+  }> {
+    const { transactions, common } = this.#blockchain;
+    const { transactionPool } = transactions;
+
+    const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
+      let res = new Map<string, Map<string, TypedTransactionJSON>>();
+      for (let [_, transactions] of map) {
+        const arr = transactions.array;
+        for (let i = 0; i < transactions.length; ++i) {
+          const tx = arr[i];
+          const from = tx.from.toString();
+          if (res[from] === undefined) {
+            res[from] = {};
+          }
+          // The nonce keys are actual decimal numbers (as strings) and not
+          // hex literals (based on what geth returns).
+          const nonce = tx.nonce.toBigInt().toString();
+          res[from][nonce] = tx.toJSON(common);
+        }
+      }
+      return res;
+    };
+
+    return {
+      pending: processMap(transactionPool.executables.pending),
+      queued: processMap(transactionPool.origins)
+    };
+  }
+
   //#endregion
 }

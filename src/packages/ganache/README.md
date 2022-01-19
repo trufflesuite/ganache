@@ -18,6 +18,7 @@
   <a href="#getting-started">Getting Started</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#community">Community</a> •
+  <a href="#docker">Docker</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#related">Related</a>
 </p>
@@ -110,7 +111,7 @@ Listening on 127.0.0.1:8545
 To install Ganache into an npm project, run:
 
 ```console
-$ npm install ganache
+$ npm install ganache@rc
 ```
 
 You can then add Ganache to your package.json scripts:
@@ -531,6 +532,41 @@ Currently, we do not await the event listener's return value, however, we'll lik
 
 - [Discord](https://trfl.io/community)
 - [Reddit](https://www.reddit.com/r/Truffle/)
+
+## Docker
+
+The simplest way to get started with the Docker image:
+
+```console
+$ docker run --detach --publish 8545:8545 trufflesuite/ganache:rc
+```
+
+To pass options to Ganache through Docker simply add the arguments to the end of the run command, e.g.,
+
+```console
+$ docker run --detach --publish 8545:8545 trufflesuite/ganache:latest --accounts 10 --debug
+                                                                    ^^^^^^^^^^^^^^^^^^^^^
+```
+
+The Docker container adds an environment variable `DOCKER=true`; when this variable is set to `true` (case insensitive), Ganache uses a default hostname IP of `0.0.0.0` instead of the normal default `127.0.0.1`. You can still specify a custom hostname however:
+
+```console
+$ docker run --detach --publish 8545:8545 trufflesuite/ganache:latest --host XXX.XXX.XXX.XXX
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^
+```
+
+To build and run the Docker container from source:
+
+```console
+$ git clone https://github.com/trufflesuite/ganache.git && cd ganache
+```
+
+then:
+
+```console
+$ docker build --tag trufflesuite/ganache --file ./src/packages/ganache/Dockerfile .
+$ docker run --publish 8545:8545 trufflesuite/ganache
+```
 
 ## Contributing
 

@@ -92,8 +92,8 @@ export default class TransactionManager extends Manager<NoOp> {
    *
    * Returns a promise that is only resolved in the order it was added.
    *
-   * @param transaction
-   * @param secretKey
+   * @param transaction -
+   * @param secretKey -
    * @returns `true` if the `transaction` is immediately executable, `false` if
    * it may be valid in the future. Throws if the transaction is invalid.
    */

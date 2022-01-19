@@ -82,7 +82,9 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
   const isEnoughGas = async gas => {
     const vm = generateVM(); // Generate fresh VM
     runArgs.tx.gasLimit = new BN(gas.toArrayLike(Buffer));
+    await vm.stateManager.checkpoint();
     const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
+    await vm.stateManager.revert();
     return !result.vmerr && !result.execResult.exceptionError;
   };
 
@@ -245,8 +247,9 @@ const exactimate = async (vm, runArgs, callback) => {
     const gas = context.getCost();
     return gas.cost.add(gas.sixtyFloorths);
   };
-
+  await vm.stateManager.checkpoint();
   const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
+  await vm.stateManager.revert();
   const vmerr = result.vmerr;
   if (vmerr) {
     return callback(vmerr);

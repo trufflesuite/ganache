@@ -217,7 +217,7 @@ describe("Random tests that are temporary!", () => {
     function cleanUp() {
       try {
         fs.unlinkSync(fileName);
-      } catch (e) {
+      } catch {
         // ignore error
       }
     }

@@ -9,7 +9,7 @@ const execArgs: ExecSyncOptions = { cwd, stdio: "inherit" };
 // run `lerna bootstrap`
 let lernaUseCi: boolean = false;
 if (process.env.npm_config_argv) {
-  let npmArgs: { cooked?: string[] };
+  let npmArgs: { cooked?: string[] } | null = null;
   try {
     npmArgs = JSON.parse(process.env.npm_config_argv);
   } catch {}

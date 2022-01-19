@@ -5,8 +5,8 @@ export class Address extends Data {
 
   /**
    *
-   * @param value
-   * @param byteLength the exact length the value represents when encoded as
+   * @param value -
+   * @param byteLength - the exact length the value represents when encoded as
    * Ethereum JSON-RPC DATA.
    */
   constructor(value: string | Buffer) {
