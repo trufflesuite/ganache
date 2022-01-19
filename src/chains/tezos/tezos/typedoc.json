@@ -1,0 +1,6 @@
+{
+  "name": "@ganache/tezos",
+  "excludeExternals": true,
+  "categoryOrder": [],
+  "exclude": ["**/test/*"]
+}

@@ -1,0 +1,12 @@
+{
+  "packages": ["src/packages/*", "src/chains/*/*"],
+  "version": "independent",
+  "command": {
+    "version": {
+      "allowBranch": ["alpha", "beta", "rc", "master"]
+    },
+    "bootstrap": {
+      "reject-cycles": true
+    }
+  }
+}

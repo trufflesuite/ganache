@@ -1,0 +1,34 @@
+{
+  "extends": "../../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declarationDir": "typings",
+    "composite": true
+  },
+  "include": [
+    "src",
+    "index.ts"
+  ],
+  "references": [
+    {
+      "name": "@ganache/utils",
+      "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/rlp",
+      "path": "../../../packages/rlp"
+    },
+    {
+      "name": "@ganache/ethereum-address",
+      "path": "../address"
+    },
+    {
+      "name": "@ganache/ethereum-utils",
+      "path": "../utils"
+    },
+    {
+      "name": "@ganache/secp256k1",
+      "path": "../../../packages/secp256k1"
+    }
+  ]
+}

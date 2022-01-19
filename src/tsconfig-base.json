@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "skipLibCheck": true,
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "target": "ES2020",
+    "moduleResolution": "node",
+    "noErrorTruncation": true,
+    "sourceMap": true,
+    "strict": true,
+    /** `noImplicitAny: false` and `strictNullChecks: false` are temporary during initial rapid development. */
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "newLine": "lf",
+    "lib": ["ES2020"],
+    "experimentalDecorators": true
+  }
+}

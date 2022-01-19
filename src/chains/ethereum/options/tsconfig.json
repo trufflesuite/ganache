@@ -1,0 +1,30 @@
+{
+  "extends": "../../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declarationDir": "typings",
+    "composite": true
+  },
+  "include": [
+    "index.ts",
+    "src"
+  ],
+  "references": [
+    {
+      "name": "@ganache/ethereum-utils",
+      "path": "../utils"
+    },
+    {
+      "name": "@ganache/options",
+      "path": "../../../packages/options"
+    },
+    {
+      "name": "@ganache/utils",
+      "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/ethereum-address",
+      "path": "../address"
+    }
+  ]
+}
