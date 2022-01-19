@@ -316,9 +316,9 @@ NOTE: if you use the persisted DB option: we have never stored unexecuted
 transactions to disk and do not plan to do so. The same is true of these queued
 transactions.
 
-#### Non-zero gas prices are not permitted in London
+#### Non-zero gas prices are not permitted in the london hardfork
 
-A side effect of the updating to London is that transactions can no longer be
+A side effect of the updating to the london hardfork is that transactions can no longer be
 sent with a `gasPrice` of `0`. The reason for this is that blocks automatically
 adjust the minimum gas price from one block to another. We'll be adding a
 feature flag to allow for zero `gasPrice` transactions in the future. If you
