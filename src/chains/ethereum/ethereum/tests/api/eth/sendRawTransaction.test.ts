@@ -144,17 +144,12 @@ describe("api", () => {
                 "Error code should be -32000"
               );
               assert.strictEqual(
-                result.data.reason,
-                null,
-                "The reason is undecodable, and thus should be null"
-              );
-              assert.strictEqual(
-                result.data.message,
-                "revert",
+                result.message,
+                "VM Exception while processing transaction: revert",
                 "The message should not have a reason string included"
               );
               assert.strictEqual(
-                result.data.result,
+                result.data,
                 revertString,
                 "The revert reason should be encoded as hex"
               );

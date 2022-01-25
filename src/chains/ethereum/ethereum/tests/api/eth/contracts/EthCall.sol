@@ -12,4 +12,7 @@ contract EthCall {
     return block.basefee;
   }
 
+  function doARevert() public pure {
+    revert("you are a failure");
+  }
 }
