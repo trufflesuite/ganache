@@ -2,6 +2,7 @@ import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { VM_EXCEPTION } from "./errors";
 import { CodedError } from "./coded-error";
 import { JsonRpcErrorCode } from "@ganache/utils";
+import { Data } from "@ganache/utils";
 
 export class CallError extends CodedError {
   public code: JsonRpcErrorCode;
@@ -16,8 +17,9 @@ export class CallError extends CodedError {
     CodedError.captureStackTraceExtended.bind(this, message);
     this.name = this.constructor.name;
 
-    const reason = CodedError.createRevertReason(execResult);
+    const { returnValue } = execResult;
+    const reason = CodedError.createRevertReason(returnValue);
     this.message = reason ? message + " " + reason : message;
-    this.data = reason;
+    this.data = Data.from(returnValue).toString();
   }
 }
