@@ -114,6 +114,10 @@ type TypedData = Exclude<
 //#endregion
 
 //#region helpers
+/**
+ * Combines RuntimeErrors for a list of rejected or reverted transactions.
+ * @param transactions Array of transactions with errors to assert.
+ */
 function assertExceptionalTransactions(transactions: TypedTransaction[]) {
   let baseError: string = null;
   let errors: string[];
