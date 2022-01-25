@@ -9,7 +9,7 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  RETURN_TYPES,
+  CallError,
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
@@ -1086,9 +1086,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      // eth_call transactions don't really have a transaction hash
-      const hash = RPCQUANTITY_EMPTY;
-      throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
+      throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
     }
