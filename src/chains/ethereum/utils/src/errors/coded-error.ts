@@ -45,8 +45,7 @@ export class CodedError extends Error {
       );
     }
   }
-  static createRevertReason(execResult: ExecResult) {
-    const returnValue = execResult.returnValue;
+  static createRevertReason(returnValue: Buffer) {
     let reason: string | null;
     if (
       returnValue.length > 4 &&
