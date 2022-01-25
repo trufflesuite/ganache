@@ -32,11 +32,11 @@ export class RuntimeError extends CodedError {
     CodedError.captureStackTraceExtended.bind(this, message);
     this.name = this.constructor.name;
 
-    const returnValue = execResult.returnValue;
     const hash = transactionHash.toString();
-    const reason = CodedError.createRevertReason(execResult);
+    const { returnValue } = execResult;
+    const reason = CodedError.createRevertReason(returnValue);
+    this.message = reason ? message + " " + reason : message;
 
-    this.message = message;
     this.data = {
       hash: hash,
       programCounter: execResult.runState.programCounter,
