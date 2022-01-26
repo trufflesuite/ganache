@@ -272,7 +272,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   /**
-   * updates the this.latest and this.earliest properties with data
+   * Updates the this.latest and this.earliest properties with data
    * from the database.
    */
   async updateTaggedBlocks() {
