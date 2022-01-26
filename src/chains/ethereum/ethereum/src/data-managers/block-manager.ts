@@ -1,7 +1,7 @@
 import Manager from "./manager";
 import { Tag, QUANTITY } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
-import { Quantity, Data } from "@ganache/utils";
+import { Quantity, Data, BUFFER_ZERO } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import Blockchain from "../blockchain";
 import {
@@ -15,6 +15,8 @@ import {
   TransactionFactory,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
+
+const LATEST_INDEX_KEY = BUFFER_ZERO;
 
 const NOTFOUND = 404;
 
@@ -261,31 +263,68 @@ export default class BlockManager extends Manager<Block> {
     ]);
   }
 
-  updateTaggedBlocks() {
-    return new Promise<Block>((resolve, reject) => {
-      this.base
-        .createValueStream({ limit: 1 })
-        .on("data", (data: Buffer) => {
-          this.earliest = new Block(data, this.#common);
-        })
-        .on("error", (err: Error) => {
-          reject(err);
-        })
-        .on("end", () => {
-          resolve(void 0);
-        });
+  /**
+   * Updated the "latest" index to point to the given number
+   * @param number the block number of the latest block
+   */
+  async updateLatestIndex(number: Buffer) {
+    await this.#blockIndexes.put(LATEST_INDEX_KEY, number);
+  }
 
-      this.base
-        .createValueStream({ reverse: true, limit: 1 })
-        .on("data", (data: Buffer) => {
-          this.latest = new Block(data, this.#common);
+  /**
+   * updates the this.latest and this.earliest properties with data
+   * from the database.
+   */
+  async updateTaggedBlocks() {
+    const [earliest, latestBlockNumber] = await Promise.all([
+      new Promise<Block>((resolve, reject) => {
+        let earliest: Block;
+        this.base
+          .createValueStream({ limit: 1 })
+          .on("data", (data: Buffer) => {
+            earliest = new Block(data, this.#common);
+          })
+          .on("error", (err: Error) => {
+            reject(err);
+          })
+          .on("end", () => {
+            resolve(earliest);
+          });
+      }),
+      this.#blockIndexes.get(LATEST_INDEX_KEY).catch(e => null)
+    ]);
+
+    if (earliest) this.earliest = earliest;
+
+    if (latestBlockNumber) {
+      this.latest = await this.get(latestBlockNumber);
+    } else {
+      // TODO: remove this section for the Ganache 8.0 release
+      // Ganache v7.0.0 didn't save a pointer to the latest block correctly, so
+      // when a database was restarted it would pull the wrong block. This code
+      // iterates over all data in the data base and finds the block with the
+      // highest block number and updates the database with the pointer so we
+      // don't have to hit this code again next time.
+      const stream = this.base.createValueStream();
+      this.latest = await new Promise<Block>((resolve, reject) => {
+        let latest: Block;
+        stream.on("data", (data: Buffer) => {
+          const block = new Block(data, this.#common);
+          if (!latest || block.header.number.toBigInt() > latest.header.number.toBigInt()) {
+            latest = block;
+          }
         })
-        .on("error", (err: Error) => {
-          reject(err);
-        })
-        .on("end", () => {
-          resolve(void 0);
-        });
-    });
+          .on("error", (err: Error) => {
+            reject(err);
+          })
+          .on("end", () => {
+            resolve(latest);
+          });
+      });
+      if (this.latest) {
+        // update the LATEST_INDEX_KEY index so we don't have to do this next time
+        await this.#blockIndexes.put(LATEST_INDEX_KEY, this.latest.header.number.toBuffer()).catch(e => null)
+      }
+    }
   }
 }
