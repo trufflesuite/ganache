@@ -264,7 +264,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   /**
-   * Updated the "latest" index to point to the given number
+   * Updates the "latest" index to point to the given number.
    * @param number the block number of the latest block
    */
   async updateLatestIndex(number: Buffer) {
