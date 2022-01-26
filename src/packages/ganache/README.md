@@ -111,7 +111,7 @@ Listening on 127.0.0.1:8545
 To install Ganache into an npm project, run:
 
 ```console
-$ npm install ganache@rc
+$ npm install ganache
 ```
 
 You can then add Ganache to your package.json scripts:

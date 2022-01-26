@@ -4,7 +4,7 @@ import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
 import { BUFFER_EMPTY, Quantity, RPCQUANTITY_EMPTY } from "@ganache/utils";
-import { RETURN_TYPES, RuntimeError } from "@ganache/ethereum-utils";
+import { CallError } from "@ganache/ethereum-utils";
 
 describe("api", () => {
   describe("eth", () => {
@@ -99,7 +99,7 @@ describe("api", () => {
         assert.strictEqual(Quantity.from(result).toNumber(), 5);
       });
 
-      it("rejects transactions that specify legacy and eip-1559 transaction fields", async () => {
+      it("rejects transactions that specify both legacy and eip-1559 transaction fields", async () => {
         const tx = {
           from,
           to: contractAddress,
@@ -150,11 +150,7 @@ describe("api", () => {
         // the vm error should propagate through to here
         await assert.rejects(
           ethCallProm,
-          new RuntimeError(
-            RPCQUANTITY_EMPTY,
-            result,
-            RETURN_TYPES.RETURN_VALUE
-          ),
+          new CallError(result),
           "didn't reject transaction with insufficient gas"
         );
       });
@@ -168,6 +164,21 @@ describe("api", () => {
         };
         const result = await provider.send("eth_call", [tx, "latest"]);
         assert.strictEqual(BigInt(result), BigInt(block.baseFeePerGas));
+      });
+
+      it("returns string data property on revert error", async () => {
+        const tx = {
+          from,
+          to: contractAddress,
+          data: `0x${contract.contract.evm.methodIdentifiers["doARevert()"]}`
+        };
+        const revertString =
+          "0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000011796f75206172652061206661696c757265000000000000000000000000000000";
+        await assert.rejects(provider.send("eth_call", [tx, "latest"]), {
+          message:
+            "VM Exception while processing transaction: revert you are a failure",
+          data: revertString
+        });
       });
     });
   });

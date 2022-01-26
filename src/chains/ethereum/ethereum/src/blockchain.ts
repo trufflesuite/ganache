@@ -9,7 +9,7 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  RETURN_TYPES,
+  CallError,
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
@@ -164,7 +164,7 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   //  a) we don't currently support changing hardforks
   //  b) it can cause `MaxListenersExceededWarning`.
   // Since we don't need it we overwrite .on to make it be quiet.
-  (common as any).on = () => {};
+  (common as any).on = () => { };
   return common;
 }
 
@@ -367,7 +367,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.#state = Status.stopping;
       // ignore errors while stopping here, since we are already in an
       // exceptional case
-      await this.stop().catch(_ => {});
+      await this.stop().catch(_ => { });
 
       throw e;
     }
@@ -438,6 +438,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       // save block to the database
       blocks.putBlock(blockNumber, blockHash, serialized);
+
+      // update the "latest" index
+      blocks.updateLatestIndex(blockNumber);
 
       // output to the log, if we have data to output
       if (logOutput.length > 0)
@@ -788,7 +791,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return (this.#timeAdjustment = timestamp - Date.now());
   }
 
-  #deleteBlockData = async (blocksToDelete: Block[]) => {
+  #deleteBlockData = async (blocksToDelete: Block[], newLatestBlockNumber: Buffer) => {
     // if we are forking we need to make sure we clean up the forking related
     // metadata that isn't stored in the trie
     if ("revertMetaData" in this.trie) {
@@ -799,6 +802,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
     await this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
+      // point to the new "latest" again
+      blocks.updateLatestIndex(newLatestBlockNumber);
+      // clean up old blocks
       blocksToDelete.forEach(block => {
         block.getTransactions().forEach(tx => {
           const txHash = tx.hash.toBuffer();
@@ -916,7 +922,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       snapshots.blocks = blockList;
 
       const blockData = await Promise.all(blockPromises);
-      await this.#deleteBlockData(blockData);
+      await this.#deleteBlockData(blockData, snapshotHeader.number.toBuffer());
 
       setStateRootSync(
         this.vm.stateManager,
@@ -996,9 +1002,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(transaction.block.header.number.toString())
-        )
+        this.common,
+        BigInt(transaction.block.header.number.toString())
+      )
       : this.common;
 
     const gasLeft =
@@ -1086,9 +1092,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      // eth_call transactions don't really have a transaction hash
-      const hash = RPCQUANTITY_EMPTY;
-      throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
+      throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
     }
@@ -1116,9 +1120,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(newBlock.header.number.toString())
-        )
+        this.common,
+        BigInt(newBlock.header.number.toString())
+      )
       : this.common;
 
     const vm = await VM.create({
@@ -1264,7 +1268,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => {};
+    (vm.stateManager as any)._cache.flush = () => { };
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
