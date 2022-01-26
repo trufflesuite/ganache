@@ -30,7 +30,7 @@ describe("database", () => {
     const dir = await readdir(dbPath);
     assert(dir.length > 0);
 
-    // mine 255 blocks to ensure "latest" can be resumed properly
+    // mine 256 blocks to ensure "latest" can be resumed properly
     // see https://github.com/trufflesuite/ganache/issues/2187
     await provider.request({ method: "evm_mine", params: [{ blocks: 256 }] });
     // send some value
