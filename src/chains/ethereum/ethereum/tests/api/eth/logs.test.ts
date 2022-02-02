@@ -180,6 +180,41 @@ describe("api", () => {
             );
           }).timeout(0);
 
+          it("filters subscription by topic", async () => {
+            // trigger a log event, we should get four events
+            const numberOfLogs = 4;
+            const data =
+              "0x" +
+              contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
+              numberOfLogs.toString().padStart(64, "0");
+
+            // the emitted event's second topic should be the number we're emitting.
+            // our `logNTimes` method will log 0-3, we'll filter to only show "2"
+            const topicFilter = [
+              null,
+              "0x0000000000000000000000000000000000000000000000000000000000000002"
+            ];
+            const subscriptionId = await provider.send("eth_subscribe", [
+              "logs",
+              { topics: topicFilter }
+            ]);
+
+            assert(subscriptionId != null);
+            assert.notStrictEqual(subscriptionId, false);
+
+            const loggedTx = { from: accounts[0], to: contractAddress, data };
+
+            // ensure subscription is working and we can receive logs sent to the original contract
+            const logged = getMessagesForSub(subscriptionId, numberOfLogs, []);
+            await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
+
+            const messages = await logged;
+            assert.strictEqual(messages.length, 1);
+            assert.strictEqual(
+              messages[0].data.result.topics[1].toString(),
+              topicFilter[1],
+              "log subscription filtering by topic didn't return correct results"
+            );
           });
         });
       });
