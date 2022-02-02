@@ -43,14 +43,23 @@ describe("api", () => {
 
       describe("eth_subscribe", () => {
         describe("logs", () => {
-          const onceMessageFor = subId => {
-            return new Promise<any>(resolve => {
+          const getMessagesForSub = async (
+            subId,
+            expectedMessageCount,
+            messages
+          ) => {
+            await new Promise<any>(resolve => {
               provider.on("message", message => {
                 if (message.data.subscription === subId) {
+                  messages.push(message);
+                  if (expectedMessageCount > messages.length + 1) {
+                    getMessagesForSub(subId, expectedMessageCount, messages);
+                  }
                   resolve(message);
                 }
               });
             });
+            return messages;
           };
 
           it("subscribes and unsubscribes", async () => {
@@ -66,7 +75,7 @@ describe("api", () => {
               "logs"
             ]);
 
-            // trigger a log event, we should get two events
+            // trigger a log event, we should get four events
             const numberOfLogs = 4;
             const data =
               "0x" +
@@ -74,32 +83,43 @@ describe("api", () => {
               numberOfLogs.toString().padStart(64, "0");
             const tx = { from: accounts[0], to: contractAddress, data };
             const subs = [
-              onceMessageFor(subscriptionId),
-              onceMessageFor(subscriptionId2)
+              getMessagesForSub(subscriptionId, numberOfLogs, []),
+              getMessagesForSub(subscriptionId2, numberOfLogs, [])
             ];
+
             const txHash = await provider.send("eth_sendTransaction", [
               { ...tx }
             ]);
 
-            const [message1, message2] = await Promise.all(subs);
-            assert.deepStrictEqual(message1.data.result, message2.data.result);
+            const [sub1Messages, sub2Messages] = await Promise.all(subs);
 
-            assert.strictEqual(message1.data.result.length, numberOfLogs);
+            // subscribing to the same thing twice yields the same results
+            for (let i = 0; i < numberOfLogs; i++) {
+              assert.deepStrictEqual(
+                sub1Messages[i].data.result,
+                sub2Messages[i].data.result
+              );
+            }
 
             const unsubscribeResult = await provider.send("eth_unsubscribe", [
               subscriptionId
             ]);
+
             assert.strictEqual(unsubscribeResult, true);
             await provider.send("eth_sendTransaction", [{ ...tx }]);
-            const message = await Promise.race([
-              onceMessageFor(subscriptionId),
-              onceMessageFor(subscriptionId2)
+            const messages = await Promise.race([
+              getMessagesForSub(subscriptionId, numberOfLogs, []),
+              getMessagesForSub(subscriptionId2, numberOfLogs, [])
             ]);
+            // the one to return for all messages is the sub2, which we never unsubed
+            for (let i = 0; i < numberOfLogs; i++) {
             assert.strictEqual(
-              message.data.subscription,
+                messages[i].data.subscription,
               subscriptionId2,
               "unsubscribe didn't work"
             );
+            }
+          });
           });
         });
       });
