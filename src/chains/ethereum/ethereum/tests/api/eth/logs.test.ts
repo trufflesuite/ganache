@@ -120,6 +120,66 @@ describe("api", () => {
             );
             }
           });
+
+          it("filters subscription by address", async () => {
+            const subscriptionId = await provider.send("eth_subscribe", [
+              "logs",
+              { address: contractAddress }
+            ]);
+
+            assert(subscriptionId != null);
+            assert.notStrictEqual(subscriptionId, false);
+
+            const secondContractAddress = await deployContractAndGetAddress();
+
+            // trigger a log event, we should get four events
+            const numberOfLogs = 4;
+            const data =
+              "0x" +
+              contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
+              numberOfLogs.toString().padStart(64, "0");
+            // tx to accounts other than our filter address should not appear in logs
+            const filteredTx = {
+              from: accounts[0],
+              to: secondContractAddress,
+              data
+            };
+            const loggedTx = { from: accounts[0], to: contractAddress, data };
+
+            // ensure subscription is working and we can receive logs sent to the original contract
+            const logged = getMessagesForSub(subscriptionId, numberOfLogs, []);
+            await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
+
+            const messages = await logged;
+            assert.strictEqual(messages.length, numberOfLogs);
+            for (let i = 0; i < numberOfLogs; i++) {
+              assert.strictEqual(
+                messages[i].data.result.address.toString(),
+                contractAddress,
+                "log subscription filtering by address didn't return correct results"
+              );
+            }
+            // ensure filtering is working and we don't receive logs from txs sent somewhere other than what
+            // we put in our filter
+            const filtered = getMessagesForSub(
+              subscriptionId,
+              numberOfLogs,
+              []
+            );
+            await provider.send("eth_sendTransaction", [{ ...filteredTx }]);
+
+            const noMessages = await Promise.race([
+              filtered,
+              new Promise(resolve => setTimeout(resolve, 3000, "timeout"))
+            ]);
+            // our timeout hits before anything is logged
+            assert.strictEqual(
+              noMessages,
+              "timeout",
+              "log subscription filtering by address didn't filter results"
+            );
+          }).timeout(0);
+
           });
         });
       });
