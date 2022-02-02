@@ -43,23 +43,18 @@ describe("api", () => {
 
       describe("eth_subscribe", () => {
         describe("logs", () => {
-          const getMessagesForSub = async (
-            subId,
-            expectedMessageCount,
-            messages
-          ) => {
-            await new Promise<any>(resolve => {
+          const getMessagesForSub = async (subId, expectedMessageCount) => {
+            const messages = [];
+            return await new Promise<any[]>(resolve => {
               provider.on("message", message => {
                 if (message.data.subscription === subId) {
                   messages.push(message);
-                  if (expectedMessageCount > messages.length + 1) {
-                    getMessagesForSub(subId, expectedMessageCount, messages);
-                  }
-                  resolve(message);
+                }
+                if (expectedMessageCount === messages.length) {
+                  resolve(messages);
                 }
               });
             });
-            return messages;
           };
 
           it("subscribes and unsubscribes", async () => {
@@ -83,8 +78,8 @@ describe("api", () => {
               numberOfLogs.toString().padStart(64, "0");
             const tx = { from: accounts[0], to: contractAddress, data };
             const subs = [
-              getMessagesForSub(subscriptionId, numberOfLogs, []),
-              getMessagesForSub(subscriptionId2, numberOfLogs, [])
+              getMessagesForSub(subscriptionId, numberOfLogs),
+              getMessagesForSub(subscriptionId2, numberOfLogs)
             ];
 
             const txHash = await provider.send("eth_sendTransaction", [
@@ -108,8 +103,8 @@ describe("api", () => {
             assert.strictEqual(unsubscribeResult, true);
             await provider.send("eth_sendTransaction", [{ ...tx }]);
             const messages = await Promise.race([
-              getMessagesForSub(subscriptionId, numberOfLogs, []),
-              getMessagesForSub(subscriptionId2, numberOfLogs, [])
+              getMessagesForSub(subscriptionId, numberOfLogs),
+              getMessagesForSub(subscriptionId2, numberOfLogs)
             ]);
             // the one to return for all messages is the sub2, which we never unsubed
             for (let i = 0; i < numberOfLogs; i++) {
@@ -147,7 +142,7 @@ describe("api", () => {
             const loggedTx = { from: accounts[0], to: contractAddress, data };
 
             // ensure subscription is working and we can receive logs sent to the original contract
-            const logged = getMessagesForSub(subscriptionId, numberOfLogs, []);
+            const logged = getMessagesForSub(subscriptionId, numberOfLogs);
             await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
 
             const messages = await logged;
@@ -161,11 +156,7 @@ describe("api", () => {
             }
             // ensure filtering is working and we don't receive logs from txs sent somewhere other than what
             // we put in our filter
-            const filtered = getMessagesForSub(
-              subscriptionId,
-              numberOfLogs,
-              []
-            );
+            const filtered = getMessagesForSub(subscriptionId, numberOfLogs);
             await provider.send("eth_sendTransaction", [{ ...filteredTx }]);
 
             const noMessages = await Promise.race([
@@ -205,7 +196,7 @@ describe("api", () => {
             const loggedTx = { from: accounts[0], to: contractAddress, data };
 
             // ensure subscription is working and we can receive logs sent to the original contract
-            const logged = getMessagesForSub(subscriptionId, numberOfLogs, []);
+            const logged = getMessagesForSub(subscriptionId, 1);
             await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
 
             const messages = await logged;
