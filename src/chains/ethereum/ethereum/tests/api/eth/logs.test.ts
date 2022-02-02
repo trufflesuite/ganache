@@ -13,11 +13,7 @@ describe("api", () => {
       let contractAddress: string;
       let accounts: string[];
 
-      beforeEach(async () => {
-        contract = compile(join(__dirname, "./contracts/Logs.sol"));
-        provider = await getProvider();
-        accounts = await provider.send("eth_accounts");
-
+      const deployContractAndGetAddress = async () => {
         const subscriptionId = await provider.send("eth_subscribe", [
           "newHeads"
         ]);
@@ -33,8 +29,16 @@ describe("api", () => {
           "eth_getTransactionReceipt",
           [transactionHash]
         );
-        contractAddress = transactionReceipt.contractAddress;
         await provider.send("eth_unsubscribe", [subscriptionId]);
+        return transactionReceipt.contractAddress;
+      };
+
+      beforeEach(async () => {
+        contract = compile(join(__dirname, "./contracts/Logs.sol"));
+        provider = await getProvider();
+        accounts = await provider.send("eth_accounts");
+
+        contractAddress = await deployContractAndGetAddress();
       });
 
       describe("eth_subscribe", () => {
