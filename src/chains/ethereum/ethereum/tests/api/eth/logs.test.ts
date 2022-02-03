@@ -13,11 +13,7 @@ describe("api", () => {
       let contractAddress: string;
       let accounts: string[];
 
-      beforeEach(async () => {
-        contract = compile(join(__dirname, "./contracts/Logs.sol"));
-        provider = await getProvider();
-        accounts = await provider.send("eth_accounts");
-
+      const deployContractAndGetAddress = async () => {
         const subscriptionId = await provider.send("eth_subscribe", [
           "newHeads"
         ]);
@@ -33,17 +29,29 @@ describe("api", () => {
           "eth_getTransactionReceipt",
           [transactionHash]
         );
-        contractAddress = transactionReceipt.contractAddress;
         await provider.send("eth_unsubscribe", [subscriptionId]);
+        return transactionReceipt.contractAddress;
+      };
+
+      beforeEach(async () => {
+        contract = compile(join(__dirname, "./contracts/Logs.sol"));
+        provider = await getProvider();
+        accounts = await provider.send("eth_accounts");
+
+        contractAddress = await deployContractAndGetAddress();
       });
 
       describe("eth_subscribe", () => {
         describe("logs", () => {
-          const onceMessageFor = subId => {
-            return new Promise<any>(resolve => {
+          const getMessagesForSub = async (subId, expectedMessageCount) => {
+            const messages = [];
+            return await new Promise<any[]>(resolve => {
               provider.on("message", message => {
                 if (message.data.subscription === subId) {
-                  resolve(message);
+                  messages.push(message);
+                }
+                if (expectedMessageCount === messages.length) {
+                  resolve(messages);
                 }
               });
             });
@@ -62,7 +70,7 @@ describe("api", () => {
               "logs"
             ]);
 
-            // trigger a log event, we should get two events
+            // trigger a log event, we should get four events
             const numberOfLogs = 4;
             const data =
               "0x" +
@@ -70,31 +78,127 @@ describe("api", () => {
               numberOfLogs.toString().padStart(64, "0");
             const tx = { from: accounts[0], to: contractAddress, data };
             const subs = [
-              onceMessageFor(subscriptionId),
-              onceMessageFor(subscriptionId2)
+              getMessagesForSub(subscriptionId, numberOfLogs),
+              getMessagesForSub(subscriptionId2, numberOfLogs)
             ];
+
             const txHash = await provider.send("eth_sendTransaction", [
               { ...tx }
             ]);
 
-            const [message1, message2] = await Promise.all(subs);
-            assert.deepStrictEqual(message1.data.result, message2.data.result);
+            const [sub1Messages, sub2Messages] = await Promise.all(subs);
 
-            assert.strictEqual(message1.data.result.length, numberOfLogs);
+            // subscribing to the same thing twice yields the same results
+            for (let i = 0; i < numberOfLogs; i++) {
+              assert.deepStrictEqual(
+                sub1Messages[i].data.result,
+                sub2Messages[i].data.result
+              );
+            }
 
             const unsubscribeResult = await provider.send("eth_unsubscribe", [
               subscriptionId
             ]);
+
             assert.strictEqual(unsubscribeResult, true);
             await provider.send("eth_sendTransaction", [{ ...tx }]);
-            const message = await Promise.race([
-              onceMessageFor(subscriptionId),
-              onceMessageFor(subscriptionId2)
+            const messages = await Promise.race([
+              getMessagesForSub(subscriptionId, numberOfLogs),
+              getMessagesForSub(subscriptionId2, numberOfLogs)
             ]);
+            // the one to return for all messages is the sub2, which we never unsubed
+            for (let i = 0; i < numberOfLogs; i++) {
+              assert.strictEqual(
+                messages[i].data.subscription,
+                subscriptionId2,
+                "unsubscribe didn't work"
+              );
+            }
+          });
+
+          it("filters subscription by address", async () => {
+            // subscribe to logs sent to `contractAddress`
+            const subscriptionId = await provider.send("eth_subscribe", [
+              "logs",
+              { address: contractAddress }
+            ]);
+
+            assert(subscriptionId != null);
+            assert.notStrictEqual(subscriptionId, false);
+
+            // deploy another version of the contract so we have an address that will get filtered
+            const secondContractAddress = await deployContractAndGetAddress();
+
+            // trigger a log event, we should get four events
+            const numberOfLogs = 4;
+            const data =
+              "0x" +
+              contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
+              numberOfLogs.toString().padStart(64, "0");
+            // a transaction sent to an address other than `contractAddress` should not produce a log event
+            const filteredTx = {
+              from: accounts[0],
+              to: secondContractAddress,
+              data
+            };
+            // a transaction sent to `contractAddress` _should_ produce a log event
+            const loggedTx = { from: accounts[0], to: contractAddress, data };
+
+            // start listening for our log events
+            const logs = getMessagesForSub(subscriptionId, numberOfLogs);
+            // first send the transaction that will get filtered out and not produce a log
+            // we are in `--instamine="eager"` mode, so this transaction should immediately get
+            // added to a block and would produce log events first if they weren't being filtered
+            await provider.send("eth_sendTransaction", [{ ...filteredTx }]);
+            // send our transaction that actually will do the logging
+            await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
+
+            // get our logs and confirm that all of them are in reference to `contractAddress`
+            const messages = await logs;
+            assert.strictEqual(messages.length, numberOfLogs);
+            for (let i = 0; i < messages.length; i++) {
+              assert.strictEqual(
+                messages[i].data.result.address.toString(),
+                contractAddress,
+                "log subscription filtering by address didn't correctly filter logs"
+              );
+            }
+          });
+
+          it("filters subscription by topic", async () => {
+            // trigger a log event, we should get four events
+            const numberOfLogs = 4;
+            const data =
+              "0x" +
+              contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
+              numberOfLogs.toString().padStart(64, "0");
+
+            // the emitted event's second topic should be the number we're emitting.
+            // our `logNTimes` method will log 0-3, we'll filter to only show "2"
+            const topicFilter = [
+              null,
+              "0x0000000000000000000000000000000000000000000000000000000000000002"
+            ];
+            const subscriptionId = await provider.send("eth_subscribe", [
+              "logs",
+              { topics: topicFilter }
+            ]);
+
+            assert(subscriptionId != null);
+            assert.notStrictEqual(subscriptionId, false);
+
+            const loggedTx = { from: accounts[0], to: contractAddress, data };
+
+            // ensure subscription is working and we can receive logs sent to the original contract
+            const logged = getMessagesForSub(subscriptionId, 1);
+            await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
+
+            const messages = await logged;
+            assert.strictEqual(messages.length, 1);
             assert.strictEqual(
-              message.data.subscription,
-              subscriptionId2,
-              "unsubscribe didn't work"
+              messages[0].data.result.topics[1].toString(),
+              topicFilter[1],
+              "log subscription filtering by topic didn't return correct results"
             );
           });
         });
@@ -179,9 +283,10 @@ describe("api", () => {
             }
           ]); // 0x3
           await provider.once("message");
-          const {
-            blockNumber
-          } = await provider.send("eth_getTransactionReceipt", [txHash]);
+          const { blockNumber } = await provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
 
           async function testGetLogs(
             fromBlock: string,
@@ -296,18 +401,21 @@ describe("api", () => {
           }
 
           // tests blockHash
-          let {
-            hash: genesisBlockHash
-          } = await provider.send("eth_getBlockByNumber", [genesisBlockNumber]);
+          let { hash: genesisBlockHash } = await provider.send(
+            "eth_getBlockByNumber",
+            [genesisBlockNumber]
+          );
           await testGetLogs(blockHash, 4);
           await testGetLogs(genesisBlockHash, 0);
-          let {
-            hash: deployBlockHash
-          } = await provider.send("eth_getBlockByNumber", [deployBlockNumber]);
+          let { hash: deployBlockHash } = await provider.send(
+            "eth_getBlockByNumber",
+            [deployBlockNumber]
+          );
           await testGetLogs(deployBlockHash, 1, null);
-          let {
-            hash: emptyBlockHash
-          } = await provider.send("eth_getBlockByNumber", [emptyBlockNumber]);
+          let { hash: emptyBlockHash } = await provider.send(
+            "eth_getBlockByNumber",
+            [emptyBlockNumber]
+          );
           await testGetLogs(emptyBlockHash, 0);
           const invalidBlockHash = "0x123456789";
           await testGetLogs(invalidBlockHash, 0);

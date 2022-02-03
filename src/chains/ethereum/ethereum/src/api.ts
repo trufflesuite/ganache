@@ -2078,18 +2078,15 @@ export default class EthereumApi implements Api {
         const unsubscribe = this.#blockchain.on(
           "blockLogs",
           (blockLogs: BlockLogs) => {
-            // TODO: move the JSON stringification closer to where the message
-            // is actually sent to the listener
-            const result = JSON.parse(
-              JSON.stringify([...blockLogs.filter(addresses, topics)])
-            );
-            promiEvent.emit("message", {
-              type: "eth_subscription",
-              data: {
-                result,
-                subscription: subscription.toString()
-              }
-            });
+            for (const log of blockLogs.filter(addresses, topics)) {
+              promiEvent.emit("message", {
+                type: "eth_subscription",
+                data: {
+                  result: log,
+                  subscription: subscription.toString()
+                }
+              });
+            }
           }
         );
         subscriptions.set(subscription.toString(), unsubscribe);
