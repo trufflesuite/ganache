@@ -117,6 +117,7 @@ describe("api", () => {
           });
 
           it("filters subscription by address", async () => {
+            // subscribe to logs sent to `contractAddress`
             const subscriptionId = await provider.send("eth_subscribe", [
               "logs",
               { address: contractAddress }
@@ -125,6 +126,7 @@ describe("api", () => {
             assert(subscriptionId != null);
             assert.notStrictEqual(subscriptionId, false);
 
+            // deploy another version of the contract so we have an address that will get filtered
             const secondContractAddress = await deployContractAndGetAddress();
 
             // trigger a log event, we should get four events
@@ -133,43 +135,35 @@ describe("api", () => {
               "0x" +
               contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
               numberOfLogs.toString().padStart(64, "0");
-            // tx to accounts other than our filter address should not appear in logs
+            // a transaction sent to an address other than `contractAddress` should not produce a log event
             const filteredTx = {
               from: accounts[0],
               to: secondContractAddress,
               data
             };
+            // a transaction sent to `contractAddress` _should_ produce a log event
             const loggedTx = { from: accounts[0], to: contractAddress, data };
 
-            // ensure subscription is working and we can receive logs sent to the original contract
-            const logged = getMessagesForSub(subscriptionId, numberOfLogs);
+            // start listening for our log events
+            const logs = getMessagesForSub(subscriptionId, numberOfLogs);
+            // first send the transaction that will get filtered out and not produce a log
+            // we are in `--instamine="eager"` mode, so this transaction should immediately get
+            // added to a block and would produce log events first if they weren't being filtered
+            await provider.send("eth_sendTransaction", [{ ...filteredTx }]);
+            // send our transaction that actually will do the logging
             await provider.send("eth_sendTransaction", [{ ...loggedTx }]);
 
-            const messages = await logged;
+            // get our logs and confirm that all of them are in reference to `contractAddress`
+            const messages = await logs;
             assert.strictEqual(messages.length, numberOfLogs);
-            for (let i = 0; i < numberOfLogs; i++) {
+            for (let i = 0; i < messages.length; i++) {
               assert.strictEqual(
                 messages[i].data.result.address.toString(),
                 contractAddress,
-                "log subscription filtering by address didn't return correct results"
+                "log subscription filtering by address didn't correctly filter logs"
               );
             }
-            // ensure filtering is working and we don't receive logs from txs sent somewhere other than what
-            // we put in our filter
-            const filtered = getMessagesForSub(subscriptionId, numberOfLogs);
-            await provider.send("eth_sendTransaction", [{ ...filteredTx }]);
-
-            const noMessages = await Promise.race([
-              filtered,
-              new Promise(resolve => setTimeout(resolve, 3000, "timeout"))
-            ]);
-            // our timeout hits before anything is logged
-            assert.strictEqual(
-              noMessages,
-              "timeout",
-              "log subscription filtering by address didn't filter results"
-            );
-          }).timeout(0);
+          });
 
           it("filters subscription by topic", async () => {
             // trigger a log event, we should get four events
