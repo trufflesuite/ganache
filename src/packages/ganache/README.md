@@ -538,7 +538,7 @@ Currently, we do not await the event listener's return value, however, we'll lik
 The simplest way to get started with the Docker image:
 
 ```console
-$ docker run --detach --publish 8545:8545 trufflesuite/ganache:rc
+$ docker run --detach --publish 8545:8545 trufflesuite/ganache:latest
 ```
 
 To pass options to Ganache through Docker simply add the arguments to the end of the run command, e.g.,
