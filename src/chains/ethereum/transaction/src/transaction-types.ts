@@ -14,7 +14,7 @@ export type TypedTransaction =
 export type Capability = 2718 | 2930 | 1559;
 export type TypedTransactionJSON =
   | LegacyTransactionJSON
-  | EIP2930AccessListDatabaseTx
+  | EIP2930AccessListTransactionJSON
   | EIP1559FeeMarketTransactionJSON;
 
 export type LegacyTransactionJSON = {

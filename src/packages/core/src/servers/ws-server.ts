@@ -16,8 +16,8 @@ type HandlesWebSocketSignature = (payload: any, connection: WebSocket) => any;
 
 type WebSocketCapableFlavorMap = {
   [k in keyof Flavors.ConnectorsByName]: Flavors.ConnectorsByName[k]["handle"] extends HandlesWebSocketSignature
-    ? Flavors.ConnectorsByName[k]
-    : never;
+  ? Flavors.ConnectorsByName[k]
+  : never;
 };
 
 export type WebSocketCapableFlavor = {

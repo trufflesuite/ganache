@@ -6,8 +6,8 @@ import args from "./args";
 import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
-import type { Provider as FilecoinProvider } from "@ganache/filecoin";
-import type { Provider as EthereumProvider } from "@ganache/ethereum";
+import type { FilecoinProvider } from "@ganache/filecoin";
+import type { EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -81,6 +81,10 @@ const closeHandler = async () => {
         console.log("Server has been shut down");
         break;
     }
+    console.log("HEYO");
+    // process.removeAllListeners("SIGINT");
+    // process.removeAllListeners("SIGTERM");
+    // process.removeAllListeners("SIGHUP");
     // don't just call `process.exit()` here, as we don't want to hide shutdown
     // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
     // anything other than act as a place to anchor this comment :-)

@@ -12,7 +12,7 @@ import { ecsign } from "ethereumjs-util";
 import { encodeRange, digest } from "@ganache/rlp";
 import { BN } from "ethereumjs-util";
 import { RuntimeTransaction } from "./runtime-transaction";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import {
   EIP2930AccessListDatabasePayload,
   GanacheRawExtraTx,
@@ -27,7 +27,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x0");
 
   public constructor(
-    data: LegacyDatabasePayload | TypedRpcTransaction,
+    data: LegacyDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -98,7 +98,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: LegacyDatabasePayload | TypedRpcTransaction,
+    data: LegacyDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -106,7 +106,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public static fromEIP2930AccessListTransaction(
-    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
+    data: EIP2930AccessListDatabasePayload | Transaction,
     common: Common
   ) {
     if (Array.isArray(data)) {
@@ -228,5 +228,5 @@ export class LegacyTransaction extends RuntimeTransaction {
   ) {
     return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
-  public updateEffectiveGasPrice() {}
+  public updateEffectiveGasPrice() { }
 }

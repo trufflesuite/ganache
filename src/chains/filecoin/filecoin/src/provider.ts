@@ -21,11 +21,11 @@ import cloneDeep from "lodash.clonedeep";
 
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
-export default class FilecoinProvider<
-    R extends JsonRpcRequest<
-      FilecoinApi,
-      KnownKeys<FilecoinApi>
-    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+export class FilecoinProvider<
+  R extends JsonRpcRequest<
+    FilecoinApi,
+    KnownKeys<FilecoinApi>
+  > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
   >
   extends Emittery<{ connect: undefined; disconnect: undefined }>
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior

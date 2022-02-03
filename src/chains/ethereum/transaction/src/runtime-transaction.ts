@@ -10,7 +10,7 @@ import {
   BUFFER_ZERO,
   RPCQUANTITY_EMPTY
 } from "@ganache/utils";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
@@ -34,8 +34,8 @@ export const toValidLengthAddress = (address: string, fieldName: string) => {
 };
 
 export const hasPartialSignature = (
-  data: TypedRpcTransaction
-): data is TypedRpcTransaction & {
+  data: Transaction
+): data is Transaction & {
   from?: string;
   v?: string;
   r?: string;
@@ -75,7 +75,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   private finalized: Promise<TransactionFinalization>;
 
   constructor(
-    data: TypedDatabasePayload | TypedRpcTransaction,
+    data: TypedDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -174,7 +174,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return this.logs;
   }
 
-  validateAndSetSignature = (data: TypedRpcTransaction) => {
+  validateAndSetSignature = (data: Transaction) => {
     // If we have v, r, or s validate and use them
     if (hasPartialSignature(data)) {
       if (data.v == null || data.r == null || data.s == null) {

@@ -4,7 +4,7 @@ import { BUFFER_ZERO, Data, Quantity } from "@ganache/utils";
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import {
-  TypedRpcTransaction,
+  Transaction,
   TransactionFactory
 } from "@ganache/ethereum-transaction";
 import Blockchain from "../../ethereum/src/blockchain";
@@ -31,12 +31,12 @@ describe("@ganache/ethereum-block", async () => {
           blockGasLimit: "0xB749E0"
         },
         chain: { chainId: 1337 },
-        logging: { logger: { log: (_message: string) => {} } } // ignore logging
+        logging: { logger: { log: (_message: string) => { } } } // ignore logging
       });
       const wallet = new Wallet(options.wallet);
       const [from, to] = wallet.addresses;
       const fromAddress = new Address(from);
-      const tx: TypedRpcTransaction = {
+      const tx: Transaction = {
         type: "0x2",
         from: from,
         to: to,

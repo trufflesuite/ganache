@@ -3,7 +3,7 @@ import Common from "@ethereumjs/common";
 import {
   EIP1559FeeMarketRpcTransaction,
   TransactionFactory,
-  TypedRpcTransaction,
+  Transaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
@@ -28,7 +28,7 @@ function findIn(
 }
 
 describe("transaction pool", async () => {
-  let rpcTx: TypedRpcTransaction;
+  let rpcTx: Transaction;
   let from: string;
   let secretKey: Data;
   let common: Common;
@@ -40,7 +40,7 @@ describe("transaction pool", async () => {
     miner: { priceBump: priceBump }
   };
   const options = EthereumOptionsConfig.normalize(optionsJson);
-  let futureNonceRpc, executableRpc: TypedRpcTransaction;
+  let futureNonceRpc, executableRpc: Transaction;
   before(function () {
     const wallet = new Wallet(options.wallet);
     [from] = wallet.addresses;
@@ -119,7 +119,7 @@ describe("transaction pool", async () => {
   it("rejects transactions whose gasLimit is not enough to run the transaction", async () => {
     const txPool = new TransactionPool(options.miner, blockchain);
     // the tx should have a very low gas limit to be rejected
-    const lowGasRpc: TypedRpcTransaction = {
+    const lowGasRpc: Transaction = {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffffff",
@@ -204,7 +204,7 @@ describe("transaction pool", async () => {
       "replacement transaction with insufficient gas price to replace should have been rejected"
     );
 
-    const legacyReplacementRpc: TypedRpcTransaction = {
+    const legacyReplacementRpc: Transaction = {
       from: from,
       type: "0x0",
       gasPrice: "0xffffffff",
@@ -330,7 +330,7 @@ describe("transaction pool", async () => {
     const maxFeePremium = originalMaxFee + (originalMaxFee * priceBump) / 100n;
     const tipPremium = originalTip + (originalTip * priceBump) / 100n;
     // our replacement transaction needs to have a sufficiently higher gasPrice
-    const replacementRpc: TypedRpcTransaction = {
+    const replacementRpc: Transaction = {
       from: from,
       type: "0x2",
       maxFeePerGas: Quantity.from(maxFeePremium).toString(),
@@ -372,7 +372,7 @@ describe("transaction pool", async () => {
     );
 
     // our replacement transaction needs to have a sufficiently higher gasPrice
-    const replacementRpc: TypedRpcTransaction = {
+    const replacementRpc: Transaction = {
       from: from,
       type: "0x2",
       maxFeePerGas: "0xffffffffff",

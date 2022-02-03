@@ -11,7 +11,7 @@ import {
   RuntimeError,
   CallError,
   StorageKeys,
-  StorageRangeResult,
+  StorageRangeAtResult,
   StorageRecords,
   RangedStorageKeys,
   StructLog,
@@ -1473,7 +1473,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     contractAddress: string,
     startKey: string,
     maxResult: number
-  ): Promise<StorageRangeResult> {
+  ): Promise<StorageRangeAtResult> {
     // #1 - get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 

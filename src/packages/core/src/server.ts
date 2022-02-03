@@ -36,7 +36,7 @@ import {
   ConnectorsByName,
   DefaultFlavor,
   FlavorName,
-  Options
+  FlavorOptions
 } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
@@ -108,20 +108,20 @@ export const _DefaultServerOptions = serverDefaults;
  * @public
  */
 export class Server<
-  T extends FlavorName = typeof DefaultFlavor
+  Flavor extends FlavorName = typeof DefaultFlavor
   > extends Emittery<{ open: undefined; close: undefined }> {
   #options: InternalOptions;
-  #providerOptions: Options<T>;
+  #providerOptions: FlavorOptions<Flavor>;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: ConnectorsByName[T];
+  #connector: ConnectorsByName[Flavor];
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<[void, void]>;
 
-  public get provider(): ConnectorsByName[T]["provider"] {
+  public get provider(): ConnectorsByName[Flavor]["provider"] {
     return this.#connector.provider;
   }
 
@@ -130,9 +130,9 @@ export class Server<
   }
 
   constructor(
-    providerAndServerOptions: ServerOptions<T> = {
+    providerAndServerOptions: ServerOptions<Flavor> = {
       flavor: DefaultFlavor
-    } as ServerOptions<T>
+    } as ServerOptions<Flavor>
   ) {
     super();
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);

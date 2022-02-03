@@ -1,12 +1,12 @@
 import {
   Connector as EthereumConnector,
-  Provider as EthereumProvider
+  EthereumProvider
 } from "@ganache/ethereum";
-export type {Provider as EthereumProvider} from "@ganache/ethereum";
-export type {Provider as FilecoinProvider} from "@ganache/filecoin";
+export type { EthereumProvider, Transaction } from "@ganache/ethereum";
+export type { FilecoinProvider } from "@ganache/filecoin";
 import type {
-  Connector as FilecoinConnector,
-  Provider as FilecoinProvider
+  FilecoinConnector,
+  FilecoinProvider
 } from "@ganache/filecoin";
 import {
   EthereumDefaults,
@@ -51,19 +51,19 @@ export type OptionsByName = {
 export type FlavorName = keyof ConnectorsByName;
 
 export type Connector = {
-  [K in keyof ConnectorsByName]: ConnectorsByName[K];
-}[keyof ConnectorsByName];
+  [K in FlavorName]: ConnectorsByName[K];
+}[FlavorName];
 
-export function GetConnector<T extends FlavorName>(
-  flavor: T,
-  providerOptions: Options<typeof flavor>,
+export function GetConnector<Flavor extends FlavorName>(
+  flavor: Flavor,
+  providerOptions: FlavorOptions<typeof flavor>,
   executor: Executor
-): ConnectorsByName[T] {
+): ConnectorsByName[Flavor] {
   if (flavor === DefaultFlavor) {
     return new EthereumConnector(
       providerOptions,
       executor
-    ) as ConnectorsByName[T];
+    ) as ConnectorsByName[Flavor];
   }
   try {
     switch (flavor) {
@@ -89,13 +89,13 @@ export function GetConnector<T extends FlavorName>(
       // spat out for the line number
       console.warn(
         chalk`\n\n{red.bold ERROR:} Could not find Ganache flavor "{bold filecoin}" (${flavor}); ` +
-          `it probably\nneeds to be installed.\n` +
-          ` ▸ if you're using Ganache as a library run: \n` +
-          chalk`   {blue.bold $ npm install ${flavor}}\n` +
-          ` ▸ if you're using Ganache as a CLI run: \n` +
-          chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
-          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
-          chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
+        `it probably\nneeds to be installed.\n` +
+        ` ▸ if you're using Ganache as a library run: \n` +
+        chalk`   {blue.bold $ npm install ${flavor}}\n` +
+        ` ▸ if you're using Ganache as a CLI run: \n` +
+        chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
+        chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
+        chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
       );
       process.exit(1);
     } else {
@@ -117,7 +117,7 @@ type FilecoinOptions<T = "filecoin"> = {
   flavor: T;
 } & (FilecoinProviderOptions | FilecoinLegacyProviderOptions);
 
-export type Options<T extends "filecoin" | "ethereum"> = T extends "filecoin"
+export type FlavorOptions<T extends "filecoin" | "ethereum"> = T extends "filecoin"
   ? FilecoinOptions<T>
   : T extends "ethereum"
   ? EthereumOptions<T>

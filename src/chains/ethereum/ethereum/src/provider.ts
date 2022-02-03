@@ -97,7 +97,7 @@ type Clean<X> = X extends Primitives
   ? string
   : { [N in keyof X]: Clean<X[N]> };
 
-type cleanAndMergePromiseGenerics<Type> = Promise<
+type Simplify<Type> = Promise<
   Type extends Promise<infer X> ? Clean<X> : never
 >;
 
@@ -113,7 +113,7 @@ type RequestParams<Method extends RequestMethods> = {
   readonly method: Method;
   readonly params: OverloadedParameters<EthereumApi[Method]> | undefined;
 };
-export default class EthereumProvider
+export class EthereumProvider
   extends Emittery<{
     message: MessageEvent;
     data: DataEvent;
@@ -216,7 +216,7 @@ export default class EthereumProvider
   public send<Method extends RequestMethods>(
     method: Method,
     params?: OverloadedParameters<EthereumApi[typeof method]>
-  ): cleanAndMergePromiseGenerics<ReturnType<EthereumApi[typeof method]>>;
+  ): Simplify<ReturnType<EthereumApi[typeof method]>>;
   /**
    * @param payload - payload
    * @param callback - callback
@@ -320,7 +320,7 @@ export default class EthereumProvider
     } else {
       throw new Error(
         "No callback provided to provider's send function. As of web3 1.0, provider.send " +
-          "is no longer synchronous and must be passed a callback as its final argument."
+        "is no longer synchronous and must be passed a callback as its final argument."
       );
     }
 
@@ -335,7 +335,7 @@ export default class EthereumProvider
    */
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
-  ): cleanAndMergePromiseGenerics<ReturnType<EthereumApi[Method]>> {
+  ): Simplify<ReturnType<EthereumApi[Method]>> {
     const rawResult = await this._requestRaw(args);
     const value = await rawResult.value;
     return JSON.parse(JSON.stringify(value));
@@ -354,7 +354,7 @@ export default class EthereumProvider
     this.#logRequest(method, params);
 
     const result = await this.#executor.execute(this.#api, method, params);
-    const promise = result.value as cleanAndMergePromiseGenerics<
+    const promise = result.value as Simplify<
       typeof result.value
     >;
     if (promise instanceof PromiEvent) {
@@ -393,10 +393,9 @@ export default class EthereumProvider
     const options = this.#options;
     if (options.logging.verbose) {
       options.logging.logger.log(
-        `   >  ${method}: ${
-          params == null
-            ? params
-            : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
+        `   >  ${method}: ${params == null
+          ? params
+          : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
         }`
       );
     } else {

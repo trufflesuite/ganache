@@ -10,7 +10,7 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { BN } from "ethereumjs-util";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import {
@@ -54,7 +54,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x2");
 
   public constructor(
-    data: EIP1559FeeMarketDatabasePayload | TypedRpcTransaction,
+    data: EIP1559FeeMarketDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -146,7 +146,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: EIP1559FeeMarketDatabasePayload | TypedRpcTransaction,
+    data: EIP1559FeeMarketDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {

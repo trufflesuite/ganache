@@ -10,7 +10,8 @@ import {
   JsonRpcErrorCode,
   KnownKeys
 } from "@ganache/utils";
-import EthereumProvider from "./provider";
+export type { EthereumProvider } from "./provider";
+import { EthereumProvider } from "./provider";
 import {
   RecognizedString,
   WebSocket,
@@ -24,8 +25,7 @@ import {
 import { bufferify } from "./helpers/bufferify";
 
 type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
-export type Provider = EthereumProvider;
-export const Provider = EthereumProvider;
+
 
 function isHttp(
   connection: HttpRequest | WebSocket
@@ -37,10 +37,10 @@ function isHttp(
 }
 
 export class Connector<
-    R extends JsonRpcRequest<
-      EthereumApi,
-      KnownKeys<EthereumApi>
-    > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
+  R extends JsonRpcRequest<
+    EthereumApi,
+    KnownKeys<EthereumApi>
+  > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
   implements IConnector<EthereumApi, R | R[], JsonRpcResponse> {

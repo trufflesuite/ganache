@@ -9,7 +9,8 @@ import {
   makeError,
   KnownKeys
 } from "@ganache/utils";
-import FilecoinProvider from "./provider";
+import { FilecoinProvider } from "./provider";
+export { FilecoinProvider } from "./provider";
 import {
   RecognizedString,
   HttpRequest,
@@ -18,17 +19,14 @@ import {
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export { StorageDealStatus } from "./types/storage-deal-status";
 
-export type Provider = FilecoinProvider;
-export const Provider = FilecoinProvider;
-
 /**
  * @internal
  */
-export class Connector<
-    R extends JsonRpcRequest<
-      FilecoinApi,
-      KnownKeys<FilecoinApi>
-    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+export class FilecoinConnector<
+  R extends JsonRpcRequest<
+    FilecoinApi,
+    KnownKeys<FilecoinApi>
+  > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
   implements IConnector<FilecoinApi, R, JsonRpcResponse> {

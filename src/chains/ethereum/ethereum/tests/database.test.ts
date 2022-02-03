@@ -2,7 +2,7 @@ import assert from "assert";
 import { readdir } from "fs-extra";
 import tmp from "tmp-promise";
 import getProvider from "./helpers/getProvider";
-import EthereumProvider from "../src/provider";
+import { EthereumProvider } from "../src/provider";
 
 describe("database", () => {
   let dbPath: string;

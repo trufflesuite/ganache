@@ -1,6 +1,6 @@
 import { RPCQUANTITY_GWEI } from "@ganache/utils";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import getProvider, { mnemonic } from "../../helpers/getProvider";
 
 function hex(length: number) {

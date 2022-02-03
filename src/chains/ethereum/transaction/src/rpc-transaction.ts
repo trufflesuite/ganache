@@ -21,7 +21,7 @@ type HexChar =
 type HexPair = `${oneThroughSeven}${HexChar}`;
 type TxType = `0x${HexChar}` | `0x${HexPair}`; // tx types are valid 0 through 7f
 
-export type TypedRpcTransaction =
+export type Transaction =
   | LegacyRpcTransaction
   | EIP2930AccessListRpcTransaction
   | EIP1559FeeMarketRpcTransaction;
@@ -34,7 +34,7 @@ export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
   readonly maxFeePerGas?: never;
 };
 export type EIP2930AccessListRpcTransaction = Readonly<RpcTransaction> & {
-  readonly type: TxType;
+  readonly type?: TxType;
   readonly chainId?: string;
   readonly gasPrice?: string;
   readonly accessList?: AccessList;
@@ -43,7 +43,7 @@ export type EIP2930AccessListRpcTransaction = Readonly<RpcTransaction> & {
 };
 
 export type EIP1559FeeMarketRpcTransaction = Readonly<RpcTransaction> & {
-  readonly type: TxType;
+  readonly type?: TxType;
   readonly chainId?: string;
   readonly gasPrice?: never;
   readonly maxPriorityFeePerGas?: string;
@@ -53,119 +53,119 @@ export type EIP1559FeeMarketRpcTransaction = Readonly<RpcTransaction> & {
 
 export type RpcTransaction =
   | {
-      from: string;
-      nonce?: string;
-      gas?: string;
-      gasLimit?: never;
-      to?: string;
-      value?: string;
-      data?: string;
-      input?: never;
-    }
+    from: string;
+    nonce?: string;
+    gas?: string;
+    gasLimit?: never;
+    to?: string;
+    value?: string;
+    data?: string;
+    input?: never;
+  }
   | {
-      from: string;
-      nonce?: string;
-      /**
-       * Alias for `gas`
-       */
-      gasLimit?: string;
-      gas?: never;
-      to?: string;
-      value?: string;
-      data?: string;
-      input?: never;
-    }
+    from: string;
+    nonce?: string;
+    /**
+     * Alias for `gas`
+     */
+    gasLimit?: string;
+    gas?: never;
+    to?: string;
+    value?: string;
+    data?: string;
+    input?: never;
+  }
   | {
-      from: string;
-      nonce?: string;
-      gas?: string;
-      gasLimit?: never;
-      to?: string;
-      value?: string;
-      /**
-       * Alias for `data`
-       */
-      input?: string;
-      data?: never;
-    }
+    from: string;
+    nonce?: string;
+    gas?: string;
+    gasLimit?: never;
+    to?: string;
+    value?: string;
+    /**
+     * Alias for `data`
+     */
+    input?: string;
+    data?: never;
+  }
   | {
-      from: string;
-      nonce?: string;
-      /**
-       * Alias for `gas`
-       */
-      gasLimit?: string;
-      gas?: never;
-      to?: string;
-      value?: string;
-      /**
-       * Alias for `data`
-       */
-      input?: string;
-      data?: never;
-    }
+    from: string;
+    nonce?: string;
+    /**
+     * Alias for `gas`
+     */
+    gasLimit?: string;
+    gas?: never;
+    to?: string;
+    value?: string;
+    /**
+     * Alias for `data`
+     */
+    input?: string;
+    data?: never;
+  }
   // vrs
   | {
-      from?: string;
-      nonce: string;
-      gas?: string;
-      gasLimit?: never;
-      to?: string;
-      value?: string;
-      data?: string;
-      input?: never;
-      v: string;
-      r: string;
-      s: string;
-    }
+    from?: string;
+    nonce: string;
+    gas?: string;
+    gasLimit?: never;
+    to?: string;
+    value?: string;
+    data?: string;
+    input?: never;
+    v: string;
+    r: string;
+    s: string;
+  }
   | {
-      from?: string;
-      nonce: string;
-      /**
-       * Alias for `gas`
-       */
-      gasLimit?: string;
-      gas?: never;
-      to?: string;
-      value?: string;
-      data?: string;
-      input?: never;
-      v: string;
-      r: string;
-      s: string;
-    }
+    from?: string;
+    nonce: string;
+    /**
+     * Alias for `gas`
+     */
+    gasLimit?: string;
+    gas?: never;
+    to?: string;
+    value?: string;
+    data?: string;
+    input?: never;
+    v: string;
+    r: string;
+    s: string;
+  }
   | {
-      from?: string;
-      nonce: string;
-      gas?: string;
-      gasLimit?: never;
-      to?: string;
-      value?: string;
-      /**
-       * Alias for `data`
-       */
-      input?: string;
-      data?: never;
-      v: string;
-      r: string;
-      s: string;
-    }
+    from?: string;
+    nonce: string;
+    gas?: string;
+    gasLimit?: never;
+    to?: string;
+    value?: string;
+    /**
+     * Alias for `data`
+     */
+    input?: string;
+    data?: never;
+    v: string;
+    r: string;
+    s: string;
+  }
   | {
-      from?: string;
-      nonce: string;
-      /**
-       * Alias for `gas`
-       */
-      gasLimit?: string;
-      gas?: never;
-      to?: string;
-      value?: string;
-      /**
-       * Alias for `data`
-       */
-      input?: string;
-      data?: never;
-      v: string;
-      r: string;
-      s: string;
-    };
+    from?: string;
+    nonce: string;
+    /**
+     * Alias for `gas`
+     */
+    gasLimit?: string;
+    gas?: never;
+    to?: string;
+    value?: string;
+    /**
+     * Alias for `data`
+     */
+    input?: string;
+    data?: never;
+    v: string;
+    r: string;
+    s: string;
+  };

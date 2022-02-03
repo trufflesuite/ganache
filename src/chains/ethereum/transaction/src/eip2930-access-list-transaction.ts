@@ -10,7 +10,7 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { BN } from "ethereumjs-util";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import {
@@ -54,7 +54,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x1");
 
   public constructor(
-    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
+    data: EIP2930AccessListDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -148,7 +148,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     };
   }
   public static fromTxData(
-    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
+    data: EIP2930AccessListDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -270,5 +270,5 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     return computeIntrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
   }
 
-  public updateEffectiveGasPrice() {}
+  public updateEffectiveGasPrice() { }
 }

@@ -14,6 +14,8 @@ export type {
   FilecoinProvider,
   _ExperimentalInfo
 } from "@ganache/core";
+import type { ConnectorsByName } from "@ganache/flavors";
+export type FilecoinProvider = ConnectorsByName["filecoin"];
 export {
   server,
   provider,

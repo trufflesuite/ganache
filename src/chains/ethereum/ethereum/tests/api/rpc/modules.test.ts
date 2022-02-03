@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 const RPC_MODULES = {
   eth: "1.0",
   net: "1.0",

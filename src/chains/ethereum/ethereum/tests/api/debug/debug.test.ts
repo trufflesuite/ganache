@@ -1,7 +1,7 @@
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import path from "path";
 import { Quantity, Data } from "@ganache/utils";
 
@@ -131,7 +131,7 @@ describe("api", () => {
       // and not the value of the second setValue() transaction
       assert.strictEqual(
         lastop.storage[
-          "0000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000"
         ],
         initialValue
       );

@@ -2,7 +2,7 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 import { join } from "path";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 describe("api", () => {
