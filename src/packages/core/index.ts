@@ -10,7 +10,11 @@ export type { ProviderOptions, ServerOptions } from "./src/options";
 /**
  * @public
  */
-const Ganache = {
+const Ganache = {  
+  /**
+  * Version of Ganache.
+  */
+ version: process.env.VERSION || "DEV",
   /**
    * Creates a Ganache server instance that creates and
    * serves an underlying Ganache provider. Initialization
