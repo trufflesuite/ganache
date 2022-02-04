@@ -7,18 +7,8 @@ export type {
 import type { TypedTransactionJSON as SignedTransaction } from "@ganache/ethereum-transaction";
 
 /**
- * Pending and Executable transactions that are still in the transaction pool
- * and do not yet have a blockNumber, blockHash, and transactionIndex.
+ * Options for `evm_mine`.
  */
-export type QueuedTransaction = Omit<
-  SignedTransaction,
-  "blockNumber" | "blockHash" | "transactionIndex"
-> & {
-  blockNumber: null;
-  blockHash: null;
-  transactionIndex: null;
-};
-
 export type MineOptions = {
   timestamp?: number;
   blocks?: number;
@@ -41,3 +31,21 @@ export type {
   TraceTransactionResult,
   StorageRangeAtResult
 } from "@ganache/ethereum-utils";
+
+/**
+ * Pending and Executable transactions that are still in the transaction pool
+ * and do not yet have a blockNumber, blockHash, and transactionIndex.
+ */
+export type PooledTransaction = Omit<
+  SignedTransaction,
+  "blockNumber" | "blockHash" | "transactionIndex"
+> & {
+  blockNumber: null;
+  blockHash: null;
+  transactionIndex: null;
+};
+
+export type TransactionPoolContent = {
+  pending: Record<string, Record<string, PooledTransaction>>;
+  queued: Record<string, Record<string, PooledTransaction>>;
+};
