@@ -2079,6 +2079,8 @@ export default class EthereumApi implements Api {
           "blockLogs",
           (blockLogs: BlockLogs) => {
             for (const log of blockLogs.filter(addresses, topics)) {
+              // TODO: move the JSON stringification closer to where the message
+              // is actually sent to the listener
               promiEvent.emit("message", {
                 type: "eth_subscription",
                 data: {
