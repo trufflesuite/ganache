@@ -2082,7 +2082,7 @@ export default class EthereumApi implements Api {
               promiEvent.emit("message", {
                 type: "eth_subscription",
                 data: {
-                  result: log,
+                  result: JSON.parse(JSON.stringify(log)),
                   subscription: subscription.toString()
                 }
               });
