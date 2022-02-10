@@ -853,7 +853,7 @@ Sets the given account's nonce to the specified value. Mines a new block before 
 
 #### evm_setAccountBalance
 
-Sets the given account's nonce to the specified value. Mines a new block before returning.
+Sets the given account's balance to the specified value. Mines a new block before returning.
 
 ##### Arguments
 
@@ -864,7 +864,20 @@ Sets the given account's nonce to the specified value. Mines a new block before 
 
 `Promise<boolean>` : `true` if it worked, otherwise `false`.
 
-// TODO @rmeissner
+---
+
+#### evm_setAccountCode
+
+Sets the given account's code to the specified value. Mines a new block before returning.
+
+##### Arguments
+
+- `address: DATA` : The account address to update.
+- `code: DATA` : The code to be set.
+
+##### Returns
+
+`Promise<boolean>` : `true` if it worked, otherwise `false`.
 
 ---
 

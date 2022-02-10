@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import { Quantity } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
 import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
 
@@ -133,7 +133,7 @@ describe("api", () => {
         assert.strictEqual(currentBlock, initialBlock + 1);
       });
     });
-// TODO @rmeissner
+    
     describe("evm_setAccountNonce", () => {
       it("should set the nonce forward", async () => {
         const provider = await getProvider();
@@ -173,6 +173,33 @@ describe("api", () => {
           await provider.send("eth_getBalance", [account])
         );
         assert.strictEqual(afterBalance, newBalance.toNumber());
+      });
+    });
+
+    describe("evm_setAccountCode", () => {
+      it("should set code and reset after", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const newCode = Data.from("0xbaddad42");
+        const initialCode = await provider.send("eth_getCode", [account]);
+        assert.strictEqual(initialCode, "0x");
+        const setStatus = await provider.send("evm_setAccountCode", [
+          account,
+          newCode.toString()
+        ]);
+        assert.strictEqual(setStatus, true);
+        const afterCode = await provider.send("eth_getCode", [account]);
+        assert.strictEqual(afterCode, newCode.toString());
+
+        // Check that the code can be set to 0x
+        const emptyCode = Data.from("0x");
+        const resetStatus = await provider.send("evm_setAccountCode", [
+          account,
+          emptyCode.toString()
+        ]);
+        assert.strictEqual(resetStatus, true);
+        const resetCode = await provider.send("eth_getCode", [account]);
+        assert.strictEqual(resetCode, emptyCode.toString());
       });
     });
 

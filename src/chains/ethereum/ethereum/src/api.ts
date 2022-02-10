@@ -27,7 +27,7 @@ import {
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
-import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
+import { toRpcSig, ecsign, hashPersonalMessage, KECCAK256_NULL } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
@@ -429,6 +429,47 @@ export default class EthereumApi implements Api {
     } as any;
 
     await stateManager.putAccount({ buf: buffer } as any, account);
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(Capacity.Empty);
+    return true;
+  }
+
+  /**
+   * Sets the given account's code to the specified data. Mines a new block
+   * before returning.
+   *
+   * Warning: this will result in an invalid state tree.
+   *
+   * @param address - The account address to update.
+   * @param code - The code to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const data = "0xbaddad42";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountCode", [address, data] );
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(2)
+  async evm_setAccountCode(address: DATA, code: DATA) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
+    const addressBuffer = Address.from(address).toBuffer();
+    const codeBuffer = Data.from(code).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    // The ethereumjs-vm StateManager does not allow to set empty code,
+    // therefore we will manually set the code hash when "clearing" the contract code
+    if (codeBuffer.length > 0) {
+      await stateManager.putContractCode({ buf: addressBuffer } as any, codeBuffer)
+    } else {
+      const account = await stateManager.getAccount({ buf: addressBuffer } as any);
+      account.codeHash = KECCAK256_NULL
+      await stateManager.putAccount({ buf: addressBuffer } as any, account);
+    }
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
