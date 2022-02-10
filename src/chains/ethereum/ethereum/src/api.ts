@@ -399,6 +399,46 @@ export default class EthereumApi implements Api {
   }
 
   /**
+   * Sets the given account's balance to the specified value. Mines a new block
+   * before returning.
+   *
+   * Warning: this will result in an invalid state tree.
+   *
+   * @param address - The account address to update.
+   * @param balance - The balance value to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const balance = "0x3e8";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountBalance", [address, balance] );
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(2)
+  async evm_setAccountBalance(address: DATA, balance: QUANTITY) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
+    const buffer = Address.from(address).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    const account = await stateManager.getAccount({ buf: buffer } as any);
+
+    account.balance = {
+      toArrayLike: () => Quantity.from(balance).toBuffer()
+    } as any;
+
+    await stateManager.putAccount({ buf: buffer } as any, account);
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(Capacity.Empty);
+    return true;
+  }
+
+  // TODO @rmeissner
+
+  /**
    * Jump forward in time by the given amount of time, in seconds.
    * @param seconds - Number of seconds to jump forward in time by. Must be greater than or equal to `0`.
    * @returns Returns the total time adjustment, in seconds.

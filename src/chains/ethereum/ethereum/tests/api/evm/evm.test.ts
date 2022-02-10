@@ -133,7 +133,7 @@ describe("api", () => {
         assert.strictEqual(currentBlock, initialBlock + 1);
       });
     });
-
+// TODO @rmeissner
     describe("evm_setAccountNonce", () => {
       it("should set the nonce forward", async () => {
         const provider = await getProvider();
@@ -152,6 +152,27 @@ describe("api", () => {
           await provider.send("eth_getTransactionCount", [account])
         );
         assert.strictEqual(afterCount, newCount.toNumber());
+      });
+    });
+
+    describe("evm_setAccountBalance", () => {
+      it("should set the balance", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const newBalance = Quantity.from(1000);
+        const initialBalance = parseInt(
+          await provider.send("eth_getBalance", [account])
+        );
+        assert.strictEqual(initialBalance, 1e21);
+        const status = await provider.send("evm_setAccountBalance", [
+          account,
+          newBalance.toString()
+        ]);
+        assert.strictEqual(status, true);
+        const afterBalance = parseInt(
+          await provider.send("eth_getBalance", [account])
+        );
+        assert.strictEqual(afterBalance, newBalance.toNumber());
       });
     });
 

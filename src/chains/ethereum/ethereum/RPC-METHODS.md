@@ -851,6 +851,23 @@ Sets the given account's nonce to the specified value. Mines a new block before 
 
 ---
 
+#### evm_setAccountBalance
+
+Sets the given account's nonce to the specified value. Mines a new block before returning.
+
+##### Arguments
+
+- `address: DATA` : The account address to update.
+- `balance: QUANTITY` : The balance value to be set.
+
+##### Returns
+
+`Promise<boolean>` : `true` if it worked, otherwise `false`.
+
+// TODO @rmeissner
+
+---
+
 #### evm_setTime
 
 Sets the internal clock time to the given timestamp.

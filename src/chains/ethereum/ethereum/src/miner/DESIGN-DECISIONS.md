@@ -11,4 +11,4 @@ Miner behavior
 - From `blockchain.ts` when `this.mine(maxTransactions)` is called, either one transaction will be mined per block (instamine mode), or any number of transactions will be allowed, limited by the `blockGasLimit` (block time mode).
   - Though it is not yet exposed to the api, the miner is set up to allow the user to specify the number of transactions allowed per block, which could be a useful feature.
 - From the api, when `evm_mine` and thus `mine(Capacity.FillBlock, timestamp, true)` is called, a single block will be mined with no limit on the number of transactions per block (aside from the standard `blockGasLimit`). A block will be mined even if txPool is empty.
-- From the api, when `evm_setAccountNonce` and thus `blockchain.mine(Capacity.Empty)`, a single, empty block is mined.
+- From the api, when `evm_setAccountNonce` or `evm_setAccountBalance` and thus `blockchain.mine(Capacity.Empty)` is called, a single, empty block is mined. // TODO @rmeissner
