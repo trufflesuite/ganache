@@ -881,6 +881,22 @@ Sets the given account's code to the specified value. Mines a new block before r
 
 ---
 
+#### evm_setAccountStorageAt
+
+Sets the given account's storage slot to the specified data. Mines a new block before returning.
+
+##### Arguments
+
+- `address: DATA` : The account address to update.
+- `slot: DATA` : The storage slot that should be set.
+- `value: DATA` : The value to be set.
+
+##### Returns
+
+`Promise<boolean>` : `true` if it worked, otherwise `false`.
+
+---
+
 #### evm_setTime
 
 Sets the internal clock time to the given timestamp.

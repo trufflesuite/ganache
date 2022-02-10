@@ -477,7 +477,41 @@ export default class EthereumApi implements Api {
     return true;
   }
 
-  // TODO @rmeissner
+  /**
+   * Sets the given account's storage slot to the specified data. Mines a new block
+   * before returning.
+   *
+   * Warning: this will result in an invalid state tree.
+   *
+   * @param address - The account address to update.
+   * @param slot - The storage slot that should be set.
+   * @param value - The value to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005";
+   * const data = "0xbaddad42";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountStorageAt", [address, slot, data] );
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(3)
+  async evm_setAccountStorageAt(address: DATA, slot: DATA, value: DATA) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
+    const addressBuffer = Address.from(address).toBuffer();
+    const slotBuffer = Data.from(slot).toBuffer();
+    const valueBuffer = Data.from(value).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    await stateManager.putContractStorage({ buf: addressBuffer } as any, slotBuffer, valueBuffer)
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(Capacity.Empty);
+    return true;
+  }
 
   /**
    * Jump forward in time by the given amount of time, in seconds.

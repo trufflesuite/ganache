@@ -133,7 +133,7 @@ describe("api", () => {
         assert.strictEqual(currentBlock, initialBlock + 1);
       });
     });
-    
+
     describe("evm_setAccountNonce", () => {
       it("should set the nonce forward", async () => {
         const provider = await getProvider();
@@ -200,6 +200,36 @@ describe("api", () => {
         assert.strictEqual(resetStatus, true);
         const resetCode = await provider.send("eth_getCode", [account]);
         assert.strictEqual(resetCode, emptyCode.toString());
+      });
+    });
+
+    describe("evm_setAccountStorageAt", () => {
+      it("should set storage slot and delete after", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const slot = "0x0000000000000000000000000000000000000000000000000000000000000005";
+        const newStorage = Data.from("0xbaddad42");
+        const initialStorage = await provider.send("eth_getStorageAt", [account, slot]);
+        assert.strictEqual(initialStorage, "0x");
+        const setStatus = await provider.send("evm_setAccountStorageAt", [
+          account,
+          slot,
+          newStorage.toString()
+        ]);
+        assert.strictEqual(setStatus, true);
+        const afterCode = await provider.send("eth_getStorageAt", [account, slot]);
+        assert.strictEqual(afterCode, newStorage.toString());
+
+        // Check that the storage can be deleted
+        const emptyStorage = Data.from("0x");
+        const deletedStatus = await provider.send("evm_setAccountStorageAt", [
+          account,
+          slot,
+          emptyStorage.toString()
+        ]);
+        assert.strictEqual(deletedStatus, true);
+        const deletedStorage = await provider.send("eth_getStorageAt", [account, slot]);
+        assert.strictEqual(deletedStorage, emptyStorage.toString());
       });
     });
 
