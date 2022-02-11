@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.0.0-beta.2",
+	"version": "7.0.2",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
@@ -757,6 +757,12 @@
 				"node-gyp-build": "^4.3.0"
 			}
 		},
+		"builtin-status-codes": {
+			"version": "3.0.0",
+			"resolved": "https://registry.npmjs.org/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz",
+			"integrity": "sha1-hZgoeOIbmOHGZCXgPQF0eI9Wnug=",
+			"dev": true
+		},
 		"call-bind": {
 			"version": "1.0.2",
 			"resolved": "https://registry.npmjs.org/call-bind/-/call-bind-1.0.2.tgz",
@@ -1448,6 +1454,12 @@
 				"minimalistic-assert": "^1.0.0",
 				"minimalistic-crypto-utils": "^1.0.1"
 			}
+		},
+		"https-browserify": {
+			"version": "1.0.0",
+			"resolved": "https://registry.npmjs.org/https-browserify/-/https-browserify-1.0.0.tgz",
+			"integrity": "sha1-7AbBDgo0wPL68Zn3/X/Hj//QPHM=",
+			"dev": true
 		},
 		"human-signals": {
 			"version": "2.1.0",
@@ -2675,6 +2687,18 @@
 			"requires": {
 				"inherits": "~2.0.4",
 				"readable-stream": "^3.5.0"
+			}
+		},
+		"stream-http": {
+			"version": "3.2.0",
+			"resolved": "https://registry.npmjs.org/stream-http/-/stream-http-3.2.0.tgz",
+			"integrity": "sha512-Oq1bLqisTyK3TSCXpPbT4sdeYNdmyZJv1LxpEm2vu1ZhK89kSE5YXwZc3cWk0MagGaKriBh9mCFbVGtO+vY29A==",
+			"dev": true,
+			"requires": {
+				"builtin-status-codes": "^3.0.0",
+				"inherits": "^2.0.4",
+				"readable-stream": "^3.6.0",
+				"xtend": "^4.0.2"
 			}
 		},
 		"string-argv": {
