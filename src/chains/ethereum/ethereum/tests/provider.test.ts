@@ -7,6 +7,7 @@ import EthereumProvider from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
+import Web3 from "web3";
 
 describe("provider", () => {
   describe("options", () => {
@@ -242,6 +243,42 @@ describe("provider", () => {
             "Incorrect number of arguments. 'eth_getBlockTransactionCountByNumber' requires exactly 1 argument."
         }
       );
+    });
+  });
+
+  describe("web3 compatibility", () => {
+    const networkId = 1234;
+    let provider: EthereumProvider;
+    let web3: Web3;
+    let accounts: string[];
+
+    beforeEach(async () => {
+      provider = await getProvider({
+        chain: { networkId },
+        wallet: { deterministic: true }
+      });
+      web3 = new Web3();
+      // TODO: remove "as any" once we've fixed our typing issues with web3
+      web3.setProvider(provider as any);
+      accounts = await web3.eth.getAccounts();
+    });
+
+    it("returns things via legacy", async () => {
+      const subscription = web3.eth.subscribe("newBlockHeaders");
+      assert(subscription != null);
+      assert.notStrictEqual(subscription.id, false);
+
+      // if the data isn't properly serialized before emitting, web3 won't
+      // ever catch this
+      subscription.on("data", data => {
+        assert.strictEqual(
+          data.hash,
+          "0x493c3d8fe9ba807940794a9dbe76152a23c3a4dcaee6c9b61eeef900d458ebe9"
+        );
+      });
+
+      const tx = { from: accounts[0], gas: "0xfffff" };
+      await web3.eth.sendTransaction(tx);
     });
   });
 });
