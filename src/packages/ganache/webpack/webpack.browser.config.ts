@@ -17,8 +17,9 @@ const config: webpack.Configuration = merge({}, base, {
       events: require.resolve("events/"),
       buffer: require.resolve("buffer/"),
       fs: false,
-      http: false,
-      https: false
+      // Taken from https://webpack.js.org/configuration/resolve/#resolvefallback
+      http: require.resolve('stream-http'),
+      https: require.resolve('https-browserify'),
       //#endregion node polyfills
     },
     alias: {
