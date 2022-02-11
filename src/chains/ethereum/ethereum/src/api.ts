@@ -2054,13 +2054,10 @@ export default class EthereumApi implements Api {
           if (header.baseFeePerGas !== undefined) {
             (result as any).baseFeePerGas = header.baseFeePerGas;
           }
-
-          // TODO: move the JSON stringification closer to where the message
-          // is actually sent to the listener
           promiEvent.emit("message", {
             type: "eth_subscription",
             data: {
-              result: JSON.parse(JSON.stringify(result)),
+              result: result,
               subscription: subscription.toString()
             }
           });
@@ -2079,12 +2076,10 @@ export default class EthereumApi implements Api {
           "blockLogs",
           (blockLogs: BlockLogs) => {
             for (const log of blockLogs.filter(addresses, topics)) {
-              // TODO: move the JSON stringification closer to where the message
-              // is actually sent to the listener
               promiEvent.emit("message", {
                 type: "eth_subscription",
                 data: {
-                  result: JSON.parse(JSON.stringify(log)),
+                  result: log,
                   subscription: subscription.toString()
                 }
               });
