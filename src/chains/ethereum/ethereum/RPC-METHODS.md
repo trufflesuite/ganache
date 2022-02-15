@@ -853,7 +853,7 @@ Sets the given account's nonce to the specified value. Mines a new block before 
 
 #### evm_setAccountBalance
 
-Sets the given account's balance to the specified value. Mines a new block before returning.
+Sets the given account's balance to the specified WEI value. Mines a new block before returning.
 
 ##### Arguments
 
