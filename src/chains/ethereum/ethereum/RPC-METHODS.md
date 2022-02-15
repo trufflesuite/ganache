@@ -858,7 +858,7 @@ Sets the given account's balance to the specified WEI value. Mines a new block b
 ##### Arguments
 
 - `address: DATA` : The account address to update.
-- `balance: QUANTITY` : The balance value to be set.
+- `balance: QUANTITY` : The balance value, in WEI, to be set.
 
 ##### Returns
 
