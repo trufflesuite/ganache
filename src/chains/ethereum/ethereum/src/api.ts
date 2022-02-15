@@ -405,7 +405,7 @@ export default class EthereumApi implements Api {
    * Warning: this will result in an invalid state tree.
    *
    * @param address - The account address to update.
-   * @param balance - The balance value to be set.
+   * @param balance - The balance value, in WEI, to be set.
    * @returns `true` if it worked, otherwise `false`.
    * @example
    * ```javascript
