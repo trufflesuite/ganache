@@ -399,7 +399,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Sets the given account's balance to the specified value. Mines a new block
+   * Sets the given account's balance to the specified WEI value. Mines a new block
    * before returning.
    *
    * Warning: this will result in an invalid state tree.
