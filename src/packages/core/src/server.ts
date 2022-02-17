@@ -109,7 +109,7 @@ export const _DefaultServerOptions = serverDefaults;
  */
 export class Server<
   T extends FlavorName = typeof DefaultFlavor
-> extends Emittery<{ open: undefined; close: undefined }> {
+  > extends Emittery<{ open: undefined; close: undefined }> {
   #options: InternalOptions;
   #providerOptions: Options<T>;
   #status: number = ServerStatus.unknown;
@@ -180,10 +180,9 @@ export class Server<
     host?: string | Callback,
     callback?: Callback
   ): void | Promise<void> {
-    let hostname: string = null;
     if (typeof host === "function") {
       callback = host;
-      hostname = null;
+      host = null;
     }
     const callbackIsFunction = typeof callback === "function";
     const status = this.#status;
@@ -212,13 +211,13 @@ export class Server<
           // Make sure we have *exclusive* use of this port.
           // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
           const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-          hostname
+          host
             ? (this.#app as any).listen(
-                hostname,
-                port,
-                LIBUS_LISTEN_EXCLUSIVE_PORT,
-                resolve
-              )
+              host,
+              port,
+              LIBUS_LISTEN_EXCLUSIVE_PORT,
+              resolve
+            )
             : this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
         }
       ).then(listenSocket => {
@@ -228,8 +227,7 @@ export class Server<
         } else {
           this.#status = ServerStatus.closed;
           const err = new Error(
-            `listen EADDRINUSE: address already in use ${
-              hostname || DEFAULT_HOST
+            `listen EADDRINUSE: address already in use ${host || DEFAULT_HOST
             }:${port}.`
           );
           throw err;
