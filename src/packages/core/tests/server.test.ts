@@ -5,7 +5,7 @@
 // construction due to missing private fields
 import Ganache, { Server } from "../index";
 
-import * as assert from "assert";
+import assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
@@ -18,6 +18,7 @@ import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
 import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
+import { networkInterfaces } from 'os';
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -31,25 +32,28 @@ describe("server", () => {
     params: []
   };
   const logger = {
-    log: (_message: string) => {}
+    log: (_message: string) => { }
   };
   let s: Server;
 
-  async function setup(
-    options: ServerOptions = {
-      chain: {
-        networkId
-      },
-      logging: {
-        logger
-      }
+  const defaultOptions = {
+    chain: {
+      networkId
+    },
+    logging: {
+      logger
     }
+  }
+
+  async function setup(
+    options: ServerOptions = defaultOptions, host: string | null = null
   ) {
     // @ts-ignore - `s` errors if you run tsc and then test
     // because it tries to compare the built declaration file to
     // the TS file, causing missing #<var> private variables
     s = Ganache.server(options);
-    return s.listen(port);
+    await s.listen(port, host);
+    return s;
   }
 
   async function teardown() {
@@ -58,6 +62,91 @@ describe("server", () => {
       await s.close();
     }
   }
+
+  describe("listen", () => {
+    it("listens on all interfaces by default", async () => {
+      await setup();
+      try {
+        const interfaces = networkInterfaces();
+        assert(Object.keys(interfaces).length > 0);
+
+        for (const interfaceName of Object.keys(interfaces)) {
+          const interfaceInfo = interfaces[interfaceName];
+          assert(interfaceInfo.length > 0);
+
+          for (const info of interfaceInfo) {
+            // external IPs can't be tested this way
+            if (info.internal === false) continue;
+
+            // ipv6 addresses need brackets
+            const address = info.family === "IPv6" ? `[${info.address}]` : info.address;
+            const response = await request
+              .post(`http://${address}:${port}`)
+              .send(jsonRpcJson);
+
+            assert.strictEqual(response.status, 200, `Wrong status code when connecting to http://${address}:${port}`);
+            assert.strictEqual(response.body.result, "1234", `Wrong result when connecting to http://${address}:${port}`);
+          }
+        }
+      }
+      finally {
+        await teardown()
+      }
+    });
+
+    it("listens on given interface only", async () => {
+      const interfaces = networkInterfaces();
+      assert(Object.keys(interfaces).length > 0);
+
+      for (const interfaceName of Object.keys(interfaces)) {
+        const interfaceInfo = interfaces[interfaceName];
+        assert(interfaceInfo.length > 0);
+
+        for (const info of interfaceInfo) {
+          // external IPs can't be tested this way
+          if (info.internal === false) continue;
+
+          const serverAddress = info.address;
+          const server = await setup(defaultOptions, info.address);
+          try {
+            for (const interfaceName of Object.keys(interfaces)) {
+              const interfaceInfo = interfaces[interfaceName];
+              assert(interfaceInfo.length > 0);
+
+              for (const info of interfaceInfo) {
+                // external IPs can't be tested this way
+                if (info.internal === false) continue;
+
+                // ipv6 addresses need brackets
+                const address = info.family === "IPv6" ? `[${info.address}]` : info.address;
+
+                const requestPromise = request
+                  .post(`http://${address}:${port}`)
+                  .send(jsonRpcJson);
+                if (serverAddress === info.address) {
+                  const response = await requestPromise;
+                  assert.strictEqual(response.status, 200);
+                  assert.strictEqual(response.body.result, "1234");
+                } else {
+                  await assert.rejects(requestPromise, {
+                    address: info.address,
+                    code: 'ECONNREFUSED',
+                    errno: -111,
+                    port,
+                    syscall: 'connect',
+                    message: `connect ECONNREFUSED ${info.address}:${port}`,
+                  });
+                }
+
+              }
+            }
+          } finally {
+            await server.close();
+          }
+        }
+      }
+    });
+  })
 
   describe("http", () => {
     async function simpleTest() {
@@ -1103,8 +1192,8 @@ describe("server", () => {
                 reject(
                   new Error(
                     "Possible false positive: Didn't detect backpressure" +
-                      " before receiving a message. Ensure `s.provider.send` is" +
-                      " sending enough data."
+                    " before receiving a message. Ensure `s.provider.send` is" +
+                    " sending enough data."
                   )
                 );
               }
