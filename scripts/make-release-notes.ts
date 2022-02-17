@@ -168,10 +168,10 @@ const getCommitMetrics = (branch: string) => {
               "\n\nIgnore commit? (I) or (C)ancel?\n"
           )) as any;
           rl.close();
-          if (answer === "I") {
+          if (answer.toLowerCase() === "i") {
             console.log("ignoring commit");
             break;
-          } else if (answer === "C") {
+          } else if (answer.toLowerCase() === "c") {
             throw new Error("User cancelled");
           }
         }
