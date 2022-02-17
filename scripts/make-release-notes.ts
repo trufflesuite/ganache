@@ -136,20 +136,32 @@ const getCommitMetrics = (branch: string) => {
 
   async function parse() {
     const sections: Map<keyof typeof details, Section[]> = new Map();
+    const commitData = [];
     for (let i = 0; i < commits.length; i++) {
       const commit = commits[i];
       let [_, _type, scope, comment, pr] = commit.split(
         /^([a-z]+)(\(.+\))?:(.*?)(?:\(#(\d.+)\))?$/i
       );
       const type = (_type ? _type.trim().toLowerCase() : undefined) as Type;
+      let author = "";
+      const ghData = execSync(`gh pr --info ${pr}`, { encoding: "utf8" });
+      const maybeAuthor = ghData.match(/@[a-z\d-]*(?!(.*:.*)@[a-z\d-])/i);
+      if (maybeAuthor) {
+        author = maybeAuthor[0];
+      }
       if (types.includes(type)) {
         const { slug } = details[type as Type];
 
-        const scopeMd = scope ? `(${scope})` : "";
-        const subject = `${type}${scopeMd}: ${comment.trim()}`;
+        const scopeMd = scope ? `${scope}` : "";
+        const prMd = pr ? `(#${pr})` : "";
+        const subjectSansPr = `${type}${scopeMd}: ${comment.trim()}`;
+        const subject = `${subjectSansPr} ${prMd}`;
 
         const section: Section[] = sections.get(slug as Type) || [];
-        section.push({ type: type, subject });
+        if (pr && author) {
+          commitData.push({ subject: subjectSansPr, pr, author });
+        }
+        section.push({ type, subject, pr });
         sections.set(slug as Type, section);
       } else {
         while (true) {
@@ -183,11 +195,11 @@ const getCommitMetrics = (branch: string) => {
         ordered.set(type, sections.get(type)!);
       }
     }
-    return ordered;
+    return { sections: ordered, commits: commitData };
   }
 
   try {
-    const sections = await parse();
+    const { sections, commits } = await parse();
 
     const sectionTableContents: string[] = [];
     const sectionMarkdown: string[] = [];
