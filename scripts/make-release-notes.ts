@@ -139,7 +139,7 @@ const getCommitMetrics = (branch: string) => {
     for (let i = 0; i < commits.length; i++) {
       const commit = commits[i];
       let [_, _type, scope, comment, pr] = commit.split(
-        /^([a-z]+)(\(.+\))?:(.*)?\(#(\d.+)\)$/i
+        /^([a-z]+)(\(.+\))?:(.*?)(?:\(#(\d.+)\))?$/i
       );
       const type = (_type ? _type.trim().toLowerCase() : undefined) as Type;
       if (types.includes(type)) {
