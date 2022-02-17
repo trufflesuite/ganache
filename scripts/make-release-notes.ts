@@ -203,6 +203,7 @@ const getCommitMetrics = (branch: string) => {
 
     const sectionTableContents: string[] = [];
     const sectionMarkdown: string[] = [];
+    const changelogMarkdown: string[] = [];
     for (const [slug, section] of sections) {
       const typeDeets = details[slug];
       const url = typeDeets.url;
@@ -227,7 +228,16 @@ const getCommitMetrics = (branch: string) => {
         getSectionMd(version, url, pretty, commitsMarkdown, tocMarkdown)
       );
     }
+    for (const commit of commits) {
+      changelogMarkdown.push(
+        ` - #${commit.pr} ${commit.subject} (${commit.author})`
+      );
+    }
+    sectionMarkdown.push(
+      getSectionMd(version, "changelog", "Changelog", changelogMarkdown)
+    );
 
+    sectionTableContents.push(getChangelogHead(version));
     sectionTableContents.push(getKnownIssuesHead(version));
     sectionTableContents.push(getFuturePlansHead(version));
 
