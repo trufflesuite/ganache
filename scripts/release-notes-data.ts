@@ -59,6 +59,11 @@ ${commitsMarkdown.join("\n")}
 `;
 }
 
+export function getChangelogHead(version: string) {
+  return `		<code>&nbsp;<a href="#user-content-${version}-changelog">Changelog</a>&nbsp;</code>
+  <img height="36" width="0" src="https://raw.githubusercontent.com/davidmurdoch/px/master/1px.gif">`;
+}
+
 export function getKnownIssuesHead(version: string) {
   return `		<code>&nbsp;<a href="#user-content-${version}-known-issues">Known&nbsp;Issues</a>&nbsp;</code>
   <img height="36" width="0" src="https://raw.githubusercontent.com/davidmurdoch/px/master/1px.gif">`;
