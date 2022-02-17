@@ -111,7 +111,7 @@ const getCommitMetrics = (branch: string) => {
     test: misc
   } as const;
   type Type = keyof typeof details;
-  type Section = { type: Type; subject: string };
+  type Section = { type: Type; subject: string; pr: string };
   const types = Object.keys(details) as Type[];
 
   const version = argv.version as string;
