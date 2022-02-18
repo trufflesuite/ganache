@@ -252,9 +252,7 @@ describe("provider", () => {
     let accounts: string[];
 
     beforeEach(async () => {
-      provider = await getProvider({
-        wallet: { deterministic: true }
-      });
+      provider = await getProvider();
       web3 = new Web3();
       // TODO: remove "as any" once we've fixed our typing issues
       // with web3 (https://github.com/ChainSafe/web3.js/pull/4761)
@@ -271,10 +269,10 @@ describe("provider", () => {
           subscriptionId = id;
         })
         .on("data", data => {
-      // if the data isn't properly serialized before emitting, web3 won't
+          // if the data isn't properly serialized before emitting, web3 won't
           // ever handle this
           hash = data.hash;
-      });
+        });
 
       const tx = { from: accounts[0], gas: "0xfffff" };
       await web3.eth.sendTransaction(tx);
