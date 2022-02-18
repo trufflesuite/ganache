@@ -263,21 +263,25 @@ describe("provider", () => {
     });
 
     it("returns things via legacy", async () => {
-      const subscription = web3.eth.subscribe("newBlockHeaders");
-      assert(subscription != null);
-      assert.notStrictEqual(subscription.id, false);
-
+      let subscriptionId = "";
+      let hash = "";
+      const subscription = web3.eth
+        .subscribe("newBlockHeaders")
+        .on("connected", id => {
+          subscriptionId = id;
+        })
+        .on("data", data => {
       // if the data isn't properly serialized before emitting, web3 won't
-      // ever catch this
-      subscription.on("data", data => {
-        assert.strictEqual(
-          data.hash,
-          "0x493c3d8fe9ba807940794a9dbe76152a23c3a4dcaee6c9b61eeef900d458ebe9"
-        );
+          // ever handle this
+          hash = data.hash;
       });
 
       const tx = { from: accounts[0], gas: "0xfffff" };
       await web3.eth.sendTransaction(tx);
+
+      assert(subscription != null);
+      assert.deepStrictEqual(subscriptionId, "0x1");
+      assert.notStrictEqual(hash, "");
     });
   });
 });
