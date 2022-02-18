@@ -2169,13 +2169,10 @@ export default class EthereumApi implements Api {
           if (header.baseFeePerGas !== undefined) {
             (result as any).baseFeePerGas = header.baseFeePerGas;
           }
-
-          // TODO: move the JSON stringification closer to where the message
-          // is actually sent to the listener
           promiEvent.emit("message", {
             type: "eth_subscription",
             data: {
-              result: JSON.parse(JSON.stringify(result)),
+              result,
               subscription: subscription.toString()
             }
           });
