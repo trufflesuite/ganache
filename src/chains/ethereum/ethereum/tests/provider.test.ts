@@ -270,7 +270,7 @@ describe("provider", () => {
         })
         .on("data", data => {
           // if the data isn't properly serialized before emitting, web3 won't
-          // ever handle this
+          // ever emit "data", so we won't get here
           hash = data.hash;
         });
 
