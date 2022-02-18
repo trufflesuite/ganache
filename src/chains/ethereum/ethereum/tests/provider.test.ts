@@ -256,7 +256,8 @@ describe("provider", () => {
         wallet: { deterministic: true }
       });
       web3 = new Web3();
-      // TODO: remove "as any" once we've fixed our typing issues with web3
+      // TODO: remove "as any" once we've fixed our typing issues
+      // with web3 (https://github.com/ChainSafe/web3.js/pull/4761)
       web3.setProvider(provider as any);
       accounts = await web3.eth.getAccounts();
     });
