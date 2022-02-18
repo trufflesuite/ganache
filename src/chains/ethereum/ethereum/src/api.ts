@@ -27,7 +27,7 @@ import {
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
-import { toRpcSig, ecsign, hashPersonalMessage } from "ethereumjs-util";
+import { toRpcSig, ecsign, hashPersonalMessage, KECCAK256_NULL } from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
@@ -391,6 +391,121 @@ export default class EthereumApi implements Api {
     } as any;
 
     await stateManager.putAccount({ buf: buffer } as any, account);
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(Capacity.Empty);
+    return true;
+  }
+
+  /**
+   * Sets the given account's balance to the specified WEI value. Mines a new block
+   * before returning.
+   *
+   * Warning: this will result in an invalid state tree.
+   *
+   * @param address - The account address to update.
+   * @param balance - The balance value, in WEI, to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const balance = "0x3e8";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountBalance", [address, balance] );
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(2)
+  async evm_setAccountBalance(address: DATA, balance: QUANTITY) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
+    const buffer = Address.from(address).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    const account = await stateManager.getAccount({ buf: buffer } as any);
+
+    account.balance = {
+      toArrayLike: () => Quantity.from(balance).toBuffer()
+    } as any;
+
+    await stateManager.putAccount({ buf: buffer } as any, account);
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(Capacity.Empty);
+    return true;
+  }
+
+  /**
+   * Sets the given account's code to the specified data. Mines a new block
+   * before returning.
+   *
+   * Warning: this will result in an invalid state tree.
+   *
+   * @param address - The account address to update.
+   * @param code - The code to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const data = "0xbaddad42";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountCode", [address, data] );
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(2)
+  async evm_setAccountCode(address: DATA, code: DATA) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
+    const addressBuffer = Address.from(address).toBuffer();
+    const codeBuffer = Data.from(code).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    // The ethereumjs-vm StateManager does not allow to set empty code,
+    // therefore we will manually set the code hash when "clearing" the contract code
+    if (codeBuffer.length > 0) {
+      await stateManager.putContractCode({ buf: addressBuffer } as any, codeBuffer)
+    } else {
+      const account = await stateManager.getAccount({ buf: addressBuffer } as any);
+      account.codeHash = KECCAK256_NULL
+      await stateManager.putAccount({ buf: addressBuffer } as any, account);
+    }
+
+    // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
+    // and produce an invalid trie going forward.
+    await blockchain.mine(Capacity.Empty);
+    return true;
+  }
+
+  /**
+   * Sets the given account's storage slot to the specified data. Mines a new block
+   * before returning.
+   *
+   * Warning: this will result in an invalid state tree.
+   *
+   * @param address - The account address to update.
+   * @param slot - The storage slot that should be set.
+   * @param value - The value to be set.
+   * @returns `true` if it worked, otherwise `false`.
+   * @example
+   * ```javascript
+   * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005";
+   * const data = "0xbaddad42";
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_setAccountStorageAt", [address, slot, data] );
+   * console.log(result);
+   * ```
+   */
+  @assertArgLength(3)
+  async evm_setAccountStorageAt(address: DATA, slot: DATA, value: DATA) {
+    // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
+    // issues. We need to figure out a good way of timing this.
+    const addressBuffer = Address.from(address).toBuffer();
+    const slotBuffer = Data.from(slot).toBuffer();
+    const valueBuffer = Data.from(value).toBuffer();
+    const blockchain = this.#blockchain;
+    const stateManager = blockchain.vm.stateManager;
+    await stateManager.putContractStorage({ buf: addressBuffer } as any, slotBuffer, valueBuffer)
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.

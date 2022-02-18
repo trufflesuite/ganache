@@ -851,6 +851,52 @@ Sets the given account's nonce to the specified value. Mines a new block before 
 
 ---
 
+#### evm_setAccountBalance
+
+Sets the given account's balance to the specified WEI value. Mines a new block before returning.
+
+##### Arguments
+
+- `address: DATA` : The account address to update.
+- `balance: QUANTITY` : The balance value, in WEI, to be set.
+
+##### Returns
+
+`Promise<boolean>` : `true` if it worked, otherwise `false`.
+
+---
+
+#### evm_setAccountCode
+
+Sets the given account's code to the specified value. Mines a new block before returning.
+
+##### Arguments
+
+- `address: DATA` : The account address to update.
+- `code: DATA` : The code to be set.
+
+##### Returns
+
+`Promise<boolean>` : `true` if it worked, otherwise `false`.
+
+---
+
+#### evm_setAccountStorageAt
+
+Sets the given account's storage slot to the specified data. Mines a new block before returning.
+
+##### Arguments
+
+- `address: DATA` : The account address to update.
+- `slot: DATA` : The storage slot that should be set.
+- `value: DATA` : The value to be set.
+
+##### Returns
+
+`Promise<boolean>` : `true` if it worked, otherwise `false`.
+
+---
+
 #### evm_setTime
 
 Sets the internal clock time to the given timestamp.

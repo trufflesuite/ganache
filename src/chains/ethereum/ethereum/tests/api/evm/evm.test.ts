@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import { Quantity } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
 import EthereumProvider from "../../../src/provider";
 import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
 
@@ -152,6 +152,84 @@ describe("api", () => {
           await provider.send("eth_getTransactionCount", [account])
         );
         assert.strictEqual(afterCount, newCount.toNumber());
+      });
+    });
+
+    describe("evm_setAccountBalance", () => {
+      it("should set the balance", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const newBalance = Quantity.from(1000);
+        const initialBalance = parseInt(
+          await provider.send("eth_getBalance", [account])
+        );
+        assert.strictEqual(initialBalance, 1e21);
+        const status = await provider.send("evm_setAccountBalance", [
+          account,
+          newBalance.toString()
+        ]);
+        assert.strictEqual(status, true);
+        const afterBalance = parseInt(
+          await provider.send("eth_getBalance", [account])
+        );
+        assert.strictEqual(afterBalance, newBalance.toNumber());
+      });
+    });
+
+    describe("evm_setAccountCode", () => {
+      it("should set code and reset after", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const newCode = Data.from("0xbaddad42");
+        const initialCode = await provider.send("eth_getCode", [account]);
+        assert.strictEqual(initialCode, "0x");
+        const setStatus = await provider.send("evm_setAccountCode", [
+          account,
+          newCode.toString()
+        ]);
+        assert.strictEqual(setStatus, true);
+        const afterCode = await provider.send("eth_getCode", [account]);
+        assert.strictEqual(afterCode, newCode.toString());
+
+        // Check that the code can be set to 0x
+        const emptyCode = Data.from("0x");
+        const resetStatus = await provider.send("evm_setAccountCode", [
+          account,
+          emptyCode.toString()
+        ]);
+        assert.strictEqual(resetStatus, true);
+        const resetCode = await provider.send("eth_getCode", [account]);
+        assert.strictEqual(resetCode, emptyCode.toString());
+      });
+    });
+
+    describe("evm_setAccountStorageAt", () => {
+      it("should set storage slot and delete after", async () => {
+        const provider = await getProvider();
+        const [account] = await provider.send("eth_accounts");
+        const slot = "0x0000000000000000000000000000000000000000000000000000000000000005";
+        const newStorage = Data.from("0xbaddad42");
+        const initialStorage = await provider.send("eth_getStorageAt", [account, slot]);
+        assert.strictEqual(initialStorage, "0x");
+        const setStatus = await provider.send("evm_setAccountStorageAt", [
+          account,
+          slot,
+          newStorage.toString()
+        ]);
+        assert.strictEqual(setStatus, true);
+        const afterCode = await provider.send("eth_getStorageAt", [account, slot]);
+        assert.strictEqual(afterCode, newStorage.toString());
+
+        // Check that the storage can be deleted
+        const emptyStorage = Data.from("0x");
+        const deletedStatus = await provider.send("evm_setAccountStorageAt", [
+          account,
+          slot,
+          emptyStorage.toString()
+        ]);
+        assert.strictEqual(deletedStatus, true);
+        const deletedStorage = await provider.send("eth_getStorageAt", [account, slot]);
+        assert.strictEqual(deletedStorage, emptyStorage.toString());
       });
     });
 
