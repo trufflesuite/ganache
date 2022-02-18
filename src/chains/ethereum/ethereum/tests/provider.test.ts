@@ -247,14 +247,12 @@ describe("provider", () => {
   });
 
   describe("web3 compatibility", () => {
-    const networkId = 1234;
     let provider: EthereumProvider;
     let web3: Web3;
     let accounts: string[];
 
     beforeEach(async () => {
       provider = await getProvider({
-        chain: { networkId },
         wallet: { deterministic: true }
       });
       web3 = new Web3();
