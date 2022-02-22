@@ -2,24 +2,11 @@ import {
   Connector as EthereumConnector,
   Provider as EthereumProvider
 } from "@ganache/ethereum";
-import type {
-  Connector as FilecoinConnector,
-  Provider as FilecoinProvider
-} from "@ganache/filecoin";
-// import type {
-//   Connector as TezosConnector,
-//   Provider as TezosProvider
-// } from "@ganache/tezos";
 import {
   EthereumDefaults,
   EthereumProviderOptions,
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
-import {
-  FilecoinDefaults,
-  FilecoinProviderOptions,
-  FilecoinLegacyProviderOptions
-} from "@ganache/filecoin-options";
 // import { TezosDefaults, TezosProviderOptions } from "@ganache/tezos-options";
 import { TruffleColors } from "@ganache/colors";
 import chalk from "chalk";
@@ -27,33 +14,24 @@ import chalk from "chalk";
 // we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
 import "@ganache/options";
 import { Executor } from "@ganache/utils";
-import { Base, Definitions } from "@ganache/options";
 
 const NEED_HELP = "Need help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.io/support";
 
 export const EthereumFlavorName = "ethereum";
-export const FilecoinFlavorName = "filecoin";
-// export const TezosFlavorName = "tezos";
 
 export const DefaultFlavor = EthereumFlavorName;
 
 export const DefaultOptionsByName = {
-  [EthereumFlavorName]: EthereumDefaults,
-  [FilecoinFlavorName]: FilecoinDefaults
-  // [TezosFlavorName]: TezosDefaults
+  [EthereumFlavorName]: EthereumDefaults
 };
 
 export type ConnectorsByName = {
   [EthereumFlavorName]: EthereumConnector;
-  [FilecoinFlavorName]: FilecoinConnector;
-  // [TezosFlavorName]: TezosConnector;
 };
 
 export type OptionsByName = {
   [EthereumFlavorName]: EthereumProviderOptions;
-  [FilecoinFlavorName]: FilecoinProviderOptions;
-  // [TezosFlavorName]: TezosProviderOptions;
 };
 
 export type FlavorName = keyof ConnectorsByName;
@@ -62,7 +40,6 @@ export type Connector = {
   [K in keyof ConnectorsByName]: ConnectorsByName[K];
 }[keyof ConnectorsByName];
 
-// export type Providers = Ethereum.Provider | Tezos.Provider;
 export function GetConnector<T = any>(
   flavor: T,
   providerOptions: Options<typeof flavor>,
@@ -73,26 +50,6 @@ export function GetConnector<T = any>(
   }
   try {
     switch (flavor.toString()) {
-      case FilecoinFlavorName: {
-        flavor = "@ganache/filecoin" as any;
-        // TODO: remove the `typeof f.default != "undefined" ? ` check once the
-        // published filecoin plugin is updated to
-        const f = eval("require")(flavor);
-        const Connector: FilecoinConnector =
-          typeof f.default != "undefined" ? f.default.Connector : f.Connector;
-        // @ts-ignore
-        return new Connector(providerOptions, executor);
-      }
-      // case TezosFlavorName: {
-      //   flavor = "@ganache/tezos" as any;
-      //   // TODO: remove the `typeof f.default != "undefined" ? ` check once the
-      //   // published tezos plugin is updated to
-      //   const f = eval("require")(flavor);
-      //   const Connector: TezosConnector =
-      //     typeof f.default != "undefined" ? f.default.Connector : f.Connector;
-      //   // @ts-ignore
-      //   return new Connector(providerOptions, executor);
-      // }
       default: {
         // for future plugin compat
         const { Connector } = require("@ganache/" + flavor.toString());
@@ -124,23 +81,10 @@ export function GetConnector<T = any>(
 /**
  * @public
  */
-export type Provider = EthereumProvider | FilecoinProvider | any; //| TezosProvider;
+export type Provider = EthereumProvider | any;
 
 type EthereumOptions<T = "ethereum"> = {
   flavor?: T;
 } & (EthereumProviderOptions | EthereumLegacyProviderOptions);
 
-type FilecoinOptions<T = "filecoin"> = {
-  flavor: T;
-} & (FilecoinProviderOptions | FilecoinLegacyProviderOptions);
-
-// type TezosOptions<T = "tezos"> = {
-//   flavor: T;
-// } & TezosProviderOptions;
-
-// export type Options = EthereumOptions | TezosOptions;
-export type Options<T = any> = T extends "filecoin"
-  ? FilecoinOptions<T>
-  : T extends "ethereum"
-  ? EthereumOptions<T>
-  : any;
+export type Options<T = any> = T extends "ethereum" ? EthereumOptions<T> : any;

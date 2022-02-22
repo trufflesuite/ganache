@@ -35,7 +35,6 @@ import {
   Connector,
   ConnectorsByName,
   DefaultFlavor,
-  FilecoinFlavorName,
   FlavorName,
   Options
 } from "@ganache/flavors";
@@ -137,10 +136,8 @@ export class Server<T = any> extends Emittery<{
     pluginServerOptionsConfig: any = null
   ) {
     super();
-    // TODO: remove filecoin flavor once filecoin code is moved into separate repo
     if (
       providerAndServerOptions.flavor !== DefaultFlavor &&
-      providerAndServerOptions.flavor !== FilecoinFlavorName &&
       pluginServerOptionsConfig !== null
     ) {
       this.#options = pluginServerOptionsConfig.normalize(

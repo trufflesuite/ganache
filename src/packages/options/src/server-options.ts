@@ -65,11 +65,7 @@ export const ServerOptions: Definitions<ServerConfig> = {
     cliDescription:
       "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
     default: (config, flavor) => {
-      switch (
-        flavor // TODO: remove filecoin and return only for default
-      ) {
-        case "filecoin":
-          return "/rpc/v0";
+      switch (flavor) {
         case "ethereum":
         default:
           return "/";

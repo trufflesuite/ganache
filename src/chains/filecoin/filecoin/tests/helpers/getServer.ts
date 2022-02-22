@@ -1,9 +1,8 @@
-import { FilecoinFlavorName } from "../../../../../packages/flavors";
 import Server from "../../../../../packages/core/src/server";
 
 const getServer = async (port: number) => {
   const server = new Server({
-    flavor: FilecoinFlavorName,
+    flavor: "filecoin",
     server: {
       ws: true
     },

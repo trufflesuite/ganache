@@ -4,11 +4,9 @@ import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
-import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
+import { EthereumFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
-import initializeFilecoin from "./initialize/filecoin";
 import intializePlugin from "./initialize/plugin";
-import type { Provider as FilecoinProvider } from "@ganache/filecoin";
 import type { Provider as EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
@@ -44,9 +42,7 @@ let pluginServerOptionsConfig = null;
 const pluginFlavor = process.argv[2];
 if (
   pluginFlavor !== undefined &&
-  !["ethereum", "--help", "filecoin", "@ganache/filecoin"].includes(
-    pluginFlavor
-  ) &&
+  !["ethereum", "--help"].includes(pluginFlavor) &&
   !pluginFlavor.includes("-")
 ) {
   pluginPackage = require("@ganache/" + pluginFlavor);
@@ -148,26 +144,12 @@ async function startGanache(err: Error) {
   started = true;
 
   switch (flavor) {
-    case FilecoinFlavorName: {
-      await initializeFilecoin(
-        server.provider as FilecoinProvider,
-        cliSettings
-      );
-      break;
-    }
-    // case TezosFlavorName: {
-    //   initializeTezos(
-    //     (server.provider as unknown) as TezosProvider,
-    //     cliSettings
-    //   );
-    //   break;
-    // }
     case EthereumFlavorName: {
       initializeEthereum(server.provider as EthereumProvider, cliSettings);
       break;
     }
     default: {
-      const loggingInfo = callback(server.provider);
+      const loggingInfo = await callback(server.provider);
       intializePlugin(loggingInfo);
       break;
     }
