@@ -4,13 +4,12 @@
  * whenever it references @ganache/core.
  * This is so we avoid an extra set of native node modules in dist/cli, just use what's in dist/node.
  */
-export {
+export type {
   Server,
   Provider,
   ServerOptions,
-  ProviderOptions,
-  server,
-  provider
+  ProviderOptions
 } from "@ganache/core";
+export { server, provider } from "@ganache/core";
 import Ganache from "@ganache/core";
 export default Ganache;

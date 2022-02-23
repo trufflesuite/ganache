@@ -47,7 +47,13 @@ const Ganache = {
   }
 };
 
+/**
+ * @public
+ */
 export const server = Ganache.server;
+/**
+ * @public
+ */
 export const provider = Ganache.provider;
 /**
  * @public

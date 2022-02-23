@@ -7,6 +7,7 @@ import EthereumProvider from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
+import Web3 from "web3";
 
 describe("provider", () => {
   describe("options", () => {
@@ -211,7 +212,10 @@ describe("provider", () => {
     it("asserts invalid arg lengths", async () => {
       await assert.rejects(
         () =>
-          provider.request({ method: "eth_accounts", params: ["invalid arg"] }),
+          provider.request({
+            method: "eth_accounts",
+            params: ["invalid arg"] as any
+          }),
         {
           message:
             "Incorrect number of arguments. 'eth_accounts' requires exactly 0 arguments."
@@ -239,6 +243,43 @@ describe("provider", () => {
             "Incorrect number of arguments. 'eth_getBlockTransactionCountByNumber' requires exactly 1 argument."
         }
       );
+    });
+  });
+
+  describe("web3 compatibility", () => {
+    let provider: EthereumProvider;
+    let web3: Web3;
+    let accounts: string[];
+
+    beforeEach(async () => {
+      provider = await getProvider();
+      web3 = new Web3();
+      // TODO: remove "as any" once we've fixed our typing issues
+      // with web3 (https://github.com/ChainSafe/web3.js/pull/4761)
+      web3.setProvider(provider as any);
+      accounts = await web3.eth.getAccounts();
+    });
+
+    it("returns things via legacy", async () => {
+      let subscriptionId = "";
+      let hash = "";
+      const subscription = web3.eth
+        .subscribe("newBlockHeaders")
+        .on("connected", id => {
+          subscriptionId = id;
+        })
+        .on("data", data => {
+          // if the data isn't properly serialized before emitting, web3 won't
+          // ever emit "data", so we won't get here
+          hash = data.hash;
+        });
+
+      const tx = { from: accounts[0], gas: "0xfffff" };
+      await web3.eth.sendTransaction(tx);
+
+      assert(subscription != null);
+      assert.deepStrictEqual(subscriptionId, "0x1");
+      assert.notStrictEqual(hash, "");
     });
   });
 });

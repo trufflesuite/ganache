@@ -66,7 +66,7 @@ export type MinerConfig = {
     /**
      * Sets the block gas limit in WEI.
      *
-     * @defaultValue 12_000_000
+     * @defaultValue 30_000_000
      */
     blockGasLimit: {
       type: Quantity;
@@ -96,9 +96,9 @@ export type MinerConfig = {
 
     /**
      * Sets the transaction gas limit in WEI for `eth_call` and
-     * eth_estimateGas` calls.
+     * `eth_estimateGas` calls.
      *
-     * @defaultValue 9_007_199_254_740_991 // 2**53 - 1
+     * @defaultValue 50_000_000
      */
     callGasLimit: {
       type: Quantity;
@@ -114,23 +114,23 @@ export type MinerConfig = {
     };
 
     /**
-     * Enables legacy instamine mode, where transactions are fully mined before
-     * the transaction's hash is returned to the caller. If `legacyInstamine` is
-     * `true`, `blockTime` must be `0` (default).
+     * Set the instamine mode to either "eager" (default) or "strict".
+     *  * In "eager" mode a transaction will be included in a block before
+     * its hash is returned to the caller.
+     *  * In "strict" mode a transaction's hash is returned to the caller before
+     * the transaction is included in a block.
+     * `instamine` has no effect if `blockTime` is *not* `0` (the default).
      *
-     * @defaultValue false
-     * @deprecated Will be removed in v4
+     * @defaultValue "eager"
      */
-    legacyInstamine: {
-      type: boolean;
+    instamine: {
+      type: "eager" | "strict";
       hasDefault: true;
-      // legacyInstamine is _not_ a legacy option, but it is used as one so users
-      // can use it just as they would other legacy options (without a namespace)
+      // `instamine` is _not_ a legacy option, but it is used as one so users
+      // can use it just as they would other legacy options, i.e., without a
+      //  namespace
       legacy: {
-        /**
-         * @deprecated Use miner.legacyInstamine instead. Will be removed in v4.
-         */
-        legacyInstamine: boolean;
+        instamine: "eager" | "strict";
       };
     };
 
@@ -176,7 +176,7 @@ export type MinerConfig = {
 /**
  * Attempts to convert strings that don't start with `0x` to a BigInt
  *
- * @param str a string that represents a bigint, number, or hex number
+ * @param str - a string that represents a bigint, number, or hex number
  */
 const toBigIntOrString = (str: string) => {
   if (str.startsWith("0x")) {
@@ -215,7 +215,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   blockGasLimit: {
     normalize: Quantity.from,
     cliDescription: "Sets the block gas limit in WEI.",
-    default: () => Quantity.from(12_000_000),
+    default: () => Quantity.from(30_000_000),
     legacyName: "gasLimit",
     cliAliases: ["l", "gasLimit"],
     cliType: "string",
@@ -241,18 +241,22 @@ export const MinerOptions: Definitions<MinerConfig> = {
     normalize: Quantity.from,
     cliDescription:
       "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
-    default: () => Quantity.from(Number.MAX_SAFE_INTEGER),
+    default: () => Quantity.from(50_000_000),
     legacyName: "callGasLimit",
     cliType: "string",
     cliCoerce: toBigIntOrString
   },
-  legacyInstamine: {
+  instamine: {
     normalize,
-    cliDescription:
-      "Enables legacy instamine mode, where transactions are fully mined before the transaction's hash is returned to the caller.",
-    default: () => false,
-    legacyName: "legacyInstamine",
-    cliType: "boolean"
+    cliDescription: `Set the instamine mode to either "eager" (default) or "strict".
+ * In "eager" mode a transaction will be included in a block before its hash is returned to the caller.
+ * In "strict" mode a transaction's hash is returned to the caller before the transaction is included in a block.
+\`instamine\` has no effect if \`blockTime\` is *not* \`0\` (the default).`,
+    default: () => "eager",
+    legacyName: "instamine",
+    cliAliases: ["instamine"],
+    cliType: "string",
+    cliChoices: ["eager", "strict"]
   },
   coinbase: {
     normalize: rawType => {

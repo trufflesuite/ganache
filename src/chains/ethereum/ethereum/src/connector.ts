@@ -43,7 +43,7 @@ export class Connector<
       KnownKeys<EthereumApi>
     > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
   >
-  extends Emittery.Typed<undefined, "ready" | "close">
+  extends Emittery<{ ready: undefined; close: undefined }>
   implements IConnector<EthereumApi, R | R[], JsonRpcResponse> {
   #provider: EthereumProvider;
 
@@ -72,7 +72,7 @@ export class Connector<
   parse(message: Buffer) {
     try {
       return JSON.parse(message) as R;
-    } catch (e) {
+    } catch (e: any) {
       throw new CodedError(e.message, JsonRpcErrorCode.PARSE_ERROR);
     }
   }

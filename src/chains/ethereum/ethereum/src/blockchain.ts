@@ -9,7 +9,7 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  RETURN_TYPES,
+  CallError,
   StorageKeys,
   StorageRangeResult,
   StorageRecords,
@@ -95,8 +95,9 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  ready: undefined;
+  stop: undefined;
 };
-type BlockchainEvents = "ready" | "stop";
 
 interface Logger {
   log(message?: any, ...optionalParams: any[]): void;
@@ -114,7 +115,7 @@ export type BlockchainOptions = {
   coinbase: Account;
   chainId: number;
   common: Common;
-  legacyInstamine: boolean;
+  instamine: "eager" | "strict";
   vmErrorsOnRPCResponse: boolean;
   logger: Logger;
 };
@@ -126,8 +127,8 @@ export type BlockchainOptions = {
  * Useful if you know the state manager is not in a checkpoint and its internal
  * cache is safe to discard.
  *
- * @param stateManager
- * @param stateRoot
+ * @param stateManager -
+ * @param stateRoot -
  */
 function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
   (stateManager as any)._trie.root = stateRoot;
@@ -163,14 +164,11 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   //  a) we don't currently support changing hardforks
   //  b) it can cause `MaxListenersExceededWarning`.
   // Since we don't need it we overwrite .on to make it be quiet.
-  (common as any).on = () => {};
+  (common as any).on = () => { };
   return common;
 }
 
-export default class Blockchain extends Emittery.Typed<
-  BlockchainTypedEvents,
-  BlockchainEvents
-> {
+export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
   #blockBeingSavedPromise: Promise<{ block: Block; blockLogs: BlockLogs }>;
@@ -206,7 +204,7 @@ export default class Blockchain extends Emittery.Typed<
    *
    * Emits a `ready` event once the database and all dependencies are fully
    * initialized.
-   * @param options
+   * @param options -
    */
   constructor(
     options: EthereumInternalOptions,
@@ -217,36 +215,8 @@ export default class Blockchain extends Emittery.Typed<
 
     this.#options = options;
     this.fallback = fallback;
-
-    const instamine = (this.#instamine =
-      !options.miner.blockTime || options.miner.blockTime <= 0);
-    const legacyInstamine = options.miner.legacyInstamine;
-
-    {
-      // warnings and errors
-      if (legacyInstamine) {
-        console.info(
-          "Legacy instamining, where transactions are fully mined before the hash is returned, is deprecated and will be removed in the future."
-        );
-      }
-
-      if (!instamine) {
-        if (legacyInstamine) {
-          console.info(
-            "Setting `legacyInstamine` to `true` has no effect when blockTime is non-zero"
-          );
-        }
-
-        if (options.chain.vmErrorsOnRPCResponse) {
-          console.info(
-            "Setting `vmErrorsOnRPCResponse` to `true` has no effect on transactions when blockTime is non-zero"
-          );
-        }
-      }
-    }
-
     this.coinbase = coinbase;
-
+    this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0;
     this.#database = new Database(options.database, this);
   }
 
@@ -341,9 +311,8 @@ export default class Blockchain extends Emittery.Typed<
             options.miner.blockGasLimit,
             initialAccounts
           );
-          blocks.earliest = blocks.latest = await this.#blockBeingSavedPromise.then(
-            ({ block }) => block
-          );
+          blocks.earliest = blocks.latest =
+            await this.#blockBeingSavedPromise.then(({ block }) => block);
         }
       }
 
@@ -398,7 +367,7 @@ export default class Blockchain extends Emittery.Typed<
       this.#state = Status.stopping;
       // ignore errors while stopping here, since we are already in an
       // exceptional case
-      await this.stop().catch(_ => {});
+      await this.stop().catch(_ => { });
 
       throw e;
     }
@@ -470,6 +439,9 @@ export default class Blockchain extends Emittery.Typed<
       // save block to the database
       blocks.putBlock(blockNumber, blockHash, serialized);
 
+      // update the "latest" index
+      blocks.updateLatestIndex(blockNumber);
+
       // output to the log, if we have data to output
       if (logOutput.length > 0)
         this.#options.logging.logger.log(logOutput.join(EOL));
@@ -478,6 +450,9 @@ export default class Blockchain extends Emittery.Typed<
     });
   };
 
+  /**
+   * Emit the block now that everything has been fully saved to the database
+   */
   #emitNewBlock = async (blockInfo: {
     block: Block;
     blockLogs: BlockLogs;
@@ -486,15 +461,21 @@ export default class Blockchain extends Emittery.Typed<
     const options = this.#options;
     const { block, blockLogs, transactions } = blockInfo;
 
-    // emit the block once everything has been fully saved to the database
     transactions.forEach(transaction => {
       transaction.finalize("confirmed", transaction.execException);
     });
 
-    if (this.#instamine && options.miner.legacyInstamine) {
-      // in legacy instamine mode we must delay the broadcast of new blocks
+    if (this.#instamine && options.miner.instamine === "eager") {
+      // in eager instamine mode we must delay the broadcast of new blocks
       await new Promise(resolve => {
-        process.nextTick(async () => {
+        // we delay emitting blocks and blockLogs because we need to allow for:
+        // ```
+        //  await provider.request({"method": "eth_sendTransaction"...)
+        //  await provider.once("message") // <- should work
+        // ```
+        // If we don't have this delay here the messages will be sent before
+        // the call has a chance to listen to the event.
+        setImmediate(async () => {
           // emit block logs first so filters can pick them up before
           // block listeners are notified
           await Promise.all([
@@ -554,7 +535,8 @@ export default class Blockchain extends Emittery.Typed<
       .then(() => this.#saveNewBlock(blockData))
       .then(this.#emitNewBlock);
 
-    return this.#blockBeingSavedPromise;
+    await this.#blockBeingSavedPromise;
+    return;
   };
 
   coinbase: Address;
@@ -791,7 +773,7 @@ export default class Blockchain extends Emittery.Typed<
   };
 
   /**
-   * @param seconds
+   * @param seconds -
    * @returns the total time offset *in milliseconds*
    */
   public increaseTime(seconds: number) {
@@ -802,14 +784,14 @@ export default class Blockchain extends Emittery.Typed<
   }
 
   /**
-   * @param seconds
+   * @param seconds -
    * @returns the total time offset *in milliseconds*
    */
   public setTime(timestamp: number) {
     return (this.#timeAdjustment = timestamp - Date.now());
   }
 
-  #deleteBlockData = async (blocksToDelete: Block[]) => {
+  #deleteBlockData = async (blocksToDelete: Block[], newLatestBlockNumber: Buffer) => {
     // if we are forking we need to make sure we clean up the forking related
     // metadata that isn't stored in the trie
     if ("revertMetaData" in this.trie) {
@@ -820,6 +802,9 @@ export default class Blockchain extends Emittery.Typed<
     }
     await this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
+      // point to the new "latest" again
+      blocks.updateLatestIndex(newLatestBlockNumber);
+      // clean up old blocks
       blocksToDelete.forEach(block => {
         block.getTransactions().forEach(tx => {
           const txHash = tx.hash.toBuffer();
@@ -937,7 +922,7 @@ export default class Blockchain extends Emittery.Typed<
       snapshots.blocks = blockList;
 
       const blockData = await Promise.all(blockPromises);
-      await this.#deleteBlockData(blockData);
+      await this.#deleteBlockData(blockData, snapshotHeader.number.toBuffer());
 
       setStateRootSync(
         this.vm.stateManager,
@@ -976,11 +961,11 @@ export default class Blockchain extends Emittery.Typed<
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
-      if (this.#instamine && this.#options.miner.legacyInstamine) {
-        // in legacyInstamine mode we must wait for the transaction to be saved
+      if (this.#instamine && this.#options.miner.instamine === "eager") {
+        // in eager instamine mode we must wait for the transaction to be saved
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
-        // in legacyInstamine mode we must throw on all rejected transaction
+        // in eager instamine mode we must throw on all rejected transaction
         // errors. We must also throw on `confirmed` transactions when
         // vmErrorsOnRPCResponse is enabled.
         if (
@@ -1017,9 +1002,9 @@ export default class Blockchain extends Emittery.Typed<
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(transaction.block.header.number.toString())
-        )
+        this.common,
+        BigInt(transaction.block.header.number.toString())
+      )
       : this.common;
 
     const gasLeft =
@@ -1107,9 +1092,7 @@ export default class Blockchain extends Emittery.Typed<
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      // eth_call transactions don't really have a transaction hash
-      const hash = RPCQUANTITY_EMPTY;
-      throw new RuntimeError(hash, result, RETURN_TYPES.RETURN_VALUE);
+      throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
     }
@@ -1137,9 +1120,9 @@ export default class Blockchain extends Emittery.Typed<
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(newBlock.header.number.toString())
-        )
+        this.common,
+        BigInt(newBlock.header.number.toString())
+      )
       : this.common;
 
     const vm = await VM.create({
@@ -1285,7 +1268,7 @@ export default class Blockchain extends Emittery.Typed<
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => {};
+    (vm.stateManager as any)._cache.flush = () => { };
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
@@ -1399,8 +1382,8 @@ export default class Blockchain extends Emittery.Typed<
    *  3. Rerun every transaction in that block prior to and including the requested transaction
    *  4. Send trace results back.
    *
-   * @param transactionHash
-   * @param options
+   * @param transactionHash -
+   * @param options -
    */
   public async traceTransaction(
     transactionHash: string,
@@ -1439,17 +1422,13 @@ export default class Blockchain extends Emittery.Typed<
     );
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
-    const {
-      gas,
-      structLogs,
-      returnValue,
-      storage
-    } = await this.#traceTransaction(
-      newBlock.transactions[transaction.index.toNumber()],
-      trie,
-      newBlock,
-      options
-    );
+    const { gas, structLogs, returnValue, storage } =
+      await this.#traceTransaction(
+        newBlock.transactions[transaction.index.toNumber()],
+        trie,
+        newBlock,
+        options
+      );
 
     // #4 - Send results back
     return { gas, structLogs, returnValue, storage };
@@ -1470,11 +1449,11 @@ export default class Blockchain extends Emittery.Typed<
    *  5. Rerun every transaction in that block prior to and including the requested transaction
    *  6. Send storage results back
    *
-   * @param blockHash
-   * @param txIndex
-   * @param contractAddress
-   * @param startKey
-   * @param maxResult
+   * @param blockHash -
+   * @param txIndex -
+   * @param contractAddress -
+   * @param startKey -
+   * @param maxResult -
    */
   public async storageRangeAt(
     blockHash: string,

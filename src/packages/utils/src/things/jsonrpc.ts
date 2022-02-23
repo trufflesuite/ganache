@@ -10,10 +10,10 @@ export type JsonRpcRequest<
   Ledger extends Api,
   Method extends KnownKeys<Ledger>
 > = JsonRpc & {
-  readonly id: string;
+  readonly id: string | number;
   readonly jsonrpc: string;
   readonly method: Method;
-  readonly params?: OverloadedParameters<Ledger[keyof Ledger]>;
+  readonly params?: OverloadedParameters<Ledger[Method]>;
 };
 export type JsonRpcResponse = JsonRpc & {
   readonly result: any;

@@ -75,8 +75,7 @@ describe("api", () => {
                 extraData: "0x",
                 gasLimit: gasLimit,
                 gasUsed: "0x0",
-                hash:
-                  "0xe2c5d64b9e17e25abc0589c378b77adecf06668dd3c073ab9c53dec51baf2048",
+                hash: "0xe2c5d64b9e17e25abc0589c378b77adecf06668dd3c073ab9c53dec51baf2048",
                 logsBloom: `0x${"0".repeat(512)}`,
                 miner: `0x${"0".repeat(40)}`,
                 mixHash: `0x${"0".repeat(64)}`,
@@ -125,6 +124,18 @@ describe("api", () => {
 
       describe("newPendingTransactions", () => {
         it("subscribes and unsubscribes", async () => {
+          const provider = await getProvider({
+            chain: {
+              time
+            },
+            miner: {
+              blockGasLimit: gasLimit,
+              instamine: "strict"
+            },
+            wallet: {
+              mnemonic: "sweet treat"
+            }
+          });
           const subscriptionId = await provider.send("eth_subscribe", [
             "newPendingTransactions"
           ]);

@@ -42,6 +42,23 @@ describe("api", () => {
         assert.strictEqual(opts.wallet.accounts.length, 0);
         assert.strictEqual(initialAccounts.length, 0);
       });
+
+      it("should unlock arbitrary accounts and include them in eth_accounts", async () => {
+        const arbitraryAccount = "0xab5801a7d398351b8be11c439e05c5b3259aec9b";
+        const totalAccounts = 50;
+        const provider = await getProvider({
+          wallet: {
+            deterministic: true,
+            totalAccounts: totalAccounts,
+            unlockedAccounts: [arbitraryAccount]
+          }
+        });
+        const accounts = await provider.send("eth_accounts");
+        assert.strictEqual(accounts.length, totalAccounts + 1);
+        assert(accounts.includes(arbitraryAccount));
+        const opts = provider.getOptions();
+        assert.strictEqual(totalAccounts, opts.wallet.totalAccounts);
+      });
     });
   });
 });

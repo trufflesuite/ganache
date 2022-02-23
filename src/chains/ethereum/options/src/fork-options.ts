@@ -1,16 +1,15 @@
 import { normalize } from "./helpers";
 import { Definitions, UnionToTuple } from "@ganache/options";
-import { $INLINE_JSON } from "ts-transformer-inline-file";
 import { Tag } from "@ganache/ethereum-utils";
 import { URL } from "url";
-const { version } = $INLINE_JSON("../../../../packages/ganache/package.json");
+const version = process.env.VERSION || "DEV";
 
 // we aren't going to treat block numbers as a bigint, so we don't want to
 // accept block numbers we can't add to
 const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 
 type HeaderRecord = { name: string; value: string };
-type ForkUrl = URL & { _blockNumber?: number | Tag.LATEST };
+type ForkUrl = URL & { _blockNumber?: number | typeof Tag.latest };
 
 type KnownNetworks =
   | "mainnet"
@@ -33,11 +32,11 @@ export type ForkConfig = {
     /**
      * Fork from another currently running Ethereum client. Input should be the
      * URL of the node, e.g. http://localhost:8545. You can optionally specify
-     * the block to fork from using an @ sign: http://localhost:8545@1599200
+     * the block to fork from using an \@ sign: http://localhost:8545\@1599200
      *
      * You can specify Basic Authentication credentials in the URL as well. e.g.,
-     * wss://user:password@example.com/. If you need to use an Infura Project
-     * Secret, you would use it like this: wss://:{YOUR-PROJECT-SECRET}@mainnet.infura.com/...
+     * wss://user:password\@example.com/. If you need to use an Infura Project
+     * Secret, you would use it like this: wss://:\{YOUR-PROJECT-SECRET\}\@mainnet.infura.com/...
      *
      * Alternatively, you can use the `fork.username` and `fork.password` options.
      */
@@ -87,13 +86,13 @@ export type ForkConfig = {
      * Block number the provider should fork from.
      */
     blockNumber: {
-      type: number | Tag.LATEST;
+      type: number | typeof Tag.latest;
       hasDefault: true;
       legacy: {
         /**
          * @deprecated Use fork.blockNumber instead
          */
-        fork_block_number: number | Tag.LATEST;
+        fork_block_number: number | typeof Tag.latest;
       };
     };
 
@@ -148,7 +147,7 @@ export type ForkConfig = {
      *
      * Will be overridden by a `"User-Agent"` value defined in the `fork.headers` option, if provided.
      *
-     * @default "Ganache/VERSION (https://www.trufflesuite.com/ganache; ganache＠trufflesuite.com) ＠ganache/ethereum/VERSION"
+     * @defaultValue "Ganache/VERSION (https://www.trufflesuite.com/ganache; ganache＠trufflesuite.com) ＠ganache/ethereum/VERSION"
      */
     userAgent: {
       type: string;
@@ -171,7 +170,7 @@ export type ForkConfig = {
      *
      * Headers set here override headers set by other options, unless otherwise specified.
      *
-     * @default
+     * @defaultValue
      * ```json
      * [{
      *   "name": "User-Agent",
@@ -189,7 +188,7 @@ export type ForkConfig = {
     /**
      * Limit the number of requests per second sent to the fork provider. `0` means no limit is applied.
      *
-     * @default 0
+     * @defaultValue 0
      */
     requestsPerSecond: {
       type: number;
@@ -199,7 +198,7 @@ export type ForkConfig = {
     /**
      * Disables caching of all forking requests.
      *
-     * @default false
+     * @defaultValue false
      */
     disableCache: {
       type: boolean;
@@ -209,7 +208,7 @@ export type ForkConfig = {
     /**
      * Deletes the persistent cache on start up.
      *
-     * @default false
+     * @defaultValue false
      */
     deleteCache: {
       type: boolean;
@@ -267,11 +266,11 @@ export const ForkOptions: Definitions<ForkConfig> = {
         // remove everything after the last @
         url = new URL(path.substr(0, lastIndex), url);
         const blockNumber = path.substr(lastIndex + 1);
-        if (blockNumber && blockNumber !== Tag.LATEST) {
+        if (blockNumber && blockNumber !== Tag.latest) {
           // don't use parseInt because strings like `"123abc"` parse
           // to `123`, and there is probably an error on the user's side we'd
           // want to uncover.
-          const asNum = ((blockNumber as unknown) as number) - 0;
+          const asNum = (blockNumber as unknown as number) - 0;
           // don't allow invalid, negative, or decimals
           if (
             isNaN(asNum) ||
@@ -371,10 +370,10 @@ Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet 
         if (url._blockNumber) {
           return url._blockNumber;
         } else {
-          return Tag.LATEST;
+          return Tag.latest;
         }
       } else if (provider || network) {
-        return Tag.LATEST;
+        return Tag.latest;
       } else {
         return;
       }

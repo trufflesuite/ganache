@@ -19,8 +19,7 @@ import {
   GanacheRawExtraTx,
   TypedDatabaseTransaction
 } from "./raw";
-import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
-import { AccessLists } from "./access-lists";
+import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
 import { computeIntrinsicsFeeMarketTx } from "./signing";
 import {
   Capability,
@@ -116,6 +115,10 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.accessListJSON = accessListData.AccessListJSON;
       this.validateAndSetSignature(data);
     }
+  }
+
+  public maxGasPrice() {
+    return this.maxFeePerGas;
   }
 
   public toJSON(_common?: Common): EIP1559FeeMarketTransactionJSON {

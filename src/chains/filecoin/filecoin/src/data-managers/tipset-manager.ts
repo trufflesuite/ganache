@@ -31,7 +31,7 @@ export default class TipsetManager extends Manager<Tipset, TipsetConfig> {
 
   /**
    * Writes the tipset object to the underlying database.
-   * @param tipset
+   * @param tipset -
    */
   async putTipset(tipset: Tipset) {
     // remove blocks array here as they'll be stored in their own manager

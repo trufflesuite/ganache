@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [beta, alpha, canary]
+    branches: [alpha, beta, rc, master]
 
 jobs:
   release:
@@ -33,11 +33,26 @@ jobs:
           FORCE_COLOR: 1
           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
-      - name: Update package versions
-        # ${GITHUB_REF##*/} is the branch name
+      - name: Set TAG for master to latest
+        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid ${GITHUB_REF##*/}
-          git add .
+          echo "TAG=latest" >> $GITHUB_ENV
+
+      - name: Set TAG for non-master to the branch name
+        if: ${{ github.ref != 'refs/heads/master' }}
+        run: |
+          echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Update package versions for latest release (master)
+        if: ${{ env.TAG == 'latest' }}
+        run: $(npm bin)/lerna version patch --no-git-tag-version --no-push --yes --exact
+
+      - name: Update package versions for pre-releases
+        if: ${{ env.TAG != 'latest' }}
+        run: $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
+
+      - name: Add updated versions to git
+        run: git add .
 
       - name: Run build
         run: npm run build
@@ -49,15 +64,17 @@ jobs:
           npm run docs.build
           git add docs/**
 
+      - name: Set VERSION
+        run: |
+          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+
       - name: Commit all staged changes
         run: |
-          VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')
           git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
-      # # TODO: sign the last commit and tag
+      # TODO: sign the last commit and tag
       - name: Tag the amended release commit
         run: |
-          VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')
           git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
 
       - name: Push changes to git
@@ -76,7 +93,7 @@ jobs:
       # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
       - name: Release to npm
         run: |
-          $(npm bin)/lerna publish from-package --yes --dist-tag ${GITHUB_REF##*/} --pre-dist-tag ${GITHUB_REF##*/} --no-verify-access
+          $(npm bin)/lerna publish from-package --yes --dist-tag ${TAG} --pre-dist-tag ${TAG} --no-verify-access
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,11 +119,6 @@ jobs:
           images: |
             trufflesuite/ganache
             ghcr.io/${{ github.repository}}
-
-      - name: Set TAG and VERSION
-        run: |
-          echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc

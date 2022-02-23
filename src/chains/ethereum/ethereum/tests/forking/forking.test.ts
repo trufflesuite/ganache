@@ -11,7 +11,8 @@ import {
   startLocalChain,
   updateRemotesAccountsBalances,
   updateRemotesAccountNonces,
-  range
+  range,
+  encodeValue
 } from "./helpers";
 import compile from "../helpers/compile";
 import path from "path";
@@ -69,7 +70,7 @@ describe("forking", function () {
       wallet: { deterministic: true, totalAccounts: REMOTE_ACCOUNT_COUNT },
       chain: { networkId: NETWORK_ID }
     });
-    remoteProvider = (remoteServer.provider as unknown) as EthereumProvider;
+    remoteProvider = remoteServer.provider as unknown as EthereumProvider;
     remoteAccounts = Object.keys(remoteProvider.getInitialAccounts());
     await remoteServer.listen(PORT);
   });
@@ -90,8 +91,7 @@ describe("forking", function () {
       extraData: "0x0",
       gasLimit: "0x0",
       gasUsed: "0x0",
-      hash:
-        "0x925238ca364205c502b1771d80cd569e4200000b9aca6ded77fc8fe8f7b9e055",
+      hash: "0x925238ca364205c502b1771d80cd569e4200000b9aca6ded77fc8fe8f7b9e055",
       logsBloom: "0x0",
       miner: "0x0",
       mixHash:
@@ -170,7 +170,7 @@ describe("forking", function () {
           () =>
             localProvider.request({
               // the mock server returns junk for calls to `eth_getBalance`
-              method: "eth_getBalance" as any,
+              method: "eth_getBalance",
               params: ["0x2000000000000000000000000000000000000000"]
             }),
           {
@@ -269,7 +269,7 @@ describe("forking", function () {
           if (!(remoteProvider as any).request) {
             remoteProvider.request = request;
           }
-          return send.apply(remoteProvider, args);
+          return (send as any).apply(remoteProvider, args);
         };
 
         const provider = await startLocalChain(PORT, {
@@ -510,10 +510,6 @@ describe("forking", function () {
       return provider.send("eth_sendTransaction", [tx]);
     }
 
-    function encodeValue(val: number) {
-      return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
-    }
-
     function makeTxForSet(key: number, value: number) {
       const encodedKey = encodeValue(key);
       const encodedValue = encodeValue(value);
@@ -640,22 +636,16 @@ describe("forking", function () {
     }
 
     beforeEach("deploy contract", async () => {
-      ({
-        contractAddress,
-        contractCode,
-        contractBlockNum,
-        methods
-      } = await deployContract(remoteProvider, remoteAccounts));
+      ({ contractAddress, contractCode, contractBlockNum, methods } =
+        await deployContract(remoteProvider, remoteAccounts));
     });
 
     it("should fetch contract code from the remote chain via the local chain", async () => {
       const { localProvider } = await startLocalChain(PORT, {
         disableCache: true
       });
-      const {
-        blockNumbersWithCode,
-        blockNumbersWithoutCode
-      } = await getBlockRanges(localProvider);
+      const { blockNumbersWithCode, blockNumbersWithoutCode } =
+        await getBlockRanges(localProvider);
 
       await Promise.all(
         blockNumbersWithCode.map(blockNumber =>
@@ -684,11 +674,8 @@ describe("forking", function () {
       const { localProvider } = await startLocalChain(PORT, {
         disableCache: true
       });
-      const {
-        blockNum,
-        blockNumbersWithCode,
-        blockNumbersWithoutCode
-      } = await getBlockRanges(localProvider);
+      const { blockNum, blockNumbersWithCode, blockNumbersWithoutCode } =
+        await getBlockRanges(localProvider);
 
       const _get = (value: string, blockNum: number) =>
         get(localProvider, value, blockNum);
@@ -736,11 +723,8 @@ describe("forking", function () {
       const { localProvider } = await startLocalChain(PORT, {
         disableCache: true
       });
-      const {
-        blockNum,
-        blockNumbersWithCode,
-        blockNumbersWithoutCode
-      } = await getBlockRanges(localProvider);
+      const { blockNum, blockNumbersWithCode, blockNumbersWithoutCode } =
+        await getBlockRanges(localProvider);
 
       function _set(key: number, value: number) {
         return set(localProvider, key, value);
@@ -830,7 +814,7 @@ describe("forking", function () {
           // set value1 to {snapshotValue}
           await set(localProvider, 1, snapshotValue);
           const message = await localProvider.once("message");
-          const blockNumber = parseInt(message.data.result.number, 16);
+          const blockNumber = parseInt((message.data.result as any).number, 16);
           const checkValue = await get(localProvider, "value1", blockNumber);
           assert.strictEqual(
             Quantity.from(checkValue).toNumber(),
@@ -853,7 +837,10 @@ describe("forking", function () {
         // set value1 to {initialValue} (delete it)
         await set(localProvider, 1, initialValue);
         const message = await localProvider.once("message");
-        const initialBlockNumber = parseInt(message.data.result.number, 16);
+        const initialBlockNumber = parseInt(
+          (message.data.result as any).number,
+          16
+        );
         assert.strictEqual(
           Quantity.from(
             await get(localProvider, "value1", initialBlockNumber)
@@ -917,7 +904,10 @@ describe("forking", function () {
               await set(remoteProvider, 1, remoteInitialValue);
               const message = await remoteProvider.once("message");
               await remoteProvider.send("eth_unsubscribe", [subId]);
-              const blockNumber = parseInt(message.data.result.number, 16);
+              const blockNumber = parseInt(
+                (message.data.result as any).number,
+                16
+              );
               assert.strictEqual(
                 parseInt(await get(remoteProvider, "value1", blockNumber), 16),
                 remoteInitialValue
@@ -1051,12 +1041,8 @@ describe("forking", () => {
 
       before("deploy contract", async () => {
         // deploy the contract
-        ({
-          contractBlockNum,
-          contractAddress,
-          contractBlockNum,
-          methods
-        } = await deployContract(remoteProvider, remoteAccounts));
+        ({ contractBlockNum, contractAddress, contractBlockNum, methods } =
+          await deployContract(remoteProvider, remoteAccounts));
       });
 
       before("fork from mainnet at contractBlockNum + 1", async () => {

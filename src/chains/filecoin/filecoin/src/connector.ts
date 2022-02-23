@@ -22,13 +22,16 @@ export { StorageDealStatus } from "./types/storage-deal-status";
 export type Provider = FilecoinProvider;
 export const Provider = FilecoinProvider;
 
+/**
+ * @internal
+ */
 export class Connector<
     R extends JsonRpcRequest<
       FilecoinApi,
       KnownKeys<FilecoinApi>
     > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
   >
-  extends Emittery.Typed<{}, "ready" | "close">
+  extends Emittery<{ ready: undefined; close: undefined }>
   implements IConnector<FilecoinApi, R, JsonRpcResponse> {
   #provider: FilecoinProvider;
 

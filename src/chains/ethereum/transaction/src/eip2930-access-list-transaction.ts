@@ -19,8 +19,7 @@ import {
   GanacheRawExtraTx,
   TypedDatabaseTransaction
 } from "./raw";
-import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
-import { AccessLists } from "./access-lists";
+import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
 import { computeIntrinsicsAccessListTx } from "./signing";
 import {
   Capability,
@@ -123,6 +122,10 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     }
   }
 
+  public maxGasPrice() {
+    return this.gasPrice;
+  }
+
   public toJSON(_common?: Common): EIP2930AccessListTransactionJSON {
     return {
       hash: this.hash,
@@ -185,12 +188,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        try {
-          const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-          return new BN(Quantity.from(c).toBuffer());
-        } catch (e) {
-          throw e;
-        }
+        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
+        return new BN(Quantity.from(c).toBuffer());
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);

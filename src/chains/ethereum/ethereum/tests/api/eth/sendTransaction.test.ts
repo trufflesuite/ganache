@@ -47,25 +47,59 @@ describe("api", () => {
       });
 
       describe("insufficient funds", () => {
-        it("returns an error when account has insufficient funds to send the transaction", async () => {
-          const p = await getProvider({
-            miner: { legacyInstamine: true },
+        const types = ["0x0", "0x1", "0x2"] as const;
+        it("returns a VM error when the account has insufficient funds to transfer the value at runtime", async () => {
+          const approximateGasCost = 99967968750001;
+          const provider = await getProvider({
+            miner: { instamine: "eager" },
             chain: { vmErrorsOnRPCResponse: true }
           });
-          const [from, to] = await p.send("eth_accounts");
-          const balance = await p.send("eth_getBalance", [from]);
-          const types = ["0x0", "0x1", "0x2"] as const;
+          const accounts = await provider.send("eth_accounts");
+          const to = accounts.pop();
+          const getBalance = acct => provider.send("eth_getBalance", [acct]);
+          const sendTx = tx => provider.send("eth_sendTransaction", [tx]);
           for (let i = 0; i < types.length; i++) {
-            await assert.rejects(
-              p.send("eth_sendTransaction", [
-                { type: types[i], from, to, value: balance }
-              ]),
-              new RegExp(
-                `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: ${BigInt(
-                  balance
-                )} \\(vm hf=london -> block -> tx\\)`
-              )
-            );
+            const snapshot = await provider.send("evm_snapshot");
+            try {
+              const from = accounts[i];
+              const balance = parseInt(await getBalance(from), 16);
+              // fire a transaction without awaiting it in order to spend some
+              // gas
+              const tx = { type: types[i], from, to };
+              sendTx(tx);
+              await assert.rejects(
+                sendTx({
+                  ...tx,
+                  // attempt to zero out the account. this tx will fail because
+                  // the previous (pending transaction) will spend some of its
+                  // balance, not leaving enough left over for this transaction.
+                  value: `0x${(balance - approximateGasCost).toString(16)}`
+                }),
+                new RegExp(
+                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=london -> block -> tx\\)`
+                )
+              );
+            } finally {
+              await provider.send("evm_revert", [snapshot]);
+            }
+          }
+        });
+
+        it("returns an `insufficient funds` error when the account doesn't have enough funds to send the transaction", async () => {
+          const provider = await getProvider();
+          const [from, to] = await provider.send("eth_accounts");
+          const getBalance = acct => provider.send("eth_getBalance", [acct]);
+          for (let i = 0; i < types.length; i++) {
+            const tx = {
+              type: types[i],
+              from,
+              to,
+              value: await getBalance(from)
+            };
+            await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
+              message: "insufficient funds for gas * price + value",
+              code: -32003
+            });
           }
         });
       });
@@ -166,17 +200,12 @@ describe("api", () => {
                 "Error code should be -32000"
               );
               assert.strictEqual(
-                result.data.reason,
-                null,
-                "The reason is undecodable, and thus should be null"
-              );
-              assert.strictEqual(
-                result.data.message,
-                "revert",
+                result.message,
+                "VM Exception while processing transaction: revert",
                 "The message should not have a reason string included"
               );
               assert.strictEqual(
-                result.data.result,
+                result.data,
                 revertString,
                 "The revert reason should be encoded as hex"
               );

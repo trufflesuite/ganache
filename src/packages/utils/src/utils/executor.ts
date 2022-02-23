@@ -14,8 +14,8 @@ export class Executor {
 
   /**
    * Executes the method with the given methodName on the API
-   * @param methodName The name of the JSON-RPC method to execute.
-   * @param params The params to pass to the JSON-RPC method.
+   * @param methodName - The name of the JSON-RPC method to execute.
+   * @param params - The params to pass to the JSON-RPC method.
    */
   public execute<T extends Api, M extends KnownKeys<T>>(
     api: T,

@@ -2,7 +2,6 @@
 
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
-import { $INLINE_JSON } from "ts-transformer-inline-file";
 import args from "./args";
 import { EthereumFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
@@ -28,9 +27,10 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
   process.exit(exitCode);
 };
 
-const { version: coreVersion } = $INLINE_JSON("../../core/package.json");
-const { version: cliVersion } = $INLINE_JSON("../package.json");
-const { version } = $INLINE_JSON("../../ganache/package.json");
+const version = process.env.VERSION || "DEV";
+const cliVersion = process.env.CLI_VERSION || "DEV";
+const coreVersion = process.env.CORE_VERSION || "DEV";
+
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 
 const isDocker =
@@ -64,7 +64,7 @@ console.log(detailedVersion);
 let server: ReturnType<typeof Ganache.server>;
 try {
   server = Ganache.server(argv, pluginServerOptionsConfig);
-} catch (error) {
+} catch (error: any) {
   console.error(error.message);
   process.exit(1);
 }
@@ -101,7 +101,7 @@ const closeHandler = async () => {
     // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
     // anything other than act as a place to anchor this comment :-)
     process.exitCode = 0;
-  } catch (err) {
+  } catch (err: any) {
     logAndForceExit(
       [
         "\nReceived an error while attempting to shut down the server: ",

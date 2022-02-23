@@ -71,20 +71,18 @@ const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
 const refresher = (item: TypedTransaction, context: Quantity) =>
   item.updateEffectiveGasPrice(context);
 
-export default class Miner extends Emittery.Typed<
-  {
-    block: {
-      block: Block;
-      serialized: Buffer;
-      storageKeys: StorageKeys;
-      transactions: TypedTransaction[];
-    };
-    "ganache:vm:tx:step": VmStepEvent;
-    "ganache:vm:tx:before": VmBeforeTransactionEvent;
-    "ganache:vm:tx:after": VmAfterTransactionEvent;
-  },
-  "idle"
-> {
+export default class Miner extends Emittery<{
+  block: {
+    block: Block;
+    serialized: Buffer;
+    storageKeys: StorageKeys;
+    transactions: TypedTransaction[];
+  };
+  "ganache:vm:tx:step": VmStepEvent;
+  "ganache:vm:tx:before": VmBeforeTransactionEvent;
+  "ganache:vm:tx:after": VmAfterTransactionEvent;
+  idle: undefined;
+}> {
   #currentlyExecutingPrice = 0n;
   #origins = new Set<string>();
   #pending: boolean;
@@ -130,7 +128,7 @@ export default class Miner extends Emittery.Typed<
     refresher
   );
   /*
-   * @param executables A live Map of pending transactions from the transaction
+   * @param executables - A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
    * and putting them in new blocks.
    */
@@ -156,9 +154,9 @@ export default class Miner extends Emittery.Typed<
   }
 
   /**
-   * @param maxTransactions: maximum number of transactions per block. If `-1`,
+   * @param maxTransactions: - maximum number of transactions per block. If `-1`,
    * unlimited.
-   * @param onlyOneBlock: set to `true` if only 1 block should be mined.
+   * @param onlyOneBlock: - set to `true` if only 1 block should be mined.
    *
    * @returns the transactions mined in the _first_ block
    */
@@ -225,7 +223,6 @@ export default class Miner extends Emittery.Typed<
 
     let keepMining = true;
     const priced = this.#priced;
-    const legacyInstamine = this.#options.legacyInstamine;
     const storageKeys: StorageKeys = new Map();
     let blockTransactions: TypedTransaction[];
     do {
@@ -426,13 +423,7 @@ export default class Miner extends Emittery.Typed<
         storageKeys
       );
       block = finalizedBlockData.block;
-      const emitBlockProm = this.emit("block", finalizedBlockData);
-      if (legacyInstamine === true) {
-        // we need to wait for each block to be done mining when in legacy
-        // mode because things like `mine` and `miner_start` must wait for the
-        // first mine operation to be fully complete.
-        await emitBlockProm;
-      }
+      this.emit("block", finalizedBlockData);
 
       if (onlyOneBlock) {
         this.#currentlyExecutingPrice = 0n;
@@ -480,7 +471,7 @@ export default class Miner extends Emittery.Typed<
         tx: tx.toVmTransaction() as any,
         block: block as any
       });
-    } catch (err) {
+    } catch (err: any) {
       const errorMessage = err.message;
       // We do NOT want to re-run this transaction.
       // Update the `priced` heap with the next best transaction from this

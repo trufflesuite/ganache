@@ -27,7 +27,7 @@ export class RequestCoordinator {
 
   /**
    * Promise-based FIFO queue.
-   * @param limit The number of requests that can be processed at a time.
+   * @param limit - The number of requests that can be processed at a time.
    * Default value is is no limit (`0`).
    */
   constructor(limit: number) {

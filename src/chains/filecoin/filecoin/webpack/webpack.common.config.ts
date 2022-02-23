@@ -11,19 +11,7 @@ const base: webpack.Configuration = {
         test: /\.tsx?$/,
         use: [
           {
-            loader: "ts-loader",
-            options: {
-              // we need to use ttypescript because we use ts transformers
-              compiler: "ttypescript",
-              // Symlinked paths to our packages aren't resolving correctly...
-              // E.g., if PackageA and PackageB both import PackageC, the
-              // compiler assumes PackageA's PackageC is incompatible with
-              // PackageB's PackageC.
-              // Note: if all packages are precompiled before running webpack
-              // this issue doesn't occur, which makes me think this might be a
-              // ts-loader issue.
-              transpileOnly: true
-            }
+            loader: "ts-loader"
           }
         ]
       }

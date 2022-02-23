@@ -1,4 +1,4 @@
-import { AccessList } from "@ethereumjs/tx";
+import { AccessList } from "./access-lists";
 
 type oneThroughSeven = "1" | "2" | "3" | "4" | "5" | "6" | "7";
 type HexChar =

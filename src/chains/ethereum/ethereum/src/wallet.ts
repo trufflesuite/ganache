@@ -149,6 +149,10 @@ export default class Wallet {
               } else {
                 // this wasn't one of our initial accounts, so make a priv key.
                 privateKey = this.createFakePrivateKey(address);
+
+                // add the account to the list of addresses because we want
+                // `eth_accounts` to return this account.
+                this.addresses.push(address);
               }
               break;
             } else {
@@ -156,7 +160,7 @@ export default class Wallet {
               // don't use parseInt because strings like `"123abc"` parse
               // to `123`, and there is probably an error on the user's side we'd
               // want to uncover.
-              const index = ((arg as any) as number) - 0;
+              const index = (arg as any as number) - 0;
               // if we don't have a valid number, or the number isn't a valid JS
               // integer (no bigints or decimals, please), throw an error.
               if (!Number.isSafeInteger(index)) {
@@ -228,15 +232,10 @@ export default class Wallet {
   #initializeAccounts = (
     options: EthereumInternalOptions["wallet"]
   ): Map<string, Account> => {
-    let makeAccountAtIndex: (index: number) => HDKey;
-    try {
-      makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
-        mnemonicToSeedSync(options.mnemonic, null),
-        options.hdPath
-      );
-    } catch (e) {
-      console.log(e);
-    }
+    const makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
+      mnemonicToSeedSync(options.mnemonic, null),
+      options.hdPath
+    );
 
     // convert a potentially fractional balance of Ether to WEI
     const balanceParts = options.defaultBalance.toString().split(".", 2);
@@ -345,8 +344,8 @@ export default class Wallet {
 
   /**
    * Syncronous version of the `encrypt` function.
-   * @param privateKey
-   * @param passphrase
+   * @param privateKey -
+   * @param passphrase -
    */
   public encryptSync(privateKey: Data, passphrase: string) {
     const random = this.#randomBytes(32 + 16 + 16);
@@ -444,11 +443,11 @@ export default class Wallet {
   /**
    * Stores a mapping of addresses to either encrypted (if a passphrase is used
    * or the user specified --lock option) or unencrypted private keys.
-   * @param address The address whose private key is being stored.
-   * @param privateKey The passphrase to store.
-   * @param passphrase The passphrase to use to encrypt the private key. If
+   * @param address - The address whose private key is being stored.
+   * @param privateKey - The passphrase to store.
+   * @param passphrase - The passphrase to use to encrypt the private key. If
    * passphrase is empty, the private key will not be encrypted.
-   * @param lock Flag to specify that accounts should be encrypted regardless
+   * @param lock - Flag to specify that accounts should be encrypted regardless
    * of if the passphrase is empty.
    */
   public async addToKeyFile(
@@ -476,11 +475,11 @@ export default class Wallet {
    * Synchronus version of `addToKeyFile`.
    * Stores a mapping of addresses to either encrypted (if a passphrase is used
    * or the user specified --lock option) or unencrypted private keys.
-   * @param address The address whose private key is being stored.
-   * @param privateKey The passphrase to store.
-   * @param passphrase The passphrase to use to encrypt the private key. If
+   * @param address - The address whose private key is being stored.
+   * @param privateKey - The passphrase to store.
+   * @param passphrase - The passphrase to use to encrypt the private key. If
    * passphrase is empty, the private key will not be encrypted.
-   * @param lock Flag to specify that accounts should be encrypted regardless
+   * @param lock - Flag to specify that accounts should be encrypted regardless
    * of if the passphrase is empty.
    */
   public addToKeyFileSync(
@@ -507,8 +506,8 @@ export default class Wallet {
   /**
    * Fetches the private key for a specific address. If the keyFile is encrypted
    * for the address, the passphrase is used to decrypt.
-   * @param address The address whose private key is to be fetched.
-   * @param passphrase The passphrase used to decrypt the private key.
+   * @param address - The address whose private key is to be fetched.
+   * @param passphrase - The passphrase used to decrypt the private key.
    */
   public async getFromKeyFile(address: Address, passphrase: string) {
     const keyFile = this.keyFiles.get(address.toString());
@@ -596,6 +595,7 @@ export default class Wallet {
     const privateKey = this.createFakePrivateKey(lowerAddress);
     await this.addToKeyFile(address, privateKey, passphrase, true);
     this.knownAccounts.add(lowerAddress);
+    this.addresses.push(lowerAddress);
     return true;
   }
 
@@ -613,6 +613,7 @@ export default class Wallet {
     if (privateKey != null) {
       this.keyFiles.delete(lowerAddress);
       this.knownAccounts.delete(lowerAddress);
+      this.addresses.splice(this.addresses.indexOf(lowerAddress), 1);
       this.lockTimers.delete(lowerAddress);
       this.unlockedAccounts.delete(lowerAddress);
       return true;
