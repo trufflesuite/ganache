@@ -1,13 +1,33 @@
 import * as readline from "readline";
-import { TruffleColors } from "../src/packages/colors/typings";
+//import { TruffleColors } from "../src/packages/colors/typings";
+const TruffleColors = {
+  /**
+   * Ganache orange
+   */
+  porsche: "#e4a663",
+
+  /**
+   * Truffle blue/turquoise
+   */
+  turquoise: "#3fe0c5",
+
+  /**
+   * Infura orange
+   */
+  infura: "#ff6b4a"
+};
+
 import yargs from "yargs";
 import { execSync } from "child_process";
 import { exit } from "process";
 import {
   getBackToLink,
+  getChangelogHead,
   getCommitsMd,
   getFuturePlansHead,
+  getIssueGroupMarkdown,
   getKnownIssuesHead,
+  getIssueSectionMarkdown,
   getMdBody,
   getSectionMd,
   getSectionTableContent,
@@ -32,6 +52,41 @@ const COLORS = {
   Reset: "\x1b[0m",
   FgRed: "\x1b[31m"
 };
+
+const issueSection = [
+  {
+    pretty: "Known Issues",
+    url: "known-issues",
+    groups: [
+      {
+        name: "Top Priority",
+        milestones: ["7.0.x"],
+        labels: ["bug"]
+      },
+      {
+        name: "Coming Soon™",
+        milestones: ["7.1.0", "8.0.0"],
+        labels: ["bug"]
+      }
+    ]
+  },
+  {
+    pretty: "Future Plans",
+    url: "future-plans",
+    groups: [
+      {
+        name: "Top Priority",
+        milestones: ["7.0.x"],
+        labels: ["enhancement"]
+      },
+      {
+        name: "Coming Soon™",
+        milestones: ["7.1.0", "8.0.0"],
+        labels: ["enhancement"]
+      }
+    ]
+  }
+];
 
 const getArgv = () => {
   const npmConfigArgv = process.env["npm_config_argv"];
@@ -143,14 +198,18 @@ const getCommitMetrics = (branch: string) => {
         /^([a-z]+)(\(.+\))?:(.*?)(?:\(#(\d.+)\))?$/i
       );
       const type = (_type ? _type.trim().toLowerCase() : undefined) as Type;
-      let author = "";
-      const ghData = execSync(`gh pr --info ${pr}`, { encoding: "utf8" });
-      const maybeAuthor = ghData.match(/@[a-z\d-]*(?!(.*:.*)@[a-z\d-])/i);
-      if (maybeAuthor) {
-        author = maybeAuthor[0];
-      }
+
       if (types.includes(type)) {
         const { slug } = details[type as Type];
+
+        let author = "";
+        if (pr) {
+          const ghData = execSync(`gh pr --info ${pr}`, { encoding: "utf8" });
+          const maybeAuthor = ghData.match(/@[a-z\d-]*(?!(.*:.*)@[a-z\d-])/i);
+          if (maybeAuthor) {
+            author = maybeAuthor[0];
+          }
+        }
 
         const scopeMd = scope ? `${scope}` : "";
         const prMd = pr ? `(#${pr})` : "";
@@ -228,6 +287,8 @@ const getCommitMetrics = (branch: string) => {
         getSectionMd(version, url, pretty, commitsMarkdown, tocMarkdown)
       );
     }
+
+    // make changelog
     for (const commit of commits) {
       changelogMarkdown.push(
         ` - #${commit.pr} ${commit.subject} (${commit.author})`
@@ -238,7 +299,55 @@ const getCommitMetrics = (branch: string) => {
     );
 
     sectionTableContents.push(getChangelogHead(version));
+
+    // make known issues and future plans
+    for (const section of issueSection) {
+      const issueSectionMarkdown: string[] = [];
+      let hasMatch = true;
+      for (const group of section.groups) {
+        let matches: RegExpMatchArray[] = [];
+        for (const ms of group.milestones) {
+          for (const lbl of group.labels) {
+            const ghData = execSync(
+              `gh is --list --milestone ${ms} --labels ${lbl}`,
+              { encoding: "utf8" }
+            );
+            // TODO: The issue list we get from gh is all sorts of messed up. Maybe we can fix what they out-
+            // put to us so we don't need this hideous (and probably fragile) regex. In the meantime:
+            //   (?<=[\n\r]).*      => This ignores the first line
+            //   (?:\[\d*m)        => Ignore the junk characters they give us
+            //   #(\d+)             => Find and capture the issue number
+            //   (?:\[\d*m)        => Ignore some more junk
+            //   (.*)(?=\s\[\d*m@) => Get characters up until more junk. Call this our subject
+            matches.push(
+              ...ghData.matchAll(
+                /(?<=[\n\r]).*(?:\[\d*m#)(\d+)(?:\[\d*m\s)(.*)(?=\s\[\d*m@)/g
+              )
+            );
+          }
+        }
+        if (matches.length === 0) {
+          hasMatch = false;
+        } else {
+          if (hasMatch) {
+            issueSectionMarkdown.push(getIssueGroupMarkdown(group.name));
+          }
+          for (const match of matches) {
+            const [_, issueNumber, subject] = match;
+            issueSectionMarkdown.push(
+              getIssueSectionMarkdown(subject, issueNumber)
+            );
+          }
+        }
+      }
+      sectionMarkdown.push(
+        getSectionMd(version, section.url, section.pretty, issueSectionMarkdown)
+      );
+    }
+
     sectionTableContents.push(getKnownIssuesHead(version));
+
+    // make future plans
     sectionTableContents.push(getFuturePlansHead(version));
 
     let markdown = getMdBody(
