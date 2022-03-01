@@ -25,7 +25,7 @@ const validReleaseBranches = [
   "release-notes-automation"
 ];
 
-const COMMAND_NAME = "make-release";
+const COMMAND_NAME = "make-release-notes";
 
 const COLORS = {
   Bold: "\x1b[1m",
