@@ -1,22 +1,5 @@
 import * as readline from "readline";
-//import { TruffleColors } from "../src/packages/colors/typings";
-const TruffleColors = {
-  /**
-   * Ganache orange
-   */
-  porsche: "#e4a663",
-
-  /**
-   * Truffle blue/turquoise
-   */
-  turquoise: "#3fe0c5",
-
-  /**
-   * Infura orange
-   */
-  infura: "#ff6b4a"
-};
-
+import { TruffleColors } from "../src/packages/colors/typings";
 import yargs from "yargs";
 import { execSync } from "child_process";
 import { exit } from "process";
