@@ -146,6 +146,7 @@ export type MinerConfig = {
       rawType: string | number;
       type: Address | number;
       hasDefault: true;
+      cliType: string;
     };
 
     /**
@@ -176,13 +177,26 @@ export type MinerConfig = {
 /**
  * Attempts to convert strings that don't start with `0x` to a BigInt
  *
- * @param str - a string that represents a bigint, number, or hex number
+ * @param str - a string that represents a bigint, number, or hexadecimal value
  */
 const toBigIntOrString = (str: string) => {
   if (str.startsWith("0x")) {
     return str;
   } else {
     return BigInt(str);
+  }
+};
+
+/**
+ * Attempts to convert strings that don't start with `0x` to a number
+ *
+ * @param str - a string that represents a number, or hexadecimal value
+ */
+const toNumberOrString = (str: string) => {
+  if (str.startsWith("0x")) {
+    return str;
+  } else {
+    return parseInt(str);
   }
 };
 
@@ -263,6 +277,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return typeof rawType === "number" ? rawType : Address.from(rawType);
     },
     cliDescription: "Sets the address where mining rewards will go.",
+    cliType: "string",
+    cliCoerce: toNumberOrString,
     default: () => Address.from(ACCOUNT_ZERO)
   },
   extraData: {

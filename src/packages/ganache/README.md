@@ -54,7 +54,7 @@ To install Ganache globally, run:
 $ npm install ganache --global
 ```
 
-In case youe're upgrading from a previous version of Ganache, we've also written up [this handy guide](https://github.com/trufflesuite/ganache/blob/develop/UPGRADE-GUIDE.md) on how to upgrade/install Ganache and to document all breaking changes to look out for.
+In case you're upgrading from a previous version of Ganache, we've also written up [this handy guide](https://github.com/trufflesuite/ganache/blob/develop/UPGRADE-GUIDE.md) on how to upgrade/install Ganache and to document all breaking changes to look out for.
 
 Once installed globally, you can start ganache right from your command line:
 
@@ -538,7 +538,7 @@ Currently, we do not await the event listener's return value, however, we'll lik
 The simplest way to get started with the Docker image:
 
 ```console
-$ docker run --detach --publish 8545:8545 trufflesuite/ganache:rc
+$ docker run --detach --publish 8545:8545 trufflesuite/ganache:latest
 ```
 
 To pass options to Ganache through Docker simply add the arguments to the end of the run command, e.g.,

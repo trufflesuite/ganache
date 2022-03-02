@@ -359,13 +359,14 @@ export default class EthereumProvider
     >;
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
+        const normalizedData = JSON.parse(JSON.stringify(data));
         // EIP-1193
-        this.emit("message", data as any);
+        this.emit("message", normalizedData as any);
         // legacy
         this.emit("data", {
           jsonrpc: "2.0",
           method: "eth_subscription",
-          params: (data as any).data
+          params: (normalizedData as any).data
         });
       });
     }
