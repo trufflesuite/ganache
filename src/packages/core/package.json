@@ -28,7 +28,7 @@
     "tsc": "tsc --build",
     "test": "nyc npm run mocha && npm run mocha:fallback",
     "mocha:fallback": "cross-env UWS_USE_FALLBACK=true npm run mocha",
-    "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_FILES=true mocha --timeout 3000 --exit --colors --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_FILES=true mocha --timeout 4000 --exit --colors --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
