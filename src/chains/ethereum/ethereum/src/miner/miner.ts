@@ -247,7 +247,7 @@ export default class Miner extends Emittery<{
           [],
           storageKeys
         );
-        await this.emit("block", finalizedBlockData);
+        this.emit("block", finalizedBlockData);
         this.#reset();
         return { block: finalizedBlockData.block, transactions: [] };
       }
@@ -414,7 +414,7 @@ export default class Miner extends Emittery<{
         storageKeys
       );
       block = finalizedBlockData.block;
-      await this.emit("block", finalizedBlockData);
+      this.emit("block", finalizedBlockData);
 
       if (onlyOneBlock) {
         this.#currentlyExecutingPrice = 0n;
