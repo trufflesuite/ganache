@@ -356,6 +356,7 @@ export default class EthereumApi implements Api {
         assertExceptionalTransactions(transactions);
       }
     }
+    await blockchain.awaitBlockSaving();
 
     return "0x0";
   }
