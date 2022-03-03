@@ -582,6 +582,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
   };
 
+  awaitBlockSaving = async () => {
+    await this.#blockBeingSavedPromise;
+    return;
+  };
+
   #isPaused = () => {
     return (this.#state & Status.paused) !== 0;
   };
