@@ -35,13 +35,13 @@ type ReturnTypeFor<T extends Method> = UnPromisify<
 type UnionFor<T extends Method> = TuplifyUnion<ReturnTypeFor<T>>;
 type UnionLengthFor<T extends Method> = UnionFor<T>["length"] & number;
 
-declare const expectMethod: <
+const expectMethod = function <
   MethodName extends Method,
   ExpectedType extends ReturnTypeFor<MethodName>,
   ExpectedUnionSize extends UnionLengthFor<MethodName> extends TuplifyUnion<ExpectedType>["length"]
   ? UnionLengthFor<MethodName>
   : `Size of union for ExpectedType (${TuplifyUnion<ExpectedType>["length"] & number}) and Method (${UnionLengthFor<MethodName>}) don't match`
-  >() => void;
+>(): void { };
 
 describe("types", () => {
   it("returns the type for eth_sendTransaction", () => {

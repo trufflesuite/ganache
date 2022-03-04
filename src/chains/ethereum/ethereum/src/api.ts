@@ -51,6 +51,7 @@ import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { CallOverrides } from "./helpers/run-call";
 import {
+  CallTransaction,
   Transaction,
   MineOptions,
   TypedData,
@@ -2662,7 +2663,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 3)
   async eth_call(
-    transaction: Transaction,
+    transaction: CallTransaction,
     blockNumber: QUANTITY | Tag = Tag.latest,
     overrides: CallOverrides = {}
   ) {

@@ -2,6 +2,7 @@ import type { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 
 export type {
   Transaction,
+  CallTransaction,
   TypedTransactionJSON as SignedTransaction
 } from "@ganache/ethereum-transaction";
 import type { TypedTransactionJSON as SignedTransaction } from "@ganache/ethereum-transaction";

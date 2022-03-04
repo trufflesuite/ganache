@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import { SerializedMessage } from "../../../src/things/message";
 import { SerializedMessageSendSpec } from "../../../src/things/message-send-spec";
 import { SubscriptionMethod } from "../../../src/types/subscriptions";

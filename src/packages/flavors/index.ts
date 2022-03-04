@@ -74,6 +74,7 @@ export function GetConnector<Flavor extends FlavorName>(
         const f = eval("require")(flavor);
         const Connector: FilecoinConnector =
           typeof f.default != "undefined" ? f.default.Connector : f.Connector;
+        console.log(Connector, f);
         // @ts-ignore
         return new Connector(providerOptions, executor);
       }

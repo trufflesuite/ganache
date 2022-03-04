@@ -36,7 +36,7 @@ describe("server", () => {
     params: []
   };
   const logger = {
-    log: (_message: string) => { }
+    log: (_message: string) => {}
   };
   let s: Server;
 
@@ -47,10 +47,11 @@ describe("server", () => {
     logging: {
       logger
     }
-  }
+  };
 
   async function setup(
-    options: ServerOptions = defaultOptions, host: string | null = null
+    options: ServerOptions = defaultOptions,
+    host: string | null = null
   ) {
     // @ts-ignore - `s` errors if you run tsc and then test
     // because it tries to compare the built declaration file to
@@ -102,10 +103,10 @@ describe("server", () => {
     req.on("response", (res: http.IncomingMessage) => {
       let data = "";
       res
-        .on("data", d => data += d.toString("utf8"))
+        .on("data", d => (data += d.toString("utf8")))
         .on("end", () => resolve({ status: 200, body: JSON.parse(data) }));
     });
-    req.on("error", (err) => reject(err));
+    req.on("error", err => reject(err));
     req.write(data);
     req.end();
     return deferred;
@@ -167,13 +168,20 @@ describe("server", () => {
           for (const info of interfaceInfo) {
             const host = getHost(info, interfaceName);
             const response = await post(host, port, jsonRpcJson);
-            assert.strictEqual(response.status, 200, `Wrong status code when connecting to http://${host}:${port}`);
-            assert.strictEqual(response.body.result, "1234", `Wrong result when connecting to http://${host}:${port}`);
+            assert.strictEqual(
+              response.status,
+              200,
+              `Wrong status code when connecting to http://${host}:${port}`
+            );
+            assert.strictEqual(
+              response.body.result,
+              "1234",
+              `Wrong result when connecting to http://${host}:${port}`
+            );
           }
         }
-      }
-      finally {
-        await teardown()
+      } finally {
+        await teardown();
       }
     });
 
@@ -223,7 +231,7 @@ describe("server", () => {
         }
       }
     }).timeout(50000); // we need a long timeout because the OS may take a while to refuse connections, especially on Windows.
-  })
+  });
 
   describe("http", () => {
     async function simpleTest() {
@@ -315,8 +323,10 @@ describe("server", () => {
 
     it("accepts port as number type or binary, octal, decimal or hexadecimal string", async () => {
       const validPorts = [
-        port, `0b${port.toString(2)}`,
-        `0o${port.toString(8)}`, port.toString(10),
+        port,
+        `0b${port.toString(2)}`,
+        `0o${port.toString(8)}`,
+        port.toString(10),
         `0x${port.toString(16)}`
       ];
 
@@ -335,10 +345,28 @@ describe("server", () => {
 
     it("fails with invalid ports", async () => {
       const invalidPorts = [
-        -1, 'a', {}, [], false, true,
-        0xFFFF + 1, Infinity, -Infinity, NaN,
-        undefined, null, '', ' ', 1.1, '0x',
-        '-0x1', '-0o1', '-0b1', '0o', '0b', 0
+        -1,
+        "a",
+        {},
+        [],
+        false,
+        true,
+        0xffff + 1,
+        Infinity,
+        -Infinity,
+        NaN,
+        undefined,
+        null,
+        "",
+        " ",
+        1.1,
+        "0x",
+        "-0x1",
+        "-0o1",
+        "-0b1",
+        "0o",
+        "0b",
+        0
       ];
 
       for (const specificPort of invalidPorts) {
@@ -451,7 +479,6 @@ describe("server", () => {
         // a request is required in order to actually close the connection
         // see https://github.com/trufflesuite/ganache/issues/2788
         await post("localhost", port, jsonRpcJson, agent);
-
       } finally {
         teardown();
       }
@@ -1362,8 +1389,8 @@ describe("server", () => {
                 reject(
                   new Error(
                     "Possible false positive: Didn't detect backpressure" +
-                    " before receiving a message. Ensure `s.provider.send` is" +
-                    " sending enough data."
+                      " before receiving a message. Ensure `s.provider.send` is" +
+                      " sending enough data."
                   )
                 );
               }

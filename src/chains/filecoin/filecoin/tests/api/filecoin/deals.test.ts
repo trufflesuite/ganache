@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import getIpfsClient from "../../helpers/getIpfsClient";
 import { CID } from "../../../src/things/cid";

@@ -26,6 +26,8 @@ export type Transaction =
   | EIP2930AccessListRpcTransaction
   | EIP1559FeeMarketRpcTransaction;
 
+export type CallTransaction = Omit<Transaction, "from"> & { from?: string };
+
 export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
   readonly gasPrice?: string;
   readonly chainId?: never;

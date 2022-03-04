@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Address, AddressProtocol } from "../../../src/things/address";
 import { Message, SerializedMessage } from "../../../src/things/message";
@@ -1464,9 +1464,9 @@ describe("api", () => {
         const newToBalance: string = await client.walletBalance(To);
         const minerFee =
           BigInt(signedMessages[0].Message.GasLimit) *
-            BigInt(signedMessages[0].Message.GasPremium) +
+          BigInt(signedMessages[0].Message.GasPremium) +
           BigInt(signedMessages[1].Message.GasLimit) *
-            BigInt(signedMessages[1].Message.GasPremium);
+          BigInt(signedMessages[1].Message.GasPremium);
         assert.notStrictEqual(minerFee.toString(), "0"); // gas should be auto generated
 
         // we have to compare as strings rather than bigints due to a bug

@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Address, AddressProtocol } from "../../../src/things/address";
 import { KeyType } from "../../../src/things/key-type";

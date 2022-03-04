@@ -22,7 +22,7 @@ export { StorageDealStatus } from "./types/storage-deal-status";
 /**
  * @internal
  */
-export class FilecoinConnector<
+export class Connector<
   R extends JsonRpcRequest<
     FilecoinApi,
     KnownKeys<FilecoinApi>
