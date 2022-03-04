@@ -354,6 +354,16 @@ export default class Miner extends Emittery<{
               inProgress.delete(best);
             });
 
+            if (hasMoreFromOrigin) {
+              // remove the newest (`best`) tx from this account's pending queue
+              // as we know we can fit another transaction in the block. Stick
+              // this tx into our `priced` heap.
+              keepMining = replaceFromHeap(priced, pendingOrigin);
+            } else {
+              // since we don't have any more txs from this account, just get the
+              // next best transaction sorted in our `priced` heap.
+              keepMining = this.#removeBestAndOrigin(origin);
+            }
             // if we:
             //  * don't have enough gas left for even the smallest of transactions
             //  * Or if we've mined enough transactions
@@ -364,26 +374,7 @@ export default class Miner extends Emittery<{
               blockGasLeft <= Params.TRANSACTION_GAS ||
               numTransactions === maxTransactions
             ) {
-              if (hasMoreFromOrigin) {
-                // remove the newest (`best`) tx from this account's pending queue
-                // as we know we can fit another transaction in the block. Stick
-                // this tx into our `priced` heap.
-                keepMining = replaceFromHeap(priced, pendingOrigin);
-              } else {
-                keepMining = this.#removeBestAndOrigin(origin);
-              }
               break;
-            }
-
-            if (hasMoreFromOrigin) {
-              // remove the newest (`best`) tx from this account's pending queue
-              // as we know we can fit another transaction in the block. Stick
-              // this tx into our `priced` heap.
-              keepMining = replaceFromHeap(priced, pendingOrigin);
-            } else {
-              // since we don't have any more txs from this account, just get the
-              // next bext transaction sorted in our `priced` heap.
-              keepMining = this.#removeBestAndOrigin(origin);
             }
           } else {
             // didn't fit in the current block
