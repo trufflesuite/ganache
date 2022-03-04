@@ -344,9 +344,6 @@ export default class Miner extends Emittery<{
             numTransactions++;
 
             const pendingOrigin = pending.get(origin);
-            // since this transaction was successful, remove it from the "pending"
-            // transaction pool.
-            const hasMoreFromOrigin = pendingOrigin.removeBest();
             inProgress.add(best);
             best.once("finalized").then(() => {
               // it is in the database (or thrown out) so delete it from the
@@ -354,6 +351,9 @@ export default class Miner extends Emittery<{
               inProgress.delete(best);
             });
 
+            // since this transaction was successful, remove it from the "pending"
+            // transaction pool.
+            const hasMoreFromOrigin = pendingOrigin.removeBest();
             if (hasMoreFromOrigin) {
               // remove the newest (`best`) tx from this account's pending queue
               // as we know we can fit another transaction in the block. Stick
