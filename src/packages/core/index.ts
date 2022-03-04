@@ -1,11 +1,23 @@
 import { ConnectorsByName, DefaultFlavor, FlavorName } from "@ganache/flavors";
+import { KNOWN_CHAINIDS } from "@ganache/utils";
 import ConnectorLoader from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
 import Server from "./src/server";
 export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
-
 export type { Provider, EthereumProvider, FilecoinProvider } from "@ganache/flavors";
 export type { ProviderOptions, ServerOptions } from "./src/options";
+export type _ExperimentalInfo = Readonly<{
+  version: string,
+  fork: Readonly<{
+    /**
+     * Chains fully supported by Ganache forking.
+     */
+    supportedChainIds: number[],
+  }>
+}>
+
+
+const version = process.env.VERSION || "DEV";
 
 /**
  * @public
@@ -46,6 +58,18 @@ const Ganache = {
   ): ConnectorsByName[T]["provider"] => {
     const loader = ConnectorLoader.initialize<T>(options);
     return loader.connector.provider;
+  },
+  /**
+   * 
+   * @experimental
+   */
+  __experimental_info(): _ExperimentalInfo {
+    return {
+      version,
+      fork: {
+        supportedChainIds: Array.from(KNOWN_CHAINIDS)
+      }
+    };
   }
 };
 
@@ -57,6 +81,10 @@ export const server = Ganache.server;
  * @public
  */
 export const provider = Ganache.provider;
+/**
+ * @experimental
+ */
+export const __experimental_info = Ganache.__experimental_info;
 /**
  * @public
  */
