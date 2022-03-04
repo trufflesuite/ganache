@@ -5,7 +5,7 @@
 // construction due to missing private fields
 import Ganache, { Server } from "../index";
 
-import * as assert from "assert";
+import assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
@@ -18,6 +18,7 @@ import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
 import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
+import { NetworkInterfaceInfo, networkInterfaces } from 'os';
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -31,25 +32,28 @@ describe("server", () => {
     params: []
   };
   const logger = {
-    log: (_message: string) => {}
+    log: (_message: string) => { }
   };
   let s: Server;
 
-  async function setup(
-    options: ServerOptions = {
-      chain: {
-        networkId
-      },
-      logging: {
-        logger
-      }
+  const defaultOptions = {
+    chain: {
+      networkId
+    },
+    logging: {
+      logger
     }
+  }
+
+  async function setup(
+    options: ServerOptions = defaultOptions, host: string | null = null
   ) {
     // @ts-ignore - `s` errors if you run tsc and then test
     // because it tries to compare the built declaration file to
     // the TS file, causing missing #<var> private variables
     s = Ganache.server(options);
-    return s.listen(port);
+    await s.listen(port, host);
+    return s;
   }
 
   async function teardown() {
@@ -58,6 +62,154 @@ describe("server", () => {
       await s.close();
     }
   }
+
+  // skip this test unless in GitHub Actions, as this test iterates over
+  // all available network interfacesnand network interfaces on user
+  // machines are unpredictible and may behave in ways that we don't care
+  // about.
+  (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
+    /**
+     * Sends a post request to the server and returns the response.
+     * @param address 
+     * @param port 
+     * @param json 
+     * @returns 
+     */
+    function post(host: string, port: number, json: any) {
+      const data = JSON.stringify(json);
+      // We use http.request instead of superagent because superagent doesn't
+      // support the interface name in ipv6 addresses, and in GitHub Actions the
+      // Mac tests would fail because one of the available ipv6 addresses
+      // requires the interface name (`fe80::1%lo0`)
+      const req = http.request({
+        method: "POST",
+        protocol: "http:",
+        host,
+        port,
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          "content-length": Buffer.byteLength(data)
+        }
+      });
+      let resolve: any;
+      let reject: any;
+      const deferred = new Promise<any>((_resolve, _reject) => {
+        resolve = _resolve;
+        reject = _reject;
+      });
+      req.on("response", (res: http.IncomingMessage) => {
+        let data = "";
+        res
+          .on("data", d => data += d.toString("utf8"))
+          .on("end", () => resolve({ status: 200, body: JSON.parse(data) }));
+      });
+      req.on("error", (err) => reject(err));
+      req.write(data);
+      req.end();
+      return deferred;
+    }
+
+    function getHost(info: NetworkInterfaceInfo, interfaceName: string) {
+      // a link-local ipv6 address starts with fe80:: and _must_ include a "zone_id"
+      if (info.family === "IPv6" && info.address.startsWith("fe80::")) {
+        if (process.platform == "win32") {
+          // on windows the zone_id is the scopeid
+          return `${info.address}%${info.scopeid}`;
+        } else {
+          // on *nix the zone_id is the `interfaceName`
+          return `${info.address}%${interfaceName}`;
+        }
+      } else {
+        return info.address;
+      }
+    }
+
+    function getNetworkInterfaces() {
+      const interfaces = networkInterfaces();
+      const validInterfaces = {} as typeof interfaces;
+      Object.keys(interfaces).forEach(interfaceName => {
+        // Mac has default VPN interfaces that can't be bound to or listened on.
+        // These interfaces start with "utun". A "utun*" is a virtual interface
+        // created by an application on macOS endpoints to interact with the
+        // system.
+        if (!interfaceName.startsWith("utun")) {
+          validInterfaces[interfaceName] = interfaces[interfaceName];
+        }
+      });
+      return validInterfaces;
+    }
+
+    it("listens on all interfaces by default", async () => {
+      await setup();
+      try {
+        const interfaces = getNetworkInterfaces();
+        assert(Object.keys(interfaces).length > 0);
+
+        for (const interfaceName of Object.keys(interfaces)) {
+          const interfaceInfo = interfaces[interfaceName];
+          assert(interfaceInfo.length > 0);
+
+          for (const info of interfaceInfo) {
+            const host = getHost(info, interfaceName);
+            const response = await post(host, port, jsonRpcJson);
+            assert.strictEqual(response.status, 200, `Wrong status code when connecting to http://${host}:${port}`);
+            assert.strictEqual(response.body.result, "1234", `Wrong result when connecting to http://${host}:${port}`);
+          }
+        }
+      }
+      finally {
+        await teardown()
+      }
+    });
+
+    it("listens on given interface only", async function () {
+      // skip this test unless in CI, as this test iterates over all available network interfaces
+      // and network interfaces on user machines are unpredictible and may behave in ways that
+      // we don't care about.
+      if (process.env.CI) this.skip();
+
+      const interfaces = networkInterfaces();
+      assert(Object.keys(interfaces).length > 0);
+
+      for (const interfaceName of Object.keys(interfaces)) {
+        const interfaceInfo = interfaces[interfaceName];
+        assert(interfaceInfo.length > 0);
+
+        for (const info of interfaceInfo) {
+          const serverHost = getHost(info, interfaceName);
+          const server = await setup(defaultOptions, serverHost);
+          try {
+            for (const interfaceName of Object.keys(interfaces)) {
+              const interfaceInfo = interfaces[interfaceName];
+              assert(interfaceInfo.length > 0);
+
+              for (const info of interfaceInfo) {
+                const host = getHost(info, interfaceName);
+
+                const requestPromise = post(host, port, jsonRpcJson);
+                if (serverHost === host) {
+                  const response = await requestPromise;
+                  assert.strictEqual(response.status, 200);
+                  assert.strictEqual(response.body.result, "1234");
+                } else {
+                  // we don't test for a specific message, code, or errno because
+                  // operating systems and node versions behave differently.
+                  await assert.rejects(requestPromise, {
+                    address: host,
+                    port,
+                    syscall: "connect"
+                  });
+                }
+              }
+            }
+          } finally {
+            await server.close();
+          }
+        }
+      }
+    }).timeout(50000); // we need a long timeout because the OS may take a while to refuse connections, especially on Windows.
+  })
 
   describe("http", () => {
     async function simpleTest() {
@@ -1103,8 +1255,8 @@ describe("server", () => {
                 reject(
                   new Error(
                     "Possible false positive: Didn't detect backpressure" +
-                      " before receiving a message. Ensure `s.provider.send` is" +
-                      " sending enough data."
+                    " before receiving a message. Ensure `s.provider.send` is" +
+                    " sending enough data."
                   )
                 );
               }
