@@ -3,7 +3,7 @@ import * as assert from "assert";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 
 describe("interface", () => {
-  it.only("has an interface", () => {
+  it("has an interface", () => {
     assert.ok(Ganache.server);
     assert.ok(Ganache.provider);
     const info = Ganache.__experimental_info();
