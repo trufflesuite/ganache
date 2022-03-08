@@ -10,9 +10,12 @@ export type _ExperimentalInfo = Readonly<{
   version: string,
   fork: Readonly<{
     /**
-     * Chains fully supported by Ganache forking.
+     * Chains Ganache is known to be compatible with. Operations performed
+     * locally at historic block numbers will use the Ethereum Virtual Machine
+     * OPCODEs, gas prices, and EIPs that were active at the time the historic
+     * block originally took place.
      */
-    supportedChainIds: number[],
+    knownChainIds: number[],
   }>
 }>
 
@@ -67,7 +70,7 @@ const Ganache = {
     return {
       version,
       fork: {
-        supportedChainIds: Array.from(KNOWN_CHAINIDS)
+        knownChainIds: Array.from(KNOWN_CHAINIDS)
       }
     };
   }
