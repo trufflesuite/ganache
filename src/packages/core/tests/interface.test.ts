@@ -7,7 +7,7 @@ describe("interface", () => {
     assert.ok(Ganache.server);
     assert.ok(Ganache.provider);
     const info = Ganache.__experimental_info();
-    assert.deepStrictEqual(info.fork.supportedChainIds, Array.from(KNOWN_CHAINIDS));
+    assert.deepStrictEqual(info.fork.knownChainIds, Array.from(KNOWN_CHAINIDS));
     assert.deepStrictEqual(info.version, "DEV");
     assert.strictEqual(Object.keys(Ganache).length, 3);
 
