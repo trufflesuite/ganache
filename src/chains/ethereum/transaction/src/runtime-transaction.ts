@@ -20,7 +20,7 @@ import {
 import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
-import { TransactionReceipt } from "./transaction-receipt";
+import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
@@ -64,7 +64,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public locked: boolean = false;
 
   public logs: TransactionLog[];
-  public receipt: TransactionReceipt;
+  public receipt: InternalTransactionReceipt;
   public execException: RuntimeError;
 
   public raw: TypedDatabaseTransaction | null;
@@ -154,7 +154,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       status = ONE_BUFFER;
     }
 
-    const receipt = (this.receipt = TransactionReceipt.fromValues(
+    const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
       status,
       Quantity.from(cumulativeGasUsed).toBuffer(),
       result.bloom.bitvector,
@@ -166,7 +166,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return receipt.serialize(false);
   }
 
-  public getReceipt(): TransactionReceipt {
+  public getReceipt(): InternalTransactionReceipt {
     return this.receipt;
   }
 

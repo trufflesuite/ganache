@@ -1,5 +1,6 @@
 import { EthereumProvider } from "../";
 
+//#region type helpers
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I
 ) => void
@@ -14,14 +15,20 @@ type LastOf<T> = UnionToIntersection<
 
 type Push<T extends any[], V> = [...T, V];
 
+/**
+ * `TuplifyUnion` splits booleans into [true, false], but we really want to represent that as just `boolean`
+ */
+type NormalizeBoolean<T> = T extends [true, false] | [false, true] ? [boolean] : T;
+
 type TuplifyUnion<
   T,
   L = LastOf<T>,
   N = [T] extends [never] ? true : false
-  > = true extends N ? [] : Push<TuplifyUnion<Exclude<T, L>>, L>;
+  > = true extends N ? [] : NormalizeBoolean<Push<TuplifyUnion<Exclude<T, L>>, L>>;
 
 declare const Provider: typeof EthereumProvider;
 type Method = Parameters<EthereumProvider["request"]>[0]["method"];
+
 class Wrapper<T extends Method> {
   // wrapped has no explicit return type so we can infer it
   async wrapped() {
@@ -42,17 +49,33 @@ const expectMethod = function <
   ? UnionLengthFor<MethodName>
   : `Size of union for ExpectedType (${TuplifyUnion<ExpectedType>["length"] & number}) and Method (${UnionLengthFor<MethodName>}) don't match`
 >(): void { };
+//#endregion types helpers
 
 describe("types", () => {
+  it("returns the type for db_putString", async () => {
+    expectMethod<"db_putString", boolean, 1>();
+  });
+
+  it("return the type for db_getString", () => {
+    expectMethod<"db_getString", string, 1>();
+  });
+
+  it("return the type for db_putHex", () => {
+    expectMethod<"db_putHex", boolean, 1>();
+  });
+
   it("returns the type for eth_sendTransaction", () => {
     expectMethod<"eth_sendTransaction", string, 1>();
   });
+
   it("returns the type for eth_personalTransaction", () => {
     expectMethod<"personal_sendTransaction", string, 1>();
   });
+
   it("returns the type for eth_sendRawTransaction", () => {
     expectMethod<"eth_sendRawTransaction", string, 1>();
   });
+
   it("returns the type for eth_getTransactionByHash", async () => {
     type BaseExpectedTypes = {
       hash: string;
@@ -117,5 +140,46 @@ describe("types", () => {
     };
 
     expectMethod<"eth_getTransactionByHash", ExpectedType, 4>();
+  });
+
+  it("returns the type for eth_getTransactionReceipt", async () => {
+    type ExpectedType = {
+      transactionHash: string;
+      transactionIndex: string;
+      blockNumber: string;
+      blockHash: string;
+      from: string;
+      to: string;
+      cumulativeGasUsed: string;
+      gasUsed: string;
+      contractAddress: string;
+      logs: {
+        address: string;
+        blockHash: string;
+        blockNumber: string;
+        data: string | string[];
+        logIndex: string;
+        removed: boolean;
+        topics: string | string[];
+        transactionHash: string;
+        transactionIndex: string;
+      }[];
+      logsBloom: string;
+      status: string;
+      type?: string;
+      chainId?: string;
+      accessList?: {
+        address: string
+        storageKeys: string[]
+      }[];
+      effectiveGasPrice: string;
+    };
+
+    expectMethod<"eth_getTransactionReceipt", ExpectedType, 1>();
+  });
+  it("returns the type for eth_getBlockByHash", async () => {
+    type ExpectedType = {};
+
+    expectMethod<"eth_getBlockByHash", ExpectedType, 1>();
   });
 });

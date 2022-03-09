@@ -48,7 +48,7 @@ import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
 import {
   calculateIntrinsicGas,
-  TransactionReceipt,
+  InternalTransactionReceipt,
   VmTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
@@ -503,7 +503,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   #getTransactionLogOutput = (
     hash: Buffer,
-    receipt: TransactionReceipt,
+    receipt: InternalTransactionReceipt,
     blockNumber: Quantity,
     timestamp: string,
     error: RuntimeError | undefined
