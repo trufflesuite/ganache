@@ -177,9 +177,4 @@ describe("types", () => {
 
     expectMethod<"eth_getTransactionReceipt", ExpectedType, 1>();
   });
-  it("returns the type for eth_getBlockByHash", async () => {
-    type ExpectedType = {};
-
-    expectMethod<"eth_getBlockByHash", ExpectedType, 1>();
-  });
 });
