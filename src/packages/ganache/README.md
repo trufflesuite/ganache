@@ -163,10 +163,11 @@ server.listen(PORT, err => {
 
   console.log(`ganache listening on port ${PORT}...`);
   const provider = server.provider;
-  const accounts = await provider.request({
+  provider.request({
     method: "eth_accounts",
     params: []
-  });
+  }).then(accounts => console.log(accounts));
+
 });
 ```
 
