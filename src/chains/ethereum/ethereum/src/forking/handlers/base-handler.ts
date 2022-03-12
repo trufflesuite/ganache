@@ -1,7 +1,7 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { hasOwn, JsonRpcError } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
-import { OutgoingHttpHeaders } from "http";
+import type { IncomingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
 import { AbortError, CodedError } from "@ganache/ethereum-utils";
@@ -9,7 +9,7 @@ import { PersistentCache } from "../persistent-cache/persistent-cache";
 
 const INVALID_RESPONSE = "Invalid response from fork provider: ";
 
-type Headers = OutgoingHttpHeaders & { authorization?: string };
+export type Headers = IncomingHttpHeaders;
 
 const INVALID_AUTH_ERROR =
   "Authentication via both username/password (Basic) and JWT (Bearer) is not possible";
@@ -18,7 +18,7 @@ const WINDOW_SECONDS = 30;
 export class BaseHandler {
   static JSONRPC_PREFIX = '{"jsonrpc":"2.0","id":' as const;
   protected id: number = 1;
-  protected requestCache = new Map<string, Promise<unknown>>();
+  private requestCache = new Map<string, Promise<unknown>>();
   protected valueCache: LRU<string, string | Buffer>;
 
   protected limiter: RateLimiter;
@@ -164,9 +164,7 @@ export class BaseHandler {
     method: string,
     params: any[],
     key: string,
-    send: (
-      ...args: unknown[]
-    ) => Promise<{
+    send: () => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
     }>,
@@ -226,7 +224,7 @@ export class BaseHandler {
         throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
       });
     this.requestCache.set(key, promise);
-    return await promise;
+    return await promise.finally(() => this.requestCache.delete(key));
   }
   private fireForget = new Set();
   async close() {

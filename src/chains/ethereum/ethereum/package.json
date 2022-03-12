@@ -50,6 +50,7 @@
     "tooling"
   ],
   "dependencies": {
+    "undici": "4.15.1",
     "@ethereumjs/block": "3.6.0",
     "@ethereumjs/common": "2.6.0",
     "@ethereumjs/tx": "3.4.0",

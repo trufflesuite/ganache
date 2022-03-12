@@ -44,6 +44,7 @@ const config: webpack.Configuration = merge({}, base, {
   externals: [
     //#region dependencies that have the potential to compile something at install time
     "@trufflesuite/bigint-buffer",
+    "undici",
     "leveldown",
     "secp256k1",
     "keccak",

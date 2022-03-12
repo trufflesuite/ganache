@@ -85,6 +85,7 @@
     "webpack-cli": "4.9.1"
   },
   "dependencies": {
+    "undici": "4.15.1",
     "@trufflesuite/bigint-buffer": "1.1.9",
     "emittery": "0.10.0",
     "keccak": "3.0.1",

@@ -76,7 +76,7 @@ export class WsHandler extends BaseHandler implements Handler {
       this.inFlightRequests.set(messageId, deferred);
 
       this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
-      return deferred.promise.finally(() => this.requestCache.delete(key));
+      return deferred.promise;
     };
     return await this.queueRequest<T>(method, params, key, send, options);
   }
