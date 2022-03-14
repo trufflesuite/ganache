@@ -179,7 +179,7 @@ export function determineHandlerType(headers: Buffer[]): number {
         // if we have already seen a valid content-length header, we must
         // match it, otherwise we MUST close the connection to the server
         // and discard the received response.
-        if (foundContentLength !== -1 && foundContentLength !== contentLength) {
+        if (foundContentLength !== -1 && (foundContentLength !== contentLength || !Number.isFinite(contentLength))) {
           contentLengthError = new Error(POSSIBLE_REQUEST_SMUGGLING_ERROR_MESSAGE);
           continue;
         } else {

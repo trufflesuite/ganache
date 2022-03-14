@@ -13,7 +13,6 @@ function makeSend(id: number, key: string, url: URL, headers: Headers, signal: A
     if (signal.aborted) return Promise.reject(new AbortError());
 
     const body = Buffer.from(`${JSONRPC_PREFIX}${id},${key.slice(1)}`, "utf8");
-    headers["content-length"] = body.byteLength.toString(10);
 
     const requestOptions: Dispatcher.RequestOptions = {
       headersTimeout: 5000,
@@ -48,12 +47,10 @@ function makeSend(id: number, key: string, url: URL, headers: Headers, signal: A
           if (signal.aborted) return void reject(new AbortError());
 
           // ignore informational status codes, which can happen many times over
-          // a single request. These status codes will not provider the headers
+          // a single request. These status codes will not provide the headers
           // we want, nor will they have a body.
-          if (statusCode >= 100 && statusCode < 200) return true;
+          if (statusCode < 200) return true;
 
-          // if we have a transfer-encoding we don't care about "content-length"
-          // (per HTTP spec). We also don't care about invalid lengths
           try {
             const { onData, onComplete } = getHandlers(headers);
             handlers.onData = onData;
