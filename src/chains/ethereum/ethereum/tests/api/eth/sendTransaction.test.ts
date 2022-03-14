@@ -265,6 +265,56 @@ describe("api", () => {
           );
         });
 
+        it("can send transactions from an unlocked \"large\" address", async () => {
+          // see https://github.com/trufflesuite/ganache/issues/2586
+          const LARGE_ADDRESS = "0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE";
+          const provider = await getProvider({
+            miner: {
+              defaultGasPrice: 0
+            },
+            wallet: {
+              unlockedAccounts: [LARGE_ADDRESS]
+            },
+            chain: {
+              // use berlin here because we just want to test if we can use a
+              // "large" address, and we do this by transferring value while
+              // setting the gasPrice to `0`. This isn't possible after the
+              // `london` hardfork currently, as we don't provide an option to
+              // allow for a 0 `maxFeePerGas` value.
+              // TODO: remove once we have a configurable `maxFeePerGas`
+              hardfork: "berlin"
+            }
+          });
+          const [from] = await provider.send("eth_accounts");
+          await provider.send("eth_subscribe", ["newHeads"]);
+          const initialZeroBalance = "0x1234";
+          await provider.send("eth_sendTransaction", [
+            { from: from, to: LARGE_ADDRESS, value: initialZeroBalance }
+          ]);
+          await provider.once("message");
+          const initialBalance = await provider.send("eth_getBalance", [
+            LARGE_ADDRESS
+          ]);
+          assert.strictEqual(
+            initialBalance,
+            initialZeroBalance,
+            "Zero address's balance isn't correct"
+          );
+          const removeValueFromZeroAmount = "0x123";
+          await provider.send("eth_sendTransaction", [
+            { from: LARGE_ADDRESS, to: from, value: removeValueFromZeroAmount }
+          ]);
+          await provider.once("message");
+          const afterSendBalance = BigInt(
+            await provider.send("eth_getBalance", [LARGE_ADDRESS])
+          );
+          assert.strictEqual(
+            BigInt(initialZeroBalance) - BigInt(removeValueFromZeroAmount),
+            afterSendBalance,
+            "Large address's balance isn't correct"
+          );
+        });
+
         it("unlocks accounts via unlock_accounts (both string and numbered numbers)", async () => {
           const p = await getProvider({
             wallet: {
