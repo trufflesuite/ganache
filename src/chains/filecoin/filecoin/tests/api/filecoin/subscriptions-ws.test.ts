@@ -1,5 +1,6 @@
 import assert from "assert";
 import { SubscriptionMethod } from "../../../src/types/subscriptions";
+import { serverOptionsConfig } from "../../../src/plugin-callback";
 import getServer from "../../helpers/getServer";
 import WebSocket from "ws";
 import Server from "../../../../../../packages/core/src/server";
@@ -11,7 +12,7 @@ describe("api", () => {
     const port = 7778; // Use a different port than the default, to test it works
 
     before(async () => {
-      server = await getServer(port);
+      server = await getServer(port, serverOptionsConfig);
       ws = new WebSocket(`ws://localhost:${port}/rpc/v0`);
 
       await new Promise<void>((resolve, reject) => {
@@ -37,7 +38,7 @@ describe("api", () => {
       }
     });
 
-    it("should subscribe and unsubscribe properly with websockets", async () => {
+    it.only("should subscribe and unsubscribe properly with websockets", async () => {
       let numTipsetsReceived = 0;
       const chainNotifyId = "1337"; // using something non-zero to ensure functionality
       let receivedMessage = false;

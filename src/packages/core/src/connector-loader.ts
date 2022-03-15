@@ -8,7 +8,7 @@ const initialize = <T = any>(
     chain: { asyncRequestProcessing: true }
   } as ProviderOptions<T>
 ) => {
-  const flavor = ((options.flavor || DefaultFlavor) as unknown) as T;
+  const flavor = (options.flavor || DefaultFlavor) as unknown as T;
 
   // Set up our request coordinator to either use FIFO or or async request
   // processing. The RequestCoordinator _can_ be used to coordinate the number
