@@ -70,10 +70,10 @@ describe("server", () => {
   (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
     /**
      * Sends a post request to the server and returns the response.
-     * @param address 
-     * @param port 
-     * @param json 
-     * @returns 
+     * @param address
+     * @param port
+     * @param json
+     * @returns
      */
     function post(host: string, port: number, json: any) {
       const data = JSON.stringify(json);
@@ -297,6 +297,47 @@ describe("server", () => {
         }
         done();
       });
+    });
+
+    it("accepts port as string type (decimal)", async () => {
+      const portString = "5432";
+
+      s = Ganache.server(defaultOptions);
+      await s.listen(<number><unknown>portString);
+
+      try {
+        const req = request.post("http://localhost:5432");
+        await req.send(jsonRpcJson);
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("accepts port as string type (hexidecimal)", async () => {
+      const portString = "0x1538";
+
+      s = Ganache.server(defaultOptions);
+      await s.listen(<number><unknown>portString);
+
+      try {
+        const req = request.post("http://localhost:5432");
+        await req.send(jsonRpcJson);
+      } finally {
+        await teardown();
+      }
+    });
+
+    it("fails with non-numeric port", async () => {
+      const portString = "not a number";
+
+      s = Ganache.server(defaultOptions);
+      try {
+        await assert.rejects(s.listen(<number><unknown>portString), {
+          message: `Provided port is not a valid value: ${portString}.`
+        });
+      } finally {
+        await teardown();
+      }
     });
 
     it("fails to `.listen()` twice, Promise", async () => {

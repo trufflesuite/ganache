@@ -185,6 +185,17 @@ export class Server<
       host = null;
     }
     const callbackIsFunction = typeof callback === "function";
+
+    // Method signature specifies port: number, but we parse a non-number if provided
+    // Matches the behaviour of http.server.listen https://www.w3schools.com/nodejs/met_server_listen.asp
+    if (isNaN(port)) {
+      const err = new Error(`Provided port is not a valid value: ${port}.`);
+      return callbackIsFunction
+        ? process.nextTick(callback!, err)
+        : Promise.reject(err);
+    }
+    const portNumber = typeof port === "number" ? port : parseInt(port);
+
     const status = this.#status;
     if (status === ServerStatus.closing) {
       // if closing
@@ -195,7 +206,7 @@ export class Server<
     } else if ((status & ServerStatus.openingOrOpen) !== 0) {
       // if opening or open
       const err = new Error(
-        `Server is already open, or is opening, on port: ${port}.`
+        `Server is already open, or is opening, on port: ${portNumber}.`
       );
       return callbackIsFunction
         ? process.nextTick(callback!, err)
@@ -214,11 +225,11 @@ export class Server<
           host
             ? (this.#app as any).listen(
               host,
-              port,
+              portNumber,
               LIBUS_LISTEN_EXCLUSIVE_PORT,
               resolve
             )
-            : this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+            : this.#app.listen(portNumber, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
         }
       ).then(listenSocket => {
         if (listenSocket) {
@@ -228,7 +239,7 @@ export class Server<
           this.#status = ServerStatus.closed;
           const err = new Error(
             `listen EADDRINUSE: address already in use ${host || DEFAULT_HOST
-            }:${port}.`
+            }:${portNumber}.`
           );
           throw err;
         }
