@@ -668,6 +668,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   };
 
   applySimulationOverrides = async (vm: VM, overrides: CallOverride) => {
+    const stateManager = vm.stateManager;
+    for (const [
+      address,
+      { balance, nonce, code, state, stateDiff }
+    ] of Object.entries(overrides)) {
       const vmAddr = { buf: Address.from(address).toBuffer() } as any;
       if (override.code) {
         await vm.stateManager.putContractCode(
@@ -686,7 +691,22 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           toArrayLike: () => Quantity.from(override.balance).toBuffer()
         } as any;
       }
-      await vm.stateManager.putAccount(vmAddr, account);
+      // group together overrides that update storage
+      if (state || stateDiff) {
+        let storageEntries = [];
+        // override.state clears all storage and sets just the specified slots
+        if (state) {
+          await stateManager.clearContractStorage(vmAddr);
+          storageEntries = Object.entries(state);
+        } else {
+          storageEntries = Object.entries(stateDiff);
+        }
+        for (const [slot, value] of storageEntries) {
+          const slotBuf = Quantity.from(slot).toBuffer();
+          const valueBuf = Quantity.from(value).toBuffer();
+          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+        }
+      }
     }
   };
 
