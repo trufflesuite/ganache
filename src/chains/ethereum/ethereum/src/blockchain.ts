@@ -120,8 +120,24 @@ export type BlockchainOptions = {
   logger: Logger;
 };
 
-export type SimulationOverrides = {
-  [address: string]: Partial<{ code: string; nonce: string; balance: string }>;
+type Override =
+  | Partial<{
+      code: string;
+      nonce: string;
+      balance: string;
+      state: { [address: string]: string };
+      stateDiff: never;
+    }>
+  | Partial<{
+      code: string;
+      nonce: string;
+      balance: string;
+      state: never;
+      stateDiff: { [address: string]: string };
+    }>;
+
+export type CallOverride = {
+  [address: string]: Override;
 };
 
 /**
@@ -651,8 +667,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return vm;
   };
 
-  applySimulationOverrides = async (vm: VM, overrides: SimulationOverrides) => {
-    for (const [address, override] of Object.entries(overrides)) {
+  applySimulationOverrides = async (vm: VM, overrides: CallOverride) => {
       const vmAddr = { buf: Address.from(address).toBuffer() } as any;
       if (override.code) {
         await vm.stateManager.putContractCode(
@@ -1009,7 +1024,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   public async simulateTransaction(
     transaction: SimulationTransaction,
     parentBlock: Block,
-    overrides: SimulationOverrides
+    overrides: CallOverride
   ) {
     let result: EVMResult;
 

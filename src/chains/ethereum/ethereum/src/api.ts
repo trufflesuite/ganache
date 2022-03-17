@@ -41,7 +41,7 @@ import {
   JsonRpcErrorCode,
   RPCQUANTITY_GWEI
 } from "@ganache/utils";
-import Blockchain, { SimulationOverrides } from "./blockchain";
+import Blockchain, { CallOverride } from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
@@ -2639,7 +2639,11 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 3)
-  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.latest, overrides: SimulationOverrides = {}) {
+  async eth_call(
+    transaction: any,
+    blockNumber: QUANTITY | Tag = Tag.latest,
+    overrides: CallOverride = {}
+  ) {
     const blockchain = this.#blockchain;
     const common = this.#blockchain.common;
     const blocks = blockchain.blocks;
