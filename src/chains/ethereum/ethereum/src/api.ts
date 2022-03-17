@@ -2613,6 +2613,14 @@ export default class EthereumApi implements Api {
    * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
+   * State Override Object - An address to state mapping used to override the vm state for a
+   * given address. Each address mps to:
+   * * `balance`: `QUANTITY` (optional) - The balance to set for the account before executing the call.
+   * * `nonce`: `QUANTITY` (optional) - The nonce to set for the account before executing the call.
+   * * `code`: `DATA` (optional) - The EVM bytecode to set for the account before executing the call.
+   * * `state`: `OBJECT` (optional*) - Key-value mapping to override *all* slots in the account storage before executing the call.
+   * * `stateDiff`: `OBJECT` (optional*) - Key-value mapping to override *individual* slots in the account storage before executing the call.
+   * * *Note - `state` and `stateDiff` fields are mutually exclusive.
    * @param transaction - The transaction call object as seen in source.
    * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
