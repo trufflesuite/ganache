@@ -31,6 +31,7 @@ async function deployContract(provider, from, code) {
 describe("api", () => {
   describe("eth", () => {
     describe("call", () => {
+      describe("normal operation", () => {
       let contract: CompileOutput;
       let provider: EthereumProvider;
       let from, to: string;
@@ -47,19 +48,7 @@ describe("api", () => {
         provider = await getProvider({ wallet: { deterministic: true } });
         [from, to] = await provider.send("eth_accounts");
 
-        await provider.send("eth_subscribe", ["newHeads"]);
-        const contractHash = await provider.send("eth_sendTransaction", [
-          {
-            from,
-            data: contract.code,
-            gasLimit: "0xfffff"
-          }
-        ]);
-        await provider.once("message");
-        const receipt = await provider.send("eth_getTransactionReceipt", [
-          contractHash
-        ]);
-        contractAddress = receipt.contractAddress;
+          contractAddress = await deployContract(provider, from, contract.code);
 
         tx = {
           from,
@@ -200,6 +189,9 @@ describe("api", () => {
           message:
             "VM Exception while processing transaction: revert you are a failure",
           data: revertString
+          });
+        });
+      });
         });
       });
     });
