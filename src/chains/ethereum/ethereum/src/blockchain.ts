@@ -121,7 +121,7 @@ export type BlockchainOptions = {
   logger: Logger;
 };
 
-type Override =
+type CallOverride =
   | Partial<{
       code: string;
       nonce: string;
@@ -137,8 +137,8 @@ type Override =
       stateDiff: { [address: string]: string };
     }>;
 
-export type CallOverride = {
-  [address: string]: Override;
+export type CallOverrides = {
+  [address: string]: CallOverride;
 };
 
 /**
@@ -668,7 +668,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return vm;
   };
 
-  applySimulationOverrides = async (vm: VM, overrides: CallOverride) => {
+  applySimulationOverrides = async (vm: VM, overrides: CallOverrides) => {
     const stateManager = vm.stateManager;
     for (const [
       address,
@@ -1053,7 +1053,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   public async simulateTransaction(
     transaction: SimulationTransaction,
     parentBlock: Block,
-    overrides: CallOverride
+    overrides: CallOverrides
   ) {
     let result: EVMResult;
 
