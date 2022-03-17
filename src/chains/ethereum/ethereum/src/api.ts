@@ -2642,7 +2642,9 @@ export default class EthereumApi implements Api {
    * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
-   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"] });
+   * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005"
+   * const override = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
+   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", override] });
    * console.log(result);
    * ```
    */
