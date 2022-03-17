@@ -22,7 +22,7 @@ import {
 import type { Address as EthereumJsAddress } from "ethereumjs-util";
 import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { decode } from "@ganache/rlp";
-import { BN, KECCAK256_RLP } from "ethereumjs-util";
+import { BN, KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
 import Common from "@ethereumjs/common";
 import VM from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
@@ -73,6 +73,7 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
+import { keccak256 } from "ethereumjs-util";
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
   mcl.verifyOrderG1(true); // subgroup checks for G1
@@ -674,22 +675,30 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       { balance, nonce, code, state, stateDiff }
     ] of Object.entries(overrides)) {
       const vmAddr = { buf: Address.from(address).toBuffer() } as any;
-      if (override.code) {
-        await vm.stateManager.putContractCode(
-          vmAddr,
-          Data.from(override.code).toBuffer()
-        );
-      }
-      const account = await vm.stateManager.getAccount(vmAddr);
-      if (override.nonce) {
-        account.nonce = {
-          toArrayLike: () => Quantity.from(override.nonce).toBuffer()
-        } as any;
-      }
-      if (override.balance) {
-        account.balance = {
-          toArrayLike: () => Quantity.from(override.balance).toBuffer()
-        } as any;
+      // group together overrides that update the account
+      if (nonce || balance || code) {
+        const account = await stateManager.getAccount(vmAddr);
+
+        if (nonce) {
+          account.nonce = {
+            toArrayLike: () => Quantity.from(nonce).toBuffer()
+          } as any;
+        }
+        if (balance) {
+          account.balance = {
+            toArrayLike: () => Quantity.from(balance).toBuffer()
+          } as any;
+        }
+        if (code) {
+          const codeBuffer = Data.from(code).toBuffer();
+          // The ethereumjs-vm StateManager does not allow to set empty code,
+          // therefore we will manually set the code hash when "clearing" the contract code
+          const codeHash =
+            codeBuffer.length > 0 ? keccak256(codeBuffer) : KECCAK256_NULL;
+          account.codeHash = codeHash;
+          this.trie.db.put(codeHash, codeBuffer);
+        }
+        await stateManager.putAccount(vmAddr, account);
       }
       // group together overrides that update storage
       if (state || stateDiff) {
@@ -1066,9 +1075,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-        this.common,
-        BigInt(transaction.block.header.number.toString())
-      )
+          this.common,
+          BigInt(transaction.block.header.number.toString())
+        )
       : this.common;
 
     const gasLeft =
@@ -1188,9 +1197,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-        this.common,
-        BigInt(newBlock.header.number.toString())
-      )
+          this.common,
+          BigInt(newBlock.header.number.toString())
+        )
       : this.common;
 
     const vm = await VM.create({
