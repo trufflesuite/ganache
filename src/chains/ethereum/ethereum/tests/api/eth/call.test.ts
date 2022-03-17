@@ -3,7 +3,7 @@ import EthereumProvider from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { BUFFER_EMPTY, Quantity, RPCQUANTITY_EMPTY } from "@ganache/utils";
+import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 import { CallError } from "@ganache/ethereum-utils";
 
 describe("api", () => {
