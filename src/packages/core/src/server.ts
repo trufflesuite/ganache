@@ -186,15 +186,21 @@ export class Server<
     }
     const callbackIsFunction = typeof callback === "function";
 
-    // Method signature specifies port: number, but we parse a non-number if provided
-    // Matches the behaviour of http.server.listen https://www.w3schools.com/nodejs/met_server_listen.asp
-    if (isNaN(port)) {
-      const err = new Error(`Provided port is not a valid value: ${port}.`);
+    // Method signature specifies port: number, but we parse a string if provided
+    // inspiration taken from nodejs internal port validator
+    // https://github.com/nodejs/node/blob/8c4b8b201ada6b76d5306c9c7f352e45087fb4a9/lib/internal/validators.js#L208-L219
+    if ((typeof port !== 'number' && typeof port !== 'string') ||
+      (typeof port === 'string' && String.prototype.trim.apply(port).length === 0) ||
+      +port !== (+port >>> 0) ||
+      port > 0xFFFF ||
+      port === 0) {
+      const err = new Error(`Port should be >= 0 and < 65536. Received ${port}.`);
+
       return callbackIsFunction
         ? process.nextTick(callback!, err)
         : Promise.reject(err);
     }
-    const portNumber = typeof port === "number" ? port : parseInt(port);
+    const portNumber = +port;
 
     const status = this.#status;
     if (status === ServerStatus.closing) {
