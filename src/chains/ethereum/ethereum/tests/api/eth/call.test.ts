@@ -6,6 +6,28 @@ import { join } from "path";
 import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 import { CallError } from "@ganache/ethereum-utils";
 
+const encodeValue = (val: number | string) => {
+  return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
+};
+
+async function deployContract(provider, from, code) {
+  await provider.send("eth_subscribe", ["newHeads"]);
+  const transactionHash = await provider.send("eth_sendTransaction", [
+    {
+      from,
+      data: code,
+      gas: "0xfffff"
+    } as any
+  ]);
+  await provider.once("message");
+
+  const receipt = await provider.send("eth_getTransactionReceipt", [
+    transactionHash
+  ]);
+
+  return receipt.contractAddress;
+}
+
 describe("api", () => {
   describe("eth", () => {
     describe("call", () => {
