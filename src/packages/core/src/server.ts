@@ -190,7 +190,7 @@ export class Server<
     // inspiration taken from nodejs internal port validator
     // https://github.com/nodejs/node/blob/8c4b8b201ada6b76d5306c9c7f352e45087fb4a9/lib/internal/validators.js#L208-L219
     if ((typeof port !== 'number' && typeof port !== 'string') ||
-      (typeof port === 'string' && String.prototype.trim.apply(port).length === 0) ||
+      (typeof port === 'string' && (<string>port).trim().length === 0) ||
       +port !== (+port >>> 0) ||
       port > 0xFFFF ||
       port === 0) {
