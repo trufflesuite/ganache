@@ -34,6 +34,10 @@ export type WebsocketServerOptions = Pick<
 // matches geth's limit of 15 MebiBytes: https://github.com/ethereum/go-ethereum/blob/3526f690478482a02a152988f4d31074c176b136/rpc/websocket.go#L40
 export const MAX_PAYLOAD_SIZE = 15 * 1024 * 1024;
 
+// When using fragmented send, use a buffer of this size to combine smaller
+// fragments returned by the response generator. This reduces round-trips.
+export const WEBSOCKET_BUFFER_SIZE = 1024 * 1024; // 1 megabyte
+
 export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
   constructor(
@@ -145,13 +149,41 @@ export default class WebsocketServer {
               ws.sendFirstFragment(first, useBinary, shouldCompress);
 
               // Now send the rest of the data piece by piece.
+              // Use a buffer to reduce round-trips to ws send
+              let buf = Buffer.alloc(WEBSOCKET_BUFFER_SIZE);
+              let bufUsed = 0;
               let prev = next;
               for (next of localData) {
-                ws.sendFragment(prev, shouldCompress);
+                if ((prev.length > buf.length) || (prev.length + bufUsed > buf.length))
+                {
+                  // flush buffer
+                  ws.sendFragment(buf.subarray(0, bufUsed));
+                  bufUsed = 0;
+                }
+                if (prev.length > buf.length)
+                {
+                  // Cannot fit this fragment in buffer, send it directly.
+                  // Buffer has just been flushed so we do not need to worry about
+                  // out-of-order send.
+                  ws.sendFragment(prev);
+                }
+                else
+                {
+                  // Concat into buffer
+                  prev.copy(buf, bufUsed);
+                  bufUsed += prev.length;
+                }
                 prev = next;
               }
-              // finally, send the last fragment
-              ws.sendLastFragment(next, shouldCompress);
+
+              if (bufUsed > 0)
+              {
+                // Final buffer flush before sending last fragment
+                ws.sendFragment(buf.subarray(0, bufUsed));
+              }
+
+              // Send last fragment
+              ws.sendLastFragment(prev);
             }
           });
         } else {
