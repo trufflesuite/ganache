@@ -402,7 +402,7 @@ describe("server", () => {
       const jsonRpcJson: any = {
         jsonrpc: "2.0",
         id: "1",
-        method: "eth_block_number",
+        method: "eth_blockNumber",
         params: []
       };
 
@@ -432,7 +432,7 @@ describe("server", () => {
       const jsonRpcJson: any = {
         jsonrpc: "2.0",
         id: "1",
-        method: "eth_block_number",
+        method: "eth_blockNumber",
         params: []
       };
 
