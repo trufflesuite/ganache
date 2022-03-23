@@ -393,7 +393,7 @@ describe("server", () => {
       }
     });
 
-    it("closes even if an http connection with keep-alive is open", async () => {
+    it("closes even if a persistent http connection is open", async () => {
       const agent = new http.Agent({
         keepAlive: true
       });
@@ -410,12 +410,46 @@ describe("server", () => {
         // open the http connection
         await post("localhost", port, jsonRpcJson, agent);
 
-        s.close();
+        await s.close();
         // a request is required in order to actually close the connection
         await post("localhost", port, jsonRpcJson, agent);
 
         // connection has now closed, allowing ganache to close
-        await assert.rejects(post("localhost", port, jsonRpcJson, agent));
+        await assert.rejects(post("localhost", port, jsonRpcJson, agent), {
+          code: "ECONNREFUSED"
+        });
+      } finally {
+        teardown();
+      }
+    });
+
+    it("refuses new connections when waiting on persistent connections to close", async () => {
+      const agent = new http.Agent({
+        keepAlive: true
+      });
+
+      await setup();
+      const jsonRpcJson: any = {
+        jsonrpc: "2.0",
+        id: "1",
+        method: "eth_block_number",
+        params: []
+      };
+
+      try {
+        // open the http connection
+        await post("localhost", port, jsonRpcJson, agent);
+
+        await s.close();
+
+        // this connection is on a different connection, so should fail
+        await assert.rejects(post("localhost", port, jsonRpcJson), {
+          code: "ECONNREFUSED"
+        });
+
+        // a request is required in order to actually close the connection
+        await post("localhost", port, jsonRpcJson, agent);
+
       } finally {
         teardown();
       }
