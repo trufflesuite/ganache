@@ -154,12 +154,19 @@ export default class WebsocketServer {
               let bufUsed = 0;
               let prev = next;
               for (next of localData) {
-                if ((prev.length > buf.length) || (prev.length + bufUsed > buf.length))
+                if (prev.length + bufUsed > buf.length)
                 {
                   // flush buffer
                   ws.sendFragment(buf.subarray(0, bufUsed));
+
+                  // Reset the buffer. Since `ws` sends packets asyncronously,
+                  // it is important that we allocate a new buffer for the next
+                  // frame. This avoids overwriting data before it is sent.
+                  buf = Buffer.alloc(WEBSOCKET_BUFFER_SIZE);
                   bufUsed = 0;
                 }
+
+                // Store prev in buffer if it fits.
                 if (prev.length > buf.length)
                 {
                   // Cannot fit this fragment in buffer, send it directly.
