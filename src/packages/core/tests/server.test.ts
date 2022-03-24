@@ -399,12 +399,6 @@ describe("server", () => {
       });
 
       await setup();
-      const jsonRpcJson: any = {
-        jsonrpc: "2.0",
-        id: "1",
-        method: "eth_blockNumber",
-        params: []
-      };
 
       try {
         // open the http connection
@@ -429,12 +423,6 @@ describe("server", () => {
       });
 
       await setup();
-      const jsonRpcJson: any = {
-        jsonrpc: "2.0",
-        id: "1",
-        method: "eth_blockNumber",
-        params: []
-      };
 
       try {
         // open the http connection

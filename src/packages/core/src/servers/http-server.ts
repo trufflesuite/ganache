@@ -84,7 +84,8 @@ function sendResponse(
       response.writeHeader("Content-Type", contentType);
     }
 
-    response.end(data, closeConnection);
+    // in the case that body is not provided, it must specifically be <undefined> and not <null>
+    response.end(data ?? undefined, closeConnection);
   });
 }
 
