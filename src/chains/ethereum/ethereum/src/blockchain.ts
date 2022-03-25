@@ -64,7 +64,7 @@ import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
-import { BUFFER_ZERO } from "@ganache/utils";
+import { BUFFER_ZERO, keccak } from "@ganache/utils";
 import {
   makeStepEvent,
   VmAfterTransactionEvent,
@@ -73,7 +73,6 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import { keccak256 } from "ethereumjs-util";
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
   mcl.verifyOrderG1(true); // subgroup checks for G1
@@ -185,7 +184,7 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   //  a) we don't currently support changing hardforks
   //  b) it can cause `MaxListenersExceededWarning`.
   // Since we don't need it we overwrite .on to make it be quiet.
-  (common as any).on = () => { };
+  (common as any).on = () => {};
   return common;
 }
 
@@ -388,7 +387,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.#state = Status.stopping;
       // ignore errors while stopping here, since we are already in an
       // exceptional case
-      await this.stop().catch(_ => { });
+      await this.stop().catch(_ => {});
 
       throw e;
     }
@@ -694,7 +693,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           // The ethereumjs-vm StateManager does not allow to set empty code,
           // therefore we will manually set the code hash when "clearing" the contract code
           const codeHash =
-            codeBuffer.length > 0 ? keccak256(codeBuffer) : KECCAK256_NULL;
+            codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
           account.codeHash = codeHash;
           this.trie.db.put(codeHash, codeBuffer);
         }
@@ -863,7 +862,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return (this.#timeAdjustment = timestamp - Date.now());
   }
 
-  #deleteBlockData = async (blocksToDelete: Block[], newLatestBlockNumber: Buffer) => {
+  #deleteBlockData = async (
+    blocksToDelete: Block[],
+    newLatestBlockNumber: Buffer
+  ) => {
     // if we are forking we need to make sure we clean up the forking related
     // metadata that isn't stored in the trie
     if ("revertMetaData" in this.trie) {
@@ -1345,7 +1347,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => { };
+    (vm.stateManager as any)._cache.flush = () => {};
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
