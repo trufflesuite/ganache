@@ -107,7 +107,7 @@ describe("server", () => {
   }
 
   // skip this test unless in GitHub Actions, as this test iterates over
-  // all available network interfacesnand network interfaces on user
+  // all available network interfaces and network interfaces on user
   // machines are unpredictible and may behave in ways that we don't care
   // about.
   (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
