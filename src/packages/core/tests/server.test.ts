@@ -301,6 +301,47 @@ describe("server", () => {
       });
     });
 
+    it("accepts port as number type or binary, octal, decimal or hexadecimal string", async () => {
+      const validPorts = [
+        port, `0b${port.toString(2)}`,
+        `0o${port.toString(8)}`, port.toString(10),
+        `0x${port.toString(16)}`
+      ];
+
+      for (const specificPort of validPorts) {
+        s = Ganache.server(defaultOptions);
+        await s.listen(<any>specificPort);
+
+        try {
+          const req = request.post(`http://localhost:${+specificPort}`);
+          await req.send(jsonRpcJson);
+        } finally {
+          await teardown();
+        }
+      }
+    });
+
+    it("fails with invalid ports", async () => {
+      const invalidPorts = [
+        -1, 'a', {}, [], false, true,
+        0xFFFF + 1, Infinity, -Infinity, NaN,
+        undefined, null, '', ' ', 1.1, '0x',
+        '-0x1', '-0o1', '-0b1', '0o', '0b', 0
+      ];
+
+      for (const specificPort of invalidPorts) {
+        s = Ganache.server(defaultOptions);
+
+        try {
+          await assert.rejects(s.listen(<any>specificPort), {
+            message: `Port should be >= 0 and < 65536. Received ${specificPort}.`
+          });
+        } finally {
+          await teardown();
+        }
+      }
+    });
+
     it("fails to `.listen()` twice, Promise", async () => {
       await setup();
       try {
