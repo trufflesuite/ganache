@@ -62,6 +62,7 @@ describe("server", () => {
       await s.close();
     }
   }
+
   /**
    * Sends a post request to the server and returns the response.
    * @param address
@@ -111,48 +112,6 @@ describe("server", () => {
   // machines are unpredictible and may behave in ways that we don't care
   // about.
   (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
-    /**
-     * Sends a post request to the server and returns the response.
-     * @param address 
-     * @param port 
-     * @param json 
-     * @returns 
-     */
-    function post(host: string, port: number, json: any) {
-      const data = JSON.stringify(json);
-      // We use http.request instead of superagent because superagent doesn't
-      // support the interface name in ipv6 addresses, and in GitHub Actions the
-      // Mac tests would fail because one of the available ipv6 addresses
-      // requires the interface name (`fe80::1%lo0`)
-      const req = http.request({
-        method: "POST",
-        protocol: "http:",
-        host,
-        port,
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          "content-length": Buffer.byteLength(data)
-        }
-      });
-      let resolve: any;
-      let reject: any;
-      const deferred = new Promise<any>((_resolve, _reject) => {
-        resolve = _resolve;
-        reject = _reject;
-      });
-      req.on("response", (res: http.IncomingMessage) => {
-        let data = "";
-        res
-          .on("data", d => data += d.toString("utf8"))
-          .on("end", () => resolve({ status: 200, body: JSON.parse(data) }));
-      });
-      req.on("error", (err) => reject(err));
-      req.write(data);
-      req.end();
-      return deferred;
-    }
-
     function getHost(info: NetworkInterfaceInfo, interfaceName: string) {
       // a link-local ipv6 address starts with fe80:: and _must_ include a "zone_id"
       if (info.family === "IPv6" && info.address.startsWith("fe80::")) {
