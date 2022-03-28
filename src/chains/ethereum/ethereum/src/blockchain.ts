@@ -126,7 +126,7 @@ type CallOverride =
       code: string;
       nonce: string;
       balance: string;
-      state: { [address: string]: string };
+      state: { [slot: string]: string };
       stateDiff: never;
     }>
   | Partial<{
@@ -134,7 +134,7 @@ type CallOverride =
       nonce: string;
       balance: string;
       state: never;
-      stateDiff: { [address: string]: string };
+      stateDiff: { [slot: string]: string };
     }>;
 
 export type CallOverrides = {
