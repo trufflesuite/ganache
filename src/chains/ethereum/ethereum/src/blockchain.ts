@@ -695,7 +695,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           const codeHash =
             codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
           account.codeHash = codeHash;
-          this.trie.db.put(codeHash, codeBuffer);
+          await this.trie.db.put(codeHash, codeBuffer);
         }
         await stateManager.putAccount(vmAddr, account);
       }
