@@ -15,4 +15,11 @@ describe("@ganache/ethereum-address", () => {
 
     assert.equal(stringifiedAddress, "0x01");
   });
+
+  it("should create an address from a 20 byte address string", () => {
+    const address = new Address("0x2104859394604359378433865360947116707876");
+    const stringifiedAddress = address.toString();
+
+    assert.equal(stringifiedAddress, "0x2104859394604359378433865360947116707876");
+  });
 });
