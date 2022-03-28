@@ -38,7 +38,8 @@ import {
   RPCQUANTITY_ZERO,
   findInsertPosition,
   unref,
-  KNOWN_CHAINIDS
+  KNOWN_CHAINIDS,
+  hasOwn
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -669,10 +670,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   applySimulationOverrides = async (vm: VM, overrides: CallOverrides) => {
     const stateManager = vm.stateManager;
-    for (const [
-      address,
-      { balance, nonce, code, state, stateDiff }
-    ] of Object.entries(overrides)) {
+    for (const address in overrides) {
+      if (!hasOwn(overrides, address)) {
+        continue;
+      }
+      const { balance, nonce, code, state, stateDiff } = overrides[address];
+
       const vmAddr = { buf: Address.from(address).toBuffer() } as any;
       // group together overrides that update the account
       if (nonce || balance || code) {
