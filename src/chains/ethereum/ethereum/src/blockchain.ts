@@ -703,8 +703,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // group together overrides that update storage
       if (state || stateDiff) {
         let newState: { [slot: string]: string };
-        // override.state clears all storage and sets just the specified slots
         if (state) {
+          // override.state clears all storage and sets just the specified slots
           await stateManager.clearContractStorage(vmAddr);
           newState = state;
         } else {
