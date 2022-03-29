@@ -418,6 +418,165 @@ describe("api", () => {
             await callContract(getStorageMethod, override);
           }, "both state and stateDiff overrides specified");
         });
+
+        it("does not use invalid overrides", async () => {
+          const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
+          const tests = {
+            balance: {
+              junks: [
+                {
+                  junk: null,
+                  expectedValue:
+                    "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
+                },
+                {
+                  junk: undefined,
+                  expectedValue:
+                    "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
+                },
+                {
+                  junk: "",
+                  expectedValue:
+                    "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `Cannot wrap a "object" as a json-rpc type`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+              ],
+              contractMethod: `0x${methods["getBalance(address)"]}${encodedAddr}`
+            },
+            code: {
+              junks: [
+                {
+                  junk: null,
+                  expectedValue:
+                    "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
+                },
+                {
+                  junk: undefined,
+                  expectedValue:
+                    "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
+                },
+                {
+                  junk: "",
+                  expectedValue:
+                    "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Data\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `Cannot wrap a "object" as a json-rpc type`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+              ],
+              contractMethod: `0x${methods["getCode(address)"]}${encodedAddr}`
+            },
+            stateDiff: {
+              junks: [
+                {
+                  junk: null,
+                  expectedValue:
+                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                },
+                {
+                  junk: undefined,
+                  expectedValue:
+                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                },
+                {
+                  junk: "",
+                  expectedValue:
+                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `Cannot wrap a "object" as a json-rpc type`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+              ],
+              contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
+            },
+            state: {
+              junks: [
+                {
+                  junk: null,
+                  expectedValue:
+                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                },
+                {
+                  junk: undefined,
+                  expectedValue:
+                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                },
+                {
+                  junk: "",
+                  expectedValue:
+                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `Cannot wrap a "object" as a json-rpc type`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+              ],
+              contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
+            }
+          };
+
+          for (const [type, { contractMethod, junks }] of Object.entries(
+            tests
+          )) {
+            for (const { junk, error, expectedValue } of junks) {
+              const override =
+                type === "state" || type === "stateDiff"
+                  ? { [contractAddress]: { [type]: { [`0x${slot}`]: junk } } }
+                  : { [addr]: { [type]: junk } };
+              const prom = callContract(contractMethod, override);
+              if (error) {
+                await assert.rejects(
+                  prom,
+                  new Error(error),
+                  `Failed junk data validation for "${type}" override type with value "${junk}".`
+                );
+              } else {
+                assert.strictEqual(
+                  await prom,
+                  expectedValue,
+                  `Failed junk data validation for "${type}" override type with value "${junk}".`
+                );
+              }
+            }
+          }
+        });
       });
     });
   });
