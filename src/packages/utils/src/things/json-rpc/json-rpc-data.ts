@@ -2,40 +2,39 @@ import { BaseJsonRpcType } from "./json-rpc-base-types";
 import { strCache, toStrings } from "./json-rpc-base-types";
 
 function validateByteLength(byteLength?: number) {
-  if (typeof byteLength !== "number" || byteLength < 0) {
-    throw new Error(`byteLength must be a number greater than 0`);
+  if (typeof byteLength !== "number" || !(byteLength >= 0)) {
+    throw new Error(`byteLength must be a number greater than or equal to 0, provided: ${byteLength}`);
   }
 }
-const byteLengths = new WeakMap();
+
 export class Data extends BaseJsonRpcType {
-  constructor(value: string | Buffer, byteLength?: number) {
+
+  constructor(value: string | Buffer, private _byteLength?: number) {
+    super(value);
     if (typeof value === "bigint") {
       throw new Error(`Cannot create a ${typeof value} as a Data`);
     }
-    super(value);
-    if (byteLength !== void 0) {
-      validateByteLength(byteLength);
-      byteLengths.set(this, byteLength | 0);
+    if (_byteLength !== undefined) {
+      validateByteLength(_byteLength);
     }
   }
   public toString(byteLength?: number): string {
-    const str = strCache.get(this) as string;
-    if (str !== void 0) {
-      return str;
+    if (byteLength === undefined) {
+      byteLength = this._byteLength;
+    }
+    if (byteLength === undefined && strCache.has(this)) {
+      return strCache.get(this) as string;
     } else {
       let str = toStrings.get(this)() as string;
       let length = str.length;
+
       if (length % 2 === 1) {
         length++;
         str = `0${str}`;
       }
 
-      if (byteLength !== void 0) {
+      if (byteLength !== undefined) {
         validateByteLength(byteLength);
-      } else {
-        byteLength = byteLengths.get(this);
-      }
-      if (byteLength !== void 0) {
         const strLength = byteLength * 2;
         const padBy = strLength - length;
         if (padBy < 0) {
