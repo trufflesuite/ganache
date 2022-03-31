@@ -2,12 +2,12 @@ import assert from "assert";
 import {Data} from "..";
 
 describe("json-rpc-data", () => {
-  const validValues = [ "0x", "0x1", "0x1234", Buffer.from([]), Buffer.from([0x12,0x34]) ];
+  const inputOf32Bytes = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+  const validValues = [ "0x", "0x1", "0x1234", Buffer.from([]), Buffer.from([0x12,0x34]), inputOf32Bytes ];
   const invalidValues: any[] = [ "1234", 1234n, NaN/*, undefined, null, 1234, [], {}, "0x-1234"*/ ]; // todo: this should be addressed in rewrite of json-rpc-data
                                                                                                      // See related https://github.com/trufflesuite/ganache/labels/json-rpc%20refactor
   const validBytelengths = (() => { let i = 0; return [...new Array(100)].map(_ => i++); })(); // [0...99]
   const invalidBytelengths: any[] = [ -1, "1", {}, [], null, NaN ];
-  const inputOf32Bytes = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
   function getExpectedString(value: Buffer|string, bytelength?: number) {
     let expected: string;
@@ -20,11 +20,18 @@ describe("json-rpc-data", () => {
       throw new Error(`Type not supported ${typeof value}`)
     }
     if (bytelength !== undefined) {
+      /*
+      If the value is longer than the specified bytelength, then the result my be left padded.
+      ie: "0x01" bytelength 2 becomes "0x0001"
+
+      If the value is longer than the specified bytelength, then the result must be truncated.
+      ie: "0x123456" bytelength 2 becomes "0x1234"
+      */
       const padCharCount = (bytelength - expected.length / 2) * 2; // (desired byte count - actual byte count) * 2 characters per byte
       if (padCharCount > 0) {
         expected = "0".repeat(padCharCount) + expected;
       } else {
-        expected = expected.slice(Math.abs(padCharCount));
+        expected = expected.slice(0, bytelength * 2);
       }
     }
     return "0x" + expected;
@@ -124,36 +131,16 @@ describe("json-rpc-data", () => {
       });
     });
 
-    it("should pad the value with larger bytelength", () => {
+    it("should stringify with valid bytelengths provided to constructor", () => {
       validValues.forEach(value => {
-        const d = new Data(value);
-        const s = d.toString(10);
-        const expected = getExpectedString(s, 10);
+        validBytelengths.forEach(bytelength => {
+          const d = new Data(value, bytelength);
+          const s = d.toString();
+          const expected = getExpectedString(s, bytelength);
 
-        assert.equal(s, expected);
+          assert.equal(s, expected);
+        });
       });
-    });
-
-    it("should truncate the value with a smaller bytelength", () => {
-      const d = new Data("0x1234567890abcdef");
-      const s = d.toString(2);
-
-      assert.equal(s, "0x1234");
-    });
-
-    it("should truncate with a large value", () => {
-      const expectedStringLength = 62; // 30 bytes x 2 characters per byte + 2 for 0x prefix
-      const d = new Data(inputOf32Bytes);
-      const s = d.toString(30);
-
-      assert.equal(s, inputOf32Bytes.slice(0, expectedStringLength));
-    });
-
-    it("should pad with a large value", () => {
-      const d = new Data(inputOf32Bytes);
-      const s = d.toString(34); // 2 additional bytes, ie "0000"
-
-      assert.equal(s, "0x0000" + inputOf32Bytes.slice(2));
     });
   });
 
