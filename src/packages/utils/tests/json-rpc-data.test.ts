@@ -4,7 +4,7 @@ import {Data} from "..";
 describe("json-rpc-data", () => {
   const validValues = [ "0x", "0x1", "0x1234", Buffer.from([]), Buffer.from([0x12,0x34]) ];
   const invalidValues: any[] = [ "1234", 1234n, NaN/*, undefined, null, 1234, [], {}, "0x-1234"*/ ]; // todo: this should be addressed in rewrite of json-rpc-data
-                                                                                                     // See related https://github.com/trufflesuite/ganache/issues/2728
+                                                                                                     // See related https://github.com/trufflesuite/ganache/labels/json-rpc%20refactor
   const validBytelengths = (() => { let i = 0; return [...new Array(100)].map(_ => i++); })(); // [0...99]
   const invalidBytelengths: any[] = [ -1, "1", {}, [], null, NaN ];
   const inputOf32Bytes = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
