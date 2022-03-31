@@ -166,7 +166,7 @@ describe("json-rpc-data", () => {
       assert.deepEqual(b, expected);
     });
 
-    // todo: this should be addressed in rewrite of json-rpc-data
+    // todo: this should be addressed in rewrite of json-rpc-data https://github.com/trufflesuite/ganache/labels/json-rpc%20refactor
     it.skip("should create a buffer with a smaller bytelength", () => {
       const expected = Buffer.from([0x12, 0x34]);
       const d = new Data("0x123456789abcdef", 2);
