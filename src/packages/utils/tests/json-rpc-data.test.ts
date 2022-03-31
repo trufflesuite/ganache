@@ -21,7 +21,7 @@ describe("json-rpc-data", () => {
     }
     if (bytelength !== undefined) {
       /*
-      If the value is longer than the specified bytelength, then the result my be left padded.
+      If the value is longer than the specified bytelength, then the result must be left padded.
       ie: "0x01" bytelength 2 becomes "0x0001"
 
       If the value is longer than the specified bytelength, then the result must be truncated.
