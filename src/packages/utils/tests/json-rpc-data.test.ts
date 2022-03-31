@@ -30,7 +30,7 @@ describe("json-rpc-data", () => {
     return "0x" + expected;
   }
 
-  describe("ctor", () => {
+  describe("constructor", () => {
     it("should accept different values", () => {
       validValues.forEach(value => {
         const d = new Data(value);
