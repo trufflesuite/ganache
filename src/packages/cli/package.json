@@ -54,6 +54,7 @@
   ],
   "devDependencies": {
     "@ganache/ethereum": "0.1.1-canary.1335",
+    "@ganache/filecoin": "0.1.1-canary.1335",
     "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
     "mocha": "9.1.3",
