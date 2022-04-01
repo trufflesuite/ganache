@@ -29,6 +29,9 @@
     {
       "name": "@ganache/colors",
       "path": "../colors"
+    }, {
+      "name": "@ganache/filecoin",
+      "path": "../../chains/filecoin/filecoin"
     }
   ]
 }
