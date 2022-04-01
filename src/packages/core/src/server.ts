@@ -137,15 +137,26 @@ export class Server<T = any> extends Emittery<{
     pluginServerOptionsConfig: any = null
   ) {
     super();
+    const defaultServerOptions = serverOptionsConfig.normalize(
+      providerAndServerOptions
+    );
     if (
       providerAndServerOptions.flavor !== DefaultFlavor &&
       pluginServerOptionsConfig !== null
     ) {
-      this.#options = pluginServerOptionsConfig.normalize(
+      const pluginOverrideServerOptions = pluginServerOptionsConfig.normalize(
         providerAndServerOptions
       );
+      // Override with plugin server options
+      const serverOptions = {
+        server: {
+          ...defaultServerOptions.server,
+          ...pluginOverrideServerOptions.server
+        }
+      };
+      this.#options = serverOptions;
     } else {
-      this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
+      this.#options = defaultServerOptions;
     }
 
     this.#providerOptions = providerAndServerOptions;
