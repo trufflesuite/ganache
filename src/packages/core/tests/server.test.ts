@@ -63,53 +63,55 @@ describe("server", () => {
     }
   }
 
+  /**
+   * Sends a post request to the server and returns the response.
+   * @param address
+   * @param port
+   * @param json
+   * @param agent
+   * @returns
+   */
+  function post(host: string, port: number, json: any, agent?: any) {
+    const data = JSON.stringify(json);
+    // We use http.request instead of superagent because superagent doesn't
+    // support the interface name in ipv6 addresses, and in GitHub Actions the
+    // Mac tests would fail because one of the available ipv6 addresses
+    // requires the interface name (`fe80::1%lo0`)
+    const req = http.request({
+      agent,
+      method: "POST",
+      protocol: "http:",
+      host,
+      port,
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "content-length": Buffer.byteLength(data)
+      }
+    });
+    let resolve: any;
+    let reject: any;
+    const deferred = new Promise<any>((_resolve, _reject) => {
+      resolve = _resolve;
+      reject = _reject;
+    });
+    req.on("response", (res: http.IncomingMessage) => {
+      let data = "";
+      res
+        .on("data", d => data += d.toString("utf8"))
+        .on("end", () => resolve({ status: 200, body: JSON.parse(data) }));
+    });
+    req.on("error", (err) => reject(err));
+    req.write(data);
+    req.end();
+    return deferred;
+  }
+
   // skip this test unless in GitHub Actions, as this test iterates over
-  // all available network interfacesnand network interfaces on user
+  // all available network interfaces and network interfaces on user
   // machines are unpredictible and may behave in ways that we don't care
   // about.
   (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
-    /**
-     * Sends a post request to the server and returns the response.
-     * @param address
-     * @param port
-     * @param json
-     * @returns
-     */
-    function post(host: string, port: number, json: any) {
-      const data = JSON.stringify(json);
-      // We use http.request instead of superagent because superagent doesn't
-      // support the interface name in ipv6 addresses, and in GitHub Actions the
-      // Mac tests would fail because one of the available ipv6 addresses
-      // requires the interface name (`fe80::1%lo0`)
-      const req = http.request({
-        method: "POST",
-        protocol: "http:",
-        host,
-        port,
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          "content-length": Buffer.byteLength(data)
-        }
-      });
-      let resolve: any;
-      let reject: any;
-      const deferred = new Promise<any>((_resolve, _reject) => {
-        resolve = _resolve;
-        reject = _reject;
-      });
-      req.on("response", (res: http.IncomingMessage) => {
-        let data = "";
-        res
-          .on("data", d => data += d.toString("utf8"))
-          .on("end", () => resolve({ status: 200, body: JSON.parse(data) }));
-      });
-      req.on("error", (err) => reject(err));
-      req.write(data);
-      req.end();
-      return deferred;
-    }
-
     function getHost(info: NetworkInterfaceInfo, interfaceName: string) {
       // a link-local ipv6 address starts with fe80:: and _must_ include a "zone_id"
       if (info.family === "IPv6" && info.address.startsWith("fe80::")) {
@@ -388,6 +390,58 @@ describe("server", () => {
         });
       } finally {
         await teardown();
+      }
+    });
+
+    it("closes even if a persistent http connection is open", async () => {
+      const agent = new http.Agent({
+        keepAlive: true
+      });
+
+      await setup();
+
+      try {
+        // open the http connection
+        await post("localhost", port, jsonRpcJson, agent);
+
+        await s.close();
+        // a request is required in order to actually close the connection
+        // see https://github.com/trufflesuite/ganache/issues/2788
+        await post("localhost", port, jsonRpcJson, agent);
+
+        // connection has now closed, allowing ganache to close
+        await assert.rejects(post("localhost", port, jsonRpcJson, agent), {
+          code: "ECONNREFUSED"
+        });
+      } finally {
+        teardown();
+      }
+    });
+
+    it("refuses new connections when waiting on persistent connections to close", async () => {
+      const agent = new http.Agent({
+        keepAlive: true
+      });
+
+      await setup();
+
+      try {
+        // open the http connection
+        await post("localhost", port, jsonRpcJson, agent);
+
+        await s.close();
+
+        // this connection is on a different connection, so should fail
+        await assert.rejects(post("localhost", port, jsonRpcJson), {
+          code: "ECONNREFUSED"
+        });
+
+        // a request is required in order to actually close the connection
+        // see https://github.com/trufflesuite/ganache/issues/2788
+        await post("localhost", port, jsonRpcJson, agent);
+
+      } finally {
+        teardown();
       }
     });
 
