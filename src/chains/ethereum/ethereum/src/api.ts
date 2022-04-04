@@ -2661,11 +2661,6 @@ export default class EthereumApi implements Api {
     const parentHeader = parentBlock.header;
     const options = this.#options;
 
-    // override state and stateDiff fields are mutually exclusive
-    if (overrides && overrides.state && overrides.stateDiff) {
-      throw new Error("both state and stateDiff overrides specified");
-    }
-
     let gas: Quantity;
     if (typeof transaction.gasLimit === "undefined") {
       if (typeof transaction.gas !== "undefined") {
