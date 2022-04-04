@@ -414,9 +414,9 @@ describe("api", () => {
             }
           };
           const getStorageMethod = `0x${methods["getStorageAt(uint256)"]}${slot}`;
-          assert.rejects(async () => {
-            await callContract(getStorageMethod, override);
-          }, "both state and stateDiff overrides specified");
+          await assert.rejects(callContract(getStorageMethod, override), {
+            message: "both state and stateDiff overrides specified"
+          });
         });
 
         it("does not use invalid overrides", async () => {
