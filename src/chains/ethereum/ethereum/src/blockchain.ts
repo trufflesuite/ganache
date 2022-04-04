@@ -704,6 +704,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       if (state || stateDiff) {
         let newState: { [slot: string]: string };
         if (state) {
+          // state and stateDiff fields are mutually exclusive
+          if (stateDiff) {
+            throw new Error("both state and stateDiff overrides specified");
+          }
           // it's possible that the user fed an override with a valid address
           // and slot, but not a value we can actually set in the storage. if
           // so, we don't want to set the storage, and we also don't want to
