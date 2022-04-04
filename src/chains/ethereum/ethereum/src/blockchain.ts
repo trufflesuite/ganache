@@ -718,7 +718,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             if (!hasOwn(state, slot) || value == null || value === "") continue;
             hasValidValue = true;
           }
-          if (!hasValidValue) return;
+          if (!hasValidValue) continue;
           // override.state clears all storage and sets just the specified slots
           await stateManager.clearContractStorage(vmAddr);
           newState = state;
