@@ -30,7 +30,7 @@
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_FILES=true mocha -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -86,7 +86,7 @@
     "ws": "8.2.3"
   },
   "devDependencies": {
-    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
+    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.5",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",

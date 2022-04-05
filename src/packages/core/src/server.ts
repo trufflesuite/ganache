@@ -109,7 +109,7 @@ export const _DefaultServerOptions = serverDefaults;
  */
 export class Server<
   T extends FlavorName = typeof DefaultFlavor
-> extends Emittery<{ open: undefined; close: undefined }> {
+  > extends Emittery<{ open: undefined; close: undefined }> {
   #options: InternalOptions;
   #providerOptions: Options<T>;
   #status: number = ServerStatus.unknown;
@@ -180,12 +180,28 @@ export class Server<
     host?: string | Callback,
     callback?: Callback
   ): void | Promise<void> {
-    let hostname: string = null;
     if (typeof host === "function") {
       callback = host;
-      hostname = null;
+      host = null;
     }
     const callbackIsFunction = typeof callback === "function";
+
+    // Method signature specifies port: number, but we parse a string if provided
+    // inspiration taken from nodejs internal port validator
+    // https://github.com/nodejs/node/blob/8c4b8b201ada6b76d5306c9c7f352e45087fb4a9/lib/internal/validators.js#L208-L219
+    if ((typeof port !== 'number' && typeof port !== 'string') ||
+      (typeof port === 'string' && (<string>port).trim().length === 0) ||
+      +port !== (+port >>> 0) ||
+      port > 0xFFFF ||
+      port === 0) {
+      const err = new Error(`Port should be >= 0 and < 65536. Received ${port}.`);
+
+      return callbackIsFunction
+        ? process.nextTick(callback!, err)
+        : Promise.reject(err);
+    }
+    const portNumber = +port;
+
     const status = this.#status;
     if (status === ServerStatus.closing) {
       // if closing
@@ -196,7 +212,7 @@ export class Server<
     } else if ((status & ServerStatus.openingOrOpen) !== 0) {
       // if opening or open
       const err = new Error(
-        `Server is already open, or is opening, on port: ${port}.`
+        `Server is already open, or is opening, on port: ${portNumber}.`
       );
       return callbackIsFunction
         ? process.nextTick(callback!, err)
@@ -212,14 +228,14 @@ export class Server<
           // Make sure we have *exclusive* use of this port.
           // https://github.com/uNetworking/uSockets/commit/04295b9730a4d413895fa3b151a7337797dcb91f#diff-79a34a07b0945668e00f805838601c11R51
           const LIBUS_LISTEN_EXCLUSIVE_PORT = 1;
-          hostname
+          host
             ? (this.#app as any).listen(
-                hostname,
-                port,
-                LIBUS_LISTEN_EXCLUSIVE_PORT,
-                resolve
-              )
-            : this.#app.listen(port, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
+              host,
+              portNumber,
+              LIBUS_LISTEN_EXCLUSIVE_PORT,
+              resolve
+            )
+            : this.#app.listen(portNumber, LIBUS_LISTEN_EXCLUSIVE_PORT, resolve);
         }
       ).then(listenSocket => {
         if (listenSocket) {
@@ -228,9 +244,8 @@ export class Server<
         } else {
           this.#status = ServerStatus.closed;
           const err = new Error(
-            `listen EADDRINUSE: address already in use ${
-              hostname || DEFAULT_HOST
-            }:${port}.`
+            `listen EADDRINUSE: address already in use ${host || DEFAULT_HOST
+            }:${portNumber}.`
           );
           throw err;
         }
