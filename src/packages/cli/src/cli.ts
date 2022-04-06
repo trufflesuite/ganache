@@ -8,6 +8,7 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { Provider as FilecoinProvider } from "@ganache/filecoin";
 import type { Provider as EthereumProvider } from "@ganache/ethereum";
+import { logIfUpgradeRequired, getLatestVersionNumber } from "@ganache/version-check";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -126,6 +127,18 @@ async function startGanache(err: Error) {
     return;
   }
   started = true;
+
+  // TODO: we shouldn't check this on start up, as it slows us down.
+  // Let's read/write it to a file somewhere instead.
+  const latest = await getLatestVersionNumber("ganache");
+
+  // TODO: only log if we haven't logged about this specific version before
+  logIfUpgradeRequired({
+    logger: console,
+    name: "ganache",
+    current: "1.2.3", // 1.2.3 is just for testing right now, don't commit it
+    latest
+  });
 
   switch (flavor) {
     case FilecoinFlavorName: {
