@@ -9,11 +9,13 @@ import {
   UNDERPRICED,
   REPLACED,
   TRANSACTION_LOCKED,
-  INSUFFICIENT_FUNDS
+  INSUFFICIENT_FUNDS,
+  ERROR_FEE_CAP_TOO_LOW
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
+import {Block} from "@ganache/ethereum-block";
 
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -472,6 +474,18 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         INTRINSIC_GAS_TOO_LOW,
         JsonRpcErrorCode.INVALID_INPUT
       );
+    }
+
+    // transaction maxGasPerFee must be greater or equal to baseFeePerGas _of the pending block_
+    if ("maxFeePerGas" in transaction && !transaction.maxFeePerGas.isNull()) {
+      console.log(this.#blockchain.blocks.latest);
+      const nextBaseFee = Block.calcNextBaseFee(this.#blockchain.blocks.latest);
+      if (transaction.maxFeePerGas.toBigInt() < nextBaseFee) {
+        return new CodedError(
+          ERROR_FEE_CAP_TOO_LOW,
+          JsonRpcErrorCode.TRANSACTION_REJECTED
+        );
+      }
     }
 
     return null;

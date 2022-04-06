@@ -49,3 +49,8 @@ export const TRANSACTION_LOCKED =
  * Returned if a transaction may require more funds than than account currently has available.
  */
 export const INSUFFICIENT_FUNDS = "insufficient funds for gas * price + value";
+
+/**
+ * Returns in a transaction has maxFeePerGas less than the block base fee of the pending transaction.
+*/
+export const ERROR_FEE_CAP_TOO_LOW = "max fee per gas less than block base fee";
