@@ -4,6 +4,7 @@ import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import args from "./args";
 import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
+import phoneHome from "./phoneHome/phoneHome";
 import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { Provider as FilecoinProvider } from "@ganache/filecoin";
@@ -141,6 +142,7 @@ async function startGanache(err: Error) {
       break;
     }
   }
+  phoneHome(version);
 }
 console.log("Starting RPC server");
 server.listen(cliSettings.port, cliSettings.host, startGanache);

@@ -12,4 +12,12 @@ export type Argv = ServerOptions<FlavorName> & {
 
 export type CliSettings = { host: string; port: number };
 
+export type PhoneHomeSettings = {
+  hostname: string;
+  port: number;
+  path: string;
+  method: string;
+  headers: { "User-Agent": string };
+};
+
 export type Command = FlavorName | ["$0", typeof DefaultFlavor];
