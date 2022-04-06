@@ -50,29 +50,16 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { CallOverrides } from "./helpers/run-call";
-import {
-  CallTransaction,
-  Transaction,
-  MineOptions,
-  TypedData,
-  SubscriptionName,
-  SubscriptionOptions,
-  LogsFilter,
-  Filter,
-  TraceTransactionOptions,
-  TraceTransactionResult,
-  StorageRangeAtResult,
-  SignedTransaction,
-  PooledTransaction,
-  TransactionPoolContent,
-  TransactionReceipt
-} from "./api-types";
+import { Ethereum } from "./api-types";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
-  eth_estimateGas: (tx: Transaction, tag: QUANTITY | Tag) => Promise<Quantity>,
+  eth_estimateGas: (
+    tx: Ethereum.Transaction,
+    tag: QUANTITY | Tag
+  ) => Promise<Quantity>,
   eth_maxPriorityFeePerGas: () => Promise<Quantity>,
-  transaction: Transaction,
+  transaction: Ethereum.Transaction,
   blockchain: Blockchain,
   options: EthereumInternalOptions
 ) {
@@ -308,9 +295,9 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_mine(timestamp: number): Promise<"0x0">;
-  async evm_mine(options: MineOptions): Promise<"0x0">;
+  async evm_mine(options: Ethereum.MineOptions): Promise<"0x0">;
   @assertArgLength(0, 1)
-  async evm_mine(arg?: number | MineOptions): Promise<"0x0"> {
+  async evm_mine(arg?: number | Ethereum.MineOptions): Promise<"0x0"> {
     const blockchain = this.#blockchain;
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
@@ -926,7 +913,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: Transaction,
+    transaction: Ethereum.Transaction,
     blockNumber: QUANTITY | Tag = Tag.latest
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
@@ -1235,7 +1222,7 @@ export default class EthereumApi implements Api {
   async eth_getTransactionByBlockHashAndIndex(
     hash: DATA,
     index: QUANTITY
-  ): Promise<SignedTransaction | null> {
+  ): Promise<Ethereum.SignedTransaction<"internal"> | null> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks
       .getByHash(hash)
@@ -1284,7 +1271,7 @@ export default class EthereumApi implements Api {
   async eth_getTransactionByBlockNumberAndIndex(
     number: QUANTITY | Tag,
     index: QUANTITY
-  ): Promise<SignedTransaction | null> {
+  ): Promise<Ethereum.SignedTransaction<"internal"> | null> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
     if (!block) return null;
@@ -1732,7 +1719,11 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getTransactionByHash(
     transactionHash: DATA
-  ): Promise<SignedTransaction | PooledTransaction | null> {
+  ): Promise<
+    | Ethereum.SignedTransaction<"internal">
+    | Ethereum.PooledTransaction<"internal">
+    | null
+  > {
     const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
@@ -1771,7 +1762,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getTransactionReceipt(
     transactionHash: DATA
-  ): Promise<TransactionReceipt> {
+  ): Promise<Ethereum.TransactionReceipt<"internal">> {
     const { transactions, transactionReceipts, blocks, common } =
       this.#blockchain;
     const dataHash = Data.from(transactionHash);
@@ -1835,7 +1826,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: Transaction): Promise<Data> {
+  async eth_sendTransaction(transaction: Ethereum.Transaction): Promise<Data> {
     const blockchain = this.#blockchain;
 
     const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
@@ -1888,7 +1879,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: Transaction) {
+  async eth_signTransaction(transaction: Ethereum.Transaction) {
     const blockchain = this.#blockchain;
     const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
@@ -2027,7 +2018,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData(address: DATA, typedData: TypedData) {
+  async eth_signTypedData(address: DATA, typedData: Ethereum.TypedData) {
     return this.eth_signTypedData_v4(address, typedData);
   }
 
@@ -2087,7 +2078,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData_v4(address: DATA, typedData: TypedData) {
+  async eth_signTypedData_v4(address: DATA, typedData: Ethereum.TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
@@ -2135,7 +2126,9 @@ export default class EthereumApi implements Api {
    * console.log(subscriptionId);
    * ```
    */
-  eth_subscribe(subscriptionName: SubscriptionName): PromiEvent<Quantity>;
+  eth_subscribe(
+    subscriptionName: Ethereum.SubscriptionName
+  ): PromiEvent<Quantity>;
   /**
    * Starts a subscription to a particular event. For every event that matches
    * the subscription a JSON-RPC notification with event details and
@@ -2149,13 +2142,13 @@ export default class EthereumApi implements Api {
    * @returns A subscription id.
    */
   eth_subscribe(
-    subscriptionName: Extract<SubscriptionName, "logs">,
-    options: SubscriptionOptions
+    subscriptionName: Extract<Ethereum.SubscriptionName, "logs">,
+    options: Ethereum.SubscriptionOptions
   ): PromiEvent<Quantity>;
   @assertArgLength(1, 2)
   eth_subscribe(
-    subscriptionName: SubscriptionName,
-    options?: SubscriptionOptions
+    subscriptionName: Ethereum.SubscriptionName,
+    options?: Ethereum.SubscriptionOptions
   ): PromiEvent<Quantity> {
     const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
@@ -2383,7 +2376,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0, 1)
-  async eth_newFilter(filter?: Filter): Promise<Quantity> {
+  async eth_newFilter(filter?: Ethereum.Filter): Promise<Quantity> {
     const blockchain = this.#blockchain;
     if (filter == null) filter = {};
     const { addresses, topics } = parseFilterDetails(filter || {});
@@ -2588,7 +2581,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getLogs(filter: LogsFilter) {
+  async eth_getLogs(filter: Ethereum.LogsFilter) {
     return this.#blockchain.blockLogs.getLogs(filter);
   }
 
@@ -2668,9 +2661,9 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  @assertArgLength(1, 3)
+  @assertArgLength(1, 2)
   async eth_call(
-    transaction: CallTransaction,
+    transaction: Ethereum.CallTransaction,
     blockNumber: QUANTITY | Tag = Tag.latest,
     overrides: CallOverrides = {}
   ) {
@@ -2834,8 +2827,8 @@ export default class EthereumApi implements Api {
    */
   async debug_traceTransaction(
     transactionHash: DATA,
-    options?: TraceTransactionOptions
-  ): Promise<TraceTransactionResult> {
+    options?: Ethereum.TraceTransactionOptions
+  ): Promise<Ethereum.TraceTransactionResult<"internal">> {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
@@ -2888,7 +2881,7 @@ export default class EthereumApi implements Api {
     contractAddress: DATA,
     startKey: DATA,
     maxResult: number
-  ): Promise<StorageRangeAtResult> {
+  ): Promise<Ethereum.StorageRangeAtResult<"internal">> {
     return this.#blockchain.storageRangeAt(
       blockHash,
       Quantity.from(transactionIndex).toNumber(),
@@ -3057,7 +3050,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async personal_sendTransaction(transaction: Transaction, passphrase: string) {
+  async personal_sendTransaction(
+    transaction: Ethereum.Transaction,
+    passphrase: string
+  ) {
     const blockchain = this.#blockchain;
     const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
     const from = tx.from;
@@ -3111,7 +3107,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: Transaction,
+    transaction: Ethereum.Transaction,
     passphrase: string
   ): Promise<Data> {
     const blockchain = this.#blockchain;
@@ -3308,14 +3304,17 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async txpool_content(): Promise<TransactionPoolContent> {
+  async txpool_content(): Promise<Ethereum.TransactionPoolContent<"internal">> {
     const { transactions, common } = this.#blockchain;
     const {
       transactionPool: { executables, origins }
     } = transactions;
 
     const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
-      let res: Record<string, Record<string, PooledTransaction>> = {};
+      let res: Record<
+        string,
+        Record<string, Ethereum.PooledTransaction<"internal">>
+      > = {};
       for (let [_, { array, length }] of map) {
         for (let i = 0; i < length; ++i) {
           const transaction = array[i];
@@ -3326,7 +3325,9 @@ export default class EthereumApi implements Api {
           // The nonce keys are actual decimal numbers (as strings) and not
           // hex literals (based on what geth returns).
           const nonce = transaction.nonce.toBigInt().toString();
-          res[from][nonce] = transaction.toJSON(common) as PooledTransaction;
+          res[from][nonce] = transaction.toJSON(
+            common
+          ) as Ethereum.PooledTransaction<"internal">;
         }
       }
       return res;

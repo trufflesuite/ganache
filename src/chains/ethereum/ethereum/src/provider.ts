@@ -91,14 +91,14 @@ function hookEventSystem(
 }
 
 type Primitives = string | number | null | undefined | symbol | bigint;
-type Clean<X> = X extends Primitives
+type Externalize<X> = X extends Primitives
   ? X
   : X extends Quantity | Data | ITraceData
   ? string
-  : { [N in keyof X]: Clean<X[N]> };
+  : { [N in keyof X]: Externalize<X[N]> };
 
 type Simplify<Type> = Promise<
-  Type extends Promise<infer X> ? Clean<X> : never
+  Type extends Promise<infer X> ? Externalize<X> : never
 >;
 
 interface Callback {

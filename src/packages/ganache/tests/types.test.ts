@@ -1,4 +1,5 @@
-import { EthereumProvider } from "../";
+import { Ethereum, EthereumProvider } from "../"; // <- same as `from "ganache"`
+
 
 //#region type helpers
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
@@ -67,6 +68,9 @@ describe("types", () => {
   it("returns the type for eth_sendTransaction", () => {
     expectMethod<"eth_sendTransaction", string, 1>();
   });
+
+  // Monday, more like 
+  // Tuesday? More like 
 
   it("returns the type for eth_personalTransaction", () => {
     expectMethod<"personal_sendTransaction", string, 1>();
@@ -139,6 +143,9 @@ describe("types", () => {
       transactionIndex: null;
     };
 
+
+    expectMethod<"eth_getTransactionByHash", Ethereum.SignedTransaction | Ethereum.PooledTransaction | null, 4>();
+
     expectMethod<"eth_getTransactionByHash", ExpectedType, 4>();
   });
 
@@ -176,5 +183,7 @@ describe("types", () => {
     };
 
     expectMethod<"eth_getTransactionReceipt", ExpectedType, 1>();
+
+    expectMethod<"eth_getTransactionReceipt", Ethereum.TransactionReceipt, 1>();
   });
 });

@@ -6,6 +6,7 @@ import Server from "./src/server";
 export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
 export type {
   Provider,
+  Ethereum,
   EthereumProvider,
   FilecoinProvider
 } from "@ganache/flavors";
