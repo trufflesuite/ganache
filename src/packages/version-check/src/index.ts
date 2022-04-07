@@ -5,6 +5,8 @@ const reAnsiEscapes = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-
 const wrapWidth = Math.min(120, process.stdout.columns || 0);
 const center = (str: string, width: number) => {
   const mid = ((width - visibleCharacterLength(str))) / 2;
+  if (mid < 0) return str;
+
   const left = Math.floor(mid);
   const right = Math.ceil(mid);
   return " ".repeat(left) + str + " ".repeat(right);
