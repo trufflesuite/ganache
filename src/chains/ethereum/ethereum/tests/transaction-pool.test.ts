@@ -63,7 +63,7 @@ describe("transaction pool", async () => {
     futureNonceRpc = {
       from: from,
       type: "0x2",
-      maxFeePerGas: "0xffffff",
+      maxFeePerGas: "0x2da282a8",
       maxPriorityFeePerGas: "0xff",
       gasLimit: "0xffff",
       nonce: "0x2"
@@ -92,7 +92,7 @@ describe("transaction pool", async () => {
       },
       common,
       blocks: {
-        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
+        latest: { header: { baseFeePerGas: Quantity.from(875000000), gasUsed: Quantity.from(0), gasLimit: Quantity.from(12012000) } }
       }
     };
   });
@@ -148,7 +148,7 @@ describe("transaction pool", async () => {
       },
       common,
       blocks: {
-        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
+        latest: { header: { baseFeePerGas: Quantity.from(875000000), gasUsed: Quantity.from(0), gasLimit: Quantity.from(12012000) } }
       }
     } as any;
     const txPool = new TransactionPool(options.miner, fakeNonceChain, origins);
@@ -240,6 +240,7 @@ describe("transaction pool", async () => {
       found.serialized.toString(),
       futureNonceTx.serialized.toString()
     );
+
     // now, if we resend the same transaction, since the gas price isn't higher,
     // it should be rejected
     await assert.rejects(
@@ -257,7 +258,7 @@ describe("transaction pool", async () => {
       from,
       type: "0x2",
       value: "0xfffffffffffffffffff",
-      maxFeePerGas: "0xffffff",
+      maxFeePerGas: "0x2da282a8",
       maxPriorityFeePerGas: "0xff",
       gasLimit: "0xffff"
     };
