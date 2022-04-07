@@ -23,6 +23,7 @@ const levelupOptions = {
   valueEncoding: "binary"
 };
 const leveldownOpts = { prefix: "" };
+const maxValueByteBuffer = Buffer.from([0xff]);
 
 /**
  * A leveldb-backed cache that enables associating immutable data as it existed
@@ -43,7 +44,7 @@ export class PersistentCache {
     AbstractIterator<Buffer, Buffer>
   >;
   protected ancestry: Ancestry;
-  protected hash: Data;
+  protected hashBuffer: Buffer;
   protected request: Request;
   constructor() {}
 
@@ -131,7 +132,7 @@ export class PersistentCache {
   }
 
   async initialize(height: Quantity, hash: Data, request: Request) {
-    this.hash = hash;
+    this.hashBuffer = hash.toBuffer();
     this.request = request;
 
     const {
@@ -325,22 +326,21 @@ export class PersistentCache {
     const height = Quantity.from(blockNumber);
     const bufKey = Buffer.from(key);
     const start = lexico.encode([height.toBuffer(), bufKey]);
-    const end = lexico.encode([
-      Quantity.from(height.toBigInt() + 1n).toBuffer()
-    ]);
+    const end = Buffer.concat([start, maxValueByteBuffer]);
+
     const readStream = this.cacheDb.createReadStream({
       gt: start,
       lt: end,
       keys: true,
       values: true
     });
-    const hashBuf = this.hash.toBuffer();
+
     for await (const data of readStream) {
       const { key: k, value } = (data as any) as { key: Buffer; value: Buffer };
       const [_height, _key, blockHash] = lexico.decode(k);
       // if our key no longer matches make sure we don't keep searching
       if (!_key.equals(bufKey)) return;
-      if (hashBuf.equals(blockHash) || (await this.ancestry.has(blockHash))) {
+      if (this.hashBuffer.equals(blockHash) || (await this.ancestry.has(blockHash))) {
         return value;
       }
     }
@@ -354,7 +354,7 @@ export class PersistentCache {
     const dbKey = lexico.encode([
       height.toBuffer(),
       Buffer.from(key),
-      this.hash.toBuffer()
+      this.hashBuffer
     ]);
     await this.cacheDb.put(dbKey, value);
     return true;
