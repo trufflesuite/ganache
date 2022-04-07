@@ -476,7 +476,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       );
     }
 
-    // transaction maxGasPerFee must be greater or equal to baseFeePerGas _of the pending block_
+    // transaction maxGasPerFee must be greater or equal to baseFeePerGas _of the next block_
     if ("maxFeePerGas" in transaction && !transaction.maxFeePerGas.isNull()) {
       const nextBaseFee = Block.calcNextBaseFee(this.#blockchain.blocks.latest);
       if (transaction.maxFeePerGas.toBigInt() < nextBaseFee) {

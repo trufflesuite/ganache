@@ -513,4 +513,40 @@ describe("transaction pool", async () => {
       transaction.serialized.toString()
     );
   });
+
+  it("rejects a transaction if it's maxFeePerGas is lower than the baseFeePerGas of the next block", async () => {
+    /*
+    *  even if the transaction's maxFeePerGas is greater than baseFeePerGas of "latest"
+    *
+    *  we set up the chain with a "latest" block that used a lot of gas so that the gas price is driven up for the next block
+    *  baseFeePerGas for "latest" is 875000000
+    *  baseFeePerGas for "next" is 984378337
+    */
+    const chain = {
+      ...blockchain,
+      blocks: {
+        latest: { header: { baseFeePerGas: Quantity.from(875000000), gasUsed: Quantity.from(0xffff), gasLimit: Quantity.from(0xffff) } }
+      }
+    };
+
+    const txPool = new TransactionPool(options.miner, chain, origins);
+    const maxFeePerGasGreaterThanLatestButLessThanNext = 900000000;
+    const lowGasRpc: TypedRpcTransaction = {
+      from: from,
+      type: "0x2",
+      maxFeePerGas: "0x" + maxFeePerGasGreaterThanLatestButLessThanNext.toString(16),
+      gasLimit: "0xffff",
+      nonce: "0x0"
+    };
+    const lowGasTx = TransactionFactory.fromRpc(lowGasRpc, common);
+
+    await assert.rejects(
+      txPool.prepareTransaction(lowGasTx),
+      {
+        code: -32003,
+        message: "max fee per gas less than block base fee"
+      },
+      "transaction with maxFeePerGas lower than the maxFeePerGas of the next block should have been rejected"
+    );
+  });
 });
