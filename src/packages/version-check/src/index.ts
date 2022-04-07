@@ -30,7 +30,7 @@ function getUpgradeType(current: string, update: string) {
         : null;
 }
 
-export const logIfUpgradeRequired = async (options: {
+export const logIfUpgradeRequired = (options: {
   name: string,
   logger: { log: any },
   current: string,
