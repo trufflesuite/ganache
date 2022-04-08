@@ -668,6 +668,37 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return vm;
   };
 
+  validateStorageOverride = (slot: string, value: string) => {
+    // assume Quantity will handle other types, these are just special string cases
+    if (typeof slot === "string" && slot !== "" && slot.indexOf("0x") === 0) {
+      // assume we're starting with 0x cause Quantity will verify if not
+      const noPrefix = slot.slice(2);
+      if (noPrefix.length != 64) {
+        throw new Error(
+          `State/StateDiff override slot must be a 64 character hex string. Received ${noPrefix.length} character string.`
+        );
+      }
+    }
+    if (value === null || value === undefined) {
+      throw new Error(
+        `State/StateDiff override data not valid. Received: ${value}`
+      );
+    }
+    // assume Quantity will handle other types, these are just special string cases
+    if (
+      typeof value === "string" &&
+      value !== "" &&
+      value.indexOf("0x") === 0
+    ) {
+      const noPrefix = value.slice(2);
+      if (noPrefix.length != 64) {
+        throw new Error(
+          `State/StateDiff override data must be a 64 character hex string. Received ${noPrefix.length} character string.`
+        );
+      }
+    }
+  };
+
   applySimulationOverrides = async (vm: VM, overrides: CallOverrides) => {
     const stateManager = vm.stateManager;
     for (const address in overrides) {
