@@ -421,6 +421,15 @@ describe("api", () => {
 
         it("does not use invalid override, does use valid override data", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
+          const data = `0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42`;
+          const simpleSol =
+            "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009e6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+          // to test clearing an account's code, we need another contract that has its code set.
+          const contractAddress2 = await deployContract(
+            provider,
+            from,
+            contract.code
+          );
           const tests = {
             balance: {
               junks: [
@@ -549,6 +558,30 @@ describe("api", () => {
                 // { junk: -9, error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
+
+          const getOverrideForType = (type: string, junk: any) => {
+            switch (type) {
+              case "balance":
+                return { [addr]: { [type]: junk } };
+              case "code":
+                return { [contractAddress2]: { [type]: junk } };
+              case "nonce":
+                return { [contractAddress]: { [type]: junk } };
+              case "state":
+              case "stateDiff":
+                return {
+                  [contractAddress]: { [type]: { [`0x${slot}`]: junk } }
+                };
+              case "stateSlot":
+                return {
+                  [contractAddress]: { state: { [junk]: data } }
+                };
+              case "stateDiffSlot":
+                return {
+                  [contractAddress]: { stateDiff: { [junk]: data } }
+                };
+              default:
+                return {};
             }
           };
 
@@ -556,10 +589,7 @@ describe("api", () => {
             tests
           )) {
             for (const { junk, error, expectedValue } of junks) {
-              const override =
-                type === "state" || type === "stateDiff"
-                  ? { [contractAddress]: { [type]: { [`0x${slot}`]: junk } } }
-                  : { [addr]: { [type]: junk } };
+              const override = getOverrideForType(type, junk);
               const prom = callContract(contractMethod, override);
               if (error) {
                 await assert.rejects(
