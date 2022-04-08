@@ -744,8 +744,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           // clear it out
           let clearedState = false;
           for (const slot in state) {
+            if (!hasOwn(state, slot)) continue;
             const value = state[slot];
-            if (!hasOwn(state, slot) || value == null || value === "") continue;
+            this.validateStorageOverride(slot, value);
             if (!clearedState) {
               // override.state clears all storage and sets just the specified slots
               await stateManager.clearContractStorage(vmAddr);
@@ -757,10 +758,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
         } else {
           for (const slot in stateDiff) {
-            const value = stateDiff[slot];
             // don't set storage for invalid values
-            if (!hasOwn(stateDiff, slot) || value == null || value === "")
-              continue;
+            if (!hasOwn(stateDiff, slot)) continue;
+            const value = stateDiff[slot];
+            this.validateStorageOverride(slot, value);
 
             const slotBuf = Quantity.from(slot).toBuffer();
             const valueBuf = Quantity.from(value).toBuffer();
