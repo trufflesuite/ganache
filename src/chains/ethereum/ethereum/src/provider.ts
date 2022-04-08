@@ -91,7 +91,7 @@ function hookEventSystem(
 }
 
 type Primitives = string | number | null | undefined | symbol | bigint;
-type Externalize<X> = X extends Primitives
+export type Externalize<X> = X extends Primitives
   ? X
   : X extends Quantity | Data | ITraceData
   ? string

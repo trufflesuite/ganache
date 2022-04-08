@@ -1,16 +1,7 @@
 import type { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import type * as TransactionTypes from "@ganache/ethereum-transaction";
 import type * as UtilTypes from "@ganache/ethereum-utils";
-import type { EthereumProvider } from "./provider";
-import { Data, Quantity } from "@ganache/utils";
-import { ITraceData } from "@ganache/ethereum-utils";
-
-type Primitives = string | number | null | undefined | symbol | bigint;
-type Externalize<X> = X extends Primitives
-  ? X
-  : X extends Quantity | Data | ITraceData
-  ? string
-  : { [N in keyof X]: Externalize<X[N]> };
+import type { EthereumProvider, Externalize } from "./provider";
 
 export namespace Ethereum {
   export type Provider = EthereumProvider;
@@ -18,8 +9,6 @@ export namespace Ethereum {
   // trace/debug
   export type TraceTransactionOptions = UtilTypes.TransactionTraceOptions
   export type TraceTransactionResult<T extends "external" | "internal" = "external"> = T extends "internal" ? UtilTypes.TraceTransactionResult : Externalize<TraceTransactionResult<"internal">>
-
-  // storage
   export type StorageRangeAtResult<T extends "external" | "internal" = "external"> = T extends "internal" ? UtilTypes.StorageRangeAtResult : Externalize<StorageRangeAtResult<"internal">>
 
   // subscriptions/filters
@@ -27,6 +16,7 @@ export namespace Ethereum {
   export type LogsFilter = UtilTypes.FilterArgs
   export type Filter = UtilTypes.RangeFilterArgs
   export type SubscriptionName = UtilTypes.SubscriptionName
+  export type SubscriptionId = UtilTypes.SubscriptionId
 
   // transactions
   export type Transaction = TransactionTypes.Transaction
@@ -47,22 +37,24 @@ export namespace Ethereum {
     transactionIndex: null;
   };
 
+  // Transaction Pool
   export type TransactionPoolContent<T extends "external" | "internal" = "external"> = {
     pending: Record<string, Record<string, PooledTransaction<T>>>;
     queued: Record<string, Record<string, PooledTransaction<T>>>;
   };
 
-
-  /**
-   * Options for `evm_mine`.
-   */
+  // Mine
   export type MineOptions = {
     timestamp?: number;
     blocks?: number;
   };
 
+  // Sign Typed Data
   export type TypedData = Exclude<
     Parameters<typeof signTypedData_v4>[1]["data"],
     NotTypedData
   >;
+
+  // whisper
+  export type WhisperPostObject = UtilTypes.WhisperPostObject;
 }

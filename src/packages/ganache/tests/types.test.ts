@@ -81,109 +81,22 @@ describe("types", () => {
   });
 
   it("returns the type for eth_getTransactionByHash", async () => {
-    type BaseExpectedTypes = {
-      hash: string;
-      type?: string;
-      nonce: string;
-      blockHash: string;
-      blockNumber: string;
-      transactionIndex: string;
-      from: string;
-      to: string;
-      value: string;
-      gas: string;
-      gasPrice: string;
-      input: string;
-      v: string;
-      r: string;
-      s: string;
-    } | {
-      hash: string;
-      type: string;
-      chainId: string;
-      nonce: string;
-      blockHash: string;
-      blockNumber: string;
-      transactionIndex: string;
-      from: string;
-      to: string;
-      value: string;
-      gas: string;
-      gasPrice: string;
-      input: string;
-      accessList: string[];
-      v: string;
-      r: string;
-      s: string;
-    } | {
-      hash: string;
-      type: string;
-      chainId: string;
-      nonce: string;
-      blockHash: string;
-      blockNumber: string;
-      transactionIndex: string;
-      from: string;
-      to: string;
-      value: string;
-      maxPriorityFeePerGas: string;
-      maxFeePerGas: string;
-      gasPrice: string;
-      gas: string;
-      input: string;
-      accessList: string[];
-      v: string;
-      r: string;
-      s: string;
-    };
-    type ExpectedType = BaseExpectedTypes | Omit<BaseExpectedTypes, "blockNumber" | "blockHash" | "transactionIndex"
-    > & {
-      blockNumber: null;
-      blockHash: null;
-      transactionIndex: null;
-    };
-
-
     expectMethod<"eth_getTransactionByHash", Ethereum.SignedTransaction | Ethereum.PooledTransaction | null, 4>();
+  });
 
-    expectMethod<"eth_getTransactionByHash", ExpectedType, 4>();
+  it("returns the type for txpool_content", async () => {
+    expectMethod<"txpool_content", Ethereum.TransactionPoolContent, 1>();
   });
 
   it("returns the type for eth_getTransactionReceipt", async () => {
-    type ExpectedType = {
-      transactionHash: string;
-      transactionIndex: string;
-      blockNumber: string;
-      blockHash: string;
-      from: string;
-      to: string;
-      cumulativeGasUsed: string;
-      gasUsed: string;
-      contractAddress: string;
-      logs: {
-        address: string;
-        blockHash: string;
-        blockNumber: string;
-        data: string | string[];
-        logIndex: string;
-        removed: boolean;
-        topics: string | string[];
-        transactionHash: string;
-        transactionIndex: string;
-      }[];
-      logsBloom: string;
-      status: string;
-      type?: string;
-      chainId?: string;
-      accessList?: {
-        address: string
-        storageKeys: string[]
-      }[];
-      effectiveGasPrice: string;
-    };
-
-    expectMethod<"eth_getTransactionReceipt", ExpectedType, 1>();
-
     expectMethod<"eth_getTransactionReceipt", Ethereum.TransactionReceipt, 1>();
+  });
+
+  it("returns the type for debug_traceTransaction", async () => {
+    expectMethod<"debug_traceTransaction", Ethereum.TraceTransactionResult, 1>();
+  });
+
+  it("returns the type for StorageRangeAtResult", async () => {
+    expectMethod<"debug_storageRangeAt", Ethereum.StorageRangeAtResult, 1>();
   });
 });
