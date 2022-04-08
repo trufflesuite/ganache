@@ -546,18 +546,24 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  expectedValue:
-                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                  error: `State/StateDiff override data not valid. Received: null`,
+                  expectedValue: null
                 },
                 {
                   junk: undefined,
-                  expectedValue:
-                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                  error: `State/StateDiff override data not valid. Received: undefined`
                 },
                 {
                   junk: "",
-                  expectedValue:
-                    "0x0000000000000000000000000000000000000000000000000000000000000002"
+                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: "0x",
+                  error: `State/StateDiff override data must be a 64 character hex string. Received 0 character string.`
+                },
+                {
+                  junk: "0xbaddad42",
+                  error: `State/StateDiff override data must be a 64 character hex string. Received 8 character string.`
                 },
                 {
                   junk: "123",
