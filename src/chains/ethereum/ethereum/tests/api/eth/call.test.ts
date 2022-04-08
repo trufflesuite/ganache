@@ -435,6 +435,14 @@ describe("api", () => {
             from,
             contract.code
           );
+          const currentNonceGeneratedAddress = await callContract(
+            `0x${methods["createContract(bytes)"]}${simpleSol}`,
+            {}
+          );
+          const zeroNonceGeneratedAddress = await callContract(
+            `0x${methods["createContract(bytes)"]}${simpleSol}`,
+            { [contractAddress]: { nonce: "0x0" } }
+          );
           const encodedContractAddress = encodeValue(contractAddress2);
           const tests = {
             balance: {
@@ -666,6 +674,38 @@ describe("api", () => {
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
             },
+            nonce: {
+              junks: [
+                {
+                  junk: null,
+                  expectedValue: currentNonceGeneratedAddress
+                },
+                {
+                  junk: undefined,
+                  expectedValue: currentNonceGeneratedAddress
+                },
+                {
+                  junk: "",
+                  expectedValue: zeroNonceGeneratedAddress
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `Cannot wrap a "object" as a json-rpc type`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
+                //{ junk: "0x", error: `` },
+              ],
+              contractMethod: `0x${methods["createContract(bytes)"]}${simpleSol}`
+            }
+          };
 
           const getOverrideForType = (type: string, junk: any) => {
             switch (type) {
