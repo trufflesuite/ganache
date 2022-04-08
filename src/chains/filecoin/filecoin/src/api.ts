@@ -17,6 +17,9 @@ import { SerializedQueryOffer } from "./things/query-offer";
 import Emittery from "emittery";
 import { HeadChange, HeadChangeType } from "./things/head-change";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
+// same as SubscriptionMethod.ChannelClosed, but api-extractor doesn't like the
+// enum so I just hardcoded it here
+const ChannelClosed = "xrpc.ch.close" as const;
 import { FileRef, SerializedFileRef } from "./things/file-ref";
 import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
@@ -199,7 +202,7 @@ export default class FilecoinApi implements Api {
    * @returns `false` if the subscription ID doesn't exist or
    * if the subscription is already canceled, `true` otherwise.
    */
-  [SubscriptionMethod.ChannelClosed](
+  [ChannelClosed](
     subscriptionId: SubscriptionId
   ): Promise<boolean> {
     const subscriptions = this.#subscriptions;

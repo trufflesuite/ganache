@@ -52,7 +52,9 @@ const config: webpack.Configuration = merge({}, base, {
     "bufferutil",
     "utf-8-validate",
     //#endregion
-    "@ganache/filecoin"
+    "@ganache/filecoin",
+    // things api-extractor can't handle, so we don't bundle them:
+    "emittery"
   ],
   module: {
     rules: [

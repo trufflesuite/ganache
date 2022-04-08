@@ -25,7 +25,7 @@ import { Ticket } from "./things/ticket";
 import { FileRef } from "./things/file-ref";
 import fs from "fs";
 import path from "path";
-import { IPFS, CID as IPFS_CID } from "ipfs";
+import { CID as IPFS_CID } from "ipfs";
 import { Account } from "./things/account";
 import Database from "./database";
 import TipsetManager from "./data-managers/tipset-manager";
@@ -257,7 +257,9 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
     }
   }
 
-  get ipfs(): IPFS | null {
+  // using `any` because the IPFS type that should be here can't be exported by
+  // api-extractor :-()
+  get ipfs(): any | null {
     return this.ipfsServer.node;
   }
 
@@ -395,8 +397,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
       const totalRequired = messageBalanceRequired + pendingBalanceRequired;
       if (account.balance.value < totalRequired) {
         throw new Error(
-          `mpool push: not enough funds: ${
-            account.balance.value - pendingBalanceRequired
+          `mpool push: not enough funds: ${account.balance.value - pendingBalanceRequired
           } < ${messageBalanceRequired}`
         );
       }
@@ -602,8 +603,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
             console.warn(
               `Could not transfer the mining fees of ${getMinerFee(
                 signedMessage.message
-              )} attoFIL from address ${from} due to lack of funds. ${
-                fromAccount.balance.value
+              )} attoFIL from address ${from} due to lack of funds. ${fromAccount.balance.value
               } attoFIL available`
             );
             continue;
@@ -747,8 +747,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
         });
       } catch (e: any) {
         throw new Error(
-          `Could not create file.\n  CID: ${cid}\n  Path: ${
-            ref.path
+          `Could not create file.\n  CID: ${cid}\n  Path: ${ref.path
           }\n  Error: ${e.toString()}`
         );
       }
@@ -774,8 +773,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
           });
         } catch (e: any) {
           throw new Error(
-            `Could not save file.\n  CID: ${cid}\n  Path: ${
-              ref.path
+            `Could not save file.\n  CID: ${cid}\n  Path: ${ref.path
             }\n  Error: ${e.toString()}`
           );
         }

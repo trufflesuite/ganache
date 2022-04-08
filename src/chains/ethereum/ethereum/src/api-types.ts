@@ -1,4 +1,4 @@
-import type { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
+import type * as EthSigUtil from "eth-sig-util";
 import type * as TransactionTypes from "@ganache/ethereum-transaction";
 import type * as UtilTypes from "@ganache/ethereum-utils";
 import type { EthereumProvider, Externalize } from "./provider";
@@ -51,8 +51,8 @@ export namespace Ethereum {
 
   // Sign Typed Data
   export type TypedData = Exclude<
-    Parameters<typeof signTypedData_v4>[1]["data"],
-    NotTypedData
+    Parameters<typeof EthSigUtil.signTypedData_v4>[1]["data"],
+    EthSigUtil.TypedData
   >;
 
   // whisper

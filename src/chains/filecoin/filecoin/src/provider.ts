@@ -9,8 +9,8 @@ import {
 } from "@ganache/utils";
 
 import FilecoinApi from "./api";
-import GanacheSchema from "./schema";
-import { Schema } from "@filecoin-shipyard/lotus-client-schema";
+import GanacheSchema, { Schema } from "./schema";
+
 import Blockchain from "./blockchain";
 import {
   FilecoinOptionsConfig,
