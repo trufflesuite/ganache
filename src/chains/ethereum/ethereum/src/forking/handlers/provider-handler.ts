@@ -36,10 +36,6 @@ export class ProviderHandler extends BaseHandler implements Handler {
         }
       };
     } else if (typeof (provider as any).send === "function") {
-      // TODO: remove support for legacy providers' legacy `.send`
-      console.warn(
-        "WARNING: Ganache forking only supports EIP-1193-compliant providers. Legacy support for send is currently enabled, but will be removed in a future version _without_ a breaking change. To remove this warning, switch to an EIP-1193 provider. This error is probably caused by an old version of Web3's HttpProvider (or ganache < v7)"
-      );
       this._request = async (method: string, params: unknown[]) => {
         return await new Promise((resolve, reject) => {
           const request = {
