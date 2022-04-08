@@ -299,7 +299,8 @@ describe("api", () => {
 
         it("allows override of storage at a slot", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
-          const data = "0xbaddad42";
+          const data =
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42";
           const contractData = `0x${methods["getStorageAt(uint256)"]}${slot}`;
 
           // the stateDiff override sets the value at the specified slot, leaving the rest of the storage
@@ -310,13 +311,14 @@ describe("api", () => {
           const storage = await callContract(contractData, override);
           assert.strictEqual(
             storage,
-            "0x00000000000000000000000000000000000000000000000000000000baddad42"
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42"
           );
         });
 
         it("allows clearing of storage and writing at a slot", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
-          const data = "0xbaddad42";
+          const data =
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42";
           const getStorageMethod = `0x${methods["getStorageAt(uint256)"]}${slot}`;
           // the state override clears all storage for the contract and sets the value specified at the slot
           const override = {
@@ -325,7 +327,7 @@ describe("api", () => {
           const storage = await callContract(getStorageMethod, override);
           assert.strictEqual(
             storage,
-            "0x00000000000000000000000000000000000000000000000000000000baddad42"
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42"
           );
           // call the contract with the same overrides, but get a different storage slot. it should be cleared
           // out. (note, in the contract this storage slot is originally set to 1)
@@ -338,7 +340,8 @@ describe("api", () => {
 
         it("allows setting multiple overrides in one call", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
-          const data = "0xbaddad42";
+          const data =
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42";
           // create a combined set of overrides that we use for each of these calls
           const override = {
             [addr]: {
@@ -365,13 +368,14 @@ describe("api", () => {
           const storage = await callContract(getStorageMethod, override);
           assert.strictEqual(
             storage,
-            "0x00000000000000000000000000000000000000000000000000000000baddad42"
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42"
           );
         });
 
         it("does not persist overrides", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
-          const data = "0xbaddad42";
+          const data =
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42";
           // Simulate an unrelated call with overrides.
           const overrides = {
             [addr]: {
@@ -404,7 +408,8 @@ describe("api", () => {
 
         it("does not allow both state && stateDiff", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
-          const data = "0xbaddad42";
+          const data =
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42";
           // the stateDiff override sets the value at the specified slot, leaving the rest of the storage
           // in tact
           const override = {
