@@ -430,6 +430,7 @@ describe("api", () => {
             from,
             contract.code
           );
+          const encodedContractAddress = encodeValue(contractAddress2);
           const tests = {
             balance: {
               junks: [
@@ -467,16 +468,19 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  expectedValue:
-                    "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
+                  expectedValue: `0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000059d${contract.contract.evm.deployedBytecode.object}000000`
                 },
                 {
                   junk: undefined,
+                  expectedValue: `0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000059d${contract.contract.evm.deployedBytecode.object}000000`
+                },
+                {
+                  junk: "",
                   expectedValue:
                     "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
                 },
                 {
-                  junk: "",
+                  junk: "0x",
                   expectedValue:
                     "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
                 },
@@ -493,7 +497,7 @@ describe("api", () => {
                 // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
                 // { junk: -9, error: `` },
               ],
-              contractMethod: `0x${methods["getCode(address)"]}${encodedAddr}`
+              contractMethod: `0x${methods["getCode(address)"]}${encodedContractAddress}`
             },
             stateDiff: {
               junks: [
