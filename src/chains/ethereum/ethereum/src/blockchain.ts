@@ -707,21 +707,26 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       const vmAddr = { buf: Address.from(address).toBuffer() } as any;
       // group together overrides that update the account
-      if (nonce || balance || code) {
+      if (nonce != null || balance != null || code != null) {
         const account = await stateManager.getAccount(vmAddr);
 
-        if (nonce) {
+        if (nonce != null) {
           account.nonce = {
-            toArrayLike: () => Quantity.from(nonce).toBuffer()
+            toArrayLike: () =>
+              // geth treats empty strings as "0x0" nonce for overrides
+              Quantity.from(nonce === "" ? "0x0" : nonce).toBuffer()
           } as any;
         }
-        if (balance) {
+        if (balance != null) {
           account.balance = {
-            toArrayLike: () => Quantity.from(balance).toBuffer()
+            toArrayLike: () =>
+              // geth treats empty strings as "0x0" balance for overrides
+              Quantity.from(balance === "" ? "0x0" : balance).toBuffer()
           } as any;
         }
-        if (code) {
-          const codeBuffer = Data.from(code).toBuffer();
+        if (code != null) {
+          // geth treats empty strings as "0x" code for overrides
+          const codeBuffer = Data.from(code === "" ? "0x" : code).toBuffer();
           // The ethereumjs-vm StateManager does not allow to set empty code,
           // therefore we will manually set the code hash when "clearing" the contract code
           const codeHash =
