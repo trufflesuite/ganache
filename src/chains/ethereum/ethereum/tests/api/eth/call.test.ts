@@ -466,6 +466,8 @@ describe("api", () => {
                 // { junk: "0xa string", error: `` }
                 // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
                 // { junk: -9, error: `` },
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
+                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getBalance(address)"]}${encodedAddr}`
             },
@@ -539,6 +541,8 @@ describe("api", () => {
                 // { junk: "0xa string", error: `` }
                 // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
                 // { junk: -9, error: `` },
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
+                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
             },
@@ -577,6 +581,8 @@ describe("api", () => {
                 // { junk: "0xa string", error: `` }
                 // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
                 // { junk: -9, error: `` },
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
+                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
 
