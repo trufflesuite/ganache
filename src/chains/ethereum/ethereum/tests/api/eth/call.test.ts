@@ -585,6 +585,87 @@ describe("api", () => {
                 //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
+            },
+            stateDiffSlot: {
+              junks: [
+                {
+                  junk: null,
+                  error: `cannot convert string value "null" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`,
+                  expectedValue: null
+                },
+                {
+                  junk: undefined,
+                  error: `cannot convert string value "undefined" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: "",
+                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: "0x",
+                  error: `State/StateDiff override slot must be a 64 character hex string. Received 0 character string.`
+                },
+                {
+                  junk: "0xbaddad42",
+                  error: `State/StateDiff override slot must be a 64 character hex string. Received 8 character string.`
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `cannot convert string value "[object Object]" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
+                //{ junk: "0x", error: `` },
+              ],
+              contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
+            },
+            stateSlot: {
+              junks: [
+                {
+                  junk: null,
+                  error: `cannot convert string value "null" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`,
+                  expectedValue: null
+                },
+                {
+                  junk: undefined,
+                  error: `cannot convert string value "undefined" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: "",
+                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: "0x",
+                  error: `State/StateDiff override slot must be a 64 character hex string. Received 0 character string.`
+                },
+                {
+                  junk: "0xbaddad42",
+                  error: `State/StateDiff override slot must be a 64 character hex string. Received 8 character string.`
+                },
+                {
+                  junk: "123",
+                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: {},
+                  error: `cannot convert string value "[object Object]" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
+                // { junk: "0xa string", error: `` }
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
+                // { junk: -9, error: `` },
+                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
+                //{ junk: "0x", error: `` },
+              ],
+              contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
+            },
 
           const getOverrideForType = (type: string, junk: any) => {
             switch (type) {
