@@ -419,7 +419,7 @@ describe("api", () => {
           });
         });
 
-        it("does not use invalid overrides", async () => {
+        it("does not use invalid override, does use valid override data", async () => {
           const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
           const tests = {
             balance: {
