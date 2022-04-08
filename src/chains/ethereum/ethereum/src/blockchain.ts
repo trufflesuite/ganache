@@ -702,7 +702,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       }
       // group together overrides that update storage
       if (state || stateDiff) {
-        let newState: { [slot: string]: string };
         if (state) {
           // state and stateDiff fields are mutually exclusive
           if (stateDiff) {
@@ -712,28 +711,30 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           // and slot, but not a value we can actually set in the storage. if
           // so, we don't want to set the storage, and we also don't want to
           // clear it out
-          let hasValidValue = false;
+          let clearedState = false;
           for (const slot in state) {
             const value = state[slot];
             if (!hasOwn(state, slot) || value == null || value === "") continue;
-            hasValidValue = true;
+            if (!clearedState) {
+              // override.state clears all storage and sets just the specified slots
+              await stateManager.clearContractStorage(vmAddr);
+              clearedState = true;
+            }
+            const slotBuf = Quantity.from(slot).toBuffer();
+            const valueBuf = Quantity.from(value).toBuffer();
+            await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
           }
-          if (!hasValidValue) continue;
-          // override.state clears all storage and sets just the specified slots
-          await stateManager.clearContractStorage(vmAddr);
-          newState = state;
         } else {
-          newState = stateDiff;
-        }
-        for (const slot in newState) {
-          const value = newState[slot];
-          // don't set storage for invalid values
-          if (!hasOwn(newState, slot) || value == null || value === "")
-            continue;
+          for (const slot in stateDiff) {
+            const value = stateDiff[slot];
+            // don't set storage for invalid values
+            if (!hasOwn(stateDiff, slot) || value == null || value === "")
+              continue;
 
-          const slotBuf = Quantity.from(slot).toBuffer();
-          const valueBuf = Quantity.from(newState[slot]).toBuffer();
-          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+            const slotBuf = Quantity.from(slot).toBuffer();
+            const valueBuf = Quantity.from(value).toBuffer();
+            await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          }
         }
       }
     }
