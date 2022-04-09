@@ -87,12 +87,24 @@ const getArgv = () => {
 };
 
 const argv = yargs(getArgv())
-  .command(`${COMMAND_NAME} <version>`, "", yargs => {
+  .command(`${COMMAND_NAME}`, "", yargs => {
+    yargs
+      .option("releaseVersion", {
+        default: "TEST_VERSION",
+        require: false
+      })
+      .option("branch", {
+        default: function getCurrentBranch() {
+          return execSync("git rev-parse --abbrev-ref HEAD", {
+            encoding: "utf8"
+          }).trim();
+        },
+        require: false
+      });
     return yargs.usage(
       chalk`{hex("${TruffleColors.porsche}").bold Create a release markdown template}`
     );
   })
-  .demandCommand()
   .version(false)
   .help(false)
   .fail((msg, err, yargs) => {
@@ -152,22 +164,19 @@ const getCommitMetrics = (branch: string) => {
   type Section = { type: Type; subject: string; pr: string };
   const types = Object.keys(details) as Type[];
 
-  const version = argv.version as string;
+  const version = argv.releaseVersion as string;
+  const branch = argv.branch as string;
 
-  const currentBranch = execSync("git rev-parse --abbrev-ref HEAD", {
-    encoding: "utf8"
-  }).trim();
-  if (!validReleaseBranches.includes(currentBranch))
+  if (!validReleaseBranches.includes(branch))
     throw new Error(
       `You must be on a valid branch (${validReleaseBranches.join(", ")})`
     );
 
-  const output = execSync(
-    `git log "${currentBranch}"..develop --pretty=format:%s`,
-    { encoding: "utf8" }
-  );
+  const output = execSync(`git log "${branch}"..develop --pretty=format:%s`, {
+    encoding: "utf8"
+  });
 
-  const metrics = getCommitMetrics(currentBranch);
+  const metrics = getCommitMetrics(branch);
 
   const commits = output.split("\n").reverse();
   metrics.commitCount = commits.length;
