@@ -23,6 +23,18 @@ export function getBackToLink(version: string, url: string, pretty: string) {
   return `\n<p align="right"><sup><a href="#user-content-${version}-${url}">back to ${pretty.toLowerCase()}</a></sup></p>`;
 }
 
+export function getHighlightsMd(version: string) {
+  return `<a id="user-content-${version}-highlights"></a>
+
+  ---
+  
+  # <p align="center"><a href="#user-content-${version}-highlights"><img alt="Highlights" width="auto" src="https://raw.githubusercontent.com/trufflesuite/ganache/release-notes-assets/title-images/highlights.svg"></a></p>
+  
+  
+  HIGHLIGHTS
+  
+  <p align="right"><sup><a href="#user-content-${version}-top">back to top</a></sup></p>`;
+}
 export function getCommitsMd(
   subject: string,
   version: string,
@@ -105,28 +117,12 @@ ${sectionTableContents.join("\n")}
 
 PREAMBLE
 
-To install globally run:
-
-\`\`\`bash
-npm uninstall ganache-cli --global
-npm install ganache@beta --global
-\`\`\`
-
-<a id="user-content-${version}-highlights"></a>
-
----
-
-# <p align="center"><a href="#user-content-${version}-highlights"><img alt="Highlights" width="auto" src="https://raw.githubusercontent.com/trufflesuite/ganache/release-notes-assets/title-images/highlights.svg"></a></p>
-
 We've changed ${metrics.fileCount} files across ${
     metrics.commitCount
   } merged pull requests, tallying ${metrics.additionCount} additions and ${
     metrics.deletionCount
   } deletions, since our last release.
 
-HIGHLIGHTS
-
-<p align="right"><sup><a href="#user-content-${version}-top">back to top</a></sup></p>
 
 ${sectionMarkdown.join("\n")}
 

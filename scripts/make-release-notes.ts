@@ -14,7 +14,8 @@ import {
   getMdBody,
   getSectionMd,
   getSectionTableContent,
-  getTocMd
+  getTocMd,
+  getHighlightsMd
 } from "./release-notes-data";
 
 const chalk = require("chalk");
@@ -101,6 +102,10 @@ const argv = yargs(getArgv())
           }).trim();
         },
         require: false
+      })
+      .option("highlights", {
+        default: true,
+        require: false
       });
     return yargs.usage(
       chalk`{hex("${TruffleColors.porsche}").bold Create a release markdown template}`
@@ -167,6 +172,7 @@ const getCommitMetrics = (branch: string) => {
 
   const version = argv.releaseVersion as string;
   const branch = argv.branch as string;
+  const includeHighlights = argv.highlights === "false" ? false : true;
 
   if (!validReleaseBranches.includes(branch))
     throw new Error(
@@ -200,7 +206,7 @@ const getCommitMetrics = (branch: string) => {
               execSync(
                 `gh pr view ${pr} --json author,body --repo ${GH_REPO}`,
                 {
-                encoding: "utf8"
+                  encoding: "utf8"
                 }
               )
             )
@@ -263,6 +269,13 @@ const getCommitMetrics = (branch: string) => {
     const sectionTableContents: string[] = [];
     const sectionMarkdown: string[] = [];
     const changelogMarkdown: string[] = [];
+
+    if (includeHighlights) {
+      sectionTableContents.push(
+        getSectionTableContent(version, "highlights", "Highlights")
+      );
+      sectionMarkdown.push(getHighlightsMd(version));
+    }
     for (const [slug, section] of sections) {
       const typeDeets = details[slug];
       const url = typeDeets.url;
@@ -273,13 +286,13 @@ const getCommitMetrics = (branch: string) => {
       const tocMarkdown: string[] = [];
       const commitsMarkdown: string[] = [];
       const printToc = section.length > 1;
-      section.forEach(({ subject }, i) => {
+      section.forEach(({ subject, body }, i) => {
         if (printToc) {
           tocMarkdown.push(getTocMd(subject, version, url, i));
         }
         const backToLink = printToc ? getBackToLink(version, url, pretty) : "";
         commitsMarkdown.push(
-          getCommitsMd(subject, version, url, i) + backToLink
+          getCommitsMd(subject, version, url, i, body) + backToLink
         );
       });
 
