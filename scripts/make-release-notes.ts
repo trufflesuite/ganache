@@ -29,6 +29,7 @@ const validReleaseBranches = [
 ];
 
 const COMMAND_NAME = "make-release-notes";
+const GH_REPO = "trufflesuite/ganache";
 
 const COLORS = {
   Bold: "\x1b[1m",
@@ -194,14 +195,13 @@ const getCommitMetrics = (branch: string) => {
       if (types.includes(type)) {
         const { slug } = details[type as Type];
 
-        let author = "";
-        if (pr) {
-          const ghData = execSync(`gh pr --info ${pr}`, { encoding: "utf8" });
-          const maybeAuthor = ghData.match(/@[a-z\d-]*(?!(.*:.*)@[a-z\d-])/i);
-          if (maybeAuthor) {
-            author = maybeAuthor[0];
-          }
-        }
+        const author = pr
+          ? JSON.parse(
+              execSync(`gh pr view ${pr} --json author --repo ${GH_REPO}`, {
+                encoding: "utf8"
+              })
+            ).author.login
+          : "";
 
         const scopeMd = scope ? `${scope}` : "";
         const prMd = pr ? `(#${pr})` : "";
@@ -283,7 +283,7 @@ const getCommitMetrics = (branch: string) => {
     // make changelog
     for (const commit of commits) {
       changelogMarkdown.push(
-        ` - #${commit.pr} ${commit.subject} (${commit.author})`
+        ` - #${commit.pr} ${commit.subject} (@${commit.author})`
       );
     }
     sectionMarkdown.push(
@@ -297,37 +297,30 @@ const getCommitMetrics = (branch: string) => {
       const issueSectionMarkdown: string[] = [];
       let hasMatch = true;
       for (const group of section.groups) {
-        let matches: RegExpMatchArray[] = [];
+        const issueGroup: { number: number; title: string }[] = [];
         for (const ms of group.milestones) {
-          for (const lbl of group.labels) {
-            const ghData = execSync(
-              `gh is --list --milestone ${ms} --labels ${lbl}`,
+          const ghData = JSON.parse(
+            execSync(
+              `gh issue list --json number,title --milestone ${ms} --search "label:${group.labels.join(
+                ","
+              )}"`,
               { encoding: "utf8" }
-            );
-            // TODO: The issue list we get from gh is all sorts of messed up. Maybe we can fix what they out-
-            // put to us so we don't need this hideous (and probably fragile) regex. In the meantime:
-            //   (?<=[\n\r]).*      => This ignores the first line
-            //   (?:\[\d*m)        => Ignore the junk characters they give us
-            //   #(\d+)             => Find and capture the issue number
-            //   (?:\[\d*m)        => Ignore some more junk
-            //   (.*)(?=\s\[\d*m@) => Get characters up until more junk. Call this our subject
-            matches.push(
-              ...ghData.matchAll(
-                /(?<=[\n\r]).*(?:\[\d*m#)(\d+)(?:\[\d*m\s)(.*)(?=\s\[\d*m@)/g
-              )
-            );
-          }
+            )
+          );
+
+          issueGroup.push(...ghData);
         }
-        if (matches.length === 0) {
+        // if this group in the section doesn't have data, we need to know not to print headers for the next group in the section
+        if (issueGroup.length === 0) {
           hasMatch = false;
         } else {
           if (hasMatch) {
             issueSectionMarkdown.push(getIssueGroupMarkdown(group.name));
           }
-          for (const match of matches) {
-            const [_, issueNumber, subject] = match;
+          for (const issue of issueGroup) {
+            const { number, title } = issue;
             issueSectionMarkdown.push(
-              getIssueSectionMarkdown(subject, issueNumber)
+              getIssueSectionMarkdown(title, number.toString())
             );
           }
         }
