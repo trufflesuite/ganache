@@ -27,12 +27,13 @@ export function getCommitsMd(
   subject: string,
   version: string,
   url: string,
-  i: number
+  i: number,
+  body: string
 ) {
   return `
 ### <a id="user-content-${version}-${url}-${i}"></a>${subject}
 
-DESCRIPTION
+${body}
 `;
 }
 

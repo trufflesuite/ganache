@@ -162,7 +162,7 @@ const getCommitMetrics = (branch: string) => {
     test: misc
   } as const;
   type Type = keyof typeof details;
-  type Section = { type: Type; subject: string; pr: string };
+  type Section = { type: Type; subject: string; pr: string; body: string };
   const types = Object.keys(details) as Type[];
 
   const version = argv.releaseVersion as string;
@@ -195,13 +195,21 @@ const getCommitMetrics = (branch: string) => {
       if (types.includes(type)) {
         const { slug } = details[type as Type];
 
-        const author = pr
+        const ghData = pr
           ? JSON.parse(
-              execSync(`gh pr view ${pr} --json author --repo ${GH_REPO}`, {
+              execSync(
+                `gh pr view ${pr} --json author,body --repo ${GH_REPO}`,
+                {
                 encoding: "utf8"
-              })
-            ).author.login
+                }
+              )
+            )
           : "";
+        const author = ghData && ghData.author ? ghData.author.login : "";
+        const body =
+          ghData && ghData.body
+            ? ghData.body.replace("\r\n", "<br/>")
+            : "DESCRIPTION";
 
         const scopeMd = scope ? `${scope}` : "";
         const prMd = pr ? `(#${pr})` : "";
@@ -212,7 +220,7 @@ const getCommitMetrics = (branch: string) => {
         if (pr && author) {
           commitData.push({ subject: subjectSansPr, pr, author });
         }
-        section.push({ type, subject, pr });
+        section.push({ type, subject, pr, body });
         sections.set(slug as Type, section);
       } else {
         while (true) {
