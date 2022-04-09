@@ -1,5 +1,5 @@
 import * as readline from "readline";
-import { TruffleColors } from "../src/packages/colors/typings";
+import { TruffleColors } from "../src/packages/colors";
 import yargs from "yargs";
 import { execSync } from "child_process";
 import { exit } from "process";
