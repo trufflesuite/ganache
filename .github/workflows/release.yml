@@ -76,6 +76,7 @@ jobs:
       - name: Tag the amended release commit
         run: |
           git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
 
       - name: Push changes to git
         run: |
