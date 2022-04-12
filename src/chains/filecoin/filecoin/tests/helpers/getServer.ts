@@ -4,7 +4,7 @@ import { filecoinCallback } from "../../src/plugin-callback";
 const getServer = async (port: number, pluginServerOptionsConfig = null) => {
   const server = new Server(
     {
-      flavor: "filecoin",
+      flavor: "../../../chains/filecoin/filecoin",
       server: {
         port,
         host: "127.0.0.1",

@@ -52,7 +52,7 @@ export function GetConnector<T = any>(
     switch (flavor.toString()) {
       default: {
         // for future plugin compat
-        const { Connector } = require("@ganache/" + flavor.toString());
+        const { Connector } = require(flavor.toString());
 
         return new Connector(providerOptions, executor);
       }

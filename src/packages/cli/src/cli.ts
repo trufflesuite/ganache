@@ -45,7 +45,7 @@ if (
   !["ethereum", "--help"].includes(pluginFlavor) &&
   !pluginFlavor.includes("-")
 ) {
-  pluginPackage = require("@ganache/" + pluginFlavor);
+  pluginPackage = require(pluginFlavor);
   pluginPackage.flavor = pluginFlavor;
   pluginServerOptionsConfig = pluginPackage.serverOptionsConfig;
 }
