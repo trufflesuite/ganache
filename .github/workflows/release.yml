@@ -131,3 +131,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             INFURA_KEY=${{ secrets.INFURA_KEY }}
+
+      - name: Merge changes back into develop for latest release (master)
+        if: ${{ env.TAG == 'latest' }}
+        run: |
+          git checkout develop
+          git merge master
+          git push origin develop
