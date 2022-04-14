@@ -6,7 +6,6 @@ import {
   VM_EXCEPTIONS,
   CodedError,
   DATA,
-  WhisperPostObject,
   InternalFilter,
   FilterTypes,
   QUANTITY,
@@ -50,6 +49,7 @@ import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { CallOverrides } from "./helpers/run-call";
 import { Ethereum } from "./api-types";
+import { TypeOutputReturnType } from "ethereumjs-util";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
@@ -1044,11 +1044,15 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
+  async eth_getBlockByNumber<IncludeTransactions extends boolean = false>(number: QUANTITY | Tag, transactions?: IncludeTransactions): Promise<Ethereum.Block<IncludeTransactions, "internal"> | null> {
+    if (typeof transactions === "undefined") {
+      transactions = false as IncludeTransactions;
+    }
     const block = await this.#blockchain.blocks
       .get(number)
       .catch<Block>(_ => null);
-    return block ? block.toJSON(transactions) : null;
+    // @ts-ignore
+    return block ? block.toJSON<IncludeTransactions>(transactions) : null;
   }
 
   /**
@@ -1102,11 +1106,14 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByHash(hash: DATA, transactions = false) {
+  async eth_getBlockByHash<IncludeTransactions extends boolean = false>(hash: DATA, transactions: IncludeTransactions): Promise<Ethereum.Block<IncludeTransactions, "internal"> | null> {
+    if (typeof transactions === "undefined") {
+      transactions = false as IncludeTransactions;
+    }
     const block = await this.#blockchain.blocks
       .getByHash(hash)
       .catch<Block>(_ => null);
-    return block ? block.toJSON(transactions) : null;
+    return block ? block.toJSON<IncludeTransactions>(transactions) : null;
   }
 
   /**

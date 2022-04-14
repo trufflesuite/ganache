@@ -2,6 +2,8 @@ import type * as EthSigUtil from "eth-sig-util";
 import type * as TransactionTypes from "@ganache/ethereum-transaction";
 import type * as UtilTypes from "@ganache/ethereum-utils";
 import type { EthereumProvider, Externalize } from "./provider";
+import { BlockHeader } from "@ganache/ethereum-block";
+import { Data, Quantity } from "@ganache/utils";
 
 export namespace Ethereum {
   export type Provider = EthereumProvider;
@@ -57,4 +59,12 @@ export namespace Ethereum {
 
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
+
+  // blocks
+  export type Block<IncludeTransactions extends boolean = false, T extends "external" | "internal" = "external"> = {
+    hash: T extends "internal" ? Data : string
+    size: T extends "internal" ? Quantity : string
+    transactions: IncludeTransactions extends true ? (SignedTransaction<T> | PooledTransaction<T>)[] : T extends "internal" ? Data[] : string[],
+    uncles: T extends "internal" ? Data[] : string[]
+  } & (T extends "internal" ? BlockHeader : Externalize<BlockHeader>);
 }

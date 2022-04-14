@@ -333,7 +333,7 @@ export class EthereumProvider
    * @returns A Promise that resolves with the method's result or rejects with a CodedError
    * @EIP [1193](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md)
    */
-  public async request<Method extends RequestMethods>(
+  public async request<Method extends RequestMethods, Optionals extends any>(
     args: RequestParams<Method>
   ): Simplify<ReturnType<EthereumApi[Method]>> {
     const rawResult = await this._requestRaw(args);

@@ -99,4 +99,12 @@ describe("types", () => {
   it("returns the type for StorageRangeAtResult", async () => {
     expectMethod<"debug_storageRangeAt", Ethereum.StorageRangeAtResult, 1>();
   });
+
+  it("returns the type for eth_getBlockByNumber", async () => {
+    expectMethod<"eth_getBlockByNumber", Ethereum.Block, 1>();
+  });
+
+  it("returns the type for eth_getBlockByHash", async () => {
+    expectMethod<"eth_getBlockByHash", Ethereum.Block, 1>();
+  });
 });
