@@ -101,6 +101,14 @@ describe("types", () => {
   });
 
   it("returns the type for eth_getBlockByNumber", async () => {
+    // eth_getBlockByHash (and eth_getBlockByNumber) return a different type
+    // based on the arguments passed in, specifically the second argument:
+    // `includeTransactions`. TypeScript currently isn't capable of supporting
+    // the the Polymorphic type the way we need it to, but TypeScript 4.7.0 will
+    // support it. Once 4.7.0 is released we should be able to modify our types
+    // to handle the polymorphism. Note: this will require we update the way we
+    // test types, as `expectMethod` doesn't care about the arguments passed in.
+    // see: https://github.com/trufflesuite/ganache/issues/2907
     expectMethod<"eth_getBlockByNumber", Ethereum.Block, 1>();
   });
 
