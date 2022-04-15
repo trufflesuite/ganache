@@ -61,10 +61,21 @@ export namespace Ethereum {
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
 
   // blocks
-  export type Block<IncludeTransactions extends boolean = false, T extends "external" | "internal" = "external"> = {
-    hash: T extends "internal" ? Data : string
-    size: T extends "internal" ? Quantity : string
-    transactions: IncludeTransactions extends true ? (SignedTransaction<T> | PooledTransaction<T>)[] : T extends "internal" ? Data[] : string[],
-    uncles: T extends "internal" ? Data[] : string[]
-  } & (T extends "internal" ? BlockHeader : Externalize<BlockHeader>);
+  /**
+   * A Block as it is returned from eth_getBlockByNumber and eth_getBlockByHash.
+   */
+  export type Block<IncludeTransactions extends boolean = false, T extends "external" | "internal" = "external"> =
+    T extends "internal" ?
+    {
+      hash: Data
+      size: Quantity
+      transactions: IncludeTransactions extends true ? (SignedTransaction<T> | PooledTransaction<T>)[] : Data[],
+      uncles: Data[]
+    } & BlockHeader
+    : {
+      hash: string
+      size: string
+      transactions: IncludeTransactions extends true ? (SignedTransaction<T> | PooledTransaction<T>)[] : string[],
+      uncles: string[]
+    } & Externalize<BlockHeader>
 }
