@@ -16,10 +16,16 @@ jobs:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
           node-version: 14
 
-      - name: Set git identity
+      - name: Import Robot GPG key
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.TRUFBOT_GPG_SECRET_KEY }}
+          passphrase: ${{ secrets.TRUFBOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Set git origin url
         run: |
-          git config --global user.name 'Robot'
-          git config --global user.email 'robot@trufflesuite.com'
           git remote set-url origin https://robot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,10 +78,10 @@ jobs:
         run: |
           git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
-      # TODO: sign the last commit and tag
       - name: Tag the amended release commit
         run: |
           git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
 
       - name: Push changes to git
         run: |
@@ -130,3 +136,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             INFURA_KEY=${{ secrets.INFURA_KEY }}
+
+      - name: Merge changes back into develop for latest release (master)
+        if: ${{ env.TAG == 'latest' }}
+        run: |
+          git checkout develop
+          git merge master
+          git push origin develop
