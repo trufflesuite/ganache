@@ -283,6 +283,8 @@ function getTypeAsString(type: Type): string {
       // outputs a string literal like `He said, "hello, world"!` as
       // the string `"He said, \"hello, world\"!"`
       return `"${type.value.replace(/"/g, '\\"')}"`;
+    case "intersection":
+      return type.types.map(getTypeAsString).join(" & ");
     default:
       console.error(type);
       throw new Error(`Unhandled type: ${type.type}`);
