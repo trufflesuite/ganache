@@ -27,7 +27,12 @@ import {
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
-import { toRpcSig, ecsign, hashPersonalMessage, KECCAK256_NULL } from "ethereumjs-util";
+import {
+  toRpcSig,
+  ecsign,
+  hashPersonalMessage,
+  KECCAK256_NULL
+} from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
@@ -41,7 +46,7 @@ import {
   JsonRpcErrorCode,
   RPCQUANTITY_GWEI
 } from "@ganache/utils";
-import Blockchain, { CallOverrides } from "./blockchain";
+import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
@@ -53,6 +58,7 @@ import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
+import { CallOverrides } from "./helpers/run-call";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
@@ -464,10 +470,15 @@ export default class EthereumApi implements Api {
     // The ethereumjs-vm StateManager does not allow to set empty code,
     // therefore we will manually set the code hash when "clearing" the contract code
     if (codeBuffer.length > 0) {
-      await stateManager.putContractCode({ buf: addressBuffer } as any, codeBuffer)
+      await stateManager.putContractCode(
+        { buf: addressBuffer } as any,
+        codeBuffer
+      );
     } else {
-      const account = await stateManager.getAccount({ buf: addressBuffer } as any);
-      account.codeHash = KECCAK256_NULL
+      const account = await stateManager.getAccount({
+        buf: addressBuffer
+      } as any);
+      account.codeHash = KECCAK256_NULL;
       await stateManager.putAccount({ buf: addressBuffer } as any, account);
     }
 
@@ -505,7 +516,11 @@ export default class EthereumApi implements Api {
     const valueBuffer = Data.from(value).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
-    await stateManager.putContractStorage({ buf: addressBuffer } as any, slotBuffer, valueBuffer)
+    await stateManager.putContractStorage(
+      { buf: addressBuffer } as any,
+      slotBuffer,
+      valueBuffer
+    );
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.

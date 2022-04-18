@@ -5,7 +5,7 @@ import Message from "@ethereumjs/vm/dist/evm/message";
 import VM from "@ethereumjs/vm";
 import { BN } from "ethereumjs-util";
 import EVM from "@ethereumjs/vm/dist/evm/evm";
-import Blockchain, { CallOverrides } from "../blockchain";
+import Blockchain from "../blockchain";
 import { KECCAK256_NULL } from "ethereumjs-util";
 
 export type SimulationTransaction = {
@@ -34,6 +34,26 @@ export type SimulationTransaction = {
    */
   data?: Data;
   block: RuntimeBlock;
+};
+
+type CallOverride =
+  | Partial<{
+      code: string;
+      nonce: string;
+      balance: string;
+      state: { [slot: string]: string };
+      stateDiff: never;
+    }>
+  | Partial<{
+      code: string;
+      nonce: string;
+      balance: string;
+      state: never;
+      stateDiff: { [slot: string]: string };
+    }>;
+
+export type CallOverrides = {
+  [address: string]: CallOverride;
 };
 
 /**

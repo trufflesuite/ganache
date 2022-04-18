@@ -55,7 +55,8 @@ import {
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import {
   SimulationTransaction,
-  applySimulationOverrides
+  applySimulationOverrides,
+  CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
 import {
@@ -121,26 +122,6 @@ export type BlockchainOptions = {
   instamine: "eager" | "strict";
   vmErrorsOnRPCResponse: boolean;
   logger: Logger;
-};
-
-type CallOverride =
-  | Partial<{
-      code: string;
-      nonce: string;
-      balance: string;
-      state: { [slot: string]: string };
-      stateDiff: never;
-    }>
-  | Partial<{
-      code: string;
-      nonce: string;
-      balance: string;
-      state: never;
-      stateDiff: { [slot: string]: string };
-    }>;
-
-export type CallOverrides = {
-  [address: string]: CallOverride;
 };
 
 /**
