@@ -22,7 +22,7 @@ import {
 import type { Address as EthereumJsAddress } from "ethereumjs-util";
 import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { decode } from "@ganache/rlp";
-import { BN, KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
+import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import Common from "@ethereumjs/common";
 import VM from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
@@ -38,8 +38,7 @@ import {
   RPCQUANTITY_ZERO,
   findInsertPosition,
   unref,
-  KNOWN_CHAINIDS,
-  hasOwn
+  KNOWN_CHAINIDS
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -54,7 +53,10 @@ import {
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
-import { SimulationTransaction } from "./helpers/run-call";
+import {
+  SimulationTransaction,
+  applySimulationOverrides
+} from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
 import {
   DefaultStateManager,
@@ -65,7 +67,7 @@ import { ForkTrie } from "./forking/trie";
 import { LevelUp } from "levelup";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
-import { BUFFER_ZERO, keccak } from "@ganache/utils";
+import { BUFFER_ZERO } from "@ganache/utils";
 import {
   makeStepEvent,
   VmAfterTransactionEvent,
@@ -668,115 +670,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return vm;
   };
 
-  validateStorageOverride = (slot: string, value: string) => {
-    // assume Quantity will handle other types, these are just special string cases
-    if (typeof slot === "string" && slot !== "" && slot.indexOf("0x") === 0) {
-      // assume we're starting with 0x cause Quantity will verify if not
-      const noPrefix = slot.slice(2);
-      if (noPrefix.length != 64) {
-        throw new Error(
-          `State/StateDiff override slot must be a 64 character hex string. Received ${noPrefix.length} character string.`
-        );
-      }
-    }
-    if (value === null || value === undefined) {
-      throw new Error(
-        `State/StateDiff override data not valid. Received: ${value}`
-      );
-    }
-    // assume Quantity will handle other types, these are just special string cases
-    if (
-      typeof value === "string" &&
-      value !== "" &&
-      value.indexOf("0x") === 0
-    ) {
-      const noPrefix = value.slice(2);
-      if (noPrefix.length != 64) {
-        throw new Error(
-          `State/StateDiff override data must be a 64 character hex string. Received ${noPrefix.length} character string.`
-        );
-      }
-    }
-  };
-
-  applySimulationOverrides = async (vm: VM, overrides: CallOverrides) => {
-    const stateManager = vm.stateManager;
-    for (const address in overrides) {
-      if (!hasOwn(overrides, address)) continue;
-      const { balance, nonce, code, state, stateDiff } = overrides[address];
-
-      const vmAddr = { buf: Address.from(address).toBuffer() } as any;
-      // group together overrides that update the account
-      if (nonce != null || balance != null || code != null) {
-        const account = await stateManager.getAccount(vmAddr);
-
-        if (nonce != null) {
-          account.nonce = {
-            toArrayLike: () =>
-              // geth treats empty strings as "0x0" nonce for overrides
-              Quantity.from(nonce === "" ? "0x0" : nonce).toBuffer()
-          } as any;
-        }
-        if (balance != null) {
-          account.balance = {
-            toArrayLike: () =>
-              // geth treats empty strings as "0x0" balance for overrides
-              Quantity.from(balance === "" ? "0x0" : balance).toBuffer()
-          } as any;
-        }
-        if (code != null) {
-          // geth treats empty strings as "0x" code for overrides
-          const codeBuffer = Data.from(code === "" ? "0x" : code).toBuffer();
-          // The ethereumjs-vm StateManager does not allow to set empty code,
-          // therefore we will manually set the code hash when "clearing" the contract code
-          const codeHash =
-            codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
-          account.codeHash = codeHash;
-          await this.trie.db.put(codeHash, codeBuffer);
-        }
-        await stateManager.putAccount(vmAddr, account);
-      }
-      // group together overrides that update storage
-      if (state || stateDiff) {
-        if (state) {
-          // state and stateDiff fields are mutually exclusive
-          if (stateDiff) {
-            throw new Error("both state and stateDiff overrides specified");
-          }
-          // it's possible that the user fed an override with a valid address
-          // and slot, but not a value we can actually set in the storage. if
-          // so, we don't want to set the storage, and we also don't want to
-          // clear it out
-          let clearedState = false;
-          for (const slot in state) {
-            if (!hasOwn(state, slot)) continue;
-            const value = state[slot];
-            this.validateStorageOverride(slot, value);
-            if (!clearedState) {
-              // override.state clears all storage and sets just the specified slots
-              await stateManager.clearContractStorage(vmAddr);
-              clearedState = true;
-            }
-            const slotBuf = Quantity.from(slot).toBuffer();
-            const valueBuf = Quantity.from(value).toBuffer();
-            await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
-          }
-        } else {
-          for (const slot in stateDiff) {
-            // don't set storage for invalid values
-            if (!hasOwn(stateDiff, slot)) continue;
-            const value = stateDiff[slot];
-            this.validateStorageOverride(slot, value);
-
-            const slotBuf = Quantity.from(slot).toBuffer();
-            const valueBuf = Quantity.from(value).toBuffer();
-            await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
-          }
-        }
-      }
-    }
-  };
-
   #commitAccounts = (accounts: Account[]) => {
     return Promise.all<void>(
       accounts.map(account =>
@@ -1186,7 +1079,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       // If there are any overrides requested for eth_call, apply
       // them now before running the simulation.
-      await this.applySimulationOverrides(vm, overrides);
+      await applySimulationOverrides.call(this, vm, overrides);
 
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values

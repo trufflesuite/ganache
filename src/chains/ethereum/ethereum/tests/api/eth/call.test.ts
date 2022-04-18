@@ -518,12 +518,12 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  error: `State/StateDiff override data not valid. Received: null`,
+                  error: `StateDiff override data not valid. Received: null`,
                   expectedValue: null
                 },
                 {
                   junk: undefined,
-                  error: `State/StateDiff override data not valid. Received: undefined`
+                  error: `StateDiff override data not valid. Received: undefined`
                 },
                 {
                   junk: "",
@@ -531,11 +531,11 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: `State/StateDiff override data must be a 64 character hex string. Received 0 character string.`
+                  error: `StateDiff override data must be a 64 character hex string. Received 0 character string.`
                 },
                 {
                   junk: "0xbaddad42",
-                  error: `State/StateDiff override data must be a 64 character hex string. Received 8 character string.`
+                  error: `StateDiff override data must be a 64 character hex string. Received 8 character string.`
                 },
                 {
                   junk: "123",
@@ -558,12 +558,12 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  error: `State/StateDiff override data not valid. Received: null`,
+                  error: `State override data not valid. Received: null`,
                   expectedValue: null
                 },
                 {
                   junk: undefined,
-                  error: `State/StateDiff override data not valid. Received: undefined`
+                  error: `State override data not valid. Received: undefined`
                 },
                 {
                   junk: "",
@@ -571,11 +571,11 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: `State/StateDiff override data must be a 64 character hex string. Received 0 character string.`
+                  error: `State override data must be a 64 character hex string. Received 0 character string.`
                 },
                 {
                   junk: "0xbaddad42",
-                  error: `State/StateDiff override data must be a 64 character hex string. Received 8 character string.`
+                  error: `State override data must be a 64 character hex string. Received 8 character string.`
                 },
                 {
                   junk: "123",
@@ -611,11 +611,11 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: `State/StateDiff override slot must be a 64 character hex string. Received 0 character string.`
+                  error: `StateDiff override slot must be a 64 character hex string. Received 0 character string.`
                 },
                 {
                   junk: "0xbaddad42",
-                  error: `State/StateDiff override slot must be a 64 character hex string. Received 8 character string.`
+                  error: `StateDiff override slot must be a 64 character hex string. Received 8 character string.`
                 },
                 {
                   junk: "123",
@@ -651,11 +651,11 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: `State/StateDiff override slot must be a 64 character hex string. Received 0 character string.`
+                  error: `State override slot must be a 64 character hex string. Received 0 character string.`
                 },
                 {
                   junk: "0xbaddad42",
-                  error: `State/StateDiff override slot must be a 64 character hex string. Received 8 character string.`
+                  error: `State override slot must be a 64 character hex string. Received 8 character string.`
                 },
                 {
                   junk: "123",
