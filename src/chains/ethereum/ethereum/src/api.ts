@@ -2613,8 +2613,9 @@ export default class EthereumApi implements Api {
    * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
-   * State Override Object - An address to state mapping used to override the vm state for a
-   * given address. Each address mps to:
+   * State Override object - An address-to-state mapping, where each entry specifies some
+   * state to be ephemerally overridden prior to executing the call. Each address maps to an
+   * object containing:
    * * `balance`: `QUANTITY` (optional) - The balance to set for the account before executing the call.
    * * `nonce`: `QUANTITY` (optional) - The nonce to set for the account before executing the call.
    * * `code`: `DATA` (optional) - The EVM bytecode to set for the account before executing the call.
@@ -2643,8 +2644,8 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
    * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005"
-   * const override = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
-   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", override] });
+   * const overrides = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
+   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", overrides] });
    * console.log(result);
    * ```
    */
@@ -2655,7 +2656,7 @@ export default class EthereumApi implements Api {
     overrides: CallOverrides = {}
   ) {
     const blockchain = this.#blockchain;
-    const common = this.#blockchain.common;
+    const common = blockchain.common;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.header;
