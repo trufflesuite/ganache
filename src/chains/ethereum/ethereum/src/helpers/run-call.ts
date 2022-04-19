@@ -114,10 +114,10 @@ const validateStorageOverride = (
   }
   // assume Quantity will handle other types, these are just special string cases
   if (typeof value === "string" && value !== "" && value.indexOf("0x") === 0) {
-    if (slot.length != 66) {
+    if (value.length != 66) {
       throw new Error(
         `${fieldName} override data must be a 64 character hex string. Received ${
-          slot.length - 2
+          value.length - 2
         } character string.`
       );
     }
