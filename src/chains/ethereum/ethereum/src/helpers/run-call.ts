@@ -7,6 +7,7 @@ import { BN } from "ethereumjs-util";
 import EVM from "@ethereumjs/vm/dist/evm/evm";
 import Blockchain from "../blockchain";
 import { KECCAK256_NULL } from "ethereumjs-util";
+import { GanacheTrie } from "./trie";
 
 export type SimulationTransaction = {
   /**
@@ -124,7 +125,7 @@ const validateStorageOverride = (
 };
 
 export async function applySimulationOverrides(
-  this: Blockchain,
+  stateTrie: GanacheTrie,
   vm: VM,
   overrides: CallOverrides
 ): Promise<void> {
@@ -160,7 +161,7 @@ export async function applySimulationOverrides(
         const codeHash =
           codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
         account.codeHash = codeHash;
-        await this.trie.db.put(codeHash, codeBuffer);
+        await stateTrie.db.put(codeHash, codeBuffer);
       }
       await stateManager.putAccount(vmAddr, account);
     }

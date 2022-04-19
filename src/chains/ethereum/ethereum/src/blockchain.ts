@@ -1060,7 +1060,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       // If there are any overrides requested for eth_call, apply
       // them now before running the simulation.
-      await applySimulationOverrides.call(this, vm, overrides);
+      await applySimulationOverrides(stateTrie, vm, overrides);
 
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
