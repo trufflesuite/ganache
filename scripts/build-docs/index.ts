@@ -145,11 +145,10 @@ function (${name}: ${type})
       const html = marked(md, markedOptions)
         .replace(/<span class="hljs-keyword">function<\/span> \((.*)\)/, "$1")
         .replace(/<\/?pre>/g, "");
-      return `<li>${html}${
-        param.comment && param.comment.text && param.comment.text.trim().length
+      return `<li>${html}${param.comment && param.comment.text && param.comment.text.trim().length
           ? `: ${marked.parseInline(param.comment.text, markedOptions)}`
           : ""
-      }</li>`;
+        }</li>`;
     });
     return `
       <div>
@@ -200,15 +199,13 @@ function renderMethodComment(method: Method) {
   const signature = method.signatures[0];
   return signature.comment
     ? `
-    ${
-      signature.comment.shortText
-        ? marked(signature.comment.shortText, markedOptions)
-        : ""
+    ${signature.comment.shortText
+      ? marked(signature.comment.shortText, markedOptions)
+      : ""
     }
-    ${
-      signature.comment.text
-        ? marked(signature.comment.text, markedOptions)
-        : ""
+    ${signature.comment.text
+      ? marked(signature.comment.text, markedOptions)
+      : ""
     }
   `
     : "";
@@ -226,8 +223,8 @@ function renderTag(method: Method, tag: Tag, i: number) {
               ${x(tag.tag)}
             </div>
             <div class="monaco" data-method="${x(
-              method.name
-            )}_${i}" data-language="${x(lang)}">
+        method.name
+      )}_${i}" data-language="${x(lang)}">
               ${code}
             </div>
           </div>
@@ -276,9 +273,8 @@ function getTypeAsString(type: Type): string {
     case "reference":
       return x(type.name);
     case "tuple":
-      return `[${
-        type.elements ? type.elements.map(getTypeAsString).join(", ") : ""
-      }]`;
+      return `[${type.elements ? type.elements.map(getTypeAsString).join(", ") : ""
+        }]`;
     case "literal":
       // outputs a string literal like `He said, "hello, world"!` as
       // the string `"He said, \"hello, world\"!"`
