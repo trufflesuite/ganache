@@ -100,10 +100,11 @@ const validateStorageOverride = (
   // assume Quantity will handle other types, these are just special string cases
   if (typeof slot === "string" && slot !== "" && slot.indexOf("0x") === 0) {
     // assume we're starting with 0x cause Quantity will verify if not
-    const noPrefix = slot.slice(2);
-    if (noPrefix.length != 64) {
+    if (slot.length != 66) {
       throw new Error(
-        `${fieldName} override slot must be a 64 character hex string. Received ${noPrefix.length} character string.`
+        `${fieldName} override slot must be a 64 character hex string. Received ${
+          slot.length - 2
+        } character string.`
       );
     }
   }
@@ -112,10 +113,11 @@ const validateStorageOverride = (
   }
   // assume Quantity will handle other types, these are just special string cases
   if (typeof value === "string" && value !== "" && value.indexOf("0x") === 0) {
-    const noPrefix = value.slice(2);
-    if (noPrefix.length != 64) {
+    if (slot.length != 66) {
       throw new Error(
-        `${fieldName} override data must be a 64 character hex string. Received ${noPrefix.length} character string.`
+        `${fieldName} override data must be a 64 character hex string. Received ${
+          slot.length - 2
+        } character string.`
       );
     }
   }
