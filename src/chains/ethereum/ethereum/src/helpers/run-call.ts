@@ -1,5 +1,5 @@
 import { RuntimeBlock } from "@ganache/ethereum-block";
-import { Quantity, Data, hasOwn, keccak } from "@ganache/utils";
+import { Quantity, Data, hasOwn, keccak, BUFFER_EMPTY } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import Message from "@ethereumjs/vm/dist/evm/message";
 import VM from "@ethereumjs/vm";
@@ -143,14 +143,14 @@ export async function applySimulationOverrides(
         account.nonce = {
           toArrayLike: () =>
             // geth treats empty strings as "0x0" nonce for overrides
-            Quantity.from(nonce === "" ? "0x0" : nonce).toBuffer()
+            nonce === "" ? BUFFER_EMPTY : Quantity.from(nonce).toBuffer()
         } as any;
       }
       if (balance != null) {
         account.balance = {
           toArrayLike: () =>
             // geth treats empty strings as "0x0" balance for overrides
-            Quantity.from(balance === "" ? "0x0" : balance).toBuffer()
+            balance === "" ? BUFFER_EMPTY : Quantity.from(balance).toBuffer()
         } as any;
       }
       if (code != null) {
