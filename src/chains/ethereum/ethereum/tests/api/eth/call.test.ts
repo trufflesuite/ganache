@@ -380,30 +380,51 @@ describe("api", () => {
           const overrides = {
             [addr]: {
               balance: "0x1e240",
-              code: "0x123456",
-              state: { [`0x${slot}`]: data }
-            }
+              code: "0x123456"
+            },
+            [contractAddress]: { nonce: "0xff", state: { [`0x${slot}`]: data } }
           };
           const getCodeMethod = `0x${methods["getCode(address)"]}${encodedAddr}`;
-          await callContract(getCodeMethod, overrides);
+          const overrideCode = await callContract(getCodeMethod, overrides);
 
           const code = await callContract(getCodeMethod, {});
           // The overrides should not have persisted.
           const rawEmptyBytesEncoded =
             "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000";
-          assert.strictEqual(await code, rawEmptyBytesEncoded);
+          assert.strictEqual(code, rawEmptyBytesEncoded);
+          assert.notEqual(code, overrideCode);
 
           const getBalanceMethod = `0x${methods["getBalance(address)"]}${encodedAddr}`;
+          const overrideBalance = await callContract(
+            getBalanceMethod,
+            overrides
+          );
           const balance = await callContract(getBalanceMethod, {});
           const startBalance =
             "0x00000000000000000000000000000000000000000000003635c9adc5dea00000";
           assert.strictEqual(balance, startBalance);
+          assert.notEqual(balance, overrideBalance);
 
           // this is hardcoded in the contract
           const getStorageMethod = `0x${methods["getStorageAt(uint256)"]}${slot}`;
+          const overrideStorage = await callContract(
+            getStorageMethod,
+            overrides
+          );
           const storage = await callContract(getStorageMethod, {});
           const dataAtSlot = `0x0000000000000000000000000000000000000000000000000000000000000002`;
           assert.strictEqual(storage, dataAtSlot);
+          assert.notEqual(storage, overrideStorage);
+
+          const simpleSol =
+            "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009e6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+          const testNonceMethod = `0x${methods["createContract(bytes)"]}${simpleSol}`;
+          const overrideTestContractAddress = await callContract(
+            testNonceMethod,
+            overrides
+          );
+          const testContractAddress = await callContract(testNonceMethod, {});
+          assert.notEqual(testContractAddress, overrideTestContractAddress);
         });
 
         it("does not allow both state && stateDiff", async () => {
