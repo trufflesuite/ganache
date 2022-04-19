@@ -82,9 +82,11 @@ function processOption(
     // the types held within each array
     const { cliType } = optionObj;
     const array = cliType && cliType.startsWith("array:"); // e.g. array:string or array:number
-    const type = (array
-      ? cliType.slice(6) // remove the "array:" part
-      : cliType) as YargsPrimitiveCliTypeStrings;
+    const type = (
+      array
+        ? cliType.slice(6) // remove the "array:" part
+        : cliType
+    ) as YargsPrimitiveCliTypeStrings;
 
     const options: Options = {
       group,
@@ -123,9 +125,9 @@ function applyDefaults(
     const group = `${category[0].toUpperCase()}${category.slice(
       1
     )}:` as GroupType;
-    const categoryObj = (flavorDefaults[
+    const categoryObj = flavorDefaults[
       category
-    ] as unknown) as Definitions<Base.Config>;
+    ] as unknown as Definitions<Base.Config>;
     const state = {};
     for (const option in categoryObj) {
       const optionObj = categoryObj[option];
@@ -183,6 +185,7 @@ export default function (
 
     args = createNewCommand(
       args,
+      command,
       flavor,
       flavorDefaults,
       _DefaultServerOptions,
@@ -245,6 +248,7 @@ function setupPluginArgs(
   args = createNewCommand(
     args,
     pluginPackage.flavor,
+    pluginPackage.flavor,
     pluginFlavorDefaults,
     defaultServerOptions,
     isDocker,
@@ -256,19 +260,20 @@ function setupPluginArgs(
 
 function createNewCommand(
   args: yargs.Argv<{}>,
-  pluginFlavor: string,
-  flavorPluginDefaults: any,
+  command: Command,
+  flavor: string,
+  flavorDefaults: any,
   defaultServerOptions: any,
   isDocker: boolean,
   defaultPort: number
 ) {
   args = args.command(
-    pluginFlavor,
-    chalk`Use the {bold ${pluginFlavor}} flavor of Ganache`,
+    command,
+    chalk`Use the {bold ${flavor}} flavor of Ganache`,
     flavorArgs => {
-      applyDefaults(flavorPluginDefaults, flavorArgs, pluginFlavor);
+      applyDefaults(flavorDefaults, flavorArgs, flavor);
 
-      applyDefaults(defaultServerOptions, flavorArgs, pluginFlavor);
+      applyDefaults(defaultServerOptions, flavorArgs, flavor);
 
       flavorArgs = flavorArgs
         .option("server.host", {
