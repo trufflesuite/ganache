@@ -351,7 +351,8 @@ describe("api", () => {
         });
 
         it("allows setting multiple overrides in one call", async () => {
-          const slot = `0000000000000000000000000000000000000000000000000000000000000001`;
+          const slot1 = `0000000000000000000000000000000000000000000000000000000000000001`;
+          const slot2 = `0000000000000000000000000000000000000000000000000000000000000002`;
           const data =
             "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42";
           // create a combined set of overrides that we use for each of these calls
@@ -360,7 +361,9 @@ describe("api", () => {
               balance: "0x1e240",
               code: "0x123456"
             },
-            [contractAddress]: { stateDiff: { [`0x${slot}`]: data } }
+            [contractAddress]: {
+              stateDiff: { [`0x${slot1}`]: data, [`0x${slot2}`]: data }
+            }
           };
           const getBalanceMethod = `0x${methods["getBalance(address)"]}${encodedAddr}`;
           const balance = await callContract(getBalanceMethod, override);
@@ -376,10 +379,16 @@ describe("api", () => {
             "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000031234560000000000000000000000000000000000000000000000000000000000"
           );
 
-          const getStorageMethod = `0x${methods["getStorageAt(uint256)"]}${slot}`;
-          const storage = await callContract(getStorageMethod, override);
+          const getStorageMethod1 = `0x${methods["getStorageAt(uint256)"]}${slot1}`;
+          const getStorageMethod2 = `0x${methods["getStorageAt(uint256)"]}${slot2}`;
+          const storage1 = await callContract(getStorageMethod1, override);
+          const storage2 = await callContract(getStorageMethod2, override);
           assert.strictEqual(
-            storage,
+            storage1,
+            "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42"
+          );
+          assert.strictEqual(
+            storage2,
             "0xbaddad42baddad42baddad42baddad42baddad42baddad42baddad42baddad42"
           );
         });
