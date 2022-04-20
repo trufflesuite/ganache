@@ -106,7 +106,7 @@ export class Block {
     };
   }
 
-  getTxFn<IncludeTransactions extends true | false>(
+  getTxFn<IncludeTransactions extends boolean>(
     include: IncludeTransactions = <IncludeTransactions>false
   ): (tx: TypedTransaction) => ReturnType<TypedTransaction["toJSON"]> | Data {
     if (include) {
