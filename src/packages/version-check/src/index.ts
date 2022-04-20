@@ -17,15 +17,22 @@ export class VersionChecker {
     });
 
     this._config = this.ConfigManager.get("config");
-    this._logger = logger;
+    this._logger = logger || function () {};
     this._current = current;
-
-    if (this._config.enabled) this.init();
   }
 
   init() {
+    if (!this._config.enabled) return false;
     // send server request
-    // compare this._current
+
+    // Have we already alerted the user to latest version?
+
+    // Log version change message
+    const { latestVersion } = this._config;
+    const versionChange = this.upgradeIsAvailable(this._current, latestVersion);
+
+    if (versionChange) {
+    }
   }
 
   setLatestVersion(latestVersion) {
@@ -49,6 +56,62 @@ export class VersionChecker {
     this.ConfigManager.set("config", this._config);
   }
 
+  // Intentionally verbose here if we get logging involved it could aid debugging
+  upgradeIsAvailable(current, latest) {
+    // No current version passed in
+    if (!current) {
+      return false;
+      // We are in local DEV
+    } else if (current === "DEV") {
+      return false;
+      // We are on latest version
+    } else if (current === latest) {
+      return false;
+      // Invalid current version string
+    } else if (typeof current !== "string") {
+      return false;
+    } else if (current === "") {
+      return false;
+    }
+    // returns falsy if function cannot detect semver difference
+    return this.detectSemverChange(current, latest);
+  }
+
+  detectSemverChange(current, latest) {
+    const [_, major, minor, patch] = current
+      .match(semverRegex)
+      .slice(1, 4)
+      .map(Number);
+    const [updateMajor, updateMinor, updatePatch] = latest
+      .match(semverRegex)
+      .slice(1, 4)
+      .map(Number);
+
+    return updateMajor !== major
+      ? "major"
+      : updateMinor !== minor
+      ? "minor"
+      : updatePatch !== patch
+      ? "patch"
+      : null;
+  }
+
+  getLatestVersion() {
+    if (!this._config.enabled) return false;
+    // Send fetch request
+    // Compare to latest in config
+    // If mismatch, update latestVersion to fetched version
+    //              update lastCheck to Date.now()
+  }
+
+  log() {
+    if (!this._config.enabled) return false;
+    // Check if we have already alerted the user config.lastVersionAlerted === config.latestVersion
+    // compare current to latest stored in config and set by getLatestVersion
+    // If different, log
+    // update lastVersionAlerted to config.latestVersion.
+  }
+
   static get DEFAULTS() {
     return {
       projectName: "versionCheck",
@@ -59,7 +122,7 @@ export class VersionChecker {
           url: "https://version.trufflesuite.com/",
           ttl: 300, // http2session.setTimeout
           latestVersion: "0.0.0", // Last version fetched from the server
-          latestVersionAlerted: "0.0.0", // Last version user to tell the user about
+          lastVersionAlerted: "0.0.0", // Last version user to tell the user about
           lastCheck: Date.now() // Timestamp for last successful server version fetch
         }
       }
