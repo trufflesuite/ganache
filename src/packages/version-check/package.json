@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@ganache/colors": "^0.1.5",
-    "chalk": "4.1.2"
+    "chalk": "4.1.2",
+    "conf": "10.1.2"
   }
 }

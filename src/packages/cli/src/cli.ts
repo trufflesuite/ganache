@@ -8,7 +8,10 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { Provider as FilecoinProvider } from "@ganache/filecoin";
 import type { Provider as EthereumProvider } from "@ganache/ethereum";
-import { logIfUpgradeRequired, getLatestVersionNumber } from "@ganache/version-check";
+import {
+  logIfUpgradeRequired,
+  getLatestVersionNumber
+} from "@ganache/version-check";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
