@@ -124,7 +124,8 @@ export class EthereumProvider
     connect: undefined;
     disconnect: undefined;
   }>
-  implements Provider<EthereumApi> {
+  implements Provider<EthereumApi>
+{
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: Executor;
@@ -302,7 +303,7 @@ export class EthereumProvider
       // this signature is (not) non-standard and is only a ganache thing!!!
       // we should probably remove it, but I really like it so I haven't yet.
       method = arg1;
-      params = (arg2 as unknown) as OverloadedParameters<EthereumApi[Method]>;
+      params = arg2 as unknown as OverloadedParameters<EthereumApi[Method]>;
       response = this.request({ method, params });
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
@@ -320,7 +321,7 @@ export class EthereumProvider
     } else {
       throw new Error(
         "No callback provided to provider's send function. As of web3 1.0, provider.send " +
-        "is no longer synchronous and must be passed a callback as its final argument."
+          "is no longer synchronous and must be passed a callback as its final argument."
       );
     }
 
@@ -354,9 +355,7 @@ export class EthereumProvider
     this.#logRequest(method, params);
 
     const result = await this.#executor.execute(this.#api, method, params);
-    const promise = result.value as Simplify<
-      typeof result.value
-    >;
+    const promise = result.value as Simplify<typeof result.value>;
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
         const normalizedData = JSON.parse(JSON.stringify(data));
@@ -393,9 +392,10 @@ export class EthereumProvider
     const options = this.#options;
     if (options.logging.verbose) {
       options.logging.logger.log(
-        `   >  ${method}: ${params == null
-          ? params
-          : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
+        `   >  ${method}: ${
+          params == null
+            ? params
+            : JSON.stringify(params, null, 2).split("\n").join("\n   > ")
         }`
       );
     } else {

@@ -14,7 +14,7 @@ const getProvider = async (
 ) => {
   options.chain = options.chain || {};
   options.miner = options.miner || {};
-  options.logging = options.logging || { logger: { log: () => { } } };
+  options.logging = options.logging || { logger: { log: () => {} } };
 
   // set `asyncRequestProcessing` to `true` by default
   let doAsync = options.chain.asyncRequestProcessing;

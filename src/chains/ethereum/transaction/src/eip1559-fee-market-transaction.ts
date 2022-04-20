@@ -87,13 +87,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
           );
         }
 
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw);
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, this.raw);
 
         this.from = from;
         this.serialized = serialized;

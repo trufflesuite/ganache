@@ -23,13 +23,14 @@ export { StorageDealStatus } from "./types/storage-deal-status";
  * @internal
  */
 export class Connector<
-  R extends JsonRpcRequest<
-    FilecoinApi,
-    KnownKeys<FilecoinApi>
-  > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+    R extends JsonRpcRequest<
+      FilecoinApi,
+      KnownKeys<FilecoinApi>
+    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<FilecoinApi, R, JsonRpcResponse> {
+  implements IConnector<FilecoinApi, R, JsonRpcResponse>
+{
   #provider: FilecoinProvider;
 
   get provider() {

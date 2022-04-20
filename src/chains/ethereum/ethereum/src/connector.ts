@@ -26,7 +26,6 @@ import { bufferify } from "./helpers/bufferify";
 
 type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 
-
 function isHttp(
   connection: HttpRequest | WebSocket
 ): connection is HttpRequest {
@@ -37,13 +36,14 @@ function isHttp(
 }
 
 export class Connector<
-  R extends JsonRpcRequest<
-    EthereumApi,
-    KnownKeys<EthereumApi>
-  > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
+    R extends JsonRpcRequest<
+      EthereumApi,
+      KnownKeys<EthereumApi>
+    > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<EthereumApi, R | R[], JsonRpcResponse> {
+  implements IConnector<EthereumApi, R | R[], JsonRpcResponse>
+{
   #provider: EthereumProvider;
 
   static BUFFERIFY_THRESHOLD: number = 100000;

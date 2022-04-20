@@ -11,7 +11,7 @@ import Wallet from "../../src/wallet";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 
 describe("miner", async () => {
-  describe("pre-london transaction ordering", () => { });
+  describe("pre-london transaction ordering", () => {});
   describe("london transaction pool prioritization", () => {
     let lowGasLimitBlockchain: Blockchain;
     let highGasLimitBlockchain: Blockchain;

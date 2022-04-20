@@ -32,7 +32,7 @@ export enum TransactionType {
 export class TransactionFactory {
   public tx: TypedTransaction;
   constructor(raw: Buffer, common: Common) {
-    const [txData, extra] = (decode(raw) as any) as [
+    const [txData, extra] = decode(raw) as any as [
       TypedDatabaseTransaction,
       GanacheRawExtraTx
     ];
@@ -54,11 +54,7 @@ export class TransactionFactory {
       );
     } else if (!common.isActivatedEIP(1559)) {
       if (txType === TransactionType.Legacy) {
-        return LegacyTransaction.fromTxData(
-          <Transaction>txData,
-          common,
-          extra
-        );
+        return LegacyTransaction.fromTxData(<Transaction>txData, common, extra);
       } else if (txType === TransactionType.EIP2930AccessList) {
         if (common.isActivatedEIP(2930)) {
           return EIP2930AccessListTransaction.fromTxData(

@@ -72,7 +72,9 @@ export class Block {
     });
   }
 
-  toJSON<IncludeTransactions extends boolean>(includeFullTransactions: IncludeTransactions) {
+  toJSON<IncludeTransactions extends boolean>(
+    includeFullTransactions: IncludeTransactions
+  ) {
     const hash = this.hash();
     const txFn = this.getTxFn<IncludeTransactions>(includeFullTransactions);
     const hashBuffer = hash.toBuffer();
@@ -95,7 +97,13 @@ export class Block {
       // leave it out of extra and update the effectiveGasPrice after like this
       tx.updateEffectiveGasPrice(header.baseFeePerGas);
       return txFn(tx);
-    }) as IncludeTransactions extends true ? (LegacyTransactionJSON | EIP2930AccessListTransactionJSON | EIP1559FeeMarketTransactionJSON)[] : Data[];
+    }) as IncludeTransactions extends true
+      ? (
+          | LegacyTransactionJSON
+          | EIP2930AccessListTransactionJSON
+          | EIP1559FeeMarketTransactionJSON
+        )[]
+      : Data[];
 
     return {
       hash,

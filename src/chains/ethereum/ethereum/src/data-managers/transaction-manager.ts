@@ -18,7 +18,7 @@ import {
 // any number of transaction types, we pass in this empty
 // no op class to fool the Manager
 
-class NoOp { }
+class NoOp {}
 export default class TransactionManager extends Manager<NoOp> {
   public readonly transactionPool: TransactionPool;
 
@@ -43,10 +43,9 @@ export default class TransactionManager extends Manager<NoOp> {
 
   fromFallback = async (transactionHash: Buffer) => {
     const { fallback } = this.#blockchain;
-    const tx = await fallback.request<Transaction>(
-      "eth_getTransactionByHash",
-      [Data.from(transactionHash).toString()]
-    );
+    const tx = await fallback.request<Transaction>("eth_getTransactionByHash", [
+      Data.from(transactionHash).toString()
+    ]);
     if (tx == null) return null;
 
     const blockHash = Data.from((tx as any).blockHash, 32);

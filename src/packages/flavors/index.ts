@@ -4,10 +4,7 @@ import {
 } from "@ganache/ethereum";
 export type { EthereumProvider, Ethereum } from "@ganache/ethereum";
 export type { FilecoinProvider } from "@ganache/filecoin";
-import type {
-  FilecoinConnector,
-  FilecoinProvider
-} from "@ganache/filecoin";
+import type { FilecoinConnector, FilecoinProvider } from "@ganache/filecoin";
 import {
   EthereumDefaults,
   EthereumProviderOptions,
@@ -90,13 +87,13 @@ export function GetConnector<Flavor extends FlavorName>(
       // spat out for the line number
       console.warn(
         chalk`\n\n{red.bold ERROR:} Could not find Ganache flavor "{bold filecoin}" (${flavor}); ` +
-        `it probably\nneeds to be installed.\n` +
-        ` ▸ if you're using Ganache as a library run: \n` +
-        chalk`   {blue.bold $ npm install ${flavor}}\n` +
-        ` ▸ if you're using Ganache as a CLI run: \n` +
-        chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
-        chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
-        chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
+          `it probably\nneeds to be installed.\n` +
+          ` ▸ if you're using Ganache as a library run: \n` +
+          chalk`   {blue.bold $ npm install ${flavor}}\n` +
+          ` ▸ if you're using Ganache as a CLI run: \n` +
+          chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
+          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
+          chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
       );
       process.exit(1);
     } else {
@@ -118,8 +115,9 @@ type FilecoinOptions<T = "filecoin"> = {
   flavor: T;
 } & (FilecoinProviderOptions | FilecoinLegacyProviderOptions);
 
-export type FlavorOptions<T extends "filecoin" | "ethereum"> = T extends "filecoin"
-  ? FilecoinOptions<T>
-  : T extends "ethereum"
-  ? EthereumOptions<T>
-  : never;
+export type FlavorOptions<T extends "filecoin" | "ethereum"> =
+  T extends "filecoin"
+    ? FilecoinOptions<T>
+    : T extends "ethereum"
+    ? EthereumOptions<T>
+    : never;

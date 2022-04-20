@@ -86,13 +86,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw);
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, this.raw);
 
         this.from = from;
         this.serialized = serialized;
@@ -270,5 +265,5 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     return computeIntrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
   }
 
-  public updateEffectiveGasPrice() { }
+  public updateEffectiveGasPrice() {}
 }

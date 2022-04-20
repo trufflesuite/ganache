@@ -131,7 +131,7 @@ describe("api", () => {
       // and not the value of the second setValue() transaction
       assert.strictEqual(
         lastop.storage[
-        "0000000000000000000000000000000000000000000000000000000000000000"
+          "0000000000000000000000000000000000000000000000000000000000000000"
         ],
         initialValue
       );

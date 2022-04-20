@@ -86,9 +86,9 @@ describe("api", () => {
           assert(
             logger.loggedStuff.includes(
               " > Ganache `eth_getTransactionReceipt` notice: the transaction with hash\n" +
-              ` > \`${hash}\` has not\n` +
-              " > yet been mined." +
-              " See https://trfl.io/v7-instamine for additional information."
+                ` > \`${hash}\` has not\n` +
+                " > yet been mined." +
+                " See https://trfl.io/v7-instamine for additional information."
             )
           );
         });

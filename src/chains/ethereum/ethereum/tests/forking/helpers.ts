@@ -5,7 +5,7 @@ import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 export const logging = {
   logger: {
-    log: () => { }
+    log: () => {}
   }
 };
 

@@ -80,7 +80,8 @@ describe("api", () => {
 
       it("should accept a new deal", async () => {
         const miners = await client.stateListMiners();
-        const accounts = await provider.blockchain.accountManager.getControllableAccounts();
+        const accounts =
+          await provider.blockchain.accountManager.getControllableAccounts();
         const address = accounts[0].address;
         const beginningBalance = await client.walletBalance(address.value);
 

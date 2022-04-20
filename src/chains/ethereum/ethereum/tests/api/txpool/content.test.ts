@@ -119,6 +119,5 @@ describe("txpool", () => {
       assert.deepStrictEqual(pending, {});
       assert.deepStrictEqual(queued, {});
     });
-
   });
 });

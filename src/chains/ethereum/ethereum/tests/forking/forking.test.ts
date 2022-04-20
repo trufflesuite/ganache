@@ -517,8 +517,9 @@ describe("forking", function () {
       return {
         from: remoteAccounts[0],
         to: contractAddress,
-        data: `0x${methods[`setValueFor(uint8,uint256)`]
-          }${encodedKey}${encodedValue}`
+        data: `0x${
+          methods[`setValueFor(uint8,uint256)`]
+        }${encodedKey}${encodedValue}`
       };
     }
 

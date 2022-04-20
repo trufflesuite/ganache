@@ -279,10 +279,11 @@ describe("api", () => {
         const directSignature = await account.address.signMessage(
           new Message(serializedMessage)
         );
-        const apiSignature: SerializedSignedMessage = await client.walletSignMessage(
-          account.address.value,
-          serializedMessage
-        );
+        const apiSignature: SerializedSignedMessage =
+          await client.walletSignMessage(
+            account.address.value,
+            serializedMessage
+          );
         assert.strictEqual(apiSignature.Signature.Type, SigType.SigTypeBLS);
         assert.strictEqual(
           directSignature.toString("base64"),

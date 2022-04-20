@@ -3,7 +3,6 @@ import { Address } from "@ganache/ethereum-address";
 import { EIP1559FeeMarketTransaction } from "./eip1559-fee-market-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { LegacyTransaction } from "./legacy-transaction";
-import { EIP2930AccessListDatabaseTx } from "./raw";
 import { AccessList } from "./access-lists";
 
 export type TypedTransaction =

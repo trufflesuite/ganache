@@ -200,13 +200,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       );
       this.raw = raw;
       if (!this.from) {
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, raw, this.common.chainId());
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, raw, this.common.chainId());
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches

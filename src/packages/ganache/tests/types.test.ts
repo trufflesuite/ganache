@@ -1,6 +1,5 @@
 import { Ethereum, EthereumProvider } from "../"; // <- same as `from "ganache"`
 
-
 //#region type helpers
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I
@@ -19,13 +18,17 @@ type Push<T extends any[], V> = [...T, V];
 /**
  * `TuplifyUnion` splits booleans into [true, false], but we really want to represent that as just `boolean`
  */
-type NormalizeBoolean<T> = T extends [true, false] | [false, true] ? [boolean] : T;
+type NormalizeBoolean<T> = T extends [true, false] | [false, true]
+  ? [boolean]
+  : T;
 
 type TuplifyUnion<
   T,
   L = LastOf<T>,
   N = [T] extends [never] ? true : false
-  > = true extends N ? [] : NormalizeBoolean<Push<TuplifyUnion<Exclude<T, L>>, L>>;
+> = true extends N
+  ? []
+  : NormalizeBoolean<Push<TuplifyUnion<Exclude<T, L>>, L>>;
 
 declare const Provider: typeof EthereumProvider;
 type Method = Parameters<EthereumProvider["request"]>[0]["method"];
@@ -47,9 +50,10 @@ const expectMethod = function <
   MethodName extends Method,
   ExpectedType extends ReturnTypeFor<MethodName>,
   ExpectedUnionSize extends UnionLengthFor<MethodName> extends TuplifyUnion<ExpectedType>["length"]
-  ? UnionLengthFor<MethodName>
-  : `Size of union for ExpectedType (${TuplifyUnion<ExpectedType>["length"] & number}) and Method (${UnionLengthFor<MethodName>}) don't match`
->(): void { };
+    ? UnionLengthFor<MethodName>
+    : `Size of union for ExpectedType (${TuplifyUnion<ExpectedType>["length"] &
+        number}) and Method (${UnionLengthFor<MethodName>}) don't match`
+>(): void {};
 //#endregion types helpers
 
 describe("types", () => {
@@ -69,8 +73,8 @@ describe("types", () => {
     expectMethod<"eth_sendTransaction", string, 1>();
   });
 
-  // Monday, more like 
-  // Tuesday? More like 
+  // Monday, more like
+  // Tuesday? More like
 
   it("returns the type for eth_personalTransaction", () => {
     expectMethod<"personal_sendTransaction", string, 1>();
@@ -81,7 +85,11 @@ describe("types", () => {
   });
 
   it("returns the type for eth_getTransactionByHash", async () => {
-    expectMethod<"eth_getTransactionByHash", Ethereum.SignedTransaction | Ethereum.PooledTransaction | null, 4>();
+    expectMethod<
+      "eth_getTransactionByHash",
+      Ethereum.SignedTransaction | Ethereum.PooledTransaction | null,
+      4
+    >();
   });
 
   it("returns the type for txpool_content", async () => {
@@ -93,7 +101,11 @@ describe("types", () => {
   });
 
   it("returns the type for debug_traceTransaction", async () => {
-    expectMethod<"debug_traceTransaction", Ethereum.TraceTransactionResult, 1>();
+    expectMethod<
+      "debug_traceTransaction",
+      Ethereum.TraceTransactionResult,
+      1
+    >();
   });
 
   it("returns the type for StorageRangeAtResult", async () => {

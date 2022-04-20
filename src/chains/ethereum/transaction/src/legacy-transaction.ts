@@ -47,13 +47,8 @@ export class LegacyTransaction extends RuntimeTransaction {
       if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
         this.from = from;
         this.serialized = serialized;
@@ -228,5 +223,5 @@ export class LegacyTransaction extends RuntimeTransaction {
   ) {
     return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
-  public updateEffectiveGasPrice() { }
+  public updateEffectiveGasPrice() {}
 }

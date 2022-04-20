@@ -9,7 +9,8 @@ export const TezosProvider = Provider;
 
 export class TezosConnector
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements Connector<TezosApi, unknown, unknown> {
+  implements Connector<TezosApi, unknown, unknown>
+{
   provider: Provider;
   #api: TezosApi;
 
@@ -20,7 +21,7 @@ export class TezosConnector
     this.provider = new Provider(providerOptions);
   }
 
-  async connect() { }
+  async connect() {}
 
   format(result: any) {
     return JSON.stringify(result);
