@@ -85,7 +85,10 @@ export namespace Ethereum {
    * A Block as it is returned from eth_getBlockByNumber and eth_getBlockByHash.
    */
   export type Block<
-    IncludeTransactions extends boolean = false,
+    // TODO: the actual type should be `IncludeTransactions extends boolean = false`
+    // but TypeScript can't yet infer it all the way to our `provider.request` method.
+    // See: https://github.com/trufflesuite/ganache/issues/2907
+    IncludeTransactions extends boolean = true | false,
     T extends "external" | "internal" = "external"
   > = T extends "internal"
     ? {

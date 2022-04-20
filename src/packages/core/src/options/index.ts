@@ -11,7 +11,8 @@ import {
 /**
  * @public
  */
-export type ProviderOptions<T extends FlavorName> = FlavorOptions<T>;
+export type ProviderOptions<T extends FlavorName = typeof DefaultFlavor> =
+  FlavorOptions<T>;
 
 export type Options = {
   server: ServerConfig;
