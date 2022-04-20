@@ -129,13 +129,14 @@ export default class EthereumProvider
   #api: EthereumApi;
   #executor: Executor;
   #wallet: Wallet;
-  readonly #blockchain: Blockchain;
+  #blockchain: Blockchain;
 
   constructor(
     options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
     executor: Executor
   ) {
     super();
+    this.resetBlockchain = this.resetBlockchain.bind(this);
     this.#executor = executor;
 
     const providerOptions = (this.#options = EthereumOptionsConfig.normalize(
@@ -167,12 +168,49 @@ export default class EthereumProvider
       blockchain.toggleStepEvent(enable);
     });
 
-    this.#api = new EthereumApi(providerOptions, wallet, blockchain);
+    this.#api = new EthereumApi(
+      providerOptions,
+      wallet,
+      blockchain,
+      this.resetBlockchain
+    );
   }
 
   async initialize() {
     await this.#blockchain.initialize(this.#wallet.initialAccounts);
     this.emit("connect");
+  }
+
+  async resetBlockchain(
+    wallet: Wallet,
+    options: EthereumInternalOptions,
+    coinbase: Address
+  ) {
+    const accounts = wallet.initialAccounts;
+    const fallback = new Fork(options, accounts);
+    const blockchain = new Blockchain(options, coinbase, fallback);
+    await blockchain.initialize(accounts);
+    this.#blockchain = blockchain;
+    blockchain.on("ganache:vm:tx:before", event => {
+      this.emit("ganache:vm:tx:before", event);
+    });
+    blockchain.on("ganache:vm:tx:step", event => {
+      this.emit("ganache:vm:tx:step", event);
+    });
+    blockchain.on("ganache:vm:tx:after", event => {
+      this.emit("ganache:vm:tx:after", event);
+    });
+
+    hookEventSystem(this, (enable: boolean) => {
+      blockchain.toggleStepEvent(enable);
+    });
+
+    this.#api = new EthereumApi(
+      options,
+      wallet,
+      blockchain,
+      this.resetBlockchain
+    );
   }
 
   /**

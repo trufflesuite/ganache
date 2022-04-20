@@ -27,7 +27,12 @@ import {
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
-import { toRpcSig, ecsign, hashPersonalMessage, KECCAK256_NULL } from "ethereumjs-util";
+import {
+  toRpcSig,
+  ecsign,
+  hashPersonalMessage,
+  KECCAK256_NULL
+} from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
@@ -42,7 +47,11 @@ import {
   RPCQUANTITY_GWEI
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
-import { EthereumInternalOptions } from "@ganache/ethereum-options";
+import {
+  EthereumInternalOptions,
+  KnownNetworks,
+  KNOWN_NETWORKS
+} from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
 import Emittery from "emittery";
@@ -162,6 +171,11 @@ export default class EthereumApi implements Api {
   readonly #options: EthereumInternalOptions;
   readonly #blockchain: Blockchain;
   readonly #wallet: Wallet;
+  readonly #resetBlockchain: (
+    wallet: Wallet,
+    options: EthereumInternalOptions,
+    coinbase: Address
+  ) => void;
 
   /**
    * This is the Ethereum API that the provider interacts with.
@@ -174,11 +188,17 @@ export default class EthereumApi implements Api {
   constructor(
     options: EthereumInternalOptions,
     wallet: Wallet,
-    blockchain: Blockchain
+    blockchain: Blockchain,
+    resetBlockchain: (
+      wallet: Wallet,
+      options: EthereumInternalOptions,
+      coinbase: Address
+    ) => void
   ) {
     this.#options = options;
     this.#wallet = wallet;
     this.#blockchain = blockchain;
+    this.#resetBlockchain = resetBlockchain;
   }
 
   //#region db
@@ -697,6 +717,75 @@ export default class EthereumApi implements Api {
   async evm_removeAccount(address: DATA, passphrase: string) {
     const addy = new Address(address);
     return this.#wallet.removeKnownAccount(addy, passphrase);
+  }
+
+  /**
+   * Forks at the provided block number, overwriting the current Ganache
+   * blockchain state.
+   *
+   * Note: any transactions included on your local Ganache chain will be
+   * overwritten by the fork's data.
+   * @param number - Integer of a block number, or the string "latest".
+   * @param network - A network name to fork from using Ganache's Zero-Config Mainnet Forking, or an
+   * archive node URL.
+   * Zero-Config Forking Options - `"mainnet"`, `"ropsten"`, `"kovan"`, `"rinkeby"`, `"goerli"`, `"görli"`
+   * @returns `true` if Ganache's blockchain state was overwritten by the fork data.
+   * @example
+   * ```javascript
+   * const preForkLatest = await provider.request({ method: "eth_getBlockByNumber", params: ["latest"] });
+   * const didFork = await provider.request({ method: "evm_fork", params: ["latest", "mainnet"] });
+   * assert(didFork);
+   * const postForkLatest = await provider.request({ method: "eth_getBlockByNumber", params: ["latest"] });
+   * console.log(preForkLatest.number < postForkLatest.number);
+   * ```
+   */
+  @assertArgLength(0, 1)
+  async evm_fork(options?: {
+    blockNumber?: QUANTITY | "latest";
+    network?: string;
+  }) {
+    const { blockNumber, network } = options;
+
+    // parse passed blockNumber to a number or "latest" tag. default to "latest"
+    let normalizedBlockNumber: number | "latest";
+    if (blockNumber) {
+      if (typeof blockNumber === "string") {
+        if (blockNumber !== "latest") {
+          throw new Error(`Fork block must be a block number or "latest" tag.`);
+        } else {
+          normalizedBlockNumber = blockNumber;
+        }
+      } else {
+        normalizedBlockNumber = Quantity.from(blockNumber).toNumber();
+      }
+    }
+
+    let normalizedNetwork: KnownNetworks;
+    if (network && KNOWN_NETWORKS.includes(network as KnownNetworks)) {
+      normalizedNetwork = network as KnownNetworks;
+    } else {
+      throw new Error(
+        `Fork network must be a Ganache known network: ${KNOWN_NETWORKS.join(
+          ", "
+        )}`
+      );
+    }
+
+    // they didn't pass a blockNumber, and it wasn't included in the url
+    if (normalizedBlockNumber === undefined) {
+      normalizedBlockNumber = "latest";
+    }
+
+    this.#options.fork.blockNumber = normalizedBlockNumber;
+    this.#options.fork.network = normalizedNetwork;
+
+    await this.#blockchain.stop();
+    await this.#resetBlockchain(
+      this.#wallet,
+      this.#options,
+      this.#blockchain.coinbase
+    );
+    return true;
   }
 
   //#endregion evm
