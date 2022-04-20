@@ -914,7 +914,7 @@ describe("api", () => {
           const afterTx = await getBlockchainState();
 
           // simulating a transaction does change the trie root, db and VM accounts
-          assert.notEqual(before, afterTx);
+          assert.notDeepStrictEqual(before, afterTx);
         });
 
         it("does not persist changes to vm or state trie when overrides are set", async () => {
@@ -945,7 +945,7 @@ describe("api", () => {
           const afterTx = await getBlockchainState();
 
           // simulating a transaction does change the trie root, db and VM accounts
-          assert.notEqual(before, afterTx);
+          assert.notDeepStrictEqual(before, afterTx);
         });
       });
     });
