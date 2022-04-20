@@ -1885,7 +1885,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: Ethereum.Transaction) {
+  async eth_signTransaction(transaction: Ethereum.Transaction): Promise<Data> {
     const blockchain = this.#blockchain;
     const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
 
@@ -1906,7 +1906,7 @@ export default class EthereumApi implements Api {
     }
 
     tx.signAndHash(privateKey.toBuffer());
-    return Data.from(tx.serialized).toString();
+    return Data.from(tx.serialized);
   }
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
