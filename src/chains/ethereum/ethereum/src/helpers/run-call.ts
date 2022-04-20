@@ -5,7 +5,6 @@ import Message from "@ethereumjs/vm/dist/evm/message";
 import VM from "@ethereumjs/vm";
 import { BN } from "ethereumjs-util";
 import EVM from "@ethereumjs/vm/dist/evm/evm";
-import Blockchain from "../blockchain";
 import { KECCAK256_NULL } from "ethereumjs-util";
 import { GanacheTrie } from "./trie";
 
