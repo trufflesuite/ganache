@@ -1087,7 +1087,7 @@ Validate the given passphrase and submit transaction.
 ##### Arguments
 
 - `transaction: Ethereum.Transaction`
-- `passphrase: string` : The passphrase to decrpyt the private key belonging to `tx.from`.
+- `passphrase: string` : The passphrase to decrypt the private key belonging to `tx.from`.
 
 ##### Returns
 
