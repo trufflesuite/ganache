@@ -29,8 +29,18 @@ export namespace Ethereum {
   export type SubscriptionId = UtilTypes.SubscriptionId;
 
   // transactions
-  export type Transaction = TransactionTypes.Transaction;
-  export type CallTransaction = TransactionTypes.CallTransaction;
+  export namespace Transaction {
+    export type Legacy = TransactionTypes.LegacyRpcTransaction;
+    export type EIP1559 = TransactionTypes.EIP1559FeeMarketRpcTransaction;
+    export type EIP2930 = TransactionTypes.EIP2930AccessListRpcTransaction;
+  }
+  export type Transaction =
+    | Ethereum.Transaction.Legacy
+    | Ethereum.Transaction.EIP1559
+    | Ethereum.Transaction.EIP2930;
+  export type CallTransaction = Omit<Ethereum.Transaction, "from"> & {
+    from?: string;
+  };
   export type SignedTransaction<
     T extends "external" | "internal" = "external"
   > = T extends "internal"
