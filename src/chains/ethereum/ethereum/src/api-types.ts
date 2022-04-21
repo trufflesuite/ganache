@@ -75,7 +75,7 @@ export namespace Ethereum {
     queued: Record<string, Record<string, PooledTransaction<T>>>;
   };
 
-  // Mine
+  // Mine (evm_mine)
   export type MineOptions = {
     timestamp?: number;
     blocks?: number;
