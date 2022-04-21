@@ -1,13 +1,11 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
-  EIP1559FeeMarketTransactionJSON,
-  EIP2930AccessListTransactionJSON,
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
-  LegacyTransactionJSON,
   TransactionFactory,
   TypedDatabaseTransaction,
-  TypedTransaction
+  TypedTransaction,
+  TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
@@ -97,13 +95,7 @@ export class Block {
       // leave it out of extra and update the effectiveGasPrice after like this
       tx.updateEffectiveGasPrice(header.baseFeePerGas);
       return txFn(tx);
-    }) as IncludeTransactions extends true
-      ? (
-          | LegacyTransactionJSON
-          | EIP2930AccessListTransactionJSON
-          | EIP1559FeeMarketTransactionJSON
-        )[]
-      : Data[];
+    }) as IncludeTransactions extends true ? TypedTransactionJSON[] : Data[];
 
     return {
       hash,
