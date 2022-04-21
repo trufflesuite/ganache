@@ -3,40 +3,41 @@ import http2 from "http2";
 import { semverRegex } from "./semver";
 import Conf from "conf";
 
-export class VersionChecker {
+export default class VersionChecker {
   protected ConfigManager;
   protected _config;
   protected _logger;
-  protected _current;
+  protected _currentVersion;
 
-  constructor(options) {
-    const { configName, logger, current } = options;
+  constructor(currentVersion?, config?, logger?) {
     this.ConfigManager = new Conf({
-      ...VersionChecker.DEFAULTS,
-      configName
+      configName: process.env.TEST ? "testConfig" : "config", // config is the package default
+      defaults: {
+        ...VersionChecker.DEFAULTS,
+        ...config
+      }
     });
 
     this._config = this.ConfigManager.get("config");
-    this._logger = logger || function () {};
-    this._current = current;
+    this._currentVersion = currentVersion;
+    this._logger = logger || console;
   }
 
   init() {
     if (!this._config.enabled) return false;
-    // send server request
+    // all this should do is send the fetchRequest
+  }
 
-    // Have we already alerted the user to latest version?
-
-    // Log version change message
-    const { latestVersion } = this._config;
-    const versionChange = this.upgradeIsAvailable(this._current, latestVersion);
-
-    if (versionChange) {
-    }
+  setPackageName(packageName) {
+    this.set("packageName", packageName);
   }
 
   setLatestVersion(latestVersion) {
     this.set("latestVersion", latestVersion);
+  }
+
+  setlatestVersionLogged(latestVersionLogged) {
+    this.set("latestVersionLogged", latestVersionLogged);
   }
 
   setTTL(ttl) {
@@ -56,33 +57,41 @@ export class VersionChecker {
     this.ConfigManager.set("config", this._config);
   }
 
+  configFileLocation() {
+    return this.ConfigManager.path;
+  }
+
   // Intentionally verbose here if we get logging involved it could aid debugging
-  upgradeIsAvailable(current, latest) {
-    // No current version passed in
-    if (!current) {
+  canUpgrade() {
+    const currentVersion = this._currentVersion;
+    const latestVersion = this._config.latestVersion;
+    // No currentVersion version passed in
+    if (!currentVersion) {
       return false;
       // We are in local DEV
-    } else if (current === "DEV") {
+    } else if (currentVersion === "DEV") {
       return false;
-      // We are on latest version
-    } else if (current === latest) {
+      // We are on latestVersion version
+    } else if (currentVersion === latestVersion) {
       return false;
-      // Invalid current version string
-    } else if (typeof current !== "string") {
+      // Invalid currentVersion version string
+    } else if (typeof currentVersion !== "string") {
       return false;
-    } else if (current === "") {
+    } else if (currentVersion === "") {
+      return false;
+    } else if (!this.alreadyLoggedThisVersion) {
       return false;
     }
     // returns falsy if function cannot detect semver difference
-    return this.detectSemverChange(current, latest);
+    return !!this.detectSemverChange(currentVersion, latestVersion);
   }
 
-  detectSemverChange(current, latest) {
-    const [_, major, minor, patch] = current
+  detectSemverChange(currentVersion, latestVersion) {
+    const [_, major, minor, patch] = currentVersion
       .match(semverRegex)
       .slice(1, 4)
       .map(Number);
-    const [updateMajor, updateMinor, updatePatch] = latest
+    const [updateMajor, updateMinor, updatePatch] = latestVersion
       .match(semverRegex)
       .slice(1, 4)
       .map(Number);
@@ -99,141 +108,108 @@ export class VersionChecker {
   getLatestVersion() {
     if (!this._config.enabled) return false;
     // Send fetch request
-    // Compare to latest in config
-    // If mismatch, update latestVersion to fetched version
-    //              update lastCheck to Date.now()
+    // update latestVersion to fetched version
+    // update lastCheck to Date.now()
   }
 
   log() {
-    if (!this._config.enabled) return false;
-    // Check if we have already alerted the user config.lastVersionAlerted === config.latestVersion
-    // compare current to latest stored in config and set by getLatestVersion
-    // If different, log
-    // update lastVersionAlerted to config.latestVersion.
+    if (!this._config.enabled) return false; // Should enable only
+
+    if (!this.canUpgrade()) return false;
+
+    const currentVersion = this._currentVersion;
+    const { packageName, latestVersion } = this._config;
+
+    const upgradeType = this.detectSemverChange(currentVersion, latestVersion);
+
+    this.logMessage({
+      upgradeType,
+      packageName,
+      currentVersion,
+      latestVersion
+    });
+    this.setlatestVersionLogged(latestVersion);
+    return true;
+  }
+
+  alreadyLoggedThisVersion() {
+    return this._config.latestVersionLogged === this._config.latestVersion;
+  }
+
+  // TODO detect context for different log messages -> Startup vs --version (pretty vs string)
+  logMessage(options) {
+    const { upgradeType, packageName, currentVersion, latestVersion } = options;
+    const chalk = require("chalk");
+
+    const reAnsiEscapes =
+      /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+    const WRAP_WIDTH = Math.min(120, process.stdout.columns || 0);
+    const center = (str: string, width: number) => {
+      const mid = (width - visibleCharacterLength(str)) / 2;
+      if (mid < 0) return str;
+
+      const left = Math.floor(mid);
+      const right = Math.ceil(mid);
+      return " ".repeat(left) + str + " ".repeat(right);
+    };
+    const visibleCharacterLength = (str: string) => {
+      // if the string contains unicode characters we need to count them,
+      // destructuring the string to get the characters as codePOints
+      return [...str.replace(reAnsiEscapes, "")].length;
+    };
+
+    const line1 = chalk`New {hex("${TruffleColors.porsche}") ${upgradeType}} version of ${packageName} available! {hex("${TruffleColors.watermelon}") ${currentVersion}} ⇢ {hex("${TruffleColors.green}") ${latestVersion}} `;
+    const line2 = chalk`{hex("${TruffleColors.porsche}") Changelog:} {hex("${TruffleColors.turquoise}") https://github.com/trufflesuite/${packageName}/releases/v${latestVersion}}`;
+    const line3 = chalk`Run {hex("${TruffleColors.green}") npm install -g ${packageName}@${latestVersion}} to update!`;
+    const width =
+      Math.max(
+        visibleCharacterLength(line1),
+        visibleCharacterLength(line2),
+        visibleCharacterLength(line3)
+      ) + 4;
+    const wrapWidth = Math.max(width, WRAP_WIDTH);
+    const vPipe = chalk`{hex("${TruffleColors.yellow}") ║}`;
+    const hLines = "═".repeat(width);
+    const emptyLine = center(
+      vPipe + " ".repeat(width) + vPipe,
+      Math.max(width, wrapWidth)
+    );
+    const message = [""];
+    message.push(
+      chalk`{hex("${TruffleColors.yellow}") ${center(
+        "╔" + hLines + "╗",
+        wrapWidth
+      )}}`
+    );
+    message.push(emptyLine);
+    message.push(center(vPipe + center(line1, width) + vPipe, wrapWidth));
+    message.push(center(vPipe + center(line2, width) + vPipe, wrapWidth));
+    message.push(center(vPipe + center(line3, width) + vPipe, wrapWidth));
+    message.push(emptyLine);
+    message.push(
+      chalk`{hex("${TruffleColors.yellow}") ${center(
+        "╚" + hLines + "╝",
+        wrapWidth
+      )}}`
+    );
+    message.push("");
+    this._logger.log(message.join("\n"));
   }
 
   static get DEFAULTS() {
     return {
-      projectName: "versionCheck",
-      configName: "default",
-      defaults: {
-        config: {
-          enabled: true,
-          url: "https://version.trufflesuite.com/",
-          ttl: 300, // http2session.setTimeout
-          latestVersion: "0.0.0", // Last version fetched from the server
-          lastVersionAlerted: "0.0.0", // Last version user to tell the user about
-          lastCheck: Date.now() // Timestamp for last successful server version fetch
-        }
+      config: {
+        packageName: "ganache",
+        enabled: true,
+        url: "https://version.trufflesuite.com/",
+        ttl: 300, // http2session.setTimeout
+        latestVersion: "0.0.0", // Last version fetched from the server
+        latestVersionLogged: "0.0.0", // Last version user to tell the user about
+        lastCheck: 0 // Timestamp for last successful server version fetch
       }
     };
   }
 }
-
-export const logIfUpgradeRequired = (options: {
-  name: string;
-  logger: { log: any };
-  current: string;
-  latest: string;
-}) => {
-  const { current, name, logger, latest } = options;
-
-  if (current === "DEV") {
-    return false;
-  } else if (typeof current === "string" && current !== "") {
-    try {
-      if (current === latest) return false;
-
-      function getUpgradeType(current: string, update: string) {
-        const [_, major, minor, patch] = current
-          .match(semverRegex)
-          .slice(1, 4)
-          .map(Number);
-        const [updateMajor, updateMinor, updatePatch] = update
-          .match(semverRegex)
-          .slice(1, 4)
-          .map(Number);
-
-        return updateMajor !== major
-          ? "major"
-          : updateMinor !== minor
-          ? "minor"
-          : updatePatch !== patch
-          ? "patch"
-          : null;
-      }
-
-      const chalk = require("chalk");
-
-      const reAnsiEscapes =
-        /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
-      const WRAP_WIDTH = Math.min(120, process.stdout.columns || 0);
-      const center = (str: string, width: number) => {
-        const mid = (width - visibleCharacterLength(str)) / 2;
-        if (mid < 0) return str;
-
-        const left = Math.floor(mid);
-        const right = Math.ceil(mid);
-        return " ".repeat(left) + str + " ".repeat(right);
-      };
-      const visibleCharacterLength = (str: string) => {
-        // if the string contains unicode characters we need to count them,
-        // destructuring the string to get the characters as codePOints
-        return [...str.replace(reAnsiEscapes, "")].length;
-      };
-
-      // compare the two sem versions, if the latest version is newer than the current version
-      // log a message to the user
-      const upgradeType = getUpgradeType(current, latest);
-      if (!upgradeType) return false;
-
-      const line1 = chalk`New {hex("${TruffleColors.porsche}") ${upgradeType}} version of ${name} available! {hex("${TruffleColors.watermelon}") ${current}} ⇢ {hex("${TruffleColors.green}") ${latest}} `;
-      const line2 = chalk`{hex("${TruffleColors.porsche}") Changelog:} {hex("${TruffleColors.turquoise}") https://github.com/trufflesuite/${name}/releases/v${latest}}`;
-      const line3 = chalk`Run {hex("${TruffleColors.green}") npm install -g ${name}@${latest}} to update!`;
-      const width =
-        Math.max(
-          visibleCharacterLength(line1),
-          visibleCharacterLength(line2),
-          visibleCharacterLength(line3)
-        ) + 4;
-      const wrapWidth = Math.max(width, WRAP_WIDTH);
-      const vPipe = chalk`{hex("${TruffleColors.yellow}") ║}`;
-      const hLines = "═".repeat(width);
-      const emptyLine = center(
-        vPipe + " ".repeat(width) + vPipe,
-        Math.max(width, wrapWidth)
-      );
-      const message = [""];
-      message.push(
-        chalk`{hex("${TruffleColors.yellow}") ${center(
-          "╔" + hLines + "╗",
-          wrapWidth
-        )}}`
-      );
-      message.push(emptyLine);
-      message.push(center(vPipe + center(line1, width) + vPipe, wrapWidth));
-      message.push(center(vPipe + center(line2, width) + vPipe, wrapWidth));
-      message.push(center(vPipe + center(line3, width) + vPipe, wrapWidth));
-      message.push(emptyLine);
-      message.push(
-        chalk`{hex("${TruffleColors.yellow}") ${center(
-          "╚" + hLines + "╝",
-          wrapWidth
-        )}}`
-      );
-      message.push("");
-      logger.log(message.join("\n"));
-
-      return true;
-    } catch {
-      // If we fail to tell the user about an update it is unfortunate, but not
-      // the end of the world, so swallow the error and continue.
-      return false;
-    }
-  } else {
-    return false;
-  }
-};
 
 export const getLatestVersionNumber = (name: "ganache" | "truffle") => {
   return new Promise<string>((resolve, reject) => {
