@@ -72,7 +72,6 @@ describe("types", () => {
   it("returns the type for eth_sendTransaction", () => {
     expectMethod<"eth_sendTransaction", string, 1>();
   });
-
   it("returns the type for eth_personalTransaction", () => {
     expectMethod<"personal_sendTransaction", string, 1>();
   });
