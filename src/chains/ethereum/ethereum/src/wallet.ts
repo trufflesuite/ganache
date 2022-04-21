@@ -665,7 +665,7 @@ export default class Wallet {
       if (first12.compare(TWELVE_255s) === 0) {
         // keccak returns a 32 byte hash of the input data, which is the exact
         // length we need for a private key.
-        // note: if keccak can return it's own input as it's output, then this
+        // note: if keccak can return its own input as its output, then this
         // loops forever. The chances of this happening are impossibly low, so
         // it's not worth the effort to check, but it would be interesting if
         // someone reported an issue that can cause this for a specific
