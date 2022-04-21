@@ -91,12 +91,22 @@ function hookEventSystem(
 }
 
 type Primitives = string | number | null | undefined | symbol | bigint;
-export type Externalize<X> = X extends Primitives
-  ? X
-  : X extends Quantity | Data | ITraceData
-  ? string
-  : { [N in keyof X]: Externalize<X[N]> };
 
+// Externalize changes any `Quantity`, `Data`, `ITraceData` types into `string`
+// as that's how they are after being serialized to JSON. It's be nice if
+// `JSON.stringify` did that for us, as our types implement `toJSON()`, but it
+// doesn't
+export type Externalize<X> =
+  // if X is a Primitive return it as is
+  X extends Primitives
+    ? X
+    : // if X is a Quantity | Data | ITraceData return `string`
+    X extends Quantity | Data | ITraceData
+    ? string
+    : // if X can be iterated iterate and recurse on each element
+      { [N in keyof X]: Externalize<X[N]> };
+
+// Simplify makes the types more readable
 type Simplify<Type> = Promise<
   Type extends Promise<infer X> ? Externalize<X> : never
 >;
