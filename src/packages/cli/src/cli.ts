@@ -81,7 +81,6 @@ const closeHandler = async () => {
         console.log("Server has been shut down");
         break;
     }
-    console.log("HEYO");
     // process.removeAllListeners("SIGINT");
     // process.removeAllListeners("SIGTERM");
     // process.removeAllListeners("SIGHUP");
