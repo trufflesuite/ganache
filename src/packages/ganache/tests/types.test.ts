@@ -73,9 +73,6 @@ describe("types", () => {
     expectMethod<"eth_sendTransaction", string, 1>();
   });
 
-  // Monday, more like
-  // Tuesday? More like
-
   it("returns the type for eth_personalTransaction", () => {
     expectMethod<"personal_sendTransaction", string, 1>();
   });
