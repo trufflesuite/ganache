@@ -1,7 +1,6 @@
 import assert from "assert";
 import VersionChecker from "../src/";
 import * as fs from "fs";
-import { Version } from "../../flavors/node_modules/@ganache/filecoin/typings/src/things/version";
 
 process.env.TEST = "true";
 

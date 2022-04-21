@@ -8,11 +8,12 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { Provider as FilecoinProvider } from "@ganache/filecoin";
 import type { Provider as EthereumProvider } from "@ganache/ethereum";
+/*
 import {
   logIfUpgradeRequired,
   getLatestVersionNumber
 } from "@ganache/version-check";
-
+*/
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
   // writes to process.stdout in Node.js are sometimes asynchronous and may occur over
@@ -131,6 +132,7 @@ async function startGanache(err: Error) {
   }
   started = true;
 
+  /*
   // TODO: we shouldn't check this on start up, as it slows us down.
   // Let's read/write it to a file somewhere instead.
   const latest = await getLatestVersionNumber("ganache");
@@ -142,7 +144,7 @@ async function startGanache(err: Error) {
     current: "1.2.3", // 1.2.3 is just for testing right now, don't commit it
     latest
   });
-
+*/
   switch (flavor) {
     case FilecoinFlavorName: {
       await initializeFilecoin(
