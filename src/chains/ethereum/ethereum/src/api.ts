@@ -49,7 +49,6 @@ import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { CallOverrides } from "./helpers/run-call";
 import { Ethereum } from "./api-types";
-import { TypeOutputReturnType } from "ethereumjs-util";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
