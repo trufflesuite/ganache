@@ -14,8 +14,7 @@ describe("@ganache/version-check", () => {
     url: "test",
     ttl: 100,
     latestVersion: "99.99.99",
-    latestVersionLogged: "99.99.99",
-    lastCheck: 100
+    latestVersionLogged: "99.99.99"
   };
   beforeEach(() => {
     vc = new VersionChecker(testVersion);
@@ -44,8 +43,6 @@ describe("@ganache/version-check", () => {
     });
     it("sets an optional config", () => {
       vc = new VersionChecker(testVersion, testConfig);
-
-      console.log(vc._config);
 
       assert.deepStrictEqual(
         vc._config,
@@ -219,11 +216,6 @@ describe("@ganache/version-check", () => {
   });
 
   describe("detectSemverChange", () => {
-    /*
-      1. Latest > than current
-      2. Latest === current
-      3. Latest < current 
-    */
     describe("patches", () => {
       it("0.0.0 -> 0.0.1", () => {
         const currentVersion = "0.0.0";
@@ -710,13 +702,163 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("shouldUpgrade", () => {
-    it("returns false if current version is not defined");
-    it("returns false if current version is in DEV mode");
-    it("returns false if current version === latest version");
-    it("returns false if current version is not a string");
-    it("returns false if current version is a zero length string");
-    it("returns falsy if upgradeIsAvailable not detected");
-    it("returns upgrade type if upgradeIsAvailable");
+  describe("alreadyLoggedThisVersion", () => {
+    it("true if config.latestVersionLogged < latestVersion", () => {
+      const config = {
+        latestVersionLogged: "0.0.0",
+        latestVersion: "1.0.0"
+      };
+      vc = new VersionChecker("0.0.0", config);
+
+      assert.equal(
+        vc.alreadyLoggedThisVersion(),
+        false,
+        "alreadyLoggedThisVersion is true when latestVersionLogged < latestVersion"
+      );
+    });
+    it("false if config.latestVersionLogged = latestVersion", () => {
+      const config = {
+        latestVersionLogged: "1.0.0",
+        latestVersion: "1.0.0"
+      };
+      vc = new VersionChecker("0.0.0", config);
+
+      assert.equal(
+        vc.alreadyLoggedThisVersion(),
+        true,
+        "alreadyLoggedThisVersion is false when latestVersionLogged = latestVersion"
+      );
+    });
+    it("false if config.latestVersionLogged > latestVersion", () => {
+      const config = {
+        latestVersionLogged: "2.0.0",
+        latestVersion: "1.0.0"
+      };
+      vc = new VersionChecker("0.0.0", config);
+
+      assert.equal(
+        vc.alreadyLoggedThisVersion(),
+        true,
+        "alreadyLoggedThisVersion is false when latestVersionLogged > latestVersion"
+      );
+    });
+  });
+
+  describe("logMessage", () => {
+    let options;
+    let message;
+    const logMessageTestLogger = { log: str => (message = str) };
+
+    beforeEach(() => {
+      options = {
+        upgradeType: "major",
+        packageName: "ganache",
+        currentVersion: "1.2.3",
+        latestVersion: "3.2.1"
+      };
+
+      vc = new VersionChecker(options.currentVersion, {}, logMessageTestLogger);
+      message = "";
+    });
+
+    it("will not log if !upgradeType", () => {
+      options.upgradeType = null;
+      const didLog = vc.log(options);
+
+      assert.equal(didLog, false, "Will log if !options.upgradeType");
+      assert.equal(message, "", "Will log if !options.upgradeType");
+    });
+    it("will not log if !packageName", () => {
+      options.packageName = null;
+      const didLog = vc.log(options);
+
+      assert.equal(didLog, false, "Will log if !options.packageName ");
+      assert.equal(message, "", "Will log if !options.packageName");
+    });
+    it("will not log if !currentVersion", () => {
+      options.currentVersion = null;
+      const didLog = vc.log(options);
+
+      assert.equal(didLog, false, "Will log if !options.currentVersion ");
+      assert.equal(message, "", "Will log if !options.currentVersion");
+    });
+    it("will not log if !latestVersion", () => {
+      options.latestVersion = null;
+      const didLog = vc.log(options);
+
+      assert.equal(didLog, false, "Will log if !options.latestVersion ");
+      assert.equal(message, "", "Will log if !options.latestVersion");
+    });
+    it("message contains the upgradeType", () => {
+      const didLog = vc.logMessage(options);
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(options.upgradeType) >= 0,
+        true,
+        "Message does not contain the upgradeType"
+      );
+    });
+    it("message contains the packageName", () => {
+      const didLog = vc.logMessage(options);
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(options.packageName) >= 0,
+        true,
+        "Message does not contain the packageName"
+      );
+    });
+    it("message contains the currentVersion", () => {
+      const didLog = vc.logMessage(options);
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(options.currentVersion) >= 0,
+        true,
+        "Message does not contain the currentVersion"
+      );
+    });
+    it("message contains the latestVersion", () => {
+      const didLog = vc.logMessage(options);
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(options.latestVersion) >= 0,
+        true,
+        "Message does not contain the latestVersion"
+      );
+    });
+  });
+
+  describe("init", () => {
+    it("will not init if version check is disabled", () => {
+      vc.setEnabled(false);
+
+      assert.equal(vc.init(), false, "Version Check will init if disabled.");
+    });
+  });
+  describe("fetchLatestVersion", () => {
+    it("will not fetchLatestVersion", () => {
+      vc.setEnabled(false);
+
+      assert.equal(
+        vc.fetchLatestVersion(),
+        false,
+        "Version Check will fetchLatestVersion if disabled."
+      );
+    });
+  });
+  describe("log", () => {
+    it("will not log", () => {
+      vc.setEnabled(false);
+      vc.canNotifyUser = () => true;
+
+      assert.equal(
+        vc.fetchLatestVersion(),
+        false,
+        "Version Check will log if disabled."
+      );
+    });
   });
 });
