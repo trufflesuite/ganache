@@ -8,17 +8,22 @@ import nock from "nock";
 
 describe("@ganache/version-check", () => {
   let vc;
-  const testVersion = "0.0.0-test";
+  const testVersion = "0.0.0";
   const testConfig = {
     packageName: "test",
     enabled: true,
     url: "test",
     ttl: 100,
     latestVersion: "99.99.99",
-    latestVersionLogged: "99.99.99"
+    latestVersionLogged: "99.99.90"
   };
+
+  let message;
+  const testLogger = { log: str => (message = str) };
+
   beforeEach(() => {
     vc = new VersionChecker(testVersion);
+    message = "";
   });
 
   afterEach(() => {
@@ -171,7 +176,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("false if currentVersion === latestVersion", () => {
-      vc = new VersionChecker("0.0.0");
+      vc = new VersionChecker(testVersion);
       const canNotifyUser = vc.canNotifyUser();
 
       assert.equal(
@@ -772,8 +777,6 @@ describe("@ganache/version-check", () => {
 
   describe("logMessage", () => {
     let options;
-    let message;
-    const logMessageTestLogger = { log: str => (message = str) };
 
     beforeEach(() => {
       options = {
@@ -783,7 +786,7 @@ describe("@ganache/version-check", () => {
         latestVersion: "3.2.1"
       };
 
-      vc = new VersionChecker(options.currentVersion, {}, logMessageTestLogger);
+      vc = new VersionChecker(options.currentVersion, {}, testLogger);
       message = "";
     });
 
@@ -864,6 +867,7 @@ describe("@ganache/version-check", () => {
       assert.equal(vc.init(), false, "Version Check will init if disabled.");
     });
   });
+
   describe("getLatestVersion", () => {
     it("will not getLatestVersion if version check is disabled", async () => {
       vc.setEnabled(false);
@@ -875,12 +879,86 @@ describe("@ganache/version-check", () => {
       );
     });
   });
+
   describe("log", () => {
-    it("will not log", () => {
+    it("will not log if disabled", () => {
       vc.setEnabled(false);
       vc.canNotifyUser = () => true;
 
       assert.equal(vc.log(), false, "Version Check will log if disabled.");
+    });
+    it("will not log if canNotifyUser() is false", () => {
+      vc.canNotifyUser = () => false;
+
+      assert.equal(vc.log(), false, "Version Check will log if disabled.");
+    });
+    it("compares the constructor currentVersion to config.latestVersion", () => {
+      testConfig.latestVersionLogged = "0.0.0";
+      vc = new VersionChecker(testVersion, testConfig, testLogger);
+      vc.log();
+
+      assert.equal(
+        message.indexOf(testVersion) >= 0,
+        true,
+        "Log does not contain currentVersion"
+      );
+      assert.equal(
+        message.indexOf(testConfig.latestVersion) >= 0,
+        true,
+        "Log does not contain latestVersion"
+      );
+    });
+    it("reports on the config.packageName", () => {
+      vc.log();
+
+      assert.equal(
+        message.indexOf(testConfig.packageName) >= -1,
+        true,
+        "Log does not contain the packageName"
+      );
+    });
+    it("reports the upgradeType based on detectSemverChange", () => {
+      vc = new VersionChecker(testVersion, testConfig, testLogger);
+
+      const upgradeType = vc.detectSemverChange(
+        testVersion,
+        testConfig.latestVersion
+      );
+      vc.log();
+
+      assert.equal(
+        message.indexOf(upgradeType) >= 0,
+        true,
+        "Log does not contain the correct upgradeType"
+      );
+    });
+    it("logs the message", () => {
+      vc = new VersionChecker(testVersion, testConfig, testLogger);
+
+      vc.log();
+
+      assert.equal(
+        message.length > 0,
+        true,
+        "Log does not display the message"
+      );
+    });
+    it("sets the latest version", () => {
+      vc = new VersionChecker(testVersion, testConfig, testLogger);
+
+      assert.notEqual(
+        vc._config.latestVersionLogged,
+        testConfig.latestVersion,
+        "latestVersion and latestVersionLogged is the same before logging"
+      );
+
+      vc.log();
+
+      assert.equal(
+        vc._config.latestVersionLogged,
+        testConfig.latestVersion,
+        "latestVersionLogged was not successfully set after logging version message"
+      );
     });
   });
 });
