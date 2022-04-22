@@ -128,34 +128,23 @@ export default class VersionChecker {
   private fetchLatestVersion() {
     const { packageName, url } = this._config;
     return new Promise<string>((resolve, reject) => {
-      // The `http2.connect` method creates a new session with example.com
       const session = http2.connect(url);
 
-      // If there is any error in connecting, log it to the console
       session.on("error", err => reject(err));
 
       const req = session.request({ ":path": `/?name=${packageName}` });
-      // since we don't have any more data to send as
-      // part of the request, we can end it
+
       req.end();
 
-      // To fetch the response body, we set the encoding
-      // we want and initialize an empty data string
       req.setEncoding("utf8");
       let data = "";
 
-      // append response data to the data string every time
-      // we receive new data chunks in the response
       req.on("data", chunk => {
         data += chunk;
       });
 
-      // Once the response is finished, log the entire data
-      // that we received
       req.on("end", () => {
         resolve(data);
-        // In this case, we don't want to make any more
-        // requests, so we can close the session
         session.close();
       });
     });
@@ -261,38 +250,3 @@ export default class VersionChecker {
     };
   }
 }
-
-export const getLatestVersionNumber = (name: "ganache" | "truffle") => {
-  return new Promise<string>((resolve, reject) => {
-    // The `http2.connect` method creates a new session with example.com
-    const session = http2.connect("https://version.trufflesuite.com/");
-
-    // If there is any error in connecting, log it to the console
-    session.on("error", err => reject(err));
-
-    const req = session.request({ ":path": `/?name=${name}` });
-    // since we don't have any more data to send as
-    // part of the request, we can end it
-    req.end();
-
-    // To fetch the response body, we set the encoding
-    // we want and initialize an empty data string
-    req.setEncoding("utf8");
-    let data = "";
-
-    // append response data to the data string every time
-    // we receive new data chunks in the response
-    req.on("data", chunk => {
-      data += chunk;
-    });
-
-    // Once the response is finished, log the entire data
-    // that we received
-    req.on("end", () => {
-      resolve(data);
-      // In this case, we don't want to make any more
-      // requests, so we can close the session
-      session.close();
-    });
-  });
-};

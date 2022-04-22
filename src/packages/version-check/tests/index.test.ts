@@ -1,9 +1,10 @@
+// @ts-nocheck
+process.env.TEST = "true";
+
 import assert from "assert";
 import VersionChecker from "../src/";
 import * as fs from "fs";
-import { Version } from "../../flavors/node_modules/@ganache/filecoin/typings/src/things/version";
-
-process.env.TEST = "true";
+import sinon from "sinon";
 
 describe("@ganache/version-check", () => {
   let vc;
@@ -69,6 +70,21 @@ describe("@ganache/version-check", () => {
 
     it("uses console for the default logger", () => {
       assert(vc._logger == console, "Default logger is not set to console");
+    });
+  });
+
+  describe("ConfigManager", () => {
+    it("persists config changes to disk", () => {
+      const vc2 = new VersionChecker(testVersion, testConfig);
+      vc2.setEnabled(false);
+
+      const vc3 = new VersionChecker(testVersion);
+
+      assert.deepStrictEqual(
+        vc2._config,
+        vc3._config,
+        "ConfigManager improperly saves config to disk"
+      );
     });
   });
 
@@ -838,12 +854,12 @@ describe("@ganache/version-check", () => {
       assert.equal(vc.init(), false, "Version Check will init if disabled.");
     });
   });
-  describe("fetchLatestVersion", () => {
-    it("will not fetchLatestVersion", () => {
+  describe("getLatestVersion", () => {
+    it("will not getLatestVersion if version check is disabled", async () => {
       vc.setEnabled(false);
 
       assert.equal(
-        vc.fetchLatestVersion(),
+        await vc.getLatestVersion(),
         false,
         "Version Check will fetchLatestVersion if disabled."
       );
@@ -854,11 +870,7 @@ describe("@ganache/version-check", () => {
       vc.setEnabled(false);
       vc.canNotifyUser = () => true;
 
-      assert.equal(
-        vc.fetchLatestVersion(),
-        false,
-        "Version Check will log if disabled."
-      );
+      assert.equal(vc.log(), false, "Version Check will log if disabled.");
     });
   });
 });

@@ -26,7 +26,7 @@
   },
   "scripts": {
     "tsc": "tsc --build",
-    "test": "nyc npm run mocha",    
+    "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
@@ -51,6 +51,7 @@
     "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
     "mocha": "9.1.3",
+    "nock": "13.2.4",
     "nyc": "15.1.0",
     "ts-node": "10.4.0",
     "typescript": "4.5.4"
