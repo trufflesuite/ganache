@@ -9,7 +9,8 @@ export default class VersionChecker {
   protected _logger;
   protected _currentVersion;
 
-  constructor(currentVersion?, config?, logger?) {
+  constructor(currentVersion, config?, logger?) {
+    // Creates a new config, or reads existing from disk
     this.ConfigManager = new Conf({
       configName: process.env.TEST ? "testConfig" : "config", // config is the package default
       defaults: {
@@ -18,7 +19,12 @@ export default class VersionChecker {
       }
     });
 
-    this._config = this.ConfigManager.get("config");
+    // pulls the config out of the manager, lays optional props over top
+    this._config = { ...this.ConfigManager.get("config"), ...config };
+
+    // If config was passed in, save changes
+    if (config) this.saveConfig();
+
     this._currentVersion = currentVersion;
     this._logger = logger || console;
   }
@@ -28,16 +34,20 @@ export default class VersionChecker {
     // all this should do is send the fetchRequest
   }
 
-  setPackageName(packageName) {
-    this.set("packageName", packageName);
+  setEnabled(enabled) {
+    this.set("enabled", enabled);
   }
 
   setLatestVersion(latestVersion) {
     this.set("latestVersion", latestVersion);
   }
 
-  setlatestVersionLogged(latestVersionLogged) {
+  setLatestVersionLogged(latestVersionLogged) {
     this.set("latestVersionLogged", latestVersionLogged);
+  }
+
+  setPackageName(packageName) {
+    this.set("packageName", packageName);
   }
 
   setTTL(ttl) {
@@ -48,12 +58,12 @@ export default class VersionChecker {
     this.set("url", url);
   }
 
-  setEnabled(enabled) {
-    this.set("enabled", enabled);
-  }
-
   private set(key, value) {
     this._config[key] = value;
+    this.saveConfig();
+  }
+
+  private saveConfig() {
     this.ConfigManager.set("config", this._config);
   }
 
@@ -62,7 +72,7 @@ export default class VersionChecker {
   }
 
   // Intentionally verbose here if we get logging involved it could aid debugging
-  canUpgrade() {
+  canNotifyUser() {
     const currentVersion = this._currentVersion;
     const latestVersion = this._config.latestVersion;
     // No currentVersion version passed in
@@ -71,15 +81,10 @@ export default class VersionChecker {
       // We are in local DEV
     } else if (currentVersion === "DEV") {
       return false;
-      // We are on latestVersion version
-    } else if (currentVersion === latestVersion) {
-      return false;
       // Invalid currentVersion version string
     } else if (typeof currentVersion !== "string") {
       return false;
-    } else if (currentVersion === "") {
-      return false;
-    } else if (!this.alreadyLoggedThisVersion) {
+    } else if (this.alreadyLoggedThisVersion()) {
       return false;
     }
     // returns falsy if function cannot detect semver difference
@@ -87,6 +92,9 @@ export default class VersionChecker {
   }
 
   detectSemverChange(currentVersion, latestVersion) {
+    if (currentVersion > latestVersion || currentVersion === latestVersion)
+      return null;
+
     const [_, major, minor, patch] = currentVersion
       .match(semverRegex)
       .slice(1, 4)
@@ -112,10 +120,12 @@ export default class VersionChecker {
     // update lastCheck to Date.now()
   }
 
-  log() {
-    if (!this._config.enabled) return false; // Should enable only
+  alreadyLoggedThisVersion() {
+    return this._config.latestVersionLogged === this._config.latestVersion;
+  }
 
-    if (!this.canUpgrade()) return false;
+  log() {
+    if (!this._config.enabled || !this.canNotifyUser()) return false;
 
     const currentVersion = this._currentVersion;
     const { packageName, latestVersion } = this._config;
@@ -128,12 +138,8 @@ export default class VersionChecker {
       currentVersion,
       latestVersion
     });
-    this.setlatestVersionLogged(latestVersion);
+    this.setLatestVersionLogged(latestVersion);
     return true;
-  }
-
-  alreadyLoggedThisVersion() {
-    return this._config.latestVersionLogged === this._config.latestVersion;
   }
 
   // TODO detect context for different log messages -> Startup vs --version (pretty vs string)
