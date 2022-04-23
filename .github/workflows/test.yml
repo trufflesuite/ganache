@@ -1,0 +1,30 @@
+name: TestRelease
+
+on:
+  push:
+    branches: [fix-ci]
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # we need all commit history so we can merge master into not-develop at the end
+          fetch-depth: 0
+      - uses: actions/setup-node@v1
+        with:
+          # use node 14 until we can evaluate using npm 7+ and lock file version 2
+          node-version: 14
+
+      - name: Test pushing to not-develop
+        run: |
+          git touch file.txt
+          git add .
+          git commit -m "test commit"
+          git push origin fix-ci
+          git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules origin not-develop
+          git checkout not-develop
+          git merge origin/fix-ci
+          git push origin not-develop
