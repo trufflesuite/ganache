@@ -30,9 +30,8 @@ jobs:
         run: |
           touch file.txt
           git add .
-          git commit -m "test commit"
+          git commit -m "test commit 2"
           git push origin fix-ci
-          git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules origin not-develop
           git checkout not-develop
           git merge origin/fix-ci
           git push origin not-develop
