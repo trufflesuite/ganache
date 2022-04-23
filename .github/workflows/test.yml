@@ -20,7 +20,7 @@ jobs:
 
       - name: Test pushing to not-develop
         run: |
-          git touch file.txt
+          touch file.txt
           git add .
           git commit -m "test commit"
           git push origin fix-ci
