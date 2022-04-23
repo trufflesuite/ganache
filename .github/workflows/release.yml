@@ -51,9 +51,24 @@ jobs:
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
+      - name: Count features
+        if: ${{ env.TAG == 'latest'}}
+        # get all commits in develop that aren't in master, find any that start with feat: or feat(*):, then count them
+        run: echo "FEATURE_COUNT=$(git log ^origin/master origin/develop --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> $GITHUB_ENV
+
+      - name: Determine Release Kind (minor)
+        # if we are "latest" and we have features, set the release to "minor"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT != '0' }}
+        run: echo "RELEASE_KIND=minor" >> $GITHUB_ENV
+
+      - name: Determine Release Kind (patch)
+        # if we are "latest" and we do NOT have features, set the release to "patch"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
+        run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
+
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
-        run: $(npm bin)/lerna version patch --no-git-tag-version --no-push --yes --exact
+        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
 
       - name: Update package versions for pre-releases
         if: ${{ env.TAG != 'latest' }}
