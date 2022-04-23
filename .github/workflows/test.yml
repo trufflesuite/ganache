@@ -18,6 +18,12 @@ jobs:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
           node-version: 14
 
+      - name: Set git origin url
+        run: |
+          git remote set-url origin https://robot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Test pushing to not-develop
         run: |
           touch file.txt
