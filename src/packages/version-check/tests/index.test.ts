@@ -1064,7 +1064,15 @@ describe("@ganache/version-check", () => {
       assert.equal(latestVersion === apiResponse, true);
     });
 
-    it("cancels requests after the ttl is reached");
+    it("fails silently if the api is unavailable", async () => {
+      vc = new VersionChecker(testVersion, {
+        url: "http://localhost:" + 9999
+      });
+
+      const success = await vc.getLatestVersion();
+
+      assert.equal(success, false);
+    });
 
     describe("init", () => {
       it("fetches the latest version without blocking", () => {

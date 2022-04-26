@@ -105,11 +105,12 @@ export default class VersionChecker {
       return true;
     } catch (e) {
       // The fail is silent
+      return false;
     }
   }
 
   private fetchLatestVersion() {
-    const { packageName, url } = this._config;
+    const { packageName, url, ttl } = this._config;
 
     return new Promise<string>((resolve, reject) => {
       const session = http2.connect(url);
@@ -118,18 +119,22 @@ export default class VersionChecker {
 
       const req = session.request({ ":path": `/?name=${packageName}` });
 
-      req.end();
+      req.setTimeout(ttl);
 
       req.setEncoding("utf8");
-      let data = "";
 
-      req.on("data", chunk => {
-        data += chunk;
-      });
+      req.on("error", reject).on("response", (headers, flags) => {
+        let data = "";
+        req
+          .on("data", chunk => {
+            data += chunk;
+          })
+          .on("end", async () => {
+            resolve(data);
+            session.close();
+          });
 
-      req.on("end", () => {
-        resolve(data);
-        session.close();
+        req.end();
       });
     });
   }
@@ -229,7 +234,7 @@ export default class VersionChecker {
         url: "https://version.trufflesuite.com/",
         ttl: 300, // http2session.setTimeout
         latestVersion: "0.0.0", // Last version fetched from the server
-        latestVersionLogged: "0.0.0" // Last version user to tell the user about
+        latestVersionLogged: "0.0.0" // Last version to tell the user about
       }
     };
   }
