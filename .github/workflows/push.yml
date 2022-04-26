@@ -43,7 +43,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    if: github.ref == 'refs/heads/develop')
+    if: github.ref == 'refs/heads/develop'
 
     steps:
       - uses: actions/checkout@v2
