@@ -1005,17 +1005,22 @@ describe("@ganache/version-check", () => {
         const method = headers[":method"];
 
         if (path === "/?name=ganache" && method === "GET") {
-          stream.respond({
-            ":status": 200
-          });
-          stream.write(apiResponse);
+          // Simulate a 'lazy server repose'
+          setTimeout(() => {
+            if (stream.closed) return;
+
+            stream.respond({
+              ":status": 200
+            });
+            stream.write(apiResponse);
+            stream.end();
+          }, testConfig.ttl / 2);
         } else {
           stream.respond({
             ":status": 404
           });
+          stream.end();
         }
-
-        stream.end();
       });
 
       api.listen(apiSettings.port);
@@ -1068,6 +1073,13 @@ describe("@ganache/version-check", () => {
       vc = new VersionChecker(testVersion, {
         url: "http://localhost:" + 9999
       });
+
+      const success = await vc.getLatestVersion();
+
+      assert.equal(success, false);
+    });
+    it("quits silently if the api ttl expires", async () => {
+      vc.setTTL(1);
 
       const success = await vc.getLatestVersion();
 

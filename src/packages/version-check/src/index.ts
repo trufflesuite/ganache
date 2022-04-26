@@ -119,23 +119,27 @@ export default class VersionChecker {
 
       const req = session.request({ ":path": `/?name=${packageName}` });
 
-      req.setTimeout(ttl);
-
       req.setEncoding("utf8");
 
-      req.on("error", reject).on("response", (headers, flags) => {
-        let data = "";
-        req
-          .on("data", chunk => {
-            data += chunk;
-          })
-          .on("end", async () => {
-            resolve(data);
-            session.close();
-          });
+      req
+        .on("error", reject)
+        .on("response", (headers, flags) => {
+          let data = "";
+          req
+            .on("data", chunk => {
+              data += chunk;
+            })
+            .on("end", async () => {
+              resolve(data);
+              session.close();
+            });
 
-        req.end();
-      });
+          req.end();
+        })
+        .setTimeout(ttl, () => {
+          req.close();
+          reject();
+        });
     });
   }
 
