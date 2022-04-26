@@ -142,7 +142,7 @@ describe("server", () => {
       return validInterfaces;
     }
 
-    it("listens on all interfaces by default", async () => {
+    it.only("listens on all interfaces by default", async () => {
       await setup();
       try {
         const interfaces = getNetworkInterfaces();
@@ -154,6 +154,7 @@ describe("server", () => {
 
           for (const info of interfaceInfo) {
             const host = getHost(info, interfaceName);
+            console.log(host);
             const response = await post(host, port, jsonRpcJson);
             assert.strictEqual(response.status, 200, `Wrong status code when connecting to http://${host}:${port}`);
             assert.strictEqual(response.body.result, "1234", `Wrong result when connecting to http://${host}:${port}`);
