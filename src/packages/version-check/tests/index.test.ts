@@ -5,6 +5,7 @@ import VersionChecker from "../src/";
 import http2 from "http2";
 import assert from "assert";
 import * as fs from "fs";
+import sinon from "sinon";
 
 describe("@ganache/version-check", () => {
   let vc;
@@ -1067,12 +1068,10 @@ describe("@ganache/version-check", () => {
 
     describe("init", () => {
       it("fetches the latest version without blocking", () => {
+        const spy = sinon.spy(vc, "getLatestVersion");
         vc.init();
 
-        assert(vc._currentVersion === testVersion);
-        setTimeout(() => {
-          assert(vc._config.latestVersion === apiResponse);
-        }, 10);
+        assert(spy.calledOnce, true);
       });
     });
   });
