@@ -859,6 +859,30 @@ describe("@ganache/version-check", () => {
         "Message does not contain the latestVersion"
       );
     });
+    it("process.stdout.columns === -1", () => {
+      process.stdout.columns = -1;
+
+      const didLog = vc.logMessage(options);
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(options.latestVersion) >= 0,
+        true,
+        "Message does not log when process.stdout.columns = -1"
+      );
+    });
+    it("process.stdout.columns === null", () => {
+      process.stdout.columns = null;
+
+      const didLog = vc.logMessage(options);
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(options.latestVersion) >= 0,
+        true,
+        "Message does not log when process.stdout.columns = null"
+      );
+    });
   });
 
   describe("init", () => {
