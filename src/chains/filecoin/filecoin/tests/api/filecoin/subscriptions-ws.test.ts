@@ -38,7 +38,7 @@ describe("api", () => {
       }
     });
 
-    it.only("should subscribe and unsubscribe properly with websockets", async () => {
+    it("should subscribe and unsubscribe properly with websockets", async () => {
       let numTipsetsReceived = 0;
       const chainNotifyId = "1337"; // using something non-zero to ensure functionality
       let receivedMessage = false;

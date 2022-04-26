@@ -49,14 +49,15 @@ export function GetConnector<T = any>(
     return new EthereumConnector(providerOptions, executor) as unknown;
   }
   try {
-    switch (flavor.toString()) {
-      default: {
-        // for future plugin compat
-        const { Connector } = require(flavor.toString());
+    // for future plugin compatibility
+    // for backward compatibility, filecoin is also supported along with @ganache/filecoin
+    const pluginPackageName =
+      flavor.toString() === "filecoin"
+        ? "@ganache/" + flavor.toString()
+        : flavor.toString();
 
-        return new Connector(providerOptions, executor);
-      }
-    }
+    const { Connector } = require(pluginPackageName);
+    return new Connector(providerOptions, executor);
   } catch (e: any) {
     if (e.message.includes(`Cannot find module '${flavor}'`)) {
       // we print and exit rather than throw to prevent webpack output from being
