@@ -2,13 +2,27 @@ import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
 import Conf from "conf";
 import { default as semverDiff } from "semver/functions/diff";
+
+export type VersionCheckerConfig = {
+  packageName: string;
+  enabled: boolean;
+  url: string;
+  ttl: number;
+  latestVersion: string;
+  latestVersionLogged: string;
+};
+
 export default class VersionChecker {
   protected ConfigManager;
   protected _config;
   protected _logger;
   protected _currentVersion;
 
-  constructor(currentVersion, config?, logger?) {
+  constructor(
+    currentVersion: string,
+    config?: VersionCheckerConfig,
+    logger?: Function
+  ) {
     // Creates a new config, or reads existing from disk
     this.ConfigManager = new Conf({
       configName: process.env.TEST ? "testConfig" : "config", // config is the package default
@@ -230,7 +244,7 @@ export default class VersionChecker {
     return true;
   }
 
-  static get DEFAULTS() {
+  static get DEFAULTS(): { config: VersionCheckerConfig } {
     return {
       config: {
         packageName: "ganache",

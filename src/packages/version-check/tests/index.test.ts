@@ -986,6 +986,21 @@ describe("@ganache/version-check", () => {
         "latestVersionLogged was not successfully set after logging version message"
       );
     });
+    it("only logs the latestVersion one time", () => {
+      vc = new VersionChecker(testVersion, testConfig, testLogger);
+
+      const didLogOnce = vc.log();
+
+      assert.equal(
+        didLogOnce,
+        true,
+        "Log did not log the first time for this version"
+      );
+
+      const didLogTwice = vc.log();
+
+      assert.equal(didLogTwice, false, "logged the same version message twice");
+    });
   });
 
   describe("getLatestVersion/fetchLatestVersion", () => {
@@ -1005,7 +1020,7 @@ describe("@ganache/version-check", () => {
         const method = headers[":method"];
 
         if (path === "/?name=ganache" && method === "GET") {
-          // Simulate a 'lazy server repose'
+          // Simulate a 'lazy server repose' with timeout === config.ttl / 2
           setTimeout(() => {
             if (stream.closed) return;
 
