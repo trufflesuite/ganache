@@ -38,6 +38,9 @@ export default class VersionChecker {
     // If config was passed in, save changes
     if (config) this.saveConfig();
 
+    // Disable if we are in a CI environment
+    if (process.env.CI) this._config.enabled = false;
+
     this._currentVersion = currentVersion;
     this._logger = logger || console;
   }
