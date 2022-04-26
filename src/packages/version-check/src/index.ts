@@ -1,8 +1,7 @@
 import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
-import { semverRegex } from "./semver";
 import Conf from "conf";
-
+import { default as semverDiff } from "semver/functions/diff";
 export default class VersionChecker {
   protected ConfigManager;
   protected _config;
@@ -95,22 +94,7 @@ export default class VersionChecker {
     if (currentVersion > latestVersion || currentVersion === latestVersion)
       return null;
 
-    const [_, major, minor, patch] = currentVersion
-      .match(semverRegex)
-      .slice(1, 4)
-      .map(Number);
-    const [updateMajor, updateMinor, updatePatch] = latestVersion
-      .match(semverRegex)
-      .slice(1, 4)
-      .map(Number);
-
-    return updateMajor !== major
-      ? "major"
-      : updateMinor !== minor
-      ? "minor"
-      : updatePatch !== patch
-      ? "patch"
-      : null;
+    return semverDiff(currentVersion, latestVersion);
   }
 
   async getLatestVersion() {
@@ -121,12 +105,12 @@ export default class VersionChecker {
       return true;
     } catch (e) {
       // The fail is silent
-      return false;
     }
   }
 
   private fetchLatestVersion() {
     const { packageName, url } = this._config;
+
     return new Promise<string>((resolve, reject) => {
       const session = http2.connect(url);
 
@@ -176,7 +160,7 @@ export default class VersionChecker {
   logMessage(options) {
     const { upgradeType, packageName, currentVersion, latestVersion } = options;
 
-    if (!upgradeType || !packageName || !currentVersion || !latestVersion)
+    if (!(upgradeType && packageName && currentVersion && latestVersion))
       return false;
 
     const chalk = require("chalk");

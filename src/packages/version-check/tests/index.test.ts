@@ -1,10 +1,10 @@
 // @ts-nocheck
 process.env.TEST = "true";
 
-import assert from "assert";
 import VersionChecker from "../src/";
+import http2 from "http2";
+import assert from "assert";
 import * as fs from "fs";
-import nock from "nock";
 
 describe("@ganache/version-check", () => {
   let vc;
@@ -23,6 +23,7 @@ describe("@ganache/version-check", () => {
 
   beforeEach(() => {
     vc = new VersionChecker(testVersion);
+
     message = "";
   });
 
@@ -312,7 +313,7 @@ describe("@ganache/version-check", () => {
           "0.0.0 -> 0.1.1 fails"
         );
       });
-      /*
+
       it("0.0.1 -> 0.1.1", () => {
         const currentVersion = "0.0.1";
         const latestVersion = "0.1.1";
@@ -323,7 +324,7 @@ describe("@ganache/version-check", () => {
           "0.0.1 -> 0.1.1 fails"
         );
       });
-      */
+
       it("0.0.2 -> 0.1.1", () => {
         const currentVersion = "0.0.2";
         const latestVersion = "0.1.1";
@@ -334,7 +335,7 @@ describe("@ganache/version-check", () => {
           "0.0.2 -> 0.1.1 fails"
         );
       });
-      /*
+
       it("0.1.0 -> 0.1.1", () => {
         const currentVersion = "0.1.0";
         const latestVersion = "0.1.1";
@@ -345,7 +346,7 @@ describe("@ganache/version-check", () => {
           "0.1.0 -> 0.1.1 fails"
         );
       });
-      */
+
       it("0.1.1 -> 0.1.1", () => {
         const currentVersion = "0.1.1";
         const latestVersion = "0.1.1";
@@ -460,7 +461,7 @@ describe("@ganache/version-check", () => {
           "0.0.2 -> 1.0.1 fails"
         );
       });
-      /*
+
       it("1.0.0 -> 1.0.1", () => {
         const currentVersion = "1.0.0";
         const latestVersion = "1.0.1";
@@ -471,7 +472,7 @@ describe("@ganache/version-check", () => {
           "1.0.0 -> 1.0.1 fails"
         );
       });
-      */
+
       it("1.0.1 -> 1.0.1", () => {
         const currentVersion = "1.0.1";
         const latestVersion = "1.0.1";
@@ -534,7 +535,7 @@ describe("@ganache/version-check", () => {
           "0.0.0 -> 1.1.0 fails"
         );
       });
-      /*
+
       it("0.1.0 -> 1.1.0", () => {
         const currentVersion = "0.1.0";
         const latestVersion = "1.1.0";
@@ -545,7 +546,7 @@ describe("@ganache/version-check", () => {
           "0.1.0 -> 1.1.0 fails"
         );
       });
-      */
+
       it("0.2.0 -> 1.1.0", () => {
         const currentVersion = "0.2.0";
         const latestVersion = "1.1.0";
@@ -556,7 +557,7 @@ describe("@ganache/version-check", () => {
           "0.2.0 -> 1.1.0 fails"
         );
       });
-      /*
+
       it("1.0.0 -> 1.1.0", () => {
         const currentVersion = "1.0.0";
         const latestVersion = "1.1.0";
@@ -567,7 +568,7 @@ describe("@ganache/version-check", () => {
           "1.0.0 -> 1.1.0 fails"
         );
       });
-      */
+
       it("1.1.0 -> 1.1.0", () => {
         const currentVersion = "1.1.0";
         const latestVersion = "1.1.0";
@@ -792,28 +793,28 @@ describe("@ganache/version-check", () => {
 
     it("will not log if !upgradeType", () => {
       options.upgradeType = null;
-      const didLog = vc.log(options);
+      const didLog = vc.logMessage(options);
 
       assert.equal(didLog, false, "Will log if !options.upgradeType");
       assert.equal(message, "", "Will log if !options.upgradeType");
     });
     it("will not log if !packageName", () => {
       options.packageName = null;
-      const didLog = vc.log(options);
+      const didLog = vc.logMessage(options);
 
       assert.equal(didLog, false, "Will log if !options.packageName ");
       assert.equal(message, "", "Will log if !options.packageName");
     });
     it("will not log if !currentVersion", () => {
       options.currentVersion = null;
-      const didLog = vc.log(options);
+      const didLog = vc.logMessage(options);
 
       assert.equal(didLog, false, "Will log if !options.currentVersion ");
       assert.equal(message, "", "Will log if !options.currentVersion");
     });
     it("will not log if !latestVersion", () => {
       options.latestVersion = null;
-      const didLog = vc.log(options);
+      const didLog = vc.logMessage(options);
 
       assert.equal(didLog, false, "Will log if !options.latestVersion ");
       assert.equal(message, "", "Will log if !options.latestVersion");
@@ -959,6 +960,96 @@ describe("@ganache/version-check", () => {
         testConfig.latestVersion,
         "latestVersionLogged was not successfully set after logging version message"
       );
+    });
+  });
+
+  describe("getLatestVersion/fetchLatestVersion", () => {
+    let api;
+    const apiResponse = "1.0.0";
+    const apiSettings = {
+      port: 4000,
+      path: "/?name=ganache"
+    };
+
+    before(() => {
+      api = http2.createServer();
+      api.on("error", err => console.error(err));
+
+      api.on("stream", (stream, headers) => {
+        const path = headers[":path"];
+        const method = headers[":method"];
+
+        if (path === "/?name=ganache" && method === "GET") {
+          stream.respond({
+            ":status": 200
+          });
+          stream.write(apiResponse);
+        } else {
+          stream.respond({
+            ":status": 404
+          });
+        }
+
+        stream.end();
+      });
+
+      api.listen(apiSettings.port);
+    });
+
+    beforeEach(() => {
+      vc = new VersionChecker(testVersion, {
+        url: "http://localhost:" + apiSettings.port
+      });
+    });
+
+    after(() => {
+      api.close();
+    });
+
+    it("fetches the latest version from the API", async () => {
+      let latestVersion;
+
+      latestVersion = await vc.fetchLatestVersion();
+
+      assert.equal(latestVersion === apiResponse, true);
+    });
+
+    it("does not fetch if vc is disabled", async () => {
+      vc.setEnabled(false);
+
+      let success = await vc.getLatestVersion();
+      assert.equal(success, false);
+
+      vc.setEnabled(true);
+
+      success = await vc.getLatestVersion();
+      assert.equal(success, true);
+    });
+    it("fetches the latest version and sets it in the config file.", async () => {
+      const currentVersion = vc._currentVersion;
+
+      assert.equal(currentVersion === testVersion, true);
+
+      const success = await vc.getLatestVersion();
+
+      assert.equal(success, true);
+
+      const latestVersion = vc._config.latestVersion;
+
+      assert.equal(latestVersion === apiResponse, true);
+    });
+
+    it("cancels requests after the ttl is reached");
+
+    describe("init", () => {
+      it("fetches the latest version without blocking", () => {
+        vc.init();
+
+        assert(vc._currentVersion === testVersion);
+        setTimeout(() => {
+          assert(vc._config.latestVersion === apiResponse);
+        }, 10);
+      });
     });
   });
 });

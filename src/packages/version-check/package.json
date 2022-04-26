@@ -27,6 +27,7 @@
   "scripts": {
     "tsc": "tsc --build",
     "test": "nyc npm run mocha",
+    "test:report": "nyc --reporter=html npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
@@ -59,6 +60,7 @@
   "dependencies": {
     "@ganache/colors": "^0.1.5",
     "chalk": "4.1.2",
-    "conf": "10.1.2"
+    "conf": "10.1.2",
+    "semver": "7.3.7"
   }
 }
