@@ -39,7 +39,8 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    if: github.ref == 'refs/heads/develop'
+    # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
+    if: github.ref == 'refs/heads/develop' && ${{ matrix.os }} != "ubuntu-18.04" && ${{ matrix.node }} != "18.x"
 
     steps:
       - uses: actions/checkout@v2
