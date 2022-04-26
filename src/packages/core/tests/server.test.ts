@@ -18,7 +18,11 @@ import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
 import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
-import { NetworkInterfaceInfo, networkInterfaces } from 'os';
+import {
+  NetworkInterfaceInfo,
+  NetworkInterfaceInfoIPv6,
+  networkInterfaces
+} from "os";
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -112,9 +116,17 @@ describe("server", () => {
   // machines are unpredictible and may behave in ways that we don't care
   // about.
   (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
+    function isIPv6(
+      info: NetworkInterfaceInfo
+    ): info is NetworkInterfaceInfoIPv6 {
+      // Node v18.0.0+ uses info.family = 6, all versions prior to v18 use "IPv6"
+      // @ts-ignore
+      return info.family === "IPv6" || info.family === 6;
+    }
+
     function getHost(info: NetworkInterfaceInfo, interfaceName: string) {
       // a link-local ipv6 address starts with fe80:: and _must_ include a "zone_id"
-      if (info.family === "IPv6" && info.address.startsWith("fe80::")) {
+      if (isIPv6(info) && info.address.startsWith("fe80::")) {
         if (process.platform == "win32") {
           // on windows the zone_id is the scopeid
           return `${info.address}%${info.scopeid}`;
