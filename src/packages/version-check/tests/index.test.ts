@@ -1145,22 +1145,4 @@ describe("@ganache/version-check", () => {
       });
     });
   });
-
-  describe("CI environment", () => {
-    it("disables if process.env.CI is true", () => {
-      const oldCIENV = process.env.CI; // probs unnecessary
-
-      process.env.CI = "true";
-
-      vc = new VersionChecker(testVersion);
-
-      assert.equal(
-        vc._config.enabled,
-        false,
-        "VersionChecker fails to disable when process.env.CI is true"
-      );
-
-      process.env.CI = oldCIENV;
-    });
-  });
 });
