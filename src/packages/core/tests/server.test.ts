@@ -154,7 +154,7 @@ describe("server", () => {
       return validInterfaces;
     }
 
-    it.only("listens on all interfaces by default", async () => {
+    it("listens on all interfaces by default", async () => {
       await setup();
       try {
         const interfaces = getNetworkInterfaces();
