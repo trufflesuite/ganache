@@ -8,12 +8,8 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { Provider as FilecoinProvider } from "@ganache/filecoin";
 import type { Provider as EthereumProvider } from "@ganache/ethereum";
-/*
-import {
-  logIfUpgradeRequired,
-  getLatestVersionNumber
-} from "@ganache/version-check";
-*/
+import { VersionCheck } from "@ganache/version-check";
+
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
   // writes to process.stdout in Node.js are sometimes asynchronous and may occur over
@@ -33,16 +29,21 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
   process.exit(exitCode);
 };
 
-const version = process.env.VERSION || "DEV";
+const version = process.env.VERSION || "0.0.0";
 const cliVersion = process.env.CLI_VERSION || "DEV";
 const coreVersion = process.env.CORE_VERSION || "DEV";
+const versionCheck = new VersionCheck(version);
+const versionMessage = versionCheck.getVersionMessage();
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
-
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-const argv = args(detailedVersion, isDocker);
+const argsVersion = versionMessage
+  ? `${detailedVersion}\n${versionMessage}`
+  : detailedVersion;
+
+const argv = args(argsVersion, isDocker);
 
 const flavor = argv.flavor;
 
@@ -132,19 +133,8 @@ async function startGanache(err: Error) {
   }
   started = true;
 
-  /*
-  // TODO: we shouldn't check this on start up, as it slows us down.
-  // Let's read/write it to a file somewhere instead.
-  const latest = await getLatestVersionNumber("ganache");
+  versionCheck.init().log();
 
-  // TODO: only log if we haven't logged about this specific version before
-  logIfUpgradeRequired({
-    logger: console,
-    name: "ganache",
-    current: "1.2.3", // 1.2.3 is just for testing right now, don't commit it
-    latest
-  });
-*/
   switch (flavor) {
     case FilecoinFlavorName: {
       await initializeFilecoin(

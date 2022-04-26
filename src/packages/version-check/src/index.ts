@@ -3,7 +3,7 @@ import http2 from "http2";
 import Conf from "conf";
 import { default as semverDiff } from "semver/functions/diff";
 
-export type VersionCheckerConfig = {
+export type VersionCheckConfig = {
   packageName: string;
   enabled: boolean;
   url: string;
@@ -12,7 +12,7 @@ export type VersionCheckerConfig = {
   latestVersionLogged: string;
 };
 
-export default class VersionChecker {
+export class VersionCheck {
   protected ConfigManager;
   protected _config;
   protected _logger;
@@ -20,14 +20,14 @@ export default class VersionChecker {
 
   constructor(
     currentVersion: string,
-    config?: VersionCheckerConfig,
+    config?: VersionCheckConfig,
     logger?: Function
   ) {
     // Creates a new config, or reads existing from disk
     this.ConfigManager = new Conf({
       configName: process.env.TEST ? "testConfig" : "config", // config is the package default
       defaults: {
-        ...VersionChecker.DEFAULTS,
+        ...VersionCheck.DEFAULTS,
         ...config
       }
     });
@@ -43,8 +43,8 @@ export default class VersionChecker {
   }
 
   init() {
-    if (!this._config.enabled) return false;
     this.getLatestVersion();
+    return this;
   }
 
   setEnabled(enabled) {
@@ -244,15 +244,16 @@ export default class VersionChecker {
   }
 
   // This is called with --version and is displayed each time
-  logVersionMessage() {
+  getVersionMessage() {
     const currentVersion = this._currentVersion;
     const { latestVersion } = this._config;
-    const message = `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
-    this._logger.log(message);
-    return true;
+    if (this.detectSemverChange(currentVersion, latestVersion)) {
+      return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
+    }
+    return "";
   }
 
-  static get DEFAULTS(): { config: VersionCheckerConfig } {
+  static get DEFAULTS(): { config: VersionCheckConfig } {
     return {
       config: {
         packageName: "ganache",
