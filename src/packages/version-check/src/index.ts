@@ -172,7 +172,7 @@ export default class VersionChecker {
 
     const upgradeType = this.detectSemverChange(currentVersion, latestVersion);
 
-    this.logMessage({
+    this.logBannerMessage({
       upgradeType,
       packageName,
       currentVersion,
@@ -182,8 +182,7 @@ export default class VersionChecker {
     return true;
   }
 
-  // TODO detect context for different log messages -> Startup vs --version (pretty vs string)
-  logMessage(options) {
+  logBannerMessage(options) {
     const { upgradeType, packageName, currentVersion, latestVersion } = options;
 
     if (!(upgradeType && packageName && currentVersion && latestVersion))
@@ -244,6 +243,15 @@ export default class VersionChecker {
     );
     message.push("");
     this._logger.log(message.join("\n"));
+    return true;
+  }
+
+  // This is called with --version and is displayed each time
+  logVersionMessage() {
+    const currentVersion = this._currentVersion;
+    const { latestVersion } = this._config;
+    const message = `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
+    this._logger.log(message);
     return true;
   }
 
