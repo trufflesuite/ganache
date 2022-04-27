@@ -137,10 +137,19 @@ describe("@ganache/version-check", () => {
       assert.equal(enabled, vc._config.enabled, "Enabled incorrectly set");
     });
     it("setLatestVersion", () => {
-      const latestVersion = "9001";
+      const latestVersion = testVersion;
       vc.setLatestVersion(latestVersion);
       assert.equal(
         latestVersion,
+        vc._config.latestVersion,
+        "latestVersion incorrectly set"
+      );
+    });
+    it("setLatestVersion will ignore invalid semvers", () => {
+      const latestVersion = "9001";
+      vc.setLatestVersion(latestVersion);
+      assert.equal(
+        vc._config.latestVersion,
         vc._config.latestVersion,
         "latestVersion incorrectly set"
       );
@@ -973,18 +982,6 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("getLatestVersion", () => {
-    it("will not getLatestVersion if version check is disabled", async () => {
-      vc.setEnabled(false);
-
-      assert.equal(
-        await vc.getLatestVersion(),
-        false,
-        "Version Check will fetchLatestVersion if disabled."
-      );
-    });
-  });
-
   describe("log", () => {
     it("will not log if disabled", () => {
       vc.setEnabled(false);
@@ -1092,6 +1089,8 @@ describe("@ganache/version-check", () => {
 
   describe("getLatestVersion/fetchLatestVersion", () => {
     let api;
+    const testTTL = 1;
+    const ttlTestResponseDelay = 100;
     const apiResponse = "1.0.0";
     const apiSettings = {
       port: 4000,
@@ -1107,7 +1106,7 @@ describe("@ganache/version-check", () => {
         const method = headers[":method"];
 
         if (path === "/?name=ganache" && method === "GET") {
-          // Simulate a 'lazy server repose' with timeout === config.ttl / 2
+          // Simulate a 'lazy server repose' with timeout === testTTL
           setTimeout(() => {
             if (stream.closed) return;
 
@@ -1116,7 +1115,7 @@ describe("@ganache/version-check", () => {
             });
             stream.write(apiResponse);
             stream.end();
-          }, testConfig.ttl / 2);
+          }, ttlTestResponseDelay);
         } else {
           stream.respond({
             ":status": 404
@@ -1136,6 +1135,16 @@ describe("@ganache/version-check", () => {
 
     after(() => {
       api.close();
+    });
+
+    it("will not getLatestVersion if version check is disabled", async () => {
+      vc.setEnabled(false);
+
+      assert.equal(
+        await vc.getLatestVersion(),
+        false,
+        "Version Check will fetchLatestVersion if disabled."
+      );
     });
 
     it("fetches the latest version from the API", async () => {
@@ -1181,7 +1190,7 @@ describe("@ganache/version-check", () => {
       assert.equal(success, false);
     });
     it("quits silently if the api ttl expires", async () => {
-      vc.setTTL(1);
+      vc.setTTL(testTTL);
 
       const success = await vc.getLatestVersion();
 

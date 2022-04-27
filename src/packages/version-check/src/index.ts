@@ -53,7 +53,9 @@ export class VersionCheck {
   }
 
   setLatestVersion(latestVersion) {
-    this.set("latestVersion", latestVersion);
+    if (semverValid(latestVersion)) {
+      this.set("latestVersion", latestVersion);
+    }
   }
 
   setLatestVersionLogged(latestVersionLogged) {
