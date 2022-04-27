@@ -29,7 +29,7 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
   process.exit(exitCode);
 };
 
-const version = process.env.VERSION || "0.0.0";
+const version = process.env.VERSION || "DEV";
 const cliVersion = process.env.CLI_VERSION || "DEV";
 const coreVersion = process.env.CORE_VERSION || "DEV";
 const versionCheck = new VersionCheck(version);

@@ -268,7 +268,7 @@ export class VersionCheck {
       config: {
         packageName: "ganache",
         enabled: true,
-        url: "https://version.trufflesuite.com/",
+        url: "https://version.trufflesuite.com",
         ttl: 300, // http2session.setTimeout
         latestVersion: "0.0.0", // Last version fetched from the server
         latestVersionLogged: "0.0.0" // Last version to tell the user about
