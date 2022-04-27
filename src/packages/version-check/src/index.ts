@@ -2,6 +2,7 @@ import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
 import Conf from "conf";
 import { default as semverDiff } from "semver/functions/diff";
+import { default as semverValid } from "semver/functions/valid";
 
 export type VersionCheckConfig = {
   packageName: string;
@@ -105,7 +106,14 @@ export class VersionCheck {
   }
 
   detectSemverChange(currentVersion, latestVersion) {
-    if (currentVersion > latestVersion || currentVersion === latestVersion)
+    if (
+      !currentVersion ||
+      !latestVersion ||
+      currentVersion > latestVersion ||
+      currentVersion === latestVersion ||
+      !semverValid(currentVersion) ||
+      !semverValid(latestVersion)
+    )
       return null;
 
     return semverDiff(currentVersion, latestVersion);

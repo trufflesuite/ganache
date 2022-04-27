@@ -239,6 +239,42 @@ describe("@ganache/version-check", () => {
   });
 
   describe("detectSemverChange", () => {
+    describe("nulls", () => {
+      it("handles null currentVersion", () => {
+        assert(
+          vc.detectSemverChange(null, "1.0.0") === null,
+          true,
+          "detectSemverChange improperly handles null currentVersion"
+        );
+      });
+      it("handles null latestVersion", () => {
+        assert(
+          vc.detectSemverChange("1.0.0", null) === null,
+          true,
+          "detectSemverChange improperly handles null latestVersion"
+        );
+      });
+
+      it("handles null versions", () => {
+        assert(
+          vc.detectSemverChange(null, null) === null,
+          true,
+          "detectSemverChange improperly handles null versions"
+        );
+      });
+      it("handles bad semver", () => {
+        assert(
+          vc.detectSemverChange("notasemver", "1.0.0") === null,
+          true,
+          "detectSemverChange improperly handles bad currentVersions"
+        );
+        assert(
+          vc.detectSemverChange("1.0.0", "notasemver") === null,
+          true,
+          "detectSemverChange improperly handles bad latestVersions"
+        );
+      });
+    });
     describe("patches", () => {
       it("0.0.0 -> 0.0.1", () => {
         const currentVersion = "0.0.0";
