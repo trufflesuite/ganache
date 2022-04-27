@@ -154,8 +154,7 @@ export default class WebsocketServer {
               let bufUsed = 0;
               let prev = next;
               for (next of localData) {
-                if (prev.length + bufUsed > buf.length)
-                {
+                if (prev.length + bufUsed > buf.length) {
                   // flush buffer
                   ws.sendFragment(buf.subarray(0, bufUsed));
 
@@ -167,15 +166,12 @@ export default class WebsocketServer {
                 }
 
                 // Store prev in buffer if it fits.
-                if (prev.length > buf.length)
-                {
+                if (prev.length > buf.length) {
                   // Cannot fit this fragment in buffer, send it directly.
                   // Buffer has just been flushed so we do not need to worry about
                   // out-of-order send.
                   ws.sendFragment(prev);
-                }
-                else
-                {
+                } else {
                   // Concat into buffer
                   prev.copy(buf, bufUsed);
                   bufUsed += prev.length;
@@ -183,8 +179,7 @@ export default class WebsocketServer {
                 prev = next;
               }
 
-              if (bufUsed > 0)
-              {
+              if (bufUsed > 0) {
                 // Final buffer flush before sending last fragment
                 ws.sendFragment(buf.subarray(0, bufUsed));
               }
