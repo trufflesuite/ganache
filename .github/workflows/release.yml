@@ -11,6 +11,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # we need all commit history so we can merge master into develop
+          fetch-depth: 0
       - uses: actions/setup-node@v1
         with:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
@@ -49,9 +51,45 @@ jobs:
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
+      - name: Count features
+        if: ${{ env.TAG == 'latest'}}
+        # get all commits in develop that aren't in master, find any that start with feat: or feat(*):, then count them
+        # 1. `git tag --sort=-version:refname --no-contains HEAD`
+        #    - get a list of all tags that do NOT contain out current HEAD commit
+        #    - sort by version name
+        #    - in reverse order
+        # 2. `grep -P "^v(0|[1-9]\d*)?\.(0|[1-9]\d*)\.(0|[1-9]\d*)$"`
+        #    - filter the list for semver matching tags only, e.g. "v*.*.*" (ignores pre-releases!)
+        #    - ignores pre-releases
+        #    - ignores improper tags like v01.02.03 (no leading 0s)
+        # 3. `head -1`
+        #    - get the last tag in the list
+        # 4. `git log ^$LATEST_TAG HEAD --pretty=format:%s`
+        #    - get all from the `LATEST_TAG` (exclusive) to `HEAD`
+        # 5. `grep -o -P '^feat(\(.*?\))?:'`
+        #    - output only the matching part (in case a newline can get in here... probably not possible?)
+        #    - filter for only commit subjects that match conventional commits for features, i.e., `feat:` or `feat(<subject>):`
+        # 6. `wc -l`
+        #    - count how many matches we have
+        # 7.  `>> $GITHUB_ENV`
+        #    - assign the above `FEATURE_COUNT` to the `wc` result (e.g., "FEATURE_COUNT=1") and append it to `$GITHUB_ENV`
+        run: |
+          LATEST_TAG=$(git tag --sort=-version:refname --no-contains HEAD | grep -P '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | head -1) &&
+          echo FEATURE_COUNT="$(git log ^"${LATEST_TAG}" HEAD --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> "${GITHUB_ENV}"
+
+      - name: Determine Release Kind (minor)
+        # if we are "latest" and we have features, set the release to "minor"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT != '0' }}
+        run: echo "RELEASE_KIND=minor" >> $GITHUB_ENV
+
+      - name: Determine Release Kind (patch)
+        # if we are "latest" and we do NOT have features, set the release to "patch"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
+        run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
+
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
-        run: $(npm bin)/lerna version patch --no-git-tag-version --no-push --yes --exact
+        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
 
       - name: Update package versions for pre-releases
         if: ${{ env.TAG != 'latest' }}
@@ -141,5 +179,5 @@ jobs:
         if: ${{ env.TAG == 'latest' }}
         run: |
           git checkout develop
-          git merge master
+          git merge origin/master
           git push origin develop

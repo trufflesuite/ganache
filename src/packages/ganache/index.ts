@@ -12,10 +12,15 @@ export type {
   ProviderOptions,
   EthereumProvider,
   FilecoinProvider,
+  _ExperimentalInfo
 } from "@ganache/core";
 export {
   server,
-  provider
+  provider,
+  /**
+   * @experimental
+   */
+  __experimental_info
 } from "@ganache/core";
 import Ganache from "@ganache/core";
 export default Ganache;
