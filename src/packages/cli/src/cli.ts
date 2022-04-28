@@ -1,12 +1,6 @@
 #!/usr/bin/env node
 
-// For backward compatiibility support flavor argument - filecoin.
-// Both filecoin and @ganache/filecoin are supported arguments.
-// argv is modified before yargs package is loaded.
-process.argv[2] =
-  process.argv[2] === "filecoin"
-    ? "@ganache/" + process.argv[2]
-    : process.argv[2];
+// For backward compatiibility support flavor argument - filecoin
 
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
@@ -53,7 +47,9 @@ if (
   !["ethereum", "--help"].includes(pluginFlavor) &&
   !pluginFlavor.includes("-")
 ) {
-  pluginPackage = require(pluginFlavor);
+  pluginPackage = require(pluginFlavor === "filecoin"
+    ? "@ganache/" + pluginFlavor
+    : pluginFlavor);
   pluginPackage.flavor = pluginFlavor;
   pluginServerOptionsConfig = pluginPackage.serverOptionsConfig;
 }
