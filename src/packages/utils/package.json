@@ -52,7 +52,7 @@
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.5",
+    "@trufflesuite/uws-js-unofficial": "20.8.0-unofficial.0",
     "@types/mocha": "9.0.0",
     "@types/seedrandom": "3.0.1",
     "cross-env": "7.0.3",
