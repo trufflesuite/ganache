@@ -50,10 +50,10 @@
     "tooling"
   ],
   "dependencies": {
-    "@ethereumjs/block": "3.6.1",
-    "@ethereumjs/common": "2.6.2",
-    "@ethereumjs/tx": "3.5.0",
-    "@ethereumjs/vm": "5.7.1",
+    "@ethereumjs/block": "3.6.2",
+    "@ethereumjs/common": "2.6.4",
+    "@ethereumjs/tx": "3.5.1",
+    "@ethereumjs/vm": "5.9.0",
     "@ganache/ethereum-address": "0.2.0",
     "@ganache/ethereum-block": "0.2.0",
     "@ganache/ethereum-options": "0.2.0",
@@ -78,7 +78,7 @@
     "lodash.clonedeep": "4.5.0",
     "lru-cache": "6.0.0",
     "mcl-wasm": "0.9.0",
-    "merkle-patricia-tree": "4.2.3",
+    "merkle-patricia-tree": "4.2.4",
     "scrypt-js": "3.0.1",
     "seedrandom": "3.0.5",
     "semaphore": "1.1.0",

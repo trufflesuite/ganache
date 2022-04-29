@@ -48,9 +48,9 @@
     "truffle"
   ],
   "dependencies": {
-    "@ethereumjs/common": "2.6.2",
-    "@ethereumjs/tx": "3.5.0",
-    "@ethereumjs/vm": "5.7.1",
+    "@ethereumjs/common": "2.6.4",
+    "@ethereumjs/tx": "3.5.1",
+    "@ethereumjs/vm": "5.9.0",
     "@ganache/ethereum-address": "0.2.0",
     "@ganache/rlp": "0.2.0",
     "@ganache/utils": "0.2.0",

@@ -48,7 +48,7 @@
     "truffle"
   ],
   "dependencies": {
-    "@ethereumjs/common": "2.6.2",
+    "@ethereumjs/common": "2.6.4",
     "@ganache/ethereum-address": "0.2.0",
     "@ganache/ethereum-utils": "0.2.0",
     "@ganache/rlp": "0.2.0",
@@ -58,7 +58,7 @@
     "node-gyp-build": "4.2.3"
   },
   "devDependencies": {
-    "@ethereumjs/vm": "5.7.1",
+    "@ethereumjs/vm": "5.9.0",
     "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
     "mocha": "9.1.3",
