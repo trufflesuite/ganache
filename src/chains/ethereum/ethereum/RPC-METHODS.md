@@ -155,6 +155,7 @@ Executes a new message call immediately without creating a transaction on the bl
 
 - `transaction: any` : The transaction call object as seen in source.
 - `blockNumber: QUANTITY | TAG` : Integer block number, or the string "latest", "earliest" or "pending".
+- `overrides: CallOverrides`: State overrides to apply during the simulation.
 
 ##### Returns
 
