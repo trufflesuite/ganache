@@ -164,7 +164,7 @@ state to be ephemerally overridden prior to executing the call. Each address map
     - `state: OBJECT` (optional\*) - Key-value mapping to override _all_ slots in the account storage before executing the call.
     - `stateDiff: OBJECT` (optional\*) - Key-value mapping to override _individual_ slots in the account storage before executing the call.
 
-    _Note - `state` and `stateDiff` fields are mutually exclusive._
+    _\*Note - `state` and `stateDiff` fields are mutually exclusive._
 
 ##### Returns
 
