@@ -1,1 +1,1 @@
-export { JsonRpcType } from "./json-rpc-base-types";
+export { BaseJsonRpcType as JsonRpcType } from "./json-rpc-base-types";

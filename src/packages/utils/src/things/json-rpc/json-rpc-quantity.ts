@@ -1,79 +1,103 @@
-import { bufferToBigInt, BUFFER_EMPTY } from "../../utils";
-import { BaseJsonRpcType } from "./json-rpc-base-types";
-// TODO(perf): rewrite this stuff since it isn't really caching anything
-export class Quantity extends BaseJsonRpcType {
-  _nullable: boolean = false;
-  public static from(
-    value: number | bigint | string | Buffer,
-    nullable = false
-  ) {
-    if (value instanceof Quantity) return value;
-    const q = new Quantity(value);
-    q._nullable = nullable;
-    return q;
-  }
-  public toString(): string | null {
-    // TODO(perf): memoize this stuff
-    if (Buffer.isBuffer(this.value)) {
-      let val = this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");
+import { bufferToBigInt } from "../../utils/buffer-to-bigint";
+import { BaseJsonRpcType, JsonRpcInputArg } from "./json-rpc-base-types";
+const BUFFER_EMPTY = Buffer.alloc(0);
 
-      if (val === "") {
-        if (this._nullable) {
-          return null;
-        }
-        // RPC Quantities must represent `0` as `0x0`
-        return "0x0";
-      }
-      return `0x${val}`;
-    } else if (this.value == null) {
-      return "0x";
-    } else {
-      return super.toString();
-    }
+export class Quantity extends BaseJsonRpcType {
+  private static DEFAULT_STRING_VALUE = "0x0";
+
+  _nullable: boolean = false;
+
+  public static from(value: JsonRpcInputArg, nullable = false) {
+    if (value instanceof Quantity) return value;
+    return new Quantity(value, nullable);
   }
+
+  constructor(value: JsonRpcInputArg, nullable?: boolean) {
+    super(value);
+    if (typeof(value) === "string" && value === "0x") {
+      throw new Error("Cannot wrap a 0x value as a json-rpc Quantity type; Quantity must contain at least one digit");
+    }
+    this._nullable = nullable;
+  }
+
+  public toString(): string | null {
+    if (this.bufferValue == null) {
+      return this._nullable? this.bufferValue : Quantity.DEFAULT_STRING_VALUE;
+    }
+
+    let firstNonZeroByte = 0;
+    for (firstNonZeroByte = 0; firstNonZeroByte < this.bufferValue.length; firstNonZeroByte++) {
+      if (this.bufferValue[firstNonZeroByte] !== 0) break;
+    }
+
+    let val = this.bufferValue.toString("hex", firstNonZeroByte);
+
+    if (val.length === 0 || val === "0") {
+      // RPC Quantities must represent `0` as `0x0`
+      return this._nullable ? null : Quantity.DEFAULT_STRING_VALUE;
+    }
+    if (val[0] === "0") {
+      val = val.slice(1);
+    }
+
+    return `0x${val}`;
+  }
+
   public toBuffer(): Buffer {
-    // 0x0, 0x00, 0x000, etc should return BUFFER_EMPTY
-    if (Buffer.isBuffer(this.value)) {
-      // trim zeros from start
-      let best = 0;
-      for (best = 0; best < this.value.length; best++) {
-        if (this.value[best] !== 0) break;
-      }
-      if (best > 0) {
-        return this.value.slice(best);
-      } else {
-        return this.value;
-      }
-    } else if (typeof this.value === "string") {
-      let val = this.value.slice(2).replace(/^(?:0+(.+?))?$/, "$1");
-      if (val === "" || val === "0") {
-        return BUFFER_EMPTY;
-      }
-    } else if (this.value === 0 || this.value === 0n) {
+    if (this.bufferValue == null) {
       return BUFFER_EMPTY;
     }
 
-    return super.toBuffer();
-  }
-  public toBigInt(): bigint | null {
-    const value = this.value;
+    let firstNonZeroByte = 0;
+    for (firstNonZeroByte = 0; firstNonZeroByte < this.bufferValue.length; firstNonZeroByte++) {
+      if (this.bufferValue[firstNonZeroByte] !== 0) break;
+    }
 
-    // TODO(perf): memoize this stuff
-    if (Buffer.isBuffer(value)) {
-      const bigInt = bufferToBigInt(value);
-      return bigInt == null ? (this._nullable ? null : 0n) : bigInt;
+    if (firstNonZeroByte > 0) {
+      return this.bufferValue.slice(firstNonZeroByte);
     } else {
-      return value == null ? (this._nullable ? null : 0n) : BigInt(value);
+      return this.bufferValue;
     }
   }
-  public toNumber() {
-    // TODO(perf): memoize this stuff
-    return typeof this.value === "number"
-      ? this.value
-      : Number(this.toBigInt());
+
+  public toBigInt(): bigint | null {
+    if (this.bufferValue == null) {
+      return this._nullable ? this.bufferValue : 0n;
+    }
+    if (this.bufferValue.length === 0) {
+      return 0n;
+    }
+    return bufferToBigInt(this.bufferValue);
   }
+
+  public toNumber() {
+    if (this.bufferValue == null) {
+      return this._nullable ? this.bufferValue : 0;
+    }
+
+    let firstNonZeroByte = 0;
+    while(this.bufferValue[firstNonZeroByte] === 0 && firstNonZeroByte < this.bufferValue.length) firstNonZeroByte++;
+
+    const length = this.bufferValue.length - firstNonZeroByte;
+    if (length === 0) {
+      return 0;
+    }
+
+    let result: number;
+    if (length > 6) {
+      const value = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.slice(this.bufferValue);
+      result = Number(bufferToBigInt(value));
+    } else {
+      result = this.bufferValue.readUIntBE(firstNonZeroByte, length);
+    }
+    if (!Number.isSafeInteger(result)) {
+      console.warn(`0x${this.bufferValue.toString("hex")} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(16)}`);
+    }
+    return result;
+  }
+
   valueOf(): bigint {
-    const value = this.value;
+    const value = this.bufferValue;
     if (value === null) {
       return value as null;
     } else if (value === undefined) {
@@ -81,6 +105,22 @@ export class Quantity extends BaseJsonRpcType {
     } else {
       return this.toBigInt();
     }
+  }
+
+  static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer {
+    return Quantity.from(value, nullable).toBuffer();
+  }
+
+  static toString(value: JsonRpcInputArg, nullable?: boolean): string {
+    return Quantity.from(value, nullable).toString();
+  }
+
+  static toNumber(value: JsonRpcInputArg, nullable?: boolean): number {
+    return Quantity.from(value, nullable).toNumber();
+  }
+
+  static toBigInt(value: JsonRpcInputArg, nullable?: boolean): bigint {
+    return Quantity.from(value, nullable).toBigInt();
   }
 }
 

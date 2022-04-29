@@ -408,7 +408,7 @@ describe("@ganache/ethereum-transaction", async () => {
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
         tx.hash.toString(),
-        "0x078395f79508111c9061f9983d387c8b7bfed990dfa098497aa4d34b0e47b265"
+        "0x1d37ff36e8af71fca608ad0f92b52e741b381663ebfe02d0dd1117a4462c206f"
       );
     });
     describe("toVmTransaction", () => {
@@ -484,7 +484,7 @@ describe("@ganache/ethereum-transaction", async () => {
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
         tx.hash.toString(),
-        "0xabe11ba446440bd0ea9b9e9de9eb479ae4555455ec2244a80ef7a72eddf6fe17"
+        "0xd6bf3834e7515e9806407646b1a55541c1de4abc4763f5d905f23eda856a56d8"
       );
     });
     describe("toVmTransaction", () => {

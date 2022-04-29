@@ -236,7 +236,8 @@ describe("api", () => {
         const promises = ids.map(id =>
           send("evm_revert", [id]).then(result =>
             assert.strictEqual(result, false)
-          )
+          ).catch(() => {})
+          // either result is false, or it throws
         );
         await Promise.all(promises);
       });

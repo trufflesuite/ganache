@@ -28,7 +28,7 @@ describe("api", () => {
 
         it("should return 0x for un-initialized address", async () => {
           const code = await provider.send("eth_getCode", [
-            "0xabcdefg012345678abcdefg012345678abcdefg0"
+            "0xabcdef012345678abcdef012345678abcdef0123"
           ]);
           assert.strictEqual(code, "0x");
         });

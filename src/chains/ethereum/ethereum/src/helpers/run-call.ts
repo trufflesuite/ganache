@@ -185,8 +185,9 @@ export async function applySimulationOverrides(
             await stateManager.clearContractStorage(vmAddr);
             clearedState = true;
           }
-          const slotBuf = Quantity.from(slot).toBuffer();
-          const valueBuf = Quantity.from(value).toBuffer();
+          const slotBuf = Data.from(slot, 32).toBuffer();
+          const valueBuf = Data.from(value).toBuffer();
+
           await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       } else {
@@ -196,8 +197,9 @@ export async function applySimulationOverrides(
           const value = stateDiff[slot];
           validateStorageOverride(slot, value, "StateDiff");
 
-          const slotBuf = Quantity.from(slot).toBuffer();
-          const valueBuf = Quantity.from(value).toBuffer();
+          const slotBuf = Data.from(slot, 32).toBuffer();
+          const valueBuf = Data.from(value).toBuffer();
+
           await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       }
