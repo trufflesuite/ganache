@@ -6,8 +6,7 @@ import {
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
-import { hasOwn, PromiEvent } from "@ganache/utils";
-import { isGeneratorFunction, isGeneratorObject } from "util/types";
+import { PromiEvent } from "@ganache/utils";
 import { types } from "util";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
@@ -19,6 +18,88 @@ type WebSocketCapableFlavorMap = {
     ? Flavors.ConnectorsByName[k]
     : never;
 };
+
+function* getFragmentGenerator(
+  data: Generator<Buffer, any, unknown>,
+  value: Buffer
+) {
+  // Use a large buffer to reduce round-trips to ws send
+  let buf = Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE);
+  let offset = 0;
+  let done = false;
+  do {
+    const length = value.byteLength;
+    if (offset > 0 && length + offset > WEBSOCKET_BUFFER_SIZE) {
+      yield buf.subarray(0, offset);
+      // Reset the buffer. Since `ws` sends packets asynchronously,
+      // it is important that we allocate a new buffer for the next
+      // frame. This avoids overwriting data before it is sent. The
+      // reason we need to do this is likely because we do not yet
+      // handle backpressure. Part of handling backpressure will
+      // involve the drain event and only sending while
+      // `ws.getBufferedAmount() < ACCEPTABLE_BACKPRESSURE`.
+      // See https://github.com/trufflesuite/ganache/issues/2790 and
+      // https://github.com/trufflesuite/ganache/issues/2790
+      buf = null;
+      offset = 0;
+    }
+    // Store prev in buffer if it fits (but don't store it if it is the exact
+    // same size as WEBSOCKET_BUFFER_SIZE)
+    if (length < WEBSOCKET_BUFFER_SIZE) {
+      // copy from value into buffer
+      if (buf === null) buf = Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE);
+      value.copy(buf, offset, 0, length);
+      offset += length;
+    } else {
+      // Cannot fit this fragment in buffer, send it directly.
+      // Buffer has just been flushed so we do not need to worry about
+      // out-of-order send.
+      yield value;
+    }
+  } while (({ value, done } = data.next()) && !done);
+
+  // If we've got anything buffered at this point. send it.
+  if (offset > 0) yield buf.subarray(0, offset);
+}
+
+export function sendFragmented(
+  ws: WebSocket,
+  data: Generator<Buffer, any, unknown>,
+  useBinary: boolean
+) {
+  ws.cork(() => {
+    const { value: first } = data.next();
+    // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
+    const shouldCompress = false;
+
+    const fragments = getFragmentGenerator(data, first);
+    // get our first fragment
+    const { value: firstFragment } = fragments.next();
+    // check if there is any more fragments after this one
+    let { value: lastFragment, done } = fragments.next();
+    // if there are no more fragments send the "firstFragent" via `send`, as
+    // we don't need to chunk it.
+    if (done) {
+      ws.send(firstFragment as RecognizedString, useBinary);
+    } else {
+      // since we have at least two fragments send the first one now that it
+      // is "full"
+      ws.sendFirstFragment(firstFragment as RecognizedString, useBinary);
+      // at this point `lastFragment` is the next fragment that should be sent
+      // but it might also be our last fragment. If it is, we MUST use
+      // `sendLastFragment` to send it. So we iterate over all fragments,
+      // sending the _previous_ fragment while caching the current (next)
+      // fragment to be send in the next iteration, or via `sendLastFragment`
+      // when `nextFragment` is also the last one.
+      let nextFragment: Buffer;
+      for (nextFragment of fragments) {
+        ws.sendFragment(lastFragment as RecognizedString, shouldCompress);
+        lastFragment = nextFragment;
+      }
+      ws.sendLastFragment(lastFragment as RecognizedString, shouldCompress);
+    }
+  });
+}
 
 export type WebSocketCapableFlavor = {
   [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
@@ -127,69 +208,13 @@ export default class WebsocketServer {
         }
 
         if (types.isGeneratorObject(data)) {
-          const localData = data;
-          ws.cork(() => {
-            const { value: first } = localData.next();
-
-            // get the second fragment, if there is one
-            // Note: we lag behind by one fragment because the last fragment
-            // needs to be sent via the `sendLastFragment` method.
-            // This value acts as a lookahead so we know if we are at the last
-            // value or not.
-            let { value: next, done } = localData.next();
-
-            // if there wasn't a second fragment, just send it the usual way.
-            if (done) {
-              ws.send(first, useBinary);
-            } else {
-              // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
-              const shouldCompress = false;
-
-              // send the first fragment
-              ws.sendFirstFragment(first, useBinary, shouldCompress);
-
-              // Now send the rest of the data piece by piece.
-              // Use a buffer to reduce round-trips to ws send
-              let buf = Buffer.alloc(WEBSOCKET_BUFFER_SIZE);
-              let bufUsed = 0;
-              let prev = next;
-              for (next of localData) {
-                if (prev.length + bufUsed > buf.length) {
-                  // flush buffer
-                  ws.sendFragment(buf.subarray(0, bufUsed));
-
-                  // Reset the buffer. Since `ws` sends packets asyncronously,
-                  // it is important that we allocate a new buffer for the next
-                  // frame. This avoids overwriting data before it is sent.
-                  buf = Buffer.alloc(WEBSOCKET_BUFFER_SIZE);
-                  bufUsed = 0;
-                }
-
-                // Store prev in buffer if it fits.
-                if (prev.length > buf.length) {
-                  // Cannot fit this fragment in buffer, send it directly.
-                  // Buffer has just been flushed so we do not need to worry about
-                  // out-of-order send.
-                  ws.sendFragment(prev);
-                } else {
-                  // Concat into buffer
-                  prev.copy(buf, bufUsed);
-                  bufUsed += prev.length;
-                }
-                prev = next;
-              }
-
-              if (bufUsed > 0) {
-                // Final buffer flush before sending last fragment
-                ws.sendFragment(buf.subarray(0, bufUsed));
-              }
-
-              // Send last fragment
-              ws.sendLastFragment(prev);
-            }
-          });
+          sendFragmented(
+            ws,
+            data as Generator<Buffer, any, unknown>,
+            useBinary
+          );
         } else {
-          ws.send(data as RecognizedString, useBinary);
+          ws.send(data, useBinary);
         }
       },
 
