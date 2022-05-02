@@ -10,6 +10,10 @@ import sinon from "sinon";
 describe("@ganache/version-check", () => {
   let vc;
   const testVersion = "0.0.0";
+  const versionString = "v1.2.3";
+  const version = "1.2.3";
+  const invalidVersion = "notasemver";
+
   const testConfig = {
     packageName: "test",
     enabled: true,
@@ -84,13 +88,26 @@ describe("@ganache/version-check", () => {
     it("uses console for the default logger", () => {
       assert(vc._logger == console, "Default logger is not set to console");
     });
+
+    it("cleans the currentVersion semver", () => {
+      vc = new VersionCheck(versionString);
+
+      assert.equal(vc._currentVersion, version);
+    });
   });
 
   describe("cleanSemver", () => {
-    it("cleans 'v' string from semver");
+    it("cleans 'v' string from semver", () => {
+      assert.equal(vc.cleanSemver(versionString), version);
+    });
   });
   describe("isValidSemver", () => {
-    it("returns semver if valid");
+    it("returns semver if valid", () => {
+      assert.equal(vc.isValidSemver(testVersion), testVersion);
+    });
+    it("returns null if invalid semver", () => {
+      assert.equal(vc.isValidSemver(invalidVersion), null);
+    });
   });
 
   describe("ConfigManager", () => {
@@ -286,12 +303,12 @@ describe("@ganache/version-check", () => {
       });
       it("handles bad semver", () => {
         assert(
-          vc.detectSemverChange("notasemver", "1.0.0") === null,
+          vc.detectSemverChange(invalidVersion, "1.0.0") === null,
           true,
           "detectSemverChange improperly handles bad currentVersions"
         );
         assert(
-          vc.detectSemverChange("1.0.0", "notasemver") === null,
+          vc.detectSemverChange("1.0.0", invalidVersion) === null,
           true,
           "detectSemverChange improperly handles bad latestVersions"
         );
