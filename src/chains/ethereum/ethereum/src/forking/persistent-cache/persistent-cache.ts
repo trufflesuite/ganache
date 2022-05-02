@@ -1,7 +1,6 @@
 import { Tree } from "./tree";
 import { promises } from "fs";
 import envPaths from "env-paths";
-import levelup, { LevelUp } from "levelup";
 import leveldown from "leveldown";
 import sub from "subleveldown";
 import encode from "encoding-down";
@@ -16,7 +15,9 @@ import {
   setDbVersion,
   findClosestDescendants
 } from "./helpers";
-import { AbstractIterator, AbstractLevelDOWN } from "abstract-leveldown";
+import type { AbstractIterator, AbstractLevelDOWN } from "abstract-leveldown";
+import type { LevelUp } from "levelup";
+const levelup = require("levelup");
 
 const levelupOptions = {
   keyEncoding: "binary",
@@ -46,7 +47,7 @@ export class PersistentCache {
   protected ancestry: Ancestry;
   protected hashBuffer: Buffer;
   protected request: Request;
-  constructor() {}
+  constructor() { }
 
   static async deleteDb(dbSuffix?: string) {
     return new Promise((resolve, reject) => {
@@ -114,7 +115,7 @@ export class PersistentCache {
     const directory = PersistentCache.getDbDirectory(dbSuffix);
     await promises.mkdir(directory, { recursive: true });
 
-    const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
+    const store: AbstractLevelDOWN = encode(leveldown(directory, leveldownOpts), levelupOptions);
     const db = await new Promise<LevelUp>((resolve, reject) => {
       const db = levelup(store, (err: Error) => {
         if (err) return void reject(err);
@@ -200,7 +201,7 @@ export class PersistentCache {
           if (
             descendantRawBlock == null ||
             descendantRawBlock.hash !==
-              Data.from(descendantNode.hash, 32).toString()
+            Data.from(descendantNode.hash, 32).toString()
           ) {
             ancestorsDescendants.push(descendantKey);
           } else {
@@ -238,7 +239,7 @@ export class PersistentCache {
       // we don't care if it fails because this is an optimization that only
       // matters for _future_ runs of ganache for blocks beyond our current fork
       // block
-      .catch(_ => {})
+      .catch(_ => { })
       .finally(() => {
         this._reBalancePromise = null;
       });
