@@ -3,6 +3,8 @@ import http2 from "http2";
 import Conf from "conf";
 import { default as semverDiff } from "semver/functions/diff";
 import { default as semverValid } from "semver/functions/valid";
+import { default as semverClean } from "semver/functions/clean";
+import { default as semverGt } from "semver/functions/gt";
 
 export type VersionCheckConfig = {
   packageName: string;
@@ -39,7 +41,14 @@ export class VersionCheck {
     // If config was passed in, save changes
     if (config) this.saveConfig();
 
-    this._currentVersion = currentVersion;
+    if (this.isValidSemver(currentVersion)) {
+      this._currentVersion = this.cleanSemver(currentVersion);
+    } else {
+      // Semver is invalid, turn off version check
+      this._currentVersion = false;
+      this._config.enabled = false;
+    }
+
     this._logger = logger || console;
   }
 
@@ -48,12 +57,20 @@ export class VersionCheck {
     return this;
   }
 
+  cleanSemver(semver) {
+    return semverClean(semver);
+  }
+
+  isValidSemver(semver) {
+    return semverValid(semver);
+  }
+
   setEnabled(enabled) {
     this.set("enabled", enabled);
   }
 
   setLatestVersion(latestVersion) {
-    if (semverValid(latestVersion)) {
+    if (this.isValidSemver(latestVersion)) {
       this.set("latestVersion", latestVersion);
     }
   }
@@ -94,12 +111,6 @@ export class VersionCheck {
     // No currentVersion version passed in
     if (!currentVersion) {
       return false;
-      // We are in local DEV
-    } else if (currentVersion === "DEV") {
-      return false;
-      // Invalid currentVersion version string
-    } else if (typeof currentVersion !== "string") {
-      return false;
     } else if (this.alreadyLoggedThisVersion()) {
       return false;
     }
@@ -113,8 +124,8 @@ export class VersionCheck {
       !latestVersion ||
       currentVersion > latestVersion ||
       currentVersion === latestVersion ||
-      !semverValid(currentVersion) ||
-      !semverValid(latestVersion)
+      !this.isValidSemver(currentVersion) ||
+      !this.isValidSemver(latestVersion)
     )
       return null;
 
@@ -124,7 +135,7 @@ export class VersionCheck {
   async getLatestVersion() {
     if (!this._config.enabled) return false;
     try {
-      const latestVersion = await this.fetchLatestVersion();
+      const latestVersion = this.cleanSemver(await this.fetchLatestVersion());
       this.setLatestVersion(latestVersion);
       return true;
     } catch (e) {
