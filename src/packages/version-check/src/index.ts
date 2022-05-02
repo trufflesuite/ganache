@@ -4,7 +4,7 @@ import Conf from "conf";
 import { default as semverDiff } from "semver/functions/diff";
 import { default as semverValid } from "semver/functions/valid";
 import { default as semverClean } from "semver/functions/clean";
-import { default as semverGt } from "semver/functions/gt";
+import { default as semverGte } from "semver/functions/gte";
 
 export type VersionCheckConfig = {
   packageName: string;
@@ -122,10 +122,9 @@ export class VersionCheck {
     if (
       !currentVersion ||
       !latestVersion ||
-      currentVersion > latestVersion ||
-      currentVersion === latestVersion ||
       !this.isValidSemver(currentVersion) ||
-      !this.isValidSemver(latestVersion)
+      !this.isValidSemver(latestVersion) ||
+      semverGte(currentVersion, latestVersion)
     )
       return null;
 
@@ -179,7 +178,10 @@ export class VersionCheck {
   }
 
   alreadyLoggedThisVersion() {
-    return this._config.latestVersionLogged >= this._config.latestVersion;
+    return semverGte(
+      this._config.latestVersionLogged,
+      this._config.latestVersion
+    );
   }
 
   log() {

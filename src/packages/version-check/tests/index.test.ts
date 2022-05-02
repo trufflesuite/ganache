@@ -58,7 +58,13 @@ describe("@ganache/version-check", () => {
         "testConfig is not set in the version checker."
       );
     });
-    it("sets an optional sparse config", () => {});
+    it("sets an optional sparse config");
+    it("disables if currentVersion is not a valid semver", () => {
+      vc = new VersionCheck(null);
+
+      assert.equal(vc._currentVersion, false);
+      assert.equal(vc._config.enabled, false);
+    });
     it("sets an optional logger", () => {
       const someData = "some data";
       const customLogger = {
@@ -78,6 +84,13 @@ describe("@ganache/version-check", () => {
     it("uses console for the default logger", () => {
       assert(vc._logger == console, "Default logger is not set to console");
     });
+  });
+
+  describe("cleanSemver", () => {
+    it("cleans 'v' string from semver");
+  });
+  describe("isValidSemver", () => {
+    it("returns semver if valid");
   });
 
   describe("ConfigManager", () => {
