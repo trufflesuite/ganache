@@ -535,9 +535,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     storageKeys: StorageKeys;
     transactions: TypedTransaction[];
   }) => {
-    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
-      .then(() => this.#saveNewBlock(blockData))
-      .then(this.#emitNewBlock);
+    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise.then(() => {
+      const saveBlockProm = this.#saveNewBlock(blockData);
+      saveBlockProm.then(this.#emitNewBlock);
+      return saveBlockProm;
+    });
 
     await this.#blockBeingSavedPromise;
     return;
@@ -580,6 +582,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       ),
       blockNumber: nextBlock.header.number.toBuffer()
     };
+  };
+
+  awaitBlockSaving = async () => {
+    await this.#blockBeingSavedPromise;
+    return;
   };
 
   #isPaused = () => {
