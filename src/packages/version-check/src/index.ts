@@ -172,6 +172,7 @@ export class VersionCheck {
         })
         .setTimeout(ttl, () => {
           req.close();
+          session.close();
           reject();
         });
     });
