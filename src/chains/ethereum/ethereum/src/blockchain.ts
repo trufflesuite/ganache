@@ -469,7 +469,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       transaction.finalize("confirmed", transaction.execException);
     });
 
-    if (this.#instamine && options.miner.instamine === "eager") {
+    if (options.miner.instamine === "eager") {
       // in eager instamine mode we must delay the broadcast of new blocks
       await new Promise(resolve => {
         // we delay emitting blocks and blockLogs because we need to allow for:
