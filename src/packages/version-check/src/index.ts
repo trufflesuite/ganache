@@ -167,14 +167,13 @@ export class VersionCheck {
               resolve(data);
               session.close();
             });
-
-          req.end();
         })
         .setTimeout(ttl, () => {
           req.close();
           session.close();
           reject();
         });
+      req.end();
     });
   }
 
