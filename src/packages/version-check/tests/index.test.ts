@@ -860,6 +860,29 @@ describe("@ganache/version-check", () => {
         assert.equal(vc.detectSemverChange("1.2.4", alphaVersion), null);
       });
     });
+    describe("version strings", () => {
+      it("v0.0.1 -> v0.0.2", () => {
+        assert.equal(vc.detectSemverChange("v0.0.1", "v0.0.2"), "patch");
+      });
+      it("v0.0.1 -> 0.0.2", () => {
+        assert.equal(vc.detectSemverChange("v0.0.1", "0.0.2"), "patch");
+      });
+      it("v0.1.0 -> v0.2.0", () => {
+        assert.equal(vc.detectSemverChange("v0.1.0", "v0.2.0"), "minor");
+      });
+      it("v0.1.0 -> 0.2.0", () => {
+        assert.equal(vc.detectSemverChange("v0.1.0", "0.2.0"), "minor");
+      });
+      it("v0.0.1-alpha -> v0.0.2", () => {
+        assert.equal(
+          vc.detectSemverChange("v0.0.1-alpha", "v0.0.2"),
+          "prepatch"
+        );
+      });
+      it("v0.0.2 -> v0.0.2-alpha", () => {
+        assert.equal(vc.detectSemverChange("v0.0.2", "v0.0.2-alpha"), null);
+      });
+    });
   });
 
   describe("alreadyLoggedThisVersion", () => {
