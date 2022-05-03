@@ -12,6 +12,8 @@ describe("@ganache/version-check", () => {
   const testVersion = "0.0.0";
   const versionString = "v1.2.3";
   const version = "1.2.3";
+  const alphaVersion = "1.2.3-alpha";
+  const betaVersion = "1.2.3-beta";
   const invalidVersion = "notasemver";
 
   const testConfig = {
@@ -21,6 +23,13 @@ describe("@ganache/version-check", () => {
     ttl: 100,
     latestVersion: "99.99.99",
     latestVersionLogged: "99.99.90"
+  };
+  const sparseConfig = {
+    packageName: "test",
+    enabled: true,
+    url: "test",
+    ttl: 100,
+    latestVersion: "99.99.99"
   };
 
   let message;
@@ -62,7 +71,16 @@ describe("@ganache/version-check", () => {
         "testConfig is not set in the version checker."
       );
     });
-    it("sets an optional sparse config");
+    it("sets an optional sparse config", () => {
+      const expectedConfig = {
+        ...VersionCheck.DEFAULTS.config,
+        ...sparseConfig
+      };
+
+      vc = new VersionCheck(testVersion, sparseConfig);
+
+      assert.deepStrictEqual(vc._config, expectedConfig);
+    });
     it("disables if currentVersion is not a valid semver", () => {
       vc = new VersionCheck(null);
 
@@ -100,7 +118,12 @@ describe("@ganache/version-check", () => {
     it("cleans 'v' string from semver", () => {
       assert.equal(vc.cleanSemver(versionString), version);
     });
+    it("trims whitespace from the edges", () => {
+      const paddedSemver = " " + versionString + " ";
+      assert.equal(vc.cleanSemver(versionString), version);
+    });
   });
+
   describe("isValidSemver", () => {
     it("returns semver if valid", () => {
       assert.equal(vc.isValidSemver(testVersion), testVersion);
@@ -806,6 +829,35 @@ describe("@ganache/version-check", () => {
           null,
           "6.0.0 -> 5.5.5 fails"
         );
+      });
+    });
+    describe("alphas and betas", () => {
+      it("1.2.2 -> 1.2.3-alpha", () => {
+        assert.equal(vc.detectSemverChange("1.2.2", alphaVersion), "prepatch");
+      });
+      it("1.2.2 -> 1.2.3-beta", () => {
+        assert.equal(vc.detectSemverChange("1.2.2", betaVersion), "prepatch");
+      });
+      it("alpha -> release", () => {
+        assert.equal(
+          vc.detectSemverChange(alphaVersion, version),
+          "prerelease"
+        );
+      });
+      it("beta -> alpha", () => {
+        assert.equal(
+          vc.detectSemverChange(alphaVersion, version),
+          "prerelease"
+        );
+      });
+      it("beta -> release", () => {
+        assert.equal(
+          vc.detectSemverChange(alphaVersion, version),
+          "prerelease"
+        );
+      });
+      it("1.2.4 -> 1.2.3-alpha", () => {
+        assert.equal(vc.detectSemverChange("1.2.4", alphaVersion), null);
       });
     });
   });
