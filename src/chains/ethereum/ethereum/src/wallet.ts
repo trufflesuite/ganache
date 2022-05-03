@@ -14,7 +14,7 @@ import {
   WEI
 } from "@ganache/utils";
 import { privateToAddress } from "ethereumjs-util";
-import secp256k1 from "@ganache/secp256k1";
+import secp256k1, { SECP256K1_N } from "@ganache/secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import { alea } from "seedrandom";
 import crypto from "crypto";
@@ -22,6 +22,8 @@ import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Address } from "@ganache/ethereum-address";
+
+const TWELVE_255s = Buffer.allocUnsafe(12).fill(255);
 
 //#region Constants
 const SCRYPT_PARAMS = {
@@ -626,7 +628,7 @@ export default class Wallet {
 
   public createFakePrivateKey(address: string) {
     let fakePrivateKey: Buffer;
-    const addressBuf = Data.from(address).toBuffer();
+    const addressBuf = Address.from(address).toBuffer();
     if (addressBuf.equals(ACCOUNT_ZERO)) {
       // allow signing with the 0x0 address...
       // always sign with the same fake key, a 31 `0`s followed by a single
@@ -636,7 +638,42 @@ export default class Wallet {
       fakePrivateKey = Buffer.allocUnsafe(32).fill(0, 0, 31);
       fakePrivateKey[31] = 1;
     } else {
-      fakePrivateKey = Buffer.concat([addressBuf, addressBuf.slice(0, 12)]);
+      // Private keys must not be greater than *or equal to*:
+      // 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141, and
+      // if they are that large then signing of the transaction (ecdsaSign) will
+      // fail.
+      // Historically, we've just concatenated the address with part of itself,
+      // to make something long enough to use as a private key, so we can't
+      // change the default/legacy behavior now. But for addresses that would
+      // generate an invalid private key we must use a different approach. If
+      // the legacy way of generating a private key results in a key that is too
+      // large
+      //
+      const first12 = addressBuf.slice(0, 12);
+      fakePrivateKey = Buffer.concat([addressBuf, first12]);
+      // BigInt is slow, so only do it if we might need to, which we usually
+      // never will.
+      // Since we already have a slice of the first 12 bytes let's use it to
+      // help check if we might overflow the max secp256k1 key value. If the
+      // first 12 bytes, the most significant digits of the key, are all `255`
+      // then there is a chance that the fakePrivateKey will be too large.
+      // `Buffer.compare` is a native method in V8, so it should be pretty fast.
+      // example: the address `0xffffffffffff{anything can go here}` generates a
+      // bad fakePrivateKey but, `0xfffffffffffe{anything can go here}` never
+      // will. There are obviously many chances for a false positive, but the
+      // next condition in the `while` loop will catch those.
+      if (first12.compare(TWELVE_255s) === 0) {
+        while (BigInt(`0x${fakePrivateKey.toString("hex")}`) >= SECP256K1_N) {
+          // keccak returns a 32 byte hash of the input data, which is the exact
+          // length we need for a private key.
+          // note: if keccak can return its own input as its output, then this
+          // loops forever. The chances of this happening are impossibly low, so
+          // it's not worth the effort to check, but it would be interesting if
+          // someone reported an issue that can cause this for a specific
+          // address!
+          fakePrivateKey = keccak(fakePrivateKey);
+        }
+      }
     }
     return Data.from(fakePrivateKey);
   }
