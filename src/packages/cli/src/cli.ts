@@ -133,8 +133,6 @@ async function startGanache(err: Error) {
   }
   started = true;
 
-  versionCheck.init().log();
-
   switch (flavor) {
     case FilecoinFlavorName: {
       await initializeFilecoin(
@@ -150,5 +148,6 @@ async function startGanache(err: Error) {
     }
   }
 }
+versionCheck.init().log();
 console.log("Starting RPC server");
 server.listen(cliSettings.port, cliSettings.host, startGanache);
