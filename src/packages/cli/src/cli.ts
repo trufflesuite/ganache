@@ -147,7 +147,7 @@ async function startGanache(err: Error) {
       break;
     }
   }
+  versionCheck.init().log();
 }
-versionCheck.init().log();
 console.log("Starting RPC server");
 server.listen(cliSettings.port, cliSettings.host, startGanache);
