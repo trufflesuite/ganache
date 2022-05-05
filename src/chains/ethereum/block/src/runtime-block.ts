@@ -152,7 +152,8 @@ export class RuntimeBlock {
     gasUsed: bigint,
     extraData: Data,
     transactions: TypedTransaction[],
-    storageKeys: StorageKeys
+    storageKeys: StorageKeys,
+    initiator: string
   ) {
     const { header } = this;
     const rawHeader: EthereumRawBlockHeader = [
@@ -206,6 +207,7 @@ export class RuntimeBlock {
     (block as any).serializeBaseFeePerGas = rawHeader[15] === undefined;
     (block as any)._rawTransactionMetaData = extraTxs;
     (block as any)._size = size;
+    block.initiator = initiator;
 
     return {
       block,
