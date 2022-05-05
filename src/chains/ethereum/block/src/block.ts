@@ -30,6 +30,7 @@ export class Block {
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   public header: BlockHeader;
+  public initiator: string;
 
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
