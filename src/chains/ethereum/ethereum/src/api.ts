@@ -344,6 +344,7 @@ export default class EthereumApi implements Api {
         assertExceptionalTransactions(transactions);
       }
     }
+
     return "0x0";
   }
 
