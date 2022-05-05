@@ -572,14 +572,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     timestamp?: number,
     onlyOneBlock: boolean = false
   ) => {
-    await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+    const transactions = await this.#miner.mine(
+      nextBlock,
+      maxTransactions,
+      onlyOneBlock
+    );
+    await this.#blockBeingSavedPromise;
     return {
-      transactions: await this.#miner.mine(
-        nextBlock,
-        maxTransactions,
-        onlyOneBlock
-      ),
+      transactions,
       blockNumber: nextBlock.header.number.toBuffer()
     };
   };
