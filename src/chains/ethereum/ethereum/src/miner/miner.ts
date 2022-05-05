@@ -60,6 +60,8 @@ export type BlockData = {
   extraData: string;
 };
 
+export type MineInitiator = "evm_mine" | "blockTime" | "instamine";
+
 const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
   let i = 256;
   while (--i) blockBloom[i] |= bloom[i];
@@ -90,6 +92,7 @@ export default class Miner extends Emittery<{
   #paused: boolean = false;
   #resumer: Promise<void>;
   #currentBlockBaseFeePerGas: Quantity;
+  requestQueue: MineInitiator[][] = [];
   #resolver: (value: void) => void;
 
   /**
@@ -101,6 +104,7 @@ export default class Miner extends Emittery<{
   readonly #options: EthereumInternalOptions["miner"];
   readonly #vm: VM;
   readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
+  readonly #awaitBlockSaving: () => Promise<void>;
 
   public async pause() {
     if (!this.#paused) {
@@ -136,7 +140,8 @@ export default class Miner extends Emittery<{
     options: EthereumInternalOptions["miner"],
     executables: Executables,
     vm: VM,
-    createBlock: (previousBlock: Block) => RuntimeBlock
+    createBlock: (previousBlock: Block) => RuntimeBlock,
+    awaitBlockSaving: () => Promise<void>
   ) {
     super();
 
@@ -148,6 +153,7 @@ export default class Miner extends Emittery<{
       this.#setCurrentBlockBaseFeePerGas(newBlock);
       return newBlock;
     };
+    this.#awaitBlockSaving = awaitBlockSaving;
 
     // initialize the heap with an empty array
     this.#priced.init([]);
@@ -156,19 +162,22 @@ export default class Miner extends Emittery<{
   /**
    * @param maxTransactions: - maximum number of transactions per block. If `-1`,
    * unlimited.
-   * @param onlyOneBlock: - set to `true` if only 1 block should be mined.
+   * @param onlyOneBlock: - number of blocks to mine as a result of this call to `mine`.
    *
    * @returns the transactions mined in the _first_ block
    */
   public async mine(
     block: RuntimeBlock,
     maxTransactions: number | Capacity = Capacity.FillBlock,
-    onlyOneBlock = false
+    initiator: MineInitiator,
+    blocksToMine
   ) {
     if (this.#paused) {
       await this.#resumer;
     }
-
+    // for every block this mining initiator requested, add a request to the queue
+    this.requestQueue.push(Array(blocksToMine).fill(initiator));
+    console.log(`added to request queue ${JSON.stringify(this.requestQueue)}`);
     // only allow mining a single block at a time (per miner)
     if (this.#isBusy) {
       // if we are currently mining a block, set the `pending` property
@@ -180,7 +189,7 @@ export default class Miner extends Emittery<{
     } else {
       this.#setCurrentBlockBaseFeePerGas(block);
       this.#setPricedHeap();
-      const result = await this.#mine(block, maxTransactions, onlyOneBlock);
+      const result = await this.#mine(block, maxTransactions);
       this.emit("idle");
       return result;
     }
@@ -188,21 +197,19 @@ export default class Miner extends Emittery<{
 
   #mine = async (
     block: RuntimeBlock,
-    maxTransactions: number | Capacity = Capacity.FillBlock,
-    onlyOneBlock = false
+    maxTransactions: number | Capacity = Capacity.FillBlock
   ) => {
     const { block: lastBlock, transactions } = await this.#mineTxs(
       block,
-      maxTransactions,
-      onlyOneBlock
+      maxTransactions
     );
-
+    const requestorCount = this.requestQueue.length;
     // if there are more txs to mine, start mining them without awaiting their
     // result.
-    if (this.#pending) {
+    if (this.#pending || requestorCount > 0) {
       this.#setPricedHeap();
       this.#pending = false;
-      if (!onlyOneBlock && this.#priced.length > 0) {
+      if (this.#priced.length > 0 || requestorCount > 0) {
         const nextBlock = this.#createBlock(lastBlock);
         await this.#mine(nextBlock, maxTransactions);
       }
@@ -212,8 +219,7 @@ export default class Miner extends Emittery<{
 
   #mineTxs = async (
     runtimeBlock: RuntimeBlock,
-    maxTransactions: number | Capacity,
-    onlyOneBlock: boolean
+    maxTransactions: number | Capacity
   ) => {
     let block: Block;
     const vm = this.#vm;
@@ -237,6 +243,10 @@ export default class Miner extends Emittery<{
       if (maxTransactions === Capacity.Empty) {
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
+        // get the requests out in FIFO order
+        const initiatorRequests = this.requestQueue[0];
+        const initiator = initiatorRequests.shift();
+        console.log(`making empty block from initiator ${initiator}`);
         const finalizedBlockData = runtimeBlock.finalize(
           transactionsTrie.root,
           receiptTrie.root,
@@ -245,9 +255,24 @@ export default class Miner extends Emittery<{
           0n, // gas used
           options.extraData,
           [],
-          storageKeys
+          storageKeys,
+          initiator
         );
         this.emit("block", finalizedBlockData);
+        // this was the last of the requests from this initiator
+        if (initiatorRequests.length === 0) {
+          // so clear out the requests from this initiator in the request queue,
+          // in FIFO order
+          this.requestQueue.shift();
+          console.log(
+            `no more blocks from initiator, just shifted request queue ${JSON.stringify(
+              this.requestQueue
+            )}`
+          );
+          // and also await the block being fully saved before we continue mining
+          await this.#awaitBlockSaving();
+        }
+        // we've mined a block, so decrement how many more are queued up to be mined
         this.#reset();
         return { block: finalizedBlockData.block, transactions: [] };
       }
@@ -288,6 +313,7 @@ export default class Miner extends Emittery<{
       // this `best` transaction with the next best transaction from the same
       // origin later.
       let best: TypedTransaction;
+      let lastInitiator;
       while ((best = priced.peek())) {
         const origin = best.from.toString();
 
@@ -403,6 +429,14 @@ export default class Miner extends Emittery<{
 
       vm.removeListener("step", stepListener);
 
+      // get the requests out in FIFO order
+      const initiatorRequests = this.requestQueue[0];
+      // there wasn't a request but we're mining, this means that the last request
+      // took more than one block, so use that last block's initiator for this one
+      const initiator = (lastInitiator = initiatorRequests
+        ? initiatorRequests.shift()
+        : lastInitiator);
+      console.log(`making block from initiator ${initiator}`);
       const finalizedBlockData = runtimeBlock.finalize(
         transactionsTrie.root,
         receiptTrie.root,
@@ -411,12 +445,32 @@ export default class Miner extends Emittery<{
         blockGasUsed,
         options.extraData,
         blockTransactions,
-        storageKeys
+        storageKeys,
+        initiator
       );
       block = finalizedBlockData.block;
       this.emit("block", finalizedBlockData);
+      // this was the last of the requests from this initiator
+      if (initiatorRequests.length === 0) {
+        // remove the requests from this initiator in the request queue,
+        // in FIFO order
+        this.requestQueue.shift();
 
-      if (onlyOneBlock) {
+        console.log(
+          `no more blocks from initiator, just shifted request queue ${JSON.stringify(
+            this.requestQueue
+          )}`
+        );
+        // and also await the block being fully saved before we continue mining
+        // TODO: before merging consider if we should always await this in
+        // strict mode. Do we always need to wait for blocks to be saved before
+        // starting to mine the next block in strict mode?
+        await this.#awaitBlockSaving();
+      }
+
+      // this is our last block requested to be mined
+      if (this.requestQueue.length === 0 && !keepMining) {
+        // todo: why would we clear if onlyOneBlock???
         this.#currentlyExecutingPrice = 0n;
         this.#reset();
         break;

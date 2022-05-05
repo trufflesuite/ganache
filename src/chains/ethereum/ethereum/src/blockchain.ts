@@ -328,7 +328,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           minerOpts,
           txPool.executables,
           this.vm,
-          this.#readyNextBlock
+          this.#readyNextBlock,
+          this.#awaitBlockSaving
         ));
 
         //#region re-emit miner events:
@@ -529,7 +530,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return str;
   };
 
-  #handleNewBlockData = async (blockData: {
+  #handleNewBlockData = (blockData: {
     block: Block;
     serialized: Buffer;
     storageKeys: StorageKeys;
@@ -541,7 +542,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       return saveBlockProm;
     });
 
-    await this.#blockBeingSavedPromise;
     return;
   };
 
@@ -570,21 +570,22 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   mine = async (
     maxTransactions: number | Capacity,
     timestamp?: number,
-    onlyOneBlock: boolean = false
+    initiator?: string,
+    blocksToMine: number = 1
   ) => {
-    await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
     return {
       transactions: await this.#miner.mine(
         nextBlock,
         maxTransactions,
-        onlyOneBlock
+        initiator ?? this.#instamine ? "instamine" : "blockTime",
+        blocksToMine
       ),
       blockNumber: nextBlock.header.number.toBuffer()
     };
   };
 
-  awaitBlockSaving = async () => {
+  #awaitBlockSaving = async () => {
     await this.#blockBeingSavedPromise;
     return;
   };
@@ -715,7 +716,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         0n,
         minerOptions.extraData,
         [],
-        new Map()
+        new Map(),
+        "genesis"
       );
       const hash = block.hash();
       return this.blocks
@@ -761,7 +763,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       0n,
       this.#options.miner.extraData,
       [],
-      new Map()
+      new Map(),
+      "genesis"
     );
     // README: set the block number to an actual 0 now.
     block.header.number = RPCQUANTITY_ZERO;

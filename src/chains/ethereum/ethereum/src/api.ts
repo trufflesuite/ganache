@@ -317,52 +317,24 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
+    let blocks = 1;
+    let timestamp = arg as number | null;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
-      let { blocks, timestamp } = arg;
-      if (blocks == null) {
-        blocks = 1;
-      }
-      const strictMiner = options.miner.instamine === "strict";
-      // TODO(perf): add an option to mine a bunch of blocks in a batch so
-      // we can save them all to the database in one go.
-      // Developers like to move the blockchain forward by thousands of blocks
-      // at a time and doing this would make it way faster
-      for (let i = 0; i < blocks; i++) {
-        const { transactions, blockNumber } = await blockchain.mine(
-          Capacity.FillBlock,
-          timestamp,
-          true
-        );
-
-        if (strictMiner) {
-          // in strict mode we have to wait until the blocks are fully saved
-          // before mining the next ones, in eager mode they've already been
-          // saved
-          await new Promise(resolve => {
-            const off = blockchain.on("block", ({ header: { number } }) => {
-              if (number.toBuffer().equals(blockNumber)) {
-                off();
-                resolve(void 0);
-              }
-            });
-          });
-        }
-        if (vmErrorsOnRPCResponse) {
-          assertExceptionalTransactions(transactions);
-        }
-      }
-    } else {
-      const { transactions } = await blockchain.mine(
-        Capacity.FillBlock,
-        arg as number | null,
-        true
-      );
-      if (vmErrorsOnRPCResponse) {
-        assertExceptionalTransactions(transactions);
+      timestamp = arg.timestamp;
+      if (arg.blocks != null) {
+        blocks = arg.blocks;
       }
     }
-    await blockchain.awaitBlockSaving();
+    const { transactions } = await blockchain.mine(
+      Capacity.FillBlock,
+      timestamp,
+      "evm_mine",
+      blocks
+    );
+    if (vmErrorsOnRPCResponse) {
+      assertExceptionalTransactions(transactions);
+    }
     return "0x0";
   }
 
