@@ -15,7 +15,7 @@ import {
   StorageRecords,
   RangedStorageKeys,
   StructLog,
-  TransactionTraceOptions,
+  TraceTransactionOptions,
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
@@ -1114,7 +1114,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transaction: VmTransaction,
     trie: GanacheTrie,
     newBlock: RuntimeBlock & { transactions: VmTransaction[] },
-    options: TransactionTraceOptions,
+    options: TraceTransactionOptions,
     keys?: Buffer[],
     contractAddress?: Buffer
   ): Promise<TraceTransactionResult> => {
@@ -1399,7 +1399,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
    */
   public async traceTransaction(
     transactionHash: string,
-    options: TransactionTraceOptions
+    options: TraceTransactionOptions
   ) {
     const transactionHashBuffer = Data.from(transactionHash).toBuffer();
     // #1 - get block via transaction object

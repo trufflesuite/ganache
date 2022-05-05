@@ -1,103 +1,155 @@
-import { Ethereum, EthereumProvider } from "../"; // <- same as `from "ganache"`
+import { Ethereum } from "../"; // <- same as `from "ganache"`
 
 //#region type helpers
+/**
+ * Converts a union into an intersection, as long as the types don't collide:
+ *
+ * ```typescript
+ * // this is fine:
+ * UnionToIntersection<{prop: string} | {other: boolean}> // `{prop: string;} & {other: boolean;}`
+ * ```
+ * ```
+ * // returns `never`:
+ * UnionToIntersection<{prop: string} | {prop: boolean}> // never
+ * ```
+ */
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I
 ) => void
   ? I
   : never;
 
+/**
+ * Returns only the last item in a Tuple
+ */
 type LastOf<T> = UnionToIntersection<
   T extends any ? () => T : never
 > extends () => infer R
   ? R
   : never;
 
+/**
+ * Pushes a new value, V, on to the Tuple, T
+ **/
 type Push<T extends any[], V> = [...T, V];
 
 /**
  * `TuplifyUnion` splits booleans into [true, false], but we really want to represent that as just `boolean`
  */
-type NormalizeBoolean<T> = T extends [true, false] | [false, true]
+type NormalizeBoolean<MaybeBoolean> = MaybeBoolean extends
+  | [true, false]
+  | [false, true]
   ? [boolean]
-  : T;
+  : MaybeBoolean;
 
+/**
+ * Convert a Union into Tuple a union.
+ * example:
+ * `"latest" | "earliest" | "pending"` turns into `["latest", "earliest", "pending"]`
+ */
 type TuplifyUnion<
-  T,
-  L = LastOf<T>,
-  N = [T] extends [never] ? true : false
-> = true extends N
+  U,
+  L = LastOf<U>,
+  // Done detects if we are done or not, by checking if T exists
+  Done = [U] extends [never] ? true : false
+> = true extends Done
   ? []
-  : NormalizeBoolean<Push<TuplifyUnion<Exclude<T, L>>, L>>;
+  : NormalizeBoolean<Push<TuplifyUnion<Exclude<U, L>>, L>>;
 
-declare const Provider: typeof EthereumProvider;
-type Method = Parameters<EthereumProvider["request"]>[0]["method"];
+// mock an instance of our Ethereum provider
+declare const Provider: Ethereum.Provider;
+// use the mocked provider instance to extract all its method names
+type Method = Parameters<typeof Provider["request"]>[0]["method"];
 
-class Wrapper<T extends Method> {
+/**
+ * This class provides an entrance into the Provider's types
+ */
+class Wrapper<M extends Method> {
   // wrapped has no explicit return type so we can infer it
   async wrapped() {
-    return await Provider.prototype.request<T>({} as any);
+    return await Provider.request<M>({} as any);
   }
 }
-type UnPromisify<T> = T extends Promise<infer U> ? U : T;
-type ReturnTypeFor<T extends Method> = UnPromisify<
-  ReturnType<Wrapper<T>["wrapped"]>
+// Returns the type within the Promise
+type UnPromisify<R> = R extends Promise<infer U> ? U : R;
+// Returns the method's return type (Promises removed)
+type InnerReturnType<M extends Method> = UnPromisify<
+  ReturnType<Wrapper<M>["wrapped"]>
 >;
-type UnionFor<T extends Method> = TuplifyUnion<ReturnTypeFor<T>>;
-type UnionLengthFor<T extends Method> = UnionFor<T>["length"] & number;
+// Converts the return type of the method into a union
+type ReturnTypeAsTuple<M extends Method> = TuplifyUnion<InnerReturnType<M>>;
+// Returns the number of return types for this method
+type CountReturnTypes<M extends Method> = ReturnTypeAsTuple<M>["length"] &
+  number;
 
-const expectMethod = function <
+/**
+ * expectMethodReturn type checks the return type of the given method
+ * It requires all possible types are given at `ExpectedType`.
+ *
+ * Other `expectType` tests are too loose, in that is the `ExpectedType`
+ * _partially_ matches (like unions) the tests still pass.
+ *
+ * `expectMethodReturn` attempts to check if the types are complete and exact,
+ * rather than just "matching":
+ *
+ * There are certainly cases where `expectMethodReturn` won't work
+ */
+const expectMethodReturn = function <
   MethodName extends Method,
-  ExpectedType extends ReturnTypeFor<MethodName>,
-  ExpectedUnionSize extends UnionLengthFor<MethodName> extends TuplifyUnion<ExpectedType>["length"]
-    ? UnionLengthFor<MethodName>
+  ExpectedType extends InnerReturnType<MethodName>,
+  ExpectedUnionSize extends CountReturnTypes<MethodName> extends TuplifyUnion<ExpectedType>["length"]
+    ? CountReturnTypes<MethodName>
     : `Size of union for ExpectedType (${TuplifyUnion<ExpectedType>["length"] &
-        number}) and Method (${UnionLengthFor<MethodName>}) don't match`
+        number}) and Method (${CountReturnTypes<MethodName>}) don't match`
 >(): void {};
 //#endregion types helpers
 
 describe("types", () => {
   it("returns the type for db_putString", async () => {
-    expectMethod<"db_putString", boolean, 1>();
+    expectMethodReturn<"db_putString", boolean, 1>();
   });
 
   it("return the type for db_getString", () => {
-    expectMethod<"db_getString", string, 1>();
+    expectMethodReturn<"db_getString", string, 1>();
   });
 
   it("return the type for db_putHex", () => {
-    expectMethod<"db_putHex", boolean, 1>();
+    expectMethodReturn<"db_putHex", boolean, 1>();
   });
 
   it("returns the type for eth_sendTransaction", () => {
-    expectMethod<"eth_sendTransaction", string, 1>();
+    expectMethodReturn<"eth_sendTransaction", string, 1>();
   });
   it("returns the type for eth_personalTransaction", () => {
-    expectMethod<"personal_sendTransaction", string, 1>();
+    expectMethodReturn<"personal_sendTransaction", string, 1>();
   });
 
   it("returns the type for eth_sendRawTransaction", () => {
-    expectMethod<"eth_sendRawTransaction", string, 1>();
+    expectMethodReturn<"eth_sendRawTransaction", string, 1>();
   });
 
   it("returns the type for eth_getTransactionByHash", async () => {
-    expectMethod<
+    expectMethodReturn<
       "eth_getTransactionByHash",
-      Ethereum.SignedTransaction | Ethereum.PooledTransaction | null,
+      Ethereum.Block.Transaction | Ethereum.Pool.Transaction | null,
       4
     >();
   });
 
   it("returns the type for txpool_content", async () => {
-    expectMethod<"txpool_content", Ethereum.TransactionPoolContent, 1>();
+    expectMethodReturn<"txpool_content", Ethereum.Pool.Content, 1>();
   });
 
   it("returns the type for eth_getTransactionReceipt", async () => {
-    expectMethod<"eth_getTransactionReceipt", Ethereum.TransactionReceipt, 1>();
+    expectMethodReturn<
+      "eth_getTransactionReceipt",
+      Ethereum.Transaction.Receipt,
+      1
+    >();
   });
 
   it("returns the type for debug_traceTransaction", async () => {
-    expectMethod<
+    expectMethodReturn<
       "debug_traceTransaction",
       Ethereum.TraceTransactionResult,
       1
@@ -105,7 +157,11 @@ describe("types", () => {
   });
 
   it("returns the type for StorageRangeAtResult", async () => {
-    expectMethod<"debug_storageRangeAt", Ethereum.StorageRangeAtResult, 1>();
+    expectMethodReturn<
+      "debug_storageRangeAt",
+      Ethereum.StorageRangeAtResult,
+      1
+    >();
   });
 
   it("returns the type for eth_getBlockByNumber", async () => {
@@ -117,10 +173,10 @@ describe("types", () => {
     // to handle the polymorphism. Note: this will require we update the way we
     // test types, as `expectMethod` doesn't care about the arguments passed in.
     // see: https://github.com/trufflesuite/ganache/issues/2907
-    expectMethod<"eth_getBlockByNumber", Ethereum.Block, 1>();
+    expectMethodReturn<"eth_getBlockByNumber", Ethereum.Block, 1>();
   });
 
   it("returns the type for eth_getBlockByHash", async () => {
-    expectMethod<"eth_getBlockByHash", Ethereum.Block, 1>();
+    expectMethodReturn<"eth_getBlockByHash", Ethereum.Block, 1>();
   });
 });
