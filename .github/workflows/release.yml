@@ -164,6 +164,11 @@ jobs:
             trufflesuite/ganache
             ghcr.io/${{ github.repository}}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@0522dcd2bf084920c411162fde334a308be75015
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@91cb32d715c128e5f0ede915cd7e196ab7799b83
+        
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
@@ -172,6 +177,7 @@ jobs:
           push: true
           tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', env.TAG, env.VERSION) }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/arm64/v8,linux/amd64,linux/arm/v7
           build-args: |
             INFURA_KEY=${{ secrets.INFURA_KEY }}
 
