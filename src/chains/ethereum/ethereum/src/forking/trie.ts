@@ -291,7 +291,7 @@ export class ForkTrie extends GanacheTrie {
    */
   copy(includeCheckpoints: boolean = true) {
     const db = this.db.copy() as CheckpointDB;
-    const secureTrie = new ForkTrie(db._leveldb, this.root, this.blockchain);
+    const secureTrie = new ForkTrie(db._leveldb as LevelUp, this.root, this.blockchain);
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;

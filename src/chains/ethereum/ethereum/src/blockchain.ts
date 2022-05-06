@@ -53,7 +53,11 @@ import {
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
-import { SimulationTransaction } from "./helpers/run-call";
+import {
+  SimulationTransaction,
+  applySimulationOverrides,
+  CallOverrides
+} from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
 import {
   DefaultStateManager,
@@ -61,7 +65,7 @@ import {
 } from "@ethereumjs/vm/dist/state/index";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import { LevelUp } from "levelup";
+import type { LevelUp } from "levelup";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -164,7 +168,7 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   //  a) we don't currently support changing hardforks
   //  b) it can cause `MaxListenersExceededWarning`.
   // Since we don't need it we overwrite .on to make it be quiet.
-  (common as any).on = () => { };
+  (common as any).on = () => {};
   return common;
 }
 
@@ -367,7 +371,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.#state = Status.stopping;
       // ignore errors while stopping here, since we are already in an
       // exceptional case
-      await this.stop().catch(_ => { });
+      await this.stop().catch(_ => {});
 
       throw e;
     }
@@ -791,7 +795,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return (this.#timeAdjustment = timestamp - Date.now());
   }
 
-  #deleteBlockData = async (blocksToDelete: Block[], newLatestBlockNumber: Buffer) => {
+  #deleteBlockData = async (
+    blocksToDelete: Block[],
+    newLatestBlockNumber: Buffer
+  ) => {
     // if we are forking we need to make sure we clean up the forking related
     // metadata that isn't stored in the trie
     if ("revertMetaData" in this.trie) {
@@ -980,7 +987,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   public async simulateTransaction(
     transaction: SimulationTransaction,
-    parentBlock: Block
+    parentBlock: Block,
+    overrides: CallOverrides
   ) {
     let result: EVMResult;
 
@@ -1002,9 +1010,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-        this.common,
-        BigInt(transaction.block.header.number.toString())
-      )
+          this.common,
+          BigInt(transaction.block.header.number.toString())
+        )
       : this.common;
 
     const gasLeft =
@@ -1049,6 +1057,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         stateManager.addWarmedAddress(caller);
         if (to) stateManager.addWarmedAddress(to.buf);
       }
+
+      // If there are any overrides requested for eth_call, apply
+      // them now before running the simulation.
+      await applySimulationOverrides(stateTrie, vm, overrides);
 
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
@@ -1120,9 +1132,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
-        this.common,
-        BigInt(newBlock.header.number.toString())
-      )
+          this.common,
+          BigInt(newBlock.header.number.toString())
+        )
       : this.common;
 
     const vm = await VM.create({
@@ -1268,7 +1280,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => { };
+    (vm.stateManager as any)._cache.flush = () => {};
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.

@@ -1,11 +1,12 @@
-import { AbstractLevelDOWN } from "abstract-leveldown";
+import type { AbstractLevelDOWN } from "abstract-leveldown";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
-import levelup, { LevelUp } from "levelup";
 import { FilecoinInternalOptions } from "@ganache/filecoin-options";
+import encode from "encoding-down";
+import type { LevelUp } from "levelup";
+const levelup = require("levelup");
 const leveldown = require("leveldown");
 const sub = require("subleveldown");
-const encode = require("encoding-down");
 
 setGracefulCleanup();
 const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
@@ -54,10 +55,7 @@ export default class Database extends Emittery {
     const store = this.#options.db;
     let db: LevelUp;
     if (store) {
-      this.#rootStore = encode(store, levelupOptions);
-      // @ts-ignore - I get an error in ts-node that I don't get running ttsc:
-      // Argument of type 'AbstractLevelDOWN<any, any>' is not assignable to parameter of type 'string'
-      // But this error just doesn't make any sense. I'm just going to ignore the error
+      this.#rootStore = encode(store as AbstractLevelDOWN, levelupOptions);
       db = levelup(this.#rootStore!, {});
     } else {
       let directory = this.#options.dbPath;

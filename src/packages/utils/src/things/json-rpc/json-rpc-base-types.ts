@@ -51,6 +51,7 @@ export class BaseJsonRpcType<
         case "string": {
           // handle hex-encoded string
           if ((value as string).indexOf("0x") === 0) {
+            toStrings.set(this, () => (value as string).toLowerCase().slice(2));
             strCache.set(this, (value as string).toLowerCase());
             toBuffers.set(this, () => {
               let fixedValue = (value as string).slice(2);

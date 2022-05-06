@@ -27,7 +27,12 @@ import {
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
-import { toRpcSig, ecsign, hashPersonalMessage, KECCAK256_NULL } from "ethereumjs-util";
+import {
+  toRpcSig,
+  ecsign,
+  hashPersonalMessage,
+  KECCAK256_NULL
+} from "ethereumjs-util";
 import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
@@ -53,6 +58,7 @@ import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
+import { CallOverrides } from "./helpers/run-call";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
@@ -464,10 +470,15 @@ export default class EthereumApi implements Api {
     // The ethereumjs-vm StateManager does not allow to set empty code,
     // therefore we will manually set the code hash when "clearing" the contract code
     if (codeBuffer.length > 0) {
-      await stateManager.putContractCode({ buf: addressBuffer } as any, codeBuffer)
+      await stateManager.putContractCode(
+        { buf: addressBuffer } as any,
+        codeBuffer
+      );
     } else {
-      const account = await stateManager.getAccount({ buf: addressBuffer } as any);
-      account.codeHash = KECCAK256_NULL
+      const account = await stateManager.getAccount({
+        buf: addressBuffer
+      } as any);
+      account.codeHash = KECCAK256_NULL;
       await stateManager.putAccount({ buf: addressBuffer } as any, account);
     }
 
@@ -505,7 +516,11 @@ export default class EthereumApi implements Api {
     const valueBuffer = Data.from(value).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
-    await stateManager.putContractStorage({ buf: addressBuffer } as any, slotBuffer, valueBuffer)
+    await stateManager.putContractStorage(
+      { buf: addressBuffer } as any,
+      slotBuffer,
+      valueBuffer
+    );
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -2613,9 +2628,19 @@ export default class EthereumApi implements Api {
    * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
    * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
    *
+   * State Override object - An address-to-state mapping, where each entry specifies some
+   * state to be ephemerally overridden prior to executing the call. Each address maps to an
+   * object containing:
+   * * `balance`: `QUANTITY` (optional) - The balance to set for the account before executing the call.
+   * * `nonce`: `QUANTITY` (optional) - The nonce to set for the account before executing the call.
+   * * `code`: `DATA` (optional) - The EVM bytecode to set for the account before executing the call.
+   * * `state`: `OBJECT` (optional*) - Key-value mapping to override *all* slots in the account storage before executing the call.
+   * * `stateDiff`: `OBJECT` (optional*) - Key-value mapping to override *individual* slots in the account storage before executing the call.
+   * * *Note - `state` and `stateDiff` fields are mutually exclusive.
    * @param transaction - The transaction call object as seen in source.
    * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
+   * @param overrides - State overrides to apply during the simulation.
    *
    * @returns The return value of executed contract.
    * @example
@@ -2633,14 +2658,20 @@ export default class EthereumApi implements Api {
    * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
-   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest"] });
+   * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005"
+   * const overrides = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
+   * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", overrides] });
    * console.log(result);
    * ```
    */
-  @assertArgLength(1, 2)
-  async eth_call(transaction: any, blockNumber: QUANTITY | Tag = Tag.latest) {
+  @assertArgLength(1, 3)
+  async eth_call(
+    transaction: any,
+    blockNumber: QUANTITY | Tag = Tag.latest,
+    overrides: CallOverrides = {}
+  ) {
     const blockchain = this.#blockchain;
-    const common = this.#blockchain.common;
+    const common = blockchain.common;
     const blocks = blockchain.blocks;
     const parentBlock = await blocks.get(blockNumber);
     const parentHeader = parentBlock.header;
@@ -2737,7 +2768,11 @@ export default class EthereumApi implements Api {
       block
     };
 
-    return blockchain.simulateTransaction(simulatedTransaction, parentBlock);
+    return blockchain.simulateTransaction(
+      simulatedTransaction,
+      parentBlock,
+      overrides
+    );
   }
   //#endregion
 

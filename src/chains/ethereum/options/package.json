@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/options#readme",
@@ -48,10 +48,10 @@
     "truffle"
   ],
   "dependencies": {
-    "@ganache/ethereum-address": "0.1.4",
-    "@ganache/ethereum-utils": "0.1.4",
-    "@ganache/options": "0.1.4",
-    "@ganache/utils": "0.1.4",
+    "@ganache/ethereum-address": "0.2.0",
+    "@ganache/ethereum-utils": "0.2.0",
+    "@ganache/options": "0.2.0",
+    "@ganache/utils": "0.2.0",
     "bip39": "3.0.4",
     "seedrandom": "3.0.5"
   },

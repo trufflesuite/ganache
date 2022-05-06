@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/utils#readme",
@@ -52,7 +52,7 @@
     "seedrandom": "3.0.5"
   },
   "devDependencies": {
-    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.3",
+    "@trufflesuite/uws-js-unofficial": "20.8.0-unofficial.0",
     "@types/mocha": "9.0.0",
     "@types/seedrandom": "3.0.1",
     "cross-env": "7.0.3",
