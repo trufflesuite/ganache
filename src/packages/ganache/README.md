@@ -46,7 +46,7 @@ Ganache can be used from the [command line](#command-line-use), [programmaticall
 
 ### Command line use
 
-You must first install [Node.js](https://nodejs.org/) >= v10.13.0 and npm >= 6.4.1.
+You must first install [Node.js](https://nodejs.org/) >= v12.0.0 and npm >= 6.12.0.
 
 To install Ganache globally, run:
 
