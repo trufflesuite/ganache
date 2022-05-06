@@ -1358,8 +1358,10 @@ export default class EthereumApi implements Api {
    * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
    * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
    * * `size`: `QUANTITY` - Integer the size of the block in bytes.
-   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
    * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * **NOTE: **The return does not contain a list of transactions in the uncle
+   * block, to get this, make another request to `eth_getBlockByHash`.
    *
    * @example
    * ```javascript
@@ -1370,7 +1372,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getUncleByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
-    return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
+    return null as Omit<Ethereum.Block<true>, "transactions">;
   }
 
   /**
@@ -1398,8 +1400,10 @@ export default class EthereumApi implements Api {
    * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
    * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
    * * `size`: `QUANTITY` - Integer the size of the block in bytes.
-   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
    * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * * **NOTE: **The return does not contain a list of transactions in the uncle
+   * block, to get this, make another request to `eth_getBlockByHash`.
    *
    * @example
    * ```javascript
@@ -1412,7 +1416,7 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag,
     uncleIndex: QUANTITY
   ) {
-    return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
+    return null as Omit<Ethereum.Block<true>, "transactions">;
   }
 
   /**

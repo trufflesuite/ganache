@@ -156,15 +156,11 @@ Executes a new message call immediately without creating a transaction on the bl
 - `transaction: any` : The transaction call object as seen in source.
 - `blockNumber: QUANTITY | TAG` : Integer block number, or the string "latest", "earliest" or "pending".
 - `overrides: CallOverrides`: State overrides to apply during the simulation.
-  - `CallOverrides` - An address-to-state mapping, where each entry specifies some
-state to be ephemerally overridden prior to executing the call. Each address maps to an object containing:
-    - `balance: QUANTITY` (optional) - The balance to set for the account before executing the call.
-    - `nonce: QUANTITY` (optional) - The nonce to set for the account before executing the call.
-    - `code: DATA` (optional) - The EVM bytecode to set for the account before executing the call.
-    - `state: OBJECT` (optional\*) - Key-value mapping to override _all_ slots in the account storage before executing the call.
-    - `stateDiff: OBJECT` (optional\*) - Key-value mapping to override _individual_ slots in the account storage before executing the call.
 
-    _\*Note - `state` and `stateDiff` fields are mutually exclusive._
+  - `CallOverrides` - An address-to-state mapping, where each entry specifies some
+    state to be ephemerally overridden prior to executing the call. Each address maps to an object containing: - `balance: QUANTITY` (optional) - The balance to set for the account before executing the call. - `nonce: QUANTITY` (optional) - The nonce to set for the account before executing the call. - `code: DATA` (optional) - The EVM bytecode to set for the account before executing the call. - `state: OBJECT` (optional\*) - Key-value mapping to override _all_ slots in the account storage before executing the call. - `stateDiff: OBJECT` (optional\*) - Key-value mapping to override _individual_ slots in the account storage before executing the call.
+
+        _\*Note - `state` and `stateDiff` fields are mutually exclusive._
 
 ##### Returns
 
@@ -243,7 +239,7 @@ Returns information about a block by block hash.
 
 ##### Returns
 
-`Promise<object>` : The block, `null` if the block doesn't exist.
+`Promise<Ethereum.Block<IncludeTransactions>>` : The block, `null` if the block doesn't exist.
 
 ---
 
@@ -258,7 +254,7 @@ Returns information about a block by block number.
 
 ##### Returns
 
-`Promise<object>` : The block, `null` if the block doesn't exist.
+`Promise<Ethereum.Block<IncludeTransactions>>` : The block, `null` if the block doesn't exist.
 
 ---
 
@@ -1262,6 +1258,16 @@ Returns the current whisper protocol version.
 ##### Returns
 
 `Promise<string>` : The current whisper protocol version.
+
+---
+
+#### txpool_content()
+
+Returns the current content of the transaction pool.
+
+##### Returns
+
+`Promise<Ethereum.Pool.Content>` : The transactions currently pending or queued in the transaction pool.
 
 ---
 
