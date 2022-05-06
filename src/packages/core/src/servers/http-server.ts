@@ -9,6 +9,7 @@ import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
 import { InternalOptions } from "../options";
 import { types } from "util";
+import { getFragmentGenerator } from "./utils/fragment-generator";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -90,16 +91,62 @@ function sendResponse(
   });
 }
 
-export type HttpServerOptions = Pick<InternalOptions["server"], "rpcEndpoint">;
+function sendChunkedResponse(
+  response: HttpResponse,
+  statusCode: HttpResponseCodes,
+  contentType: RecognizedString | null,
+  data: Generator<Buffer, any, unknown>,
+  chunkSize: number,
+  writeHeaders: (response: HttpResponse) => void = noop
+) {
+  const { value: first } = data.next();
+  const fragments = getFragmentGenerator(data, first, chunkSize);
+  // get our first fragment
+  const { value: firstFragment } = fragments.next();
+  // check if there is any more fragments after this one
+  let { value: prevFragment, done } = fragments.next();
+  // if there are no more fragments send the "firstFragment" via `sendResponse`,
+  // as we don't need to chunk it.
+  if (done) {
+    sendResponse(
+      response,
+      statusCode,
+      contentType,
+      firstFragment as RecognizedString,
+      writeHeaders
+    );
+  } else {
+    response.cork(() => {
+      response.writeStatus(statusCode);
+      writeHeaders(response);
+      response.writeHeader("Content-Type", contentType);
+      // since we have at least two fragments send both now
+      response.write(firstFragment as RecognizedString);
+      response.write(prevFragment as RecognizedString);
+      // and then keep sending the rest
+      for (const nextFragment of fragments) {
+        response.write(nextFragment as RecognizedString);
+      }
+      response.end();
+    });
+  }
+}
+
+export type HttpServerOptions = Pick<
+  InternalOptions["server"],
+  "rpcEndpoint" | "chunkSize"
+>;
 
 export default class HttpServer {
   #connector: Connector;
+  #options: HttpServerOptions;
   constructor(
     app: TemplatedApp,
     connector: Connector,
     options: HttpServerOptions
   ) {
     this.#connector = connector;
+    this.#options = options;
 
     // JSON-RPC routes...
     app
@@ -186,16 +233,14 @@ export default class HttpServer {
             }
             const data = connector.format(result, payload);
             if (types.isGeneratorObject(data)) {
-              response.cork(() => {
-                response.writeStatus(HttpResponseCodes.OK);
-                writeHeaders(response);
-                response.writeHeader("Content-Type", ContentTypes.JSON);
-
-                for (const datum of data) {
-                  response.write(datum as RecognizedString);
-                }
-                response.end();
-              });
+              sendChunkedResponse(
+                response,
+                HttpResponseCodes.OK,
+                ContentTypes.JSON,
+                data as Generator<Buffer>,
+                this.#options.chunkSize,
+                writeHeaders
+              );
             } else {
               sendResponse(
                 response,

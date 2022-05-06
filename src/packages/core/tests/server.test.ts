@@ -11,8 +11,7 @@ import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
 import {
   MAX_PAYLOAD_SIZE as WS_MAX_PAYLOAD_SIZE,
-  sendFragmented,
-  WEBSOCKET_BUFFER_SIZE
+  sendFragmented
 } from "../src/servers/ws-server";
 
 import http from "http";
@@ -637,6 +636,7 @@ describe("server", () => {
       // for calls to debug_traceTransaction that return structLogs that have a
       // length greater than BUFFERIFY_THRESHOLD
       Connector.BUFFERIFY_THRESHOLD = 0;
+      Connector.BUFFERIFY_CHUNK_SIZE = 1;
 
       try {
         await setup();
@@ -1297,7 +1297,7 @@ describe("server", () => {
         const dataGenerator = function* () {
           for (const chunk of chunks) yield chunk;
         };
-        sendFragmented(mockWebsocket, dataGenerator(), false);
+        sendFragmented(mockWebsocket, dataGenerator(), false, 1024 * 1024);
         assert.strictEqual(sendCallCount, 1, "send called too many times!");
       });
 
@@ -1309,11 +1309,11 @@ describe("server", () => {
           // fits in a fragment
           Buffer.from("hello", "utf8"),
           // this second chunk is too large to fit in a single fragment (it is
-          // larger than WEBSOCKET_BUFFER_SIZE), so it should be sent by itself.
+          // larger than bufferSize), so it should be sent by itself.
           // Technically we _could_ copy parts of it into the previous fragment,
           // but we haven't tested if this would be better or worse than sending
           // this chunk as its own huge fragment.
-          Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE + 1).fill(255),
+          Buffer.allocUnsafe(Connector.BUFFERIFY_CHUNK_SIZE + 1).fill(255),
           // fits in a fragment
           Buffer.from("world", "utf8")
         ];
@@ -1331,7 +1331,7 @@ describe("server", () => {
         };
 
         // send the data!
-        sendFragmented(mockWebsocket, dataGenerator(), false);
+        sendFragmented(mockWebsocket, dataGenerator(), false, 1024 * 1024);
 
         assert.strictEqual(
           receivedFragments.length,
@@ -1353,8 +1353,8 @@ describe("server", () => {
 
         const expectedResponses = [
           // this first chunk is too large to fit in a single fragment (it is
-          // larger than WEBSOCKET_BUFFER_SIZE), so it should be sent by itself.
-          Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE + 1).fill(255),
+          // larger than Connector.BUFFERIFY_CHUNK_SIZE), so it should be sent by itself.
+          Buffer.allocUnsafe(Connector.BUFFERIFY_CHUNK_SIZE + 1).fill(255),
           // fits in a fragment
           Buffer.from("world", "utf8")
         ];
@@ -1373,7 +1373,7 @@ describe("server", () => {
         };
 
         // send the data!
-        sendFragmented(mockWebsocket, dataGenerator(), false);
+        sendFragmented(mockWebsocket, dataGenerator(), false, 1024 * 1024);
 
         assert.strictEqual(
           receivedFragments.length,
@@ -1393,9 +1393,9 @@ describe("server", () => {
 
         const expectedResponses = [
           // exactly 1 fragment
-          Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE).fill(255),
+          Buffer.allocUnsafe(Connector.BUFFERIFY_CHUNK_SIZE).fill(255),
           // exactly 1 fragment
-          Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE).fill(255)
+          Buffer.allocUnsafe(Connector.BUFFERIFY_CHUNK_SIZE).fill(255)
         ];
         const dataGenerator = function* () {
           for (const response of expectedResponses) yield response;
@@ -1412,7 +1412,7 @@ describe("server", () => {
         };
 
         // send the data!
-        sendFragmented(mockWebsocket, dataGenerator(), false);
+        sendFragmented(mockWebsocket, dataGenerator(), false, 1024 * 1024);
 
         assert.strictEqual(
           receivedFragments.length,
@@ -1438,7 +1438,7 @@ describe("server", () => {
           Buffer.from("world", "utf8"),
           // this last chunk is too large to fit in a the previous fragment, so
           // it should be sent by itself.
-          Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE - 5).fill(255)
+          Buffer.allocUnsafe(Connector.BUFFERIFY_CHUNK_SIZE - 5).fill(255)
         ];
         const expectedResponses = [
           // fits in a first fragment
@@ -1462,7 +1462,7 @@ describe("server", () => {
         };
 
         // send the data!
-        sendFragmented(mockWebsocket, dataGenerator(), false);
+        sendFragmented(mockWebsocket, dataGenerator(), false, 1024 * 1024);
 
         assert.strictEqual(
           receivedFragments.length,

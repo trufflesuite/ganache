@@ -8,6 +8,7 @@ import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
 import { PromiEvent } from "@ganache/utils";
 import { types } from "util";
+import { getFragmentGenerator } from "./utils/fragment-generator";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
@@ -19,60 +20,18 @@ type WebSocketCapableFlavorMap = {
     : never;
 };
 
-function* getFragmentGenerator(
-  data: Generator<Buffer, any, unknown>,
-  value: Buffer
-) {
-  // Use a large buffer to reduce round-trips to ws send
-  let buf = Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE);
-  let offset = 0;
-  let done = false;
-  do {
-    const length = value.byteLength;
-    if (offset > 0 && length + offset > WEBSOCKET_BUFFER_SIZE) {
-      yield buf.subarray(0, offset);
-      // Reset the buffer. Since `ws` sends packets asynchronously,
-      // it is important that we allocate a new buffer for the next
-      // frame. This avoids overwriting data before it is sent. The
-      // reason we need to do this is likely because we do not yet
-      // handle backpressure. Part of handling backpressure will
-      // involve the drain event and only sending while
-      // `ws.getBufferedAmount() < ACCEPTABLE_BACKPRESSURE`.
-      // See https://github.com/trufflesuite/ganache/issues/2790 and
-      // https://github.com/trufflesuite/ganache/issues/2790
-      buf = null;
-      offset = 0;
-    }
-    // Store prev in buffer if it fits (but don't store it if it is the exact
-    // same size as WEBSOCKET_BUFFER_SIZE)
-    if (length < WEBSOCKET_BUFFER_SIZE) {
-      // copy from value into buffer
-      if (buf === null) buf = Buffer.allocUnsafe(WEBSOCKET_BUFFER_SIZE);
-      value.copy(buf, offset, 0, length);
-      offset += length;
-    } else {
-      // Cannot fit this fragment in buffer, send it directly.
-      // Buffer has just been flushed so we do not need to worry about
-      // out-of-order send.
-      yield value;
-    }
-  } while (({ value, done } = data.next()) && !done);
-
-  // If we've got anything buffered at this point. send it.
-  if (offset > 0) yield buf.subarray(0, offset);
-}
-
 export function sendFragmented(
   ws: WebSocket,
   data: Generator<Buffer, any, unknown>,
-  useBinary: boolean
+  useBinary: boolean,
+  chunkSize: number
 ) {
   ws.cork(() => {
     const { value: first } = data.next();
     // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
     const shouldCompress = false;
 
-    const fragments = getFragmentGenerator(data, first);
+    const fragments = getFragmentGenerator(data, first, chunkSize);
     // get our first fragment
     const { value: firstFragment } = fragments.next();
     // check if there is any more fragments after this one
@@ -109,15 +68,11 @@ export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
   InternalOptions["server"],
-  "wsBinary" | "rpcEndpoint"
+  "wsBinary" | "rpcEndpoint" | "chunkSize"
 >;
 
 // matches geth's limit of 15 MebiBytes: https://github.com/ethereum/go-ethereum/blob/3526f690478482a02a152988f4d31074c176b136/rpc/websocket.go#L40
 export const MAX_PAYLOAD_SIZE = 15 * 1024 * 1024;
-
-// When using fragmented send, use a buffer of this size to combine smaller
-// fragments returned by the response generator. This reduces round-trips.
-export const WEBSOCKET_BUFFER_SIZE = 1024 * 1024; // 1 megabyte
 
 export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
@@ -211,7 +166,8 @@ export default class WebsocketServer {
           sendFragmented(
             ws,
             data as Generator<Buffer, any, unknown>,
-            useBinary
+            useBinary,
+            options.chunkSize
           );
         } else {
           ws.send(data, useBinary);
