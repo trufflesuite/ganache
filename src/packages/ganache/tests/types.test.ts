@@ -157,6 +157,7 @@ describe("types", () => {
   });
 
   it("returns the type for StorageRangeAtResult", async () => {
+    const t: Ethereum.Block.Header = {} as any;
     expectMethodReturn<
       "debug_storageRangeAt",
       Ethereum.StorageRangeAtResult,

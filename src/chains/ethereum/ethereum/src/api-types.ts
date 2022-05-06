@@ -7,29 +7,46 @@ import { Data, Quantity } from "@ganache/utils";
 import { CallOverrides } from "./helpers/run-call";
 import { Log, InternalTag } from "@ganache/ethereum-utils";
 
+type EthSignedDataParams = Parameters<
+  typeof EthSigUtil.signTypedData_v4
+>[1]["data"];
+
+type AsCall<T> = Flatten<
+  Omit<T, "from"> & {
+    readonly from?: string;
+  }
+>;
+type AsPooled<T> = Flatten<
+  Omit<T, "blockNumber" | "blockHash" | "transactionIndex"> & {
+    blockNumber: null;
+    blockHash: null;
+    transactionIndex: null;
+  }
+>;
+
+type PublicPrivate = "public" | "private";
+
+/**
+ * Since our types come from all over the place and get smushed together and
+ * pulled apart, we "Flatten" (there is probably a
+ * better word) these type complexities by using a TypeScript trick:
+ * `Pick<T, keyof T>`. This picks all the keys (and their values) from T,
+ * resulting in the same type shape, but the intermediate types are all skipped
+ * and intersections are simplified.
+ *
+ * ```
+ * type SomeTypes = {prop: string, prop2: number};
+ * type Thing = Omit<SomeTypes, "prop2"> & {addProp: true};
+ * ```
+ * gets turned into
+ * ```
+ * type Thing = {prop: string, addProp: true}
+ * ```
+ */
+type Flatten<T> = Pick<T, keyof T>;
+
 /** Public types */
 export namespace Ethereum {
-  type PublicPrivate = "public" | "private";
-
-  /**
-   * Since our types come from all over the place and get smushed together and
-   * pulled apart, we "Flatten" (there is probably a
-   * better word) these type complexities by using a TypeScript trick: `Pick<T, keyof T>`
-   * This picks all the keys (and their values) from T, resulting in the same type
-   * shape, but the intermediate types are all skipped and intersections are
-   * simplified.
-   *
-   * ```
-   * type SomeTypes = {prop: string, prop2: number};
-   * type Thing = Omit<SomeTypes, "prop2"> & {addProp: true};
-   * ```
-   * gets turned into
-   * ```
-   * type Thing = {prop: string, addProp: true}
-   * ```
-   */
-  type Flatten<T> = Pick<T, keyof T>;
-
   export type Provider = EthereumProvider;
   export type Tag = keyof typeof InternalTag;
 
@@ -82,34 +99,22 @@ export namespace Ethereum {
 
   //#region call/estimate
   export namespace Call {
-    type AsCall<T extends Ethereum.Transaction> = Flatten<
-      Omit<T, "from"> & {
-        readonly from?: string;
-      }
-    >;
+    export type Transaction =
+      | Ethereum.Call.Transaction.Legacy
+      | Ethereum.Call.Transaction.EIP1559
+      | Ethereum.Call.Transaction.EIP2930;
     export namespace Transaction {
       export type Legacy = AsCall<Ethereum.Transaction.Legacy>;
       export type EIP1559 = AsCall<Ethereum.Transaction.EIP1559>;
       export type EIP2930 = AsCall<Ethereum.Transaction.EIP2930>;
     }
-    export type Transaction =
-      | Ethereum.Call.Transaction.Legacy
-      | Ethereum.Call.Transaction.EIP1559
-      | Ethereum.Call.Transaction.EIP2930;
-
     export type Overrides = CallOverrides;
   }
+
   //#endregion call/estimate
 
   //#region Pool
   export namespace Pool {
-    type AsPooled<T> = Flatten<
-      Omit<T, "blockNumber" | "blockHash" | "transactionIndex"> & {
-        blockNumber: null;
-        blockHash: null;
-        transactionIndex: null;
-      }
-    >;
     export namespace Transaction {
       export type Legacy = AsPooled<Ethereum.Block.Transaction.Legacy>;
       export type EIP1559 = AsPooled<Ethereum.Block.Transaction.EIP1559>;
@@ -133,31 +138,26 @@ export namespace Ethereum {
 
   //#region blocks
   export namespace Block {
-    export type Header = BlockHeader;
+    export type Header<P extends PublicPrivate = "public"> = P extends "public"
+      ? Externalize<Ethereum.Block.Header<"private">>
+      : BlockHeader;
     export namespace Transaction {
-      export type Legacy<P extends PublicPrivate = "public"> =
-        P extends "public"
-          ? Externalize<Ethereum.Block.Transaction.Legacy<"private">>
-          : TransactionTypes.LegacyTransactionJSON;
+      export type Legacy = Externalize<TransactionTypes.LegacyTransactionJSON>;
 
-      export type EIP2930<P extends PublicPrivate = "public"> =
-        P extends "public"
-          ? Externalize<Ethereum.Block.Transaction.EIP2930<"private">>
-          : TransactionTypes.EIP2930AccessListTransactionJSON;
+      export type EIP2930 =
+        Externalize<TransactionTypes.EIP2930AccessListTransactionJSON>;
 
-      export type EIP1559<P extends PublicPrivate = "public"> =
-        P extends "public"
-          ? Externalize<Ethereum.Block.Transaction.EIP1559<"private">>
-          : TransactionTypes.EIP1559FeeMarketTransactionJSON;
+      export type EIP1559 =
+        Externalize<TransactionTypes.EIP1559FeeMarketTransactionJSON>;
     }
 
     export type Transaction<P extends PublicPrivate = "public"> =
       P extends "public"
         ? Externalize<Ethereum.Block.Transaction<"private">>
         :
-            | Ethereum.Block.Transaction.Legacy<P>
-            | Ethereum.Block.Transaction.EIP2930<P>
-            | Ethereum.Block.Transaction.EIP1559<P>;
+            | TransactionTypes.LegacyTransactionJSON
+            | TransactionTypes.EIP2930AccessListTransactionJSON
+            | TransactionTypes.EIP1559FeeMarketTransactionJSON;
   }
 
   /**
@@ -178,7 +178,7 @@ export namespace Ethereum {
           ? (Ethereum.Block.Transaction<P> | Ethereum.Pool.Transaction<P>)[]
           : Data[];
         uncles: Data[];
-      } & Ethereum.Block.Header;
+      } & Ethereum.Block.Header<P>;
   //#endregion blocks
 
   // Mine (evm_mine)
@@ -188,10 +188,7 @@ export namespace Ethereum {
   };
 
   // Sign Typed Data
-  export type TypedData = Exclude<
-    Parameters<typeof EthSigUtil.signTypedData_v4>[1]["data"],
-    EthSigUtil.TypedData
-  >;
+  export type TypedData = Exclude<EthSignedDataParams, EthSigUtil.TypedData>;
 
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
