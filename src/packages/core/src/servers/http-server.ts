@@ -96,6 +96,7 @@ function sendResponse(
 
 function sendChunkedResponse(
   response: HttpResponse,
+  closeConnection: boolean,
   statusCode: HttpResponseCodes,
   contentType: RecognizedString | null,
   data: Generator<Buffer, any, unknown>,
@@ -113,6 +114,7 @@ function sendChunkedResponse(
   if (done) {
     sendResponse(
       response,
+      closeConnection,
       statusCode,
       contentType,
       firstFragment as RecognizedString,
@@ -130,7 +132,7 @@ function sendChunkedResponse(
       for (const nextFragment of fragments) {
         response.write(nextFragment as RecognizedString);
       }
-      response.end();
+      response.end(undefined, closeConnection);
     });
   }
 }
@@ -144,6 +146,7 @@ export default class HttpServer {
   #connector: Connector;
   #options: HttpServerOptions;
   #isClosing = false;
+
   constructor(
     app: TemplatedApp,
     connector: Connector,
@@ -243,6 +246,7 @@ export default class HttpServer {
             if (types.isGeneratorObject(data)) {
               sendChunkedResponse(
                 response,
+                this.#isClosing,
                 HttpResponseCodes.OK,
                 ContentTypes.JSON,
                 data as Generator<Buffer>,

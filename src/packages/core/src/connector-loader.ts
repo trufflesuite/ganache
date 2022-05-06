@@ -17,9 +17,9 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
   let asyncRequestProcessing: boolean;
 
   if ("chain" in options && "asyncRequestProcessing" in options["chain"]) {
-    asyncRequestProcessing = options.chain.asyncRequestProcessing;
+    asyncRequestProcessing = options["chain"].asyncRequestProcessing;
   } else if ("asyncRequestProcessing" in options) {
-    asyncRequestProcessing = options.asyncRequestProcessing;
+    asyncRequestProcessing = options["asyncRequestProcessing"];
   } else {
     asyncRequestProcessing = true;
   }
