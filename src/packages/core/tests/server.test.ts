@@ -704,7 +704,7 @@ describe("server", () => {
       Connector.BUFFERIFY_THRESHOLD = 0;
 
       try {
-        await setup();
+        await setup({ server: { chunkSize: 1 } });
         const [from] = await s.provider.send("eth_accounts");
         await s.provider.send("eth_subscribe", ["newHeads"]);
 
