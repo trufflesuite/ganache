@@ -578,7 +578,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         maxTransactions,
         onlyOneBlock
       ),
-      blockNumber: nextBlock.header.number.toBuffer()
+      blockNumber: nextBlock.header.number.toArrayLike(Buffer)
     };
   };
 
