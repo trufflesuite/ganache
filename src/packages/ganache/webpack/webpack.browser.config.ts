@@ -18,8 +18,8 @@ const config: webpack.Configuration = merge({}, base, {
       buffer: require.resolve("buffer/"),
       fs: false,
       // Taken from https://webpack.js.org/configuration/resolve/#resolvefallback
-      http: require.resolve('stream-http'),
-      https: require.resolve('https-browserify'),
+      http: require.resolve("stream-http"),
+      https: require.resolve("https-browserify")
       //#endregion node polyfills
     },
     alias: {
@@ -30,13 +30,13 @@ const config: webpack.Configuration = merge({}, base, {
       leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway
       "@trufflesuite/uws-js-unofficial": false,
+      // replace URL with a browser version -- sorta. just look at the polyfill code
+      url: require.resolve("./polyfills/url"),
       "@ganache/filecoin": false,
-      // `url` is already a global property in browser
-      url: false,
       // mcl-wasm may be needed when creating a new @ethereumjs/vm and requires a browser version for browsers
       "mcl-wasm": require.resolve("mcl-wasm/browser"),
-      // ws doesn't work in the browser, isomorphic-ws does
-      ws: require.resolve("isomorphic-ws/"),
+      // ws doesn't work in the browser so we polyfill it
+      ws: require.resolve("./polyfills/ws"),
       // we don't use the debug module internally, so let's just not include it
       // in any package.
       debug: require.resolve("./polyfills/debug")

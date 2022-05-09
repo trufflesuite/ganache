@@ -1781,12 +1781,6 @@
 			"integrity": "sha1-TkMekrEalzFjaqH5yNHMvP2reN8=",
 			"dev": true
 		},
-		"isomorphic-ws": {
-			"version": "4.0.1",
-			"resolved": "https://registry.npmjs.org/isomorphic-ws/-/isomorphic-ws-4.0.1.tgz",
-			"integrity": "sha512-BhBvN2MBpWTaSHdWRb/bwdZJ1WaehQ2L1KngkCkfLUGF0mAWAT1sQUQacEmQ0jXkFw/czDXPNQSL5u2/Krsz1w==",
-			"dev": true
-		},
 		"jest-worker": {
 			"version": "27.4.4",
 			"resolved": "https://registry.npmjs.org/jest-worker/-/jest-worker-27.4.4.tgz",
