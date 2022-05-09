@@ -69,7 +69,6 @@
     "crypto-browserify": "3.12.0",
     "events": "3.3.0",
     "https-browserify": "1.0.0",
-    "isomorphic-ws": "4.0.1",
     "level-js": "6.1.0",
     "mcl-wasm": "0.9.0",
     "mocha": "9.1.3",
