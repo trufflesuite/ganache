@@ -2543,6 +2543,12 @@
 				"randombytes": "^2.1.0"
 			}
 		},
+		"setimmediate": {
+			"version": "1.0.5",
+			"resolved": "https://registry.npmjs.org/setimmediate/-/setimmediate-1.0.5.tgz",
+			"integrity": "sha1-KQy7Iy4waULX1+qbg3Mqt4VvgoU=",
+			"dev": true
+		},
 		"sha.js": {
 			"version": "2.4.11",
 			"resolved": "https://registry.npmjs.org/sha.js/-/sha.js-2.4.11.tgz",

@@ -14,6 +14,11 @@ export type {
   FilecoinProvider,
   _ExperimentalInfo
 } from "@ganache/core";
+
+// polyfill "setImmediate" for the browser
+// this is removed by webpack for our Node.js build
+require("setimmediate");
+
 export {
   server,
   provider,
