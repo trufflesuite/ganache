@@ -19,7 +19,9 @@ const config: webpack.Configuration = merge({}, base, {
     alias: {
       // we don't use the debug module internally, so let's just not include it
       // in any package.
-      debug: require.resolve("./polyfills/debug")
+      debug: require.resolve("./polyfills/debug"),
+      // setimmediate is only used in the browser
+      setimmediate: false
     }
   },
   plugins: [

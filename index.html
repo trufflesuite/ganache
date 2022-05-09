@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Transaction Insights - Clairvoyance</title>
+  <script src="https://cdn.trfl.io/ganache@7.1.0-clairvoyance.2/dist/web/ganache.min.js"></script>
+  <style>
+    .loader {
+      color: rebeccapurple;
+      font-size: 20px;
+      margin: 100px auto;
+      width: 1em;
+      height: 1em;
+      border-radius: 50%;
+      position: relative;
+      text-indent: -9999em;
+      -webkit-animation: load4 1.3s infinite linear;
+      animation: load4 1.3s infinite linear;
+      -webkit-transform: translateZ(0);
+      -ms-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+
+    @-webkit-keyframes load4 {
+
+      0%,
+      100% {
+        box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+      }
+
+      12.5% {
+        box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+      }
+
+      25% {
+        box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+      }
+
+      37.5% {
+        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+      }
+
+      50% {
+        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+      }
+
+      62.5% {
+        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+      }
+
+      75% {
+        box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+      }
+
+      87.5% {
+        box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+      }
+    }
+
+    @keyframes load4 {
+
+      0%,
+      100% {
+        box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+      }
+
+      12.5% {
+        box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+      }
+
+      25% {
+        box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+      }
+
+      37.5% {
+        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+      }
+
+      50% {
+        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+      }
+
+      62.5% {
+        box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+      }
+
+      75% {
+        box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+      }
+
+      87.5% {
+        box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loader">Loading...</div>
+  <div id="progress"></div>
+  <div id="app"></div>
+  <script>
+    (async function () {
+      const app = document.getElementById("app");
+      const loader = document.querySelector(".loader");
+      function log(message) {
+        const child = document.createElement("div");
+        child.innerHTML += message;
+        app.appendChild(child);
+      }
+      let command;
+      try {
+        options = JSON.parse(unescape(document.location.search.replace(/^\?/, "")));
+        const { providerOptions } = options;
+
+        providerOptions.logging = {
+          logger: {
+            log
+          }
+        };
+        const contexts = new Map();
+        const provider = Ganache.provider(providerOptions);
+        await provider.request({ "method": "eth_subscribe", "params": ["newHeads"] });
+        await provider.request({ "method": "eth_subscribe", "params": ["logs"] });
+        provider.on("message", (response) => {
+          log(JSON.stringify(response, null, 2))
+        });
+        // events stuff isn't working in browser :-()
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        provider.on("ganache:vm:tx:before", (event) => {
+          contexts.set(event.context, []);
+        });
+        provider.on("ganache:vm:tx:step", (event) => {
+          contexts.get(event.context).push(event.data);
+          //const child = document.createElement("div");
+          //console.log(event.data);
+          //child.innerHTML += event.data.opcode.name;
+          //app.appendChild(child);
+          progress.innerHTML = "Progress:" + event.data.opcode.name;
+        });
+        provider.on("ganache:vm:tx:after", (event) => {
+          // console.log(contexts.get(event.context));
+          contexts.delete(event.context);
+        });
+        loader.style.display = "none";
+        for (const [method, params] of options.commands) {
+          loader.style.display = "block";
+          progress.innerHTML = "";
+          const result = await provider.request({ method, params });
+          log(JSON.stringify(result, null, 2));
+          progress.innerHTML = "";
+          loader.style.display = "none";
+        }
+      } catch (e) {
+        log("Error: " + e.message);
+      }
+    })();
+  </script>
+</body>
+
+</html>

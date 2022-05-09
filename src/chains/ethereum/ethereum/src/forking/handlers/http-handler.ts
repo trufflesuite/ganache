@@ -8,6 +8,8 @@ import { AbortSignal } from "abort-controller";
 import { BaseHandler } from "./base-handler";
 import { Handler } from "../types";
 import Deferred from "../deferred";
+import zlib from "zlib";
+import stream from "stream";
 
 const { JSONRPC_PREFIX } = BaseHandler;
 
@@ -25,6 +27,11 @@ export class HttpHandler extends BaseHandler implements Handler {
 
     this.url = options.fork.url;
     this.headers.accept = this.headers["content-type"] = "application/json";
+    // brotli decompression is generally faster to decode than deflate/gzip, so
+    // we prefer it, and deflate is technically faster than gzip (it doesn't
+    // calculate a checksum) but I doubt it's measurable.
+    this.headers.acceptEncoding = this.headers["accept-encoding"] =
+      "br;q=1.0, deflate;q=0.9, gzip;q=0.8";
 
     if (this.url.protocol === "http:") {
       this._request = http.request;
@@ -42,47 +49,93 @@ export class HttpHandler extends BaseHandler implements Handler {
       });
     }
   }
-  private handleLengthedResponse(res: http.IncomingMessage, length: number) {
-    let buffer = Buffer.allocUnsafe(length);
-    let offset = 0;
-    return new Promise<Buffer>((resolve, reject) => {
-      function data(message: Buffer) {
-        const messageLength = message.length;
-        // note: Node will NOT send us more data than the content-length header
-        // denotes, so we don't have to worry about it.
-        message.copy(buffer, offset, 0, messageLength);
-        offset += messageLength;
-      }
-      function end() {
-        // note: Node doesn't check if the content-length matches, so we do that
-        // here
-        if (offset !== buffer.length) {
-          // if we didn't receive enough data, throw
-          reject(new Error("content-length mismatch"));
-        } else {
-          resolve(buffer);
-        }
-      }
-      res.on("data", data);
-      res.on("end", end);
-    });
-  }
-  private handleChunkedResponse(res: http.IncomingMessage) {
-    let buffer: Buffer;
-    return new Promise<Buffer>(resolve => {
-      res.on("data", (message: Buffer) => {
-        const chunk = message;
-        if (buffer) {
-          buffer = Buffer.concat([buffer, chunk], buffer.length + chunk.length);
-        } else {
-          buffer = Buffer.concat([chunk], chunk.length);
-        }
-      });
+  private async handleLengthedResponse(
+    res: http.IncomingMessage,
+    length: number,
+    contentEncoding: string = "identity"
+  ) {
+    let readable: stream.Transform;
+    switch (contentEncoding) {
+      case "identity":
+        // response is not compressed:
+        return await new Promise<Buffer>((resolve, reject) => {
+          const buffer = Buffer.allocUnsafe(length);
+          let offset = 0;
+          function data(message: Buffer) {
+            const messageLength = message.length;
+            // note: Node will NOT send us more data than the content-length header
+            // denotes, so we don't have to worry about it.
+            message.copy(buffer, offset, 0, messageLength);
+            offset += messageLength;
+          }
+          function end() {
+            // note: Node doesn't check if the content-length matches (we might
+            // receive less data than expected), so we do that here
+            if (offset !== length) {
+              // if we didn't receive enough data, throw
+              reject(new Error("content-length mismatch"));
+            } else {
+              resolve(buffer);
+            }
+          }
+          res.on("data", data);
+          res.on("end", end);
+          res.on("error", reject);
+        });
+      case "gzip":
+        readable = res.pipe(zlib.createGunzip());
+        break;
+      case "deflate":
+        readable = res.pipe(zlib.createInflate());
+        break;
+      case "br":
+        readable = res.pipe(zlib.createBrotliDecompress());
+        break;
+      default:
+        throw new Error(
+          `Unsupported content-encoding: ${contentEncoding}. This may be a bug in Ganache; please report it.`
+        );
+    }
 
-      res.on("end", () => {
-        resolve(buffer);
-      });
-    });
+    const chunks = [];
+    let totalLength = 0;
+    for await (let chunk of readable) {
+      chunks.push(chunk);
+      totalLength += chunk.length;
+    }
+    return chunks.length === 1 ? chunks[0] : Buffer.concat(chunks, totalLength);
+  }
+  private async handleChunkedResponse(
+    res: http.IncomingMessage,
+    contentEncoding: string = "identity"
+  ) {
+    let readable: stream.Transform | stream.Readable;
+    switch (contentEncoding) {
+      case "identity":
+        readable = res;
+        break;
+      case "gzip":
+        readable = res.pipe(zlib.createGunzip());
+        break;
+      case "deflate":
+        readable = res.pipe(zlib.createInflate());
+        break;
+      case "br":
+        readable = res.pipe(zlib.createBrotliDecompress());
+        break;
+      default:
+        throw new Error(
+          `Unsupported content-encoding: ${contentEncoding}. This may be a bug in Ganache; please report it.`
+        );
+    }
+
+    const chunks = [];
+    let totalLength = 0;
+    for await (let chunk of readable) {
+      chunks.push(chunk);
+      totalLength += chunk.length;
+    }
+    return chunks.length === 1 ? chunks[0] : Buffer.concat(chunks, totalLength);
   }
 
   public async request<T>(
@@ -119,17 +172,25 @@ export class HttpHandler extends BaseHandler implements Handler {
         const { headers } = res;
 
         let buffer: Promise<Buffer>;
+
         // if we have a transfer-encoding we don't care about "content-length"
         // (per HTTP spec). We also don't care about invalid lengths
         if ("transfer-encoding" in headers) {
-          buffer = this.handleChunkedResponse(res);
+          buffer = this.handleChunkedResponse(res, headers["content-encoding"]);
         } else {
           const length = (headers["content-length"] as any) / 1;
           if (isNaN(length) || length <= 0) {
-            buffer = this.handleChunkedResponse(res);
+            buffer = this.handleChunkedResponse(
+              res,
+              headers["content-encoding"]
+            );
           } else {
             // we have a content-length; use it to pre-allocate the required memory
-            buffer = this.handleLengthedResponse(res, length);
+            buffer = this.handleLengthedResponse(
+              res,
+              length,
+              headers["content-encoding"]
+            );
           }
         }
 

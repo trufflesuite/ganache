@@ -596,7 +596,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     await this.#blockBeingSavedPromise;
     return {
       transactions,
-      blockNumber: nextBlock.header.number.toBuffer()
+      blockNumber: nextBlock.header.number.toArrayLike(Buffer)
     };
   };
 
