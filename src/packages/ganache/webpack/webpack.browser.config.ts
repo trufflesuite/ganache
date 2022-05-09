@@ -19,7 +19,9 @@ const config: webpack.Configuration = merge({}, base, {
       fs: false,
       // Taken from https://webpack.js.org/configuration/resolve/#resolvefallback
       http: require.resolve("stream-http"),
-      https: require.resolve("https-browserify")
+      https: require.resolve("https-browserify"),
+      // not needed by the browser as the browser does the work
+      zlib: false
       //#endregion node polyfills
     },
     alias: {
@@ -48,7 +50,12 @@ const config: webpack.Configuration = merge({}, base, {
   },
   plugins: [
     new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-    new webpack.ProvidePlugin({ process: ["process"] })
+    new webpack.ProvidePlugin({ process: ["process"] }),
+    // replace process.env.IS_BROWSER with `true` to cause the minifier to
+    // remove code blocks that require `process.env.IS_BROWSER != false`
+    new webpack.EnvironmentPlugin({
+      IS_BROWSER: true
+    })
   ]
 });
 
