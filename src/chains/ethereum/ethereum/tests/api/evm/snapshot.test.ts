@@ -12,6 +12,7 @@ describe("api", () => {
       let context = {} as any;
       let startingBalance;
       let snapshotId;
+      let newHeadsSubscription;
 
       beforeEach("Set up provider and deploy a contract", async () => {
         const contract = compile(join(__dirname, "./snapshot.sol"));
@@ -22,7 +23,7 @@ describe("api", () => {
         const accounts = await p.send("eth_accounts");
         const from = accounts[3];
 
-        await p.send("eth_subscribe", ["newHeads"]);
+        newHeadsSubscription = await p.send("eth_subscribe", ["newHeads"]);
 
         const transactionHash = await p.send("eth_sendTransaction", [
           {
@@ -89,6 +90,11 @@ describe("api", () => {
 
         // Now checkpoint.
         snapshotId = await send("evm_snapshot");
+      });
+
+      afterEach("clean up newHeads subscription", async () => {
+        const { send } = context;
+        await send("eth_unsubscribe", [newHeadsSubscription]);
       });
 
       it("rolls back successfully", async () => {
@@ -398,6 +404,7 @@ describe("api", () => {
           16
         );
         const snapShotId = await send("evm_snapshot");
+        const snapshotBlockHash = (await send("eth_getBlockByNumber", ["latest", false])).hash;
 
         // increment value for each transaction so the hashes always differ
         let value = 1;
@@ -406,14 +413,24 @@ describe("api", () => {
         const revertedTx = await send("eth_sendTransaction", [
           { from, to, value: value++ }
         ]);
+
         await provider.once("message");
+
+        let reverted = false;
 
         // revert while these transactions are being mined
         const revertPromise = send("evm_revert", [snapShotId]);
 
         const txsMinedProm = new Promise(resolve => {
           let count = 0;
-          const unsubscribe = provider.on("message", _ => {
+          const unsubscribe = provider.on("message", m => {
+            if (!reverted && m.data.result.hash === snapshotBlockHash) {
+              // Ignore the `newHeads` event that is triggered by the revert
+              // operation. We don't include this in the count because in theory
+              // it could either happen here, or in the gotTxsProm below
+              reverted = true;
+              return;
+            }
             if (++count === 2) {
               unsubscribe();
               resolve(null);
@@ -466,9 +483,16 @@ describe("api", () => {
         // and mine one more block just to force the any executable transactions
         // to be immediately mined
 
-        const gotTxsProm = new Promise(resolve => {
+        const gotTxsProm = new Promise((resolve, reject) => {
           let count = 0;
           const unsubscribe = provider.on("message", m => {
+            if (!reverted && m.data.result.hash === snapshotBlockHash) {
+              // Ignore the `newHeads` event that is triggered by the revert
+              // operation. We don't include this in the count because in theory
+              // it could either happen here, or in the txsMinedProm above
+              reverted = true;
+              return;
+            }
             if (++count === 3) {
               unsubscribe();
               resolve(null);
@@ -558,6 +582,240 @@ describe("api", () => {
           null,
           "First transaction should not have a tx"
         );
+      });
+
+      it("fires a newHeads subscription message on evm_revert", async () => {
+        const {
+          instance,
+          provider,
+          send,
+          accounts: [from]
+        } = context;
+        const snapshotBlockHash = (await send("eth_getBlockByNumber", ["latest", false])).hash;
+        const snapShotId = await send("evm_snapshot");
+
+        await instance.inc({ from });
+        await instance.inc({ from });
+        await instance.inc({ from });
+
+        const newHeadPromise = new Promise<string>(resolve => {
+          const unsubscribe = provider.on("message", m => {
+            unsubscribe();
+            resolve(m.data.result.hash);
+          });
+        });
+
+        const status = await send("evm_revert", [snapshotId]);
+        assert(status, "Revert should have returned true");
+
+        const revertedToBlockHash = await newHeadPromise;
+
+        assert.strictEqual(
+          snapshotBlockHash,
+          revertedToBlockHash,
+          "evm_revert reverted to unexpected block"
+        );
+      });
+
+      describe("logs", () => {
+        let logsSubscription;
+        beforeEach("Set up logs subscription", async () => {
+          logsSubscription = await context.provider.send("eth_subscribe", [
+            "logs",
+            { address: [], topics: [null] }
+          ]);
+        });
+
+        afterEach("clean up logs subscription", async () => {
+          const { send } = context;
+          await send("eth_unsubscribe", [logsSubscription]);
+        });
+
+        it("removes logs that were reverted by evm_revert", async () => {
+          const {
+            provider,
+            send,
+            accounts: [from],
+            instance
+          } = context;
+
+          const snapShotId = await send("evm_snapshot");
+
+          let addedLogs = {};
+          let removedLogs = {};
+
+          let unsubscribe = provider.on("message", m => {
+            if (m.data.subscription !== logsSubscription) {
+              return;
+            }
+            const log = m.data.result;
+            const value = log.topics[1];
+            if (log.removed) {
+              removedLogs[value] = log;
+            } else {
+              addedLogs[value] = log;
+            }
+          });
+
+          await instance.inc({ from });
+          await instance.inc({ from });
+          await instance.inc({ from });
+
+          unsubscribe();
+
+          assert.strictEqual(
+            Object.keys(addedLogs).length,
+            3,
+            "should have added three new logs"
+          );
+          assert.strictEqual(
+            Object.keys(removedLogs).length,
+            0,
+            "should not have removed any logs"
+          );
+
+          const logsRemovedPromise = new Promise<void>(resolve => {
+            let removedLogCount = 0;
+            let unsubscribe = provider.on("message", m => {
+              if (m.data.subscription !== logsSubscription) {
+                return;
+              }
+              const log = m.data.result;
+              const value = log.topics[1];
+              if (log.removed) {
+                removedLogs[value] = log;
+                if (++removedLogCount === 3) {
+                  unsubscribe();
+                  resolve();
+                }
+              } else {
+                addedLogs[value] = log;
+              }
+            });
+          });
+
+          const status = await send("evm_revert", [snapshotId]);
+          assert(status, "Revert should have returned true");
+
+          await logsRemovedPromise;
+
+          assert.strictEqual(
+            Object.keys(addedLogs).length,
+            3,
+            "revert should not have added any new logs"
+          );
+          assert.strictEqual(
+            Object.keys(removedLogs).length,
+            3,
+            "revert should have removed three logs"
+          );
+
+          for (const key of Object.keys(addedLogs)) {
+            assert.deepStrictEqual(
+              addedLogs[key],
+              {
+                ...removedLogs[key],
+                // fake out the removed flag for comparison purposes
+                removed: false
+              },
+              `Added log with value ${key} does not match log that was removed with value ${key}`
+            );
+          }
+        });
+
+        it("evm_revert does not remove logs that were added prior to evm_snapshot", async () => {
+          const {
+            provider,
+            send,
+            accounts: [from],
+            instance
+          } = context;
+
+          let addedLogs = {};
+          let removedLogs = {};
+
+          let unsubscribe = provider.on("message", m => {
+            if (m.data.subscription !== logsSubscription) {
+              return;
+            }
+            const log = m.data.result;
+            const value = log.topics[1];
+            if (log.removed) {
+              removedLogs[value] = log;
+            } else {
+              addedLogs[value] = log;
+            }
+          });
+
+          // add three new logs that will not be removed
+          await instance.inc({ from });
+          await instance.inc({ from });
+          await instance.inc({ from });
+
+          unsubscribe();
+
+          assert.strictEqual(
+            Object.keys(addedLogs).length,
+            3,
+            "should have added three new logs"
+          );
+          assert.strictEqual(
+            Object.keys(removedLogs).length,
+            0,
+            "should not have removed any logs"
+          );
+
+          const snapShotId = await send("evm_snapshot");
+
+          // add three new logs to be removed
+          await instance.inc({ from });
+          await instance.inc({ from });
+          await instance.inc({ from });
+
+          const logsRemovedPromise = new Promise<void>(resolve => {
+            let removedLogCount = 0;
+            let unsubscribe = provider.on("message", m => {
+              if (m.data.subscription !== logsSubscription) {
+                return;
+              }
+              const log = m.data.result;
+              const value = log.topics[1];
+              if (log.removed) {
+                removedLogs[value] = log;
+                if (++removedLogCount === 3) {
+                  unsubscribe();
+                  resolve();
+                }
+              } else {
+                addedLogs[value] = log;
+              }
+            });
+          });
+
+          const status = await send("evm_revert", [snapshotId]);
+          assert(status, "Revert should have returned true");
+
+          await logsRemovedPromise;
+
+          assert.strictEqual(
+            Object.keys(addedLogs).length,
+            3,
+            "revert should not have added any new logs"
+          );
+          assert.strictEqual(
+            Object.keys(removedLogs).length,
+            3,
+            "revert should have removed three logs"
+          );
+
+          for (const key of Object.keys(addedLogs)) {
+            assert.strictEqual(
+              removedLogs[key],
+              undefined,
+              `Log for value ${key} should not have been removed by evm_revert`
+            );
+          }
+        });
       });
     });
   });

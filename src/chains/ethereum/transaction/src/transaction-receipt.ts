@@ -153,7 +153,7 @@ export class TransactionReceipt {
     const transactionHash = transaction.hash;
     const transactionIndex = transaction.index;
     blockLog.blockNumber = blockNumber;
-    raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
+    raw[3].forEach(l => blockLog.append(blockLog[0], transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
     if (block.header.baseFeePerGas) {
       transaction.updateEffectiveGasPrice(block.header.baseFeePerGas);

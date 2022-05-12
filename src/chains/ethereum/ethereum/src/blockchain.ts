@@ -416,7 +416,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         this.transactionReceipts.set(hash, encodedReceipt);
 
         // collect block logs
-        tx.getLogs().forEach(blockLogs.append.bind(blockLogs, index, tx.hash));
+        tx.getLogs().forEach(blockLogs.append.bind(blockLogs, false, index, tx.hash));
 
         // prepare log output
         logOutput.push(
@@ -807,7 +807,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         blocksToDelete[0].header.number
       );
     }
-    await this.#database.batch(() => {
+    
+    // notify subscribers that logs have been rolled back
+    await Promise.all(
+      blocksToDelete.map(async block => {
+        const blockNum = block.header.number.toBuffer();
+
+        const logsToDelete = (await this.blockLogs.get(blockNum)).asRemoved();
+        await this.emit("blockLogs", logsToDelete);
+      })
+    );
+
+    await this.#database.batch(async () => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
       // point to the new "latest" again
       blocks.updateLatestIndex(newLatestBlockNumber);
@@ -818,7 +829,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           transactions.del(txHash);
           transactionReceipts.del(txHash);
         });
+
         const blockNum = block.header.number.toBuffer();
+
         blocks.del(blockNum);
         blocks.del(block.hash().toBuffer());
         blockLogs.del(blockNum);
@@ -936,6 +949,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         snapshotHeader.stateRoot.toBuffer()
       );
       blocks.latest = snapshotBlock;
+
+      // notify subscribers of reorg
+      await this.emit("block", snapshotBlock);
     }
 
     // put our time adjustment back

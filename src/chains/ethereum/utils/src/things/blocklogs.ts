@@ -49,14 +49,18 @@ const filterByTopic = (
   });
 };
 
-export class BlockLogs {
+export class BlockLogs implements Iterable<BlockLog> {
   [_raw]: [blockHash: Buffer, blockLog: BlockLog[]];
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = (decode(data) as unknown) as [Buffer, BlockLog[]];
+      const decoded = decode(data) as unknown as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
+  }
+
+  [Symbol.iterator](): Iterator<BlockLog, void, unknown> {
+    return this[_raw][1][Symbol.iterator]();
   }
 
   /**
@@ -68,6 +72,27 @@ export class BlockLogs {
     const blockLog = Object.create(BlockLogs.prototype) as BlockLogs;
     blockLog[_raw] = [blockHash.toBuffer(), []];
     return blockLog;
+  }
+
+  /**
+   * Returns a BlockLogs with the same contents as this one, but with all logs
+   * having their `removed` flag set to true.
+   */
+  public asRemoved(): BlockLogs {
+    const removed = BlockLogs.create(Data.from(this[_raw][0]));
+    for (const log of this) {
+      removed[_raw][1].push([
+        RPCQUANTITY_ONE.toBuffer(),
+        log[1],
+        log[2],
+        log[3],
+        log[4],
+        log[5]
+      ]);
+      removed.blockNumber = this.blockNumber;
+    }
+
+    return removed;
   }
 
   /**
@@ -84,12 +109,13 @@ export class BlockLogs {
    * @param log -
    */
   public append(
-    /*removed: boolean, */ transactionIndex: Quantity,
+    removed: boolean,
+    transactionIndex: Quantity,
     transactionHash: Data,
     log: TransactionLog
   ) {
     this[_raw][1].push([
-      BUFFER_ZERO, // `removed`, TODO: this is used for reorgs, but we don't support them yet
+      removed ? RPCQUANTITY_ONE.toBuffer() : BUFFER_ZERO, // `removed`
       transactionIndex.toBuffer(), // transactionIndex
       transactionHash.toBuffer(), // transactionHash
       log[0], // `address`
@@ -123,14 +149,13 @@ export class BlockLogs {
         ? log.data.map(d => Data.from(d).toBuffer())
         : Data.from(log.data).toBuffer();
       const logIndex = log.logIndex;
-      const removed =
-        log.removed === false ? BUFFER_ZERO : RPCQUANTITY_ONE.toBuffer();
+      const removed = log.removed;
       const topics = Array.isArray(log.topics)
         ? log.topics.map(t => Data.from(t, 32).toBuffer())
         : Data.from(log.topics, 32).toBuffer();
       const transactionHash = Data.from(log.transactionHash, 32);
       const transactionIndex = Quantity.from(log.transactionIndex);
-      blockLogs.append(transactionIndex, transactionHash, [
+      blockLogs.append(removed, transactionIndex, transactionHash, [
         address.toBuffer(), // `address`
         topics,
         data
