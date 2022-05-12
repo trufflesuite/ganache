@@ -12,7 +12,8 @@
     "node": ">=12.17.0 <17.0.0",
     "npm": ">=6.14.4"
   },
-  "main": "lib/index.js",
+  "main": "dist/node/ganache-filecoin.min.js",
+  "source":"index.ts",
   "typings": "typings",
   "directories": {
     "lib": "lib",
