@@ -69,7 +69,7 @@ const base: webpack.Configuration = {
     mangleExports: "size",
     // make module ids tiny
     moduleIds: "size",
-    minimize: true,
+    minimize: false,
     minimizer: [
       new TerserPlugin({
         parallel: true,
