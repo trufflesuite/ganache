@@ -119,19 +119,28 @@ export class HttpHandler extends BaseHandler implements Handler {
         const { headers } = res;
 
         let buffer: Promise<Buffer>;
+        // HACKATHON HACK: we don't handle compressed responses properly (we treat content-length as the _final_ length, but it is
+        // actually the length of data on the wire)
+        buffer = this.handleChunkedResponse(res);
+
         // if we have a transfer-encoding we don't care about "content-length"
         // (per HTTP spec). We also don't care about invalid lengths
-        if ("transfer-encoding" in headers) {
-          buffer = this.handleChunkedResponse(res);
-        } else {
-          const length = (headers["content-length"] as any) / 1;
-          if (isNaN(length) || length <= 0) {
-            buffer = this.handleChunkedResponse(res);
-          } else {
-            // we have a content-length; use it to pre-allocate the required memory
-            buffer = this.handleLengthedResponse(res, length);
-          }
-        }
+        // if ("transfer-encoding" in headers) {
+        //   buffer = this.handleChunkedResponse(res);
+        // } else {
+        //   const length = (headers["content-length"] as any) / 1;
+        //   if (
+        //     isNaN(length) ||
+        //     length <= 0 ||
+        //     // HACKATHON HACK:
+        //     headers["content-encoding"] !== undefined
+        //   ) {
+        //     buffer = this.handleChunkedResponse(res);
+        //   } else {
+        //     // we have a content-length; use it to pre-allocate the required memory
+        //     buffer = this.handleLengthedResponse(res, length);
+        //   }
+        // }
 
         // TODO: handle invalid JSON (throws on parse)?
         buffer.then(buffer => {
