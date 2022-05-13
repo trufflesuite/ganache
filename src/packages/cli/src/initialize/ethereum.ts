@@ -108,7 +108,7 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     logs.push(
       `Network ID:      ${color(liveOptions.chain.networkId.toString())}`
     );
-    logs.push(`Time:            ${color(new Date().toString())}`);
+    logs.push(`Time:            ${color(liveOptions.chain.time.toString())}`);
 
     if (liveOptions.fork.requestsPerSecond !== 0) {
       logs.push(

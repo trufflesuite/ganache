@@ -296,12 +296,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // create first block
         let firstBlockTime: number;
         if (options.chain.time != null) {
-          // If we were given a timestamp, use it instead of the `_currentTime`
-          const t = options.chain.time.getTime();
-          firstBlockTime = Math.floor(t / 1000);
-          this.setTime(t);
+          // If we were given a timestamp, use it instead of the current time
+          const time = options.chain.time.getTime();
+          firstBlockTime = Math.floor(time / 1000);
+          this.setTime(time);
         } else {
-          firstBlockTime = this.#currentTime();
+          options.chain.time = new Date();
+          firstBlockTime = Math.floor(options.chain.time.getTime() / 1000);
+          // we don't need to call `this.setTime(time)` in this case because the
+          // offset is always 0
         }
 
         // if we don't already have a latest block, create a genesis block!
@@ -548,14 +551,28 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #readyNextBlock = (previousBlock: Block, timestamp?: number) => {
     const previousHeader = previousBlock.header;
     const previousNumber = previousHeader.number.toBigInt() || 0n;
+    const minerOptions = this.#options.miner;
+    let qTimestamp: Quantity;
+    if (timestamp == null) {
+      qTimestamp = Quantity.from(timestamp);
+    } else {
+      const timestampIncrement = minerOptions.timestampIncrement;
+      if (timestampIncrement === "clock") {
+        qTimestamp = Quantity.from(this.#currentTime());
+      } else {
+        qTimestamp = Quantity.from(
+          previousHeader.timestamp.toBigInt() + timestampIncrement.toBigInt()
+        );
+      }
+    }
     return new RuntimeBlock(
       Quantity.from(previousNumber + 1n),
       previousBlock.hash(),
       this.coinbase,
-      this.#options.miner.blockGasLimit.toBuffer(),
+      minerOptions.blockGasLimit.toBuffer(),
       BUFFER_ZERO,
-      Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
-      this.#options.miner.difficulty,
+      qTimestamp,
+      minerOptions.difficulty,
       previousHeader.totalDifficulty,
       Block.calcNextBaseFee(previousBlock)
     );
