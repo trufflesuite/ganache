@@ -1,6 +1,6 @@
 {
 	"name": "ganache",
-	"version": "7.1.0-clairvoyance.6",
+	"version": "7.1.0-clairvoyance.7",
 	"lockfileVersion": 1,
 	"requires": true,
 	"dependencies": {
