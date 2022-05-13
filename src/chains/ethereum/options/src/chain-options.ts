@@ -96,7 +96,7 @@ export type ChainConfig = {
      * `evm_increaseTime` RPC, to test time-dependent code.
      */
     readonly time: {
-      type: Date;
+      type: Date | null;
       rawType: Date | string | number;
       legacy: {
         /**
@@ -176,7 +176,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
     cliType: "number"
   },
   time: {
-    normalize: rawInput => new Date(rawInput),
+    normalize: rawInput => (rawInput !== undefined ? new Date(rawInput) : null),
     cliDescription: "Date that the first block should start.",
     legacyName: "time",
     cliAliases: ["t", "time"],
