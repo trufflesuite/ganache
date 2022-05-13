@@ -554,9 +554,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const minerOptions = this.#options.miner;
     let qTimestamp: Quantity;
     if (timestamp == null) {
-      qTimestamp = Quantity.from(timestamp);
-    } else {
-      const timestampIncrement = minerOptions.timestampIncrement;
+      const { timestampIncrement } = minerOptions;
       if (timestampIncrement === "clock") {
         qTimestamp = Quantity.from(this.#currentTime());
       } else {
@@ -564,6 +562,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           previousHeader.timestamp.toBigInt() + timestampIncrement.toBigInt()
         );
       }
+    } else {
+      qTimestamp = Quantity.from(timestamp);
     }
     return new RuntimeBlock(
       Quantity.from(previousNumber + 1n),
