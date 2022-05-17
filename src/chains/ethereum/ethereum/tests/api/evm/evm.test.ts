@@ -334,5 +334,33 @@ describe("api", () => {
         assert.strictEqual(result, false);
       });
     });
+
+    describe("evm_getStateTrie", () => {
+      let provider: EthereumProvider;
+      before(async () => {
+        provider = await getProvider({});
+      });
+
+      it("returns the account state trie", async () => {
+        const startTrie =
+          "f84d80893635c9adc5dea00000a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421a0c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470";
+        const [address]: string[] = await provider.send("eth_accounts");
+        const stateTrie = (await provider.send("evm_getStateTrie", [
+          address
+        ])) as Buffer;
+        assert.equal(Buffer.from(stateTrie).toString("hex"), startTrie);
+
+        const startAfterChange =
+          "f8448080a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421a0c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470";
+        await provider.send("evm_setAccountBalance", [address, "0x0"]);
+        const stateTrieAfterChange = (await provider.send("evm_getStateTrie", [
+          address
+        ])) as Buffer;
+        assert.equal(
+          Buffer.from(stateTrieAfterChange).toString("hex"),
+          startAfterChange
+        );
+      });
+    });
   });
 });

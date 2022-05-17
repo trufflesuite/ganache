@@ -714,6 +714,23 @@ export default class EthereumApi implements Api {
     return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
+  /**
+   * Gets the state trie for a specified address.
+   *
+   * @param address - The account address to fetch the state trie for.
+   * @returns - The state trie of the specified address.
+   * @example
+   * ```javascript
+   * const [address] = await provider.request({ method: "eth_accounts", params: [] });
+   * const result = await provider.send("evm_getStateTrie", [address] );
+   * console.log(result);
+   * ```
+   */
+  async evm_getStateTrie(address: DATA) {
+    const addressBuf = new Address(address).toBuffer();
+    return this.#blockchain.trie.get(addressBuf);
+  }
+
   //#endregion evm
 
   //#region miner
