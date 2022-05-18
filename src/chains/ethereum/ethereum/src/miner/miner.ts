@@ -354,12 +354,7 @@ export default class Miner extends Emittery<{
             // since this transaction was successful, remove it from the "pending"
             // transaction pool.
             const hasMoreFromOrigin = pendingOrigin.removeBest();
-            if (hasMoreFromOrigin) {
-              // remove the newest (`best`) tx from this account's pending queue
-              // as we know we can fit another transaction in the block. Stick
-              // this tx into our `priced` heap.
-              keepMining = replaceFromHeap(priced, pendingOrigin);
-            } else {
+            if (!hasMoreFromOrigin) {
               // since we don't have any more txs from this account, just get the
               // next best transaction sorted in our `priced` heap.
               keepMining = this.#removeBestAndOrigin(origin);
@@ -375,6 +370,11 @@ export default class Miner extends Emittery<{
               numTransactions === maxTransactions
             ) {
               break;
+            } else if (hasMoreFromOrigin) {
+              // remove the newest (`best`) tx from this account's pending queue
+              // as we know we can fit another transaction in the block. Stick
+              // this tx into our `priced` heap.
+              keepMining = replaceFromHeap(priced, pendingOrigin);
             }
           } else {
             // didn't fit in the current block
