@@ -358,7 +358,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           // interval mining
           const wait = () =>
-            // unref, so we don't hold the chain open if nothing can interact with it
             (this.#timer = setTimeout(next, minerOpts.blockTime * 1e3));
           // when interval mining, only one block should be mined. the block
           // can, however, be filled
