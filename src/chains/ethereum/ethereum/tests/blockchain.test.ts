@@ -11,7 +11,7 @@ import { Block } from "@ganache/ethereum-block";
 describe("blockchain", async () => {
   describe("interval mining", () => {
     it("mines only one block, even when pool is full enough for multiple", async () => {
-      // setup options
+      // set up options
       // block gas limit to only fit one tx
       // interval mining mode
       // eager instamine so tx is fully mined when we race them
@@ -26,14 +26,14 @@ describe("blockchain", async () => {
       };
       const options = EthereumOptionsConfig.normalize(optionsJson);
 
-      // setup wallet/blockchain
+      // set up wallet/blockchain
       const wallet = new Wallet(options.wallet);
       const initialAccounts = wallet.initialAccounts;
       const blockchain = new Blockchain(options, initialAccounts[0].address);
       await blockchain.initialize(wallet.initialAccounts);
       const common = blockchain.common;
 
-      // setup two transactions
+      // set up two transactions
       const [from, to] = wallet.addresses;
       const secretKey = wallet.unlockedAccounts.get(from);
       const rpcTx: EIP1559FeeMarketRpcTransaction = {
@@ -58,6 +58,7 @@ describe("blockchain", async () => {
         transaction2,
         secretKey
       );
+      // we're in strict mode, so transactions are in the pool and not yet mined
       const transactionHashes = await Promise.all([
         transaction1Promise,
         transaction2Promise
@@ -67,19 +68,24 @@ describe("blockchain", async () => {
       let i = 0;
       const startingBlockNumber =
         blockchain.blocks.latest.header.number.toNumber();
+
+      // wait for our two transactions to be mined by waiting for the chain to
+      // emit the block events. verify that it's the correct transaction, and
+      // store the timestamp
       const assertBlocks = new Promise((resolve, reject) => {
         const off = blockchain.on("block", async (block: Block) => {
           const transactions = block.getTransactions();
           if (transactions.length === 0) return;
+          // a failed assertion inside of this promise doesn't fail the test,
+          // it just stops this promise early. so catch any failures, reject the
+          // promise, and use that rejection to fail the test
           try {
-            console.log("mined one!");
             const blockNumber = block.header.number.toString();
             const expectedBlockNumber = startingBlockNumber + i + 1;
             assert.equal(blockNumber, `0x${expectedBlockNumber.toString(16)}`);
             assert.equal(transactions.length, 1);
 
             const transaction = transactions[0];
-            assert.equal(transaction.nonce.toString(), `0x${i.toString(16)}`);
             assert.equal(
               transaction.hash.toString(),
               transactionHashes[i].toString()
@@ -87,9 +93,7 @@ describe("blockchain", async () => {
 
             timestamps.push(block.header.timestamp.toNumber());
             i++;
-            console.log("i", i);
             if (i === 2) {
-              resolve(void 0);
               off();
               resolve(true);
             }
@@ -101,7 +105,10 @@ describe("blockchain", async () => {
       });
       const success = (await assertBlocks) as any;
       assert.equal(success, true, success);
+      // assert that second block's timestamp is at least `blockTime` greater
+      // than the first block's. meaning, these blocks weren't mined one after
+      // the other
       assert(timestamps[1] >= timestamps[0] + blockTime);
-    }).timeout(0);
+    });
   });
 });
