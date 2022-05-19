@@ -30,7 +30,8 @@
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "postinstall": "patch-package"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -106,8 +107,10 @@
     "fast-check": "2.17.0",
     "fs-extra": "9.0.1",
     "local-web-server": "4.2.1",
+    "memdown": "6.1.1",
     "mocha": "9.1.3",
     "nyc": "15.1.0",
+    "patch-package": "6.4.7",
     "solc": "0.8.11",
     "superagent": "6.1.0",
     "ts-node": "10.4.0",
