@@ -1,0 +1,53 @@
+diff --git a/node_modules/memdown/memdown.js b/node_modules/memdown/memdown.js
+index f6b3922..7793eff 100644
+--- a/node_modules/memdown/memdown.js
++++ b/node_modules/memdown/memdown.js
+@@ -220,27 +220,29 @@ MemDOWN.prototype._del = function (key, options, callback) {
+ }
+ 
+ MemDOWN.prototype._batch = function (array, options, callback) {
+-  let i = -1
+-  let key
+-  let value
+-  let iter
+-  const len = array.length
+-  let tree = this._store
+-
+-  while (++i < len) {
+-    key = array[i].key
+-    iter = tree.find(key)
+-
+-    if (array[i].type === 'put') {
+-      value = array[i].value
+-      tree = iter.valid ? iter.update(value) : tree.insert(key, value)
+-    } else {
+-      tree = iter.remove()
++  setTimeout(() => { 
++    let i = -1
++    let key
++    let value
++    let iter
++    const len = array.length
++    let tree = this._store
++
++    while (++i < len) {
++      key = array[i].key
++      iter = tree.find(key)
++
++      if (array[i].type === 'put') {
++        value = array[i].value
++        tree = iter.valid ? iter.update(value) : tree.insert(key, value)
++      } else {
++        tree = iter.remove()
++      }
+     }
+-  }
+ 
+-  this._store = tree
+-  this._nextTick(callback)
++    this._store = tree
++    this._nextTick(callback)
++  }, 20)
+ }
+ 
+ MemDOWN.prototype._clear = function (options, callback) {
