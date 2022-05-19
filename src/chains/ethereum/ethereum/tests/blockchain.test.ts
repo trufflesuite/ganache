@@ -67,7 +67,7 @@ describe("blockchain", async () => {
       let i = 0;
       const startingBlockNumber =
         blockchain.blocks.latest.header.number.toNumber();
-      const assertBlocks = new Promise(resolve => {
+      const assertBlocks = new Promise((resolve, reject) => {
         const off = blockchain.on("block", async (block: Block) => {
           const transactions = block.getTransactions();
           if (transactions.length === 0) return;
@@ -91,15 +91,16 @@ describe("blockchain", async () => {
             if (i === 2) {
               resolve(void 0);
               off();
+              resolve(true);
             }
           } catch (e) {
-            console.log(e);
+            off();
+            reject(e);
           }
         });
       });
-      // enough time for two blocks to be mined, plus some padding
-      await new Promise(resolve => setTimeout(resolve, blockTime * 1000 * 2.2));
-      //await assertBlocks;
+      const success = (await assertBlocks) as any;
+      assert.equal(success, true, success);
       assert(timestamps[1] >= timestamps[0] + blockTime);
     }).timeout(0);
   });
