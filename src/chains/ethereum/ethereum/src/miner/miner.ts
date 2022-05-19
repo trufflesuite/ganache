@@ -500,7 +500,14 @@ export default class Miner extends Emittery<{
 
   #reset = () => {
     this.#origins.clear();
-    this.#priced.clear();
+    const priced = this.#priced;
+    const length = priced.length;
+    const pricedArray = priced.array;
+    for (let i = 0; i < length; i++) {
+      const bestFromOrigin = pricedArray[i];
+      bestFromOrigin.locked = false;
+    }
+    priced.clear();
     this.#isBusy = false;
   };
 
