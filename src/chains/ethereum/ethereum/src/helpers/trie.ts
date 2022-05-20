@@ -21,7 +21,7 @@ export class GanacheTrie extends SecureTrie {
    */
   copy(includeCheckpoints = true) {
     const db = this.db.copy();
-    const secureTrie = new GanacheTrie(db._leveldb, this.root, this.blockchain);
+    const secureTrie = new GanacheTrie(db._leveldb as LevelUp, this.root, this.blockchain);
     if (includeCheckpoints && this.isCheckpoint) {
       secureTrie.db.checkpoints = [...this.db.checkpoints];
     }
