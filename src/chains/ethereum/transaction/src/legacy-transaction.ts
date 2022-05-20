@@ -8,8 +8,8 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { ecsign } from "ethereumjs-util";
-import { encodeRange, digest } from "@ganache/rlp";
+import { ECDSASignature, ECDSASignatureBuffer, ecsign } from "ethereumjs-util";
+import { encodeRange, digest, EncodedPart } from "@ganache/rlp";
 import { BN } from "ethereumjs-util";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { Transaction } from "./rpc-transaction";
@@ -165,20 +165,33 @@ export class LegacyTransaction extends RuntimeTransaction {
       );
     }
 
-    const chainId = this.common.chainId();
-    const raw: LegacyDatabasePayload = this.toEthRawTransaction(
-      Quantity.from(chainId).toBuffer(),
-      BUFFER_EMPTY,
-      BUFFER_EMPTY
-    );
-    const data = encodeRange(raw, 0, 6);
-    const dataLength = data.length;
+    // only legacy transactions can work with EIP-155 deactivated.
+    // (EIP-2930 and EIP-1559 made EIP-155 obsolete and this logic isn't needed
+    // for those transactions)
+    const eip155IsActive = this.common.gteHardfork("spuriousDragon");
+    let chainId: Buffer;
+    let raw: LegacyDatabasePayload;
+    let data: EncodedPart;
+    let dataLength: number;
+    let sig: ECDSASignature | ECDSASignatureBuffer;
+    if (eip155IsActive) {
+      chainId = this.common.chainIdBN().toArrayLike(Buffer);
+      raw = this.toEthRawTransaction(chainId, BUFFER_EMPTY, BUFFER_EMPTY);
+      data = encodeRange(raw, 0, 6);
+      dataLength = data.length;
 
-    const ending = encodeRange(raw, 6, 3);
-    const msgHash = keccak(
-      digest([data.output, ending.output], dataLength + ending.length)
-    );
-    const sig = ecsign(msgHash, privateKey, chainId);
+      const ending = encodeRange(raw, 6, 3);
+      const msgHash = keccak(
+        digest([data.output, ending.output], dataLength + ending.length)
+      );
+      sig = ecsign(msgHash, privateKey, chainId);
+    } else {
+      raw = this.toEthRawTransaction(BUFFER_EMPTY, BUFFER_EMPTY, BUFFER_EMPTY);
+      data = encodeRange(raw, 0, 6);
+      dataLength = data.length;
+      const msgHash = keccak(digest([data.output], dataLength));
+      sig = ecsign(msgHash, privateKey);
+    }
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
