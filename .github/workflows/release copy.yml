@@ -18,13 +18,13 @@ jobs:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
           node-version: 14
 
-      - name: Import Robot GPG key
-        uses: crazy-max/ghaction-import-gpg@v4
-        with:
-          gpg_private_key: ${{ secrets.TRUFBOT_GPG_SECRET_KEY }}
-          passphrase: ${{ secrets.TRUFBOT_GPG_PASSPHRASE }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
+      # - name: Import Robot GPG key
+      #   uses: crazy-max/ghaction-import-gpg@v4
+      #   with:
+      #     gpg_private_key: ${{ secrets.TRUFBOT_GPG_SECRET_KEY }}
+      #     passphrase: ${{ secrets.TRUFBOT_GPG_PASSPHRASE }}
+      #     git_user_signingkey: true
+      #     git_commit_gpgsign: true
 
       - name: Set git origin url
         run: |
