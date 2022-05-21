@@ -1,0 +1,183 @@
+name: TestRelease
+
+on:
+  push:
+    branches: [patch-1]
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # we need all commit history so we can merge master into develop
+          fetch-depth: 0
+      - uses: actions/setup-node@v1
+        with:
+          # use node 14 until we can evaluate using npm 7+ and lock file version 2
+          node-version: 14
+
+      - name: Import Robot GPG key
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.TRUFBOT_GPG_SECRET_KEY }}
+          passphrase: ${{ secrets.TRUFBOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Set git origin url
+        run: |
+          git remote set-url origin https://robot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run installation
+        run: npm ci
+
+      - name: Test
+        run: npm test
+        env:
+          FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+
+      - name: Set TAG for master to latest
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          echo "TAG=latest" >> $GITHUB_ENV
+
+      - name: Set TAG for non-master to the branch name
+        if: ${{ github.ref != 'refs/heads/master' }}
+        run: |
+          echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Count features
+        if: ${{ env.TAG == 'latest'}}
+        # get all commits in develop that aren't in master, find any that start with feat: or feat(*):, then count them
+        # 1. `git tag --sort=-version:refname --no-contains HEAD`
+        #    - get a list of all tags that do NOT contain out current HEAD commit
+        #    - sort by version name
+        #    - in reverse order
+        # 2. `grep -P "^v(0|[1-9]\d*)?\.(0|[1-9]\d*)\.(0|[1-9]\d*)$"`
+        #    - filter the list for semver matching tags only, e.g. "v*.*.*" (ignores pre-releases!)
+        #    - ignores pre-releases
+        #    - ignores improper tags like v01.02.03 (no leading 0s)
+        # 3. `head -1`
+        #    - get the last tag in the list
+        # 4. `git log ^$LATEST_TAG HEAD --pretty=format:%s`
+        #    - get all from the `LATEST_TAG` (exclusive) to `HEAD`
+        # 5. `grep -o -P '^feat(\(.*?\))?:'`
+        #    - output only the matching part (in case a newline can get in here... probably not possible?)
+        #    - filter for only commit subjects that match conventional commits for features, i.e., `feat:` or `feat(<subject>):`
+        # 6. `wc -l`
+        #    - count how many matches we have
+        # 7.  `>> $GITHUB_ENV`
+        #    - assign the above `FEATURE_COUNT` to the `wc` result (e.g., "FEATURE_COUNT=1") and append it to `$GITHUB_ENV`
+        run: |
+          LATEST_TAG=$(git tag --sort=-version:refname --no-contains HEAD | grep -P '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | head -1) &&
+          echo FEATURE_COUNT="$(git log ^"${LATEST_TAG}" HEAD --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> "${GITHUB_ENV}"
+
+      - name: Determine Release Kind (minor)
+        # if we are "latest" and we have features, set the release to "minor"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT != '0' }}
+        run: echo "RELEASE_KIND=minor" >> $GITHUB_ENV
+
+      - name: Determine Release Kind (patch)
+        # if we are "latest" and we do NOT have features, set the release to "patch"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
+        run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
+
+      - name: Update package versions for latest release (master)
+        if: ${{ env.TAG == 'latest' }}
+        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
+
+      - name: Update package versions for pre-releases
+        if: ${{ env.TAG != 'latest' }}
+        run: $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
+
+      - name: Add updated versions to git
+        run: git add .
+
+      - name: Run build
+        run: npm run build
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+
+      - name: Update documentation
+        run: |
+          npm run docs.build
+          git add docs/**
+
+      - name: Set VERSION
+        run: |
+          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+
+      - name: Commit all staged changes
+        run: |
+          git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
+
+      - name: Tag the amended release commit
+        run: |
+          git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
+
+      # - name: Push changes to git
+      #   run: |
+      #     git push origin ${GITHUB_REF##*/}
+      #     git push origin --tags
+
+      - name: Set up auth for npm publish
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # - name: Smoke test release
+      #   TODO: set up verdaccio to mock npm https://verdaccio.org/
+
+      # # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
+      # - name: Release to npm
+      #   run: |
+      #     $(npm bin)/lerna publish from-package --yes --dist-tag ${TAG} --pre-dist-tag ${TAG} --no-verify-access
+      #   env:
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # publish to docker and github packages
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: |
+            trufflesuite/ganache
+            ghcr.io/${{ github.repository}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          file: ./src/packages/ganache/Dockerfile
+          push: true
+          tags: "internal"
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            INFURA_KEY=${{ secrets.INFURA_KEY }}
+
+      # - name: Merge changes back into develop for latest release (master)
+      #   if: ${{ env.TAG == 'latest' }}
+      #   run: |
+      #     git checkout develop
+      #     git merge origin/master
+      #     git push origin develop
