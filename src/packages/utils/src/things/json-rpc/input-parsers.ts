@@ -1,6 +1,9 @@
 import {bigIntToBuffer} from "../../utils/bigint-to-buffer";
 import {uintToBuffer} from "../../utils/uint-to-buffer";
+
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
+
+export type JsonRpcInputArg = number | bigint | string | Buffer;
 
 export function parseAndValidateBufferInput(input: Buffer): Buffer {
   return input;
@@ -10,10 +13,10 @@ export function parseAndValidateNumberInput(input: number): Buffer {
   if (input < 0) {
     throw new Error("Cannot wrap a negative value as a json-rpc type");
   }
-  if (<number>input % 1) {
+  if (input % 1) {
     throw new Error("Cannot wrap a decimal as a json-rpc type");
   }
-  if (!isFinite(<number>input)) {
+  if (!isFinite(input)) {
     throw new Error(`Cannot wrap a ${input} as a json-rpc type`);
   }
   if (input === 0) {
@@ -35,12 +38,15 @@ export function parseAndValidateStringInput(input: string): Buffer {
   if (!VALIDATE_REGEX.test(input)) {
     throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`);
   }
-  //preserve length
+
   let hexValue = (<string>input).slice(2);
 
+  // hexValue must be an even number of hexidecimal characters for decoding in Buffer.from
+  // see: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
   if (hexValue.length & 1) {
     hexValue = `0${hexValue}`;
   }
+
   return Buffer.from(hexValue, "hex");
 }
 
@@ -54,7 +60,7 @@ const TYPE_TO_PARSER_MAP = {
   string: parseAndValidateStringInput
 };
 
-export function getParseAndValidateFor(input: number | bigint | string | Buffer): any {
+export function getParseAndValidateFor(input: JsonRpcInputArg): any {
   if (input == null) {
     return parseAndValidateNullInput
   }

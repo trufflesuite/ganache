@@ -1,5 +1,7 @@
 import { bufferToBigInt } from "../../utils/buffer-to-bigint";
-import { BaseJsonRpcType, JsonRpcInputArg } from "./json-rpc-base-types";
+import { BaseJsonRpcType } from "./json-rpc-base-types";
+import { JsonRpcInputArg } from "./input-parsers";
+
 const BUFFER_EMPTY = Buffer.alloc(0);
 
 export class Quantity extends BaseJsonRpcType {

@@ -1,4 +1,5 @@
 import { BaseJsonRpcType } from "./json-rpc-base-types";
+
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 
 type JsonRpcDataInputArg = string | Buffer;
@@ -10,9 +11,7 @@ export class Data extends BaseJsonRpcType {
     if (typeof value === "bigint") {
       throw new Error(`Cannot create a ${typeof value} as a Data`);
     }
-    if (_byteLength !== undefined) {
-      Data.validateByteLength(_byteLength);
-    }
+    Data.validateByteLength(_byteLength);
   }
 
   public toString(byteLength?: number): string | null {
@@ -27,7 +26,7 @@ export class Data extends BaseJsonRpcType {
       return super.toString();
     }
 
-    return `0x${Data.padString(this.bufferValue.toString("hex"), length)}`;
+    return `0x${Data.toFixedLengthString(this.bufferValue.toString("hex"), length)}`;
   }
 
   public toBuffer(byteLength?: number): Buffer {
@@ -43,7 +42,7 @@ export class Data extends BaseJsonRpcType {
       return this.bufferValue;
     }
 
-    return Data.padBuffer(this.bufferValue, length);
+    return Data.toFixedLengthBuffer(this.bufferValue, length);
   }
 
   public static from(value: JsonRpcDataInputArg, byteLength?: number) {
@@ -59,7 +58,7 @@ export class Data extends BaseJsonRpcType {
     }
   }
   
-  private static padString(value: string, byteLength: number | undefined) {
+  private static toFixedLengthString(value: string, byteLength: number | undefined) {
     let paddedString;
     const charLength = byteLength * 2
   
@@ -68,7 +67,7 @@ export class Data extends BaseJsonRpcType {
     }
   
     // (desired byte count - actual byte count) * 2 characters per byte
-    const padCharCount = (byteLength - value.length / 2) * 2;
+    const padCharCount = charLength - value.length;
     if (padCharCount === 0) {
       paddedString = value;
     } else if (padCharCount > 0) {
@@ -79,7 +78,7 @@ export class Data extends BaseJsonRpcType {
     return paddedString;
   }
   
-  private static padBuffer(value: Buffer, byteLength: number | undefined) {
+  private static toFixedLengthBuffer(value: Buffer, byteLength: number | undefined) {
     if (byteLength === undefined || byteLength === value.length) {
       return value;
     }

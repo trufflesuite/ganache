@@ -1,6 +1,5 @@
-import { getParseAndValidateFor } from "./input-parsers";
+import { JsonRpcInputArg, getParseAndValidateFor } from "./input-parsers";
 
-export type JsonRpcInputArg = number | bigint | string | Buffer;
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 export class BaseJsonRpcType {
   public [Symbol.toStringTag]: string;
@@ -12,7 +11,7 @@ export class BaseJsonRpcType {
     return `[${this.constructor.name}] ${this.toString()}`;
   }
 
-  constructor(value: number | bigint | string | Buffer) {
+  constructor(value: JsonRpcInputArg) {
     this[Symbol.toStringTag] = typeof(value);
 
     const parseAndValidate = getParseAndValidateFor(value);
