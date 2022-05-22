@@ -87,10 +87,10 @@ export class PersistentCache {
           descendants[keyHex] = node;
           collection[parentKeyHex].descendants = descendants;
         }
-        (node as any).hash = Data.from(node.hash).toString();
+        (node as any).hash = Data.toString(node.hash);
         (node as any).parent =
           node.closestKnownAncestor.length > 0
-            ? Data.from(collection[parentKeyHex].hash).toString()
+            ? Data.toString(collection[parentKeyHex].hash)
             : null;
         delete node.key;
         // delete node.hash;
@@ -201,7 +201,7 @@ export class PersistentCache {
           if (
             descendantRawBlock == null ||
             descendantRawBlock.hash !==
-            Data.from(descendantNode.hash, 32).toString()
+            Data.toString(descendantNode.hash, 32)
           ) {
             ancestorsDescendants.push(descendantKey);
           } else {

@@ -20,7 +20,7 @@ import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
 
 const encodeValue = (val: number | string) => {
-  return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
+  return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
 };
 
 async function deployContract(provider, from, code) {
@@ -77,7 +77,7 @@ describe("api", () => {
         it("executes a message call", async () => {
           const result = await provider.send("eth_call", [tx, "latest"]);
           // gets the contract's "value", which should be 5
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("does not create a transaction on the chain", async () => {
@@ -100,7 +100,7 @@ describe("api", () => {
           };
           const result = await provider.send("eth_call", [tx, "latest"]);
           // we can still get the result when the gasPrice is set
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("allows eip-1559 fee market transactions", async () => {
@@ -114,13 +114,13 @@ describe("api", () => {
 
           const result = await provider.send("eth_call", [tx, "latest"]);
           // we can still get the result when the maxFeePerGas/maxPriorityFeePerGas are set
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("allows gas price to be omitted", async () => {
           const result = await provider.send("eth_call", [tx, "latest"]);
           // we can get the value if no gas info is given at all
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("rejects transactions that specify both legacy and eip-1559 transaction fields", async () => {
@@ -850,10 +850,10 @@ describe("api", () => {
             block: block
           };
           ethereumJsFromAddress = new EthereumJsAddress(
-            Quantity.from(from).toBuffer()
+            Quantity.toBuffer(from)
           );
           ethereumJsToAddress = new EthereumJsAddress(
-            Quantity.from(to).toBuffer()
+            Quantity.toBuffer(to)
           );
           // set up a real transaction
           transaction = {

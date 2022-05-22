@@ -176,7 +176,7 @@ describe("api", () => {
             await assert.rejects(
               provider.send("eth_getCode", [
                 contractAddress,
-                Quantity.from(nextBlockNumber).toString()
+                Quantity.toString(nextBlockNumber)
               ]),
               {
                 message: "header not found"

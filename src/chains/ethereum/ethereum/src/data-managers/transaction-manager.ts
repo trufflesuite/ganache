@@ -44,7 +44,7 @@ export default class TransactionManager extends Manager<NoOp> {
   fromFallback = async (transactionHash: Buffer) => {
     const { fallback } = this.#blockchain;
     const tx = await fallback.request<Transaction>("eth_getTransactionByHash", [
-      Data.from(transactionHash).toString()
+      Data.toString(transactionHash)
     ]);
     if (tx == null) return null;
 
@@ -57,12 +57,12 @@ export default class TransactionManager extends Manager<NoOp> {
     if (!fallback.isValidForkBlockNumber(blockNumber)) return null;
 
     const extra: GanacheRawExtraTx = [
-      Data.from(tx.from, 20).toBuffer(),
+      Data.toBuffer(tx.from, 20),
       Data.from((tx as any).hash, 32).toBuffer(),
       blockHash.toBuffer(),
       blockNumber.toBuffer(),
       index.toBuffer(),
-      Quantity.from(tx.gasPrice).toBuffer()
+      Quantity.toBuffer(tx.gasPrice)
     ];
     const common = fallback.getCommonForBlockNumber(
       fallback.common,

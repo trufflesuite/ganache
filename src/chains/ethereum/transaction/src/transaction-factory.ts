@@ -235,7 +235,7 @@ export class TransactionFactory {
    * @param common - Options to pass on to the constructor of the transaction
    */
   public static fromString(txData: string, common: Common) {
-    let data = Data.from(txData).toBuffer();
+    let data = Data.toBuffer(txData);
     const type = data[0];
     const txType = this.typeOf(type);
     let tx: TypedTransaction;

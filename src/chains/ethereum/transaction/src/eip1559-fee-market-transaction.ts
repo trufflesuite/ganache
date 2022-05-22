@@ -178,7 +178,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.toBuffer(fee));
       },
       getUpfrontCost: (baseFee: BN = new BN(0)) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;

@@ -33,7 +33,7 @@ describe("@ganache/ethereum-transaction", async () => {
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
-  const privKeyBuf = Quantity.from(privKey).toBuffer();
+  const privKeyBuf = Quantity.toBuffer(privKey);
   const options = EthereumOptionsConfig.normalize({
     wallet: {
       accounts: [

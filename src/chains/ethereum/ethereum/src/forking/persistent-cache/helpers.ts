@@ -165,7 +165,7 @@ export async function* findRelated(
     // if the chain has a block at this height, and the hash of the
     // block is the same as the one in the db we've found our closest
     // ancestor!
-    if (block != null && block.hash === Data.from(node.hash).toString()) {
+    if (block != null && block.hash === Data.toString(node.hash)) {
       yield node;
     }
   }

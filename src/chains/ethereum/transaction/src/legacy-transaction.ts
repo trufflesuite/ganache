@@ -141,12 +141,12 @@ export class LegacyTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.toBuffer(fee));
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
         const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.from(c).toBuffer());
+        return new BN(Quantity.toBuffer(c));
       },
       supports: (capability: Capability) => {
         return false;

@@ -179,12 +179,12 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee + this.accessListDataFee).toBuffer());
+        return new BN(Quantity.toBuffer(fee + this.accessListDataFee));
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
         const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.from(c).toBuffer());
+        return new BN(Quantity.toBuffer(c));
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);

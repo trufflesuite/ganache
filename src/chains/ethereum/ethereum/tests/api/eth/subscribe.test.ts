@@ -80,7 +80,7 @@ describe("api", () => {
                 miner: `0x${"0".repeat(40)}`,
                 mixHash: `0x${"0".repeat(64)}`,
                 nonce: "0x0000000000000000",
-                number: Quantity.from(startingBlockNumber + 1).toString(),
+                number: Quantity.toString(startingBlockNumber + 1),
                 parentHash:
                   "0x599bbde60ad155e0c9dbfa8575e325235c2c48f8b6c4100c175dc9b68c5c2dba",
                 receiptsRoot:
@@ -89,7 +89,7 @@ describe("api", () => {
                   "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
                 stateRoot:
                   "0x4971da3022e43da306da38e8ed8a7990b8f0d842164e1662ee28a84921d59ad4",
-                timestamp: Quantity.from(timestamp).toString(),
+                timestamp: Quantity.toString(timestamp),
                 transactionsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
               },

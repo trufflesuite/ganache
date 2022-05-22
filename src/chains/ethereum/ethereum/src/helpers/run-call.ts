@@ -82,7 +82,7 @@ export function runCall(
 
   const message = new Message({
     caller,
-    gasLimit: new BN(Quantity.from(gasLeft).toBuffer()),
+    gasLimit: new BN(Quantity.toBuffer(gasLeft)),
     to,
     value,
     data: transaction.data && transaction.data.toBuffer()
@@ -142,19 +142,19 @@ export async function applySimulationOverrides(
         account.nonce = {
           toArrayLike: () =>
             // geth treats empty strings as "0x0" nonce for overrides
-            nonce === "" ? BUFFER_EMPTY : Quantity.from(nonce).toBuffer()
+            nonce === "" ? BUFFER_EMPTY : Quantity.toBuffer(nonce)
         } as any;
       }
       if (balance != null) {
         account.balance = {
           toArrayLike: () =>
             // geth treats empty strings as "0x0" balance for overrides
-            balance === "" ? BUFFER_EMPTY : Quantity.from(balance).toBuffer()
+            balance === "" ? BUFFER_EMPTY : Quantity.toBuffer(balance)
         } as any;
       }
       if (code != null) {
         // geth treats empty strings as "0x" code for overrides
-        const codeBuffer = Data.from(code === "" ? "0x" : code).toBuffer();
+        const codeBuffer = Data.toBuffer(code === "" ? "0x" : code);
         // The ethereumjs-vm StateManager does not allow to set empty code,
         // therefore we will manually set the code hash when "clearing" the contract code
         const codeHash =
@@ -185,8 +185,8 @@ export async function applySimulationOverrides(
             await stateManager.clearContractStorage(vmAddr);
             clearedState = true;
           }
-          const slotBuf = Data.from(slot, 32).toBuffer();
-          const valueBuf = Data.from(value).toBuffer();
+          const slotBuf = Data.toBuffer(slot, 32);
+          const valueBuf = Data.toBuffer(value);
 
           await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
@@ -197,8 +197,8 @@ export async function applySimulationOverrides(
           const value = stateDiff[slot];
           validateStorageOverride(slot, value, "StateDiff");
 
-          const slotBuf = Data.from(slot, 32).toBuffer();
-          const valueBuf = Data.from(value).toBuffer();
+          const slotBuf = Data.toBuffer(slot, 32);
+          const valueBuf = Data.toBuffer(value);
 
           await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
         }

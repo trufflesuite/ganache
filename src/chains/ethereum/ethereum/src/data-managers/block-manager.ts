@@ -68,38 +68,38 @@ export default class BlockManager extends Manager<Block> {
 
   static rawFromJSON(json: any, common: Common) {
     const header: EthereumRawBlockHeader = [
-      Data.from(json.parentHash).toBuffer(),
-      Data.from(json.sha3Uncles).toBuffer(),
+      Data.toBuffer(json.parentHash),
+      Data.toBuffer(json.sha3Uncles),
       Address.from(json.miner).toBuffer(),
-      Data.from(json.stateRoot).toBuffer(),
-      Data.from(json.transactionsRoot).toBuffer(),
-      Data.from(json.receiptsRoot).toBuffer(),
-      Data.from(json.logsBloom).toBuffer(),
-      Quantity.from(json.difficulty).toBuffer(),
-      Quantity.from(json.number).toBuffer(),
-      Quantity.from(json.gasLimit).toBuffer(),
-      Quantity.from(json.gasUsed).toBuffer(),
-      Quantity.from(json.timestamp).toBuffer(),
-      Data.from(json.extraData).toBuffer(),
-      Data.from(json.mixHash).toBuffer(),
-      Data.from(json.nonce).toBuffer()
+      Data.toBuffer(json.stateRoot),
+      Data.toBuffer(json.transactionsRoot),
+      Data.toBuffer(json.receiptsRoot),
+      Data.toBuffer(json.logsBloom),
+      Quantity.toBuffer(json.difficulty),
+      Quantity.toBuffer(json.number),
+      Quantity.toBuffer(json.gasLimit),
+      Quantity.toBuffer(json.gasUsed),
+      Quantity.toBuffer(json.timestamp),
+      Data.toBuffer(json.extraData),
+      Data.toBuffer(json.mixHash),
+      Data.toBuffer(json.nonce)
     ];
     // only add baseFeePerGas if the block's JSON already has it
     if (json.baseFeePerGas !== undefined) {
-      header[15] = Data.from(json.baseFeePerGas).toBuffer();
+      header[15] = Data.toBuffer(json.baseFeePerGas);
     }
-    const totalDifficulty = Quantity.from(json.totalDifficulty).toBuffer();
+    const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
     const txs: TypedDatabaseTransaction[] = [];
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach((tx, index) => {
       const blockExtra = [
-        Quantity.from(tx.from).toBuffer(),
-        Quantity.from(tx.hash).toBuffer()
+        Quantity.toBuffer(tx.from),
+        Quantity.toBuffer(tx.hash)
       ] as any;
       const txExtra = [
         ...blockExtra,
-        Data.from(json.hash).toBuffer(),
-        Quantity.from(json.number).toBuffer(),
+        Data.toBuffer(json.hash),
+        Quantity.toBuffer(json.number),
         index
       ] as any;
       const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
@@ -174,7 +174,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   async getNumberFromHash(hash: string | Buffer | Tag) {
-    return this.#blockIndexes.get(Data.from(hash).toBuffer()).catch(e => {
+    return this.#blockIndexes.get(Data.toBuffer(hash)).catch(e => {
       if (e.status === NOTFOUND) return null;
       throw e;
     }) as Promise<Buffer | null>;

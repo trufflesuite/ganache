@@ -27,12 +27,12 @@ export class AccessLists {
 
       for (let i = 0; i < accessList.length; i++) {
         const item: AccessListItem = accessList[i];
-        const addressBuffer = Data.from(item.address, 32).toBuffer();
+        const addressBuffer = Data.toBuffer(item.address, 32);
         const storageItems: Buffer[] = [];
         const storageKeysLength = item.storageKeys.length;
         slots += storageKeysLength;
         for (let index = 0; index < storageKeysLength; index++) {
-          storageItems.push(Data.from(item.storageKeys[index]).toBuffer());
+          storageItems.push(Data.toBuffer(item.storageKeys[index]));
         }
         newAccessList.push([addressBuffer, storageItems]);
       }
@@ -43,12 +43,12 @@ export class AccessLists {
       const json: AccessList = [];
       for (let i = 0; i < bufferAccessList.length; i++) {
         const data = bufferAccessList[i];
-        const address = Data.from(data[0], 32).toString();
+        const address = Data.toString(data[0], 32);
         const storageKeys: string[] = [];
         const storageKeysLength = data[1].length;
         slots += storageKeysLength;
         for (let item = 0; item < storageKeysLength; item++) {
-          storageKeys.push(Data.from(data[1][item], 32).toString());
+          storageKeys.push(Data.toString(data[1][item], 32));
         }
         const jsonItem: AccessListItem = {
           address,

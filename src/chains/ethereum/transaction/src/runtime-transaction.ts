@@ -24,7 +24,7 @@ import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
-  const buffer = Data.from(address).toBuffer();
+  const buffer = Data.toBuffer(address);
   if (buffer.byteLength !== Address.ByteLength) {
     throw new Error(
       `The field ${fieldName} must have byte length of ${Address.ByteLength}`
@@ -156,7 +156,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
     const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
       status,
-      Quantity.from(cumulativeGasUsed).toBuffer(),
+      Quantity.toBuffer(cumulativeGasUsed),
       result.bloom.bitvector,
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
       result.gasUsed.toArrayLike(Buffer),

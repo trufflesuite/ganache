@@ -524,7 +524,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
 
-    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}
+    str += `  Gas usage: ${Quantity.toNumber(receipt.raw[1])}
   Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
 
@@ -1124,7 +1124,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } as any,
         data: transaction.data && transaction.data.toBuffer(),
         gasPrice: new BN(transaction.gasPrice.toBuffer()),
-        gasLimit: new BN(Quantity.from(gasLeft).toBuffer()),
+        gasLimit: new BN(Quantity.toBuffer(gasLeft)),
         to,
         value:
           transaction.value == null
@@ -1346,7 +1346,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                   rawKey
                 );
 
-                storage[Data.from(key, key.length).toString()] = {
+                storage[Data.toString(key, key.length)] = {
                   key: Data.from(rawKey, rawKey.length),
                   value: Data.from(result, 32)
                 };
@@ -1442,7 +1442,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transactionHash: string,
     options: TraceTransactionOptions
   ) {
-    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
+    const transactionHashBuffer = Data.toBuffer(transactionHash);
     // #1 - get block via transaction object
     const transaction = await this.transactions.get(transactionHashBuffer);
 
@@ -1555,7 +1555,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       return new Promise<RangedStorageKeys>((resolve, reject) => {
-        const startKeyBuffer = Data.from(startKey).toBuffer();
+        const startKeyBuffer = Data.toBuffer(startKey);
         const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;
 
         const keys: Buffer[] = [];

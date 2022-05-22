@@ -215,7 +215,7 @@ export class ForkTrie extends GanacheTrie {
     try {
       const codeHex = await codeProm;
       if (codeHex !== "0x") {
-        const code = Data.from(codeHex).toBuffer();
+        const code = Data.toBuffer(codeHex);
         // the codeHash is just the keccak hash of the code itself
         account.codeHash = keccak(code);
         if (!account.codeHash.equals(KECCAK256_NULL)) {
