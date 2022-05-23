@@ -18,8 +18,7 @@ export function* getFragmentGenerator(
       // handle backpressure. Part of handling backpressure will
       // involve the drain event and only sending while
       // `ws.getBufferedAmount() < ACCEPTABLE_BACKPRESSURE`.
-      // See https://github.com/trufflesuite/ganache/issues/2790 and
-      // https://github.com/trufflesuite/ganache/issues/2790
+      // See https://github.com/trufflesuite/ganache/issues/FIX THIS
       buf = null;
       offset = 0;
     }
