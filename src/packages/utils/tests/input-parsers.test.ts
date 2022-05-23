@@ -3,8 +3,7 @@ import {
   getParseAndValidateFor,
   parseAndValidateStringInput,
   parseAndValidateBigIntInput,
-  parseAndValidateBufferInput,
-  parseAndValidateNullInput,
+  noopParseAndValidate,
   parseAndValidateNumberInput
 } from "../src/things/json-rpc/input-parsers";
 
@@ -14,9 +13,9 @@ describe("json-rpc-input-parsers", () => {
       ["", parseAndValidateStringInput],
       [1, parseAndValidateNumberInput],
       [1n, parseAndValidateBigIntInput],
-      [Buffer.alloc(0), parseAndValidateBufferInput],
-      [null, parseAndValidateNullInput],
-      [undefined, parseAndValidateNullInput]
+      [Buffer.alloc(0), noopParseAndValidate],
+      [null, noopParseAndValidate],
+      [undefined, noopParseAndValidate]
     ].forEach(([input, parser]) => {
       it(`should get the correct parser for input: ${input}, of type: ${typeof input}`, () => {
         const actual = getParseAndValidateFor(<any>input);
@@ -149,23 +148,14 @@ describe("json-rpc-input-parsers", () => {
     });
   });
 
-  describe("parseAndValidateBufferInput()", () => {
-    it(`should accept a valid input`, () => {
-      parseAndValidateBufferInput(Buffer.alloc(0));
-    });
-
-    it(`should return the value input`, () => {
-      const input = Buffer.alloc(0);
-      const actual = parseAndValidateBufferInput(input);
-      assert.strictEqual(input, actual);
-    });
-  });
-
-  describe("parseAndValidateNullInput()", () => {
-    [null, undefined].forEach(input => {
-      it(`should return the input value: ${input}`, () => {
-        const actual = parseAndValidateBufferInput(input);
-        assert.strictEqual(actual, input);
+  describe("noopParseAndValidate()", () => {
+    [
+      Buffer.alloc(0), null, undefined
+    ].forEach(input => {
+      const inputName = Buffer.isBuffer(input) ? "Buffer" : JSON.stringify(input);
+      it(`should return the value input: ${inputName}`, () => {
+        const actual = noopParseAndValidate(input);
+        assert.strictEqual(input, actual);
       });
     });
   });

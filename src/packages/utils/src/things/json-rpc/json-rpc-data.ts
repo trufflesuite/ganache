@@ -26,7 +26,7 @@ export class Data extends BaseJsonRpcType {
       return super.toString();
     }
 
-    return `0x${Data.toFixedLengthString(this.bufferValue.toString("hex"), length)}`;
+    return `0x${Data.stringToFixedLength(this.bufferValue.toString("hex"), length)}`;
   }
 
   public toBuffer(byteLength?: number): Buffer {
@@ -42,7 +42,7 @@ export class Data extends BaseJsonRpcType {
       return this.bufferValue;
     }
 
-    return Data.toFixedLengthBuffer(this.bufferValue, length);
+    return Data.bufferToFixedLength(this.bufferValue, length);
   }
 
   public static from(value: JsonRpcDataInputArg, byteLength?: number) {
@@ -57,43 +57,40 @@ export class Data extends BaseJsonRpcType {
       throw new Error(`byteLength must be a number greater than or equal to 0, provided: ${byteLength}`);
     }
   }
-  
-  private static toFixedLengthString(value: string, byteLength: number | undefined) {
-    let paddedString;
-    const charLength = byteLength * 2
-  
-    if (byteLength === undefined || charLength === value.length) {
+
+  private static stringToFixedLength(value: string, byteLength: number | undefined) {
+    const desiredCharLength = byteLength * 2
+
+    if (byteLength === undefined || desiredCharLength === value.length) {
       return value;
     }
-  
-    // (desired byte count - actual byte count) * 2 characters per byte
-    const padCharCount = charLength - value.length;
-    if (padCharCount === 0) {
-      paddedString = value;
-    } else if (padCharCount > 0) {
-      paddedString = "0".repeat(padCharCount) + value;
+
+    const padCharCount = desiredCharLength - value.length;
+    let fixedLengthValue;
+    if (padCharCount > 0) {
+      fixedLengthValue = "0".repeat(padCharCount) + value;
     } else {
-      paddedString = value.slice(0, charLength);
+      fixedLengthValue = value.slice(0, desiredCharLength);
     }
-    return paddedString;
+    return fixedLengthValue;
   }
-  
-  private static toFixedLengthBuffer(value: Buffer, byteLength: number | undefined) {
+
+  private static bufferToFixedLength(value: Buffer, byteLength: number | undefined) {
     if (byteLength === undefined || byteLength === value.length) {
       return value;
     }
-  
-    const returnValue = Buffer.allocUnsafe(byteLength);
-  
+
+    const fixedLengthValue = Buffer.allocUnsafe(byteLength);
+
     const sourceStart = 0;
     const targetStart = value.length > byteLength ? 0 : byteLength - value.length;
     if (targetStart > 0) {
-      returnValue.fill(0, 0, targetStart);
+      fixedLengthValue.fill(0, 0, targetStart);
     }
-  
-    value.copy(returnValue, targetStart, sourceStart, byteLength);
-  
-    return returnValue;
+
+    value.copy(fixedLengthValue, targetStart, sourceStart, byteLength);
+
+    return fixedLengthValue;
   }
 
   static toBuffer(value: JsonRpcDataInputArg, byteLength?: number): Buffer {
