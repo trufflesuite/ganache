@@ -2,7 +2,7 @@ import { BaseJsonRpcType } from "./json-rpc-base-types";
 
 const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 
-type JsonRpcDataInputArg = string | Buffer;
+export type JsonRpcDataInputArg = string | Buffer;
 
 export class Data extends BaseJsonRpcType {
   constructor(value: JsonRpcDataInputArg, private _byteLength?: number) {
@@ -26,7 +26,7 @@ export class Data extends BaseJsonRpcType {
       return super.toString();
     }
 
-    return `0x${Data.stringToFixedLength(this.bufferValue.toString("hex"), length)}`;
+    return `0x${Data.stringToFixedByteLength(this.bufferValue.toString("hex"), length)}`;
   }
 
   public toBuffer(byteLength?: number): Buffer {
@@ -38,11 +38,11 @@ export class Data extends BaseJsonRpcType {
       return BUFFER_EMPTY;
     }
 
-    if (length === undefined || length === this.bufferValue.length) {
+    if (length == undefined || length === this.bufferValue.length) {
       return this.bufferValue;
     }
 
-    return Data.bufferToFixedLength(this.bufferValue, length);
+    return Data.bufferToFixedByteLength(this.bufferValue, length);
   }
 
   public static from(value: JsonRpcDataInputArg, byteLength?: number) {
@@ -58,7 +58,7 @@ export class Data extends BaseJsonRpcType {
     }
   }
 
-  private static stringToFixedLength(value: string, byteLength: number | undefined) {
+  private static stringToFixedByteLength(value: string, byteLength: number | undefined) {
     const desiredCharLength = byteLength * 2
 
     if (byteLength === undefined || desiredCharLength === value.length) {
@@ -75,7 +75,7 @@ export class Data extends BaseJsonRpcType {
     return fixedLengthValue;
   }
 
-  private static bufferToFixedLength(value: Buffer, byteLength: number | undefined) {
+  private static bufferToFixedByteLength(value: Buffer, byteLength: number | undefined) {
     if (byteLength === undefined || byteLength === value.length) {
       return value;
     }

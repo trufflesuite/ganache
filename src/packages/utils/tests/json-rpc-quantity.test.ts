@@ -51,9 +51,14 @@ describe("json-rpc-quantity", () => {
       });
     });
 
-    it("should return null for empty buffer", () => {
+    it("should return 0x0 for empty buffer", () => {
       const result = new Quantity(Buffer.alloc(0), true).toString();
-      assert.equal(result, null);
+      assert.equal(result, "0x0");
+    });
+
+    it("should return 0x0 for a non-empty buffer of 0x00 bytes", () => {
+      const result = new Quantity(Buffer.alloc(10), true).toString();
+      assert.equal(result, "0x0");
     });
 
     it("should coallesce nullish inputs", () => {

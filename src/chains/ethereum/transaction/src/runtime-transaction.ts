@@ -24,7 +24,7 @@ import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
-  const buffer = Data.toBuffer(address);
+  const buffer = Address.toBuffer(address);
   if (buffer.byteLength !== Address.ByteLength) {
     throw new Error(
       `The field ${fieldName} must have byte length of ${Address.ByteLength}`

@@ -5,7 +5,7 @@ import { JsonRpcInputArg } from "./input-parsers";
 const BUFFER_EMPTY = Buffer.alloc(0);
 
 export class Quantity extends BaseJsonRpcType {
-  private static DEFAULT_STRING_VALUE = "0x0";
+  private static ZERO_VALUE_STRING = "0x0";
 
   _nullable: boolean = false;
 
@@ -24,7 +24,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public toString(): string | null {
     if (this.bufferValue == null) {
-      return this._nullable? this.bufferValue : Quantity.DEFAULT_STRING_VALUE;
+      return this._nullable? this.bufferValue : Quantity.ZERO_VALUE_STRING;
     }
 
     let firstNonZeroByte = 0;
@@ -32,17 +32,19 @@ export class Quantity extends BaseJsonRpcType {
       if (this.bufferValue[firstNonZeroByte] !== 0) break;
     }
 
-    let val = this.bufferValue.toString("hex", firstNonZeroByte);
-
-    if (val.length === 0 || val === "0") {
-      // RPC Quantities must represent `0` as `0x0`
-      return this._nullable ? null : Quantity.DEFAULT_STRING_VALUE;
-    }
-    if (val[0] === "0") {
-      val = val.slice(1);
+    // bufferValue is empty, or contains only 0 bytes
+    if (firstNonZeroByte === this.bufferValue.length) {
+      return Quantity.ZERO_VALUE_STRING;
     }
 
-    return `0x${val}`;
+    let value = this.bufferValue.toString("hex", firstNonZeroByte);
+
+    // only need to check the first char, as we have already skipped 0 bytes in call to this.bufferValue.toString().
+    if (value[0] === "0") {
+      value = value.slice(1);
+    }
+
+    return `0x${value}`;
   }
 
   public toBuffer(): Buffer {
@@ -50,10 +52,7 @@ export class Quantity extends BaseJsonRpcType {
       return BUFFER_EMPTY;
     }
 
-    let firstNonZeroByte = 0;
-    for (firstNonZeroByte = 0; firstNonZeroByte < this.bufferValue.length; firstNonZeroByte++) {
-      if (this.bufferValue[firstNonZeroByte] !== 0) break;
-    }
+    const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
     if (firstNonZeroByte > 0) {
       return this.bufferValue.slice(firstNonZeroByte);
@@ -77,8 +76,7 @@ export class Quantity extends BaseJsonRpcType {
       return this._nullable ? this.bufferValue : 0;
     }
 
-    let firstNonZeroByte = 0;
-    while(this.bufferValue[firstNonZeroByte] === 0 && firstNonZeroByte < this.bufferValue.length) firstNonZeroByte++;
+    const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
     const length = this.bufferValue.length - firstNonZeroByte;
     if (length === 0) {
@@ -87,8 +85,8 @@ export class Quantity extends BaseJsonRpcType {
 
     let result: number;
     if (length > 6) {
-      const value = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.slice(this.bufferValue);
-      result = Number(bufferToBigInt(value));
+      const trimmedBuffer = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.slice(this.bufferValue);
+      result = Number(bufferToBigInt(trimmedBuffer));
     } else {
       result = this.bufferValue.readUIntBE(firstNonZeroByte, length);
     }
@@ -99,14 +97,19 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   valueOf(): bigint {
-    const value = this.bufferValue;
-    if (value === null) {
-      return value as null;
-    } else if (value === undefined) {
-      return value as undefined;
+    if (this.bufferValue == null) {
+      return <null>this.bufferValue;
     } else {
       return this.toBigInt();
     }
+  }
+
+  private findFirstNonZeroByteIndex(): number {
+    let firstNonZeroByte = 0;
+    for (firstNonZeroByte = 0; firstNonZeroByte < this.bufferValue.length; firstNonZeroByte++) {
+      if (this.bufferValue[firstNonZeroByte] !== 0) break;
+    }
+    return firstNonZeroByte;
   }
 
   static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer {
