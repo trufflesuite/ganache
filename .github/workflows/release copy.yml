@@ -73,19 +73,19 @@ jobs:
         #    - count how many matches we have
         # 7.  `>> $GITHUB_ENV`
         #    - assign the above `FEATURE_COUNT` to the `wc` result (e.g., "FEATURE_COUNT=1") and append it to `$GITHUB_ENV`
-        run: |
-          LATEST_TAG=$(git tag --sort=-version:refname --no-contains HEAD | grep -P '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | head -1) &&
-          echo FEATURE_COUNT="$(git log ^"${LATEST_TAG}" HEAD --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> "${GITHUB_ENV}"
+      #   run: |
+      #     LATEST_TAG=$(git tag --sort=-version:refname --no-contains HEAD | grep -P '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | head -1) &&
+      #     echo FEATURE_COUNT="$(git log ^"${LATEST_TAG}" HEAD --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> "${GITHUB_ENV}"
 
-      - name: Determine Release Kind (minor)
-        # if we are "latest" and we have features, set the release to "minor"
-        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT != '0' }}
-        run: echo "RELEASE_KIND=minor" >> $GITHUB_ENV
+      # - name: Determine Release Kind (minor)
+      #   # if we are "latest" and we have features, set the release to "minor"
+      #   if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT != '0' }}
+      #   run: echo "RELEASE_KIND=minor" >> $GITHUB_ENV
 
-      - name: Determine Release Kind (patch)
-        # if we are "latest" and we do NOT have features, set the release to "patch"
-        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
-        run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
+      # - name: Determine Release Kind (patch)
+      #   # if we are "latest" and we do NOT have features, set the release to "patch"
+      #   if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
+      #   run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
 
       # - name: Update package versions for latest release (master)
       #   if: ${{ env.TAG == 'latest' }}
@@ -116,10 +116,10 @@ jobs:
       #   run: |
       #     git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
-      - name: Tag the amended release commit
-        run: |
-          git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
-          git tag -a "v${VERSION}" -m "v${VERSION}"
+      # - name: Tag the amended release commit
+      #   run: |
+      #     git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
+      #     git tag -a "v${VERSION}" -m "v${VERSION}"
 
       # - name: Push changes to git
       #   run: |
