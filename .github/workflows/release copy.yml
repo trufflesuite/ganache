@@ -2,7 +2,7 @@ name: TestRelease
 
 on:
   push:
-    branches: [patch-1]
+    branches: [AuHau-patch-1]
 
 jobs:
   release:
