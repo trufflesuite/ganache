@@ -51,28 +51,28 @@ jobs:
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
-      - name: Count features
-        if: ${{ env.TAG == 'latest'}}
-        # get all commits in develop that aren't in master, find any that start with feat: or feat(*):, then count them
-        # 1. `git tag --sort=-version:refname --no-contains HEAD`
-        #    - get a list of all tags that do NOT contain out current HEAD commit
-        #    - sort by version name
-        #    - in reverse order
-        # 2. `grep -P "^v(0|[1-9]\d*)?\.(0|[1-9]\d*)\.(0|[1-9]\d*)$"`
-        #    - filter the list for semver matching tags only, e.g. "v*.*.*" (ignores pre-releases!)
-        #    - ignores pre-releases
-        #    - ignores improper tags like v01.02.03 (no leading 0s)
-        # 3. `head -1`
-        #    - get the last tag in the list
-        # 4. `git log ^$LATEST_TAG HEAD --pretty=format:%s`
-        #    - get all from the `LATEST_TAG` (exclusive) to `HEAD`
-        # 5. `grep -o -P '^feat(\(.*?\))?:'`
-        #    - output only the matching part (in case a newline can get in here... probably not possible?)
-        #    - filter for only commit subjects that match conventional commits for features, i.e., `feat:` or `feat(<subject>):`
-        # 6. `wc -l`
-        #    - count how many matches we have
-        # 7.  `>> $GITHUB_ENV`
-        #    - assign the above `FEATURE_COUNT` to the `wc` result (e.g., "FEATURE_COUNT=1") and append it to `$GITHUB_ENV`
+      # - name: Count features
+      #   if: ${{ env.TAG == 'latest'}}
+      # get all commits in develop that aren't in master, find any that start with feat: or feat(*):, then count them
+      # 1. `git tag --sort=-version:refname --no-contains HEAD`
+      #    - get a list of all tags that do NOT contain out current HEAD commit
+      #    - sort by version name
+      #    - in reverse order
+      # 2. `grep -P "^v(0|[1-9]\d*)?\.(0|[1-9]\d*)\.(0|[1-9]\d*)$"`
+      #    - filter the list for semver matching tags only, e.g. "v*.*.*" (ignores pre-releases!)
+      #    - ignores pre-releases
+      #    - ignores improper tags like v01.02.03 (no leading 0s)
+      # 3. `head -1`
+      #    - get the last tag in the list
+      # 4. `git log ^$LATEST_TAG HEAD --pretty=format:%s`
+      #    - get all from the `LATEST_TAG` (exclusive) to `HEAD`
+      # 5. `grep -o -P '^feat(\(.*?\))?:'`
+      #    - output only the matching part (in case a newline can get in here... probably not possible?)
+      #    - filter for only commit subjects that match conventional commits for features, i.e., `feat:` or `feat(<subject>):`
+      # 6. `wc -l`
+      #    - count how many matches we have
+      # 7.  `>> $GITHUB_ENV`
+      #    - assign the above `FEATURE_COUNT` to the `wc` result (e.g., "FEATURE_COUNT=1") and append it to `$GITHUB_ENV`
       #   run: |
       #     LATEST_TAG=$(git tag --sort=-version:refname --no-contains HEAD | grep -P '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | head -1) &&
       #     echo FEATURE_COUNT="$(git log ^"${LATEST_TAG}" HEAD --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> "${GITHUB_ENV}"
