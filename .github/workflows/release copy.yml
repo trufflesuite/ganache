@@ -35,11 +35,11 @@ jobs:
       - name: Run installation
         run: npm ci
 
-      - name: Test
-        run: npm test
-        env:
-          FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+      # - name: Test
+      #   run: npm test
+      #   env:
+      #     FORCE_COLOR: 1
+      #     INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
       - name: Set TAG for master to latest
         if: ${{ github.ref == 'refs/heads/master' }}
@@ -87,34 +87,34 @@ jobs:
         if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
         run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
 
-      - name: Update package versions for latest release (master)
-        if: ${{ env.TAG == 'latest' }}
-        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
+      # - name: Update package versions for latest release (master)
+      #   if: ${{ env.TAG == 'latest' }}
+      #   run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
 
-      - name: Update package versions for pre-releases
-        if: ${{ env.TAG != 'latest' }}
-        run: $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
+      # - name: Update package versions for pre-releases
+      #   if: ${{ env.TAG != 'latest' }}
+      #   run: $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
 
-      - name: Add updated versions to git
-        run: git add .
+      # - name: Add updated versions to git
+      #   run: git add .
 
       - name: Run build
         run: npm run build
         env:
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
 
-      - name: Update documentation
-        run: |
-          npm run docs.build
-          git add docs/**
+      # - name: Update documentation
+      #   run: |
+      #     npm run docs.build
+      #     git add docs/**
 
       - name: Set VERSION
         run: |
           echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
-      - name: Commit all staged changes
-        run: |
-          git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
+      # - name: Commit all staged changes
+      #   run: |
+      #     git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
       - name: Tag the amended release commit
         run: |
@@ -126,10 +126,10 @@ jobs:
       #     git push origin ${GITHUB_REF##*/}
       #     git push origin --tags
 
-      - name: Set up auth for npm publish
-        run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Set up auth for npm publish
+      #   run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+      #   env:
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # - name: Smoke test release
       #   TODO: set up verdaccio to mock npm https://verdaccio.org/
@@ -163,6 +163,11 @@ jobs:
           images: |
             trufflesuite/ganache
             ghcr.io/${{ github.repository}}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@0522dcd2bf084920c411162fde334a308be75015
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@91cb32d715c128e5f0ede915cd7e196ab7799b83
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
