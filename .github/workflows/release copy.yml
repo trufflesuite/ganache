@@ -178,7 +178,7 @@ jobs:
           push: true
           tags: trufflesuite/ganache:internal
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/arm64/v8,linux/amd64,linux/arm/v7
+          platforms: linux/arm64/v8,linux/amd64
           build-args: |
             INFURA_KEY=${{ secrets.INFURA_KEY }}
 
