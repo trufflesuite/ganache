@@ -72,7 +72,7 @@ describe("blockchain", async () => {
       // wait for our two transactions to be mined by waiting for the chain to
       // emit the block events. verify that it's the correct transaction, and
       // store the timestamp
-      const assertBlocks = new Promise((resolve, reject) => {
+      const assertBlocks = new Promise<boolean>((resolve, reject) => {
         const off = blockchain.on("block", async (block: Block) => {
           const transactions = block.getTransactions();
           if (transactions.length === 0) return;
@@ -99,7 +99,8 @@ describe("blockchain", async () => {
             }
           } catch (e) {
             off();
-            reject(e);
+            console.error(e);
+            reject(false);
           }
         });
       });
