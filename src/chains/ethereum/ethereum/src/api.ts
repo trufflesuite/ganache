@@ -9,15 +9,10 @@ import {
   InternalFilter,
   FilterTypes,
   QUANTITY,
-  EthereumRawAccount,
-  RuntimeError
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  EIP1559FeeMarketTransaction,
-  EIP2930AccessListTransaction,
-  LegacyTransaction,
-  RuntimeTransaction,
   Transaction,
   TransactionFactory,
   TypedTransaction
