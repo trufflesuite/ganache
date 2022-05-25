@@ -81,9 +81,6 @@ const closeHandler = async () => {
         console.log("Server has been shut down");
         break;
     }
-    // process.removeAllListeners("SIGINT");
-    // process.removeAllListeners("SIGTERM");
-    // process.removeAllListeners("SIGHUP");
     // don't just call `process.exit()` here, as we don't want to hide shutdown
     // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
     // anything other than act as a place to anchor this comment :-)
