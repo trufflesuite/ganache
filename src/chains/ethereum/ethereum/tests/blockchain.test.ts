@@ -103,8 +103,8 @@ describe("blockchain", async () => {
           }
         });
       });
-      const success = (await assertBlocks) as any;
-      assert.equal(success, true, success);
+      const success = await assertBlocks;
+      assert(success, "expected to mine two blocks with one transaction each");
       // assert that second block's timestamp is at least `blockTime` greater
       // than the first block's. meaning, these blocks weren't mined one after
       // the other
