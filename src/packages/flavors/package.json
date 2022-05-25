@@ -49,7 +49,6 @@
     "@ganache/colors": "0.1.1-canary.1335",
     "@ganache/ethereum": "0.1.1-canary.1335",
     "@ganache/ethereum-options": "0.1.1-canary.1335",
-    "@ganache/filecoin": "0.1.1-canary.1335",
     "@ganache/options": "0.1.1-canary.1335",
     "@ganache/utils": "0.1.1-canary.1335",
     "chalk": "4.1.0"

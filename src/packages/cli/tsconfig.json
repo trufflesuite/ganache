@@ -37,10 +37,6 @@
     {
       "name": "@ganache/ethereum-options",
       "path": "../../chains/ethereum/options"
-    },
-    {
-      "name": "@ganache/filecoin",
-      "path": "../../chains/filecoin/filecoin"
     }
   ]
 }

@@ -47,9 +47,9 @@ if (
   !["ethereum", "--help"].includes(pluginFlavor) &&
   !pluginFlavor.includes("-")
 ) {
-  pluginPackage = require(pluginFlavor === "filecoin"
-    ? "@ganache/" + pluginFlavor
-    : pluginFlavor);
+  pluginPackage = eval("require")(
+    pluginFlavor === "filecoin" ? "@ganache/" + pluginFlavor : pluginFlavor
+  );
   pluginPackage.flavor = pluginFlavor;
   pluginServerOptionsConfig = pluginPackage.serverOptionsConfig;
 }
