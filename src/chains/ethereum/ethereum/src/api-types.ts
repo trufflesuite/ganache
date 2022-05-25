@@ -99,15 +99,17 @@ export namespace Ethereum {
 
   //#region call/estimate
   export namespace Call {
-    export type Transaction =
-      | Ethereum.Call.Transaction.Legacy
-      | Ethereum.Call.Transaction.EIP1559
-      | Ethereum.Call.Transaction.EIP2930;
     export namespace Transaction {
       export type Legacy = AsCall<Ethereum.Transaction.Legacy>;
       export type EIP1559 = AsCall<Ethereum.Transaction.EIP1559>;
       export type EIP2930 = AsCall<Ethereum.Transaction.EIP2930>;
     }
+
+    export type Transaction =
+      | Ethereum.Call.Transaction.Legacy
+      | Ethereum.Call.Transaction.EIP1559
+      | Ethereum.Call.Transaction.EIP2930;
+
     export type Overrides = CallOverrides;
   }
 
