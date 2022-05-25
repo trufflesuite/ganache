@@ -140,12 +140,16 @@ describe("api", () => {
         // before it actually saved to the database. for history, the race
         // condition issue is documented here:
         // https://github.com/trufflesuite/ganache/issues/3060
-        memdown._batch = function (array, options, callback) {
+        const db = memdown();
+        let customBatchCalled = false;
+        db._batch = (...args) => {
           setTimeout(() => {
-            memdown.prototype._batch(array, options, callback);
+            customBatchCalled = true;
+            Reflect.apply(memdown.prototype._batch, db, args);
           }, 20);
         };
-        const options = { database: { db: memdown() } };
+
+        const options = { database: { db } };
         const provider = await getProvider(options);
         await provider.request({ method: "evm_mine", params: [{}] });
 
@@ -157,6 +161,8 @@ describe("api", () => {
           block,
           `the block doesn't exist. evm_mine returned before saving the block`
         );
+        // make sure our patch works
+        assert(customBatchCalled);
       });
     });
 
