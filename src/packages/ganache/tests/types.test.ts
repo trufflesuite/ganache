@@ -43,7 +43,7 @@ type NormalizeBoolean<MaybeBoolean> = MaybeBoolean extends
   : MaybeBoolean;
 
 /**
- * Convert a Union into Tuple a union.
+ * Convert a Union into a Tuple.
  * example:
  * `"latest" | "earliest" | "pending"` turns into `["latest", "earliest", "pending"]`
  */
