@@ -1242,7 +1242,7 @@ export default class EthereumApi implements Api {
       .catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+    return transactions[Quantity.from(index).toNumber()].toJSON(
       blockchain.common
     );
   }
@@ -1289,7 +1289,7 @@ export default class EthereumApi implements Api {
     const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+    return transactions[Quantity.from(index).toNumber()].toJSON(
       blockchain.common
     );
   }
