@@ -513,13 +513,19 @@ describe("api", () => {
                 {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
-                }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
+                },
+                {
+                  junk: "0xa string",
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                },
+                {
+                  junk: -9,
+                  error: "Cannot wrap a negative value as a json-rpc type"
+                },
+                {
+                  junk: "0x",
+                  error: `Cannot wrap "0x" as a json-rpc Quantity type; Quantity must contain at least one digit`
+                },
               ],
               contractMethod: `0x${methods["getBalance(address)"]}${encodedAddr}`
             },

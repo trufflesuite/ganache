@@ -21,7 +21,7 @@ export class Quantity extends BaseJsonRpcType {
   constructor(value: JsonRpcInputArg, nullable?: boolean) {
     super(value);
     if (value === "0x") {
-      throw new Error("Cannot wrap a 0x value as a json-rpc Quantity type; Quantity must contain at least one digit");
+      throw new Error('Cannot wrap "0x" as a json-rpc Quantity type; Quantity must contain at least one digit');
     }
     this._nullable = nullable;
   }
