@@ -818,7 +818,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       })
     );
 
-    await this.#database.batch(async () => {
+    await this.#database.batch(() => {
       const { blocks, transactions, transactionReceipts, blockLogs } = this;
       // point to the new "latest" again
       blocks.updateLatestIndex(newLatestBlockNumber);
