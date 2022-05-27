@@ -13,6 +13,25 @@ export default class QueryManager {
     this.owner = owner;
     this.context = context;
   }
+
+  fetchPr = async (prNumber: number) => {
+    const prQuery = async () => {
+      return await this.context.octokit.rest.pulls.get({
+        pull_number: prNumber,
+        repo: this.repo,
+        owner: this.owner
+      });
+    };
+    const result = await QueryManager.queryWithRetries(
+      prQuery,
+      ["mergeable_state"],
+      ["unknown"],
+      5
+    );
+    if (!result) return null;
+    return result.data;
+  };
+
   /**
    * Implements exponential back-off on a `query`, reattempting each time the
    * `query` result's value at the specified `props` is equal to one of the
