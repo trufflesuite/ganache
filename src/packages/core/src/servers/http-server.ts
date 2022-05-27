@@ -108,7 +108,7 @@ function sendChunkedResponse(
   // get our first fragment
   const { value: firstFragment } = fragments.next();
   // check if there is any more fragments after this one
-  let { value: prevFragment, done } = fragments.next();
+  let { value: nextFragment, done } = fragments.next();
   // if there are no more fragments send the "firstFragment" via `sendResponse`,
   // as we don't need to chunk it.
   if (done) {
@@ -127,9 +127,9 @@ function sendChunkedResponse(
       response.writeHeader("Content-Type", contentType);
       // since we have at least two fragments send both now
       response.write(firstFragment as RecognizedString);
-      response.write(prevFragment as RecognizedString);
+      response.write(nextFragment as RecognizedString);
       // and then keep sending the rest
-      for (const nextFragment of fragments) {
+      for (nextFragment of fragments) {
         response.write(nextFragment as RecognizedString);
       }
       response.end(undefined, closeConnection);

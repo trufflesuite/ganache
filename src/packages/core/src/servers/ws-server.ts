@@ -35,8 +35,8 @@ export function sendFragmented(
     // get our first fragment
     const { value: firstFragment } = fragments.next();
     // check if there is any more fragments after this one
-    let { value: lastFragment, done } = fragments.next();
-    // if there are no more fragments send the "firstFragent" via `send`, as
+    let { value: maybeLastFragment, done } = fragments.next();
+    // if there are no more fragments send the "firstFragment" via `send`, as
     // we don't need to chunk it.
     if (done) {
       ws.send(firstFragment as RecognizedString, useBinary);
@@ -44,18 +44,21 @@ export function sendFragmented(
       // since we have at least two fragments send the first one now that it
       // is "full"
       ws.sendFirstFragment(firstFragment as RecognizedString, useBinary);
-      // at this point `lastFragment` is the next fragment that should be sent
-      // but it might also be our last fragment. If it is, we MUST use
-      // `sendLastFragment` to send it. So we iterate over all fragments,
+      // at this point `maybeLastFragment` is the next fragment that should be
+      // sent `sendLastFragment` to send it. So we iterate over all fragments,
       // sending the _previous_ fragment while caching the current (next)
       // fragment to be send in the next iteration, or via `sendLastFragment`
       // when `nextFragment` is also the last one.
-      let nextFragment: Buffer;
-      for (nextFragment of fragments) {
-        ws.sendFragment(lastFragment as RecognizedString, shouldCompress);
-        lastFragment = nextFragment;
+      for (const fragment of fragments) {
+        // definitely not the last fragment, send it!
+        ws.sendFragment(maybeLastFragment as RecognizedString, shouldCompress);
+        maybeLastFragment = fragment;
       }
-      ws.sendLastFragment(lastFragment as RecognizedString, shouldCompress);
+      ws.sendLastFragment(
+        // definitely the last fragment at this point
+        maybeLastFragment as RecognizedString,
+        shouldCompress
+      );
     }
   });
 }
