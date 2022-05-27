@@ -3,7 +3,7 @@ import { Address } from "@ganache/ethereum-address";
 import Common from "@ethereumjs/common";
 import {
   TransactionFactory,
-  TypedRpcTransaction,
+  Transaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import Blockchain from "../../src/blockchain";
@@ -73,7 +73,7 @@ describe("miner", async () => {
         For the highGasLimitBlockchain:
           all three would be mined in one block with the order: tx1, tx3, tx2
        */
-      const txs: TypedRpcTransaction[] = [
+      const txs: Transaction[] = [
         {
           type: "0x0",
           from: from1,

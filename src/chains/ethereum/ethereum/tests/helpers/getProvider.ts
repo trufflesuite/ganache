@@ -1,5 +1,5 @@
 import { RequestCoordinator, Executor } from "@ganache/utils";
-import EthereumProvider from "../../src/provider";
+import { EthereumProvider } from "../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 export const mnemonic =

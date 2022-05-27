@@ -51,7 +51,7 @@ export type BlockHeader = {
 
 /**
  * Returns the size of the serialized data as it would have been calculated had
- * we stored things geth does, i.e., `totalDfficulty` is not usually stored in
+ * we stored things geth does, i.e., `totalDifficulty` is not usually stored in
  * the block header.
  *
  * @param serialized -

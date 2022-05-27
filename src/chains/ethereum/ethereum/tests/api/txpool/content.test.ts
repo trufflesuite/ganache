@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 
 describe("txpool", () => {
   describe("content", () => {
@@ -119,6 +119,5 @@ describe("txpool", () => {
       assert.deepStrictEqual(pending, {});
       assert.deepStrictEqual(queued, {});
     });
-
   });
 });

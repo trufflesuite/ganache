@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Address, AddressProtocol } from "../../../src/things/address";
 import { Message, SerializedMessage } from "../../../src/things/message";
@@ -29,7 +29,8 @@ describe("api", () => {
     before(async () => {
       provider = await getProvider();
       client = new LotusRPC(provider, { schema: FilecoinProvider.Schema });
-      accounts = await provider.blockchain.accountManager.getControllableAccounts();
+      accounts =
+        await provider.blockchain.accountManager.getControllableAccounts();
     });
 
     after(async () => {
@@ -72,10 +73,8 @@ describe("api", () => {
 
         const priorFromBalance: string = await client.walletBalance(From);
         const priorToBalance: string = await client.walletBalance(To);
-        const signedMessage: SerializedSignedMessage = await client.mpoolPushMessage(
-          message,
-          messageSendSpec
-        );
+        const signedMessage: SerializedSignedMessage =
+          await client.mpoolPushMessage(message, messageSendSpec);
         expectedHeight++;
         assert.ok(signedMessage);
         await waitForExpectedHeight();
@@ -129,10 +128,8 @@ describe("api", () => {
             MaxFee: "0"
           };
 
-          const signedMessage: SerializedSignedMessage = await client.mpoolPushMessage(
-            message,
-            messageSendSpec
-          );
+          const signedMessage: SerializedSignedMessage =
+            await client.mpoolPushMessage(message, messageSendSpec);
           expectedHeight++;
 
           assert.strictEqual(signedMessage.Message.Nonce, priorFromNonce);
@@ -471,8 +468,7 @@ describe("api", () => {
         const message: SerializedMessage = {
           Version: 0,
           From,
-          To:
-            "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a",
+          To: "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a",
           Nonce: 0,
           Value: "1",
           GasLimit: 0,
@@ -1058,8 +1054,7 @@ describe("api", () => {
 
         const message = new Message({
           Version: 0,
-          To:
-            "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a",
+          To: "t3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a",
           From,
           Nonce: nonce,
           Value: "1",
@@ -1452,10 +1447,11 @@ describe("api", () => {
 
         const priorFromBalance: string = await client.walletBalance(From);
         const priorToBalance: string = await client.walletBalance(To);
-        const signedMessages: SerializedSignedMessage[] = await client.mpoolBatchPushMessage(
-          [message, message],
-          messageSendSpec
-        );
+        const signedMessages: SerializedSignedMessage[] =
+          await client.mpoolBatchPushMessage(
+            [message, message],
+            messageSendSpec
+          );
         expectedHeight += 2; // theres a block per transaction
         assert.ok(signedMessages);
         await waitForExpectedHeight();
@@ -1567,7 +1563,8 @@ describe("api", () => {
           }
         });
         client2 = new LotusRPC(provider2, { schema: FilecoinProvider.Schema });
-        accounts2 = await provider2.blockchain.accountManager.getControllableAccounts();
+        accounts2 =
+          await provider2.blockchain.accountManager.getControllableAccounts();
       });
 
       after(async () => {
@@ -1607,16 +1604,13 @@ describe("api", () => {
           MaxFee: "0"
         };
 
-        const signedMessage1: SerializedSignedMessage = await client2.mpoolPushMessage(
-          message,
-          messageSendSpec
-        );
-        const signedMessage2: SerializedSignedMessage = await client2.mpoolPushMessage(
-          message,
-          messageSendSpec
-        );
+        const signedMessage1: SerializedSignedMessage =
+          await client2.mpoolPushMessage(message, messageSendSpec);
+        const signedMessage2: SerializedSignedMessage =
+          await client2.mpoolPushMessage(message, messageSendSpec);
 
-        const pendingMessages: SerializedSignedMessage[] = await client2.mpoolPending();
+        const pendingMessages: SerializedSignedMessage[] =
+          await client2.mpoolPending();
 
         assert.strictEqual(pendingMessages.length, 2);
         assert.deepStrictEqual(pendingMessages[0], signedMessage1);
@@ -1630,12 +1624,14 @@ describe("api", () => {
       it("clears messages from the message pool", async () => {
         // This should not clear local messages (all of them are local currently)
         await client2.mpoolClear(false);
-        const localPendingMessages: SerializedSignedMessage[] = await client2.mpoolPending();
+        const localPendingMessages: SerializedSignedMessage[] =
+          await client2.mpoolPending();
         assert.strictEqual(localPendingMessages.length, 2);
 
         // This should clear all messages
         await client2.mpoolClear(true);
-        const allPendingMessages: SerializedSignedMessage[] = await client2.mpoolPending();
+        const allPendingMessages: SerializedSignedMessage[] =
+          await client2.mpoolPending();
         assert.strictEqual(allPendingMessages.length, 0);
 
         // make sure we didn't mine a block which would cause the pool to clear

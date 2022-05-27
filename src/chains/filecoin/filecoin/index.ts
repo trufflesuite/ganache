@@ -5,11 +5,19 @@
  * @license MIT
  */
 
-import { Connector, Provider, StorageDealStatus } from "./src/connector";
-export type { Connector, Provider, StorageDealStatus } from "./src/connector";
+import {
+  Connector as FilecoinConnector,
+  FilecoinProvider,
+  StorageDealStatus
+} from "./src/connector";
+export type {
+  Connector as FilecoinConnector,
+  FilecoinProvider,
+  StorageDealStatus
+} from "./src/connector";
 
 export default {
-  Connector,
-  Provider,
+  Connector: FilecoinConnector,
+  FilecoinProvider,
   StorageDealStatus
 };

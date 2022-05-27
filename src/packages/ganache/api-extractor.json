@@ -82,7 +82,9 @@
     "@ganache/filecoin",
     "@ganache/filecoin-options",
     "levelup",
-    "ipfs"
+    "ipfs",
+    "level-errors",
+    "abstract-leveldown"
   ],
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.

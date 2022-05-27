@@ -3,7 +3,7 @@ import getProvider from "../helpers/getProvider";
 import http from "http";
 import ganache from "../../../../../packages/core";
 import assert from "assert";
-import EthereumProvider from "../../src/provider";
+import { EthereumProvider } from "../../src/provider";
 import Server from "../../../../../packages/core/lib/src/server";
 import { Quantity, WEI } from "@ganache/utils";
 import {
