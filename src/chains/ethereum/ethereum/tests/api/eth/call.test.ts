@@ -3,7 +3,7 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { BUFFER_EMPTY, Data, Quantity, RPCQUANTITY_ONE } from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { CallError } from "@ganache/ethereum-utils";
 import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
@@ -836,7 +836,7 @@ describe("api", () => {
             gas.toBuffer(),
             parentHeader.gasUsed.toBuffer(),
             parentHeader.timestamp,
-            RPCQUANTITY_ONE, // difficulty
+            Quantity.One, // difficulty
             parentHeader.totalDifficulty,
             parentHeader.baseFeePerGas.toBigInt()
           );

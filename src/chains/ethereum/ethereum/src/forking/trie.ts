@@ -2,7 +2,6 @@ import { Address } from "@ganache/ethereum-address";
 import {
   keccak,
   BUFFER_EMPTY,
-  RPCQUANTITY_EMPTY,
   Quantity,
   Data
 } from "@ganache/utils";
@@ -234,9 +233,9 @@ export class ForkTrie extends GanacheTrie {
     // the serialized data
     const [nonce, balance] = await Promise.all(promises);
     account.nonce =
-      nonce === "0x0" ? RPCQUANTITY_EMPTY : Quantity.from(nonce, true);
+      nonce === "0x0" ? Quantity.Empty : Quantity.from(nonce, true);
     account.balance =
-      balance === "0x0" ? RPCQUANTITY_EMPTY : Quantity.from(balance);
+      balance === "0x0" ? Quantity.Empty : Quantity.from(balance);
 
     return account.serialize();
   };

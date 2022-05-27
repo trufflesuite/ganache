@@ -32,10 +32,8 @@ import {
   Quantity,
   Data,
   BUFFER_EMPTY,
-  RPCQUANTITY_EMPTY,
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
-  RPCQUANTITY_ZERO,
   findInsertPosition,
   unref,
   KNOWN_CHAINIDS
@@ -740,12 +738,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     await this.#commitAccounts(initialAccounts);
 
     // README: block `0` is weird in that a `0` _should_ be hashed as `[]`,
-    // instead of `[0]`, so we set it to `RPCQUANTITY_EMPTY` instead of
-    // `RPCQUANTITY_ZERO` here. A few lines down in this function we swap
-    // this `RPCQUANTITY_EMPTY` for `RPCQUANTITY_ZERO`. This is all so we don't
+    // instead of `[0]`, so we set it to `Quantity.Empty` instead of
+    // `Quantity.Zero` here. A few lines down in this function we swap
+    // this `Quantity.Empty` for `Quantity.Zero`. This is all so we don't
     // have to have a "treat empty as 0` check in every function that uses the
     // "latest" block (which this genesis block will be for brief moment).
-    const rawBlockNumber = RPCQUANTITY_EMPTY;
+    const rawBlockNumber = Quantity.Empty;
 
     // create the genesis block
     const baseFeePerGas = this.common.isActivatedEIP(1559)
@@ -759,7 +757,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       BUFFER_ZERO,
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
-      RPCQUANTITY_ZERO, // we start the totalDifficulty at 0
+      Quantity.Zero, // we start the totalDifficulty at 0
       baseFeePerGas
     );
 
@@ -775,7 +773,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       new Map()
     );
     // README: set the block number to an actual 0 now.
-    block.header.number = RPCQUANTITY_ZERO;
+    block.header.number = Quantity.Zero;
     const hash = block.hash();
     return this.blocks
       .putBlock(block.header.number.toBuffer(), hash, serialized)

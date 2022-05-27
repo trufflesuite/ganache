@@ -4,7 +4,6 @@ import {
   keccak,
   BUFFER_EMPTY,
   BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
@@ -36,7 +35,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.nonce = Quantity.from(data[0]);
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
-      this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
+      this.to = data[3].length == 0 ? Quantity.Empty : Address.from(data[3]);
       this.value = Quantity.from(data[4]);
       this.data = Data.from(data[5]);
       this.v = Quantity.from(data[6]);

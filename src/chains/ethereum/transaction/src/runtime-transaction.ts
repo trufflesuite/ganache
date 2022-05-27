@@ -6,9 +6,7 @@ import {
 import {
   Data,
   Quantity,
-  RPCQUANTITY_ONE,
   BUFFER_ZERO,
-  RPCQUANTITY_EMPTY
 } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
@@ -48,7 +46,7 @@ type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
+const ONE_BUFFER = Quantity.One.toBuffer();
 
 /**
  * A RuntimeTransaction can be changed; its hash is not finalized and it is not
@@ -92,7 +90,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
       this.to =
         data.to == null
-          ? RPCQUANTITY_EMPTY
+          ? Quantity.Empty
           : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =

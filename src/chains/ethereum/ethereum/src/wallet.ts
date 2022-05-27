@@ -9,7 +9,6 @@ import {
   Data,
   keccak,
   Quantity,
-  RPCQUANTITY_ZERO,
   unref,
   WEI
 } from "@ganache/utils";
@@ -557,7 +556,7 @@ export default class Wallet {
     const acct = createAccountFromSeed(seed);
     const address = uncompressedPublicKeyToAddress(acct.publicKey);
     const privateKey = Data.from(acct.privateKey);
-    return Wallet.createAccount(RPCQUANTITY_ZERO, privateKey, address);
+    return Wallet.createAccount(Quantity.Zero, privateKey, address);
   }
 
   public async unlockAccount(

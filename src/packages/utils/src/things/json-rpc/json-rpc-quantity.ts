@@ -1,10 +1,14 @@
 import { bufferToBigInt } from "../../utils/buffer-to-bigint";
 import { BaseJsonRpcType } from "./json-rpc-base-types";
 import { JsonRpcInputArg } from "./input-parsers";
-
-const BUFFER_EMPTY = Buffer.alloc(0);
+import { BUFFER_EMPTY, BUFFER_ZERO } from "../../utils/constants";
 
 export class Quantity extends BaseJsonRpcType {
+  public static Empty = Quantity.from(BUFFER_EMPTY, true);
+  public static Zero = Quantity.from(BUFFER_ZERO);
+  public static One = Quantity.from(1);
+  public static Gwei = Quantity.from(1000000000);
+
   private static ZERO_VALUE_STRING = "0x0";
 
   _nullable: boolean = false;

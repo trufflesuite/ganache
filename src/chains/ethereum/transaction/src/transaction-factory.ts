@@ -2,7 +2,6 @@ import {
   Data,
   JsonRpcErrorCode,
   Quantity,
-  RPCQUANTITY_GWEI
 } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
@@ -142,7 +141,7 @@ export class TransactionFactory {
               tx.maxFeePerGas = Quantity.from(null);
             }
             if (!txData.maxPriorityFeePerGas) {
-              tx.maxPriorityFeePerGas = RPCQUANTITY_GWEI;
+              tx.maxPriorityFeePerGas = Quantity.Gwei;
             }
           }
           return tx;

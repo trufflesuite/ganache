@@ -5,7 +5,7 @@ import {
   Tag
 } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
-import { Quantity, Data, RPCQUANTITY_ZERO, DATA_EMPTY } from "@ganache/utils";
+import { Quantity, Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
 import Blockchain from "../blockchain";
@@ -62,10 +62,10 @@ export default class AccountManager {
   ): Promise<Quantity> {
     const data = await this.getRaw(address, blockNumber);
 
-    if (data == null) return RPCQUANTITY_ZERO;
+    if (data == null) return Quantity.Zero;
 
     const [nonce] = decode<EthereumRawAccount>(data);
-    return nonce.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(nonce);
+    return nonce.length === 0 ? Quantity.Zero : Quantity.from(nonce);
   }
 
   public async getBalance(
@@ -74,10 +74,10 @@ export default class AccountManager {
   ): Promise<Quantity> {
     const data = await this.getRaw(address, blockNumber);
 
-    if (data == null) return RPCQUANTITY_ZERO;
+    if (data == null) return Quantity.Zero;
 
     const [, balance] = decode<EthereumRawAccount>(data);
-    return balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance);
+    return balance.length === 0 ? Quantity.Zero : Quantity.from(balance);
   }
 
   public async getNonceAndBalance(
@@ -87,12 +87,12 @@ export default class AccountManager {
     const data = await this.getRaw(address, blockNumber);
 
     if (data == null)
-      return { nonce: RPCQUANTITY_ZERO, balance: RPCQUANTITY_ZERO };
+      return { nonce: Quantity.Zero, balance: Quantity.Zero };
 
     const [nonce, balance] = decode<EthereumRawAccount>(data);
     return {
-      nonce: nonce.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(nonce),
-      balance: balance.length === 0 ? RPCQUANTITY_ZERO : Quantity.from(balance)
+      nonce: nonce.length === 0 ? Quantity.Zero : Quantity.from(nonce),
+      balance: balance.length === 0 ? Quantity.Zero : Quantity.from(balance)
     };
   }
 
@@ -102,10 +102,10 @@ export default class AccountManager {
   ): Promise<Data> {
     const data = await this.getRaw(address, blockNumber);
 
-    if (data == null) return DATA_EMPTY;
+    if (data == null) return Data.Empty;
 
     const [, , , codeHash] = decode<EthereumRawAccount>(data);
-    if (codeHash.equals(KECCAK256_NULL)) return DATA_EMPTY;
+    if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
     else return this.#blockchain.trie.db.get(codeHash).then(Data.from);
   }
 }

@@ -1,5 +1,5 @@
 import { Data, Quantity } from "@ganache/utils";
-import { BUFFER_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
+import { BUFFER_ZERO } from "@ganache/utils";
 import { decode, encode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -136,7 +136,7 @@ export class BlockLogs {
         : Data.toBuffer(log.data);
       const logIndex = log.logIndex;
       const removed =
-        log.removed === false ? BUFFER_ZERO : RPCQUANTITY_ONE.toBuffer();
+        log.removed === false ? BUFFER_ZERO : Quantity.One.toBuffer();
       const topics = Array.isArray(log.topics)
         ? log.topics.map(t => Data.toBuffer(t, 32))
         : Data.toBuffer(log.topics, 32);

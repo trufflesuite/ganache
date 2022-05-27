@@ -1,10 +1,11 @@
 import { BaseJsonRpcType } from "./json-rpc-base-types";
-
-const BUFFER_EMPTY = Buffer.allocUnsafe(0);
+import { BUFFER_EMPTY } from "../../utils/constants";
 
 export type JsonRpcDataInputArg = string | Buffer;
 
 export class Data extends BaseJsonRpcType {
+  public static Empty = Data.from(BUFFER_EMPTY);
+
   constructor(value: JsonRpcDataInputArg, private _byteLength?: number) {
     super(value);
 

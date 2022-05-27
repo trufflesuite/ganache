@@ -2,10 +2,7 @@ import { normalize } from "./helpers";
 import {
   Data,
   Quantity,
-  ACCOUNT_ZERO,
-  DATA_EMPTY,
-  RPCQUANTITY_EMPTY,
-  RPCQUANTITY_ONE
+  ACCOUNT_ZERO
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { Definitions } from "@ganache/options";
@@ -261,7 +258,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   defaultTransactionGasLimit: {
     normalize: rawType =>
-      rawType === "estimate" ? RPCQUANTITY_EMPTY : Quantity.from(rawType),
+      rawType === "estimate" ? Quantity.Empty : Quantity.from(rawType),
     cliDescription:
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
@@ -271,7 +268,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
   difficulty: {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty.",
-    default: () => RPCQUANTITY_ONE,
+    default: () => Quantity.One,
     cliType: "string",
     cliCoerce: toBigIntOrString
   },
@@ -316,7 +313,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return bytes;
     },
     cliDescription: "Set the extraData block header field a miner can include.",
-    default: () => DATA_EMPTY,
+    default: () => Data.Empty,
     cliType: "string"
   },
   priceBump: {

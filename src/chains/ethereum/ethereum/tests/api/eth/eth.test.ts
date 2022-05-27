@@ -1,4 +1,4 @@
-import { RPCQUANTITY_GWEI } from "@ganache/utils";
+import { Quantity } from "@ganache/utils";
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider, { mnemonic } from "../../helpers/getProvider";
@@ -52,7 +52,7 @@ describe("api", () => {
     describe("eth_maxPriorityFeePerGas", () => {
       it("should return 1 GWEI", async () => {
         const tip = await provider.send("eth_maxPriorityFeePerGas");
-        assert.strictEqual(tip, RPCQUANTITY_GWEI.toString());
+        assert.strictEqual(tip, Quantity.Gwei.toString());
       });
     });
 

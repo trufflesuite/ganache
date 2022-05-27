@@ -4,7 +4,6 @@ import {
   Data,
   Quantity,
   BUFFER_EMPTY,
-  RPCQUANTITY_ONE,
   BUFFER_ZERO
 } from "@ganache/utils";
 import Blockchain from "../blockchain";
@@ -30,7 +29,7 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       if (!res) return null;
 
       const status =
-        res.status === "0x1" ? RPCQUANTITY_ONE.toBuffer() : BUFFER_ZERO;
+        res.status === "0x1" ? Quantity.One.toBuffer() : BUFFER_ZERO;
       const cumulativeGasUsed = Quantity.toBuffer(res.cumulativeGasUsed);
       const logsBloom = Data.toBuffer(res.logsBloom, 256);
       const logs = res.logs.map(log => [
