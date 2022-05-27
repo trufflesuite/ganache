@@ -33,6 +33,17 @@ export default class QueryManager {
   };
 
 
+  mergePr = async (prNumber: number) => {
+    const result = await this.context.octokit.pulls.merge({
+      repo: this.repo,
+      owner: this.owner,
+      pull_number: prNumber,
+      merge_method: "squash"
+    });
+    if (!result) return null;
+    return result.data;
+  };
+
   makeIssueComment = async (body: string) => {
     await this.context.octokit.issues.createComment(
       this.context.issue({ body })
