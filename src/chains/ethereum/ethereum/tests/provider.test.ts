@@ -30,6 +30,154 @@ describe("provider", () => {
         });
       });
     });
+
+    it("uses the default 'clock' time for the `timestampIncrement` option", async () => {
+      const provider = await getProvider();
+      const options = provider.getOptions();
+      assert(options.miner.timestampIncrement, "clock");
+
+      const accounts = await provider.send("eth_accounts");
+      const tx = { from: accounts[0], gas: "0xfffff" };
+      const sentAfter = Math.floor(Date.now() / 1000);
+      const hash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [tx]
+      });
+      const receipt = await provider.request({
+        method: "eth_getTransactionReceipt",
+        params: [hash]
+      });
+      assert.notStrictEqual(receipt, null);
+      const sentBefore = Math.floor(Date.now() / 1000);
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: [receipt.blockNumber, false]
+      });
+      // the `block.timestamp` can be the same as `sentAfter` and/or
+      // `sentBefore` because the precision of `block.timestamp` is 1 second
+      // (floored), and mining happens much quicker than 1 second.
+      assert(
+        parseInt(block.timestamp) >= sentAfter,
+        `block wasn't mined at the right time, should have been on or after ${sentAfter}, was ${parseInt(
+          block.timestamp
+        )}`
+      );
+      assert(
+        parseInt(block.timestamp) <= sentBefore,
+        `block wasn't mined at the right time, should have been on or before ${sentAfter}, was ${parseInt(
+          block.timestamp
+        )}`
+      );
+      await provider.disconnect();
+    });
+
+    it("uses the timestampIncrement option", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5;
+      const provider = await getProvider({
+        chain: { time },
+        miner: { timestampIncrement }
+      });
+      const accounts = await provider.send("eth_accounts");
+      const tx = { from: accounts[0], gas: "0xfffff" };
+      const hash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [tx]
+      });
+      const receipt = await provider.request({
+        method: "eth_getTransactionReceipt",
+        params: [hash]
+      });
+      assert.notStrictEqual(receipt, null);
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      assert.strictEqual(
+        parseInt(block.timestamp),
+        +time / 1000 + timestampIncrement
+      );
+      await provider.disconnect();
+    });
+
+    it("uses the timestampIncrement for the first block when forking", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5;
+      const fakeMainnet = await getProvider({
+        chain: { time }
+      });
+      const provider = await getProvider({
+        fork: { provider: fakeMainnet as any },
+        miner: { timestampIncrement }
+      });
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      assert.strictEqual(
+        parseInt(block.timestamp),
+        +time / 1000 + timestampIncrement
+      );
+      await provider.disconnect();
+      await fakeMainnet.disconnect();
+    });
+    it("uses the `time` option for the first block even when when `timestampIncrement` is not 'clock' when forking", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5;
+      const fakeMainnet = await getProvider({
+        chain: { time }
+      });
+      const time2 = new Date("2020-01-01T00:00:00.000Z");
+      const provider = await getProvider({
+        fork: { provider: fakeMainnet as any },
+        chain: { time: time2 },
+        miner: { timestampIncrement }
+      });
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      assert.strictEqual(parseInt(block.timestamp), +time2 / 1000);
+      await provider.disconnect();
+      await fakeMainnet.disconnect();
+    });
+
+    it("uses the timestampIncrement option when interval mining", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const blockTime = 2; // only mine once every 2 seconds
+      const timestampIncrement = 1; // only increment by 1 second per block
+      const provider = await getProvider({
+        chain: { time },
+        miner: { blockTime, timestampIncrement }
+      });
+      const accounts = await provider.send("eth_accounts");
+      const tx = { from: accounts[0], gas: "0xfffff" };
+      const subId = await provider.request({
+        method: "eth_subscribe",
+        params: ["newHeads"]
+      });
+      const hash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [tx]
+      });
+      await provider.once("message");
+      await provider.request({ method: "eth_unsubscribe", params: [subId] });
+      const receipt = await provider.request({
+        method: "eth_getTransactionReceipt",
+        params: [hash]
+      });
+      assert.notStrictEqual(receipt, null);
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      assert.strictEqual(
+        parseInt(block.timestamp),
+        +time / 1000 + timestampIncrement,
+        "block.timestamp is not the expected value"
+      );
+      await provider.disconnect();
+    }).timeout(10000);
   });
 
   describe("interface", () => {
