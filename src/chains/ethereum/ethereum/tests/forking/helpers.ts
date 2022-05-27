@@ -1,6 +1,6 @@
 import { Quantity, WEI } from "@ganache/utils";
 import getProvider from "../helpers/getProvider";
-import EthereumProvider from "../../src/provider";
+import { EthereumProvider } from "../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 export const logging = {

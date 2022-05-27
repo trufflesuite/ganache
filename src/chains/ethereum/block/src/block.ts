@@ -4,7 +4,8 @@ import {
   GanacheRawExtraTx,
   TransactionFactory,
   TypedDatabaseTransaction,
-  TypedTransaction
+  TypedTransaction,
+  TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
@@ -69,9 +70,11 @@ export class Block {
     });
   }
 
-  toJSON(includeFullTransactions = false) {
+  toJSON<IncludeTransactions extends boolean>(
+    includeFullTransactions: IncludeTransactions
+  ) {
     const hash = this.hash();
-    const txFn = this.getTxFn(includeFullTransactions);
+    const txFn = this.getTxFn<IncludeTransactions>(includeFullTransactions);
     const hashBuffer = hash.toBuffer();
     const header = this.header;
     const number = header.number.toBuffer();
@@ -92,19 +95,19 @@ export class Block {
       // leave it out of extra and update the effectiveGasPrice after like this
       tx.updateEffectiveGasPrice(header.baseFeePerGas);
       return txFn(tx);
-    });
+    }) as IncludeTransactions extends true ? TypedTransactionJSON[] : Data[];
 
     return {
       hash,
       ...header,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
-      uncles: [] as string[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+      uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
     };
   }
 
-  getTxFn(
-    include = false
+  getTxFn<IncludeTransactions extends boolean>(
+    include: IncludeTransactions = <IncludeTransactions>false
   ): (tx: TypedTransaction) => ReturnType<TypedTransaction["toJSON"]> | Data {
     if (include) {
       return (tx: TypedTransaction) => tx.toJSON(this._common);

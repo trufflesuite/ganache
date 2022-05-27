@@ -1,7 +1,7 @@
-import type { Provider } from "@ganache/filecoin";
+import type { FilecoinProvider } from "@ganache/filecoin";
 
 export default async function (
-  provider: Provider,
+  provider: FilecoinProvider,
   serverSettings: { host: string; port: number }
 ) {
   const liveOptions = provider.getOptions();

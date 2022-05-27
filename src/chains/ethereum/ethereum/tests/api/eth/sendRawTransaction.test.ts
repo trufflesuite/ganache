@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
 import Common from "@ethereumjs/common";
 import { join } from "path";

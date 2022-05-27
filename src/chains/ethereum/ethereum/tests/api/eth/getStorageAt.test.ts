@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
 const THIRTY_TWO_BYES = "0".repeat(64);

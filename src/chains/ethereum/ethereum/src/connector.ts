@@ -10,7 +10,8 @@ import {
   JsonRpcErrorCode,
   KnownKeys
 } from "@ganache/utils";
-import EthereumProvider from "./provider";
+export type { EthereumProvider } from "./provider";
+import { EthereumProvider } from "./provider";
 import {
   RecognizedString,
   WebSocket,
@@ -24,8 +25,6 @@ import {
 import { bufferify } from "./helpers/bufferify";
 
 type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
-export type Provider = EthereumProvider;
-export const Provider = EthereumProvider;
 
 function isHttp(
   connection: HttpRequest | WebSocket

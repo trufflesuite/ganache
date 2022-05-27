@@ -6,3 +6,4 @@
  */
 
 export * from "./src/connector";
+export * from "./src/api-types";
