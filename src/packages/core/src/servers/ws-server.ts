@@ -22,16 +22,15 @@ type WebSocketCapableFlavorMap = {
 
 export function sendFragmented(
   ws: WebSocket,
-  data: Generator<Buffer, any, unknown>,
+  data: Generator<Buffer, void, void>,
   useBinary: boolean,
   chunkSize: number
 ) {
   ws.cork(() => {
-    const { value: first } = data.next();
     // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
     const shouldCompress = false;
 
-    const fragments = getFragmentGenerator(data, first, chunkSize);
+    const fragments = getFragmentGenerator(data, chunkSize);
     // get our first fragment
     const { value: firstFragment } = fragments.next();
     // check if there is any more fragments after this one

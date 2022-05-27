@@ -99,12 +99,11 @@ function sendChunkedResponse(
   closeConnection: boolean,
   statusCode: HttpResponseCodes,
   contentType: RecognizedString | null,
-  data: Generator<Buffer, any, unknown>,
+  data: Generator<Buffer, void, void>,
   chunkSize: number,
   writeHeaders: (response: HttpResponse) => void = noop
 ) {
-  const { value: first } = data.next();
-  const fragments = getFragmentGenerator(data, first, chunkSize);
+  const fragments = getFragmentGenerator(data, chunkSize);
   // get our first fragment
   const { value: firstFragment } = fragments.next();
   // check if there is any more fragments after this one
@@ -249,7 +248,7 @@ export default class HttpServer {
                 this.#isClosing,
                 HttpResponseCodes.OK,
                 ContentTypes.JSON,
-                data as Generator<Buffer>,
+                data as Generator<Buffer, void, void>,
                 this.#options.chunkSize,
                 writeHeaders
               );
