@@ -16,7 +16,7 @@ export type RangeFilterArgs = BaseFilterArgs & {
 };
 export type FilterArgs = BlockHashFilterArgs | RangeFilterArgs;
 
-export type Filter = {
+export type InternalFilter = {
   type: FilterTypes;
   updates: Data[];
   unsubscribe: Emittery.UnsubscribeFn;

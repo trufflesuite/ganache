@@ -11,11 +11,11 @@ import {
   RuntimeError,
   CallError,
   StorageKeys,
-  StorageRangeResult,
+  StorageRangeAtResult,
   StorageRecords,
   RangedStorageKeys,
   StructLog,
-  TransactionTraceOptions,
+  TraceTransactionOptions,
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
@@ -48,7 +48,7 @@ import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
 import {
   calculateIntrinsicGas,
-  TransactionReceipt,
+  InternalTransactionReceipt,
   VmTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
@@ -503,7 +503,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   #getTransactionLogOutput = (
     hash: Buffer,
-    receipt: TransactionReceipt,
+    receipt: InternalTransactionReceipt,
     blockNumber: Quantity,
     timestamp: string,
     error: RuntimeError | undefined
@@ -1114,7 +1114,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transaction: VmTransaction,
     trie: GanacheTrie,
     newBlock: RuntimeBlock & { transactions: VmTransaction[] },
-    options: TransactionTraceOptions,
+    options: TraceTransactionOptions,
     keys?: Buffer[],
     contractAddress?: Buffer
   ): Promise<TraceTransactionResult> => {
@@ -1399,7 +1399,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
    */
   public async traceTransaction(
     transactionHash: string,
-    options: TransactionTraceOptions
+    options: TraceTransactionOptions
   ) {
     const transactionHashBuffer = Data.from(transactionHash).toBuffer();
     // #1 - get block via transaction object
@@ -1473,7 +1473,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     contractAddress: string,
     startKey: string,
     maxResult: number
-  ): Promise<StorageRangeResult> {
+  ): Promise<StorageRangeAtResult> {
     // #1 - get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 

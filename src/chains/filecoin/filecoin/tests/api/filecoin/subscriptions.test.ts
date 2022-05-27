@@ -1,6 +1,6 @@
 import assert from "assert";
 import Emittery from "emittery";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import { SubscriptionMethod } from "../../../src/types/subscriptions";
 import getProvider from "../../helpers/getProvider";
 

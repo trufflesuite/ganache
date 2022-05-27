@@ -1,5 +1,13 @@
 import FilecoinApi from "./api";
-import LotusSchema, { Schema } from "@filecoin-shipyard/lotus-client-schema";
+import LotusSchema from "@filecoin-shipyard/lotus-client-schema";
+export type Schema = {
+  methods: {
+    [propertyName: string]: {
+      subscription?: boolean;
+      namespace?: string;
+    };
+  };
+};
 
 const GanacheSchema: Schema = {
   methods: {}

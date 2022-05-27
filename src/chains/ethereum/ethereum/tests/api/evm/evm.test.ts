@@ -1,8 +1,8 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { Data, Quantity } from "@ganache/utils";
-import EthereumProvider from "../../../src/provider";
-import { TypedRpcTransaction } from "@ganache/ethereum-transaction";
+import { EthereumProvider } from "../../../src/provider";
+import { Transaction } from "@ganache/ethereum-transaction";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;
@@ -207,9 +207,13 @@ describe("api", () => {
       it("should set storage slot and delete after", async () => {
         const provider = await getProvider();
         const [account] = await provider.send("eth_accounts");
-        const slot = "0x0000000000000000000000000000000000000000000000000000000000000005";
+        const slot =
+          "0x0000000000000000000000000000000000000000000000000000000000000005";
         const newStorage = Data.from("0xbaddad42");
-        const initialStorage = await provider.send("eth_getStorageAt", [account, slot]);
+        const initialStorage = await provider.send("eth_getStorageAt", [
+          account,
+          slot
+        ]);
         assert.strictEqual(initialStorage, "0x");
         const setStatus = await provider.send("evm_setAccountStorageAt", [
           account,
@@ -217,7 +221,10 @@ describe("api", () => {
           newStorage.toString()
         ]);
         assert.strictEqual(setStatus, true);
-        const afterCode = await provider.send("eth_getStorageAt", [account, slot]);
+        const afterCode = await provider.send("eth_getStorageAt", [
+          account,
+          slot
+        ]);
         assert.strictEqual(afterCode, newStorage.toString());
 
         // Check that the storage can be deleted
@@ -228,7 +235,10 @@ describe("api", () => {
           emptyStorage.toString()
         ]);
         assert.strictEqual(deletedStatus, true);
-        const deletedStorage = await provider.send("eth_getStorageAt", [account, slot]);
+        const deletedStorage = await provider.send("eth_getStorageAt", [
+          account,
+          slot
+        ]);
         assert.strictEqual(deletedStorage, emptyStorage.toString());
       });
     });
@@ -252,7 +262,7 @@ describe("api", () => {
           { from, to: address, value: "0xffffffffffffffff" }
         ]);
         await provider.once("message");
-        const tx: TypedRpcTransaction = { from: address };
+        const tx: Transaction = { from: address };
         // account is unknown on startup
         await assert.rejects(provider.send("eth_sendTransaction", [tx]), {
           message: "sender account not recognized"
@@ -307,7 +317,7 @@ describe("api", () => {
 
       it("should remove an account from the personal namespace", async () => {
         const [address] = await provider.send("eth_accounts");
-        const tx: TypedRpcTransaction = { from: address };
+        const tx: Transaction = { from: address };
 
         // account is known on startup
         await assert.doesNotReject(provider.send("eth_sendTransaction", [tx]));

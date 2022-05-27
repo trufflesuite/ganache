@@ -1,5 +1,5 @@
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 
 describe("api", () => {

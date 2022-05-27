@@ -25,7 +25,7 @@ import { Ticket } from "./things/ticket";
 import { FileRef } from "./things/file-ref";
 import fs from "fs";
 import path from "path";
-import { IPFS, CID as IPFS_CID } from "ipfs";
+import { CID as IPFS_CID } from "ipfs";
 import { Account } from "./things/account";
 import Database from "./database";
 import TipsetManager from "./data-managers/tipset-manager";
@@ -161,7 +161,8 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
       this.#database.dealExpirations!
     );
 
-    const controllableAccounts = await this.accountManager.getControllableAccounts();
+    const controllableAccounts =
+      await this.accountManager.getControllableAccounts();
     if (controllableAccounts.length === 0) {
       for (let i = 0; i < this.options.wallet.totalAccounts; i++) {
         await this.accountManager.putAccount(
@@ -257,7 +258,9 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
     }
   }
 
-  get ipfs(): IPFS | null {
+  // using `any` because the IPFS type that should be here can't be exported by
+  // api-extractor :-()
+  get ipfs(): any | null {
     return this.ipfsServer.node;
   }
 
@@ -474,7 +477,8 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
       if (local) {
         this.messagePool = [];
       } else {
-        const localAccounts = await this.accountManager!.getControllableAccounts();
+        const localAccounts =
+          await this.accountManager!.getControllableAccounts();
         const localAddressStrings = localAccounts.map(
           account => account.address.value
         );
