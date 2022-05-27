@@ -1,4 +1,5 @@
 import { Probot } from "probot";
+import { validateAndMerge } from "./pr/actions";
 import QueryManager from "./query-manager";
 import { sayPlease } from "./utils/utils";
 
@@ -17,6 +18,10 @@ export = (app: Probot) => {
         const lower = comment.body.toLocaleLowerCase();
         if (!lower.includes("please")) {
           return await queryManager.makeIssueComment(sayPlease());
+        }
+
+        if (lower.includes("merge")) {
+          await validateAndMerge(queryManager, comment.author_association, pr);
         }
       }
     }
