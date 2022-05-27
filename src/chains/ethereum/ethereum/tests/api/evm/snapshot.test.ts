@@ -483,7 +483,7 @@ describe("api", () => {
         // and mine one more block just to force the any executable transactions
         // to be immediately mined
 
-        const gotTxsProm = new Promise((resolve, reject) => {
+        const gotTxsProm = new Promise(resolve => {
           let count = 0;
           const unsubscribe = provider.on("message", m => {
             if (!reverted && m.data.result.hash === snapshotBlockHash) {
