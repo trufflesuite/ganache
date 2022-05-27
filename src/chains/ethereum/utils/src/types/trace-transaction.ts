@@ -2,7 +2,7 @@ import { Data } from "@ganache/utils";
 import { ITraceData } from "../things/trace-data";
 import { TraceStorageMap } from "../things/trace-storage-map";
 
-export type TransactionTraceOptions = {
+export type TraceTransactionOptions = {
   disableStorage?: boolean;
   disableMemory?: boolean;
   disableStack?: boolean;

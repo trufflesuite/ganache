@@ -8,7 +8,7 @@ export type StorageRecords = Record<
   }
 >;
 
-export type StorageRangeResult = {
+export type StorageRangeAtResult = {
   nextKey: Data | null;
   storage: StorageRecords;
 };

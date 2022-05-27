@@ -21,10 +21,12 @@ type HexChar =
 type HexPair = `${oneThroughSeven}${HexChar}`;
 type TxType = `0x${HexChar}` | `0x${HexPair}`; // tx types are valid 0 through 7f
 
-export type TypedRpcTransaction =
+export type Transaction =
   | LegacyRpcTransaction
   | EIP2930AccessListRpcTransaction
   | EIP1559FeeMarketRpcTransaction;
+
+export type CallTransaction = Omit<Transaction, "from"> & { from?: string };
 
 export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
   readonly gasPrice?: string;
@@ -34,7 +36,7 @@ export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
   readonly maxFeePerGas?: never;
 };
 export type EIP2930AccessListRpcTransaction = Readonly<RpcTransaction> & {
-  readonly type: TxType;
+  readonly type?: TxType;
   readonly chainId?: string;
   readonly gasPrice?: string;
   readonly accessList?: AccessList;
@@ -43,7 +45,7 @@ export type EIP2930AccessListRpcTransaction = Readonly<RpcTransaction> & {
 };
 
 export type EIP1559FeeMarketRpcTransaction = Readonly<RpcTransaction> & {
-  readonly type: TxType;
+  readonly type?: TxType;
   readonly chainId?: string;
   readonly gasPrice?: never;
   readonly maxPriorityFeePerGas?: string;

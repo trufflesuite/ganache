@@ -1,6 +1,6 @@
 import assert from "assert";
 import getProvider from "../helpers/getProvider";
-import EthereumProvider from "../../src/provider";
+import { EthereumProvider } from "../../src/provider";
 import request from "superagent";
 
 describe("forking", () => {

@@ -47,6 +47,7 @@ describe("api", () => {
         context.instance = {
           n: () => {
             const tx = {
+              from: "0x123",
               to,
               data: "0x" + methods["n()"]
             };

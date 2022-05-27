@@ -21,7 +21,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 180,
+							"line": 168,
 							"character": 2
 						}
 					],
@@ -96,7 +96,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 169,
+							"line": 157,
 							"character": 11
 						}
 					],
@@ -117,7 +117,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 166,
+							"line": 154,
 							"character": 11
 						}
 					],
@@ -130,7 +130,7 @@
 							},
 							{
 								"type": "reference",
-								"name": "Filter"
+								"name": "InternalFilter"
 							}
 						],
 						"name": "Map"
@@ -149,7 +149,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 162,
+							"line": 150,
 							"character": 11
 						}
 					],
@@ -190,7 +190,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 168,
+							"line": 156,
 							"character": 11
 						}
 					],
@@ -211,7 +211,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 167,
+							"line": 155,
 							"character": 11
 						}
 					],
@@ -243,7 +243,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 170,
+							"line": 158,
 							"character": 11
 						}
 					],
@@ -273,7 +273,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 268,
+							"line": 260,
 							"character": 8
 						}
 					],
@@ -331,7 +331,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 281,
+							"line": 273,
 							"character": 8
 						}
 					],
@@ -389,7 +389,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 253,
+							"line": 245,
 							"character": 8
 						}
 					],
@@ -474,7 +474,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 220,
+							"line": 212,
 							"character": 8
 						}
 					],
@@ -559,7 +559,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 237,
+							"line": 229,
 							"character": 8
 						}
 					],
@@ -658,7 +658,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 204,
+							"line": 192,
 							"character": 8
 						}
 					],
@@ -737,7 +737,7 @@
 					]
 				},
 				{
-					"id": 369,
+					"id": 314,
 					"name": "debug_storageRangeAt",
 					"kind": 2048,
 					"kindString": "Method",
@@ -745,13 +745,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2881,
+							"line": 2912,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 370,
+							"id": 315,
 							"name": "debug_storageRangeAt",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -768,7 +768,7 @@
 							},
 							"parameters": [
 								{
-									"id": 371,
+									"id": 316,
 									"name": "blockHash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -782,7 +782,7 @@
 									}
 								},
 								{
-									"id": 372,
+									"id": 317,
 									"name": "transactionIndex",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -796,7 +796,7 @@
 									}
 								},
 								{
-									"id": 373,
+									"id": 318,
 									"name": "contractAddress",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -810,7 +810,7 @@
 									}
 								},
 								{
-									"id": 374,
+									"id": 319,
 									"name": "startKey",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -824,7 +824,7 @@
 									}
 								},
 								{
-									"id": 375,
+									"id": 320,
 									"name": "maxResult",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -843,7 +843,7 @@
 								"typeArguments": [
 									{
 										"type": "reference",
-										"name": "StorageRangeResult"
+										"name": "StorageRangeAtResult"
 									}
 								],
 								"name": "Promise"
@@ -852,7 +852,7 @@
 					]
 				},
 				{
-					"id": 365,
+					"id": 310,
 					"name": "debug_traceTransaction",
 					"kind": 2048,
 					"kindString": "Method",
@@ -860,13 +860,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2831,
+							"line": 2862,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 366,
+							"id": 311,
 							"name": "debug_traceTransaction",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -884,7 +884,7 @@
 							},
 							"parameters": [
 								{
-									"id": 367,
+									"id": 312,
 									"name": "transactionHash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -898,7 +898,7 @@
 									}
 								},
 								{
-									"id": 368,
+									"id": 313,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -910,7 +910,7 @@
 									},
 									"type": {
 										"type": "reference",
-										"name": "TransactionTraceOptions"
+										"name": "TraceTransactionOptions"
 									}
 								}
 							],
@@ -928,7 +928,7 @@
 					]
 				},
 				{
-					"id": 262,
+					"id": 227,
 					"name": "eth_accounts",
 					"kind": 2048,
 					"kindString": "Method",
@@ -948,13 +948,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1535,
+							"line": 1547,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 263,
+							"id": 228,
 							"name": "eth_accounts",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -986,7 +986,7 @@
 					]
 				},
 				{
-					"id": 264,
+					"id": 229,
 					"name": "eth_blockNumber",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1006,13 +1006,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1549,
+							"line": 1561,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 265,
+							"id": 230,
 							"name": "eth_blockNumber",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1041,7 +1041,7 @@
 					]
 				},
 				{
-					"id": 360,
+					"id": 305,
 					"name": "eth_call",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1062,13 +1062,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2668,
+							"line": 2699,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 361,
+							"id": 306,
 							"name": "eth_call",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1086,7 +1086,7 @@
 							},
 							"parameters": [
 								{
-									"id": 362,
+									"id": 307,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1095,12 +1095,12 @@
 										"shortText": "The transaction call object as seen in source."
 									},
 									"type": {
-										"type": "intrinsic",
-										"name": "any"
+										"type": "reference",
+										"name": "Transaction"
 									}
 								},
 								{
-									"id": 363,
+									"id": 308,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1115,7 +1115,7 @@
 									"defaultValue": "Tag.latest"
 								},
 								{
-									"id": 364,
+									"id": 309,
 									"name": "overrides",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1144,7 +1144,7 @@
 					]
 				},
 				{
-					"id": 266,
+					"id": 231,
 					"name": "eth_chainId",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1164,13 +1164,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1566,
+							"line": 1578,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 267,
+							"id": 232,
 							"name": "eth_chainId",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1203,7 +1203,7 @@
 					]
 				},
 				{
-					"id": 114,
+					"id": 111,
 					"name": "eth_coinbase",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1223,13 +1223,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1024,
+							"line": 1014,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 115,
+							"id": 112,
 							"name": "eth_coinbase",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1258,7 +1258,7 @@
 					]
 				},
 				{
-					"id": 106,
+					"id": 103,
 					"name": "eth_estimateGas",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1279,13 +1279,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 931,
+							"line": 918,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 107,
+							"id": 104,
 							"name": "eth_estimateGas",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1303,7 +1303,7 @@
 							},
 							"parameters": [
 								{
-									"id": 108,
+									"id": 105,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1313,11 +1313,11 @@
 									},
 									"type": {
 										"type": "reference",
-										"name": "TypedRpcTransaction"
+										"name": "Transaction"
 									}
 								},
 								{
-									"id": 109,
+									"id": 106,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1346,7 +1346,7 @@
 					]
 				},
 				{
-					"id": 258,
+					"id": 223,
 					"name": "eth_gasPrice",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1366,13 +1366,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1507,
+							"line": 1519,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 259,
+							"id": 224,
 							"name": "eth_gasPrice",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1401,7 +1401,7 @@
 					]
 				},
 				{
-					"id": 268,
+					"id": 233,
 					"name": "eth_getBalance",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1422,13 +1422,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1586,
+							"line": 1598,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 269,
+							"id": 234,
 							"name": "eth_getBalance",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1445,7 +1445,7 @@
 							},
 							"parameters": [
 								{
-									"id": 270,
+									"id": 235,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1459,7 +1459,7 @@
 									}
 								},
 								{
-									"id": 271,
+									"id": 236,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1488,7 +1488,7 @@
 					]
 				},
 				{
-					"id": 142,
+					"id": 123,
 					"name": "eth_getBlockByHash",
 					"kind": 2048,
 					"kindString": "Method",
@@ -1509,13 +1509,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1122,
+							"line": 1119,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 143,
+							"id": 124,
 							"name": "eth_getBlockByHash",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -1530,9 +1530,26 @@
 									}
 								]
 							},
+							"typeParameter": [
+								{
+									"id": 125,
+									"name": "IncludeTransactions",
+									"kind": 131072,
+									"kindString": "Type parameter",
+									"flags": {},
+									"type": {
+										"type": "intrinsic",
+										"name": "boolean"
+									},
+									"default": {
+										"type": "literal",
+										"value": false
+									}
+								}
+							],
 							"parameters": [
 								{
-									"id": 144,
+									"id": 126,
 									"name": "hash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -1546,467 +1563,178 @@
 									}
 								},
 								{
-									"id": 145,
+									"id": 127,
 									"name": "transactions",
 									"kind": 32768,
 									"kindString": "Parameter",
-									"flags": {},
+									"flags": {
+										"isOptional": true
+									},
 									"comment": {
 										"shortText": "If `true` it returns the full transaction objects, if `false` only the hashes of the\ntransactions."
 									},
 									"type": {
-										"type": "intrinsic",
-										"name": "boolean"
-									},
-									"defaultValue": "false"
+										"type": "reference",
+										"id": 125,
+										"name": "IncludeTransactions"
+									}
 								}
 							],
 							"type": {
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reflection",
-										"declaration": {
-											"id": 146,
-											"name": "__type",
-											"kind": 65536,
-											"kindString": "Type literal",
-											"flags": {},
-											"children": [
-												{
-													"id": 166,
-													"name": "baseFeePerGas",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {
-														"isOptional": true
-													},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 43,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 157,
-													"name": "difficulty",
-													"kind": 1024,
-													"kindString": "Property",
+										"type": "intersection",
+										"types": [
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 128,
+													"name": "__type",
+													"kind": 65536,
+													"kindString": "Type literal",
 													"flags": {},
-													"sources": [
+													"children": [
 														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 34,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 163,
-													"name": "extraData",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 40,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 160,
-													"name": "gasLimit",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 37,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 161,
-													"name": "gasUsed",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 38,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 167,
-													"name": "hash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 44,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 156,
-													"name": "logsBloom",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 33,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 152,
-													"name": "miner",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 29,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 164,
-													"name": "mixHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 41,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 165,
-													"name": "nonce",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 42,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 159,
-													"name": "number",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 36,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 150,
-													"name": "parentHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 27,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 155,
-													"name": "receiptsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 32,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 151,
-													"name": "sha3Uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 28,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 147,
-													"name": "size",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 24,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 153,
-													"name": "stateRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 30,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 162,
-													"name": "timestamp",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 39,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 158,
-													"name": "totalDifficulty",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 35,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 148,
-													"name": "transactions",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 25,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "union",
-															"types": [
+															"id": 129,
+															"name": "hash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
 																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 175,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "reference",
+																"name": "Data"
+															}
+														},
+														{
+															"id": 130,
+															"name": "size",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 176,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "reference",
+																"name": "Quantity"
+															}
+														},
+														{
+															"id": 131,
+															"name": "transactions",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 177,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "conditional",
+																"checkType": {
+																	"type": "reference",
+																	"id": 125,
+																	"name": "IncludeTransactions"
+																},
+																"extendsType": {
+																	"type": "literal",
+																	"value": true
+																},
+																"trueType": {
+																	"type": "array",
+																	"elementType": {
+																		"type": "union",
+																		"types": [
+																			{
+																				"type": "reference",
+																				"name": "LegacyTransactionJSON"
+																			},
+																			{
+																				"type": "reference",
+																				"name": "EIP2930AccessListTransactionJSON"
+																			},
+																			{
+																				"type": "reference",
+																				"name": "EIP1559FeeMarketTransactionJSON"
+																			},
+																			{
+																				"type": "reference",
+																				"typeArguments": [
+																					{
+																						"type": "literal",
+																						"value": "private"
+																					}
+																				],
+																				"name": "Transaction"
+																			}
+																		]
+																	}
+																},
+																"falseType": {
+																	"type": "array",
+																	"elementType": {
+																		"type": "reference",
+																		"name": "Data"
+																	}
+																}
+															}
+														},
+														{
+															"id": 132,
+															"name": "uncles",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 180,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "array",
+																"elementType": {
 																	"type": "reference",
 																	"name": "Data"
-																},
-																{
-																	"type": "reference",
-																	"name": "LegacyTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP2930AccessListTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP1559FeeMarketTransactionJSON"
 																}
+															}
+														}
+													],
+													"groups": [
+														{
+															"title": "Properties",
+															"kind": 1024,
+															"children": [
+																129,
+																130,
+																131,
+																132
 															]
 														}
-													}
-												},
-												{
-													"id": 154,
-													"name": "transactionsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 31,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 149,
-													"name": "uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 26,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "intrinsic",
-															"name": "string"
-														}
-													}
-												}
-											],
-											"groups": [
-												{
-													"title": "Properties",
-													"kind": 1024,
-													"children": [
-														166,
-														157,
-														163,
-														160,
-														161,
-														167,
-														156,
-														152,
-														164,
-														165,
-														159,
-														150,
-														155,
-														151,
-														147,
-														153,
-														162,
-														158,
-														148,
-														154,
-														149
 													]
 												}
-											]
-										}
+											},
+											{
+												"type": "reference",
+												"name": "BlockHeader"
+											}
+										]
 									}
 								],
 								"name": "Promise"
@@ -2015,7 +1743,7 @@
 					]
 				},
 				{
-					"id": 116,
+					"id": 113,
 					"name": "eth_getBlockByNumber",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2036,13 +1764,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1064,
+							"line": 1054,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 117,
+							"id": 114,
 							"name": "eth_getBlockByNumber",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2057,9 +1785,26 @@
 									}
 								]
 							},
+							"typeParameter": [
+								{
+									"id": 115,
+									"name": "IncludeTransactions",
+									"kind": 131072,
+									"kindString": "Type parameter",
+									"flags": {},
+									"type": {
+										"type": "intrinsic",
+										"name": "boolean"
+									},
+									"default": {
+										"type": "literal",
+										"value": false
+									}
+								}
+							],
 							"parameters": [
 								{
-									"id": 118,
+									"id": 116,
 									"name": "number",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2073,467 +1818,178 @@
 									}
 								},
 								{
-									"id": 119,
+									"id": 117,
 									"name": "transactions",
 									"kind": 32768,
 									"kindString": "Parameter",
-									"flags": {},
+									"flags": {
+										"isOptional": true
+									},
 									"comment": {
 										"shortText": "If `true` it returns the full transaction objects, if `false` only the hashes of the\ntransactions."
 									},
 									"type": {
-										"type": "intrinsic",
-										"name": "boolean"
-									},
-									"defaultValue": "false"
+										"type": "reference",
+										"id": 115,
+										"name": "IncludeTransactions"
+									}
 								}
 							],
 							"type": {
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reflection",
-										"declaration": {
-											"id": 120,
-											"name": "__type",
-											"kind": 65536,
-											"kindString": "Type literal",
-											"flags": {},
-											"children": [
-												{
-													"id": 140,
-													"name": "baseFeePerGas",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {
-														"isOptional": true
-													},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 43,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 131,
-													"name": "difficulty",
-													"kind": 1024,
-													"kindString": "Property",
+										"type": "intersection",
+										"types": [
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 118,
+													"name": "__type",
+													"kind": 65536,
+													"kindString": "Type literal",
 													"flags": {},
-													"sources": [
+													"children": [
 														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 34,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 137,
-													"name": "extraData",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 40,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 134,
-													"name": "gasLimit",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 37,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 135,
-													"name": "gasUsed",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 38,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 141,
-													"name": "hash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 44,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 130,
-													"name": "logsBloom",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 33,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 126,
-													"name": "miner",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 29,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 138,
-													"name": "mixHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 41,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 139,
-													"name": "nonce",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 42,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 133,
-													"name": "number",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 36,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 124,
-													"name": "parentHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 27,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 129,
-													"name": "receiptsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 32,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 125,
-													"name": "sha3Uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 28,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 121,
-													"name": "size",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 24,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 127,
-													"name": "stateRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 30,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 136,
-													"name": "timestamp",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 39,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 132,
-													"name": "totalDifficulty",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 35,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 122,
-													"name": "transactions",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 25,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "union",
-															"types": [
+															"id": 119,
+															"name": "hash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
 																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 175,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "reference",
+																"name": "Data"
+															}
+														},
+														{
+															"id": 120,
+															"name": "size",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 176,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "reference",
+																"name": "Quantity"
+															}
+														},
+														{
+															"id": 121,
+															"name": "transactions",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 177,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "conditional",
+																"checkType": {
+																	"type": "reference",
+																	"id": 115,
+																	"name": "IncludeTransactions"
+																},
+																"extendsType": {
+																	"type": "literal",
+																	"value": true
+																},
+																"trueType": {
+																	"type": "array",
+																	"elementType": {
+																		"type": "union",
+																		"types": [
+																			{
+																				"type": "reference",
+																				"name": "LegacyTransactionJSON"
+																			},
+																			{
+																				"type": "reference",
+																				"name": "EIP2930AccessListTransactionJSON"
+																			},
+																			{
+																				"type": "reference",
+																				"name": "EIP1559FeeMarketTransactionJSON"
+																			},
+																			{
+																				"type": "reference",
+																				"typeArguments": [
+																					{
+																						"type": "literal",
+																						"value": "private"
+																					}
+																				],
+																				"name": "Transaction"
+																			}
+																		]
+																	}
+																},
+																"falseType": {
+																	"type": "array",
+																	"elementType": {
+																		"type": "reference",
+																		"name": "Data"
+																	}
+																}
+															}
+														},
+														{
+															"id": 122,
+															"name": "uncles",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 180,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "array",
+																"elementType": {
 																	"type": "reference",
 																	"name": "Data"
-																},
-																{
-																	"type": "reference",
-																	"name": "LegacyTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP2930AccessListTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP1559FeeMarketTransactionJSON"
 																}
+															}
+														}
+													],
+													"groups": [
+														{
+															"title": "Properties",
+															"kind": 1024,
+															"children": [
+																119,
+																120,
+																121,
+																122
 															]
 														}
-													}
-												},
-												{
-													"id": 128,
-													"name": "transactionsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 31,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 123,
-													"name": "uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 26,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "intrinsic",
-															"name": "string"
-														}
-													}
-												}
-											],
-											"groups": [
-												{
-													"title": "Properties",
-													"kind": 1024,
-													"children": [
-														140,
-														131,
-														137,
-														134,
-														135,
-														141,
-														130,
-														126,
-														138,
-														139,
-														133,
-														124,
-														129,
-														125,
-														121,
-														127,
-														136,
-														132,
-														122,
-														128,
-														123
 													]
 												}
-											]
-										}
+											},
+											{
+												"type": "reference",
+												"name": "BlockHeader"
+											}
+										]
 									}
 								],
 								"name": "Promise"
@@ -2542,7 +1998,7 @@
 					]
 				},
 				{
-					"id": 171,
+					"id": 136,
 					"name": "eth_getBlockTransactionCountByHash",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2562,13 +2018,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1178,
+							"line": 1183,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 172,
+							"id": 137,
 							"name": "eth_getBlockTransactionCountByHash",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2585,7 +2041,7 @@
 							},
 							"parameters": [
 								{
-									"id": 173,
+									"id": 138,
 									"name": "hash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2613,7 +2069,7 @@
 					]
 				},
 				{
-					"id": 168,
+					"id": 133,
 					"name": "eth_getBlockTransactionCountByNumber",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2633,13 +2089,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1141,
+							"line": 1144,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 169,
+							"id": 134,
 							"name": "eth_getBlockTransactionCountByNumber",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2656,7 +2112,7 @@
 							},
 							"parameters": [
 								{
-									"id": 170,
+									"id": 135,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2681,7 +2137,7 @@
 					]
 				},
 				{
-					"id": 272,
+					"id": 237,
 					"name": "eth_getCode",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2702,13 +2158,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1625,
+							"line": 1637,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 273,
+							"id": 238,
 							"name": "eth_getCode",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2725,7 +2181,7 @@
 							},
 							"parameters": [
 								{
-									"id": 274,
+									"id": 239,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2739,7 +2195,7 @@
 									}
 								},
 								{
-									"id": 275,
+									"id": 240,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2768,7 +2224,7 @@
 					]
 				},
 				{
-					"id": 174,
+					"id": 139,
 					"name": "eth_getCompilers",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2788,13 +2244,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1200,
+							"line": 1205,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 175,
+							"id": 140,
 							"name": "eth_getCompilers",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2826,7 +2282,7 @@
 					]
 				},
 				{
-					"id": 324,
+					"id": 289,
 					"name": "eth_getFilterChanges",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2846,13 +2302,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2460,
+							"line": 2491,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 325,
+							"id": 290,
 							"name": "eth_getFilterChanges",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2869,7 +2325,7 @@
 							},
 							"parameters": [
 								{
-									"id": 326,
+									"id": 291,
 									"name": "filterId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2900,7 +2356,7 @@
 					]
 				},
 				{
-					"id": 330,
+					"id": 295,
 					"name": "eth_getFilterLogs",
 					"kind": 2048,
 					"kindString": "Method",
@@ -2920,13 +2376,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2530,
+							"line": 2561,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 331,
+							"id": 296,
 							"name": "eth_getFilterLogs",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -2943,7 +2399,7 @@
 							},
 							"parameters": [
 								{
-									"id": 332,
+									"id": 297,
 									"name": "filterId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -2961,222 +2417,8 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "array",
-										"elementType": {
-											"type": "reflection",
-											"declaration": {
-												"id": 333,
-												"name": "__type",
-												"kind": 65536,
-												"kindString": "Type literal",
-												"flags": {},
-												"children": [
-													{
-														"id": 334,
-														"name": "address",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 121,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Address"
-														}
-													},
-													{
-														"id": 335,
-														"name": "blockHash",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 122,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Data"
-														}
-													},
-													{
-														"id": 336,
-														"name": "blockNumber",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 123,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Quantity"
-														}
-													},
-													{
-														"id": 337,
-														"name": "data",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 124,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "union",
-															"types": [
-																{
-																	"type": "reference",
-																	"name": "Data"
-																},
-																{
-																	"type": "array",
-																	"elementType": {
-																		"type": "reference",
-																		"name": "Data"
-																	}
-																}
-															]
-														}
-													},
-													{
-														"id": 338,
-														"name": "logIndex",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 125,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Quantity"
-														}
-													},
-													{
-														"id": 339,
-														"name": "removed",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 126,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "intrinsic",
-															"name": "boolean"
-														}
-													},
-													{
-														"id": 340,
-														"name": "topics",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 127,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "union",
-															"types": [
-																{
-																	"type": "reference",
-																	"name": "Data"
-																},
-																{
-																	"type": "array",
-																	"elementType": {
-																		"type": "reference",
-																		"name": "Data"
-																	}
-																}
-															]
-														}
-													},
-													{
-														"id": 341,
-														"name": "transactionHash",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 128,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Data"
-														}
-													},
-													{
-														"id": 342,
-														"name": "transactionIndex",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 129,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Quantity"
-														}
-													}
-												],
-												"groups": [
-													{
-														"title": "Properties",
-														"kind": 1024,
-														"children": [
-															334,
-															335,
-															336,
-															337,
-															338,
-															339,
-															340,
-															341,
-															342
-														]
-													}
-												]
-											}
-										}
+										"type": "reference",
+										"name": "Logs"
 									}
 								],
 								"name": "Promise"
@@ -3185,7 +2427,7 @@
 					]
 				},
 				{
-					"id": 343,
+					"id": 298,
 					"name": "eth_getLogs",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3205,20 +2447,20 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2587,
+							"line": 2618,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 344,
+							"id": 299,
 							"name": "eth_getLogs",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
 								"shortText": "Returns an array of all logs matching a given filter object.",
-								"text": "Filter options:\n* `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.\n* `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also\nbe an array of `DATA` with \"or\" options.\n* `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,\nthen neither `fromBlock` or `toBlock` are allowed.\n",
+								"text": "Filter options:\n* `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.\n* `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topics. Topics are order-dependent. Each topic can also\nbe an array of `DATA` with \"or\" options.\n* `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,\nthen neither `fromBlock` or `toBlock` are allowed.\n",
 								"returns": "Array of log objects, or an empty array.",
 								"tags": [
 									{
@@ -3229,7 +2471,7 @@
 							},
 							"parameters": [
 								{
-									"id": 345,
+									"id": 300,
 									"name": "filter",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3247,222 +2489,8 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "array",
-										"elementType": {
-											"type": "reflection",
-											"declaration": {
-												"id": 346,
-												"name": "__type",
-												"kind": 65536,
-												"kindString": "Type literal",
-												"flags": {},
-												"children": [
-													{
-														"id": 347,
-														"name": "address",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 121,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Address"
-														}
-													},
-													{
-														"id": 348,
-														"name": "blockHash",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 122,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Data"
-														}
-													},
-													{
-														"id": 349,
-														"name": "blockNumber",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 123,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Quantity"
-														}
-													},
-													{
-														"id": 350,
-														"name": "data",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 124,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "union",
-															"types": [
-																{
-																	"type": "reference",
-																	"name": "Data"
-																},
-																{
-																	"type": "array",
-																	"elementType": {
-																		"type": "reference",
-																		"name": "Data"
-																	}
-																}
-															]
-														}
-													},
-													{
-														"id": 351,
-														"name": "logIndex",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 125,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Quantity"
-														}
-													},
-													{
-														"id": 352,
-														"name": "removed",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 126,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "intrinsic",
-															"name": "boolean"
-														}
-													},
-													{
-														"id": 353,
-														"name": "topics",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 127,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "union",
-															"types": [
-																{
-																	"type": "reference",
-																	"name": "Data"
-																},
-																{
-																	"type": "array",
-																	"elementType": {
-																		"type": "reference",
-																		"name": "Data"
-																	}
-																}
-															]
-														}
-													},
-													{
-														"id": 354,
-														"name": "transactionHash",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 128,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Data"
-														}
-													},
-													{
-														"id": 355,
-														"name": "transactionIndex",
-														"kind": 1024,
-														"kindString": "Property",
-														"flags": {},
-														"sources": [
-															{
-																"fileName": "utils/typings/src/things/blocklogs.d.ts",
-																"line": 129,
-																"character": 8
-															}
-														],
-														"type": {
-															"type": "reference",
-															"name": "Quantity"
-														}
-													}
-												],
-												"groups": [
-													{
-														"title": "Properties",
-														"kind": 1024,
-														"children": [
-															347,
-															348,
-															349,
-															350,
-															351,
-															352,
-															353,
-															354,
-															355
-														]
-													}
-												]
-											}
-										}
+										"type": "reference",
+										"name": "Logs"
 									}
 								],
 								"name": "Promise"
@@ -3471,7 +2499,7 @@
 					]
 				},
 				{
-					"id": 276,
+					"id": 241,
 					"name": "eth_getStorageAt",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3492,13 +2520,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1660,
+							"line": 1675,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 277,
+							"id": 242,
 							"name": "eth_getStorageAt",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -3515,7 +2543,7 @@
 							},
 							"parameters": [
 								{
-									"id": 278,
+									"id": 243,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3529,7 +2557,7 @@
 									}
 								},
 								{
-									"id": 279,
+									"id": 244,
 									"name": "position",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3543,7 +2571,7 @@
 									}
 								},
 								{
-									"id": 280,
+									"id": 245,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3572,7 +2600,7 @@
 					]
 				},
 				{
-					"id": 176,
+					"id": 141,
 					"name": "eth_getTransactionByBlockHashAndIndex",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3592,13 +2620,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1238,
+							"line": 1243,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 177,
+							"id": 142,
 							"name": "eth_getTransactionByBlockHashAndIndex",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -3615,7 +2643,7 @@
 							},
 							"parameters": [
 								{
-									"id": 178,
+									"id": 143,
 									"name": "hash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3629,7 +2657,7 @@
 									}
 								},
 								{
-									"id": 179,
+									"id": 144,
 									"name": "index",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3647,8 +2675,21 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reference",
-										"name": "LegacyTransactionJSON"
+										"type": "union",
+										"types": [
+											{
+												"type": "reference",
+												"name": "LegacyTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"name": "EIP2930AccessListTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"name": "EIP1559FeeMarketTransactionJSON"
+											}
+										]
 									}
 								],
 								"name": "Promise"
@@ -3657,7 +2698,7 @@
 					]
 				},
 				{
-					"id": 180,
+					"id": 145,
 					"name": "eth_getTransactionByBlockNumberAndIndex",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3677,13 +2718,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1284,
+							"line": 1292,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 181,
+							"id": 146,
 							"name": "eth_getTransactionByBlockNumberAndIndex",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -3700,7 +2741,7 @@
 							},
 							"parameters": [
 								{
-									"id": 182,
+									"id": 147,
 									"name": "number",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3714,7 +2755,7 @@
 									}
 								},
 								{
-									"id": 183,
+									"id": 148,
 									"name": "index",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3732,8 +2773,21 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reference",
-										"name": "LegacyTransactionJSON"
+										"type": "union",
+										"types": [
+											{
+												"type": "reference",
+												"name": "LegacyTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"name": "EIP2930AccessListTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"name": "EIP1559FeeMarketTransactionJSON"
+											}
+										]
 									}
 								],
 								"name": "Promise"
@@ -3742,7 +2796,7 @@
 					]
 				},
 				{
-					"id": 281,
+					"id": 246,
 					"name": "eth_getTransactionByHash",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3762,13 +2816,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1733,
+							"line": 1748,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 282,
+							"id": 247,
 							"name": "eth_getTransactionByHash",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -3785,7 +2839,7 @@
 							},
 							"parameters": [
 								{
-									"id": 283,
+									"id": 248,
 									"name": "transactionHash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3803,8 +2857,31 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reference",
-										"name": "LegacyTransactionJSON"
+										"type": "union",
+										"types": [
+											{
+												"type": "reference",
+												"name": "LegacyTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"name": "EIP2930AccessListTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"name": "EIP1559FeeMarketTransactionJSON"
+											},
+											{
+												"type": "reference",
+												"typeArguments": [
+													{
+														"type": "literal",
+														"value": "private"
+													}
+												],
+												"name": "Transaction"
+											}
+										]
 									}
 								],
 								"name": "Promise"
@@ -3813,7 +2890,7 @@
 					]
 				},
 				{
-					"id": 356,
+					"id": 301,
 					"name": "eth_getTransactionCount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3834,13 +2911,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2610,
+							"line": 2641,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 357,
+							"id": 302,
 							"name": "eth_getTransactionCount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -3857,7 +2934,7 @@
 							},
 							"parameters": [
 								{
-									"id": 358,
+									"id": 303,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3871,7 +2948,7 @@
 									}
 								},
 								{
-									"id": 359,
+									"id": 304,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3900,7 +2977,7 @@
 					]
 				},
 				{
-					"id": 284,
+					"id": 249,
 					"name": "eth_getTransactionReceipt",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3920,13 +2997,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1770,
+							"line": 1791,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 285,
+							"id": 250,
 							"name": "eth_getTransactionReceipt",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -3944,7 +3021,7 @@
 							},
 							"parameters": [
 								{
-									"id": 286,
+									"id": 251,
 									"name": "transactionHash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -3963,7 +3040,7 @@
 								"typeArguments": [
 									{
 										"type": "reference",
-										"name": "TransactionReceiptJSON"
+										"name": "TransactionReceipt"
 									}
 								],
 								"name": "Promise"
@@ -3972,7 +3049,7 @@
 					]
 				},
 				{
-					"id": 190,
+					"id": 155,
 					"name": "eth_getUncleByBlockHashAndIndex",
 					"kind": 2048,
 					"kindString": "Method",
@@ -3992,20 +3069,20 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1364,
+							"line": 1374,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 191,
+							"id": 156,
 							"name": "eth_getUncleByBlockHashAndIndex",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
 								"shortText": "Returns information about a uncle of a block by hash and uncle index position.",
-								"returns": "A block object or `null` when no block is found.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.\n* `uncles`: `Array` - Array of uncle hashes.\n",
+								"returns": "A block object or `null` when no block is found.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `uncles`: `Array` - Array of uncle hashes.\n\n**NOTE: **The return does not contain a list of transactions in the uncle\nblock, to get this, make another request to `eth_getBlockByHash`.\n",
 								"tags": [
 									{
 										"tag": "example",
@@ -4015,7 +3092,7 @@
 							},
 							"parameters": [
 								{
-									"id": 192,
+									"id": 157,
 									"name": "hash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -4029,7 +3106,7 @@
 									}
 								},
 								{
-									"id": 193,
+									"id": 158,
 									"name": "index",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -4047,448 +3124,458 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reflection",
-										"declaration": {
-											"id": 194,
-											"name": "__type",
-											"kind": 65536,
-											"kindString": "Type literal",
-											"flags": {},
-											"children": [
-												{
-													"id": 214,
-													"name": "baseFeePerGas",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {
-														"isOptional": true
-													},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 43,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 205,
-													"name": "difficulty",
-													"kind": 1024,
-													"kindString": "Property",
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 159,
+													"name": "__type",
+													"kind": 65536,
+													"kindString": "Type literal",
 													"flags": {},
-													"sources": [
+													"children": [
 														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 34,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 211,
-													"name": "extraData",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 40,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 208,
-													"name": "gasLimit",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 37,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 209,
-													"name": "gasUsed",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 38,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 215,
-													"name": "hash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 44,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 204,
-													"name": "logsBloom",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 33,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 200,
-													"name": "miner",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 29,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 212,
-													"name": "mixHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 41,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 213,
-													"name": "nonce",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 42,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 207,
-													"name": "number",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 36,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 198,
-													"name": "parentHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 27,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 203,
-													"name": "receiptsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 32,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 199,
-													"name": "sha3Uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 28,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 195,
-													"name": "size",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 24,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 201,
-													"name": "stateRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 30,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 210,
-													"name": "timestamp",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 39,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 206,
-													"name": "totalDifficulty",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 35,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 196,
-													"name": "transactions",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 25,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "union",
-															"types": [
+															"id": 180,
+															"name": "baseFeePerGas",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {
+																"isOptional": true
+															},
+															"sources": [
 																{
-																	"type": "reference",
-																	"name": "Data"
-																},
-																{
-																	"type": "reference",
-																	"name": "LegacyTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP2930AccessListTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP1559FeeMarketTransactionJSON"
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 35,
+																	"character": 4
 																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 171,
+															"name": "difficulty",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 26,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 177,
+															"name": "extraData",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 32,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 174,
+															"name": "gasLimit",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 29,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 175,
+															"name": "gasUsed",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 30,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 160,
+															"name": "hash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 175,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 170,
+															"name": "logsBloom",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 25,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 166,
+															"name": "miner",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 21,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 178,
+															"name": "mixHash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 33,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 179,
+															"name": "nonce",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 34,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 173,
+															"name": "number",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 28,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 164,
+															"name": "parentHash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 19,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 169,
+															"name": "receiptsRoot",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 24,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 165,
+															"name": "sha3Uncles",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 20,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 161,
+															"name": "size",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 176,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 167,
+															"name": "stateRoot",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 22,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 176,
+															"name": "timestamp",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 31,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 172,
+															"name": "totalDifficulty",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 27,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 162,
+															"name": "transactions",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 177,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "array",
+																"elementType": {
+																	"type": "union",
+																	"types": [
+																		{
+																			"type": "unknown",
+																			"name": "{ hash: string; type?: string; nonce: string; blockHash: string; blockNumber: string; transactionIndex: string; from: string; to: string; value: string; gas: string; gasPrice: string; input: string; v: string; r: string; s: string; }"
+																		},
+																		{
+																			"type": "unknown",
+																			"name": "{ hash: string; type: string; chainId: string; nonce: string; blockHash: string; blockNumber: string; transactionIndex: string; from: string; to: string; value: string; gas: string; gasPrice: string; input: string; accessList: { address: string; storageKeys: string[]; }[]; v: string; r: string; s: string; }"
+																		},
+																		{
+																			"type": "unknown",
+																			"name": "{ hash: string; type: string; chainId: string; nonce: string; blockHash: string; blockNumber: string; transactionIndex: string; from: string; to: string; value: string; maxPriorityFeePerGas: string; maxFeePerGas: string; gasPrice: string; gas: string; input: string; accessList: { address: string; storageKeys: string[]; }[]; v: string; r: string; s: string; }"
+																		},
+																		{
+																			"type": "unknown",
+																			"name": "{ type?: string; from: string; nonce: string; gas: string; to: string; value: string; input: string; v: string; r: string; s: string; gasPrice: string; blockNumber: null; blockHash: null; transactionIndex: null; hash: string; }"
+																		}
+																	]
+																}
+															}
+														},
+														{
+															"id": 168,
+															"name": "transactionsRoot",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 23,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 163,
+															"name": "uncles",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 180,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "array",
+																"elementType": {
+																	"type": "intrinsic",
+																	"name": "string"
+																}
+															}
+														}
+													],
+													"groups": [
+														{
+															"title": "Properties",
+															"kind": 1024,
+															"children": [
+																180,
+																171,
+																177,
+																174,
+																175,
+																160,
+																170,
+																166,
+																178,
+																179,
+																173,
+																164,
+																169,
+																165,
+																161,
+																167,
+																176,
+																172,
+																162,
+																168,
+																163
 															]
 														}
-													}
-												},
-												{
-													"id": 202,
-													"name": "transactionsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 31,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 197,
-													"name": "uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 26,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "intrinsic",
-															"name": "string"
-														}
-													}
-												}
-											],
-											"groups": [
-												{
-													"title": "Properties",
-													"kind": 1024,
-													"children": [
-														214,
-														205,
-														211,
-														208,
-														209,
-														215,
-														204,
-														200,
-														212,
-														213,
-														207,
-														198,
-														203,
-														199,
-														195,
-														201,
-														210,
-														206,
-														196,
-														202,
-														197
 													]
 												}
-											]
-										}
+											},
+											{
+												"type": "literal",
+												"value": "transactions"
+											}
+										],
+										"name": "Omit"
 									}
 								],
 								"name": "Promise"
@@ -4497,7 +3584,7 @@
 					]
 				},
 				{
-					"id": 216,
+					"id": 181,
 					"name": "eth_getUncleByBlockNumberAndIndex",
 					"kind": 2048,
 					"kindString": "Method",
@@ -4517,20 +3604,20 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1403,
+							"line": 1415,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 217,
+							"id": 182,
 							"name": "eth_getUncleByBlockNumberAndIndex",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
 								"shortText": "Returns information about a uncle of a block by hash and uncle index position.",
-								"returns": "A block object or `null` when no block is found.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.\n* `uncles`: `Array` - Array of uncle hashes.\n",
+								"returns": "A block object or `null` when no block is found.\n\n* `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.\n* `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.\n* `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.\n* `miner`: `DATA`, 20 Bytes -  Address of the miner.\n* `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.\n* `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.\n* `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.\n* `logsBloom`: `DATA`, 256 Bytes - The bloom filter for the logs of the block. `null` when pending.\n* `difficulty`: `QUANTITY` - Integer of the difficulty of this block.\n* `number`: `QUANTITY` - The block number. `null` when pending.\n* `gasLimit`: `QUANTITY` - The maximum gas allowed in the block.\n* `gasUsed`: `QUANTITY` - Total gas used by all transactions in the block.\n* `timestamp`: `QUANTITY` - The unix timestamp for when the block was collated.\n* `extraData`: `DATA` - Extra data for the block.\n* `mixHash`: `DATA`, 256 Bytes - Hash identifier for the block.\n* `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.\n* `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.\n* `size`: `QUANTITY` - Integer the size of the block in bytes.\n* `uncles`: `Array` - Array of uncle hashes.\n\n* **NOTE: **The return does not contain a list of transactions in the uncle\nblock, to get this, make another request to `eth_getBlockByHash`.\n",
 								"tags": [
 									{
 										"tag": "example",
@@ -4540,7 +3627,7 @@
 							},
 							"parameters": [
 								{
-									"id": 218,
+									"id": 183,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -4554,7 +3641,7 @@
 									}
 								},
 								{
-									"id": 219,
+									"id": 184,
 									"name": "uncleIndex",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -4572,448 +3659,458 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reflection",
-										"declaration": {
-											"id": 220,
-											"name": "__type",
-											"kind": 65536,
-											"kindString": "Type literal",
-											"flags": {},
-											"children": [
-												{
-													"id": 240,
-													"name": "baseFeePerGas",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {
-														"isOptional": true
-													},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 43,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 231,
-													"name": "difficulty",
-													"kind": 1024,
-													"kindString": "Property",
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "reflection",
+												"declaration": {
+													"id": 185,
+													"name": "__type",
+													"kind": 65536,
+													"kindString": "Type literal",
 													"flags": {},
-													"sources": [
+													"children": [
 														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 34,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 237,
-													"name": "extraData",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 40,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 234,
-													"name": "gasLimit",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 37,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 235,
-													"name": "gasUsed",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 38,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 241,
-													"name": "hash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 44,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 230,
-													"name": "logsBloom",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 33,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 226,
-													"name": "miner",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 29,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 238,
-													"name": "mixHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 41,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 239,
-													"name": "nonce",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 42,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 233,
-													"name": "number",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 36,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 224,
-													"name": "parentHash",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 27,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 229,
-													"name": "receiptsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 32,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 225,
-													"name": "sha3Uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 28,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 221,
-													"name": "size",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 24,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 227,
-													"name": "stateRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 30,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 236,
-													"name": "timestamp",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 39,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 232,
-													"name": "totalDifficulty",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 35,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Quantity"
-													}
-												},
-												{
-													"id": 222,
-													"name": "transactions",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 25,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "union",
-															"types": [
+															"id": 206,
+															"name": "baseFeePerGas",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {
+																"isOptional": true
+															},
+															"sources": [
 																{
-																	"type": "reference",
-																	"name": "Data"
-																},
-																{
-																	"type": "reference",
-																	"name": "LegacyTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP2930AccessListTransactionJSON"
-																},
-																{
-																	"type": "reference",
-																	"name": "EIP1559FeeMarketTransactionJSON"
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 35,
+																	"character": 4
 																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 197,
+															"name": "difficulty",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 26,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 203,
+															"name": "extraData",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 32,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 200,
+															"name": "gasLimit",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 29,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 201,
+															"name": "gasUsed",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 30,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 186,
+															"name": "hash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 175,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 196,
+															"name": "logsBloom",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 25,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 192,
+															"name": "miner",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 21,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 204,
+															"name": "mixHash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 33,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 205,
+															"name": "nonce",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 34,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 199,
+															"name": "number",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 28,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 190,
+															"name": "parentHash",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 19,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 195,
+															"name": "receiptsRoot",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 24,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 191,
+															"name": "sha3Uncles",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 20,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 187,
+															"name": "size",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 176,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 193,
+															"name": "stateRoot",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 22,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 202,
+															"name": "timestamp",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 31,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 198,
+															"name": "totalDifficulty",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 27,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 188,
+															"name": "transactions",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 177,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "array",
+																"elementType": {
+																	"type": "union",
+																	"types": [
+																		{
+																			"type": "unknown",
+																			"name": "{ hash: string; type?: string; nonce: string; blockHash: string; blockNumber: string; transactionIndex: string; from: string; to: string; value: string; gas: string; gasPrice: string; input: string; v: string; r: string; s: string; }"
+																		},
+																		{
+																			"type": "unknown",
+																			"name": "{ hash: string; type: string; chainId: string; nonce: string; blockHash: string; blockNumber: string; transactionIndex: string; from: string; to: string; value: string; gas: string; gasPrice: string; input: string; accessList: { address: string; storageKeys: string[]; }[]; v: string; r: string; s: string; }"
+																		},
+																		{
+																			"type": "unknown",
+																			"name": "{ hash: string; type: string; chainId: string; nonce: string; blockHash: string; blockNumber: string; transactionIndex: string; from: string; to: string; value: string; maxPriorityFeePerGas: string; maxFeePerGas: string; gasPrice: string; gas: string; input: string; accessList: { address: string; storageKeys: string[]; }[]; v: string; r: string; s: string; }"
+																		},
+																		{
+																			"type": "unknown",
+																			"name": "{ type?: string; from: string; nonce: string; gas: string; to: string; value: string; input: string; v: string; r: string; s: string; gasPrice: string; blockNumber: null; blockHash: null; transactionIndex: null; hash: string; }"
+																		}
+																	]
+																}
+															}
+														},
+														{
+															"id": 194,
+															"name": "transactionsRoot",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "block/typings/src/runtime-block.d.ts",
+																	"line": 23,
+																	"character": 4
+																}
+															],
+															"type": {
+																"type": "intrinsic",
+																"name": "string"
+															}
+														},
+														{
+															"id": 189,
+															"name": "uncles",
+															"kind": 1024,
+															"kindString": "Property",
+															"flags": {},
+															"sources": [
+																{
+																	"fileName": "ethereum/src/api-types.ts",
+																	"line": 180,
+																	"character": 8
+																}
+															],
+															"type": {
+																"type": "array",
+																"elementType": {
+																	"type": "intrinsic",
+																	"name": "string"
+																}
+															}
+														}
+													],
+													"groups": [
+														{
+															"title": "Properties",
+															"kind": 1024,
+															"children": [
+																206,
+																197,
+																203,
+																200,
+																201,
+																186,
+																196,
+																192,
+																204,
+																205,
+																199,
+																190,
+																195,
+																191,
+																187,
+																193,
+																202,
+																198,
+																188,
+																194,
+																189
 															]
 														}
-													}
-												},
-												{
-													"id": 228,
-													"name": "transactionsRoot",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 31,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "reference",
-														"name": "Data"
-													}
-												},
-												{
-													"id": 223,
-													"name": "uncles",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "block/typings/src/block.d.ts",
-															"line": 26,
-															"character": 8
-														}
-													],
-													"type": {
-														"type": "array",
-														"elementType": {
-															"type": "intrinsic",
-															"name": "string"
-														}
-													}
-												}
-											],
-											"groups": [
-												{
-													"title": "Properties",
-													"kind": 1024,
-													"children": [
-														240,
-														231,
-														237,
-														234,
-														235,
-														241,
-														230,
-														226,
-														238,
-														239,
-														233,
-														224,
-														229,
-														225,
-														221,
-														227,
-														236,
-														232,
-														222,
-														228,
-														223
 													]
 												}
-											]
-										}
+											},
+											{
+												"type": "literal",
+												"value": "transactions"
+											}
+										],
+										"name": "Omit"
 									}
 								],
 								"name": "Promise"
@@ -5022,7 +4119,7 @@
 					]
 				},
 				{
-					"id": 184,
+					"id": 149,
 					"name": "eth_getUncleCountByBlockHash",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5042,13 +4139,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1309,
+							"line": 1317,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 185,
+							"id": 150,
 							"name": "eth_getUncleCountByBlockHash",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5065,7 +4162,7 @@
 							},
 							"parameters": [
 								{
-									"id": 186,
+									"id": 151,
 									"name": "hash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5093,7 +4190,7 @@
 					]
 				},
 				{
-					"id": 187,
+					"id": 152,
 					"name": "eth_getUncleCountByBlockNumber",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5113,13 +4210,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1324,
+							"line": 1332,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 188,
+							"id": 153,
 							"name": "eth_getUncleCountByBlockNumber",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5136,7 +4233,7 @@
 							},
 							"parameters": [
 								{
-									"id": 189,
+									"id": 154,
 									"name": "blockNumber",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5164,7 +4261,7 @@
 					]
 				},
 				{
-					"id": 242,
+					"id": 207,
 					"name": "eth_getWork",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5184,13 +4281,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1424,
+							"line": 1436,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 243,
+							"id": 208,
 							"name": "eth_getWork",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5207,7 +4304,7 @@
 							},
 							"parameters": [
 								{
-									"id": 244,
+									"id": 209,
 									"name": "filterId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5256,7 +4353,7 @@
 					]
 				},
 				{
-					"id": 256,
+					"id": 221,
 					"name": "eth_hashrate",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5276,13 +4373,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1493,
+							"line": 1505,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 257,
+							"id": 222,
 							"name": "eth_hashrate",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5311,7 +4408,7 @@
 					]
 				},
 				{
-					"id": 260,
+					"id": 225,
 					"name": "eth_maxPriorityFeePerGas",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5331,13 +4428,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1521,
+							"line": 1533,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 261,
+							"id": 226,
 							"name": "eth_maxPriorityFeePerGas",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5366,7 +4463,7 @@
 					]
 				},
 				{
-					"id": 254,
+					"id": 219,
 					"name": "eth_mining",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5386,13 +4483,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1478,
+							"line": 1490,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 255,
+							"id": 220,
 							"name": "eth_mining",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5421,7 +4518,7 @@
 					]
 				},
 				{
-					"id": 317,
+					"id": 282,
 					"name": "eth_newBlockFilter",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5441,13 +4538,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2296,
+							"line": 2327,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 318,
+							"id": 283,
 							"name": "eth_newBlockFilter",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5476,7 +4573,7 @@
 					]
 				},
 				{
-					"id": 321,
+					"id": 286,
 					"name": "eth_newFilter",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5497,20 +4594,20 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2382,
+							"line": 2413,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 322,
+							"id": 287,
 							"name": "eth_newFilter",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
 								"shortText": "Creates a filter object, based on filter options, to notify when the state\nchanges (logs). To check if the state has changed, call\n`eth_getFilterChanges`.",
-								"text": "If the from `fromBlock` or `toBlock` option are equal to \"latest\" the\nfilter continually append logs for whatever block is seen as latest at the\ntime the block was mined, not just for the block that was \"latest\" when the\nfilter was created.\n\n### A note on specifying topic filters:\nTopics are order-dependent. A transaction with a log with topics [A, B]\nwill be matched by the following topic filters:\n * `[]` “anything”\n * `[A]` “A in first position (and anything after)”\n * `[null, B]` “anything in first position AND B in second position (and\nanything after)”\n * `[A, B]` “A in first position AND B in second position (and anything\nafter)”\n * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second\nposition (and anything after)”\n\nFilter options:\n* `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.\n* `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also\nbe an array of `DATA` with \"or\" options.\n",
+								"text": "If the from `fromBlock` or `toBlock` option are equal to \"latest\" the\nfilter continually append logs for whatever block is seen as latest at the\ntime the block was mined, not just for the block that was \"latest\" when the\nfilter was created.\n\n### A note on specifying topic filters:\nTopics are order-dependent. A transaction with a log with topics [A, B]\nwill be matched by the following topic filters:\n * `[]` “anything”\n * `[A]` “A in first position (and anything after)”\n * `[null, B]` “anything in first position AND B in second position (and\nanything after)”\n * `[A, B]` “A in first position AND B in second position (and anything\nafter)”\n * `[[A, B], [A, B]]` “(A OR B) in first position AND (A OR B) in second\nposition (and anything after)”\n\nFilter options:\n* `fromBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string \"latest\", \"earliest\"\nor \"pending\".\n* `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.\n* `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topics. Topics are order-dependent. Each topic can also\nbe an array of `DATA` with \"or\" options.\n",
 								"returns": "A filter id.",
 								"tags": [
 									{
@@ -5521,7 +4618,7 @@
 							},
 							"parameters": [
 								{
-									"id": 323,
+									"id": 288,
 									"name": "filter",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5551,7 +4648,7 @@
 					]
 				},
 				{
-					"id": 319,
+					"id": 284,
 					"name": "eth_newPendingTransactionFilter",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5571,13 +4668,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2323,
+							"line": 2354,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 320,
+							"id": 285,
 							"name": "eth_newPendingTransactionFilter",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5606,7 +4703,7 @@
 					]
 				},
 				{
-					"id": 110,
+					"id": 107,
 					"name": "eth_protocolVersion",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5626,13 +4723,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 989,
+							"line": 979,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 111,
+							"id": 108,
 							"name": "eth_protocolVersion",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5661,7 +4758,7 @@
 					]
 				},
 				{
-					"id": 293,
+					"id": 258,
 					"name": "eth_sendRawTransaction",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5681,13 +4778,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1923,
+							"line": 1952,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 294,
+							"id": 259,
 							"name": "eth_sendRawTransaction",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5704,7 +4801,7 @@
 							},
 							"parameters": [
 								{
-									"id": 295,
+									"id": 260,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5732,7 +4829,7 @@
 					]
 				},
 				{
-					"id": 287,
+					"id": 252,
 					"name": "eth_sendTransaction",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5752,13 +4849,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1834,
+							"line": 1857,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 288,
+							"id": 253,
 							"name": "eth_sendTransaction",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5776,7 +4873,7 @@
 							},
 							"parameters": [
 								{
-									"id": 289,
+									"id": 254,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5786,7 +4883,7 @@
 									},
 									"type": {
 										"type": "reference",
-										"name": "TypedRpcTransaction"
+										"name": "Transaction"
 									}
 								}
 							],
@@ -5804,7 +4901,7 @@
 					]
 				},
 				{
-					"id": 296,
+					"id": 261,
 					"name": "eth_sign",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5824,13 +4921,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1956,
+							"line": 1985,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 297,
+							"id": 262,
 							"name": "eth_sign",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5848,7 +4945,7 @@
 							},
 							"parameters": [
 								{
-									"id": 298,
+									"id": 263,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5862,7 +4959,7 @@
 									}
 								},
 								{
-									"id": 299,
+									"id": 264,
 									"name": "message",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5890,7 +4987,7 @@
 					]
 				},
 				{
-					"id": 290,
+					"id": 255,
 					"name": "eth_signTransaction",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5910,13 +5007,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1887,
+							"line": 1913,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 291,
+							"id": 256,
 							"name": "eth_signTransaction",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -5934,7 +5031,7 @@
 							},
 							"parameters": [
 								{
-									"id": 292,
+									"id": 257,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -5944,7 +5041,7 @@
 									},
 									"type": {
 										"type": "reference",
-										"name": "TypedRpcTransaction"
+										"name": "Transaction"
 									}
 								}
 							],
@@ -5952,8 +5049,8 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "intrinsic",
-										"name": "string"
+										"type": "reference",
+										"name": "Data"
 									}
 								],
 								"name": "Promise"
@@ -5962,7 +5059,7 @@
 					]
 				},
 				{
-					"id": 300,
+					"id": 265,
 					"name": "eth_signTypedData",
 					"kind": 2048,
 					"kindString": "Method",
@@ -5982,13 +5079,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2026,
+							"line": 2055,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 301,
+							"id": 266,
 							"name": "eth_signTypedData",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6009,7 +5106,7 @@
 							},
 							"parameters": [
 								{
-									"id": 302,
+									"id": 267,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6023,7 +5120,7 @@
 									}
 								},
 								{
-									"id": 303,
+									"id": 268,
 									"name": "typedData",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6057,7 +5154,7 @@
 					]
 				},
 				{
-					"id": 304,
+					"id": 269,
 					"name": "eth_signTypedData_v4",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6077,13 +5174,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2086,
+							"line": 2115,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 305,
+							"id": 270,
 							"name": "eth_signTypedData_v4",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6103,7 +5200,7 @@
 							},
 							"parameters": [
 								{
-									"id": 306,
+									"id": 271,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6117,7 +5214,7 @@
 									}
 								},
 								{
-									"id": 307,
+									"id": 272,
 									"name": "typedData",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6151,7 +5248,7 @@
 					]
 				},
 				{
-					"id": 250,
+					"id": 215,
 					"name": "eth_submitHashrate",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6171,20 +5268,20 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1464,
+							"line": 1476,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 251,
+							"id": 216,
 							"name": "eth_submitHashrate",
 							"kind": 4096,
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
 								"shortText": "Used for submitting mining hashrate.",
-								"returns": "`true` if submitting went through succesfully and `false` otherwise.",
+								"returns": "`true` if submitting went through successfully and `false` otherwise.",
 								"tags": [
 									{
 										"tag": "example",
@@ -6194,7 +5291,7 @@
 							},
 							"parameters": [
 								{
-									"id": 252,
+									"id": 217,
 									"name": "hashRate",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6208,7 +5305,7 @@
 									}
 								},
 								{
-									"id": 253,
+									"id": 218,
 									"name": "clientID",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6236,7 +5333,7 @@
 					]
 				},
 				{
-					"id": 245,
+					"id": 210,
 					"name": "eth_submitWork",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6256,13 +5353,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1445,
+							"line": 1457,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 246,
+							"id": 211,
 							"name": "eth_submitWork",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6279,7 +5376,7 @@
 							},
 							"parameters": [
 								{
-									"id": 247,
+									"id": 212,
 									"name": "nonce",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6293,7 +5390,7 @@
 									}
 								},
 								{
-									"id": 248,
+									"id": 213,
 									"name": "powHash",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6307,7 +5404,7 @@
 									}
 								},
 								{
-									"id": 249,
+									"id": 214,
 									"name": "digest",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6335,7 +5432,7 @@
 					]
 				},
 				{
-					"id": 308,
+					"id": 273,
 					"name": "eth_subscribe",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6343,13 +5440,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2134,
+							"line": 2163,
 							"character": 2
 						}
 					],
 					"signatures": [
 						{
-							"id": 309,
+							"id": 274,
 							"name": "eth_subscribe",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6366,7 +5463,7 @@
 							},
 							"parameters": [
 								{
-									"id": 310,
+									"id": 275,
 									"name": "subscriptionName",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6392,7 +5489,7 @@
 							}
 						},
 						{
-							"id": 311,
+							"id": 276,
 							"name": "eth_subscribe",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6403,7 +5500,7 @@
 							},
 							"parameters": [
 								{
-									"id": 312,
+									"id": 277,
 									"name": "subscriptionName",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6417,7 +5514,7 @@
 									}
 								},
 								{
-									"id": 313,
+									"id": 278,
 									"name": "options",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6445,7 +5542,7 @@
 					]
 				},
 				{
-					"id": 112,
+					"id": 109,
 					"name": "eth_syncing",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6465,13 +5562,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1010,
+							"line": 1000,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 113,
+							"id": 110,
 							"name": "eth_syncing",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6500,7 +5597,7 @@
 					]
 				},
 				{
-					"id": 327,
+					"id": 292,
 					"name": "eth_uninstallFilter",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6520,13 +5617,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2486,
+							"line": 2517,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 328,
+							"id": 293,
 							"name": "eth_uninstallFilter",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6543,7 +5640,7 @@
 							},
 							"parameters": [
 								{
-									"id": 329,
+									"id": 294,
 									"name": "filterId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6571,7 +5668,7 @@
 					]
 				},
 				{
-					"id": 314,
+					"id": 279,
 					"name": "eth_unsubscribe",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6591,13 +5688,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2272,
+							"line": 2303,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 315,
+							"id": 280,
 							"name": "eth_unsubscribe",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6614,7 +5711,7 @@
 							},
 							"parameters": [
 								{
-									"id": 316,
+									"id": 281,
 									"name": "subscriptionId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6642,7 +5739,7 @@
 					]
 				},
 				{
-					"id": 73,
+					"id": 70,
 					"name": "evm_addAccount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6650,13 +5747,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 689,
+							"line": 676,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 74,
+							"id": 71,
 							"name": "evm_addAccount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6674,7 +5771,7 @@
 							},
 							"parameters": [
 								{
-									"id": 75,
+									"id": 72,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6688,7 +5785,7 @@
 									}
 								},
 								{
-									"id": 76,
+									"id": 73,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6716,7 +5813,7 @@
 					]
 				},
 				{
-					"id": 62,
+					"id": 59,
 					"name": "evm_increaseTime",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6736,13 +5833,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 543,
+							"line": 530,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 63,
+							"id": 60,
 							"name": "evm_increaseTime",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6759,7 +5856,7 @@
 							},
 							"parameters": [
 								{
-									"id": 64,
+									"id": 61,
 									"name": "seconds",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6804,7 +5901,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 308,
+							"line": 300,
 							"character": 8
 						}
 					],
@@ -6867,66 +5964,8 @@
 									"kindString": "Parameter",
 									"flags": {},
 									"type": {
-										"type": "reflection",
-										"declaration": {
-											"id": 42,
-											"name": "__type",
-											"kind": 65536,
-											"kindString": "Type literal",
-											"flags": {},
-											"children": [
-												{
-													"id": 44,
-													"name": "blocks",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {
-														"isOptional": true
-													},
-													"sources": [
-														{
-															"fileName": "ethereum/src/api.ts",
-															"line": 311,
-															"character": 4
-														}
-													],
-													"type": {
-														"type": "intrinsic",
-														"name": "number"
-													}
-												},
-												{
-													"id": 43,
-													"name": "timestamp",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {
-														"isOptional": true
-													},
-													"sources": [
-														{
-															"fileName": "ethereum/src/api.ts",
-															"line": 310,
-															"character": 4
-														}
-													],
-													"type": {
-														"type": "intrinsic",
-														"name": "number"
-													}
-												}
-											],
-											"groups": [
-												{
-													"title": "Properties",
-													"kind": 1024,
-													"children": [
-														44,
-														43
-													]
-												}
-											]
-										}
+										"type": "reference",
+										"name": "MineOptions"
 									}
 								}
 							],
@@ -6944,7 +5983,7 @@
 					]
 				},
 				{
-					"id": 77,
+					"id": 74,
 					"name": "evm_removeAccount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -6952,13 +5991,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 712,
+							"line": 699,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 78,
+							"id": 75,
 							"name": "evm_removeAccount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -6976,7 +6015,7 @@
 							},
 							"parameters": [
 								{
-									"id": 79,
+									"id": 76,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -6990,7 +6029,7 @@
 									}
 								},
 								{
-									"id": 80,
+									"id": 77,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7018,7 +6057,7 @@
 					]
 				},
 				{
-					"id": 68,
+					"id": 65,
 					"name": "evm_revert",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7038,13 +6077,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 624,
+							"line": 611,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 69,
+							"id": 66,
 							"name": "evm_revert",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7061,7 +6100,7 @@
 							},
 							"parameters": [
 								{
-									"id": 70,
+									"id": 67,
 									"name": "snapshotId",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7089,7 +6128,7 @@
 					]
 				},
 				{
-					"id": 49,
+					"id": 46,
 					"name": "evm_setAccountBalance",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7109,13 +6148,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 425,
+							"line": 412,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 50,
+							"id": 47,
 							"name": "evm_setAccountBalance",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7133,7 +6172,7 @@
 							},
 							"parameters": [
 								{
-									"id": 51,
+									"id": 48,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7147,7 +6186,7 @@
 									}
 								},
 								{
-									"id": 52,
+									"id": 49,
 									"name": "balance",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7175,7 +6214,7 @@
 					]
 				},
 				{
-					"id": 53,
+					"id": 50,
 					"name": "evm_setAccountCode",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7195,13 +6234,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 463,
+							"line": 450,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 54,
+							"id": 51,
 							"name": "evm_setAccountCode",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7219,7 +6258,7 @@
 							},
 							"parameters": [
 								{
-									"id": 55,
+									"id": 52,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7233,7 +6272,7 @@
 									}
 								},
 								{
-									"id": 56,
+									"id": 53,
 									"name": "code",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7261,7 +6300,7 @@
 					]
 				},
 				{
-					"id": 45,
+					"id": 42,
 					"name": "evm_setAccountNonce",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7281,13 +6320,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 387,
+							"line": 374,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 46,
+							"id": 43,
 							"name": "evm_setAccountNonce",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7305,7 +6344,7 @@
 							},
 							"parameters": [
 								{
-									"id": 47,
+									"id": 44,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7319,7 +6358,7 @@
 									}
 								},
 								{
-									"id": 48,
+									"id": 45,
 									"name": "nonce",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7347,7 +6386,7 @@
 					]
 				},
 				{
-					"id": 57,
+					"id": 54,
 					"name": "evm_setAccountStorageAt",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7367,13 +6406,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 511,
+							"line": 498,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 58,
+							"id": 55,
 							"name": "evm_setAccountStorageAt",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7391,7 +6430,7 @@
 							},
 							"parameters": [
 								{
-									"id": 59,
+									"id": 56,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7405,7 +6444,7 @@
 									}
 								},
 								{
-									"id": 60,
+									"id": 57,
 									"name": "slot",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7419,7 +6458,7 @@
 									}
 								},
 								{
-									"id": 61,
+									"id": 58,
 									"name": "value",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7447,7 +6486,7 @@
 					]
 				},
 				{
-					"id": 65,
+					"id": 62,
 					"name": "evm_setTime",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7468,13 +6507,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 570,
+							"line": 557,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 66,
+							"id": 63,
 							"name": "evm_setTime",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7492,7 +6531,7 @@
 							},
 							"parameters": [
 								{
-									"id": 67,
+									"id": 64,
 									"name": "time",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7533,7 +6572,7 @@
 					]
 				},
 				{
-					"id": 71,
+					"id": 68,
 					"name": "evm_snapshot",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7541,13 +6580,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 665,
+							"line": 652,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 72,
+							"id": 69,
 							"name": "evm_snapshot",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7576,7 +6615,7 @@
 					]
 				},
 				{
-					"id": 89,
+					"id": 86,
 					"name": "miner_setEtherbase",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7596,13 +6635,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 800,
+							"line": 787,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 90,
+							"id": 87,
 							"name": "miner_setEtherbase",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7619,7 +6658,7 @@
 							},
 							"parameters": [
 								{
-									"id": 91,
+									"id": 88,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7647,7 +6686,7 @@
 					]
 				},
 				{
-					"id": 92,
+					"id": 89,
 					"name": "miner_setExtra",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7667,13 +6706,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 815,
+							"line": 802,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 93,
+							"id": 90,
 							"name": "miner_setExtra",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7690,7 +6729,7 @@
 							},
 							"parameters": [
 								{
-									"id": 94,
+									"id": 91,
 									"name": "extra",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7718,7 +6757,7 @@
 					]
 				},
 				{
-					"id": 86,
+					"id": 83,
 					"name": "miner_setGasPrice",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7738,13 +6777,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 784,
+							"line": 771,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 87,
+							"id": 84,
 							"name": "miner_setGasPrice",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7761,7 +6800,7 @@
 							},
 							"parameters": [
 								{
-									"id": 88,
+									"id": 85,
 									"name": "number",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7789,7 +6828,7 @@
 					]
 				},
 				{
-					"id": 81,
+					"id": 78,
 					"name": "miner_start",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7810,13 +6849,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 737,
+							"line": 724,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 82,
+							"id": 79,
 							"name": "miner_start",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7834,7 +6873,7 @@
 							},
 							"parameters": [
 								{
-									"id": 83,
+									"id": 80,
 									"name": "threads",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -7863,7 +6902,7 @@
 					]
 				},
 				{
-					"id": 84,
+					"id": 81,
 					"name": "miner_stop",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7883,13 +6922,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 767,
+							"line": 754,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 85,
+							"id": 82,
 							"name": "miner_stop",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7918,7 +6957,7 @@
 					]
 				},
 				{
-					"id": 102,
+					"id": 99,
 					"name": "net_listening",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7938,13 +6977,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 881,
+							"line": 868,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 103,
+							"id": 100,
 							"name": "net_listening",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -7973,7 +7012,7 @@
 					]
 				},
 				{
-					"id": 104,
+					"id": 101,
 					"name": "net_peerCount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -7993,13 +7032,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 894,
+							"line": 881,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 105,
+							"id": 102,
 							"name": "net_peerCount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8028,7 +7067,7 @@
 					]
 				},
 				{
-					"id": 100,
+					"id": 97,
 					"name": "net_version",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8048,13 +7087,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 868,
+							"line": 855,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 101,
+							"id": 98,
 							"name": "net_version",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8083,7 +7122,7 @@
 					]
 				},
 				{
-					"id": 381,
+					"id": 326,
 					"name": "personal_importRawKey",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8103,13 +7142,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2959,
+							"line": 2990,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 382,
+							"id": 327,
 							"name": "personal_importRawKey",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8126,7 +7165,7 @@
 							},
 							"parameters": [
 								{
-									"id": 383,
+									"id": 328,
 									"name": "rawKey",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8140,7 +7179,7 @@
 									}
 								},
 								{
-									"id": 384,
+									"id": 329,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8168,7 +7207,7 @@
 					]
 				},
 				{
-					"id": 376,
+					"id": 321,
 					"name": "personal_listAccounts",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8188,13 +7227,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2910,
+							"line": 2941,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 377,
+							"id": 322,
 							"name": "personal_listAccounts",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8226,7 +7265,7 @@
 					]
 				},
 				{
-					"id": 385,
+					"id": 330,
 					"name": "personal_lockAccount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8246,13 +7285,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2986,
+							"line": 3020,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 386,
+							"id": 331,
 							"name": "personal_lockAccount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8269,7 +7308,7 @@
 							},
 							"parameters": [
 								{
-									"id": 387,
+									"id": 332,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8297,7 +7336,7 @@
 					]
 				},
 				{
-					"id": 378,
+					"id": 323,
 					"name": "personal_newAccount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8317,13 +7356,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2928,
+							"line": 2959,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 379,
+							"id": 324,
 							"name": "personal_newAccount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8340,7 +7379,7 @@
 							},
 							"parameters": [
 								{
-									"id": 380,
+									"id": 325,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8368,7 +7407,7 @@
 					]
 				},
 				{
-					"id": 393,
+					"id": 338,
 					"name": "personal_sendTransaction",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8388,13 +7427,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3056,
+							"line": 3090,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 394,
+							"id": 339,
 							"name": "personal_sendTransaction",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8412,18 +7451,18 @@
 							},
 							"parameters": [
 								{
-									"id": 395,
+									"id": 340,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
 									"flags": {},
 									"type": {
 										"type": "reference",
-										"name": "TypedRpcTransaction"
+										"name": "Transaction"
 									}
 								},
 								{
-									"id": 396,
+									"id": 341,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8451,7 +7490,7 @@
 					]
 				},
 				{
-					"id": 397,
+					"id": 342,
 					"name": "personal_signTransaction",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8471,13 +7510,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3112,
+							"line": 3149,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 398,
+							"id": 343,
 							"name": "personal_signTransaction",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8495,7 +7534,7 @@
 							},
 							"parameters": [
 								{
-									"id": 399,
+									"id": 344,
 									"name": "transaction",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8505,11 +7544,11 @@
 									},
 									"type": {
 										"type": "reference",
-										"name": "TypedRpcTransaction"
+										"name": "Transaction"
 									}
 								},
 								{
-									"id": 400,
+									"id": 345,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8524,8 +7563,8 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "intrinsic",
-										"name": "string"
+										"type": "reference",
+										"name": "Data"
 									}
 								],
 								"name": "Promise"
@@ -8534,7 +7573,7 @@
 					]
 				},
 				{
-					"id": 388,
+					"id": 333,
 					"name": "personal_unlockAccount",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8555,13 +7594,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3015,
+							"line": 3049,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 389,
+							"id": 334,
 							"name": "personal_unlockAccount",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8579,7 +7618,7 @@
 							},
 							"parameters": [
 								{
-									"id": 390,
+									"id": 335,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8593,7 +7632,7 @@
 									}
 								},
 								{
-									"id": 391,
+									"id": 336,
 									"name": "passphrase",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8607,7 +7646,7 @@
 									}
 								},
 								{
-									"id": 392,
+									"id": 337,
 									"name": "duration",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8636,7 +7675,7 @@
 					]
 				},
 				{
-					"id": 401,
+					"id": 346,
 					"name": "rpc_modules",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8656,13 +7695,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3140,
+							"line": 3180,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 402,
+							"id": 347,
 							"name": "rpc_modules",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8683,14 +7722,14 @@
 									{
 										"type": "reflection",
 										"declaration": {
-											"id": 403,
+											"id": 348,
 											"name": "__type",
 											"kind": 65536,
 											"kindString": "Type literal",
 											"flags": {},
 											"children": [
 												{
-													"id": 404,
+													"id": 349,
 													"name": "eth",
 													"kind": 1024,
 													"kindString": "Property",
@@ -8702,7 +7741,7 @@
 													"defaultValue": "\"1.0\""
 												},
 												{
-													"id": 408,
+													"id": 353,
 													"name": "evm",
 													"kind": 1024,
 													"kindString": "Property",
@@ -8714,7 +7753,7 @@
 													"defaultValue": "\"1.0\""
 												},
 												{
-													"id": 405,
+													"id": 350,
 													"name": "net",
 													"kind": 1024,
 													"kindString": "Property",
@@ -8726,7 +7765,7 @@
 													"defaultValue": "\"1.0\""
 												},
 												{
-													"id": 409,
+													"id": 354,
 													"name": "personal",
 													"kind": 1024,
 													"kindString": "Property",
@@ -8738,7 +7777,7 @@
 													"defaultValue": "\"1.0\""
 												},
 												{
-													"id": 406,
+													"id": 351,
 													"name": "rpc",
 													"kind": 1024,
 													"kindString": "Property",
@@ -8750,7 +7789,7 @@
 													"defaultValue": "\"1.0\""
 												},
 												{
-													"id": 407,
+													"id": 352,
 													"name": "web3",
 													"kind": 1024,
 													"kindString": "Property",
@@ -8767,12 +7806,12 @@
 													"title": "Properties",
 													"kind": 1024,
 													"children": [
-														404,
-														408,
-														405,
-														409,
-														406,
-														407
+														349,
+														353,
+														350,
+														354,
+														351,
+														352
 													]
 												}
 											]
@@ -8785,7 +7824,7 @@
 					]
 				},
 				{
-					"id": 417,
+					"id": 362,
 					"name": "shh_addToGroup",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8805,13 +7844,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3197,
+							"line": 3237,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 418,
+							"id": 363,
 							"name": "shh_addToGroup",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8828,7 +7867,7 @@
 							},
 							"parameters": [
 								{
-									"id": 419,
+									"id": 364,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8856,7 +7895,7 @@
 					]
 				},
 				{
-					"id": 427,
+					"id": 372,
 					"name": "shh_getFilterChanges",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8876,13 +7915,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3245,
+							"line": 3285,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 428,
+							"id": 373,
 							"name": "shh_getFilterChanges",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8899,7 +7938,7 @@
 							},
 							"parameters": [
 								{
-									"id": 429,
+									"id": 374,
 									"name": "id",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -8917,11 +7956,7 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "array",
-										"elementType": {
-											"type": "intrinsic",
-											"name": "any"
-										}
+										"type": "tuple"
 									}
 								],
 								"name": "Promise"
@@ -8930,7 +7965,7 @@
 					]
 				},
 				{
-					"id": 430,
+					"id": 375,
 					"name": "shh_getMessages",
 					"kind": 2048,
 					"kindString": "Method",
@@ -8950,13 +7985,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3260,
+							"line": 3300,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 431,
+							"id": 376,
 							"name": "shh_getMessages",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -8973,7 +8008,7 @@
 							},
 							"parameters": [
 								{
-									"id": 432,
+									"id": 377,
 									"name": "id",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9001,7 +8036,7 @@
 					]
 				},
 				{
-					"id": 412,
+					"id": 357,
 					"name": "shh_hasIdentity",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9021,13 +8056,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3172,
+							"line": 3212,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 413,
+							"id": 358,
 							"name": "shh_hasIdentity",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9044,7 +8079,7 @@
 							},
 							"parameters": [
 								{
-									"id": 414,
+									"id": 359,
 									"name": "address",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9072,7 +8107,7 @@
 					]
 				},
 				{
-					"id": 420,
+					"id": 365,
 					"name": "shh_newFilter",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9092,13 +8127,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3214,
+							"line": 3254,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 421,
+							"id": 366,
 							"name": "shh_newFilter",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9115,7 +8150,7 @@
 							},
 							"parameters": [
 								{
-									"id": 422,
+									"id": 367,
 									"name": "to",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9129,7 +8164,7 @@
 									}
 								},
 								{
-									"id": 423,
+									"id": 368,
 									"name": "topics",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9160,7 +8195,7 @@
 					]
 				},
 				{
-					"id": 415,
+					"id": 360,
 					"name": "shh_newGroup",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9180,13 +8215,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3182,
+							"line": 3222,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 416,
+							"id": 361,
 							"name": "shh_newGroup",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9209,7 +8244,7 @@
 					]
 				},
 				{
-					"id": 410,
+					"id": 355,
 					"name": "shh_newIdentity",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9229,13 +8264,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3157,
+							"line": 3197,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 411,
+							"id": 356,
 							"name": "shh_newIdentity",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9264,7 +8299,7 @@
 					]
 				},
 				{
-					"id": 433,
+					"id": 378,
 					"name": "shh_post",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9284,13 +8319,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3275,
+							"line": 3315,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 434,
+							"id": 379,
 							"name": "shh_post",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9307,7 +8342,7 @@
 							},
 							"parameters": [
 								{
-									"id": 435,
+									"id": 380,
 									"name": "postData",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9335,7 +8370,7 @@
 					]
 				},
 				{
-					"id": 424,
+					"id": 369,
 					"name": "shh_uninstallFilter",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9355,13 +8390,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3230,
+							"line": 3270,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 425,
+							"id": 370,
 							"name": "shh_uninstallFilter",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9378,7 +8413,7 @@
 							},
 							"parameters": [
 								{
-									"id": 426,
+									"id": 371,
 									"name": "id",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9406,7 +8441,7 @@
 					]
 				},
 				{
-					"id": 436,
+					"id": 381,
 					"name": "shh_version",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9426,13 +8461,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3289,
+							"line": 3329,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 437,
+							"id": 382,
 							"name": "shh_version",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9461,7 +8496,7 @@
 					]
 				},
 				{
-					"id": 438,
+					"id": 383,
 					"name": "txpool_content",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9481,13 +8516,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3310,
+							"line": 3350,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 439,
+							"id": 384,
 							"name": "txpool_content",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9506,102 +8541,14 @@
 								"type": "reference",
 								"typeArguments": [
 									{
-										"type": "reflection",
-										"declaration": {
-											"id": 440,
-											"name": "__type",
-											"kind": 65536,
-											"kindString": "Type literal",
-											"flags": {},
-											"children": [
-												{
-													"id": 441,
-													"name": "pending",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "ethereum/src/api.ts",
-															"line": 3311,
-															"character": 4
-														}
-													],
-													"type": {
-														"type": "reference",
-														"typeArguments": [
-															{
-																"type": "intrinsic",
-																"name": "string"
-															},
-															{
-																"type": "reference",
-																"typeArguments": [
-																	{
-																		"type": "intrinsic",
-																		"name": "string"
-																	},
-																	{
-																		"type": "reference",
-																		"name": "TypedTransactionJSON"
-																	}
-																],
-																"name": "Map"
-															}
-														],
-														"name": "Map"
-													}
-												},
-												{
-													"id": 442,
-													"name": "queued",
-													"kind": 1024,
-													"kindString": "Property",
-													"flags": {},
-													"sources": [
-														{
-															"fileName": "ethereum/src/api.ts",
-															"line": 3312,
-															"character": 4
-														}
-													],
-													"type": {
-														"type": "reference",
-														"typeArguments": [
-															{
-																"type": "intrinsic",
-																"name": "string"
-															},
-															{
-																"type": "reference",
-																"typeArguments": [
-																	{
-																		"type": "intrinsic",
-																		"name": "string"
-																	},
-																	{
-																		"type": "reference",
-																		"name": "TypedTransactionJSON"
-																	}
-																],
-																"name": "Map"
-															}
-														],
-														"name": "Map"
-													}
-												}
-											],
-											"groups": [
-												{
-													"title": "Properties",
-													"kind": 1024,
-													"children": [
-														441,
-														442
-													]
-												}
-											]
-										}
+										"type": "reference",
+										"typeArguments": [
+											{
+												"type": "literal",
+												"value": "private"
+											}
+										],
+										"name": "Content"
 									}
 								],
 								"name": "Promise"
@@ -9610,7 +8557,7 @@
 					]
 				},
 				{
-					"id": 95,
+					"id": 92,
 					"name": "web3_clientVersion",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9630,13 +8577,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 836,
+							"line": 823,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 96,
+							"id": 93,
 							"name": "web3_clientVersion",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9665,7 +8612,7 @@
 					]
 				},
 				{
-					"id": 97,
+					"id": 94,
 					"name": "web3_sha3",
 					"kind": 2048,
 					"kindString": "Method",
@@ -9685,13 +8632,13 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 852,
+							"line": 839,
 							"character": 8
 						}
 					],
 					"signatures": [
 						{
-							"id": 98,
+							"id": 95,
 							"name": "web3_sha3",
 							"kind": 4096,
 							"kindString": "Call signature",
@@ -9708,7 +8655,7 @@
 							},
 							"parameters": [
 								{
-									"id": 99,
+									"id": 96,
 									"name": "data",
 									"kind": 32768,
 									"kindString": "Parameter",
@@ -9766,114 +8713,114 @@
 						20,
 						24,
 						15,
-						369,
-						365,
-						262,
-						264,
-						360,
-						266,
-						114,
-						106,
-						258,
-						268,
-						142,
-						116,
-						171,
-						168,
-						272,
-						174,
-						324,
-						330,
-						343,
-						276,
-						176,
-						180,
-						281,
-						356,
-						284,
-						190,
-						216,
-						184,
-						187,
-						242,
-						256,
-						260,
-						254,
-						317,
-						321,
-						319,
-						110,
-						293,
-						287,
-						296,
-						290,
-						300,
-						304,
-						250,
-						245,
-						308,
-						112,
-						327,
 						314,
-						73,
-						62,
+						310,
+						227,
+						229,
+						305,
+						231,
+						111,
+						103,
+						223,
+						233,
+						123,
+						113,
+						136,
+						133,
+						237,
+						139,
+						289,
+						295,
+						298,
+						241,
+						141,
+						145,
+						246,
+						301,
+						249,
+						155,
+						181,
+						149,
+						152,
+						207,
+						221,
+						225,
+						219,
+						282,
+						286,
+						284,
+						107,
+						258,
+						252,
+						261,
+						255,
+						265,
+						269,
+						215,
+						210,
+						273,
+						109,
+						292,
+						279,
+						70,
+						59,
 						37,
-						77,
-						68,
-						49,
-						53,
-						45,
-						57,
+						74,
 						65,
-						71,
-						89,
-						92,
+						46,
+						50,
+						42,
+						54,
+						62,
+						68,
 						86,
+						89,
+						83,
+						78,
 						81,
-						84,
-						102,
-						104,
-						100,
-						381,
-						376,
-						385,
+						99,
+						101,
+						97,
+						326,
+						321,
+						330,
+						323,
+						338,
+						342,
+						333,
+						346,
+						362,
+						372,
+						375,
+						357,
+						365,
+						360,
+						355,
 						378,
-						393,
-						397,
-						388,
-						401,
-						417,
-						427,
-						430,
-						412,
-						420,
-						415,
-						410,
-						433,
-						424,
-						436,
-						438,
-						95,
-						97
+						369,
+						381,
+						383,
+						92,
+						94
 					]
 				}
 			],
 			"sources": [
 				{
 					"fileName": "ethereum/src/api.ts",
-					"line": 159,
+					"line": 147,
 					"character": 21
 				}
 			],
 			"indexSignature": {
-				"id": 443,
+				"id": 385,
 				"name": "__index",
 				"kind": 8192,
 				"kindString": "Index signature",
 				"flags": {},
 				"parameters": [
 					{
-						"id": 444,
+						"id": 386,
 						"name": "index",
 						"kind": 32768,
 						"flags": {},
@@ -9886,7 +8833,7 @@
 				"type": {
 					"type": "reflection",
 					"declaration": {
-						"id": 445,
+						"id": 387,
 						"name": "__type",
 						"kind": 65536,
 						"kindString": "Type literal",
@@ -9894,20 +8841,20 @@
 						"sources": [
 							{
 								"fileName": "ethereum/src/api.ts",
-								"line": 160,
+								"line": 148,
 								"character": 28
 							}
 						],
 						"signatures": [
 							{
-								"id": 446,
+								"id": 388,
 								"name": "__type",
 								"kind": 4096,
 								"kindString": "Call signature",
 								"flags": {},
 								"parameters": [
 									{
-										"id": 447,
+										"id": 389,
 										"name": "args",
 										"kind": 32768,
 										"kindString": "Parameter",
