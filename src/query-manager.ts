@@ -32,6 +32,13 @@ export default class QueryManager {
     return result.data;
   };
 
+
+  makeIssueComment = async (body: string) => {
+    await this.context.octokit.issues.createComment(
+      this.context.issue({ body })
+    );
+  };
+
   /**
    * Implements exponential back-off on a `query`, reattempting each time the
    * `query` result's value at the specified `props` is equal to one of the
