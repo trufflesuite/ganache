@@ -46,6 +46,10 @@ export function noopParseAndValidate<T>(input: T): T {
  * @returns {Buffer}
  */
 export function parseAndValidateNumberInput(input: number): Buffer {
+  if (input === 0) {
+    return BUFFER_EMPTY;
+  }
+
   if (input < 0) {
     throw new Error("Cannot wrap a negative value as a json-rpc type");
   }
@@ -55,11 +59,8 @@ export function parseAndValidateNumberInput(input: number): Buffer {
   if (!isFinite(input)) {
     throw new Error(`Cannot wrap a ${input} as a json-rpc type`);
   }
-  if (input === 0) {
-    return BUFFER_EMPTY;
-  } else {
-    return uintToBuffer(input as number);
-  }
+
+  return uintToBuffer(input as number);
 }
 
 /**
@@ -68,30 +69,36 @@ export function parseAndValidateNumberInput(input: number): Buffer {
  * @returns {Buffer}
  */
 export function parseAndValidateBigIntInput(input: bigint): Buffer {
+  if (input === 0n) {
+    return BUFFER_EMPTY;
+  }
+
   if (input < 0n) {
     throw new Error("Cannot wrap a negative value as a json-rpc type");
   }
-  return input === 0n ? BUFFER_EMPTY : bigIntToBuffer(input as bigint);
+  return bigIntToBuffer(input as bigint);
 }
 
-const VALIDATE_REGEX = /^0x[0-9a-f]*$/i;
 /**
  * Parse and validate a {@link string} to {@link Buffer} as internal representation for a JSON-RPC data type.
  * @param  {string} input - must be a hex encoded integer prefixed with "0x".
  * @returns Buffer
  */
 export function parseAndValidateStringInput(input: string): Buffer {
-  if (!VALIDATE_REGEX.test(input)) {
-    throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`);
-  }
-
-  let hexValue = (<string>input).slice(2);
+  let hexValue = input.slice(2);
 
   // hexValue must be an even number of hexidecimal characters in order to correctly decode in Buffer.from
   // see: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
   if (hexValue.length & 1) {
     hexValue = `0${hexValue}`;
   }
+  const byteLength = Math.ceil(input.length / 2 - 1);
 
-  return Buffer.from(hexValue, "hex");
+  const _buffer = Buffer.from(hexValue, "hex");
+  if (input.slice(0, 2).toLowerCase() !== "0x" || _buffer.length !== byteLength) {
+    // Buffer.from will return an empty buffer if the input does not conform to hexidecimal encoding
+    throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`);
+  }
+
+  return _buffer;
 }

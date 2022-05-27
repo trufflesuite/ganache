@@ -16,7 +16,7 @@ export class Quantity extends BaseJsonRpcType {
 
   constructor(value: JsonRpcInputArg, nullable?: boolean) {
     super(value);
-    if (typeof(value) === "string" && value === "0x") {
+    if (value === "0x") {
       throw new Error("Cannot wrap a 0x value as a json-rpc Quantity type; Quantity must contain at least one digit");
     }
     this._nullable = nullable;
@@ -27,10 +27,7 @@ export class Quantity extends BaseJsonRpcType {
       return this._nullable? this.bufferValue : Quantity.ZERO_VALUE_STRING;
     }
 
-    let firstNonZeroByte = 0;
-    for (firstNonZeroByte = 0; firstNonZeroByte < this.bufferValue.length; firstNonZeroByte++) {
-      if (this.bufferValue[firstNonZeroByte] !== 0) break;
-    }
+    const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
     // bufferValue is empty, or contains only 0 bytes
     if (firstNonZeroByte === this.bufferValue.length) {
@@ -55,7 +52,7 @@ export class Quantity extends BaseJsonRpcType {
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
     if (firstNonZeroByte > 0) {
-      return this.bufferValue.slice(firstNonZeroByte);
+      return this.bufferValue.subarray(firstNonZeroByte);
     } else {
       return this.bufferValue;
     }
@@ -85,14 +82,16 @@ export class Quantity extends BaseJsonRpcType {
 
     let result: number;
     if (length > 6) {
-      const trimmedBuffer = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.slice(this.bufferValue);
+      const trimmedBuffer = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.subarray(firstNonZeroByte, length);
       result = Number(bufferToBigInt(trimmedBuffer));
+
+      if (!Number.isSafeInteger(result)) {
+        console.warn(`0x${this.bufferValue.toString("hex")} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(16)}`);
+      }
     } else {
       result = this.bufferValue.readUIntBE(firstNonZeroByte, length);
     }
-    if (!Number.isSafeInteger(result)) {
-      console.warn(`0x${this.bufferValue.toString("hex")} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(16)}`);
-    }
+
     return result;
   }
 
