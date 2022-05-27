@@ -1,10 +1,13 @@
 import { Probot } from "probot";
+import QueryManager from "./query-manager";
 
 export = (app: Probot) => {
-  app.on("issues.opened", async (context) => {
-    const issueComment = context.issue({
-      body: "Thanks for opening this issue!",
-    });
-    await context.octokit.issues.createComment(issueComment);
+  app.on("issue_comment.created", async context => {
+    const { repo, owner } = context.repo();
+    const queryManager = new QueryManager(repo, owner, context);
+    const issue = context.payload.issue;
+    const pr = await queryManager.fetchPr(issue.number);
+    if (!pr) return;
+    }
   });
 };
