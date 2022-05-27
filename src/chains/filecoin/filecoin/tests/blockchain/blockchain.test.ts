@@ -19,6 +19,9 @@ describe("Blockchain", () => {
     before(async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5003
+          },
           logging: {
             logger: {
               log: () => {}
@@ -55,13 +58,15 @@ describe("Blockchain", () => {
     });
 
     it("creates multiple accounts", async () => {
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
       assert.strictEqual(accounts.length, 10);
       assert.notStrictEqual(accounts[0].address, accounts[1].address);
     });
 
     it("creates a configurable amount of accounts", async () => {
-      const accounts = await blockchain2.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain2.accountManager.getControllableAccounts();
       assert.strictEqual(accounts.length, 2);
     });
 
@@ -92,6 +97,9 @@ describe("Blockchain", () => {
 
       const blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           miner: {
             blockTime: 0.1
           },
@@ -126,6 +134,9 @@ describe("Blockchain", () => {
     it("creates an ipfs server", async () => {
       const blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           logging: {
             logger: {
               log: () => {}
@@ -172,6 +183,9 @@ describe("Blockchain", () => {
     it("advances state of in process deals on every block", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           miner: {
             mine: false
           },
@@ -189,7 +203,8 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
       const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -263,6 +278,9 @@ describe("Blockchain", () => {
     it("fully advances the state of in process deals when automining", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           miner: {
             blockTime: 0
           },
@@ -280,7 +298,8 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
       const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -323,6 +342,9 @@ describe("Blockchain", () => {
     it("creates the expected address from seed", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           wallet: {
             seed: "tim is a swell guy"
           },
@@ -334,7 +356,8 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.initialize();
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
 
       assert.strictEqual(accounts[0].address.value, expectedAddress);
     });
@@ -342,6 +365,9 @@ describe("Blockchain", () => {
     it("uses the seed to create a different level of determinism", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           wallet: {
             seed: "tim is a swell person"
           },
@@ -353,7 +379,8 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.initialize();
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
 
       assert.notStrictEqual(accounts[0].address.value, expectedAddress);
     });

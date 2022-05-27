@@ -56,8 +56,8 @@ export function GetConnector<T = any>(
         ? "@ganache/" + flavor.toString()
         : flavor.toString();
 
-    const { Connector } = eval("require")(pluginPackageName);
-    return new Connector(providerOptions, executor);
+    const pluginPackage = eval("require")(pluginPackageName);
+    return new pluginPackage.Connector(providerOptions, executor);
   } catch (e: any) {
     if (e.message.includes(`Cannot find module '${flavor}'`)) {
       // we print and exit rather than throw to prevent webpack output from being

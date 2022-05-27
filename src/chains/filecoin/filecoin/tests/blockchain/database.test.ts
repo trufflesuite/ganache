@@ -24,6 +24,9 @@ describe("Blockchain", () => {
     it("saves information to database", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           database: {
             dbPath
           },
@@ -67,6 +70,9 @@ describe("Blockchain", () => {
     it("resumes blockchain from prior state", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           database: {
             dbPath
           },
@@ -90,6 +96,9 @@ describe("Blockchain", () => {
     it("restores IPFS data from prior blockchain state", async () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
+          chain: {
+            ipfsPort: 5002
+          },
           database: {
             dbPath
           },

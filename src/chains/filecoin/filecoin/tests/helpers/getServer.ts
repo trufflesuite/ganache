@@ -10,6 +10,9 @@ const getServer = async (port: number, pluginServerOptionsConfig = null) => {
         host: "127.0.0.1",
         callback: filecoinCallback,
         ws: true
+      },
+      chain: {
+        ipfsPort: 5002
       }
     },
     pluginServerOptionsConfig
