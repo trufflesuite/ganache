@@ -10,10 +10,15 @@ export type {
   Provider,
   ServerOptions,
   ProviderOptions,
-  EthereumProvider,
-  FilecoinProvider,
+  Ethereum,
   _ExperimentalInfo
 } from "@ganache/core";
+
+// for backwards compatibility with previous versions of v7
+// we introduce a top-level `EthereumProvider`
+export { EthereumProvider } from "@ganache/core";
+import type { ConnectorsByName } from "@ganache/flavors";
+export type FilecoinProvider = ConnectorsByName["filecoin"];
 export {
   server,
   provider,

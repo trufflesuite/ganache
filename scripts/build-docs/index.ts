@@ -60,6 +60,7 @@ type Type = {
   elements: Type[];
   elementType: Type;
   value?: any;
+  declaration?: Child;
 };
 
 type Comment = {
@@ -271,7 +272,15 @@ function getTypeAsString(type: Type): string {
     case "array":
       return `${getTypeAsString(type.elementType)}[]`;
     case "reflection":
-      return "object";
+      if (type.declaration) {
+        return `{ ${type.declaration.children
+          .map(child => {
+            return `${child.name}: ${getTypeAsString(child.type)}`;
+          })
+          .join(", ")} }`;
+      } else {
+        return "object";
+      }
     case "intrinsic":
     case "reference":
       return x(type.name);
@@ -283,6 +292,10 @@ function getTypeAsString(type: Type): string {
       // outputs a string literal like `He said, "hello, world"!` as
       // the string `"He said, \"hello, world\"!"`
       return `"${type.value.replace(/"/g, '\\"')}"`;
+    case "intersection":
+      return type.types.map(getTypeAsString).join(" & ");
+    case "conditional":
+      return getTypeAsString((type as any).checkType);
     default:
       console.error(type);
       throw new Error(`Unhandled type: ${type.type}`);
@@ -295,13 +308,7 @@ function renderReturnType(method: Method) {
   if (signature.type.typeArguments.length) {
     let typeArgs = signature.type.typeArguments.map(getTypeAsString);
     typeArgs = typeArgs.map((arg: string) => {
-      if (arg.includes("Quantity")) {
-        return arg.replace("Quantity", "QUANTITY");
-      } else if (arg.includes("Data")) {
-        return arg.replace("Data", "DATA");
-      } else {
-        return arg;
-      }
+      return arg.replace(/Quantity/g, "QUANTITY").replace(/Data/g, "DATA");
     });
     returnType = `${returnType}<${typeArgs.join(", ")}>`;
   }

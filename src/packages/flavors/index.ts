@@ -1,13 +1,10 @@
 import {
   Connector as EthereumConnector,
-  Provider as EthereumProvider
+  EthereumProvider
 } from "@ganache/ethereum";
-export type {Provider as EthereumProvider} from "@ganache/ethereum";
-export type {Provider as FilecoinProvider} from "@ganache/filecoin";
-import type {
-  Connector as FilecoinConnector,
-  Provider as FilecoinProvider
-} from "@ganache/filecoin";
+export type { EthereumProvider, Ethereum } from "@ganache/ethereum";
+export type { FilecoinProvider } from "@ganache/filecoin";
+import type { FilecoinConnector, FilecoinProvider } from "@ganache/filecoin";
 import {
   EthereumDefaults,
   EthereumProviderOptions,
@@ -51,19 +48,19 @@ export type OptionsByName = {
 export type FlavorName = keyof ConnectorsByName;
 
 export type Connector = {
-  [K in keyof ConnectorsByName]: ConnectorsByName[K];
-}[keyof ConnectorsByName];
+  [K in FlavorName]: ConnectorsByName[K];
+}[FlavorName];
 
-export function GetConnector<T extends FlavorName>(
-  flavor: T,
-  providerOptions: Options<typeof flavor>,
+export function GetConnector<Flavor extends FlavorName>(
+  flavor: Flavor,
+  providerOptions: FlavorOptions<typeof flavor>,
   executor: Executor
-): ConnectorsByName[T] {
+): ConnectorsByName[Flavor] {
   if (flavor === DefaultFlavor) {
     return new EthereumConnector(
       providerOptions,
       executor
-    ) as ConnectorsByName[T];
+    ) as ConnectorsByName[Flavor];
   }
   try {
     switch (flavor) {
@@ -74,6 +71,7 @@ export function GetConnector<T extends FlavorName>(
         const f = eval("require")(flavor);
         const Connector: FilecoinConnector =
           typeof f.default != "undefined" ? f.default.Connector : f.Connector;
+        console.log(Connector, f);
         // @ts-ignore
         return new Connector(providerOptions, executor);
       }
@@ -117,8 +115,9 @@ type FilecoinOptions<T = "filecoin"> = {
   flavor: T;
 } & (FilecoinProviderOptions | FilecoinLegacyProviderOptions);
 
-export type Options<T extends "filecoin" | "ethereum"> = T extends "filecoin"
-  ? FilecoinOptions<T>
-  : T extends "ethereum"
-  ? EthereumOptions<T>
-  : never;
+export type FlavorOptions<T extends "filecoin" | "ethereum"> =
+  T extends "filecoin"
+    ? FilecoinOptions<T>
+    : T extends "ethereum"
+    ? EthereumOptions<T>
+    : never;

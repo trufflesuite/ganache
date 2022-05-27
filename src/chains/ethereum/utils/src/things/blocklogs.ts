@@ -18,6 +18,18 @@ export type BlockLog = [
   data: TransactionLog[2]
 ];
 
+export type Log = {
+  address: Address;
+  blockHash: Data;
+  blockNumber: Quantity;
+  data: Data | Data[];
+  logIndex: Quantity;
+  removed: boolean;
+  topics: Data | Data[];
+  transactionHash: Data;
+  transactionIndex: Quantity;
+};
+
 const _raw = Symbol("raw");
 const _logs = Symbol("logs");
 
@@ -54,7 +66,7 @@ export class BlockLogs {
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = (decode(data) as unknown) as [Buffer, BlockLog[]];
+      const decoded = decode(data) as unknown as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
   }
@@ -192,7 +204,7 @@ export class BlockLogs {
     logIndex: Quantity,
     blockHash: Data,
     blockNumber: Quantity
-  ) {
+  ): Log {
     const topics = log[4];
     const data = log[5];
 

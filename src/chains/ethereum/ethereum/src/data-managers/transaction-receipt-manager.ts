@@ -8,13 +8,13 @@ import {
   BUFFER_ZERO
 } from "@ganache/utils";
 import Blockchain from "../blockchain";
-import { TransactionReceipt } from "@ganache/ethereum-transaction";
+import { InternalTransactionReceipt } from "@ganache/ethereum-transaction";
 import { Address } from "@ganache/ethereum-address";
 
-export default class TransactionReceiptManager extends Manager<TransactionReceipt> {
+export default class TransactionReceiptManager extends Manager<InternalTransactionReceipt> {
   #blockchain: Blockchain;
   constructor(base: LevelUp, blockchain: Blockchain) {
-    super(base, TransactionReceipt);
+    super(base, InternalTransactionReceipt);
     this.#blockchain = blockchain;
   }
 
@@ -45,7 +45,7 @@ export default class TransactionReceiptManager extends Manager<TransactionReceip
         res.contractAddress == null
           ? BUFFER_EMPTY
           : Address.from(res.contractAddress).toBuffer();
-      return TransactionReceipt.fromValues(
+      return InternalTransactionReceipt.fromValues(
         status,
         cumulativeGasUsed,
         logsBloom,

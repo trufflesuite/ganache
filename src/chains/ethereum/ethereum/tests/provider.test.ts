@@ -3,7 +3,7 @@ import { join } from "path";
 import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
 import { Data, JsonRpcRequest } from "@ganache/utils";
 import Common from "@ethereumjs/common";
-import EthereumProvider from "../src/provider";
+import { EthereumProvider } from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
