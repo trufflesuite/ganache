@@ -562,7 +562,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const previousNumber = previousHeader.number.toBigInt() || 0n;
     const minerOptions = this.#options.miner;
     let qTimestamp: Quantity;
-    if (timestamp == null) {
+    if (timestamp != null) {
       qTimestamp = Quantity.from(timestamp);
     } else {
       const { timestampIncrement } = minerOptions;
