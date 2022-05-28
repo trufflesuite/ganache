@@ -39,6 +39,10 @@
   },
   "keywords": [
     "ganache",
+    "ganache-core",
+    "ganache-cli",
+    "@trufflesuite/ganache",
+    "@truffle/ganache",
     "ethereum",
     "evm",
     "blockchain",
