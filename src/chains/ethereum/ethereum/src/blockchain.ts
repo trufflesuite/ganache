@@ -544,7 +544,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     });
 
     await this.#blockBeingSavedPromise;
-    return;
   };
 
   coinbase: Address;
