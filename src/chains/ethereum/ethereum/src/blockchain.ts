@@ -538,6 +538,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     this.#blockBeingSavedPromise = this.#blockBeingSavedPromise.then(() => {
       const saveBlockProm = this.#saveNewBlock(blockData);
       saveBlockProm.then(this.#emitNewBlock);
+      // blockBeingSavedPromise should await the block being _saved_, but doesn't
+      // need to await the block being emitted.
       return saveBlockProm;
     });
 
