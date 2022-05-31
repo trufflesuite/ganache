@@ -71,17 +71,10 @@ describe("provider", () => {
         chain: { time },
         miner: { timestampIncrement }
       });
-      const accounts = await provider.send("eth_accounts");
-      const tx = { from: accounts[0], gas: "0xfffff" };
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [tx]
+      await provider.request({
+        method: "evm_mine",
+        params: []
       });
-      const receipt = await provider.request({
-        method: "eth_getTransactionReceipt",
-        params: [hash]
-      });
-      assert.notStrictEqual(receipt, null);
       const block = await provider.request({
         method: "eth_getBlockByNumber",
         params: ["latest", false]
@@ -144,23 +137,12 @@ describe("provider", () => {
         chain: { time },
         miner: { blockTime, timestampIncrement }
       });
-      const accounts = await provider.send("eth_accounts");
-      const tx = { from: accounts[0], gas: "0xfffff" };
       const subId = await provider.request({
         method: "eth_subscribe",
         params: ["newHeads"]
       });
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [tx]
-      });
       await provider.once("message");
       await provider.request({ method: "eth_unsubscribe", params: [subId] });
-      const receipt = await provider.request({
-        method: "eth_getTransactionReceipt",
-        params: [hash]
-      });
-      assert.notStrictEqual(receipt, null);
       const block = await provider.request({
         method: "eth_getBlockByNumber",
         params: ["latest", false]
