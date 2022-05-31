@@ -469,7 +469,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       transaction.finalize("confirmed", transaction.execException);
     });
 
-    if (this.#instamine && options.miner.instamine === "eager") {
+    if (options.miner.instamine === "eager") {
       // in eager instamine mode we must delay the broadcast of new blocks
       await new Promise(resolve => {
         // we delay emitting blocks and blockLogs because we need to allow for:
@@ -535,12 +535,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     storageKeys: StorageKeys;
     transactions: TypedTransaction[];
   }) => {
-    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
-      .then(() => this.#saveNewBlock(blockData))
-      .then(this.#emitNewBlock);
+    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise.then(() => {
+      const saveBlockProm = this.#saveNewBlock(blockData);
+      saveBlockProm.then(this.#emitNewBlock);
+      // blockBeingSavedPromise should await the block being _saved_, but doesn't
+      // need to await the block being emitted.
+      return saveBlockProm;
+    });
 
     await this.#blockBeingSavedPromise;
-    return;
   };
 
   coinbase: Address;
@@ -570,14 +573,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     timestamp?: number,
     onlyOneBlock: boolean = false
   ) => {
-    await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+    const transactions = await this.#miner.mine(
+      nextBlock,
+      maxTransactions,
+      onlyOneBlock
+    );
+    await this.#blockBeingSavedPromise;
     return {
-      transactions: await this.#miner.mine(
-        nextBlock,
-        maxTransactions,
-        onlyOneBlock
-      ),
+      transactions,
       blockNumber: nextBlock.header.number.toBuffer()
     };
   };
