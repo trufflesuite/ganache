@@ -1403,7 +1403,10 @@ describe("server", () => {
 
         const expectedResponses: MockSocketResponse[] = [
           // fits in a fragment
-          { fragment: Buffer.from("hello", "utf8"), method: "sendFragment" },
+          {
+            fragment: Buffer.from("hello", "utf8"),
+            method: "sendFirstFragment"
+          },
           // this second chunk is too large to fit in a single fragment (it is
           // larger than bufferSize), so it should be sent by itself.
           // Technically we _could_ copy parts of it into the previous fragment,
@@ -1411,7 +1414,7 @@ describe("server", () => {
           // this chunk as its own huge fragment.
           {
             fragment: Buffer.allocUnsafe(chunkSize + 1).fill(255),
-            method: "sendFirstFragment"
+            method: "sendFragment"
           },
           // fits in a fragment
           { fragment: Buffer.from("world", "utf8"), method: "sendLastFragment" }
