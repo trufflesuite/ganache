@@ -44,10 +44,11 @@ export function sendFragmented(
       // is "full"
       ws.sendFirstFragment(firstFragment as RecognizedString, useBinary);
       // at this point `maybeLastFragment` is the next fragment that should be
-      // sent `sendLastFragment` to send it. So we iterate over all fragments,
-      // sending the _previous_ fragment while caching the current (next)
-      // fragment to be send in the next iteration, or via `sendLastFragment`
-      // when `nextFragment` is also the last one.
+      // sent. We iterate over all fragments, sending the _previous_ fragment
+      // (`maybeLastFragment`) then cache the current fragment (`fragment`)
+      // in the `maybeLastFragment` variable, which will be sent in the next
+      // iteration, or via `sendLastFragment`, below, if `fragment` was also the
+      // very last one.
       for (const fragment of fragments) {
         // definitely not the last fragment, send it!
         ws.sendFragment(maybeLastFragment as RecognizedString, shouldCompress);
