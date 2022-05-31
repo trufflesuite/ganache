@@ -36,35 +36,28 @@ describe("provider", () => {
       const options = provider.getOptions();
       assert(options.miner.timestampIncrement, "clock");
 
-      const accounts = await provider.send("eth_accounts");
-      const tx = { from: accounts[0], gas: "0xfffff" };
-      const sentAfter = Math.floor(Date.now() / 1000);
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [tx]
+      const timeBeforeMiningBlock = Math.floor(Date.now() / 1000);
+      await provider.request({
+        method: "evm_mine",
+        params: []
       });
-      const receipt = await provider.request({
-        method: "eth_getTransactionReceipt",
-        params: [hash]
-      });
-      assert.notStrictEqual(receipt, null);
-      const sentBefore = Math.floor(Date.now() / 1000);
+      const timeAfterMiningBlock = Math.floor(Date.now() / 1000);
       const block = await provider.request({
         method: "eth_getBlockByNumber",
-        params: [receipt.blockNumber, false]
+        params: ["latest", false]
       });
-      // the `block.timestamp` can be the same as `sentAfter` and/or
-      // `sentBefore` because the precision of `block.timestamp` is 1 second
-      // (floored), and mining happens much quicker than 1 second.
+      // the `block.timestamp` can be the same as `timeBeforeMiningBlock` and/or
+      // `timeAfterMiningBlock` because the precision of `block.timestamp` is 1
+      // second (floored), and mining happens much quicker than 1 second.
       assert(
-        parseInt(block.timestamp) >= sentAfter,
-        `block wasn't mined at the right time, should have been on or after ${sentAfter}, was ${parseInt(
+        parseInt(block.timestamp) >= timeBeforeMiningBlock,
+        `block wasn't mined at the right time, should have been on or after ${timeBeforeMiningBlock}, was ${parseInt(
           block.timestamp
         )}`
       );
       assert(
-        parseInt(block.timestamp) <= sentBefore,
-        `block wasn't mined at the right time, should have been on or before ${sentAfter}, was ${parseInt(
+        parseInt(block.timestamp) <= timeAfterMiningBlock,
+        `block wasn't mined at the right time, should have been on or before ${timeAfterMiningBlock}, was ${parseInt(
           block.timestamp
         )}`
       );
@@ -121,7 +114,8 @@ describe("provider", () => {
       await provider.disconnect();
       await fakeMainnet.disconnect();
     });
-    it("uses the `time` option for the first block even when when `timestampIncrement` is not 'clock' when forking", async () => {
+
+    it("uses the `time` option for the first block even when `timestampIncrement` is not 'clock' when forking", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5;
       const fakeMainnet = await getProvider({
