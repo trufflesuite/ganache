@@ -193,6 +193,10 @@ describe("types", () => {
   it("accepts correct types for evm_mine", async () => {
     MockRequest<"evm_mine">({
       method: "evm_mine",
+      params: []
+    });
+    MockRequest<"evm_mine">({
+      method: "evm_mine",
       params: [{ timestamp: 123456, blocks: 1 }]
     });
     MockRequest<"evm_mine">({
