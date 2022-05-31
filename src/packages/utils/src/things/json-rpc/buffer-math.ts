@@ -1,4 +1,6 @@
 
+import {BUFFER_EMPTY, BUFFER_ZERO} from "../../utils/constants";
+
 let workingBuffer = Buffer.allocUnsafe(128);
 let workingBufferMaxIndex = workingBuffer.length - 1;
 
@@ -26,7 +28,7 @@ function reallocateWorkingBuffer(usedSize: number) {
 
 export function addNumberToBuffer(buff: Buffer, addend: number) {
   if (addend === 0 && buff.length === 0) {
-    return Buffer.alloc(1);
+    return BUFFER_ZERO;
   }
 
   const buffLength = buff.length;
@@ -53,7 +55,7 @@ export function addNumberToBuffer(buff: Buffer, addend: number) {
 
 export function addBigIntToBuffer(buff: Buffer, addend: bigint) {
   if (addend === 0n && buff.length === 0) {
-    return Buffer.alloc(1);
+    return BUFFER_ZERO;
   }
 
   const buffLength = buff.length;
