@@ -3,6 +3,7 @@ import assert from "assert";
 import { Data, Quantity } from "@ganache/utils";
 import { EthereumProvider } from "../../../src/provider";
 import { Transaction } from "@ganache/ethereum-transaction";
+import memdown from "memdown";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;
@@ -131,6 +132,37 @@ describe("api", () => {
         await provider.send("evm_mine");
         const currentBlock = parseInt(await provider.send("eth_blockNumber"));
         assert.strictEqual(currentBlock, initialBlock + 1);
+      });
+
+      it("should save the block before returning", async () => {
+        // slow down memdown's _batch function to consistently reproduce a past
+        // race condition where a block was mined and returned by evm_mine
+        // before it actually saved to the database. for history, the race
+        // condition issue is documented here:
+        // https://github.com/trufflesuite/ganache/issues/3060
+        const db = memdown();
+        let customBatchCalled = false;
+        db._batch = (...args) => {
+          setTimeout(() => {
+            customBatchCalled = true;
+            Reflect.apply(memdown.prototype._batch, db, args);
+          }, 20);
+        };
+
+        const options = { database: { db } };
+        const provider = await getProvider(options);
+        await provider.request({ method: "evm_mine", params: [{}] });
+
+        const block = await provider.request({
+          method: "eth_getBlockByNumber",
+          params: [`0x1`]
+        });
+        assert(
+          block,
+          `the block doesn't exist. evm_mine returned before saving the block`
+        );
+        // make sure our patch works
+        assert(customBatchCalled);
       });
     });
 
