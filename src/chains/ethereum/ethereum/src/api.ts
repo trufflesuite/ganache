@@ -292,6 +292,7 @@ export default class EthereumApi implements Api {
    * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
+  async evm_mine(): Promise<"0x0">;
   async evm_mine(timestamp: number): Promise<"0x0">;
   async evm_mine(options: Ethereum.MineOptions): Promise<"0x0">;
   @assertArgLength(0, 1)

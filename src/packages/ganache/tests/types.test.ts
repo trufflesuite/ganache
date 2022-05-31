@@ -1,4 +1,4 @@
-import { Ethereum } from "../"; // <- same as `from "ganache"`
+import { Ethereum, Provider } from "../"; // <- same as `from "ganache"`
 
 //#region type helpers
 /**
@@ -57,7 +57,12 @@ type TuplifyUnion<
   : NormalizeBoolean<Push<TuplifyUnion<Exclude<U, L>>, L>>;
 
 // mock an instance of our Ethereum provider
-declare const Provider: Ethereum.Provider;
+const Provider: Ethereum.Provider = {
+  // a noop mock `request` method just for testing types
+  request: () => {}
+} as any;
+const MockRequest = Provider.request;
+
 // use the mocked provider instance to extract all its method names
 type Method = Parameters<typeof Provider["request"]>[0]["method"];
 
@@ -179,5 +184,24 @@ describe("types", () => {
 
   it("returns the type for eth_getBlockByHash", async () => {
     expectMethodReturn<"eth_getBlockByHash", Ethereum.Block, 1>();
+  });
+
+  it("returns the type for evm_mine", async () => {
+    expectMethodReturn<"evm_mine", "0x0", 1>();
+  });
+
+  it("accepts correct types for evm_mine", async () => {
+    MockRequest<"evm_mine">({
+      method: "evm_mine",
+      params: [{ timestamp: 123456, blocks: 1 }]
+    });
+    MockRequest<"evm_mine">({
+      method: "evm_mine",
+      params: [{ blocks: 1 }]
+    });
+    MockRequest<"evm_mine">({
+      method: "evm_mine",
+      params: [123456]
+    });
   });
 });
