@@ -1262,6 +1262,37 @@ describe("server", () => {
     });
 
     describe("bufferification", () => {
+      type MockSocketResponse = {
+        fragment: Buffer;
+        method: "sendFirstFragment" | "sendFragment" | "sendLastFragment";
+      };
+
+      /**
+       * @param actual the actual response from the (mock) socket
+       * @param expected the results we expect
+       */
+      function assertMockSocketResults(
+        actual: MockSocketResponse[],
+        expected: MockSocketResponse[]
+      ) {
+        assert.strictEqual(
+          actual.length,
+          expected.length,
+          "too many/few fragments were received"
+        );
+        expected.forEach(({ fragment, method }, i) => {
+          assert.strictEqual(
+            actual[i].fragment.toString("utf8"),
+            fragment.toString("utf8"),
+            `response at index ${i} was not correct`
+          );
+          assert.strictEqual(
+            actual[i].method,
+            method,
+            `method at index ${i} was not correct`
+          );
+        });
+      }
       it("responds over websockets when bufferification is triggered", async () => {
         // this test needs to set BUFFERIFY_THRESHOLD before starting the server
         await teardown();
@@ -1363,34 +1394,40 @@ describe("server", () => {
           for (const chunk of chunks) yield chunk;
         };
         sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
-        assert.strictEqual(sendCallCount, 1, "send called too many times!");
+        assert.strictEqual(sendCallCount, 1, "send called too few/many times!");
       });
 
       it("handles small+large+small bufferification edge-case", () => {
         // the code path this triggers would be very difficult to trigger in an
         // integration test, so we are testing the method directly instead.
 
-        const expectedResponses = [
+        const expectedResponses: MockSocketResponse[] = [
           // fits in a fragment
-          Buffer.from("hello", "utf8"),
+          { fragment: Buffer.from("hello", "utf8"), method: "sendFragment" },
           // this second chunk is too large to fit in a single fragment (it is
           // larger than bufferSize), so it should be sent by itself.
           // Technically we _could_ copy parts of it into the previous fragment,
           // but we haven't tested if this would be better or worse than sending
           // this chunk as its own huge fragment.
-          Buffer.allocUnsafe(chunkSize + 1).fill(255),
+          {
+            fragment: Buffer.allocUnsafe(chunkSize + 1).fill(255),
+            method: "sendFirstFragment"
+          },
           // fits in a fragment
-          Buffer.from("world", "utf8")
+          { fragment: Buffer.from("world", "utf8"), method: "sendLastFragment" }
         ];
         const dataGenerator = function* () {
-          for (const response of expectedResponses) yield response;
+          for (const { fragment } of expectedResponses) yield fragment;
         };
-        const receivedFragments = [];
+        const receivedFragments: MockSocketResponse[] = [];
         const mockWebsocket: any = {
           cork: (callback: () => void) => callback(),
-          sendFragment: (value: string) => receivedFragments.push(value),
-          sendFirstFragment: (value: string) => receivedFragments.push(value),
-          sendLastFragment: (value: string) => receivedFragments.push(value),
+          sendFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFragment" }),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
           // if we are sending a multiple chunks `send` should NOT be used
           send: () => assert.fail("it should not have used `send`")
         };
@@ -1398,41 +1435,35 @@ describe("server", () => {
         // send the data!
         sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
 
-        assert.strictEqual(
-          receivedFragments.length,
-          3,
-          "too many/few fragments were received"
-        );
-        expectedResponses.forEach((expectedResponse, i) => {
-          assert.strictEqual(
-            receivedFragments[i].toString("utf8"),
-            expectedResponse.toString("utf8"),
-            `response at index ${i} was not correct`
-          );
-        });
+        assertMockSocketResults(receivedFragments, expectedResponses);
       });
 
       it("handles large+small bufferification edge-case", () => {
         // we should receive 2 fragments, the first of which is very large and
         // must be sent by itself, the second of which is very tiny.
 
-        const expectedResponses = [
+        const expectedResponses: MockSocketResponse[] = [
           // this first chunk is too large to fit in a single fragment (it is
           // larger than chunkSize), so it should be sent by itself.
-          Buffer.allocUnsafe(chunkSize + 1).fill(255),
+          {
+            fragment: Buffer.allocUnsafe(chunkSize + 1).fill(255),
+            method: "sendFirstFragment"
+          },
           // fits in a fragment
-          Buffer.from("world", "utf8")
+          { fragment: Buffer.from("world", "utf8"), method: "sendLastFragment" }
         ];
         const dataGenerator = function* () {
-          for (const response of expectedResponses) yield response;
+          for (const { fragment } of expectedResponses) yield fragment;
         };
-        const receivedFragments = [];
+        const receivedFragments: MockSocketResponse[] = [];
         const mockWebsocket: any = {
           cork: (callback: () => void) => callback(),
-          sendFragment: (value: string) =>
+          sendFragment: (_: Buffer) =>
             assert.fail("it should not have used `sendFragment`"),
-          sendFirstFragment: (value: string) => receivedFragments.push(value),
-          sendLastFragment: (value: string) => receivedFragments.push(value),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
           // if we are sending a multiple chunks `send` should NOT be used
           send: () => assert.fail("it should not have used `send`")
         };
@@ -1440,38 +1471,35 @@ describe("server", () => {
         // send the data!
         sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
 
-        assert.strictEqual(
-          receivedFragments.length,
-          2,
-          "too many/few fragments were received"
-        );
-        expectedResponses.forEach((expectedResponse, i) => {
-          assert.strictEqual(
-            receivedFragments[i].toString("utf8"),
-            expectedResponse.toString("utf8"),
-            `response at index ${i} was not correct`
-          );
-        });
+        assertMockSocketResults(receivedFragments, expectedResponses);
       });
       it("handles large+large bufferification edge-case", () => {
         // we should receive 2 fragments.
 
-        const expectedResponses = [
+        const expectedResponses: MockSocketResponse[] = [
           // exactly 1 fragment
-          Buffer.allocUnsafe(chunkSize).fill(255),
+          {
+            fragment: Buffer.allocUnsafe(chunkSize).fill(255),
+            method: "sendFirstFragment"
+          },
           // exactly 1 fragment
-          Buffer.allocUnsafe(chunkSize).fill(255)
+          {
+            fragment: Buffer.allocUnsafe(chunkSize).fill(255),
+            method: "sendLastFragment"
+          }
         ];
         const dataGenerator = function* () {
-          for (const response of expectedResponses) yield response;
+          for (const { fragment } of expectedResponses) yield fragment;
         };
-        const receivedFragments = [];
+        const receivedFragments: MockSocketResponse[] = [];
         const mockWebsocket: any = {
           cork: (callback: () => void) => callback(),
-          sendFragment: (value: string) =>
+          sendFragment: (_: Buffer) =>
             assert.fail("it should not have used `sendFragment`"),
-          sendFirstFragment: (value: string) => receivedFragments.push(value),
-          sendLastFragment: (value: string) => receivedFragments.push(value),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
           // if we are sending a multiple chunks `send` should NOT be used
           send: () => assert.fail("it should not have used `send`")
         };
@@ -1479,18 +1507,7 @@ describe("server", () => {
         // send the data!
         sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
 
-        assert.strictEqual(
-          receivedFragments.length,
-          2,
-          "too many/few fragments were received"
-        );
-        expectedResponses.forEach((expectedResponse, i) => {
-          assert.strictEqual(
-            receivedFragments[i].toString("utf8"),
-            expectedResponse.toString("utf8"),
-            `response at index ${i} was not correct`
-          );
-        });
+        assertMockSocketResults(receivedFragments, expectedResponses);
       });
 
       it("handles small+small+large bufferification edge-case", () => {
@@ -1505,23 +1522,28 @@ describe("server", () => {
           // it should be sent by itself.
           Buffer.allocUnsafe(chunkSize - 5).fill(255)
         ];
-        const expectedResponses = [
+        const expectedResponses: MockSocketResponse[] = [
           // fits in a first fragment
-          Buffer.concat(chunks.slice(0, 2)),
+          {
+            fragment: Buffer.concat(chunks.slice(0, 2)),
+            method: "sendFirstFragment"
+          },
           // this last chunk is too large to fit in a the previous fragment, so
           // it should be sent by itself.
-          chunks[2]
+          { fragment: chunks[2], method: "sendLastFragment" }
         ];
         const dataGenerator = function* () {
           for (const chunk of chunks) yield chunk;
         };
-        const receivedFragments = [];
+        const receivedFragments: MockSocketResponse[] = [];
         const mockWebsocket: any = {
           cork: (callback: () => void) => callback(),
-          sendFragment: (value: string) =>
+          sendFragment: (_: Buffer) =>
             assert.fail("it should not have used `sendFragment`"),
-          sendFirstFragment: (value: string) => receivedFragments.push(value),
-          sendLastFragment: (value: string) => receivedFragments.push(value),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
           // if we are sending a multiple chunks `send` should NOT be used
           send: () => assert.fail("it should not have used `send`")
         };
@@ -1529,18 +1551,7 @@ describe("server", () => {
         // send the data!
         sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
 
-        assert.strictEqual(
-          receivedFragments.length,
-          2,
-          "too many/few fragments were received"
-        );
-        expectedResponses.forEach((expectedResponse, i) => {
-          assert.strictEqual(
-            receivedFragments[i].toString("utf8"),
-            expectedResponse.toString("utf8"),
-            `response at index ${i} was not correct`
-          );
-        });
+        assertMockSocketResults(receivedFragments, expectedResponses);
       });
     });
 
