@@ -1,7 +1,8 @@
 import { bufferToBigInt } from "../../utils/buffer-to-bigint";
 import { BaseJsonRpcType } from "./json-rpc-base-types";
-import { JsonRpcInputArg } from "./input-parsers";
+import { JsonRpcInputArg, parseAndValidateStringInput } from "./input-parsers";
 import { BUFFER_EMPTY, BUFFER_ZERO } from "../../utils/constants";
+import { addBigIntToBuffer, addNumberToBuffer, addUint8ArrayToBuffer } from "./buffer-math";
 
 export class Quantity extends BaseJsonRpcType {
   public static Empty = Quantity.from(BUFFER_EMPTY, true);
@@ -129,6 +130,31 @@ export class Quantity extends BaseJsonRpcType {
       if (this.bufferValue[firstNonZeroByte] !== 0) break;
     }
     return firstNonZeroByte;
+  }
+
+  public add(to: JsonRpcInputArg | Quantity): Quantity {
+    const type = typeof to;
+
+    let buff;
+    if (type === "number") {
+      buff = addNumberToBuffer(this.bufferValue, to as number);
+    }  else if (type === "bigint") {
+      buff = addBigIntToBuffer(this.bufferValue, to as bigint);
+    } else if (type === "string") {
+      const toBuffer = parseAndValidateStringInput(to as string);
+      buff = addUint8ArrayToBuffer(this.bufferValue, toBuffer);
+    } else if (to instanceof Quantity) {
+      buff = addUint8ArrayToBuffer(this.bufferValue, (to as Quantity).bufferValue);
+    } else if (to instanceof Uint8Array) {
+      // this includes Buffer
+      buff = addUint8ArrayToBuffer(this.bufferValue, to as Uint8Array);
+    }
+
+    if (buff === undefined) {
+      throw new Error(`Cannot add a value of type ${type} to a Quantity`);
+    }
+
+    return new Quantity(buff, this._nullable);
   }
 
   static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer {

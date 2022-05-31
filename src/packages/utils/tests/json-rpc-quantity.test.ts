@@ -186,4 +186,40 @@ describe("json-rpc-quantity", () => {
       });
     });
   });
+  
+  describe("add()", () => {
+    // More comprehensive cases covered in ./buffer-math.test.ts
+    [
+      2,
+      2n,
+      "0x02",
+      Buffer.from([0x02])
+    ].forEach(addend => {
+      it(`should return a Quantity with the correct value, when adding a ${Buffer.isBuffer(addend)? "Buffer": typeof addend}`, () => {
+        const a = 1;
+        const quantity = new Quantity(a);
+        const sum = quantity.add(addend);
+
+        assert.equal(sum.toNumber(), 3);
+      });
+    });
+
+    it("should return a new Quantity instance", () => {
+      [true,false].forEach(nullable => {
+        const quantity = new Quantity(1, nullable);
+        const sum = quantity.add(1);
+
+        assert.notStrictEqual(quantity, sum);
+      });
+    });
+
+    it("should return a Quantity with the same nullable value", () => {
+      [true,false].forEach(nullable => {
+        const quantity = new Quantity(1, nullable);
+        const sum = quantity.add(1);
+
+        assert.equal(sum._nullable, nullable);
+      });
+    });
+  });
 });
