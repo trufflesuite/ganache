@@ -4,6 +4,8 @@ import {BUFFER_EMPTY, BUFFER_ZERO} from "../../utils/constants";
 let workingBuffer = Buffer.allocUnsafe(128);
 let workingBufferMaxIndex = workingBuffer.length - 1;
 
+const MAX_SAFE_ADDEND = Number.MAX_SAFE_INTEGER - 0xff
+
 export function getWorkingBufferSize(): number {
   return workingBuffer.length;
 }
@@ -27,6 +29,11 @@ function reallocateWorkingBuffer(usedSize: number) {
 }
 
 export function addNumberToBuffer(buff: Buffer, addend: number) {
+  if (addend > MAX_SAFE_ADDEND) {
+    // numbers larger than MAX_SAFE_ADDEND may overflow, so we convert to bigint which is slightly slower
+    return addBigIntToBuffer(buff, BigInt(addend));
+  }
+
   if (addend === 0 && buff.length === 0) {
     return BUFFER_ZERO;
   }
