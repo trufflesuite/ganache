@@ -1514,8 +1514,8 @@ describe("server", () => {
       });
 
       it("handles small+small+large bufferification edge-case", () => {
-        // we should receive 2 fragments, the first of which is very large and
-        // must be sent by itself, the second of which is very tiny.
+        // we should receive 2 fragments, the first of which is small and
+        // the second of which is large and must be sent by itself.
         const chunks = [
           // fits in a first fragment
           Buffer.from("hello", "utf8"),
