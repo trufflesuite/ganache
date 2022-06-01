@@ -294,17 +294,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       {
         // create first block
-        let firstBlockTime: number;
-        if (options.chain.time != null) {
-          // If we were given a timestamp, use it instead of the current time
-          const time = options.chain.time.getTime();
-          firstBlockTime = Math.floor(time / 1000);
-          this.setTime(time);
-        } else {
-          options.chain.time = new Date();
-          firstBlockTime = Math.floor(options.chain.time.getTime() / 1000);
-          // we don't need to call `this.setTime(time)` in this case because the
-          // offset is always 0
+
+        // if we don't have a time form the user get one now
+        if (options.chain.time == null) options.chain.time = new Date();
+
+        const timestamp = options.chain.time.getTime();
+        const firstBlockTime = Math.floor(timestamp / 1000);
+
+        // if we are using clock time we need to record the time offset so
+        // other blocks can have timestamps relative to our initial time.
+        if (options.miner.timestampIncrement === "clock") {
+          this.setTimeDiff(timestamp, Date.now());
         }
 
         // if we don't already have a latest block, create a genesis block!
@@ -561,26 +561,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const previousHeader = previousBlock.header;
     const previousNumber = previousHeader.number.toBigInt() || 0n;
     const minerOptions = this.#options.miner;
-    let qTimestamp: Quantity;
-    if (timestamp != null) {
-      qTimestamp = Quantity.from(timestamp);
-    } else {
-      const { timestampIncrement } = minerOptions;
-      if (timestampIncrement === "clock") {
-        qTimestamp = Quantity.from(this.#currentTime());
-      } else {
-        qTimestamp = Quantity.from(
-          previousHeader.timestamp.toBigInt() + timestampIncrement.toBigInt()
-        );
-      }
+    if (timestamp == null) {
+      timestamp = this.#adjustedTime(previousHeader.timestamp);
     }
+
     return new RuntimeBlock(
       Quantity.from(previousNumber + 1n),
       previousBlock.hash(),
       this.coinbase,
       minerOptions.blockGasLimit.toBuffer(),
       BUFFER_ZERO,
-      qTimestamp,
+      Quantity.from(timestamp),
       minerOptions.difficulty,
       previousHeader.totalDifficulty,
       Block.calcNextBaseFee(previousBlock)
@@ -794,32 +785,50 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       }));
   };
 
+  /**
+   * The number of milliseconds time should be adjusted by when computing the
+   * "time" for a block.
+   */
   #timeAdjustment: number = 0;
 
   /**
    * Returns the timestamp, adjusted by the timeAdjustment offset, in seconds.
+   * @param precedingTimestamp - the timestamp of the block to be used as the
+   * time source if `timestampIncrement` is not "clock".
    */
-  #currentTime = () => {
-    return Math.floor((Date.now() + this.#timeAdjustment) / 1000);
+  #adjustedTime = (precedingTimestamp: Quantity) => {
+    const timeAdjustment = this.#timeAdjustment;
+    const timestampIncrement = this.#options.miner.timestampIncrement;
+    if (timestampIncrement === "clock") {
+      return Math.floor((Date.now() + timeAdjustment) / 1000);
+    } else {
+      return (
+        precedingTimestamp.toNumber() +
+        Math.floor(timeAdjustment / 1000) +
+        timestampIncrement.toNumber()
+      );
+    }
   };
 
   /**
-   * @param seconds -
+   * @param milliseconds - the number of milliseconds to adjust the time by.
+   * Negative numbers are treated as 0.
    * @returns the total time offset *in milliseconds*
    */
-  public increaseTime(seconds: number) {
-    if (seconds < 0) {
-      seconds = 0;
+  public increaseTime(milliseconds: number) {
+    if (milliseconds < 0) {
+      milliseconds = 0;
     }
-    return (this.#timeAdjustment += seconds);
+    return (this.#timeAdjustment += milliseconds);
   }
 
   /**
-   * @param seconds -
+   * @param newTime - the number of milliseconds to adjust the time by. Can be negative.
+   * @param sourceTime - the current time in milliseconds
    * @returns the total time offset *in milliseconds*
    */
-  public setTime(timestamp: number) {
-    return (this.#timeAdjustment = timestamp - Date.now());
+  public setTimeDiff(newTime: number, sourceTime: number) {
+    return (this.#timeAdjustment = newTime - sourceTime);
   }
 
   #deleteBlockData = async (

@@ -34,7 +34,7 @@ describe("provider", () => {
     it("uses the default 'clock' time for the `timestampIncrement` option", async () => {
       const provider = await getProvider();
       const options = provider.getOptions();
-      assert(options.miner.timestampIncrement, "clock");
+      assert.strictEqual(options.miner.timestampIncrement, "clock");
 
       const timeBeforeMiningBlock = Math.floor(Date.now() / 1000);
       await provider.request({
@@ -81,8 +81,63 @@ describe("provider", () => {
       });
       assert.strictEqual(
         parseInt(block.timestamp),
-        +time / 1000 + timestampIncrement
+        Math.floor(+time / 1000) + timestampIncrement
       );
+      await provider.disconnect();
+    });
+
+    it("uses time adjustment after evm_setTime when timestampIncrement is used", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5;
+      const fastForward = 100 * 1000; // 100 seconds
+      const provider = await getProvider({
+        chain: { time },
+        miner: { timestampIncrement }
+      });
+      await provider.request({
+        method: "evm_setTime",
+        // fastForward into the future
+        params: [`0x${(fastForward + +time).toString(16)}`]
+      });
+      await provider.request({
+        method: "evm_mine",
+        params: []
+      });
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      const expectedTime =
+        Math.floor((fastForward + +time) / 1000) + timestampIncrement;
+      assert.strictEqual(parseInt(block.timestamp), expectedTime);
+
+      await provider.disconnect();
+    });
+
+    it("uses time adjustment after evm_increaseTime when timestampIncrement is used", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5; // seconds
+      const fastForward = 100; // seconds
+      const provider = await getProvider({
+        chain: { time },
+        miner: { timestampIncrement }
+      });
+      await provider.request({
+        method: "evm_increaseTime",
+        // fastForward into the future, evm_increaseTime param is in seconds
+        params: [`0x${fastForward.toString(16)}`]
+      });
+      await provider.request({
+        method: "evm_mine",
+        params: []
+      });
+      const block = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      const expectedTime =
+        Math.floor(+time / 1000) + fastForward + timestampIncrement;
+      assert.strictEqual(parseInt(block.timestamp), expectedTime);
       await provider.disconnect();
     });
 

@@ -551,19 +551,28 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async evm_setTime(time: number | QUANTITY | Date) {
-    let t: number;
+    let timestamp: number;
     switch (typeof time) {
       case "object":
-        t = time.getTime();
+        timestamp = time.getTime();
         break;
       case "number":
-        t = time;
+        timestamp = time;
         break;
       default:
-        t = Quantity.from(time).toNumber();
+        timestamp = Quantity.from(time).toNumber();
         break;
     }
-    return Math.floor(this.#blockchain.setTime(t) / 1000);
+    const blockchain = this.#blockchain;
+    // when using clock time use Date.now(), otherwise use the timestamp of the
+    // current latest block
+    const currentTime =
+      this.#options.miner.timestampIncrement === "clock"
+        ? Date.now()
+        : blockchain.blocks.latest.header.timestamp.toNumber() * 1000;
+    const offsetMilliseconds = blockchain.setTimeDiff(timestamp, currentTime);
+    // convert offsetMilliseconds to seconds:
+    return Math.floor(offsetMilliseconds / 1000);
   }
 
   /**

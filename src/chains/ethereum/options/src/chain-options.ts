@@ -76,7 +76,7 @@ export type ChainConfig = {
      * The id of the network returned by the RPC method `net_version`.
      *
      * Defaults to the current timestamp, via JavaScript's `Date.now()` (the
-     * number of millisconds since the UNIX epoch).
+     * number of milliseconds since the UNIX epoch).
      *
      * @defaultValue Date.now()
      */
