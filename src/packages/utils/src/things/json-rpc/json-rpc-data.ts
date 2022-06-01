@@ -43,7 +43,7 @@ export class Data extends BaseJsonRpcType {
     return length === undefined? this.bufferValue: Data.bufferToFixedByteLength(this.bufferValue, length);
   }
 
-  public static from(value: JsonRpcDataInputArg, byteLength?: number) {
+  public static from(value: JsonRpcDataInputArg | Data, byteLength?: number) {
     if (value instanceof Data) {
       return value;
     }

@@ -904,11 +904,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   public async revert(snapshotId: Quantity) {
-    const rawValue = snapshotId.valueOf();
-    if (rawValue === null || rawValue === undefined) {
+    if (snapshotId.isNull()) {
       throw new Error("invalid snapshotId");
     }
 
+    const rawValue = snapshotId.toBigInt();
     this.#options.logging.logger.log("Reverting to snapshot #" + snapshotId);
 
     // snapshot ids can't be < 1, so we do a quick sanity check here

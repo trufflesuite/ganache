@@ -13,7 +13,7 @@ export class Quantity extends BaseJsonRpcType {
 
   _nullable: boolean = false;
 
-  public static from(value: JsonRpcInputArg, nullable = false) {
+  public static from(value: JsonRpcInputArg | Quantity, nullable = false) {
     if (value instanceof Quantity) return value;
     return new Quantity(value, nullable);
   }
@@ -28,7 +28,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public toString(): string | null {
     if (this.bufferValue == null) {
-      return this._nullable? this.bufferValue : Quantity.ZERO_VALUE_STRING;
+      return this._nullable? <null>this.bufferValue : Quantity.ZERO_VALUE_STRING;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
@@ -64,7 +64,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public toBigInt(): bigint | null {
     if (this.bufferValue == null) {
-      return this._nullable ? this.bufferValue : 0n;
+      return this._nullable ? <null>this.bufferValue : 0n;
     }
     if (this.bufferValue.length === 0) {
       return 0n;
@@ -74,7 +74,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public toNumber() {
     if (this.bufferValue == null) {
-      return this._nullable ? this.bufferValue : 0;
+      return this._nullable ? <null>this.bufferValue : 0;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();

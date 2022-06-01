@@ -87,7 +87,7 @@ export function parseAndValidateBigIntInput(input: bigint): Buffer {
 export function parseAndValidateStringInput(input: string): Buffer {
   let hexValue = input.slice(2);
 
-  // hexValue must be an even number of hexidecimal characters in order to correctly decode in Buffer.from
+  // hexValue must be an even number of hexadecimal characters in order to correctly decode in Buffer.from
   // see: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
   if (hexValue.length & 1) {
     hexValue = `0${hexValue}`;
@@ -96,7 +96,8 @@ export function parseAndValidateStringInput(input: string): Buffer {
 
   const _buffer = Buffer.from(hexValue, "hex");
   if (input.slice(0, 2).toLowerCase() !== "0x" || _buffer.length !== byteLength) {
-    // Buffer.from will return an empty buffer if the input does not conform to hexidecimal encoding
+    // Buffer.from will return the result after encountering an input that does not conform to hexadecimal encoding.
+    // this means that an invalid input can never return a value with the expected bytelength.
     throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`);
   }
 
