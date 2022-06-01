@@ -500,7 +500,23 @@ export default class Miner extends Emittery<{
 
   #reset = () => {
     this.#origins.clear();
-    this.#priced.clear();
+    // HACK: see: https://github.com/trufflesuite/ganache/issues/3093
+    //
+    //When the priced heap is reset, meaning we're clearing out the heap
+    // and origins list to be set again when the miner is called, loop over
+    // the priced heap transactions and "unlock" them (set tx.locked = false)
+    //
+    // The real fix would include fixing the use of locked, as it's
+    // currently overloaded to mean "is in priced heap" and also "is being
+    // mined".
+    const priced = this.#priced;
+    const length = priced.length;
+    const pricedArray = priced.array;
+    for (let i = 0; i < length; i++) {
+      const bestFromOrigin = pricedArray[i];
+      bestFromOrigin.locked = false;
+    }
+    priced.clear();
     this.#isBusy = false;
   };
 
