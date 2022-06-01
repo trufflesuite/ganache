@@ -217,9 +217,10 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
     const transactor = await transactorPromise;
 
-    const cost =
-      transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
-      transaction.value.toBigInt();
+    const cost = transaction.gas.multiply(transaction.maxGasPrice())
+                                .add(transaction.value)
+                                .toBigInt();
+
     if (transactor.balance.toBigInt() < cost) {
       throw new CodedError(
         INSUFFICIENT_FUNDS,

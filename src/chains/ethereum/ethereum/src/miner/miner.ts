@@ -317,9 +317,7 @@ export default class Miner extends Emittery<{
 
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
-          const gasUsed = Quantity.from(
-            result.gasUsed.toArrayLike(Buffer)
-          ).toBigInt();
+          const gasUsed = Quantity.toBigInt(result.gasUsed.toArrayLike(Buffer));
           if (blockGasLeft >= gasUsed) {
             // if the transaction will fit in the block, commit it!
             await vm.stateManager.commit();

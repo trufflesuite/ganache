@@ -122,9 +122,7 @@ export class RuntimeBlock {
       coinbase: { buf: coinbaseBuffer, toBuffer: () => coinbaseBuffer },
       number: new BnExtra(number.toBuffer()),
       difficulty: new BnExtra(difficulty.toBuffer()),
-      totalDifficulty: Quantity.from(
-        previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
-      ).toBuffer(),
+      totalDifficulty: previousBlockTotalDifficulty.add(difficulty).toBuffer(),
       gasLimit: new BnExtra(gasLimit),
       gasUsed: new BnExtra(gasUsed),
       timestamp: new BnExtra(ts),

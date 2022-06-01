@@ -36,20 +36,18 @@ function normalizeEvent(event: InterpreterStep) {
 
   return {
     account: {
-      nonce: Quantity.from(account.nonce.toArrayLike(Buffer)).toBigInt(),
-      balance: Quantity.from(account.balance.toArrayLike(Buffer)).toBigInt(),
+      nonce: Quantity.toBigInt(account.nonce.toArrayLike(Buffer)),
+      balance: Quantity.toBigInt(account.balance.toArrayLike(Buffer)),
       stateRoot,
       codeHash
     },
     address,
     codeAddress,
     depth: BigInt(event.depth),
-    gasLeft: Quantity.from(event.gasLeft.toArrayLike(Buffer)).toBigInt(),
-    gasRefund: Quantity.from(event.gasRefund.toArrayLike(Buffer)).toBigInt(),
+    gasLeft: Quantity.toBigInt(event.gasLeft.toArrayLike(Buffer)),
+    gasRefund: Quantity.toBigInt(event.gasRefund.toArrayLike(Buffer)),
     memory,
-    memoryWordCount: Quantity.from(
-      event.memoryWordCount.toArrayLike(Buffer)
-    ).toBigInt(),
+    memoryWordCount: Quantity.toBigInt(event.memoryWordCount.toArrayLike(Buffer)),
     opcode: {
       name: opcode.name,
       fee: opcode.fee

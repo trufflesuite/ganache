@@ -144,8 +144,8 @@ export class LegacyTransaction extends RuntimeTransaction {
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.toBuffer(c));
+        const cost = gas.multiply(gasPrice).add(value);
+        return new BN(cost.toBuffer());
       },
       supports: (capability: Capability) => {
         return false;

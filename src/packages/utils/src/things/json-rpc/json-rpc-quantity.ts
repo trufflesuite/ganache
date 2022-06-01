@@ -5,6 +5,7 @@ import { BUFFER_EMPTY, BUFFER_ZERO } from "../../utils/constants";
 import { bigIntToBuffer } from "../../utils/bigint-to-buffer";
 
 export class Quantity extends BaseJsonRpcType {
+  public static Null = Quantity.from(null, true);
   public static Empty = Quantity.from(BUFFER_EMPTY, true);
   public static Zero = Quantity.from(BUFFER_ZERO);
   public static One = Quantity.from(1);

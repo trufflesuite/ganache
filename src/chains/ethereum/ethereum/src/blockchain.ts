@@ -557,14 +557,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   #readyNextBlock = (previousBlock: Block, timestamp?: number) => {
     const previousHeader = previousBlock.header;
-    const previousNumber = previousHeader.number.toBigInt() || 0n;
     const minerOptions = this.#options.miner;
     if (timestamp == null) {
       timestamp = this.#adjustedTime(previousHeader.timestamp);
     }
 
     return new RuntimeBlock(
-      Quantity.from(previousNumber + 1n),
+      previousHeader.number.add(1n),
       previousBlock.hash(),
       this.coinbase,
       minerOptions.blockGasLimit.toBuffer(),
@@ -704,7 +703,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       }
       const genesis = new RuntimeBlock(
-        Quantity.from(fallbackBlock.header.number.toBigInt() + 1n),
+        fallbackBlock.header.number.add(1n),
         fallbackBlock.hash(),
         this.coinbase,
         blockGasLimit.toBuffer(),
@@ -1103,9 +1102,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         buf: caller
       } as any);
       fromAccount.nonce.iaddn(1);
-      const txCost = new BN(
-        (gasLimit * transaction.gasPrice.toBigInt()).toString()
-      );
+      const txCost = new BN(transaction.gasPrice.multiply(gasLimit).toBigInt().toString());
       fromAccount.balance.isub(txCost);
       await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
 
@@ -1385,7 +1382,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   } => {
     // Prepare the "next" block with necessary transactions
     const newBlock = new RuntimeBlock(
-      Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
+      parentBlock.header.number.add(1n),
       parentBlock.hash(),
       parentBlock.header.miner,
       parentBlock.header.gasLimit.toBuffer(),

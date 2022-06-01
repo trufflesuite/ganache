@@ -204,7 +204,7 @@ export async function* findClosestDescendants(
   height: Quantity
 ) {
   const generator = findRelated(db, request, {
-    gte: Tree.encodeKey(Quantity.from(height.toBigInt() + 1n), Data.Empty),
+    gte: Tree.encodeKey(height.add(1n), Data.Empty),
     reverse: false
   });
   for await (const node of generator) {

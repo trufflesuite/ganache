@@ -334,9 +334,9 @@ describe("api", () => {
           function makeKeys(address: string) {
             const addressBuf = Data.toBuffer(address);
             const pk = BigInt(wallet.createFakePrivateKey(address).toString());
-            const naivePk = Quantity.from(
+            const naivePk = Quantity.toBigInt(
               Buffer.concat([addressBuf, addressBuf.slice(0, 12)])
-            ).toBigInt();
+            );
             return { naivePk, pk };
           }
 

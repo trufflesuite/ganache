@@ -324,9 +324,7 @@ describe("transaction pool", async () => {
 
     // raise our replacement transaction's prices by exactly the price bump amount
     const originalMaxFee = Quantity.toBigInt(executableRpc.maxFeePerGas);
-    const originalTip = Quantity.from(
-      executableRpc.maxPriorityFeePerGas
-    ).toBigInt();
+    const originalTip = Quantity.toBigInt(executableRpc.maxPriorityFeePerGas);
     const maxFeePremium = originalMaxFee + (originalMaxFee * priceBump) / 100n;
     const tipPremium = originalTip + (originalTip * priceBump) / 100n;
     // our replacement transaction needs to have a sufficiently higher gasPrice
