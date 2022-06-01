@@ -346,18 +346,24 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         //#region automatic mining
         const nullResolved = Promise.resolve(null);
-        const mineAll = (maxTransactions: Capacity) =>
-          this.#isPaused() ? nullResolved : this.mine(maxTransactions);
+        const mineAll = (maxTransactions: Capacity, onlyOneBlock = false) =>
+          this.#isPaused()
+            ? nullResolved
+            : this.mine(maxTransactions, null, onlyOneBlock);
         if (instamine) {
           // insta mining
           // whenever the transaction pool is drained mine the txs into blocks
+          // only one transaction should be added per block
           txPool.on("drain", mineAll.bind(null, Capacity.Single));
         } else {
           // interval mining
           const wait = () =>
-            // unref, so we don't hold the chain open if nothing can interact with it
-            unref((this.#timer = setTimeout(next, minerOpts.blockTime * 1e3)));
-          const next = () => mineAll(Capacity.FillBlock).then(wait);
+            (this.#timer = setTimeout(next, minerOpts.blockTime * 1e3));
+          // when interval mining, only one block should be mined. the block
+          // can, however, be filled
+          const next = () => {
+            mineAll(Capacity.FillBlock, true).then(wait);
+          };
           wait();
         }
         //#endregion
