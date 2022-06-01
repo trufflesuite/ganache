@@ -1,5 +1,6 @@
 import assert from "assert";
 import { Quantity } from "../src/things/json-rpc/json-rpc-quantity";
+import * as fc from "fast-check";
 
 // note: variations on non-buffer inputs are covered in the tests in ./input-parsers.test.ts
 
@@ -187,30 +188,71 @@ describe("json-rpc-quantity", () => {
     });
   });
   
+  const invalidMathFunctionArguments = [
+    -1,
+    Infinity,
+    -Infinity,
+    NaN,
+    0.1,
+    -1n,
+    "-0x123",
+    "0xg",
+    "0.123",
+    "-123",
+    "0x0.1",
+    "0x-1",
+    "-0x1",
+  ];
+
   describe("add()", () => {
-    // More comprehensive cases covered in ./buffer-math.test.ts
-    [
-      2,
-      2n,
-      "0x02",
-      Buffer.from([0x02])
-    ].forEach(addend => {
-      it(`should return a Quantity with the correct value, when adding a ${Buffer.isBuffer(addend)? "Buffer": typeof addend}`, () => {
-        const a = 1;
-        const quantity = new Quantity(a);
+    it("should return the correct sum when adding a number", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.integer(), (qValue, addendValue) => {
+        const addend = Math.abs(addendValue);
+        const quantity = new Quantity(qValue);
         const sum = quantity.add(addend);
 
-        assert.equal(sum.toNumber(), 3);
-      });
+        assert.equal(sum.toBigInt(), qValue + BigInt(addend), `Incorrect sum adding ${addend} to ${quantity}. Expected ${qValue + BigInt(addend)}, got ${sum}`);
+      }));
+    });
+
+    it("should return the correct sum when adding a bigint", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, addend) => {
+        const quantity = new Quantity(qValue);
+        const sum = quantity.add(addend);
+
+        assert.equal(sum.toBigInt(), qValue + addend, `Incorrect sum adding ${addend} to ${quantity}. Expected ${qValue + BigInt(addend)}, got ${sum}`);
+      }));
+    });
+
+    it("should return the correct sum when adding a buffer", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, addendValue) => {
+        const quantity = new Quantity(qValue);
+        let addendHex = addendValue.toString(16);
+        if (addendHex.length & 1) {
+          addendHex = "0" + addendHex;
+        }
+        const addend = Buffer.from(addendHex, "hex");
+        const sum = quantity.add(addend);
+
+        assert.equal(sum.toBigInt(), qValue + addendValue, `Incorrect sum adding 0x${addend.toString("hex")} to ${quantity}. Expected ${qValue + addendValue}, got ${sum}`);
+      }));
+    });
+
+    it("should return the correct sum when adding a Quantity", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, addendValue) => {
+        const quantity = new Quantity(qValue);
+        const addend = Quantity.from(addendValue);
+        const sum = quantity.add(addend);
+
+        assert.equal(sum.toBigInt(), qValue + addendValue, `Incorrect sum adding ${addend} to ${quantity}. Expected ${qValue + addendValue}, got ${sum.toString()}`);
+      }));
     });
 
     it("should return a new Quantity instance", () => {
-      [true,false].forEach(nullable => {
-        const quantity = new Quantity(1, nullable);
-        const sum = quantity.add(1);
+      const quantity = new Quantity(1);
+      const sum = quantity.add(1);
 
-        assert.notStrictEqual(quantity, sum);
-      });
+      assert.notStrictEqual(quantity, sum);
     });
 
     it("should return a Quantity with the same nullable value", () => {
@@ -219,6 +261,81 @@ describe("json-rpc-quantity", () => {
         const sum = quantity.add(1);
 
         assert.equal(sum._nullable, nullable);
+      });
+    });
+
+    invalidMathFunctionArguments.forEach(input => {
+      const q = Quantity.from(1);
+      it(`should reject invalid value: ${input}`, () => {
+        assert.throws(() => q.add(input));
+      });
+    });
+  });
+
+  describe("multiply()", () => {
+    it("should return the correct product when multiplying by a number", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.integer(), (qValue, multiplierValue) => {
+        const multiplier = Math.abs(multiplierValue);
+        const quantity = new Quantity(qValue);
+        const product = quantity.multiply(multiplier);
+
+        assert.equal(product.toBigInt(), qValue * BigInt(multiplier), `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${qValue * BigInt(multiplier)}, got ${product}`);
+      }));
+    });
+
+    it("should return the correct product when multiplying by a bigint", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, multiplier) => {
+        const quantity = new Quantity(qValue);
+        const product = quantity.multiply(multiplier);
+
+        assert.equal(product.toBigInt(), qValue * BigInt(multiplier), `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${qValue * multiplier}, got ${product}`);
+      }));
+    });
+
+    it("should return the correct product when multiplying by a buffer", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, multiplierValue) => {
+        const quantity = new Quantity(qValue);
+        let multiplierHex = multiplierValue.toString(16);
+        if (multiplierHex.length & 1) {
+          multiplierHex = "0" + multiplierHex;
+        }
+        const multiplier = Buffer.from(multiplierHex, "hex");
+        const product = quantity.multiply(multiplier);
+
+        assert.equal(product.toBigInt(), qValue * multiplierValue, `Incorrect product multiplying ${quantity} by 0x${multiplier.toString("hex")}. Expected ${qValue * multiplierValue}, got ${product}`);
+      }));
+    });
+
+    it("should return the correct product when multiplying by a Quantity", () => {
+      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, multiplierValue) => {
+        const quantity = new Quantity(qValue);
+        const multiplier = Quantity.from(multiplierValue);
+        const product = quantity.multiply(multiplier);
+
+        assert.equal(product.toBigInt(), qValue * multiplierValue, `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${qValue * multiplierValue}, got ${product}`);
+      }));
+    });
+
+    it("should return a new Quantity instance", () => {
+      const quantity = new Quantity(1);
+      const product = quantity.multiply(1);
+
+      assert.notStrictEqual(quantity, product);
+    });
+
+    it("should return a Quantity with the same nullable value", () => {
+      [true,false].forEach(nullable => {
+        const quantity = new Quantity(1, nullable);
+        const product = quantity.multiply(1);
+
+        assert.equal(product._nullable, nullable);
+      });
+    });
+
+    invalidMathFunctionArguments.forEach(input => {
+      const q = Quantity.from(1);
+      it(`should reject invalid value: ${input}`, () => {
+        assert.throws(() => q.multiply(input));
       });
     });
   });

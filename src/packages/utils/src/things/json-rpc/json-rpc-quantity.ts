@@ -1,8 +1,8 @@
 import { bufferToBigInt } from "../../utils/buffer-to-bigint";
 import { BaseJsonRpcType } from "./json-rpc-base-types";
-import { JsonRpcInputArg, parseAndValidateStringInput } from "./input-parsers";
+import { JsonRpcInputArg } from "./input-parsers";
 import { BUFFER_EMPTY, BUFFER_ZERO } from "../../utils/constants";
-import { addBigIntToBuffer, addNumberToBuffer, addUint8ArrayToBuffer } from "./buffer-math";
+import { bigIntToBuffer } from "../../utils/bigint-to-buffer";
 
 export class Quantity extends BaseJsonRpcType {
   public static Empty = Quantity.from(BUFFER_EMPTY, true);
@@ -132,29 +132,73 @@ export class Quantity extends BaseJsonRpcType {
     return firstNonZeroByte;
   }
 
-  public add(to: JsonRpcInputArg | Quantity): Quantity {
-    const type = typeof to;
+  private static getArgumentAsBigInt(argument: JsonRpcInputArg | Quantity): bigint {
+    const argumentType = typeof argument;
+    let argumentValue: bigint;
 
-    let buff;
-    if (type === "number") {
-      buff = addNumberToBuffer(this.bufferValue, to as number);
-    }  else if (type === "bigint") {
-      buff = addBigIntToBuffer(this.bufferValue, to as bigint);
-    } else if (type === "string") {
-      const toBuffer = parseAndValidateStringInput(to as string);
-      buff = addUint8ArrayToBuffer(this.bufferValue, toBuffer);
-    } else if (to instanceof Quantity) {
-      buff = addUint8ArrayToBuffer(this.bufferValue, (to as Quantity).bufferValue);
-    } else if (to instanceof Uint8Array) {
-      // this includes Buffer
-      buff = addUint8ArrayToBuffer(this.bufferValue, to as Uint8Array);
+    if (argumentType === "number") {
+      const argumentNumber = argument as number;
+      if (argumentNumber < 0) {
+        throw new Error("Cannot wrap a negative value as a json-rpc type.");
+      }
+      if (argumentNumber % 1) {
+        throw new Error("Cannot wrap a decimal as a json-rpc type.");
+      }
+      if (!isFinite(argumentNumber)) {
+        throw new Error(`Cannot wrap ${argument} as a json-rpc type.`);
+      }
+      argumentValue = BigInt(argumentNumber);
+    }  else if (argumentType === "bigint") {
+      if (argument < 0n) {
+        throw new Error("Cannot wrap a negative number as a JSON-RPC type.");
+      }
+      argumentValue = argument as bigint;
+    } else if (argumentType === "string") {
+      if ((argument as string).slice(2).toLowerCase() !== "0x") {
+        throw new Error(`Cannot wrap "${argument}" as a JSON-RPC type; strings must be hex-encoded and prefixed with "0x".`);
+      }
+      argumentValue = BigInt(argument as string);
+    } else if (argument instanceof Quantity) {
+      argumentValue = argument.toBigInt();
+    } else if (Buffer.isBuffer(argument)) {
+      argumentValue = bufferToBigInt(argument);
     }
 
-    if (buff === undefined) {
-      throw new Error(`Cannot add a value of type ${type} to a Quantity`);
+    return argumentValue;
+  }
+
+  public add(addend: JsonRpcInputArg | Quantity): Quantity {
+    if (this.bufferValue.length === 0) {
+      return Quantity.from(addend, this._nullable);
     }
 
-    return new Quantity(buff, this._nullable);
+    const addendValue = Quantity.getArgumentAsBigInt(addend);
+
+    if (addendValue === undefined) {
+      throw new Error(`Cannot add ${addend} to a Quantity`);
+    }
+
+    const thisValue = this.toBigInt();
+
+    const sumBuffer = bigIntToBuffer(thisValue + addendValue);
+    return new Quantity(sumBuffer, this._nullable);
+  }
+
+  public multiply(multiplier: JsonRpcInputArg | Quantity): Quantity {
+    if (this.bufferValue.length === 0) {
+      return Quantity.Empty;
+    }
+
+    const multiplierValue = Quantity.getArgumentAsBigInt(multiplier);
+
+    if (multiplierValue === undefined) {
+      throw new Error(`Cannot multiply a Quantity by ${multiplier}`);
+    }
+
+    const thisValue = this.toBigInt();
+
+    const productBuffer = bigIntToBuffer(thisValue * multiplierValue);
+    return new Quantity(productBuffer, this._nullable);
   }
 
   static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer {
