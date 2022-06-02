@@ -13,7 +13,7 @@ const testData = [
 describe("json-rpc-data", () => {
   describe("constructor", () => {
     it("should create a Data", () => {
-      const input = Buffer.alloc(0);        
+      const input = Buffer.alloc(0);
       const data = new Data(input);
 
       assert(data instanceof Data);
@@ -37,11 +37,11 @@ describe("json-rpc-data", () => {
   });
 
   describe("toString()", () => {
-    it("should return nullish inputs", () => {
+    it('should return "0x" for nullish inputs', () => {
       [null, undefined].forEach(input => {
         const result = new Data(input).toString();
 
-        assert.strictEqual(result, input);
+        assert.strictEqual(result, "0x");
       });
     });
 

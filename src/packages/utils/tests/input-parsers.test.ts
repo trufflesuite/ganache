@@ -1,40 +1,11 @@
 import assert from "assert";
 import {
-  getParseAndValidateFor,
   parseAndValidateStringInput,
   parseAndValidateBigIntInput,
-  noopParseAndValidate,
   parseAndValidateNumberInput
 } from "../src/things/json-rpc/input-parsers";
 
 describe("json-rpc-input-parsers", () => {
-  describe("getParseAndValidateFor()", () => {
-    [
-      ["", parseAndValidateStringInput],
-      [1, parseAndValidateNumberInput],
-      [1n, parseAndValidateBigIntInput],
-      [Buffer.alloc(0), noopParseAndValidate],
-      [null, noopParseAndValidate],
-      [undefined, noopParseAndValidate]
-    ].forEach(([input, parser]) => {
-      it(`should get the correct parser for input: ${input}, of type: ${typeof input}`, () => {
-        const actual = getParseAndValidateFor(<any>input);
-        assert(actual === parser, `Wrong parser returned, expected ${(<any>parser).name}, got ${actual.name}`);
-      });
-    });
-
-    [
-      {},
-      [],
-      ()=>{}
-    ].forEach((input) => {
-      it(`should reject non-supported input: ${input}, of type: ${typeof input}`, () => {
-        assert.throws(() => getParseAndValidateFor(<any>input),
-          new Error(`Cannot wrap a "${typeof input}" as a json-rpc type`));
-      });
-    });
-  });
-
   describe("parseAndValidateStringInput()", () => {
     [
       "-0x123",
@@ -145,18 +116,6 @@ describe("json-rpc-input-parsers", () => {
         const actual = parseAndValidateBigIntInput(input);
         assert.deepEqual(actual, expected, `incorrect value for input 0x${input.toString(16)}, expected: 0x${expected.toString("hex")}, got: 0x${actual.toString("hex")}`);
       }
-    });
-  });
-
-  describe("noopParseAndValidate()", () => {
-    [
-      Buffer.alloc(0), null, undefined
-    ].forEach(input => {
-      const inputName = Buffer.isBuffer(input) ? "Buffer" : JSON.stringify(input);
-      it(`should return the value input: ${inputName}`, () => {
-        const actual = noopParseAndValidate(input);
-        assert.strictEqual(input, actual);
-      });
     });
   });
 });

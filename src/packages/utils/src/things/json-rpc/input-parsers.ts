@@ -5,41 +5,6 @@ const BUFFER_EMPTY = Buffer.allocUnsafe(0);
 
 export type JsonRpcInputArg = number | bigint | string | Buffer;
 
-const TYPE_TO_PARSER_MAP = {
-  number: parseAndValidateNumberInput,
-  bigint: parseAndValidateBigIntInput,
-  string: parseAndValidateStringInput
-};
-
-/**
- * JSON-RPC data types store their value internally as a {@link Buffer}. This function returns another
- * function which will perform the parsing and validation of the given input to a {@link Buffer} for this purpose.
- * @param {T} input - the value for which a ParseAndValidate function will be returned.
- * @returns {(T) => Buffer} a ParseAndValidate function for the given input.
- */
-export function getParseAndValidateFor<T extends JsonRpcInputArg>(input: T): ((T) => Buffer) {
-  if (input == null || Buffer.isBuffer(input)) {
-    return noopParseAndValidate;
-  }
-
-  const type = typeof input;
-  const parser = TYPE_TO_PARSER_MAP[type];
-  if (parser === undefined) {
-    throw new Error(`Cannot wrap a "${type}" as a json-rpc type`);
-  }
-
-  return parser;
-}
-
-/**
- * ParseAndValidate function that performs no operation, and returns the input parameter.
- * @param {T} input
- * @returns {T} input parameter without performing and operations.
- */
-export function noopParseAndValidate<T>(input: T): T {
-  return input;
-}
-
 /**
  * Parse and validate a {@link number} to {@link Buffer} as internal representation for a JSON-RPC data type.
  * @param {number} input - must be a positive, finite integer, or null.

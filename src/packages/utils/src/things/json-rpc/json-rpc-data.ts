@@ -18,7 +18,7 @@ export class Data extends BaseJsonRpcType {
     const length = byteLength || this._byteLength;
 
     if (this.bufferValue == null) {
-      return <null>this.bufferValue;
+      return "0x";
     }
 
     if (length === undefined) {
@@ -58,7 +58,7 @@ export class Data extends BaseJsonRpcType {
     }
 
     const padCharCount = desiredCharLength - value.length;
-    let fixedLengthValue;
+    let fixedLengthValue: string;
     if (padCharCount > 0) {
       fixedLengthValue = "0".repeat(padCharCount) + value;
     } else {

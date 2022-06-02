@@ -1,6 +1,11 @@
-import { JsonRpcInputArg, getParseAndValidateFor } from "./input-parsers";
-
+import {
+  JsonRpcInputArg,
+  parseAndValidateStringInput,
+  parseAndValidateBigIntInput,
+  parseAndValidateNumberInput
+} from "./input-parsers";
 const inspect = Symbol.for("nodejs.util.inspect.custom");
+
 export class BaseJsonRpcType {
   protected bufferValue: Buffer | null;
 
@@ -10,8 +15,26 @@ export class BaseJsonRpcType {
   }
 
   constructor(value: JsonRpcInputArg) {
-    const parseAndValidate = getParseAndValidateFor(value);
-    this.bufferValue = parseAndValidate(value);
+    if (value == null) {
+      this.bufferValue = <null>value;
+    } else if (Buffer.isBuffer(value)) {
+      // empty buffer should be treated as null
+      this.bufferValue = value.length === 0 ? null: value;
+    } else {
+      switch (typeof value) {
+        case "string":
+          this.bufferValue = parseAndValidateStringInput(value);
+        break;
+        case "number":
+          this.bufferValue = parseAndValidateNumberInput(value);
+        break;
+        case "bigint":
+          this.bufferValue = parseAndValidateBigIntInput(value);
+        break;
+        default:
+          throw new Error(`Cannot wrap a "${typeof value}" as a json-rpc type`);
+      }
+    }
   }
 
   toString(): string | null {
