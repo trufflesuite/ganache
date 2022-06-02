@@ -162,14 +162,16 @@ export class Quantity extends BaseJsonRpcType {
       argumentValue = argument.toBigInt();
     } else if (Buffer.isBuffer(argument)) {
       argumentValue = bufferToBigInt(argument);
+    } else if (argumentValue == null) {
+      argumentValue = 0n;
     }
 
     return argumentValue;
   }
 
   public add(addend: JsonRpcInputArg | Quantity): Quantity {
-    if (this.bufferValue.length === 0) {
-      return Quantity.from(addend, this._nullable);
+    if (this.bufferValue == null || this.bufferValue.length === 0) {
+      return addend instanceof Quantity ? addend : Quantity.from(addend, this._nullable);
     }
 
     const addendValue = Quantity.getArgumentAsBigInt(addend);
@@ -185,8 +187,8 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   public multiply(multiplier: JsonRpcInputArg | Quantity): Quantity {
-    if (this.bufferValue.length === 0) {
-      return Quantity.Empty;
+    if (this.bufferValue == null ||this.bufferValue.length === 0) {
+      return this._nullable ? Quantity.Empty : Quantity.Zero;
     }
 
     const multiplierValue = Quantity.getArgumentAsBigInt(multiplier);

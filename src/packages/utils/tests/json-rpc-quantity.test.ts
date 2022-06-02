@@ -248,6 +248,24 @@ describe("json-rpc-quantity", () => {
       }));
     });
 
+    it(`should add a value to null`, () => {
+      fc.assert(fc.property(fc.integer(), (addendValue) => {
+        const addend = Math.abs(addendValue);
+        const quantity = new Quantity(null);
+        const result = quantity.add(addend);
+        assert.equal(result.toNumber(), addend, `Incorrect sum adding ${addend} to a null Quantity. Expecting ${addend}, got ${result.toNumber()}.`);
+      }));
+    });
+
+    it(`should add null`, () => {
+      fc.assert(fc.property(fc.integer(), (qValue) => {
+        const addend = null;
+        const quantity = new Quantity(Math.abs(qValue));
+        const result = quantity.add(addend);
+        assert.equal(result.toNumber(), Math.abs(qValue), `Incorrect sum adding null to a ${quantity}. Expecting ${quantity}, got ${result}.`);
+      }));
+    });
+
     it("should return a new Quantity instance", () => {
       const quantity = new Quantity(1);
       const sum = quantity.add(1);

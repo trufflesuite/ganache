@@ -924,7 +924,7 @@ export default class EthereumApi implements Api {
       }
 
       const block = new RuntimeBlock(
-        Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
+        parentHeader.number.add(1n),
         parentHeader.parentHash,
         parentHeader.miner,
         tx.gas.toBuffer(),
