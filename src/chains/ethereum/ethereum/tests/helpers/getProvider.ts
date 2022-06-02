@@ -1,6 +1,9 @@
 import { RequestCoordinator, Executor } from "@ganache/utils";
 import { EthereumProvider } from "../../src/provider";
-import { EthereumProviderOptions } from "@ganache/ethereum-options";
+import { EthereumInternalOptions, EthereumProviderOptions } from "@ganache/ethereum-options";
+import { Address } from "@ganache/ethereum-address";
+import { Fork } from "../../src/forking/fork";
+import Blockchain from "../../src/blockchain";
 
 export const mnemonic =
   "into trim cross then helmet popular suit hammer cart shrug oval student";
@@ -10,7 +13,8 @@ type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 const getProvider = async (
   options: Writeable<EthereumProviderOptions> = {
     wallet: { mnemonic: mnemonic }
-  }
+  },
+  blockchainFactory?: (EthereumInternalOptions,Address,Fork?) => Blockchain
 ) => {
   options.chain = options.chain || {};
   options.miner = options.miner || {};
@@ -27,7 +31,7 @@ const getProvider = async (
 
   const requestCoordinator = new RequestCoordinator(doAsync ? 0 : 1);
   const executor = new Executor(requestCoordinator);
-  const provider = new EthereumProvider(options, executor);
+  const provider = new EthereumProvider(options, executor, blockchainFactory);
   await provider.initialize();
   requestCoordinator.resume();
   return provider;

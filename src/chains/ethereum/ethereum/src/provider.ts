@@ -144,7 +144,8 @@ export class EthereumProvider
 
   constructor(
     options: EthereumProviderOptions | EthereumLegacyProviderOptions = {},
-    executor: Executor
+    executor: Executor,
+    blockchainFactory?: (EthereumInternalOptions,Address,Fork?) => Blockchain
   ) {
     super();
     this.#executor = executor;
@@ -161,7 +162,10 @@ export class EthereumProvider
       providerOptions.fork.network;
     const fallback = fork ? new Fork(providerOptions, accounts) : null;
     const coinbase = parseCoinbase(providerOptions.miner.coinbase, accounts);
-    const blockchain = new Blockchain(providerOptions, coinbase, fallback);
+
+    const blockchain = blockchainFactory !== undefined ?
+      blockchainFactory(providerOptions, coinbase, fallback)
+      : new Blockchain(providerOptions, coinbase, fallback);
     this.#blockchain = blockchain;
 
     blockchain.on("ganache:vm:tx:before", event => {

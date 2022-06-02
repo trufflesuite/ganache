@@ -1047,6 +1047,91 @@ export default class EthereumApi implements Api {
   }
 
   /**
+   * Returns the account- and storage-values of the specified account including the Merkle-proof.
+   * @param address - Address of the account
+   * @param slots - Array of storage-keys which should be proofed and included.
+   * @param blockNumber - A block number, or the string "earliest", "latest" or "pending".
+   * @returns An object containing information about the account, including Merkle-proof of account
+   * and storage values
+   * * `balance`: `QUANTITY` - the balance of the account.
+   * * `codeHash`: `DATA` - 32 Bytes - hash of the account. A simple Account without code will
+   *   return "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+   * * `nonce`: `QUANTITY` - the nonce of the account.
+   * * `storageHash`: `DATA` - 32 Bytes - SHA3 of the StorageRoot. All storage will deliver a
+   *   MerkleProof starting with this rootHash.
+   * * `accountProof`: `ARRAY` - Array of rlp-serialized MerkleTree-Nodes, starting with the
+   *   stateRoot-NODE, following the path of the SHA3 (address) as key.
+   * * `storageProof`: `ARRAY` - Array of storage-entries as requested. Each entry is an object
+   *   with the following properties:
+   *   * `key`: `QUANTITY` - the requested storage key.
+   *   * `value`: `QUANTITY` - the storage value.
+   *   * `proof`: `ARRAY` - Array of rlp-serialized MerkleTree-Nodes, starting with the
+   *     storageHash-Node, following the path of the SHA3 (key) as path.
+   * @example
+   * ```javascript
+   * const address = "0xF403C135812408BFbE8713b5A23a04b3D48AAE31";
+   * const storageSlots = [
+   *   "0x0000000000000000000000000000000000000000000000000000000000000000",
+   *   "0x0000000000000000000000000000000000000000000000000000000000000001"
+   * ];
+   * const proof = await provider.send("eth_getProof", [
+   *   address,
+   *   storageSlots,
+   *   "latest"
+   * ]);
+   * console.log(proof);
+   * ```
+   */
+  // todo: add a better example - look at eth_getStorageAt example
+  @assertArgLength(3)
+  async eth_getProof(
+    address: DATA,
+    slots: DATA[],
+    blockNumber: QUANTITY | Ethereum.Tag
+  ): Promise<any> {
+    if (this.#blockchain.fallback) {
+      throw new Error("eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details");
+    }
+
+    const blockchain = this.#blockchain;
+    const targetBlock = await blockchain.blocks.get(blockNumber);
+    const stateTrie = this.#blockchain.trie.copy(false);
+
+    if (targetBlock == null) throw new Error("header not found");
+
+    stateTrie.setContext(
+      targetBlock.header.stateRoot.toBuffer(),
+      null,
+      targetBlock.header.number
+    );
+
+    const common = blockchain.fallback
+      ? blockchain.fallback.getCommonForBlockNumber(
+          blockchain.common,
+          targetBlock.header.number.toBigInt()
+        )
+      : blockchain.common;
+
+    const vm = await blockchain.createVmFromStateTrie(
+      stateTrie,
+      this.#options.chain.allowUnlimitedContractSize,
+      false, // precompiles have already been initialized in the stateTrie
+      common
+    );
+
+    const addr: any = Address.from(address);
+    const buf = addr.toBuffer();
+    addr.buf = buf;
+    addr.equals = (a: { buf: Buffer }) => buf.equals(a.buf);
+
+    const slotBuffers = slots.map(slotHex => Data.from(slotHex, 32).toBuffer());
+    return await vm.stateManager.getProof(
+      addr,
+      slotBuffers
+    );
+  }
+
+  /**
    * Returns information about a block by block hash.
    * @param hash - Hash of a block.
    * @param transactions - If `true` it returns the full transaction objects, if `false` only the hashes of the
