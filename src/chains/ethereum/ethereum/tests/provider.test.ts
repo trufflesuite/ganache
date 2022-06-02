@@ -86,7 +86,7 @@ describe("provider", () => {
       await provider.disconnect();
     });
 
-    it("uses time adjustment after evm_setTime when timestampIncrement is used", async () => {
+    it("uses time adjustment after `evm_setTime` when `timestampIncrement` is used", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5;
       const fastForward = 100 * 1000; // 100 seconds
@@ -114,7 +114,7 @@ describe("provider", () => {
       await provider.disconnect();
     });
 
-    it("uses time adjustment after evm_increaseTime when timestampIncrement is used", async () => {
+    it("uses time adjustment after `evm_increaseTime` when `timestampIncrement` is used", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5; // seconds
       const fastForward = 100; // seconds
@@ -141,7 +141,7 @@ describe("provider", () => {
       await provider.disconnect();
     });
 
-    it("uses the timestampIncrement for the first block when forking", async () => {
+    it("uses the `timestampIncrement` for the first block when forking", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5;
       const fakeMainnet = await getProvider({
@@ -184,7 +184,7 @@ describe("provider", () => {
       await fakeMainnet.disconnect();
     });
 
-    it("uses the timestampIncrement option when interval mining", async () => {
+    it("uses the `timestampIncrement` option when interval mining", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const blockTime = 2; // only mine once every 2 seconds
       const timestampIncrement = 1; // only increment by 1 second per block
