@@ -564,13 +564,7 @@ export default class EthereumApi implements Api {
         break;
     }
     const blockchain = this.#blockchain;
-    // when using clock time use Date.now(), otherwise use the timestamp of the
-    // current latest block
-    const currentTime =
-      this.#options.miner.timestampIncrement === "clock"
-        ? Date.now()
-        : blockchain.blocks.latest.header.timestamp.toNumber() * 1000;
-    const offsetMilliseconds = blockchain.setTimeDiff(timestamp, currentTime);
+    const offsetMilliseconds = blockchain.setTimeDiff(timestamp);
     // convert offsetMilliseconds to seconds:
     return Math.floor(offsetMilliseconds / 1000);
   }

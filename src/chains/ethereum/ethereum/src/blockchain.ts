@@ -304,7 +304,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // if we are using clock time we need to record the time offset so
         // other blocks can have timestamps relative to our initial time.
         if (options.miner.timestampIncrement === "clock") {
-          this.setTimeDiff(timestamp, Date.now());
+          this.#timeAdjustment = timestamp - Date.now();
         }
 
         // if we don't already have a latest block, create a genesis block!
@@ -824,11 +824,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   /**
    * @param newTime - the number of milliseconds to adjust the time by. Can be negative.
-   * @param sourceTime - the current time in milliseconds
    * @returns the total time offset *in milliseconds*
    */
-  public setTimeDiff(newTime: number, sourceTime: number) {
-    return (this.#timeAdjustment = newTime - sourceTime);
+  public setTimeDiff(newTime: number) {
+    // when using clock time use Date.now(), otherwise use the timestamp of the
+    // current latest block
+    const currentTime =
+      this.#options.miner.timestampIncrement === "clock"
+        ? Date.now()
+        : this.blocks.latest.header.timestamp.toNumber() * 1000;
+    return (this.#timeAdjustment = newTime - currentTime);
   }
 
   #deleteBlockData = async (
