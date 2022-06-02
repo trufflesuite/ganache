@@ -51,7 +51,7 @@ export class Data extends BaseJsonRpcType {
   }
 
   private static stringToFixedByteLength(value: string, byteLength: number) {
-    const desiredCharLength = byteLength * 2
+    const desiredCharLength = byteLength * 2;
 
     if (desiredCharLength === value.length) {
       return value;

@@ -911,11 +911,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const rawValue = snapshotId.toBigInt();
     this.#options.logging.logger.log("Reverting to snapshot #" + snapshotId);
 
-    // snapshot ids can't be < 1, so we do a quick sanity check here
-    if (rawValue < 1n) {
-      return false;
-    }
-
     const snapshots = this.#snapshots;
     const snaps = snapshots.snaps;
     const snapshotIndex = Number(rawValue - 1n);
