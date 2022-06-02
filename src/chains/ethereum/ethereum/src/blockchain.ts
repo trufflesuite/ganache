@@ -295,7 +295,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       {
         // create first block
 
-        // if we don't have a time form the user get one now
+        // if we don't have a time from the user get one now
         if (options.chain.time == null) options.chain.time = new Date();
 
         const timestamp = options.chain.time.getTime();
