@@ -202,6 +202,8 @@ describe("json-rpc-quantity", () => {
     "0x0.1",
     "0x-1",
     "-0x1",
+    "0x1234five",
+    "0x1234-"
   ];
 
   describe("add()", () => {
