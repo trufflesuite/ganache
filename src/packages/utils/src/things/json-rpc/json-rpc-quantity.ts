@@ -21,7 +21,7 @@ export class Quantity extends BaseJsonRpcType {
   constructor(value: JsonRpcInputArg, nullable?: boolean) {
     super(value);
     if (value === "0x") {
-      throw new Error('Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal symbol.');
+      throw new Error('Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.');
     }
     this._nullable = nullable;
   }

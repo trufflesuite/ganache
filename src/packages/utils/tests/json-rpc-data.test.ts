@@ -30,7 +30,7 @@ describe("json-rpc-data", () => {
   });
 
   describe("toString()", () => {
-    it('should return "0x" for nullish inputs', () => {
+    it('should return "0x" for null-like inputs', () => {
       [null, undefined].forEach(input => {
         const result = new Data(input).toString();
 
@@ -39,7 +39,7 @@ describe("json-rpc-data", () => {
     });
 
     testData.forEach(([input, expected]) => {
-      it(`should stringify the input input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should stringify the input: 0x${(<Buffer>input).toString("hex")}`, () => {
         const result = new Data(<Buffer>input).toString();
         assert.equal(result, expected);
       });
@@ -57,12 +57,12 @@ describe("json-rpc-data", () => {
   });
 
   describe("toBuffer()", () => {
-    it("should coalesce for empty buffer", () => {
+    it("should return an empty buffer for an empty buffer input", () => {
       const result = new Data(Buffer.alloc(0)).toBuffer();
       assert.deepEqual(result, Buffer.alloc(0));
     });
 
-    it("should coallesce nullish inputs", () => {
+    it("should return an empty buffer for null-like inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Data(input).toBuffer();
         assert.deepEqual(result, Buffer.alloc(0));

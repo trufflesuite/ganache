@@ -524,7 +524,7 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: `Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal symbol.`
+                  error: `Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.`
                 },
               ],
               contractMethod: `0x${methods["getBalance(address)"]}${encodedAddr}`

@@ -25,7 +25,7 @@ describe("json-rpc-quantity", () => {
 
     it(`should reject a valid of "0x"`, () => {
       assert.throws(() => new Quantity("0x"),
-       new Error(`Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal symbol.`)
+       new Error(`Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.`)
       );
     });
   });
@@ -62,7 +62,7 @@ describe("json-rpc-quantity", () => {
       assert.equal(result, "0x0");
     });
 
-    it("should coallesce nullish inputs", () => {
+    it(`should return "0x0" for null-like inputs`, () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, false).toString();
 
@@ -71,7 +71,7 @@ describe("json-rpc-quantity", () => {
     });
 
     testData.forEach(([input, expected]) => {
-      it(`should stringify the input input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should stringify the input: 0x${(<Buffer>input).toString("hex")}`, () => {
         const result = new Quantity(input).toString();
         assert.equal(result, expected);
       });
@@ -92,7 +92,7 @@ describe("json-rpc-quantity", () => {
       assert.equal(result, null);
     });
 
-    it("should coallesce nullish inputs to 0", () => {
+    it("should retrun 0 for null0like inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, false).toNumber();
 
@@ -101,7 +101,7 @@ describe("json-rpc-quantity", () => {
     });
 
     testData.forEach(([input, _, expected]) => {
-      it(`should output the correct number for the input input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should output the correct number for the input: 0x${(<Buffer>input).toString("hex")}`, () => {
         const result = new Quantity(input).toNumber();
         assert.equal(result, expected);
       });
@@ -119,12 +119,12 @@ describe("json-rpc-quantity", () => {
       });
     });
 
-    it("should coalesce for empty buffer", () => {
+    it("should return an empty buffer for an empty buffer input", () => {
       const result = new Quantity(Buffer.alloc(0), true).toBuffer();
       assert.deepEqual(result, Buffer.alloc(0));
     });
 
-    it("should coallesce nullish inputs", () => {
+    it("should return an empty buffer for null-like inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, false).toBuffer();
 
@@ -133,7 +133,7 @@ describe("json-rpc-quantity", () => {
     });
 
     testData.forEach(([input, _, __, expected]) => {
-      it(`should output the correct buffer for the input input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should output the correct buffer for the input: 0x${(<Buffer>input).toString("hex")}`, () => {
         const result = new Quantity(input).toBuffer();
         assert.deepEqual(result, expected);
       });
