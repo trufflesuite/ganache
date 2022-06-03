@@ -13,7 +13,7 @@ export class Quantity extends BaseJsonRpcType {
 
   _nullable: boolean = false;
 
-  public static from(value: JsonRpcInputArg | Quantity, nullable = false) {
+  public static from(value: JsonRpcInputArg, nullable = false) {
     if (value instanceof Quantity) return value;
     return new Quantity(value, nullable);
   }
@@ -21,14 +21,14 @@ export class Quantity extends BaseJsonRpcType {
   constructor(value: JsonRpcInputArg, nullable?: boolean) {
     super(value);
     if (value === "0x") {
-      throw new Error('Cannot wrap "0x" as a json-rpc Quantity type; Quantity must contain at least one digit');
+      throw new Error('Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal symbol.');
     }
     this._nullable = nullable;
   }
 
   public toString(): string | null {
     if (this.bufferValue == null) {
-      return this._nullable? <null>this.bufferValue : Quantity.ZERO_VALUE_STRING;
+      return this._nullable? null : Quantity.ZERO_VALUE_STRING;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
@@ -64,7 +64,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public toBigInt(): bigint | null {
     if (this.bufferValue == null) {
-      return this._nullable ? <null>this.bufferValue : 0n;
+      return this._nullable ? null : 0n;
     }
     if (this.bufferValue.length === 0) {
       return 0n;
@@ -74,7 +74,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public toNumber() {
     if (this.bufferValue == null) {
-      return this._nullable ? <null>this.bufferValue : 0;
+      return this._nullable ? null : 0;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
@@ -101,7 +101,7 @@ export class Quantity extends BaseJsonRpcType {
 
   valueOf(): bigint {
     if (this.bufferValue == null) {
-      return <null>this.bufferValue;
+      return null;
     } else {
       return this.toBigInt();
     }

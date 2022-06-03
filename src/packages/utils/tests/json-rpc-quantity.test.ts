@@ -22,6 +22,12 @@ describe("json-rpc-quantity", () => {
       assert(quantity instanceof Quantity);
       assert(nullable instanceof Quantity);
     });
+
+    it(`should reject a valid of "0x"`, () => {
+      assert.throws(() => new Quantity("0x"),
+       new Error(`Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal symbol.`)
+      );
+    });
   });
 
   describe("from()", () => {
@@ -43,11 +49,11 @@ describe("json-rpc-quantity", () => {
   });
 
   describe("toString()", () => {
-    it("should return nullish inputs", () => {
+    it("should return null for `null | undefined` inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, true).toString();
 
-        assert.strictEqual(result, input);
+        assert.strictEqual(result, null);
       });
     });
 
@@ -73,21 +79,20 @@ describe("json-rpc-quantity", () => {
   });
 
   describe("toNumber()", () => {
-    it("should return nullish inputs", () => {
+    it("should return null for `null | undefined` inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, true).toNumber();
 
-        assert.strictEqual(result, input);
+        assert.strictEqual(result, null);
       });
     });
 
-    // todo: should we return null for nullable quantities?
-    it.skip("should return null for empty input", () => {
+    it("should return null for empty input", () => {
       const result = new Quantity(Buffer.alloc(0), true).toNumber();
       assert.equal(result, null);
     });
 
-    it("should coallesce nullish inputs", () => {
+    it("should coallesce nullish inputs to 0", () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, false).toNumber();
 
@@ -104,16 +109,16 @@ describe("json-rpc-quantity", () => {
   });
 
   describe("toBuffer()", () => {
-    // todo: should we return null for nullable quantities?
-    it.skip("should return nullish inputs", () => {
+    // todo: as per https://github.com/trufflesuite/ganache/issues/3174
+    // if value is null, and nullable is true, then it should probably return null
+    it("should return null inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Quantity(input, true).toBuffer();
 
-        assert.deepEqual(result, input);
+        assert.deepEqual(result, Buffer.alloc(0));
       });
     });
 
-    // todo: should we return null for nullable quantities?
     it("should coalesce for empty buffer", () => {
       const result = new Quantity(Buffer.alloc(0), true).toBuffer();
       assert.deepEqual(result, Buffer.alloc(0));

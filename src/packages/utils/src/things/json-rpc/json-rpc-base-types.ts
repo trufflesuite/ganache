@@ -16,7 +16,7 @@ export class BaseJsonRpcType {
 
   constructor(value: JsonRpcInputArg) {
     if (value == null) {
-      this.bufferValue = <null>value;
+      this.bufferValue = null;
     } else if (Buffer.isBuffer(value)) {
       // empty buffer should be treated as null
       this.bufferValue = value.length === 0 ? null: value;
@@ -39,7 +39,7 @@ export class BaseJsonRpcType {
 
   toString(): string | null {
     if (this.bufferValue == null) {
-      return <null>this.bufferValue;
+      return null;
     }
     return `0x${this.bufferValue.toString("hex")}`;
   }

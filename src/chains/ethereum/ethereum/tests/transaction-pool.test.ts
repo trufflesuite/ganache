@@ -457,7 +457,7 @@ describe("transaction pool", async () => {
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     // our transaction doesn't have a nonce up front.
-    assert.strictEqual(transaction.nonce.valueOf(), undefined);
+    assert(transaction.nonce.isNull());
     await txPool.prepareTransaction(transaction, secretKey);
     // after it's prepared by the txPool, an appropriate nonce for the account is set
     assert.strictEqual(transaction.nonce.valueOf(), Quantity.from(0).valueOf());

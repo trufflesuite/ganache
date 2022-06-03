@@ -26,16 +26,15 @@ export class Data extends BaseJsonRpcType {
     }
 
     const strValue = this.bufferValue.toString("hex");
-    return length === undefined? `0x${strValue}` : `0x${Data.stringToFixedByteLength(strValue, length)}`;
+    return `0x${Data.stringToFixedByteLength(strValue, length)}`;
   }
 
   public toBuffer(byteLength?: number): Buffer {
-    const length = byteLength || this._byteLength;
-
     if (this.bufferValue == null) {
       return BUFFER_EMPTY;
     }
 
+    const length = byteLength || this._byteLength;
     if (length == undefined || length === this.bufferValue.length) {
       return this.bufferValue;
     }
@@ -43,10 +42,7 @@ export class Data extends BaseJsonRpcType {
     return length === undefined? this.bufferValue: Data.bufferToFixedByteLength(this.bufferValue, length);
   }
 
-  public static from(value: JsonRpcDataInputArg | Data, byteLength?: number) {
-    if (value instanceof Data) {
-      return value;
-    }
+  public static from(value: JsonRpcDataInputArg, byteLength?: number) {
     return new Data(value, byteLength);
   }
 

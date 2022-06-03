@@ -27,13 +27,6 @@ describe("json-rpc-data", () => {
 
       assert(data instanceof Data);
     });
-
-    it("should return a Data passed as input", () => {
-      const input = Data.from(Buffer.alloc(0));
-      const data = Data.from(<any>input);
-
-      assert.strictEqual(data, input);
-    });
   });
 
   describe("toString()", () => {
