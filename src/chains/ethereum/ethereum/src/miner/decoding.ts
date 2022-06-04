@@ -40,9 +40,22 @@ function handleBytes(length: number, memory: Buffer, offset: number) {
 
 const int = (memory: Buffer, offset: number) => {
   // convert from two's compliment to signed BigInt
-  // The binary inversion operator, `~`, flips the bits, so now we
-  // just need to add 1 to finish converting from two's compliment.
-  return 1n + ~bufferToBigInt(memory.subarray(offset, offset + WORD_SIZE));
+  function flip(value: bigint, digits: bigint) {
+    return ~value & (2n ** BigInt(digits) - 1n);
+  }
+  const subMem = memory.subarray(offset, offset + WORD_SIZE);
+  // if the first bit is `1` we need to convert from two's compliment
+  if (subMem[0] & 128) {
+    let int = -1n;
+    const length = BigInt(subMem.length);
+    const smol = length - 1n;
+    for (let i = 0n; i < length; i++) {
+      int += BigInt(subMem[i as any]) << ((smol - i) * 8n);
+    }
+    return -flip(int, length);
+  } else {
+    return bufferToBigInt(subMem);
+  }
 };
 
 const uint = (memory: Buffer, offset: number) =>
