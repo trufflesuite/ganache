@@ -9,76 +9,11 @@ const NUM_PRECOMPILES = 18;
  * An account with a balance of 1
  */
 const SERIALIZED_PRECOMPILE = Uint8Array.from([
-  248,
-  68,
-  128,
-  1,
-  160,
-  86,
-  232,
-  31,
-  23,
-  27,
-  204,
-  85,
-  166,
-  255,
-  131,
-  69,
-  230,
-  146,
-  192,
-  248,
-  110,
-  91,
-  72,
-  224,
-  27,
-  153,
-  108,
-  173,
-  192,
-  1,
-  98,
-  47,
-  181,
-  227,
-  99,
-  180,
-  33,
-  160,
-  197,
-  210,
-  70,
-  1,
-  134,
-  247,
-  35,
-  60,
-  146,
-  126,
-  125,
-  178,
-  220,
-  199,
-  3,
-  192,
-  229,
-  0,
-  182,
-  83,
-  202,
-  130,
-  39,
-  59,
-  123,
-  250,
-  216,
-  4,
-  93,
-  133,
-  164,
-  112
+  248, 68, 128, 1, 160, 86, 232, 31, 23, 27, 204, 85, 166, 255, 131, 69, 230,
+  146, 192, 248, 110, 91, 72, 224, 27, 153, 108, 173, 192, 1, 98, 47, 181, 227,
+  99, 180, 33, 160, 197, 210, 70, 1, 134, 247, 35, 60, 146, 126, 125, 178, 220,
+  199, 3, 192, 229, 0, 182, 83, 202, 130, 39, 59, 123, 250, 216, 4, 93, 133,
+  164, 112
 ]);
 const PRECOMPILED_ACCOUNT: Account = {
   serialize: () => SERIALIZED_PRECOMPILE
@@ -88,7 +23,7 @@ const accountCache: Address[] = [];
 const makeAccount = (i: number): Address => {
   if (accountCache[i]) return accountCache[i];
 
-  // 10 bytes, the first 19 are 0, the last byte is the address
+  // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
   buf[19] = i;
   return (accountCache[i] = { buf } as any);
@@ -106,6 +41,9 @@ export const activatePrecompiles = async (stateManager: StateManager) => {
     cache.put(account, PRECOMPILED_ACCOUNT);
     stateManager.touchAccount(account as any);
   }
+  const consoleLogAccount = activateConsoleLogPrecompile();
+  cache.put(consoleLogAccount, PRECOMPILED_ACCOUNT);
+  stateManager.touchAccount(consoleLogAccount as any);
   await stateManager.commit();
 };
 
@@ -118,4 +56,15 @@ export const warmPrecompiles = async (stateManager: DefaultStateManager) => {
     const account = makeAccount(i);
     stateManager.addWarmedAddress(account.buf);
   }
+  const consoleLogAccount = activateConsoleLogPrecompile();
+  stateManager.addWarmedAddress(consoleLogAccount.buf as any);
+};
+
+export const activateConsoleLogPrecompile = () => {
+  return {
+    buf: Buffer.from([
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0x63, 0x6f, 0x6e, 0x73, 0x6f, 0x6c, 0x65, 0x2e,
+      0x6c, 0x6f, 0x67
+    ])
+  };
 };

@@ -34,6 +34,7 @@ import {
   VmStepEvent,
   MessageEvent
 } from "./provider-events";
+import { ConsoleLogs } from "./miner/decoding";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -131,6 +132,7 @@ export class EthereumProvider
     "ganache:vm:tx:step": VmStepEvent;
     "ganache:vm:tx:before": VmBeforeTransactionEvent;
     "ganache:vm:tx:after": VmAfterTransactionEvent;
+    "ganache:vm:tx:console.log": ConsoleLogs;
     connect: undefined;
     disconnect: undefined;
   }>
@@ -172,6 +174,10 @@ export class EthereumProvider
     });
     blockchain.on("ganache:vm:tx:after", event => {
       this.emit("ganache:vm:tx:after", event);
+    });
+    blockchain.on("ganache:vm:tx:console.log", logs => {
+      providerOptions.logging.logger.log(...logs);
+      this.emit("ganache:vm:tx:console.log", logs);
     });
 
     hookEventSystem(this, (enable: boolean) => {

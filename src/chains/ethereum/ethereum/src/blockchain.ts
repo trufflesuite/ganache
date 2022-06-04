@@ -35,7 +35,6 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   findInsertPosition,
-  unref,
   KNOWN_CHAINIDS
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
@@ -75,6 +74,8 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
+import { ConsoleLogs } from "./miner/decoding";
+
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
   mcl.verifyOrderG1(true); // subgroup checks for G1
@@ -97,6 +98,7 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": ConsoleLogs;
   ready: undefined;
   stop: undefined;
 };
@@ -342,6 +344,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         });
         miner.on("ganache:vm:tx:after", event => {
           this.emit("ganache:vm:tx:after", event);
+        });
+        miner.on("ganache:vm:tx:console.log", logs => {
+          this.emit("ganache:vm:tx:console.log", logs);
         });
         //#endregion
 
