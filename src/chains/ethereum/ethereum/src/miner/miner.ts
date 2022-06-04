@@ -29,6 +29,7 @@ import {
   VmBeforeTransactionEvent,
   VmStepEvent
 } from "../provider-events";
+import { ConsoleLogs, getLogs } from "./decoding";
 
 /**
  * How many transactions should be in the block.
@@ -70,7 +71,6 @@ const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
 
 const refresher = (item: TypedTransaction, context: Quantity) =>
   item.updateEffectiveGasPrice(context);
-
 export default class Miner extends Emittery<{
   block: {
     block: Block;
@@ -81,6 +81,7 @@ export default class Miner extends Emittery<{
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": ConsoleLogs;
   idle: undefined;
 }> {
   #currentlyExecutingPrice = 0n;
@@ -272,12 +273,18 @@ export default class Miner extends Emittery<{
         event: InterpreterStep,
         next: (error?: any, cb?: any) => void
       ) => {
-        if (event.opcode.name === "SSTORE") {
-          const key = TraceData.from(
-            event.stack[event.stack.length - 1].toArrayLike(Buffer)
-          ).toBuffer();
-          const hashedKey = keccak(key);
-          storageKeys.set(hashedKey.toString(), { key, hashedKey });
+        switch (event.opcode.name) {
+          case "SSTORE":
+            const key = TraceData.from(
+              event.stack[event.stack.length - 1].toArrayLike(Buffer)
+            ).toBuffer();
+            const hashedKey = keccak(key);
+            storageKeys.set(hashedKey.toString(), { key, hashedKey });
+            break;
+          case "STATICCALL":
+            const logs = getLogs(event);
+            this.emit("ganache:vm:tx:console.log", logs);
+            break;
         }
         next();
       };
