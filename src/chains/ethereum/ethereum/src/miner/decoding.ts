@@ -3,6 +3,7 @@ import { bufferToBigInt } from "@ganache/utils";
 import { BN } from "ethereumjs-util";
 
 const WORD_SIZE = 32; // bytes
+const OR_WITH_TWOS_COMPLEMENT = ~((1n << (8n * BigInt(WORD_SIZE))) - 1n);
 
 /**
  * For dynamic-length types, like `bytes` and `string`, returns the starting
@@ -40,21 +41,14 @@ function handleBytes(length: number, memory: Buffer, offset: number) {
 
 const int = (memory: Buffer, offset: number) => {
   // convert from two's compliment to signed BigInt
-  function flip(value: bigint, digits: bigint) {
-    return ~value & (2n ** BigInt(digits) - 1n);
-  }
-  const subMem = memory.subarray(offset, offset + WORD_SIZE);
-  // if the first bit is `1` we need to convert from two's compliment
-  if (subMem[0] & 128) {
-    let int = -1n;
-    const length = BigInt(subMem.length);
-    const smol = length - 1n;
-    for (let i = 0n; i < length; i++) {
-      int += BigInt(subMem[i as any]) << ((smol - i) * 8n);
-    }
-    return -flip(int, length);
+  const twosComplementBuffer = memory.subarray(offset, offset + WORD_SIZE);
+  const twosComplementBigInt = bufferToBigInt(twosComplementBuffer);
+  if (twosComplementBuffer[0] & 128) {
+    // if the first bit is `1` we need to convert from two's compliment
+    return twosComplementBigInt | OR_WITH_TWOS_COMPLEMENT;
   } else {
-    return bufferToBigInt(subMem);
+    // if the first bit is not `1` we can treated it as unsigned.
+    return twosComplementBigInt;
   }
 };
 
