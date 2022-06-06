@@ -43,7 +43,7 @@ function addSignatureToSignatureMap(args: Type[]) {
   // `[[4byteAsInt], [...handler]]`
   signatureMap += `  [${signatureInt}, [${args
     .map(arg => typeToHandlerMap.get(arg))
-    .join(", ")}]],\n`;
+    .join(", ")}]], // log(${args.join(",")})\n`;
 }
 
 function processPermutations(permutations: Type[][]) {
@@ -68,9 +68,9 @@ const typeToHandlerMap: Map<Type, Handler> = new Map([
 ]);
 const signatureCache: Map<number, string> = new Map();
 
-const t = basicTypes.map(type => typeAliases.get(type) || type);
+const withAliases = basicTypes.map(type => typeAliases.get(type) || type);
 processPermutations(permutate(basicTypes));
-processPermutations(permutate(t));
+processPermutations(permutate(withAliases));
 
 signatureMap += "])";
 
