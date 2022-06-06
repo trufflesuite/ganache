@@ -34,7 +34,7 @@ import {
   VmStepEvent,
   MessageEvent
 } from "./provider-events";
-import { ConsoleLogs } from "./miner/decoding";
+import { ConsoleLogs } from "./helpers/console.log/decoding";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
