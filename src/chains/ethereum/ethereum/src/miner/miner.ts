@@ -29,7 +29,7 @@ import {
   VmBeforeTransactionEvent,
   VmStepEvent
 } from "../provider-events";
-import { ConsoleLogs, getLogs } from "./decoding";
+import { ConsoleLogs, getLogs } from "../helpers/console.log/decoding";
 
 /**
  * How many transactions should be in the block.
