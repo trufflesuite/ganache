@@ -292,6 +292,7 @@ export default class EthereumApi implements Api {
    * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
+  async evm_mine(): Promise<"0x0">;
   async evm_mine(timestamp: number): Promise<"0x0">;
   async evm_mine(options: Ethereum.MineOptions): Promise<"0x0">;
   @assertArgLength(0, 1)
@@ -550,19 +551,22 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async evm_setTime(time: number | QUANTITY | Date) {
-    let t: number;
+    let timestamp: number;
     switch (typeof time) {
       case "object":
-        t = time.getTime();
+        timestamp = time.getTime();
         break;
       case "number":
-        t = time;
+        timestamp = time;
         break;
       default:
-        t = Quantity.from(time).toNumber();
+        timestamp = Quantity.from(time).toNumber();
         break;
     }
-    return Math.floor(this.#blockchain.setTime(t) / 1000);
+    const blockchain = this.#blockchain;
+    const offsetMilliseconds = blockchain.setTimeDiff(timestamp);
+    // convert offsetMilliseconds to seconds:
+    return Math.floor(offsetMilliseconds / 1000);
   }
 
   /**
