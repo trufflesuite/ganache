@@ -1,17 +1,14 @@
 import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
-import path from "path";
+import { join } from "path";
 
-const VERSION = require(path.join(__dirname, "../package.json")).version;
-const CLI_VERSION = require(path.join(
-  __dirname,
-  "../../cli/package.json"
-)).version;
-const CORE_VERSION = require(path.join(
+const VERSION = require(join(__dirname, "../package.json")).version;
+const CLI_VERSION = require(join(__dirname, "../../cli/package.json")).version;
+const CORE_VERSION = require(join(
   __dirname,
   "../../core/package.json"
 )).version;
-const GANACHE_FILECOIN_VERSION = require(path.join(
+const GANACHE_FILECOIN_VERSION = require(join(
   __dirname,
   "../../../chains/filecoin/filecoin/package.json"
 )).version;
