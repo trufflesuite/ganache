@@ -55,89 +55,39 @@ export class HttpHandler extends BaseHandler implements Handler {
   }
   private async handleLengthedResponse(
     res: http.IncomingMessage,
-    length: number,
-    contentEncoding: string = "identity"
+    length: number
   ) {
-    let readable: stream.Transform;
-    switch (contentEncoding) {
-      // contentEncoding is always "identity" in the browser
-      case "identity":
-        // response is not compressed:
-        return await new Promise<Buffer>((resolve, reject) => {
-          const buffer = Buffer.allocUnsafe(length);
-          let offset = 0;
-          function data(message: Buffer) {
-            const messageLength = message.length;
-            // note: Node will NOT send us more data than the content-length header
-            // denotes, so we don't have to worry about it.
-            message.copy(buffer, offset, 0, messageLength);
-            offset += messageLength;
-          }
-          function end() {
-            // note: Node doesn't check if the content-length matches (we might
-            // receive less data than expected), so we do that here
-            if (offset !== length) {
-              // if we didn't receive enough data, throw
-              reject(new Error("content-length mismatch"));
-            } else {
-              resolve(buffer);
-            }
-          }
-          res.on("data", data);
-          res.on("end", end);
-          res.on("error", reject);
-        });
-      case "gzip":
-        readable = res.pipe(zlib.createGunzip());
-        break;
-      case "deflate":
-        readable = res.pipe(zlib.createInflate());
-        break;
-      case "br":
-        readable = res.pipe(zlib.createBrotliDecompress());
-        break;
-      default:
-        throw new Error(
-          `Unsupported content-encoding: ${contentEncoding}. This may be a bug in Ganache; please report it.`
-        );
-    }
-
-    const chunks = [];
-    let totalLength = 0;
-    for await (let chunk of readable) {
-      chunks.push(chunk);
-      totalLength += chunk.length;
-    }
-    return chunks.length === 1 ? chunks[0] : Buffer.concat(chunks, totalLength);
+    // response is not compressed:
+    return await new Promise<Buffer>((resolve, reject) => {
+      const buffer = Buffer.allocUnsafe(length);
+      let offset = 0;
+      function data(message: Buffer) {
+        const messageLength = message.length;
+        // note: Node will NOT send us more data than the content-length header
+        // denotes, so we don't have to worry about it.
+        message.copy(buffer, offset, 0, messageLength);
+        offset += messageLength;
+      }
+      function end() {
+        // note: Node doesn't check if the content-length matches (we might
+        // receive less data than expected), so we do that here
+        if (offset !== length) {
+          // if we didn't receive enough data, throw
+          reject(new Error("content-length mismatch"));
+        } else {
+          resolve(buffer);
+        }
+      }
+      res.on("data", data);
+      res.on("end", end);
+      res.on("error", reject);
+    });
   }
-  private async handleChunkedResponse(
-    res: http.IncomingMessage,
-    contentEncoding: string = "identity"
-  ) {
-    let readable: stream.Transform | stream.Readable;
-    switch (contentEncoding) {
-      // contentEncoding is always "identity" in the browser
-      case "identity":
-        readable = res;
-        break;
-      case "gzip":
-        readable = res.pipe(zlib.createGunzip());
-        break;
-      case "deflate":
-        readable = res.pipe(zlib.createInflate());
-        break;
-      case "br":
-        readable = res.pipe(zlib.createBrotliDecompress());
-        break;
-      default:
-        throw new Error(
-          `Unsupported content-encoding: ${contentEncoding}. This may be a bug in Ganache; please report it.`
-        );
-    }
 
+  private async handleChunkedResponse(res: http.IncomingMessage) {
     const chunks = [];
     let totalLength = 0;
-    for await (let chunk of readable) {
+    for await (let chunk of res) {
       chunks.push(chunk);
       totalLength += chunk.length;
     }
@@ -180,32 +130,21 @@ export class HttpHandler extends BaseHandler implements Handler {
         let buffer: Promise<Buffer>;
         // in the browser we can't detect if the response is compressed (gzip),
         // but it doesn't matter since the browser has decompressed already
-        // anyway, so we just always handle it as chunked and "identity"
-        // encoding.
+        // anyway
         if (process.env.IS_BROWSER) {
-          buffer = this.handleChunkedResponse(res, "identity");
+          buffer = this.handleChunkedResponse(res);
         } else {
           // if we have a transfer-encoding we don't care about "content-length"
           // (per HTTP spec). We also don't care about invalid lengths
           if ("transfer-encoding" in headers) {
-            buffer = this.handleChunkedResponse(
-              res,
-              headers["content-encoding"]
-            );
+            buffer = this.handleChunkedResponse(res);
           } else {
             const length = (headers["content-length"] as any) / 1;
             if (isNaN(length) || length <= 0) {
-              buffer = this.handleChunkedResponse(
-                res,
-                headers["content-encoding"]
-              );
+              buffer = this.handleChunkedResponse(res);
             } else {
               // we have a content-length; use it to pre-allocate the required memory
-              buffer = this.handleLengthedResponse(
-                res,
-                length,
-                headers["content-encoding"]
-              );
+              buffer = this.handleLengthedResponse(res, length);
             }
           }
         }
