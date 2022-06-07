@@ -34,7 +34,7 @@ import {
   VmStepEvent,
   MessageEvent
 } from "./provider-events";
-import { ConsoleLogs } from "./helpers/console.log/decoding";
+import { ConsoleLogs } from "@trufflesuite/console.log";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 

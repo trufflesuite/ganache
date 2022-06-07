@@ -74,7 +74,7 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import { ConsoleLogs } from "./helpers/console.log/decoding";
+import { ConsoleLogs } from "@trufflesuite/console.log";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.

@@ -5,7 +5,7 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*", "../console.log/src/decoding.ts"],
+  "include": ["index.ts", "src/**/*"],
   "references": [
     {
       "name": "@ganache/ethereum-utils",

@@ -4,5 +4,11 @@
     "outDir": "lib",
     "declarationDir": "typings"
   },
-  "include": ["src", "index.ts", "scripts/generator.ts"]
+  "include": ["src", "index.ts", "scripts/generate.ts"],
+  "references": [
+    {
+      "name": "@ganache/utils",
+      "path": "../../../packages/utils"
+    }
+  ]
 }

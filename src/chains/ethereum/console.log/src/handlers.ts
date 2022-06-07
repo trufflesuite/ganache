@@ -1,5 +1,12 @@
 import { bufferToBigInt } from "@ganache/utils";
 
+// bytes1 - bytes32
+type Digits = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type Numbers = Digits | 10 | 20 | `1${Digits}` | `2${Digits}` | 30 | 31 | 32;
+export type BytesN = `bytes${Numbers}`;
+export type FixedBytesN = `fixedBytes(${Numbers})`;
+export type Handler = keyof typeof Handlers | FixedBytesN;
+
 export const WORD_SIZE = 32; // bytes
 const OR_WITH_TWOS_COMPLEMENT = ~((1n << (8n * BigInt(WORD_SIZE))) - 1n);
 
@@ -23,6 +30,11 @@ function getDynamicMarkers(memory: Buffer, offset: number) {
   offset += WORD_SIZE;
   const length = memory.readUInt32BE(offset - 4);
   return { start, length };
+}
+
+export function fixedBytes(length: number) {
+  return (memory: Buffer, offset: number) =>
+    handleBytes(length, memory, offset);
 }
 
 /**
@@ -68,11 +80,6 @@ export const bytes = (memory: Buffer, offset: number) => {
   const { start, length } = getDynamicMarkers(memory, offset);
   return handleBytes(length, memory, start);
 };
-
-export const fixedBytes = Array.from({ length: 32 }, (_: any, length: number) =>
-  // partially apply handleBytes with `length`
-  handleBytes.bind(null, length)
-);
 
 export const Handlers = {
   address,

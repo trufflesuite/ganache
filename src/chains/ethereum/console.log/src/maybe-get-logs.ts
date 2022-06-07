@@ -9,7 +9,10 @@ const CONSOLE_PRECOMPILE = new BN(
   ])
 );
 
-export const getLogs = ({ memory, stack }: InterpreterStep) => {
+export const maybeGetLogs = ({ opcode, memory, stack }: InterpreterStep) => {
+  // console.log can only be triggered by STATICCALL
+  if (opcode.name !== "STATICCALL") return;
+
   // STATICCALL, which is the OPCODE that is used to initiate a console.log, has
   // 6 params, but we only care about the following 3.
   const [inLength, inOffset, toAddress] = stack.slice(-4, -1);
@@ -22,17 +25,15 @@ export const getLogs = ({ memory, stack }: InterpreterStep) => {
   const memoryStart = inOffset.toNumber();
   const memoryEnd = memoryStart + inLength.toNumber();
   const values: Buffer = memory.subarray(memoryStart, memoryEnd);
-  const method = values.readUInt32BE(0); // our method
+  const method = values.readUInt32BE(0); // 4 bytes wide
   const handlers = signatureMap.get(method);
   if (!handlers) return null;
 
-  const start = 4;
-  const logs = handlers.map((handler, index) => {
+  const start = 4; // we skip the first 4 bytes, as that is our signature
+  return handlers.map((handler, index) => {
     const offset = start + index * WORD_SIZE;
-    return handler(memory, offset);
+    return handler(values, offset);
   });
-
-  return logs;
 };
 
-export type ConsoleLogs = ReturnType<typeof getLogs>;
+export type ConsoleLogs = ReturnType<typeof maybeGetLogs>;

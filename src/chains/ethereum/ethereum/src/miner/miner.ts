@@ -29,7 +29,7 @@ import {
   VmBeforeTransactionEvent,
   VmStepEvent
 } from "../provider-events";
-import { ConsoleLogs, getLogs } from "../helpers/console.log/decoding";
+import { ConsoleLogs, maybeGetLogs } from "@trufflesuite/console.log";
 
 /**
  * How many transactions should be in the block.
@@ -282,8 +282,10 @@ export default class Miner extends Emittery<{
             storageKeys.set(hashedKey.toString(), { key, hashedKey });
             break;
           case "STATICCALL":
-            const logs = getLogs(event);
-            this.emit("ganache:vm:tx:console.log", logs);
+            const logs = maybeGetLogs(event);
+            if (logs) {
+              this.emit("ganache:vm:tx:console.log", logs);
+            }
             break;
         }
         next();
