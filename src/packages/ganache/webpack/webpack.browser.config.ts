@@ -17,10 +17,11 @@ const config: webpack.Configuration = merge({}, base, {
       events: require.resolve("events/"),
       buffer: require.resolve("buffer/"),
       fs: false,
-      zlib: false, // not needed by the browser as the browser does the work
       // Taken from https://webpack.js.org/configuration/resolve/#resolvefallback
       http: require.resolve("stream-http"),
-      https: require.resolve("https-browserify")
+      https: require.resolve("https-browserify"),
+      // not needed by the browser as the browser does the work
+      zlib: false
       //#endregion node polyfills
     },
     alias: {
