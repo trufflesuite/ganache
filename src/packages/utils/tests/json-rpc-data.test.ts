@@ -87,4 +87,20 @@ describe("json-rpc-data", () => {
       });
     });
   });
+
+  describe("isNull()", () => {
+    it("should return true for null-like inputs", () => {
+      [null, undefined, Buffer.alloc(0)].forEach(input => {
+        const data = new Data(input);
+        assert(data.isNull());
+      });
+    });
+
+    it("should return false for any non-empty buffer", () => {
+      [Buffer.allocUnsafe(1), Buffer.allocUnsafe(2)].forEach(input => {
+        const data = new Data(input);
+        assert.equal(data.isNull(), false);
+      });
+    });
+  });
 });
