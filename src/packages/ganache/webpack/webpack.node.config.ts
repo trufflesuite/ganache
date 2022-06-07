@@ -32,7 +32,12 @@ const config: webpack.Configuration = merge({}, base, {
       banner: "#!/usr/bin/env node",
       raw: true
     }),
-    new DeduplicatePlugin()
+    new DeduplicatePlugin(),
+    // replace process.env.IS_BROWSER with `false` to cause the minifier to
+    // remove code blocks that require `process.env.IS_BROWSER != true`
+    new webpack.EnvironmentPlugin({
+      IS_BROWSER: false
+    })
   ],
   optimization: {
     splitChunks: {

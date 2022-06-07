@@ -27,11 +27,15 @@ export class HttpHandler extends BaseHandler implements Handler {
 
     this.url = options.fork.url;
     this.headers.accept = this.headers["content-type"] = "application/json";
-    // brotli decompression is generally faster to decode than deflate/gzip, so
-    // we prefer it, and deflate is technically faster than gzip (it doesn't
-    // calculate a checksum) but I doubt it's measurable.
-    this.headers.acceptEncoding = this.headers["accept-encoding"] =
-      "br;q=1.0, deflate;q=0.9, gzip;q=0.8";
+    if (!process.env.IS_BROWSER) {
+      // brotli decompression is generally faster to decode than deflate/gzip, so
+      // we prefer it, and deflate is technically faster than gzip (it doesn't
+      // calculate a checksum) but I doubt it's measurable.
+      // `"accept-encoding"` is handled by the browser automatically (and adding
+      // it can actually break OPTIONS pre-flight requests), so we only add this
+      // header for Node.
+      this.headers["accept-encoding"] = "br;q=1.0, deflate;q=0.9, gzip;q=0.8";
+    }
 
     if (this.url.protocol === "http:") {
       this._request = http.request;
@@ -56,6 +60,7 @@ export class HttpHandler extends BaseHandler implements Handler {
   ) {
     let readable: stream.Transform;
     switch (contentEncoding) {
+      // contentEncoding is always "identity" in the browser
       case "identity":
         // response is not compressed:
         return await new Promise<Buffer>((resolve, reject) => {
@@ -111,6 +116,7 @@ export class HttpHandler extends BaseHandler implements Handler {
   ) {
     let readable: stream.Transform | stream.Readable;
     switch (contentEncoding) {
+      // contentEncoding is always "identity" in the browser
       case "identity":
         readable = res;
         break;
@@ -172,25 +178,36 @@ export class HttpHandler extends BaseHandler implements Handler {
         const { headers } = res;
 
         let buffer: Promise<Buffer>;
-
-        // if we have a transfer-encoding we don't care about "content-length"
-        // (per HTTP spec). We also don't care about invalid lengths
-        if ("transfer-encoding" in headers) {
-          buffer = this.handleChunkedResponse(res, headers["content-encoding"]);
+        // in the browser we can't detect if the response is compressed (gzip),
+        // but it doesn't matter since the browser has decompressed already
+        // anyway, so we just always handle it as chunked and "identity"
+        // encoding.
+        if (process.env.IS_BROWSER) {
+          buffer = this.handleChunkedResponse(res, "identity");
         } else {
-          const length = (headers["content-length"] as any) / 1;
-          if (isNaN(length) || length <= 0) {
+          // if we have a transfer-encoding we don't care about "content-length"
+          // (per HTTP spec). We also don't care about invalid lengths
+          if ("transfer-encoding" in headers) {
             buffer = this.handleChunkedResponse(
               res,
               headers["content-encoding"]
             );
           } else {
-            // we have a content-length; use it to pre-allocate the required memory
-            buffer = this.handleLengthedResponse(
-              res,
-              length,
-              headers["content-encoding"]
-            );
+            const length = (headers["content-length"] as any) / 1;
+            const browser = (res as any)._mode === "fetch";
+            if (browser || isNaN(length) || length <= 0) {
+              buffer = this.handleChunkedResponse(
+                res,
+                headers["content-encoding"]
+              );
+            } else {
+              // we have a content-length; use it to pre-allocate the required memory
+              buffer = this.handleLengthedResponse(
+                res,
+                length,
+                headers["content-encoding"]
+              );
+            }
           }
         }
 

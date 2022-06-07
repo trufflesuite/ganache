@@ -49,7 +49,12 @@ const config: webpack.Configuration = merge({}, base, {
   },
   plugins: [
     new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-    new webpack.ProvidePlugin({ process: ["process"] })
+    new webpack.ProvidePlugin({ process: ["process"] }),
+    // replace process.env.IS_BROWSER with `true` to cause the minifier to
+    // remove code blocks that require `process.env.IS_BROWSER != false`
+    new webpack.EnvironmentPlugin({
+      IS_BROWSER: true
+    })
   ]
 });
 
