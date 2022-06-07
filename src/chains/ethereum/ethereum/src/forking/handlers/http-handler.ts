@@ -194,8 +194,7 @@ export class HttpHandler extends BaseHandler implements Handler {
             );
           } else {
             const length = (headers["content-length"] as any) / 1;
-            const browser = (res as any)._mode === "fetch";
-            if (browser || isNaN(length) || length <= 0) {
+            if (isNaN(length) || length <= 0) {
               buffer = this.handleChunkedResponse(
                 res,
                 headers["content-encoding"]
