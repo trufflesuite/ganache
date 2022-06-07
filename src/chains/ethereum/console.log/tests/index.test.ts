@@ -1,5 +1,5 @@
 import assert from "assert";
-import consoleLog from "../src/";
+import { ConsoleLogs } from "../";
 
 describe("@ganache/console.log", () => {
   it("needs tests");
