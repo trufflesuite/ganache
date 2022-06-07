@@ -1,5 +1,5 @@
 {
-  "name": "@trufflesuite/console.log",
+  "name": "@truffle/console.log",
   "publishConfig": {
     "access": "public"
   },
@@ -29,7 +29,7 @@
     "tsc": "tsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
-    "prepare": "npx ts-node ./scripts/generate.ts"
+    "prepare": "ts-node ./scripts/generate.ts"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"

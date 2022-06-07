@@ -29,7 +29,7 @@ import {
   VmBeforeTransactionEvent,
   VmStepEvent
 } from "../provider-events";
-import { ConsoleLogs, maybeGetLogs } from "@trufflesuite/console.log";
+import { ConsoleLogs, maybeGetLogs } from "@truffle/console.log";
 
 /**
  * How many transactions should be in the block.
