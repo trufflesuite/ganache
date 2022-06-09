@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { TruffleColors } from "@ganache/colors";
 import { WEI } from "@ganache/utils";
-import type { Provider } from "@ganache/ethereum";
+import type { EthereumProvider } from "@ganache/ethereum";
 import { toChecksumAddress } from "ethereumjs-util";
 import { CliSettings } from "../types";
 
@@ -12,7 +12,7 @@ function color(str: string) {
   return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
 
-export default function (provider: Provider, cliSettings: CliSettings) {
+export default function (provider: EthereumProvider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
@@ -108,7 +108,7 @@ export default function (provider: Provider, cliSettings: CliSettings) {
     logs.push(
       `Network ID:      ${color(liveOptions.chain.networkId.toString())}`
     );
-    logs.push(`Time:            ${color(new Date().toString())}`);
+    logs.push(`Time:            ${color(liveOptions.chain.time.toString())}`);
 
     if (liveOptions.fork.requestsPerSecond !== 0) {
       logs.push(

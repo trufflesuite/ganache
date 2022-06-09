@@ -1,6 +1,6 @@
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 import { Executor, RequestCoordinator } from "@ganache/utils";
-import FilecoinProvider from "../../src/provider";
+import { FilecoinProvider } from "../../src/provider";
 
 const getProvider = async (options?: Partial<FilecoinProviderOptions>) => {
   const requestCoordinator = new RequestCoordinator(0);
@@ -12,7 +12,7 @@ const getProvider = async (options?: Partial<FilecoinProviderOptions>) => {
       },
       logging: {
         logger: {
-          log: () => {}
+          log: () => { }
         }
       },
       ...options

@@ -3,10 +3,7 @@ import { Address } from "@ganache/ethereum-address";
 import { BUFFER_ZERO, Data, Quantity } from "@ganache/utils";
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
-import {
-  TypedRpcTransaction,
-  TransactionFactory
-} from "@ganache/ethereum-transaction";
+import { Transaction, TransactionFactory } from "@ganache/ethereum-transaction";
 import Blockchain from "../../ethereum/src/blockchain";
 import { EthereumOptionsConfig } from "../../options/src/index";
 
@@ -36,7 +33,7 @@ describe("@ganache/ethereum-block", async () => {
       const wallet = new Wallet(options.wallet);
       const [from, to] = wallet.addresses;
       const fromAddress = new Address(from);
-      const tx: TypedRpcTransaction = {
+      const tx: Transaction = {
         type: "0x2",
         from: from,
         to: to,

@@ -1,5 +1,5 @@
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
@@ -17,6 +17,7 @@ import {
 } from "@ganache/ethereum-transaction";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
+import { Transaction } from "@ganache/ethereum-transaction";
 
 const encodeValue = (val: number | string) => {
   return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
@@ -48,7 +49,7 @@ describe("api", () => {
         let provider: EthereumProvider;
         let from, to: string;
         let contractAddress: string;
-        let tx: object;
+        let tx: Transaction;
 
         before("compile", () => {
           contract = compile(join(__dirname, "./contracts/EthCall.sol"), {
@@ -103,7 +104,7 @@ describe("api", () => {
         });
 
         it("allows eip-1559 fee market transactions", async () => {
-          const tx = {
+          const tx: Transaction = {
             from,
             to: contractAddress,
             data: "0x3fa4f245",
@@ -123,7 +124,8 @@ describe("api", () => {
         });
 
         it("rejects transactions that specify both legacy and eip-1559 transaction fields", async () => {
-          const tx = {
+          // `any` because this tests how we handle an invalid transaction
+          const tx: any = {
             from,
             to: contractAddress,
             data: "0x3fa4f245",

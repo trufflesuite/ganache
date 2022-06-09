@@ -34,6 +34,22 @@ export type MinerConfig = {
     };
 
     /**
+     * The amount of time, in seconds, to add to the `timestamp` of each new
+     * block header.
+     *
+     * By default the value is `"clock"`, which uses your system clock time as
+     * the timestamp for each block.
+     *
+     * @defaultValue "clock"
+     */
+    timestampIncrement: {
+      type: "clock" | Quantity;
+      rawType: "clock" | string | number | bigint;
+      hasDefault: true;
+      cliType: string;
+    };
+
+    /**
      * Sets the default gas price in WEI for transactions if not otherwise specified.
      *
      * @defaultValue 2_000_000
@@ -215,6 +231,14 @@ export const MinerOptions: Definitions<MinerConfig> = {
     legacyName: "blockTime",
     cliAliases: ["b", "blockTime"],
     cliType: "number"
+  },
+  timestampIncrement: {
+    normalize: rawType =>
+      rawType === "clock" ? "clock" : Quantity.from(BigInt(rawType)),
+    cliDescription:
+      'The amount of time, in seconds, to add to the `timestamp` of each new block header. By default the value is `"clock"`, which uses your system clock time as the timestamp for each block.',
+    default: () => "clock",
+    cliType: "string"
   },
   defaultGasPrice: {
     normalize: Quantity.from,

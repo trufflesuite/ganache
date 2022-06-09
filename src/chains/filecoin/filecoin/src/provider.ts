@@ -9,8 +9,8 @@ import {
 } from "@ganache/utils";
 
 import FilecoinApi from "./api";
-import GanacheSchema from "./schema";
-import { Schema } from "@filecoin-shipyard/lotus-client-schema";
+import GanacheSchema, { Schema } from "./schema";
+
 import Blockchain from "./blockchain";
 import {
   FilecoinOptionsConfig,
@@ -21,7 +21,7 @@ import cloneDeep from "lodash.clonedeep";
 
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
-export default class FilecoinProvider<
+export class FilecoinProvider<
     R extends JsonRpcRequest<
       FilecoinApi,
       KnownKeys<FilecoinApi>
@@ -29,7 +29,8 @@ export default class FilecoinProvider<
   >
   extends Emittery<{ connect: undefined; disconnect: undefined }>
   // Do I actually need this? `types.Provider` doesn't actually define anything behavior
-  implements Provider<FilecoinApi> {
+  implements Provider<FilecoinApi>
+{
   #options: FilecoinInternalOptions;
   #api: FilecoinApi;
   #executor: Executor;
@@ -74,7 +75,8 @@ export default class FilecoinProvider<
       { unlocked: boolean; secretKey: string; balance: bigint }
     > = {};
 
-    const controllableAccounts = await this.blockchain.accountManager!.getControllableAccounts();
+    const controllableAccounts =
+      await this.blockchain.accountManager!.getControllableAccounts();
     for (const account of controllableAccounts) {
       accounts[account.address.serialize()] = {
         unlocked: true,
@@ -105,7 +107,7 @@ export default class FilecoinProvider<
       ...(payload.params || []),
       payload.id
     ] as any);
-    const promise = (result.value as unknown) as PromiseLike<
+    const promise = result.value as unknown as PromiseLike<
       ReturnType<FilecoinApi[Method]>
     >;
 
@@ -154,7 +156,7 @@ export default class FilecoinProvider<
       ...(payload.params || []),
       payload.id
     ] as any);
-    const promiEvent = (result.value as unknown) as PromiEvent<Subscription>;
+    const promiEvent = result.value as unknown as PromiEvent<Subscription>;
 
     if (promiEvent instanceof PromiEvent) {
       promiEvent.on("message", data => {

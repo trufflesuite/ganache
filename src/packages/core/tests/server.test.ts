@@ -9,7 +9,10 @@ import assert from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
-import { MAX_PAYLOAD_SIZE as WS_MAX_PAYLOAD_SIZE } from "../src/servers/ws-server";
+import {
+  MAX_PAYLOAD_SIZE as WS_MAX_PAYLOAD_SIZE,
+  sendFragmented
+} from "../src/servers/ws-server";
 
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
@@ -17,12 +20,13 @@ import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { ServerOptions } from "../src/options";
-import { Connector, Provider as EthereumProvider } from "@ganache/ethereum";
+import { Connector, EthereumProvider } from "@ganache/ethereum";
 import {
   NetworkInterfaceInfo,
   NetworkInterfaceInfoIPv6,
   networkInterfaces
 } from "os";
+const chunkSize = 1024 * 1024;
 
 const IS_WINDOWS = process.platform === "win32";
 
@@ -36,7 +40,7 @@ describe("server", () => {
     params: []
   };
   const logger = {
-    log: (_message: string) => { }
+    log: (_message: string) => {}
   };
   let s: Server;
 
@@ -47,10 +51,11 @@ describe("server", () => {
     logging: {
       logger
     }
-  }
+  };
 
   async function setup(
-    options: ServerOptions = defaultOptions, host: string | null = null
+    options: ServerOptions = defaultOptions,
+    host: string | null = null
   ) {
     // @ts-ignore - `s` errors if you run tsc and then test
     // because it tries to compare the built declaration file to
@@ -102,10 +107,10 @@ describe("server", () => {
     req.on("response", (res: http.IncomingMessage) => {
       let data = "";
       res
-        .on("data", d => data += d.toString("utf8"))
+        .on("data", d => (data += d.toString("utf8")))
         .on("end", () => resolve({ status: 200, body: JSON.parse(data) }));
     });
-    req.on("error", (err) => reject(err));
+    req.on("error", err => reject(err));
     req.write(data);
     req.end();
     return deferred;
@@ -167,13 +172,20 @@ describe("server", () => {
           for (const info of interfaceInfo) {
             const host = getHost(info, interfaceName);
             const response = await post(host, port, jsonRpcJson);
-            assert.strictEqual(response.status, 200, `Wrong status code when connecting to http://${host}:${port}`);
-            assert.strictEqual(response.body.result, "1234", `Wrong result when connecting to http://${host}:${port}`);
+            assert.strictEqual(
+              response.status,
+              200,
+              `Wrong status code when connecting to http://${host}:${port}`
+            );
+            assert.strictEqual(
+              response.body.result,
+              "1234",
+              `Wrong result when connecting to http://${host}:${port}`
+            );
           }
         }
-      }
-      finally {
-        await teardown()
+      } finally {
+        await teardown();
       }
     });
 
@@ -223,7 +235,7 @@ describe("server", () => {
         }
       }
     }).timeout(50000); // we need a long timeout because the OS may take a while to refuse connections, especially on Windows.
-  })
+  });
 
   describe("http", () => {
     async function simpleTest() {
@@ -315,8 +327,10 @@ describe("server", () => {
 
     it("accepts port as number type or binary, octal, decimal or hexadecimal string", async () => {
       const validPorts = [
-        port, `0b${port.toString(2)}`,
-        `0o${port.toString(8)}`, port.toString(10),
+        port,
+        `0b${port.toString(2)}`,
+        `0o${port.toString(8)}`,
+        port.toString(10),
         `0x${port.toString(16)}`
       ];
 
@@ -335,10 +349,28 @@ describe("server", () => {
 
     it("fails with invalid ports", async () => {
       const invalidPorts = [
-        -1, 'a', {}, [], false, true,
-        0xFFFF + 1, Infinity, -Infinity, NaN,
-        undefined, null, '', ' ', 1.1, '0x',
-        '-0x1', '-0o1', '-0b1', '0o', '0b', 0
+        -1,
+        "a",
+        {},
+        [],
+        false,
+        true,
+        0xffff + 1,
+        Infinity,
+        -Infinity,
+        NaN,
+        undefined,
+        null,
+        "",
+        " ",
+        1.1,
+        "0x",
+        "-0x1",
+        "-0o1",
+        "-0b1",
+        "0o",
+        "0b",
+        0
       ];
 
       for (const specificPort of invalidPorts) {
@@ -451,7 +483,6 @@ describe("server", () => {
         // a request is required in order to actually close the connection
         // see https://github.com/trufflesuite/ganache/issues/2788
         await post("localhost", port, jsonRpcJson, agent);
-
       } finally {
         teardown();
       }
@@ -673,7 +704,7 @@ describe("server", () => {
       Connector.BUFFERIFY_THRESHOLD = 0;
 
       try {
-        await setup();
+        await setup({ server: { chunkSize: 1 } });
         const [from] = await s.provider.send("eth_accounts");
         await s.provider.send("eth_subscribe", ["newHeads"]);
 
@@ -1230,58 +1261,301 @@ describe("server", () => {
       });
     });
 
-    it("responds with transfer-encoding: chunked responses when bufferification is triggered", async () => {
-      // this test needs to set BUFFERIFY_THRESHOLD before starting the server
-      await teardown();
+    describe("bufferification", () => {
+      type MockSocketResponse = {
+        fragment: Buffer;
+        method: "sendFirstFragment" | "sendFragment" | "sendLastFragment";
+      };
 
-      const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
-      // This will trigger bufferication in the Ethereum connector
-      // for calls to debug_traceTransaction that return structLogs that have a
-      // length greater than BUFFERIFY_THRESHOLD
-      Connector.BUFFERIFY_THRESHOLD = 0;
+      /**
+       * @param actual the actual response from the (mock) socket
+       * @param expected the results we expect
+       */
+      function assertMockSocketResults(
+        actual: MockSocketResponse[],
+        expected: MockSocketResponse[]
+      ) {
+        assert.strictEqual(
+          actual.length,
+          expected.length,
+          "too many/few fragments were received"
+        );
+        expected.forEach(({ fragment, method }, i) => {
+          assert.strictEqual(
+            actual[i].fragment.toString("utf8"),
+            fragment.toString("utf8"),
+            `response at index ${i} was not correct`
+          );
+          assert.strictEqual(
+            actual[i].method,
+            method,
+            `method at index ${i} was not correct`
+          );
+        });
+      }
+      it("responds over websockets when bufferification is triggered", async () => {
+        // this test needs to set BUFFERIFY_THRESHOLD before starting the server
+        await teardown();
 
-      try {
-        await setup();
-        const [from] = await s.provider.send("eth_accounts");
-        await s.provider.send("eth_subscribe", ["newHeads"]);
+        const originalThreshold = Connector.BUFFERIFY_THRESHOLD;
+        // This will trigger bufferication in the Ethereum connector
+        // for calls to debug_traceTransaction that return structLogs that have a
+        // length greater than BUFFERIFY_THRESHOLD
+        Connector.BUFFERIFY_THRESHOLD = 0;
 
-        const ops = [
-          { op: "PUSH1", code: "60", data: "00" },
-          { op: "PUSH1", code: "60", data: "00" },
-          { op: "RETURN", code: "f3", data: "" }
+        try {
+          await setup();
+          const [from] = await s.provider.send("eth_accounts");
+          await s.provider.send("eth_subscribe", ["newHeads"]);
+
+          const ops = [
+            { op: "PUSH1", code: "60", data: "00" },
+            { op: "PUSH1", code: "60", data: "00" },
+            { op: "RETURN", code: "f3", data: "" }
+          ];
+          // a silly "contract" we can trace later: PUSH 0, PUSH, 0, RETURN
+          const data = "0x" + ops.map(op => op.code + op.data).join("");
+          const hash = s.provider.send("eth_sendTransaction", [{ from, data }]);
+          await s.provider.once("message");
+
+          // send a `debug_traceTransaction` request to the *server* so we can
+          // test for `transfer-encoding: chunked` and bufferfication.
+          const jsonRpcJson: any = {
+            jsonrpc: "2.0",
+            id: "1",
+            method: "debug_traceTransaction",
+            params: [await hash]
+          };
+
+          const ws = new WebSocket("ws://localhost:" + port);
+          ws.binaryType = "fragments";
+          const response: any = await new Promise(resolve => {
+            ws.on("open", () => {
+              ws.send(Buffer.from(JSON.stringify(jsonRpcJson)), {
+                binary: true
+              });
+            });
+            ws.on("fragment", data => {
+              console.log(data);
+            });
+            ws.on("message", resolve);
+          });
+
+          assert.strictEqual(Array.isArray(response), true);
+          const { result } = JSON.parse(Buffer.concat(response));
+          assert.strictEqual(result.structLogs.length, ops.length);
+        } finally {
+          Connector.BUFFERIFY_THRESHOLD = originalThreshold;
+          await teardown();
+        }
+      });
+
+      it("handles small+small+small fragment bufferification edge-case", () => {
+        // in this test we create many chunks, but they all fit in a single
+        // fragment, so we expect for bufferification to NOT kick in; it should
+        // be send with a regular `send` instead of `sendFragment`.
+        const chunks = [
+          // fits in a first fragment
+          Buffer.from("hello", "utf8"),
+          // fits in a first fragment
+          Buffer.from("world", "utf8"),
+          // fits in a first fragment
+          Buffer.from("!!!", "utf8")
         ];
-        // a silly "contract" we can trace later: PUSH 0, PUSH, 0, RETURN
-        const data = "0x" + ops.map(op => op.code + op.data).join("");
-        const hash = s.provider.send("eth_sendTransaction", [{ from, data }]);
-        await s.provider.once("message");
+        const expectedResponse = Buffer.concat(chunks);
 
-        // send a `debug_traceTransaction` request to the *server* so we can
-        // test for `transfer-encoding: chunked` and bufferfication.
-        const jsonRpcJson: any = {
-          jsonrpc: "2.0",
-          id: "1",
-          method: "debug_traceTransaction",
-          params: [await hash]
+        let sendCallCount = 0;
+        const send = (
+          message: Buffer,
+          _isBinary?: boolean,
+          _compress?: boolean
+        ) => {
+          sendCallCount++;
+          // the received message should not be chunked further or joined with
+          // anything else
+          assert.strictEqual(
+            message.toString("utf8"),
+            expectedResponse.toString("utf8")
+          );
+          return true;
+        };
+        const mockWebsocket: any = {
+          send,
+          cork: (callback: () => void) => callback(),
+          // if we are sending a single chunk `send` must be used instead of
+          // sendFirstFragment/sendFragment/sendLastFragment
+          sendFragment: () => assert.fail("should not have used sendFragment"),
+          sendFirstFragment: () =>
+            assert.fail("should not have used sendFirstFragment"),
+          sendLastFragment: () =>
+            assert.fail("should not have used sendLastFragment")
+        };
+        const dataGenerator = function* () {
+          for (const chunk of chunks) yield chunk;
+        };
+        sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
+        assert.strictEqual(sendCallCount, 1, "send called too few/many times!");
+      });
+
+      it("handles small+large+small bufferification edge-case", () => {
+        // the code path this triggers would be very difficult to trigger in an
+        // integration test, so we are testing the method directly instead.
+
+        const expectedResponses: MockSocketResponse[] = [
+          // fits in a fragment
+          {
+            fragment: Buffer.from("hello", "utf8"),
+            method: "sendFirstFragment"
+          },
+          // this second chunk is too large to fit in a single fragment (it is
+          // larger than bufferSize), so it should be sent by itself.
+          // Technically we _could_ copy parts of it into the previous fragment,
+          // but we haven't tested if this would be better or worse than sending
+          // this chunk as its own huge fragment.
+          {
+            fragment: Buffer.allocUnsafe(chunkSize + 1).fill(255),
+            method: "sendFragment"
+          },
+          // fits in a fragment
+          { fragment: Buffer.from("world", "utf8"), method: "sendLastFragment" }
+        ];
+        const dataGenerator = function* () {
+          for (const { fragment } of expectedResponses) yield fragment;
+        };
+        const receivedFragments: MockSocketResponse[] = [];
+        const mockWebsocket: any = {
+          cork: (callback: () => void) => callback(),
+          sendFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFragment" }),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
+          // if we are sending a multiple chunks `send` should NOT be used
+          send: () => assert.fail("it should not have used `send`")
         };
 
-        const ws = new WebSocket("ws://localhost:" + port);
-        ws.binaryType = "fragments";
-        const response: any = await new Promise(resolve => {
-          ws.on("open", () => {
-            ws.send(Buffer.from(JSON.stringify(jsonRpcJson)), {
-              binary: true
-            });
-          });
-          ws.on("message", resolve);
-        });
+        // send the data!
+        sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
 
-        assert.strictEqual(Array.isArray(response), true);
-        const { result } = JSON.parse(Buffer.concat(response));
-        assert.strictEqual(result.structLogs.length, ops.length);
-      } finally {
-        Connector.BUFFERIFY_THRESHOLD = originalThreshold;
-        await teardown();
-      }
+        assertMockSocketResults(receivedFragments, expectedResponses);
+      });
+
+      it("handles large+small bufferification edge-case", () => {
+        // we should receive 2 fragments, the first of which is very large and
+        // must be sent by itself, the second of which is very tiny.
+
+        const expectedResponses: MockSocketResponse[] = [
+          // this first chunk is too large to fit in a single fragment (it is
+          // larger than chunkSize), so it should be sent by itself.
+          {
+            fragment: Buffer.allocUnsafe(chunkSize + 1).fill(255),
+            method: "sendFirstFragment"
+          },
+          // fits in a fragment
+          { fragment: Buffer.from("world", "utf8"), method: "sendLastFragment" }
+        ];
+        const dataGenerator = function* () {
+          for (const { fragment } of expectedResponses) yield fragment;
+        };
+        const receivedFragments: MockSocketResponse[] = [];
+        const mockWebsocket: any = {
+          cork: (callback: () => void) => callback(),
+          sendFragment: (_: Buffer) =>
+            assert.fail("it should not have used `sendFragment`"),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
+          // if we are sending a multiple chunks `send` should NOT be used
+          send: () => assert.fail("it should not have used `send`")
+        };
+
+        // send the data!
+        sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
+
+        assertMockSocketResults(receivedFragments, expectedResponses);
+      });
+      it("handles large+large bufferification edge-case", () => {
+        // we should receive 2 fragments.
+
+        const expectedResponses: MockSocketResponse[] = [
+          // exactly 1 fragment
+          {
+            fragment: Buffer.allocUnsafe(chunkSize).fill(255),
+            method: "sendFirstFragment"
+          },
+          // exactly 1 fragment
+          {
+            fragment: Buffer.allocUnsafe(chunkSize).fill(255),
+            method: "sendLastFragment"
+          }
+        ];
+        const dataGenerator = function* () {
+          for (const { fragment } of expectedResponses) yield fragment;
+        };
+        const receivedFragments: MockSocketResponse[] = [];
+        const mockWebsocket: any = {
+          cork: (callback: () => void) => callback(),
+          sendFragment: (_: Buffer) =>
+            assert.fail("it should not have used `sendFragment`"),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
+          // if we are sending a multiple chunks `send` should NOT be used
+          send: () => assert.fail("it should not have used `send`")
+        };
+
+        // send the data!
+        sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
+
+        assertMockSocketResults(receivedFragments, expectedResponses);
+      });
+
+      it("handles small+small+large bufferification edge-case", () => {
+        // we should receive 2 fragments, the first of which is small and
+        // the second of which is large and must be sent by itself.
+        const chunks = [
+          // fits in a first fragment
+          Buffer.from("hello", "utf8"),
+          // fits in a first fragment
+          Buffer.from("world", "utf8"),
+          // this last chunk is too large to fit in a the previous fragment, so
+          // it should be sent by itself.
+          Buffer.allocUnsafe(chunkSize - 5).fill(255)
+        ];
+        const expectedResponses: MockSocketResponse[] = [
+          // fits in a first fragment
+          {
+            fragment: Buffer.concat(chunks.slice(0, 2)),
+            method: "sendFirstFragment"
+          },
+          // this last chunk is too large to fit in a the previous fragment, so
+          // it should be sent by itself.
+          { fragment: chunks[2], method: "sendLastFragment" }
+        ];
+        const dataGenerator = function* () {
+          for (const chunk of chunks) yield chunk;
+        };
+        const receivedFragments: MockSocketResponse[] = [];
+        const mockWebsocket: any = {
+          cork: (callback: () => void) => callback(),
+          sendFragment: (_: Buffer) =>
+            assert.fail("it should not have used `sendFragment`"),
+          sendFirstFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendFirstFragment" }),
+          sendLastFragment: (fragment: Buffer) =>
+            receivedFragments.push({ fragment, method: "sendLastFragment" }),
+          // if we are sending a multiple chunks `send` should NOT be used
+          send: () => assert.fail("it should not have used `send`")
+        };
+
+        // send the data!
+        sendFragmented(mockWebsocket, dataGenerator(), false, chunkSize);
+
+        assertMockSocketResults(receivedFragments, expectedResponses);
+      });
     });
 
     describe("max payload size", () => {
@@ -1362,8 +1636,8 @@ describe("server", () => {
                 reject(
                   new Error(
                     "Possible false positive: Didn't detect backpressure" +
-                    " before receiving a message. Ensure `s.provider.send` is" +
-                    " sending enough data."
+                      " before receiving a message. Ensure `s.provider.send` is" +
+                      " sending enough data."
                   )
                 );
               }

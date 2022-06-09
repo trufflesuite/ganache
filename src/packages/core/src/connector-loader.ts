@@ -1,12 +1,12 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
 import { DefaultFlavor, FlavorName } from "@ganache/flavors";
-import { GetConnector, Options as ProviderOptions } from "@ganache/flavors";
+import { GetConnector, FlavorOptions } from "@ganache/flavors";
 
 const initialize = <T extends FlavorName = typeof DefaultFlavor>(
-  options: ProviderOptions<T> = {
+  options: FlavorOptions<T> = {
     flavor: DefaultFlavor,
     chain: { asyncRequestProcessing: true }
-  } as ProviderOptions<T>
+  } as FlavorOptions<T>
 ) => {
   const flavor = (options.flavor || DefaultFlavor) as T;
 
@@ -17,9 +17,9 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
   let asyncRequestProcessing: boolean;
 
   if ("chain" in options && "asyncRequestProcessing" in options["chain"]) {
-    asyncRequestProcessing = options["chain"].asyncRequestProcessing;
+    asyncRequestProcessing = options.chain.asyncRequestProcessing;
   } else if ("asyncRequestProcessing" in options) {
-    asyncRequestProcessing = options["asyncRequestProcessing"];
+    asyncRequestProcessing = options.asyncRequestProcessing;
   } else {
     asyncRequestProcessing = true;
   }

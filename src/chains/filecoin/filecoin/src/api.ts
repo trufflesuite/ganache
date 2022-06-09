@@ -17,6 +17,9 @@ import { SerializedQueryOffer } from "./things/query-offer";
 import Emittery from "emittery";
 import { HeadChange, HeadChangeType } from "./things/head-change";
 import { SubscriptionMethod, SubscriptionId } from "./types/subscriptions";
+// same as SubscriptionMethod.ChannelClosed, but api-extractor doesn't like the
+// enum so I just hardcoded it here
+const ChannelClosed = "xrpc.ch.close" as const;
 import { FileRef, SerializedFileRef } from "./things/file-ref";
 import { MinerPower, SerializedMinerPower } from "./things/miner-power";
 import { PowerClaim } from "./things/power-claim";
@@ -42,7 +45,10 @@ import { StorageDealStatus } from "./types/storage-deal-status";
 export default class FilecoinApi implements Api {
   readonly [index: string]: (...args: any) => Promise<any>;
 
-  readonly #getId = (id => () => Quantity.from(++id))(0);
+  readonly #getId = (
+    id => () =>
+      Quantity.from(++id)
+  )(0);
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
   readonly #blockchain: Blockchain;
 
@@ -199,9 +205,7 @@ export default class FilecoinApi implements Api {
    * @returns `false` if the subscription ID doesn't exist or
    * if the subscription is already canceled, `true` otherwise.
    */
-  [SubscriptionMethod.ChannelClosed](
-    subscriptionId: SubscriptionId
-  ): Promise<boolean> {
+  [ChannelClosed](subscriptionId: SubscriptionId): Promise<boolean> {
     const subscriptions = this.#subscriptions;
     const unsubscribe = this.#subscriptions.get(subscriptionId);
 
@@ -302,9 +306,10 @@ export default class FilecoinApi implements Api {
     await this.#blockchain.waitForReady();
 
     const blockCid = new RootCID(serializedBlockCid);
-    const blockMessages = await this.#blockchain.blockMessagesManager!.getBlockMessages(
-      blockCid.root
-    );
+    const blockMessages =
+      await this.#blockchain.blockMessagesManager!.getBlockMessages(
+        blockCid.root
+      );
 
     if (!blockMessages) {
       throw new Error("Could not find a block for the provided CID");
@@ -687,7 +692,8 @@ export default class FilecoinApi implements Api {
    */
   async "Filecoin.WalletDefaultAddress"(): Promise<SerializedAddress> {
     await this.#blockchain.waitForReady();
-    const accounts = await this.#blockchain.accountManager!.getControllableAccounts();
+    const accounts =
+      await this.#blockchain.accountManager!.getControllableAccounts();
     return accounts[0].address.serialize();
   }
 
@@ -763,7 +769,8 @@ export default class FilecoinApi implements Api {
   async "Filecoin.WalletList"(): Promise<Array<SerializedAddress>> {
     await this.#blockchain.waitForReady();
 
-    const accounts = await this.#blockchain.accountManager!.getControllableAccounts();
+    const accounts =
+      await this.#blockchain.accountManager!.getControllableAccounts();
     return accounts.map(account => account.address.serialize());
   }
 

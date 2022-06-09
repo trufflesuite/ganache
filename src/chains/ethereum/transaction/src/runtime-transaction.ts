@@ -10,7 +10,7 @@ import {
   BUFFER_ZERO,
   RPCQUANTITY_EMPTY
 } from "@ganache/utils";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
@@ -20,7 +20,7 @@ import {
 import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
-import { TransactionReceipt } from "./transaction-receipt";
+import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
@@ -34,8 +34,8 @@ export const toValidLengthAddress = (address: string, fieldName: string) => {
 };
 
 export const hasPartialSignature = (
-  data: TypedRpcTransaction
-): data is TypedRpcTransaction & {
+  data: Transaction
+): data is Transaction & {
   from?: string;
   v?: string;
   r?: string;
@@ -64,7 +64,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public locked: boolean = false;
 
   public logs: TransactionLog[];
-  public receipt: TransactionReceipt;
+  public receipt: InternalTransactionReceipt;
   public execException: RuntimeError;
 
   public raw: TypedDatabaseTransaction | null;
@@ -75,7 +75,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   private finalized: Promise<TransactionFinalization>;
 
   constructor(
-    data: TypedDatabasePayload | TypedRpcTransaction,
+    data: TypedDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -154,7 +154,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       status = ONE_BUFFER;
     }
 
-    const receipt = (this.receipt = TransactionReceipt.fromValues(
+    const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
       status,
       Quantity.from(cumulativeGasUsed).toBuffer(),
       result.bloom.bitvector,
@@ -166,7 +166,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return receipt.serialize(false);
   }
 
-  public getReceipt(): TransactionReceipt {
+  public getReceipt(): InternalTransactionReceipt {
     return this.receipt;
   }
 
@@ -174,7 +174,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return this.logs;
   }
 
-  validateAndSetSignature = (data: TypedRpcTransaction) => {
+  validateAndSetSignature = (data: Transaction) => {
     // If we have v, r, or s validate and use them
     if (hasPartialSignature(data)) {
       if (data.v == null || data.r == null || data.s == null) {
@@ -200,13 +200,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       );
       this.raw = raw;
       if (!this.from) {
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, raw, this.common.chainId());
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, raw, this.common.chainId());
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches

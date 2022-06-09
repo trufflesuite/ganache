@@ -9,7 +9,7 @@ import { Data, Quantity } from "@ganache/utils";
 import {
   GanacheRawExtraTx,
   TransactionFactory,
-  TypedRpcTransaction,
+  Transaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 
@@ -43,10 +43,9 @@ export default class TransactionManager extends Manager<NoOp> {
 
   fromFallback = async (transactionHash: Buffer) => {
     const { fallback } = this.#blockchain;
-    const tx = await fallback.request<TypedRpcTransaction>(
-      "eth_getTransactionByHash",
-      [Data.from(transactionHash).toString()]
-    );
+    const tx = await fallback.request<Transaction>("eth_getTransactionByHash", [
+      Data.from(transactionHash).toString()
+    ]);
     if (tx == null) return null;
 
     const blockHash = Data.from((tx as any).blockHash, 32);

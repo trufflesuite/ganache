@@ -6,26 +6,16 @@ import {
   VM_EXCEPTIONS,
   CodedError,
   DATA,
-  WhisperPostObject,
-  BaseFilterArgs,
-  Filter,
-  FilterArgs,
+  InternalFilter,
   FilterTypes,
   QUANTITY,
-  RangeFilterArgs,
-  StorageRangeResult,
-  SubscriptionId,
-  SubscriptionName,
-  EthereumRawAccount,
-  TransactionTraceOptions,
-  TraceTransactionResult
+  EthereumRawAccount
 } from "@ganache/ethereum-utils";
 import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
-  TypedRpcTransaction,
+  Transaction,
   TransactionFactory,
-  TypedTransaction,
-  TypedTransactionJSON
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import {
   toRpcSig,
@@ -33,7 +23,7 @@ import {
   hashPersonalMessage,
   KECCAK256_NULL
 } from "ethereumjs-util";
-import { TypedData as NotTypedData, signTypedData_v4 } from "eth-sig-util";
+import { signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
   Heap,
@@ -58,16 +48,16 @@ import { decode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
-import { CallOverrides } from "./helpers/run-call";
+import { Ethereum } from "./api-types";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
   eth_estimateGas: (
-    tx: TypedRpcTransaction,
-    tag: QUANTITY | Tag
+    tx: Ethereum.Transaction,
+    tag: QUANTITY | Ethereum.Tag
   ) => Promise<Quantity>,
   eth_maxPriorityFeePerGas: () => Promise<Quantity>,
-  transaction: TypedRpcTransaction,
+  transaction: Ethereum.Transaction,
   blockchain: Blockchain,
   options: EthereumInternalOptions
 ) {
@@ -110,13 +100,6 @@ const RPC_MODULES = {
   evm: "1.0",
   personal: "1.0"
 } as const;
-//#endregion
-
-//#region misc types
-type TypedData = Exclude<
-  Parameters<typeof signTypedData_v4>[1]["data"],
-  NotTypedData
->;
 //#endregion
 
 //#region helpers
@@ -163,7 +146,7 @@ export default class EthereumApi implements Api {
     id => () =>
       Quantity.from(++id)
   )(0);
-  readonly #filters = new Map<string, Filter>();
+  readonly #filters = new Map<string, InternalFilter>();
   readonly #subscriptions = new Map<string, Emittery.UnsubscribeFn>();
   readonly #options: EthereumInternalOptions;
   readonly #blockchain: Blockchain;
@@ -201,7 +184,11 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(3)
-  async db_putString(dbName: string, key: string, value: string) {
+  async db_putString(
+    dbName: string,
+    key: string,
+    value: string
+  ): Promise<boolean> {
     return false;
   }
 
@@ -305,15 +292,11 @@ export default class EthereumApi implements Api {
    * console.log("end", await provider.send("eth_blockNumber"));
    * ```
    */
+  async evm_mine(): Promise<"0x0">;
   async evm_mine(timestamp: number): Promise<"0x0">;
-  async evm_mine(options: {
-    timestamp?: number;
-    blocks?: number;
-  }): Promise<"0x0">;
+  async evm_mine(options: Ethereum.MineOptions): Promise<"0x0">;
   @assertArgLength(0, 1)
-  async evm_mine(
-    arg?: number | { timestamp?: number; blocks?: number }
-  ): Promise<"0x0"> {
+  async evm_mine(arg?: number | Ethereum.MineOptions): Promise<"0x0"> {
     const blockchain = this.#blockchain;
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
@@ -568,19 +551,22 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0, 1)
   async evm_setTime(time: number | QUANTITY | Date) {
-    let t: number;
+    let timestamp: number;
     switch (typeof time) {
       case "object":
-        t = time.getTime();
+        timestamp = time.getTime();
         break;
       case "number":
-        t = time;
+        timestamp = time;
         break;
       default:
-        t = Quantity.from(time).toNumber();
+        timestamp = Quantity.from(time).toNumber();
         break;
     }
-    return Math.floor(this.#blockchain.setTime(t) / 1000);
+    const blockchain = this.#blockchain;
+    const offsetMilliseconds = blockchain.setTimeDiff(timestamp);
+    // convert offsetMilliseconds to seconds:
+    return Math.floor(offsetMilliseconds / 1000);
   }
 
   /**
@@ -929,8 +915,8 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
-    transaction: TypedRpcTransaction,
-    blockNumber: QUANTITY | Tag = Tag.latest
+    transaction: Ethereum.Transaction,
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
     const blocks = blockchain.blocks;
@@ -943,7 +929,10 @@ export default class EthereumApi implements Api {
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
-      const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+      const tx = TransactionFactory.fromRpc(
+        transaction as Transaction,
+        blockchain.common
+      );
       if (tx.from == null) {
         tx.from = coinbase;
       }
@@ -1061,11 +1050,18 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByNumber(number: QUANTITY | Tag, transactions = false) {
+  async eth_getBlockByNumber<IncludeTransactions extends boolean = false>(
+    number: QUANTITY | Ethereum.Tag,
+    transactions?: IncludeTransactions
+  ): Promise<Ethereum.Block<IncludeTransactions, "private"> | null> {
+    if (typeof transactions === "undefined") {
+      transactions = false as IncludeTransactions;
+    }
     const block = await this.#blockchain.blocks
       .get(number)
       .catch<Block>(_ => null);
-    return block ? block.toJSON(transactions) : null;
+    // @ts-ignore
+    return block ? block.toJSON<IncludeTransactions>(transactions) : null;
   }
 
   /**
@@ -1119,11 +1115,17 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getBlockByHash(hash: DATA, transactions = false) {
+  async eth_getBlockByHash<IncludeTransactions extends boolean = false>(
+    hash: DATA,
+    transactions?: IncludeTransactions
+  ): Promise<Ethereum.Block<IncludeTransactions, "private"> | null> {
+    if (typeof transactions === "undefined") {
+      transactions = false as IncludeTransactions;
+    }
     const block = await this.#blockchain.blocks
       .getByHash(hash)
       .catch<Block>(_ => null);
-    return block ? block.toJSON(transactions) : null;
+    return block ? block.toJSON<IncludeTransactions>(transactions) : null;
   }
 
   /**
@@ -1138,7 +1140,9 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getBlockTransactionCountByNumber(blockNumber: QUANTITY | Tag) {
+  async eth_getBlockTransactionCountByNumber(
+    blockNumber: QUANTITY | Ethereum.Tag
+  ) {
     const { blocks } = this.#blockchain;
     const blockNum = blocks.getEffectiveNumber(blockNumber);
     const rawBlock = await blocks.getRawByBlockNumber(blockNum);
@@ -1235,14 +1239,17 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_getTransactionByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
+  async eth_getTransactionByBlockHashAndIndex(
+    hash: DATA,
+    index: QUANTITY
+  ): Promise<Ethereum.Block.Transaction<"private"> | null> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks
       .getByHash(hash)
       .catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+    return transactions[Quantity.from(index).toNumber()].toJSON(
       blockchain.common
     );
   }
@@ -1282,14 +1289,14 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockNumberAndIndex(
-    number: QUANTITY | Tag,
+    number: QUANTITY | Ethereum.Tag,
     index: QUANTITY
-  ) {
+  ): Promise<Ethereum.Block.Transaction<"private"> | null> {
     const blockchain = this.#blockchain;
     const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[parseInt(Quantity.from(index).toString(), 10)].toJSON(
+    return transactions[Quantity.from(index).toNumber()].toJSON(
       blockchain.common
     );
   }
@@ -1321,7 +1328,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getUncleCountByBlockNumber(blockNumber: QUANTITY | Tag) {
+  async eth_getUncleCountByBlockNumber(blockNumber: QUANTITY | Ethereum.Tag) {
     return RPCQUANTITY_ZERO;
   }
 
@@ -1350,8 +1357,10 @@ export default class EthereumApi implements Api {
    * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
    * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
    * * `size`: `QUANTITY` - Integer the size of the block in bytes.
-   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
    * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * **NOTE: **The return does not contain a list of transactions in the uncle
+   * block, to get this, make another request to `eth_getBlockByHash`.
    *
    * @example
    * ```javascript
@@ -1362,7 +1371,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getUncleByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
-    return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
+    return null as Omit<Ethereum.Block<true>, "transactions">;
   }
 
   /**
@@ -1390,8 +1399,10 @@ export default class EthereumApi implements Api {
    * * `nonce`: `DATA`, 8 Bytes - Hash of the generated proof-of-work. `null` when pending.
    * * `totalDifficulty`: `QUANTITY` - Integer of the total difficulty of the chain until this block.
    * * `size`: `QUANTITY` - Integer the size of the block in bytes.
-   * * `transactions`: `Array` - Array of transaction objects or 32 Bytes transaction hashes depending on the last parameter.
    * * `uncles`: `Array` - Array of uncle hashes.
+   *
+   * * **NOTE: **The return does not contain a list of transactions in the uncle
+   * block, to get this, make another request to `eth_getBlockByHash`.
    *
    * @example
    * ```javascript
@@ -1401,10 +1412,10 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async eth_getUncleByBlockNumberAndIndex(
-    blockNumber: QUANTITY | Tag,
+    blockNumber: QUANTITY | Ethereum.Tag,
     uncleIndex: QUANTITY
   ) {
-    return null as ReturnType<EthereumApi["eth_getBlockByHash"]>;
+    return null as Omit<Ethereum.Block<true>, "transactions">;
   }
 
   /**
@@ -1451,7 +1462,7 @@ export default class EthereumApi implements Api {
    *
    * @param hashRate - A hexadecimal string representation (32 bytes) of the hash rate.
    * @param clientID - A random hexadecimal(32 bytes) ID identifying the client.
-   * @returns `true` if submitting went through succesfully and `false` otherwise.
+   * @returns `true` if submitting went through successfully and `false` otherwise.
    * @example
    * ```javascript
    * const hashRate = "0x0000000000000000000000000000000000000000000000000000000000000001";
@@ -1585,7 +1596,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getBalance(
     address: DATA,
-    blockNumber: QUANTITY | Tag = Tag.latest
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ) {
     return this.#blockchain.accounts.getBalance(
       Address.from(address),
@@ -1622,7 +1633,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1, 2)
-  async eth_getCode(address: DATA, blockNumber: QUANTITY | Tag = Tag.latest) {
+  async eth_getCode(
+    address: DATA,
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
+  ) {
     const { accounts } = this.#blockchain;
     return accounts.getCode(Address.from(address), blockNumber);
   }
@@ -1660,7 +1674,7 @@ export default class EthereumApi implements Api {
   async eth_getStorageAt(
     address: DATA,
     position: QUANTITY,
-    blockNumber: QUANTITY | Tag = Tag.latest
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ) {
     const blockchain = this.#blockchain;
     const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
@@ -1730,7 +1744,13 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getTransactionByHash(transactionHash: DATA) {
+  async eth_getTransactionByHash(
+    transactionHash: DATA
+  ): Promise<
+    | Ethereum.Block.Transaction<"private">
+    | Ethereum.Pool.Transaction<"private">
+    | null
+  > {
     const { transactions } = this.#blockchain;
     const hashBuffer = Data.from(transactionHash).toBuffer();
 
@@ -1767,7 +1787,9 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getTransactionReceipt(transactionHash: DATA) {
+  async eth_getTransactionReceipt(
+    transactionHash: DATA
+  ): Promise<Ethereum.Transaction.Receipt<"private">> {
     const { transactions, transactionReceipts, blocks, common } =
       this.#blockchain;
     const dataHash = Data.from(transactionHash);
@@ -1831,10 +1853,13 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_sendTransaction(transaction: TypedRpcTransaction) {
+  async eth_sendTransaction(transaction: Ethereum.Transaction): Promise<Data> {
     const blockchain = this.#blockchain;
 
-    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(
+      transaction as Transaction,
+      blockchain.common
+    );
     if (tx.from == null) {
       throw new Error("from not found; is required");
     }
@@ -1884,9 +1909,12 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_signTransaction(transaction: TypedRpcTransaction) {
+  async eth_signTransaction(transaction: Ethereum.Transaction): Promise<Data> {
     const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(
+      transaction as Transaction,
+      blockchain.common
+    );
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -1905,7 +1933,7 @@ export default class EthereumApi implements Api {
     }
 
     tx.signAndHash(privateKey.toBuffer());
-    return Data.from(tx.serialized).toString();
+    return Data.from(tx.serialized);
   }
   /**
    * Creates new message call transaction or a contract creation for signed transactions.
@@ -2023,7 +2051,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData(address: DATA, typedData: TypedData) {
+  async eth_signTypedData(address: DATA, typedData: Ethereum.TypedData) {
     return this.eth_signTypedData_v4(address, typedData);
   }
 
@@ -2083,7 +2111,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async eth_signTypedData_v4(address: DATA, typedData: TypedData) {
+  async eth_signTypedData_v4(address: DATA, typedData: Ethereum.TypedData) {
     const account = Address.from(address).toString().toLowerCase();
 
     const privateKey = this.#wallet.unlockedAccounts.get(account);
@@ -2131,7 +2159,9 @@ export default class EthereumApi implements Api {
    * console.log(subscriptionId);
    * ```
    */
-  eth_subscribe(subscriptionName: SubscriptionName): PromiEvent<Quantity>;
+  eth_subscribe(
+    subscriptionName: Ethereum.SubscriptionName
+  ): PromiEvent<Quantity>;
   /**
    * Starts a subscription to a particular event. For every event that matches
    * the subscription a JSON-RPC notification with event details and
@@ -2145,13 +2175,13 @@ export default class EthereumApi implements Api {
    * @returns A subscription id.
    */
   eth_subscribe(
-    subscriptionName: Extract<SubscriptionName, "logs">,
-    options: BaseFilterArgs
+    subscriptionName: Extract<Ethereum.SubscriptionName, "logs">,
+    options: Ethereum.SubscriptionOptions
   ): PromiEvent<Quantity>;
   @assertArgLength(1, 2)
   eth_subscribe(
-    subscriptionName: SubscriptionName,
-    options?: BaseFilterArgs
+    subscriptionName: Ethereum.SubscriptionName,
+    options?: Ethereum.SubscriptionOptions
   ): PromiEvent<Quantity> {
     const subscriptions = this.#subscriptions;
     switch (subscriptionName) {
@@ -2269,7 +2299,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_unsubscribe(subscriptionId: SubscriptionId) {
+  async eth_unsubscribe(subscriptionId: Ethereum.SubscriptionId) {
     const subscriptions = this.#subscriptions;
     const unsubscribe = subscriptions.get(subscriptionId);
     if (unsubscribe) {
@@ -2293,7 +2323,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async eth_newBlockFilter() {
+  async eth_newBlockFilter(): Promise<Quantity> {
     const unsubscribe = this.#blockchain.on("block", (block: Block) => {
       value.updates.push(block.hash());
     });
@@ -2320,7 +2350,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async eth_newPendingTransactionFilter() {
+  async eth_newPendingTransactionFilter(): Promise<Quantity> {
     const unsubscribe = this.#blockchain.on(
       "pendingTransaction",
       (transaction: TypedTransaction) => {
@@ -2366,7 +2396,7 @@ export default class EthereumApi implements Api {
    * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
    * or "pending".
    * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
-   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
+   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topics. Topics are order-dependent. Each topic can also
    * be an array of `DATA` with "or" options.
    *
    * @param filter - The filter options as seen in source.
@@ -2379,7 +2409,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0, 1)
-  async eth_newFilter(filter?: RangeFilterArgs) {
+  async eth_newFilter(filter?: Ethereum.Filter): Promise<Quantity> {
     const blockchain = this.#blockchain;
     if (filter == null) filter = {};
     const { addresses, topics } = parseFilterDetails(filter || {});
@@ -2457,7 +2487,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getFilterChanges(filterId: QUANTITY) {
+  async eth_getFilterChanges(filterId: QUANTITY): Promise<Data[]> {
     const filter = this.#filters.get(Quantity.from(filterId).toString());
     if (filter) {
       const updates = filter.updates;
@@ -2483,7 +2513,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_uninstallFilter(filterId: QUANTITY) {
+  async eth_uninstallFilter(filterId: QUANTITY): Promise<boolean> {
     const id = Quantity.from(filterId).toString();
     const filter = this.#filters.get(id);
     if (!filter) return false;
@@ -2527,7 +2557,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getFilterLogs(filterId: QUANTITY) {
+  async eth_getFilterLogs(filterId: QUANTITY): Promise<Ethereum.Logs> {
     const filter = this.#filters.get(Quantity.from(filterId).toString());
     if (filter && filter.type === FilterTypes.log) {
       return this.eth_getLogs(filter.filter);
@@ -2545,7 +2575,7 @@ export default class EthereumApi implements Api {
    * * `toBlock`: `QUANTITY | TAG` (optional) - Integer block number, or the string "latest", "earliest"
    * or "pending".
    * * `address`: `DATA | Array` (optional) - Contract address or a list of addresses from which the logs should originate.
-   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topcis. Topics are order-dependent. Each topic can also
+   * * `topics`: `Array of DATA` (optional) - Array of 32 Bytes `DATA` topics. Topics are order-dependent. Each topic can also
    * be an array of `DATA` with "or" options.
    * * `blockHash`: `DATA`, 32 Bytes (optional) - Hash of the block to restrict logs from. If `blockHash` is present,
    * then neither `fromBlock` or `toBlock` are allowed.
@@ -2584,7 +2614,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async eth_getLogs(filter: FilterArgs) {
+  async eth_getLogs(filter: Ethereum.LogsFilter): Promise<Ethereum.Logs> {
     return this.#blockchain.blockLogs.getLogs(filter);
   }
 
@@ -2609,8 +2639,8 @@ export default class EthereumApi implements Api {
   @assertArgLength(1, 2)
   async eth_getTransactionCount(
     address: DATA,
-    blockNumber: QUANTITY | Tag = Tag.latest
-  ) {
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
+  ): Promise<Quantity> {
     return this.#blockchain.accounts.getNonce(
       Address.from(address),
       blockNumber
@@ -2666,10 +2696,10 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 3)
   async eth_call(
-    transaction: any,
-    blockNumber: QUANTITY | Tag = Tag.latest,
-    overrides: CallOverrides = {}
-  ) {
+    transaction: Ethereum.Call.Transaction,
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest,
+    overrides: Ethereum.Call.Overrides = {}
+  ): Promise<Data> {
     const blockchain = this.#blockchain;
     const common = blockchain.common;
     const blocks = blockchain.blocks;
@@ -2830,8 +2860,8 @@ export default class EthereumApi implements Api {
    */
   async debug_traceTransaction(
     transactionHash: DATA,
-    options?: TransactionTraceOptions
-  ): Promise<TraceTransactionResult> {
+    options?: Ethereum.TraceTransactionOptions
+  ): Promise<Ethereum.TraceTransactionResult<"private">> {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
@@ -2884,7 +2914,7 @@ export default class EthereumApi implements Api {
     contractAddress: DATA,
     startKey: DATA,
     maxResult: number
-  ): Promise<StorageRangeResult> {
+  ): Promise<Ethereum.StorageRangeAtResult<"private">> {
     return this.#blockchain.storageRangeAt(
       blockHash,
       Quantity.from(transactionIndex).toNumber(),
@@ -2907,7 +2937,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async personal_listAccounts() {
+  async personal_listAccounts(): Promise<string[]> {
     return this.#wallet.addresses;
   }
 
@@ -2925,7 +2955,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async personal_newAccount(passphrase: string) {
+  async personal_newAccount(passphrase: string): Promise<Address> {
     if (typeof passphrase !== "string") {
       throw new Error("missing value for required argument `passphrase`");
     }
@@ -2956,7 +2986,10 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async personal_importRawKey(rawKey: DATA, passphrase: string) {
+  async personal_importRawKey(
+    rawKey: DATA,
+    passphrase: string
+  ): Promise<Address> {
     if (typeof passphrase !== "string") {
       throw new Error("missing value for required argument `passphrase`");
     }
@@ -2983,7 +3016,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async personal_lockAccount(address: DATA) {
+  async personal_lockAccount(address: DATA): Promise<boolean> {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
@@ -3016,7 +3049,7 @@ export default class EthereumApi implements Api {
     address: DATA,
     passphrase: string,
     duration: number = 300
-  ) {
+  ): Promise<boolean> {
     const addy = new Address(address);
     return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
@@ -3054,11 +3087,14 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async personal_sendTransaction(
-    transaction: TypedRpcTransaction,
+    transaction: Ethereum.Transaction,
     passphrase: string
-  ) {
+  ): Promise<Data> {
     const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(
+      transaction as Transaction,
+      blockchain.common
+    );
     const from = tx.from;
     if (from == null) {
       throw new Error("from not found; is required");
@@ -3110,11 +3146,14 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(2)
   async personal_signTransaction(
-    transaction: TypedRpcTransaction,
+    transaction: Ethereum.Transaction,
     passphrase: string
-  ) {
+  ): Promise<Data> {
     const blockchain = this.#blockchain;
-    const tx = TransactionFactory.fromRpc(transaction, blockchain.common);
+    const tx = TransactionFactory.fromRpc(
+      transaction as Transaction,
+      blockchain.common
+    );
 
     if (tx.from == null) {
       throw new Error("from not found; is required");
@@ -3123,7 +3162,7 @@ export default class EthereumApi implements Api {
     const wallet = this.#wallet;
     const secretKey = await wallet.getFromKeyFile(tx.from, passphrase);
     tx.signAndHash(secretKey);
-    return Data.from(tx.serialized).toString();
+    return Data.from(tx.serialized);
   }
   //#endregion
 
@@ -3137,7 +3176,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async rpc_modules() {
+  async rpc_modules(): Promise<typeof RPC_MODULES> {
     return RPC_MODULES;
   }
   //#endregion
@@ -3154,7 +3193,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async shh_newIdentity() {
+  async shh_newIdentity(): Promise<string> {
     return "0x00";
   }
 
@@ -3169,7 +3208,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async shh_hasIdentity(address: DATA) {
+  async shh_hasIdentity(address: DATA): Promise<boolean> {
     return false;
   }
 
@@ -3179,7 +3218,7 @@ export default class EthereumApi implements Api {
    * @returns The address of the new group.
    */
   @assertArgLength(0)
-  async shh_newGroup() {
+  async shh_newGroup(): Promise<string> {
     return "0x00";
   }
 
@@ -3194,7 +3233,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async shh_addToGroup(address: DATA) {
+  async shh_addToGroup(address: DATA): Promise<boolean> {
     return false;
   }
 
@@ -3211,7 +3250,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(2)
-  async shh_newFilter(to: DATA, topics: DATA[]) {
+  async shh_newFilter(to: DATA, topics: DATA[]): Promise<boolean> {
     return false;
   }
 
@@ -3227,7 +3266,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async shh_uninstallFilter(id: QUANTITY) {
+  async shh_uninstallFilter(id: QUANTITY): Promise<boolean> {
     return false;
   }
 
@@ -3242,7 +3281,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async shh_getFilterChanges(id: QUANTITY) {
+  async shh_getFilterChanges(id: QUANTITY): Promise<[]> {
     return [];
   }
 
@@ -3257,7 +3296,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async shh_getMessages(id: QUANTITY) {
+  async shh_getMessages(id: QUANTITY): Promise<boolean> {
     return false;
   }
 
@@ -3272,7 +3311,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(1)
-  async shh_post(postData: WhisperPostObject) {
+  async shh_post(postData: Ethereum.WhisperPostObject): Promise<boolean> {
     return false;
   }
 
@@ -3286,7 +3325,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async shh_version() {
+  async shh_version(): Promise<string> {
     return "2";
   }
   //#endregion
@@ -3307,35 +3346,38 @@ export default class EthereumApi implements Api {
    * ```
    */
   @assertArgLength(0)
-  async txpool_content(): Promise<{
-    pending: Map<string, Map<string, TypedTransactionJSON>>;
-    queued: Map<string, Map<string, TypedTransactionJSON>>;
-  }> {
+  async txpool_content(): Promise<Ethereum.Pool.Content<"private">> {
     const { transactions, common } = this.#blockchain;
-    const { transactionPool } = transactions;
+    const {
+      transactionPool: { executables, origins }
+    } = transactions;
 
     const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
-      let res = new Map<string, Map<string, TypedTransactionJSON>>();
-      for (let [_, transactions] of map) {
-        const arr = transactions.array;
-        for (let i = 0; i < transactions.length; ++i) {
-          const tx = arr[i];
-          const from = tx.from.toString();
+      let res: Record<
+        string,
+        Record<string, Ethereum.Pool.Transaction<"private">>
+      > = {};
+      for (let [_, { array, length }] of map) {
+        for (let i = 0; i < length; ++i) {
+          const transaction = array[i];
+          const from = transaction.from.toString();
           if (res[from] === undefined) {
             res[from] = {};
           }
           // The nonce keys are actual decimal numbers (as strings) and not
           // hex literals (based on what geth returns).
-          const nonce = tx.nonce.toBigInt().toString();
-          res[from][nonce] = tx.toJSON(common);
+          const nonce = transaction.nonce.toBigInt().toString();
+          res[from][nonce] = transaction.toJSON(
+            common
+          ) as Ethereum.Pool.Transaction<"private">;
         }
       }
       return res;
     };
 
     return {
-      pending: processMap(transactionPool.executables.pending),
-      queued: processMap(transactionPool.origins)
+      pending: processMap(executables.pending),
+      queued: processMap(origins)
     };
   }
 

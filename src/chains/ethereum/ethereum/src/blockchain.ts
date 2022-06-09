@@ -11,11 +11,11 @@ import {
   RuntimeError,
   CallError,
   StorageKeys,
-  StorageRangeResult,
+  StorageRangeAtResult,
   StorageRecords,
   RangedStorageKeys,
   StructLog,
-  TransactionTraceOptions,
+  TraceTransactionOptions,
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
@@ -48,7 +48,7 @@ import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
 import {
   calculateIntrinsicGas,
-  TransactionReceipt,
+  InternalTransactionReceipt,
   VmTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
@@ -294,14 +294,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       {
         // create first block
-        let firstBlockTime: number;
-        if (options.chain.time != null) {
-          // If we were given a timestamp, use it instead of the `_currentTime`
-          const t = options.chain.time.getTime();
-          firstBlockTime = Math.floor(t / 1000);
-          this.setTime(t);
-        } else {
-          firstBlockTime = this.#currentTime();
+
+        // if we don't have a time from the user get one now
+        if (options.chain.time == null) options.chain.time = new Date();
+
+        const timestamp = options.chain.time.getTime();
+        const firstBlockTime = Math.floor(timestamp / 1000);
+
+        // if we are using clock time we need to record the time offset so
+        // other blocks can have timestamps relative to our initial time.
+        if (options.miner.timestampIncrement === "clock") {
+          this.#timeAdjustment = timestamp - Date.now();
         }
 
         // if we don't already have a latest block, create a genesis block!
@@ -346,18 +349,24 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         //#region automatic mining
         const nullResolved = Promise.resolve(null);
-        const mineAll = (maxTransactions: Capacity) =>
-          this.#isPaused() ? nullResolved : this.mine(maxTransactions);
+        const mineAll = (maxTransactions: Capacity, onlyOneBlock = false) =>
+          this.#isPaused()
+            ? nullResolved
+            : this.mine(maxTransactions, null, onlyOneBlock);
         if (instamine) {
           // insta mining
           // whenever the transaction pool is drained mine the txs into blocks
+          // only one transaction should be added per block
           txPool.on("drain", mineAll.bind(null, Capacity.Single));
         } else {
           // interval mining
           const wait = () =>
-            // unref, so we don't hold the chain open if nothing can interact with it
-            unref((this.#timer = setTimeout(next, minerOpts.blockTime * 1e3)));
-          const next = () => mineAll(Capacity.FillBlock).then(wait);
+            (this.#timer = setTimeout(next, minerOpts.blockTime * 1e3));
+          // when interval mining, only one block should be mined. the block
+          // can, however, be filled
+          const next = () => {
+            mineAll(Capacity.FillBlock, true).then(wait);
+          };
           wait();
         }
         //#endregion
@@ -469,7 +478,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       transaction.finalize("confirmed", transaction.execException);
     });
 
-    if (this.#instamine && options.miner.instamine === "eager") {
+    if (options.miner.instamine === "eager") {
       // in eager instamine mode we must delay the broadcast of new blocks
       await new Promise(resolve => {
         // we delay emitting blocks and blockLogs because we need to allow for:
@@ -503,7 +512,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   #getTransactionLogOutput = (
     hash: Buffer,
-    receipt: TransactionReceipt,
+    receipt: InternalTransactionReceipt,
     blockNumber: Quantity,
     timestamp: string,
     error: RuntimeError | undefined
@@ -535,12 +544,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     storageKeys: StorageKeys;
     transactions: TypedTransaction[];
   }) => {
-    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise
-      .then(() => this.#saveNewBlock(blockData))
-      .then(this.#emitNewBlock);
+    this.#blockBeingSavedPromise = this.#blockBeingSavedPromise.then(() => {
+      const saveBlockProm = this.#saveNewBlock(blockData);
+      saveBlockProm.then(this.#emitNewBlock);
+      // blockBeingSavedPromise should await the block being _saved_, but doesn't
+      // need to await the block being emitted.
+      return saveBlockProm;
+    });
 
     await this.#blockBeingSavedPromise;
-    return;
   };
 
   coinbase: Address;
@@ -548,14 +560,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #readyNextBlock = (previousBlock: Block, timestamp?: number) => {
     const previousHeader = previousBlock.header;
     const previousNumber = previousHeader.number.toBigInt() || 0n;
+    const minerOptions = this.#options.miner;
+    if (timestamp == null) {
+      timestamp = this.#adjustedTime(previousHeader.timestamp);
+    }
+
     return new RuntimeBlock(
       Quantity.from(previousNumber + 1n),
       previousBlock.hash(),
       this.coinbase,
-      this.#options.miner.blockGasLimit.toBuffer(),
+      minerOptions.blockGasLimit.toBuffer(),
       BUFFER_ZERO,
-      Quantity.from(timestamp == null ? this.#currentTime() : timestamp),
-      this.#options.miner.difficulty,
+      Quantity.from(timestamp),
+      minerOptions.difficulty,
       previousHeader.totalDifficulty,
       Block.calcNextBaseFee(previousBlock)
     );
@@ -570,14 +587,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     timestamp?: number,
     onlyOneBlock: boolean = false
   ) => {
-    await this.#blockBeingSavedPromise;
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+    const transactions = await this.#miner.mine(
+      nextBlock,
+      maxTransactions,
+      onlyOneBlock
+    );
+    await this.#blockBeingSavedPromise;
     return {
-      transactions: await this.#miner.mine(
-        nextBlock,
-        maxTransactions,
-        onlyOneBlock
-      ),
+      transactions,
       blockNumber: nextBlock.header.number.toBuffer()
     };
   };
@@ -767,32 +785,55 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       }));
   };
 
+  /**
+   * The number of milliseconds time should be adjusted by when computing the
+   * "time" for a block.
+   */
   #timeAdjustment: number = 0;
 
   /**
    * Returns the timestamp, adjusted by the timeAdjustment offset, in seconds.
+   * @param precedingTimestamp - the timestamp of the block to be used as the
+   * time source if `timestampIncrement` is not "clock".
    */
-  #currentTime = () => {
-    return Math.floor((Date.now() + this.#timeAdjustment) / 1000);
+  #adjustedTime = (precedingTimestamp: Quantity) => {
+    const timeAdjustment = this.#timeAdjustment;
+    const timestampIncrement = this.#options.miner.timestampIncrement;
+    if (timestampIncrement === "clock") {
+      return Math.floor((Date.now() + timeAdjustment) / 1000);
+    } else {
+      return (
+        precedingTimestamp.toNumber() +
+        Math.floor(timeAdjustment / 1000) +
+        timestampIncrement.toNumber()
+      );
+    }
   };
 
   /**
-   * @param seconds -
+   * @param milliseconds - the number of milliseconds to adjust the time by.
+   * Negative numbers are treated as 0.
    * @returns the total time offset *in milliseconds*
    */
-  public increaseTime(seconds: number) {
-    if (seconds < 0) {
-      seconds = 0;
+  public increaseTime(milliseconds: number) {
+    if (milliseconds < 0) {
+      milliseconds = 0;
     }
-    return (this.#timeAdjustment += seconds);
+    return (this.#timeAdjustment += milliseconds);
   }
 
   /**
-   * @param seconds -
+   * @param newTime - the number of milliseconds to adjust the time by. Can be negative.
    * @returns the total time offset *in milliseconds*
    */
-  public setTime(timestamp: number) {
-    return (this.#timeAdjustment = timestamp - Date.now());
+  public setTimeDiff(newTime: number) {
+    // when using clock time use Date.now(), otherwise use the timestamp of the
+    // current latest block
+    const currentTime =
+      this.#options.miner.timestampIncrement === "clock"
+        ? Date.now()
+        : this.blocks.latest.header.timestamp.toNumber() * 1000;
+    return (this.#timeAdjustment = newTime - currentTime);
   }
 
   #deleteBlockData = async (
@@ -1114,7 +1155,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transaction: VmTransaction,
     trie: GanacheTrie,
     newBlock: RuntimeBlock & { transactions: VmTransaction[] },
-    options: TransactionTraceOptions,
+    options: TraceTransactionOptions,
     keys?: Buffer[],
     contractAddress?: Buffer
   ): Promise<TraceTransactionResult> => {
@@ -1399,7 +1440,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
    */
   public async traceTransaction(
     transactionHash: string,
-    options: TransactionTraceOptions
+    options: TraceTransactionOptions
   ) {
     const transactionHashBuffer = Data.from(transactionHash).toBuffer();
     // #1 - get block via transaction object
@@ -1473,7 +1514,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     contractAddress: string,
     startKey: string,
     maxResult: number
-  ): Promise<StorageRangeResult> {
+  ): Promise<StorageRangeAtResult> {
     // #1 - get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 
