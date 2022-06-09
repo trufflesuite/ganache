@@ -89,7 +89,7 @@
     "webpack-cli": "4.9.1"
   },
   "dependencies": {
-    "@trufflesuite/bigint-buffer": "1.1.9",
+    "@trufflesuite/bigint-buffer": "1.1.10",
     "emittery": "0.10.0",
     "keccak": "3.0.1",
     "leveldown": "6.1.0",
