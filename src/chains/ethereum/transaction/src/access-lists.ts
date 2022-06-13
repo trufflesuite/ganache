@@ -27,7 +27,7 @@ export class AccessLists {
 
       for (let i = 0; i < accessList.length; i++) {
         const item: AccessListItem = accessList[i];
-        const addressBuffer = Data.from(item.address, 32).toBuffer();
+        const addressBuffer = Data.from(item.address, 20).toBuffer();
         const storageItems: Buffer[] = [];
         const storageKeysLength = item.storageKeys.length;
         slots += storageKeysLength;

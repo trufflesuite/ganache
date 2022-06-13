@@ -521,7 +521,7 @@ describe("@ganache/ethereum-transaction", async () => {
         );
       });
       it("has a function to get base fee", () => {
-        assert.strictEqual(vmTx.getBaseFee().toString(), "21000");
+        assert.strictEqual(vmTx.getBaseFee().toString(), "25300");
       });
       it("has a function to get base upfront cost", () => {
         assert.strictEqual(vmTx.getUpfrontCost().toString(), "0");
