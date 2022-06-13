@@ -43,7 +43,7 @@ export class AccessLists {
       const json: AccessList = [];
       for (let i = 0; i < bufferAccessList.length; i++) {
         const data = bufferAccessList[i];
-        const address = Data.from(data[0], 32).toString();
+        const address = Data.from(data[0], 20).toString();
         const storageKeys: string[] = [];
         const storageKeysLength = data[1].length;
         slots += storageKeysLength;
