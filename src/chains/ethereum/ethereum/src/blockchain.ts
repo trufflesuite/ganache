@@ -595,7 +595,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // The block that is currently being mined is what we want to return as pending,
     // so we'll reset the executables to be what it was when mining started,
     // i.e. all inProgress executables are moved to the front of the pending executables.
-    const executables = this.transactions.transactionPool.cloneAndResetExecutables();
+    const executables =
+      this.transactions.transactionPool.cloneAndResetExecutables();
     const instamine = this.#instamine;
     const maxTransactions = instamine ? 1 : -1;
     // we don't want any events from mining to be
@@ -606,13 +607,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       true
     );
     vm.stateManager.checkpoint();
-    const miner = new Miner(
-      minerOpts,
-      executables,
-      instamine,
-      vm,
-      this.#readyNextBlock
-    );
+    const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
     let pendingBlock: Block;
     // set up listener to actually assign the newly mined pending block
     miner.on(
@@ -621,7 +616,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         block: Block;
         serialized: Buffer;
         storageKeys: StorageKeys;
-        transactions: RuntimeTransaction[];
+        transactions: TypedTransaction[];
       }) => {
         pendingBlock = blockData.block;
       }
