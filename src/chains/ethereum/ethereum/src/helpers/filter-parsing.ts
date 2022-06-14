@@ -21,11 +21,11 @@ export async function parseFilterRange(
 ) {
   const latestBlock = blockchain.blocks.latest.header.number;
   const fromBlock = await blockchain.blocks.getEffectiveNumber(
-    filter.fromBlock || Tag.LATEST
+    filter.fromBlock || Tag.latest
   );
   const latestBlockNumber = latestBlock.toNumber();
   const toBlock = await blockchain.blocks.getEffectiveNumber(
-    filter.toBlock || Tag.LATEST
+    filter.toBlock || Tag.latest
   );
   let toBlockNumber: number;
   // don't search after the "latest" block, unless it's "pending", of course.

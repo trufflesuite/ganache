@@ -142,13 +142,13 @@ export default class BlockManager extends Manager<Block> {
   };
 
   async getBlockByTag(tag: Tag) {
-    switch (Tag.normalize(tag as Tag)) {
-      case Tag.LATEST:
+    switch (tag) {
+      case Tag.latest:
         return this.latest;
-      case "pending":
+      case Tag.pending:
         // TODO: build a real pending block!
         return await this.fetchPendingBlock(this.latest);
-      case Tag.EARLIEST:
+      case Tag.earliest:
         return this.earliest;
       default:
         // the key is probably a hex string, let nature takes its course.
@@ -157,7 +157,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   async getEffectiveNumber(
-    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.LATEST
+    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
     if (typeof tagOrBlockNumber === "string") {
       const block = await this.getBlockByTag(tagOrBlockNumber as Tag);
