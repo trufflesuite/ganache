@@ -471,7 +471,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
           currentAtOrigin.push(tx);
           pending.set(origin, currentAtOrigin);
         } else {
-          const newHeap = utils.Heap.from(tx, byNonce);
+          const newHeap = Heap.from(tx, byNonce);
           pending.set(origin, newHeap);
         }
         inProgress.delete(tx);
