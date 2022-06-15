@@ -71,7 +71,8 @@ export class Data extends BaseJsonRpcType {
     const fixedLengthValue = Buffer.allocUnsafe(byteLength);
 
     const sourceStart = 0;
-    const targetStart = value.length > byteLength ? 0 : byteLength - value.length;
+    const targetStart =
+      value.length > byteLength ? 0 : byteLength - value.length;
     if (targetStart > 0) {
       fixedLengthValue.fill(0, 0, targetStart);
     }

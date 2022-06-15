@@ -1,10 +1,5 @@
 import { Address } from "@ganache/ethereum-address";
-import {
-  keccak,
-  BUFFER_EMPTY,
-  Quantity,
-  Data
-} from "@ganache/utils";
+import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
 import type { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
@@ -147,7 +142,7 @@ export class ForkTrie extends GanacheTrie {
       reverse: true
     });
     for await (const data of stream) {
-      const { key: encodedKey, value } = (data as unknown) as KVP;
+      const { key: encodedKey, value } = data as unknown as KVP;
       if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
     }
@@ -194,9 +189,8 @@ export class ForkTrie extends GanacheTrie {
   ) => {
     const { fallback } = this.blockchain;
 
-    const number = this.blockchain.fallback.selectValidForkBlockNumber(
-      blockNumber
-    );
+    const number =
+      this.blockchain.fallback.selectValidForkBlockNumber(blockNumber);
 
     // get nonce, balance, and code from the fork/fallback
     const codeProm = fallback.request<string>(GET_CODE, [address, number]);
@@ -290,7 +284,11 @@ export class ForkTrie extends GanacheTrie {
    */
   copy(includeCheckpoints: boolean = true) {
     const db = this.db.copy() as CheckpointDB;
-    const secureTrie = new ForkTrie(db._leveldb as LevelUp, this.root, this.blockchain);
+    const secureTrie = new ForkTrie(
+      db._leveldb as LevelUp,
+      this.root,
+      this.blockchain
+    );
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;

@@ -21,14 +21,16 @@ export class Quantity extends BaseJsonRpcType {
   constructor(value: JsonRpcInputArg, nullable?: boolean) {
     super(value);
     if (value === "0x") {
-      throw new Error('Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.');
+      throw new Error(
+        'Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.'
+      );
     }
     this._nullable = nullable;
   }
 
   public toString(): string | null {
     if (this.bufferValue == null) {
-      return this._nullable? null : Quantity.ZERO_VALUE_STRING;
+      return this._nullable ? null : Quantity.ZERO_VALUE_STRING;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
@@ -87,11 +89,20 @@ export class Quantity extends BaseJsonRpcType {
     let result: number;
     // buffer.readUIntBE only supports up to 48 bits, so if larger then we need to convert to bigint first
     if (length > 6) {
-      const trimmedBuffer = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.subarray(firstNonZeroByte, length);
+      const trimmedBuffer =
+        firstNonZeroByte === 0
+          ? this.bufferValue
+          : this.bufferValue.subarray(firstNonZeroByte, length);
       result = Number(bufferToBigInt(trimmedBuffer));
 
       if (!Number.isSafeInteger(result)) {
-        console.warn(`0x${this.bufferValue.toString("hex")} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(16)}`);
+        console.warn(
+          `0x${this.bufferValue.toString(
+            "hex"
+          )} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(
+            16
+          )}`
+        );
       }
     } else {
       result = this.bufferValue.readUIntBE(firstNonZeroByte, length);
@@ -110,7 +121,11 @@ export class Quantity extends BaseJsonRpcType {
 
   private findFirstNonZeroByteIndex(): number {
     let firstNonZeroByte = 0;
-    for (firstNonZeroByte = 0; firstNonZeroByte < this.bufferValue.length; firstNonZeroByte++) {
+    for (
+      firstNonZeroByte = 0;
+      firstNonZeroByte < this.bufferValue.length;
+      firstNonZeroByte++
+    ) {
       if (this.bufferValue[firstNonZeroByte] !== 0) break;
     }
     return firstNonZeroByte;

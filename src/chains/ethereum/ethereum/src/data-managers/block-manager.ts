@@ -308,12 +308,16 @@ export default class BlockManager extends Manager<Block> {
       const stream = this.base.createValueStream();
       this.latest = await new Promise<Block>((resolve, reject) => {
         let latest: Block;
-        stream.on("data", (data: Buffer) => {
-          const block = new Block(data, this.#common);
-          if (!latest || block.header.number.toBigInt() > latest.header.number.toBigInt()) {
-            latest = block;
-          }
-        })
+        stream
+          .on("data", (data: Buffer) => {
+            const block = new Block(data, this.#common);
+            if (
+              !latest ||
+              block.header.number.toBigInt() > latest.header.number.toBigInt()
+            ) {
+              latest = block;
+            }
+          })
           .on("error", (err: Error) => {
             reject(err);
           })
@@ -323,7 +327,9 @@ export default class BlockManager extends Manager<Block> {
       });
       if (this.latest) {
         // update the LATEST_INDEX_KEY index so we don't have to do this next time
-        await this.#blockIndexes.put(LATEST_INDEX_KEY, this.latest.header.number.toBuffer()).catch(e => null)
+        await this.#blockIndexes
+          .put(LATEST_INDEX_KEY, this.latest.header.number.toBuffer())
+          .catch(e => null);
       }
     }
   }

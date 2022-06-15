@@ -1,11 +1,6 @@
 import { LevelUp } from "levelup";
 import Manager from "./manager";
-import {
-  Data,
-  Quantity,
-  BUFFER_EMPTY,
-  BUFFER_ZERO
-} from "@ganache/utils";
+import { Data, Quantity, BUFFER_EMPTY, BUFFER_ZERO } from "@ganache/utils";
 import Blockchain from "../blockchain";
 import { InternalTransactionReceipt } from "@ganache/ethereum-transaction";
 import { Address } from "@ganache/ethereum-address";

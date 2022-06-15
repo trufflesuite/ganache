@@ -3,7 +3,7 @@ import {
   Quantity,
   keccak,
   BUFFER_EMPTY,
-  BUFFER_32_ZERO,
+  BUFFER_32_ZERO
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";

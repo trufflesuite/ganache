@@ -3,11 +3,7 @@ import {
   RETURN_TYPES,
   TransactionLog
 } from "@ganache/ethereum-utils";
-import {
-  Data,
-  Quantity,
-  BUFFER_ZERO,
-} from "@ganache/utils";
+import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import {
@@ -89,9 +85,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
       this.to =
-        data.to == null
-          ? Quantity.Empty
-          : toValidLengthAddress(data.to, "to");
+        data.to == null ? Quantity.Empty : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =
         data.data == null

@@ -47,7 +47,7 @@ export class PersistentCache {
   protected ancestry: Ancestry;
   protected hashBuffer: Buffer;
   protected request: Request;
-  constructor() { }
+  constructor() {}
 
   static async deleteDb(dbSuffix?: string) {
     return new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ export class PersistentCache {
       const tree: Tree = {};
       const collection = {};
       for await (const data of rs) {
-        const { key, value } = (data as any) as { key: Buffer; value: Buffer };
+        const { key, value } = data as any as { key: Buffer; value: Buffer };
 
         const node = Tree.deserialize(key, value);
         (node as any).height = node.decodeKey().height.toNumber();
@@ -115,7 +115,10 @@ export class PersistentCache {
     const directory = PersistentCache.getDbDirectory(dbSuffix);
     await promises.mkdir(directory, { recursive: true });
 
-    const store: AbstractLevelDOWN = encode(leveldown(directory, leveldownOpts), levelupOptions);
+    const store: AbstractLevelDOWN = encode(
+      leveldown(directory, leveldownOpts),
+      levelupOptions
+    );
     const db = await new Promise<LevelUp>((resolve, reject) => {
       const db = levelup(store, (err: Error) => {
         if (err) return void reject(err);
@@ -136,16 +139,13 @@ export class PersistentCache {
     this.hashBuffer = hash.toBuffer();
     this.request = request;
 
-    const {
-      targetBlock,
-      closestAncestor,
-      previousClosestAncestor
-    } = await resolveTargetAndClosestAncestor(
-      this.ancestorDb,
-      this.request,
-      height,
-      hash
-    );
+    const { targetBlock, closestAncestor, previousClosestAncestor } =
+      await resolveTargetAndClosestAncestor(
+        this.ancestorDb,
+        this.request,
+        height,
+        hash
+      );
 
     this.ancestry = new Ancestry(this.ancestorDb, closestAncestor);
 
@@ -200,8 +200,7 @@ export class PersistentCache {
           // keep it in the parent
           if (
             descendantRawBlock == null ||
-            descendantRawBlock.hash !==
-            Data.toString(descendantNode.hash, 32)
+            descendantRawBlock.hash !== Data.toString(descendantNode.hash, 32)
           ) {
             ancestorsDescendants.push(descendantKey);
           } else {
@@ -239,7 +238,7 @@ export class PersistentCache {
       // we don't care if it fails because this is an optimization that only
       // matters for _future_ runs of ganache for blocks beyond our current fork
       // block
-      .catch(_ => { })
+      .catch(_ => {})
       .finally(() => {
         this._reBalancePromise = null;
       });
@@ -337,11 +336,14 @@ export class PersistentCache {
     });
 
     for await (const data of readStream) {
-      const { key: k, value } = (data as any) as { key: Buffer; value: Buffer };
+      const { key: k, value } = data as any as { key: Buffer; value: Buffer };
       const [_height, _key, blockHash] = lexico.decode(k);
       // if our key no longer matches make sure we don't keep searching
       if (!_key.equals(bufKey)) return;
-      if (this.hashBuffer.equals(blockHash) || (await this.ancestry.has(blockHash))) {
+      if (
+        this.hashBuffer.equals(blockHash) ||
+        (await this.ancestry.has(blockHash))
+      ) {
         return value;
       }
     }

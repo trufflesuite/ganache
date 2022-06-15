@@ -31,7 +31,7 @@ import {
   PromiEvent,
   Api,
   keccak,
-  JsonRpcErrorCode,
+  JsonRpcErrorCode
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -522,9 +522,8 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async evm_increaseTime(seconds: number | QUANTITY) {
     const milliseconds =
-      (typeof seconds === "number"
-        ? seconds
-        : Quantity.toNumber(seconds)) * 1000;
+      (typeof seconds === "number" ? seconds : Quantity.toNumber(seconds)) *
+      1000;
     return Math.floor(this.#blockchain.increaseTime(milliseconds) / 1000);
   }
 
@@ -1246,9 +1245,7 @@ export default class EthereumApi implements Api {
       .catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[Quantity.toNumber(index)].toJSON(
-      blockchain.common
-    );
+    return transactions[Quantity.toNumber(index)].toJSON(blockchain.common);
   }
 
   /**
@@ -1293,9 +1290,7 @@ export default class EthereumApi implements Api {
     const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[Quantity.toNumber(index)].toJSON(
-      blockchain.common
-    );
+    return transactions[Quantity.toNumber(index)].toJSON(blockchain.common);
   }
 
   /**

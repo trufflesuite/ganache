@@ -19,18 +19,18 @@ export class BaseJsonRpcType {
       this.bufferValue = null;
     } else if (Buffer.isBuffer(value)) {
       // empty buffer should be treated as null
-      this.bufferValue = value.length === 0 ? null: value;
+      this.bufferValue = value.length === 0 ? null : value;
     } else {
       switch (typeof value) {
         case "string":
           this.bufferValue = parseAndValidateStringInput(value);
-        break;
+          break;
         case "number":
           this.bufferValue = parseAndValidateNumberInput(value);
-        break;
+          break;
         case "bigint":
           this.bufferValue = parseAndValidateBigIntInput(value);
-        break;
+          break;
         default:
           throw new Error(`Cannot wrap a "${typeof value}" as a json-rpc type`);
       }

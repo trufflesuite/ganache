@@ -86,8 +86,7 @@ export default class AccountManager {
   ) {
     const data = await this.getRaw(address, blockNumber);
 
-    if (data == null)
-      return { nonce: Quantity.Zero, balance: Quantity.Zero };
+    if (data == null) return { nonce: Quantity.Zero, balance: Quantity.Zero };
 
     const [nonce, balance] = decode<EthereumRawAccount>(data);
     return {

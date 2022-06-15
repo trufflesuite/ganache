@@ -42,7 +42,9 @@ export class AccessLists {
         const storageKeysLength = item.storageKeys.length;
         slots += storageKeysLength;
         for (let index = 0; index < storageKeysLength; index++) {
-          storageItems.push(Data.toBuffer(item.storageKeys[index], STORAGE_KEY_LENGTH));
+          storageItems.push(
+            Data.toBuffer(item.storageKeys[index], STORAGE_KEY_LENGTH)
+          );
         }
         newAccessList.push([addressBuffer, storageItems]);
       }

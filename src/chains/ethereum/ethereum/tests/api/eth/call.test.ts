@@ -609,7 +609,8 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: "StateDiff override data must be a 64 character hex string. Received 0 character string."
+                  error:
+                    "StateDiff override data must be a 64 character hex string. Received 0 character string."
                 }
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
@@ -645,7 +646,8 @@ describe("api", () => {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
                 },
-                { // State override data must be 64 characters long in order to hit this validation
+                {
+                  // State override data must be 64 characters long in order to hit this validation
                   junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
                   error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
                 },
@@ -655,7 +657,8 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: "State override data must be a 64 character hex string. Received 0 character string."
+                  error:
+                    "State override data must be a 64 character hex string. Received 0 character string."
                 }
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
@@ -701,7 +704,8 @@ describe("api", () => {
                 },
                 {
                   junk: "0x",
-                  error: "StateDiff override slot must be a 64 character hex string. Received 0 character string."
+                  error:
+                    "StateDiff override slot must be a 64 character hex string. Received 0 character string."
                 }
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
@@ -737,7 +741,8 @@ describe("api", () => {
                   junk: {},
                   error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be prefixed with "0x".`
                 },
-                { // State override must be 64 characters long in order to hit this validation
+                {
+                  // State override must be 64 characters long in order to hit this validation
                   junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
                   error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
                 },
@@ -892,9 +897,7 @@ describe("api", () => {
           ethereumJsFromAddress = new EthereumJsAddress(
             Quantity.toBuffer(from)
           );
-          ethereumJsToAddress = new EthereumJsAddress(
-            Quantity.toBuffer(to)
-          );
+          ethereumJsToAddress = new EthereumJsAddress(Quantity.toBuffer(to));
           // set up a real transaction
           transaction = {
             from,

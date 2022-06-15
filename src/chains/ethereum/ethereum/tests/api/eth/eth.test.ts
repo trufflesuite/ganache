@@ -492,8 +492,10 @@ describe("api", () => {
       await provider.send("miner_start");
 
       await provider.once("message");
-      
-      const {hash: blockHash} = await provider.send("eth_getBlockByNumber", ["0x1"]);
+
+      const { hash: blockHash } = await provider.send("eth_getBlockByNumber", [
+        "0x1"
+      ]);
       const retrievedTx1 = await provider.send(
         "eth_getTransactionByBlockHashAndIndex",
         [blockHash, "0x0"]

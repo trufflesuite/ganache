@@ -32,9 +32,8 @@ export const calculateIntrinsicGas = (
     // Bump the required gas by the amount of transactional data
     const dataLength = input.byteLength;
     if (dataLength > 0) {
-      const TRANSACTION_DATA_NON_ZERO_GAS = Params.TRANSACTION_DATA_NON_ZERO_GAS.get(
-        hardfork
-      );
+      const TRANSACTION_DATA_NON_ZERO_GAS =
+        Params.TRANSACTION_DATA_NON_ZERO_GAS.get(hardfork);
       const TRANSACTION_DATA_ZERO_GAS = Params.TRANSACTION_DATA_ZERO_GAS;
 
       // Zero and non-zero bytes are priced differently

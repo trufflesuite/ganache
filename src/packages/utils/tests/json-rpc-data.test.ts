@@ -1,5 +1,5 @@
 import assert from "assert";
-import {Data} from "../src/things/json-rpc/json-rpc-data";
+import { Data } from "../src/things/json-rpc/json-rpc-data";
 
 // note: variations on non-buffer inputs are covered in the tests in ./input-parsers.test.ts
 
@@ -7,7 +7,11 @@ const testData = [
   //[input, toString(), toBuffer()]
   [Buffer.from([0x00]), "0x00", Buffer.from([0x00])],
   [Buffer.from([0x01]), "0x01", Buffer.from([0x01])],
-  [Buffer.from([0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef]), "0x0123456789abcdef", Buffer.from([0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef])],
+  [
+    Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]),
+    "0x0123456789abcdef",
+    Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
+  ]
 ];
 
 describe("json-rpc-data", () => {
@@ -39,14 +43,18 @@ describe("json-rpc-data", () => {
     });
 
     testData.forEach(([input, expected]) => {
-      it(`should stringify the input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should stringify the input: 0x${(<Buffer>input).toString(
+        "hex"
+      )}`, () => {
         const result = new Data(<Buffer>input).toString();
         assert.equal(result, expected);
       });
     });
 
     it("should truncate to a shorter byteLength", () => {
-      const result = new Data(Buffer.from([0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef])).toString(1);
+      const result = new Data(
+        Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
+      ).toString(1);
       assert.equal(result, "0x01");
     });
 
@@ -70,18 +78,24 @@ describe("json-rpc-data", () => {
     });
 
     it("should truncate to a shorter byteLength", () => {
-      const result = new Data(Buffer.from([0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef])).toBuffer(1);
+      const result = new Data(
+        Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
+      ).toBuffer(1);
       assert.deepEqual(result, Buffer.from([0x01]));
     });
 
     it("should pad to a longer byteLength", () => {
       const result = new Data(Buffer.from([0x01])).toBuffer(10);
-      const expected = Buffer.from([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01]);
+      const expected = Buffer.from([
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
+      ]);
       assert.deepEqual(result, expected);
     });
 
     testData.forEach(([input, _, expected]) => {
-      it(`should output the correct buffer for the input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should output the correct buffer for the input: 0x${(<Buffer>(
+        input
+      )).toString("hex")}`, () => {
         const result = new Data(<Buffer>input).toBuffer();
         assert.deepEqual(result, expected);
       });

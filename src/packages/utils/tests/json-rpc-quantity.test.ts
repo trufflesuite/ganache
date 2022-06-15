@@ -1,5 +1,5 @@
 import assert from "assert";
-import {Quantity} from "../src/things/json-rpc/json-rpc-quantity";
+import { Quantity } from "../src/things/json-rpc/json-rpc-quantity";
 
 // note: variations on non-buffer inputs are covered in the tests in ./input-parsers.test.ts
 
@@ -8,7 +8,12 @@ const testData = [
   [Buffer.from([0x00]), "0x0", 0, Buffer.alloc(0)],
   [Buffer.from([0x01]), "0x1", 1, Buffer.from([0x01])],
   [Buffer.from([0x00, 0x00, 0x00, 0x00, 0x01]), "0x1", 1, Buffer.from([0x01])],
-  [Buffer.from([0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef]), "0x123456789abcdef", 0x0123456789abcdef, Buffer.from([0x01,0x23,0x45,0x67,0x89,0xab,0xcd,0xef])],
+  [
+    Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]),
+    "0x123456789abcdef",
+    0x0123456789abcdef,
+    Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
+  ]
 ];
 
 const nullLikeInputs = [null, undefined, Buffer.alloc(0)];
@@ -25,8 +30,11 @@ describe("json-rpc-quantity", () => {
     });
 
     it(`should reject a valid of "0x"`, () => {
-      assert.throws(() => new Quantity("0x"),
-       new Error(`Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.`)
+      assert.throws(
+        () => new Quantity("0x"),
+        new Error(
+          `Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.`
+        )
       );
     });
   });
@@ -73,7 +81,9 @@ describe("json-rpc-quantity", () => {
     });
 
     testData.forEach(([input, expected]) => {
-      it(`should stringify the input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should stringify the input: 0x${(<Buffer>input).toString(
+        "hex"
+      )}`, () => {
         [true, false].forEach(nullable => {
           const result = new Quantity(input, nullable).toString();
 
@@ -107,7 +117,9 @@ describe("json-rpc-quantity", () => {
     });
 
     testData.forEach(([input, _, expected]) => {
-      it(`should output the correct number for the input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should output the correct number for the input: 0x${(<Buffer>(
+        input
+      )).toString("hex")}`, () => {
         [true, false].forEach(nullable => {
           const result = new Quantity(input, nullable).toNumber();
 
@@ -143,7 +155,9 @@ describe("json-rpc-quantity", () => {
     });
 
     testData.forEach(([input, _, __, expected]) => {
-      it(`should output the correct buffer for the input: 0x${(<Buffer>input).toString("hex")}`, () => {
+      it(`should output the correct buffer for the input: 0x${(<Buffer>(
+        input
+      )).toString("hex")}`, () => {
         const result = new Quantity(input).toBuffer();
 
         assert.deepEqual(result, expected);

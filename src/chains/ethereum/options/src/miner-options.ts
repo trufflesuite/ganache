@@ -1,9 +1,5 @@
 import { normalize } from "./helpers";
-import {
-  Data,
-  Quantity,
-  ACCOUNT_ZERO
-} from "@ganache/utils";
+import { Data, Quantity, ACCOUNT_ZERO } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { Definitions } from "@ganache/options";
 
