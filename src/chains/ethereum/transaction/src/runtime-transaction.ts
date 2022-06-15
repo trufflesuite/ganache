@@ -3,13 +3,7 @@ import {
   RETURN_TYPES,
   TransactionLog
 } from "@ganache/ethereum-utils";
-import {
-  Data,
-  Quantity,
-  RPCQUANTITY_ONE,
-  BUFFER_ZERO,
-  RPCQUANTITY_EMPTY
-} from "@ganache/utils";
+import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import {
@@ -24,7 +18,7 @@ import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
-  const buffer = Data.from(address).toBuffer();
+  const buffer = Data.toBuffer(address);
   if (buffer.byteLength !== Address.ByteLength) {
     throw new Error(
       `The field ${fieldName} must have byte length of ${Address.ByteLength}`
@@ -48,7 +42,7 @@ type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
+const ONE_BUFFER = Quantity.One.toBuffer();
 
 /**
  * A RuntimeTransaction can be changed; its hash is not finalized and it is not
@@ -91,9 +85,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
       this.to =
-        data.to == null
-          ? RPCQUANTITY_EMPTY
-          : toValidLengthAddress(data.to, "to");
+        data.to == null ? Quantity.Empty : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =
         data.data == null
@@ -156,7 +148,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
     const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
       status,
-      Quantity.from(cumulativeGasUsed).toBuffer(),
+      Quantity.toBuffer(cumulativeGasUsed),
       result.bloom.bitvector,
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
       result.gasUsed.toArrayLike(Buffer),

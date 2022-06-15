@@ -3,7 +3,7 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { BUFFER_EMPTY, Data, Quantity, RPCQUANTITY_ONE } from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { CallError } from "@ganache/ethereum-utils";
 import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
@@ -20,7 +20,7 @@ import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
 
 const encodeValue = (val: number | string) => {
-  return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
+  return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
 };
 
 async function deployContract(provider, from, code) {
@@ -77,7 +77,7 @@ describe("api", () => {
         it("executes a message call", async () => {
           const result = await provider.send("eth_call", [tx, "latest"]);
           // gets the contract's "value", which should be 5
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("does not create a transaction on the chain", async () => {
@@ -100,7 +100,7 @@ describe("api", () => {
           };
           const result = await provider.send("eth_call", [tx, "latest"]);
           // we can still get the result when the gasPrice is set
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("allows eip-1559 fee market transactions", async () => {
@@ -114,13 +114,13 @@ describe("api", () => {
 
           const result = await provider.send("eth_call", [tx, "latest"]);
           // we can still get the result when the maxFeePerGas/maxPriorityFeePerGas are set
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("allows gas price to be omitted", async () => {
           const result = await provider.send("eth_call", [tx, "latest"]);
           // we can get the value if no gas info is given at all
-          assert.strictEqual(Quantity.from(result).toNumber(), 5);
+          assert.strictEqual(Quantity.toNumber(result), 5);
         });
 
         it("rejects transactions that specify both legacy and eip-1559 transaction fields", async () => {
@@ -508,18 +508,24 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
+                },
+                {
+                  junk: "0xa string",
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: "Cannot wrap a negative value as a json-rpc type"
+                },
+                {
+                  junk: "0x",
+                  error: `Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.`
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getBalance(address)"]}${encodedAddr}`
             },
@@ -545,16 +551,20 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Data\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
+                },
+                {
+                  junk: "0xa string",
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: "Cannot wrap a negative value as a json-rpc type"
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
               ],
               contractMethod: `0x${methods["getCode(address)"]}${encodedContractAddress}`
             },
@@ -571,7 +581,7 @@ describe("api", () => {
                 },
                 {
                   junk: "",
-                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -583,18 +593,25 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
+                },
+                {
+                  junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: "Cannot wrap a negative value as a json-rpc type"
+                },
+                {
+                  junk: "0x",
+                  error:
+                    "StateDiff override data must be a 64 character hex string. Received 0 character string."
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
             },
@@ -611,7 +628,7 @@ describe("api", () => {
                 },
                 {
                   junk: "",
-                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -623,18 +640,26 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
+                },
+                {
+                  // State override data must be 64 characters long in order to hit this validation
+                  junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: "Cannot wrap a negative value as a json-rpc type"
+                },
+                {
+                  junk: "0x",
+                  error:
+                    "State override data must be a 64 character hex string. Received 0 character string."
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
             },
@@ -642,16 +667,16 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  error: `cannot convert string value "null" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`,
+                  error: `Cannot wrap string value "null" as a json-rpc type; strings must be prefixed with "0x".`,
                   expectedValue: null
                 },
                 {
                   junk: undefined,
-                  error: `cannot convert string value "undefined" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "undefined" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "",
-                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -663,18 +688,25 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
-                  error: `cannot convert string value "[object Object]" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be prefixed with "0x".`
+                },
+                {
+                  junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: `Cannot wrap string value "-9" as a json-rpc type; strings must be prefixed with "0x".`
+                },
+                {
+                  junk: "0x",
+                  error:
+                    "StateDiff override slot must be a 64 character hex string. Received 0 character string."
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
             },
@@ -682,16 +714,16 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  error: `cannot convert string value "null" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`,
+                  error: `Cannot wrap string value "null" as a json-rpc type; strings must be prefixed with "0x".`,
                   expectedValue: null
                 },
                 {
                   junk: undefined,
-                  error: `cannot convert string value "undefined" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "undefined" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "",
-                  error: `cannot convert string value "" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -703,18 +735,25 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
-                  error: `cannot convert string value "[object Object]" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be prefixed with "0x".`
+                },
+                {
+                  // State override must be 64 characters long in order to hit this validation
+                  junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: `Cannot wrap string value "-9" as a json-rpc type; strings must be prefixed with "0x".`
+                },
+                {
+                  junk: "0x",
+                  error: `State override slot must be a 64 character hex string. Received 0 character string.`
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["getStorageAt(uint256)"]}${slot}`
             },
@@ -734,18 +773,24 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `cannot convert string value "123" into type \`Quantity\`; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
                   error: `Cannot wrap a "object" as a json-rpc type`
+                },
+                {
+                  junk: "0xa string",
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; the input value contains an invalid hex character.`
+                },
+                {
+                  junk: -9,
+                  error: "Cannot wrap a negative value as a json-rpc type"
+                },
+                {
+                  junk: "0x",
+                  error: `Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.`
                 }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2725 is closed
-                // { junk: "0xa string", error: `` }
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2728 is closed
-                // { junk: -9, error: `` },
-                // TODO: add this back once https://github.com/trufflesuite/ganache/issues/2857 is closed
-                //{ junk: "0x", error: `` },
               ],
               contractMethod: `0x${methods["createContract(bytes)"]}${simpleSol}`
             }
@@ -787,7 +832,7 @@ describe("api", () => {
                 await assert.rejects(
                   prom,
                   new Error(error),
-                  `Failed junk data validation for "${type}" override type with value "${junk}".`
+                  `Failed junk data validation for "${type}" override type with value "${junk}". Expected error: ${error}`
                 );
               } else {
                 assert.strictEqual(
@@ -836,7 +881,7 @@ describe("api", () => {
             gas.toBuffer(),
             parentHeader.gasUsed.toBuffer(),
             parentHeader.timestamp,
-            RPCQUANTITY_ONE, // difficulty
+            Quantity.One, // difficulty
             parentHeader.totalDifficulty,
             parentHeader.baseFeePerGas.toBigInt()
           );
@@ -850,11 +895,9 @@ describe("api", () => {
             block: block
           };
           ethereumJsFromAddress = new EthereumJsAddress(
-            Quantity.from(from).toBuffer()
+            Quantity.toBuffer(from)
           );
-          ethereumJsToAddress = new EthereumJsAddress(
-            Quantity.from(to).toBuffer()
-          );
+          ethereumJsToAddress = new EthereumJsAddress(Quantity.toBuffer(to));
           // set up a real transaction
           transaction = {
             from,

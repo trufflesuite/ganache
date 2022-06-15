@@ -3,8 +3,7 @@ import {
   Quantity,
   keccak,
   BUFFER_EMPTY,
-  BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY
+  BUFFER_32_ZERO
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
@@ -36,7 +35,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.nonce = Quantity.from(data[0]);
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
-      this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
+      this.to = data[3].length == 0 ? Quantity.Empty : Address.from(data[3]);
       this.value = Quantity.from(data[4]);
       this.data = Data.from(data[5]);
       this.v = Quantity.from(data[6]);
@@ -141,12 +140,12 @@ export class LegacyTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.toBuffer(fee));
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
         const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.from(c).toBuffer());
+        return new BN(Quantity.toBuffer(c));
       },
       supports: (capability: Capability) => {
         return false;
