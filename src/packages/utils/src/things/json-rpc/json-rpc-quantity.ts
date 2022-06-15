@@ -85,6 +85,7 @@ export class Quantity extends BaseJsonRpcType {
     }
 
     let result: number;
+    // buffer.readUIntBE only supports up to 48 bits, so if larger then we need to convert to bigint first
     if (length > 6) {
       const trimmedBuffer = firstNonZeroByte === 0 ? this.bufferValue : this.bufferValue.subarray(firstNonZeroByte, length);
       result = Number(bufferToBigInt(trimmedBuffer));

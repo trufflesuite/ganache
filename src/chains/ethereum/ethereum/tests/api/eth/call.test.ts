@@ -508,7 +508,7 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
@@ -516,7 +516,7 @@ describe("api", () => {
                 },
                 {
                   junk: "0xa string",
-                  error: `Cannot wrap string value "0xa string" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,
@@ -551,7 +551,7 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
@@ -559,7 +559,7 @@ describe("api", () => {
                 },
                 {
                   junk: "0xa string",
-                  error: `Cannot wrap string value "0xa string" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,
@@ -581,7 +581,7 @@ describe("api", () => {
                 },
                 {
                   junk: "",
-                  error: `Cannot wrap string value "" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -593,7 +593,7 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
@@ -601,7 +601,7 @@ describe("api", () => {
                 },
                 {
                   junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
-                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,
@@ -627,7 +627,7 @@ describe("api", () => {
                 },
                 {
                   junk: "",
-                  error: `Cannot wrap string value "" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -639,7 +639,7 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
@@ -647,7 +647,7 @@ describe("api", () => {
                 },
                 { // State override data must be 64 characters long in order to hit this validation
                   junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
-                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,
@@ -664,16 +664,16 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  error: `Cannot wrap string value "null" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`,
+                  error: `Cannot wrap string value "null" as a json-rpc type; strings must be prefixed with "0x".`,
                   expectedValue: null
                 },
                 {
                   junk: undefined,
-                  error: `Cannot wrap string value "undefined" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "undefined" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "",
-                  error: `Cannot wrap string value "" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -685,19 +685,19 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
-                  error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
-                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,
-                  error: `Cannot wrap string value "-9" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "-9" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -710,16 +710,16 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  error: `Cannot wrap string value "null" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`,
+                  error: `Cannot wrap string value "null" as a json-rpc type; strings must be prefixed with "0x".`,
                   expectedValue: null
                 },
                 {
                   junk: undefined,
-                  error: `Cannot wrap string value "undefined" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "undefined" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "",
-                  error: `Cannot wrap string value "" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -731,19 +731,19 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
-                  error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "[object Object]" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 { // State override must be 64 characters long in order to hit this validation
                   junk: "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth",
-                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xnothexnothexnothexnothexnothexnothexnothexnothexnothexnothexnoth" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,
-                  error: `Cannot wrap string value "-9" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "-9" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: "0x",
@@ -768,7 +768,7 @@ describe("api", () => {
                 },
                 {
                   junk: "123",
-                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "123" as a json-rpc type; strings must be prefixed with "0x".`
                 },
                 {
                   junk: {},
@@ -776,7 +776,7 @@ describe("api", () => {
                 },
                 {
                   junk: "0xa string",
-                  error: `Cannot wrap string value "0xa string" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`
+                  error: `Cannot wrap string value "0xa string" as a json-rpc type; the input value contains an invalid hex character.`
                 },
                 {
                   junk: -9,

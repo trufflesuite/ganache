@@ -50,6 +50,10 @@ export function parseAndValidateBigIntInput(input: bigint): Buffer {
  * @returns Buffer
  */
 export function parseAndValidateStringInput(input: string): Buffer {
+  if (input.slice(0, 2).toLowerCase() !== "0x") {
+    throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; strings must be prefixed with "0x".`);
+  }
+
   let hexValue = input.slice(2);
 
   // hexValue must be an even number of hexadecimal characters in order to correctly decode in Buffer.from
@@ -60,10 +64,10 @@ export function parseAndValidateStringInput(input: string): Buffer {
   const byteLength = Math.ceil(input.length / 2 - 1);
 
   const _buffer = Buffer.from(hexValue, "hex");
-  if (input.slice(0, 2).toLowerCase() !== "0x" || _buffer.length !== byteLength) {
+  if (_buffer.length !== byteLength) {
     // Buffer.from will return the result after encountering an input that does not conform to hexadecimal encoding.
     // this means that an invalid input can never return a value with the expected bytelength.
-    throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; strings must be hex-encoded and prefixed with "0x".`);
+    throw new Error(`Cannot wrap string value "${input}" as a json-rpc type; the input value contains an invalid hex character.`);
   }
 
   return _buffer;

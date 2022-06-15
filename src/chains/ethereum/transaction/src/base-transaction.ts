@@ -79,7 +79,7 @@ export class BaseTransaction {
   public type: Quantity;
   public nonce: Quantity;
   public gas: Quantity;
-  public to: Address | null;
+  public to: Address;
   public value: Quantity;
   public data: Data;
   public v: Quantity | null;

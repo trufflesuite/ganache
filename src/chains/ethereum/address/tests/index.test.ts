@@ -1,5 +1,5 @@
 import assert from "assert";
-import {Address} from "../";
+import { Address } from "../";
 
 describe("@ganache/ethereum-address", () => {
   describe("toString()", () => {
