@@ -1069,20 +1069,26 @@ export default class EthereumApi implements Api {
    *     storageHash-Node, following the path of the SHA3 (key) as path.
    * @example
    * ```javascript
-   * const address = "0xF403C135812408BFbE8713b5A23a04b3D48AAE31";
-   * const storageSlots = [
-   *   "0x0000000000000000000000000000000000000000000000000000000000000000",
-   *   "0x0000000000000000000000000000000000000000000000000000000000000001"
-   * ];
-   * const proof = await provider.send("eth_getProof", [
-   *   address,
-   *   storageSlots,
-   *   "latest"
-   * ]);
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const proof = await provider.request({ method: "eth_getProof", params: [txReceipt.contractAddress, ["0x0", "0x1"], "latest"] });
    * console.log(proof);
    * ```
    */
-  // todo: add a better example - look at eth_getStorageAt example
   @assertArgLength(3)
   async eth_getProof(
     address: DATA,
