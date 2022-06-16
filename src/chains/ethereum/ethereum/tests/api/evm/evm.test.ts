@@ -79,7 +79,7 @@ describe("api", () => {
       });
     });
 
-    describe.only("evm_mine", () => {
+    describe("evm_mine", () => {
       const providerOptions: EthereumProviderOptions[] = [
         { miner: { instamine: "eager" } },
         { miner: { instamine: "strict" } }
