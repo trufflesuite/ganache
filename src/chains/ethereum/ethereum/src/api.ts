@@ -1096,7 +1096,9 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag
   ): Promise<any> {
     if (this.#blockchain.fallback) {
-      throw new Error("eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details");
+      throw new Error(
+        "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details"
+      );
     }
 
     const blockchain = this.#blockchain;
@@ -1131,10 +1133,7 @@ export default class EthereumApi implements Api {
     addr.equals = (a: { buf: Buffer }) => buf.equals(a.buf);
 
     const slotBuffers = slots.map(slotHex => Data.from(slotHex, 32).toBuffer());
-    return await vm.stateManager.getProof(
-      addr,
-      slotBuffers
-    );
+    return await vm.stateManager.getProof(addr, slotBuffers);
   }
 
   /**
