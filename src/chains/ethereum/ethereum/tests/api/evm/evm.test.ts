@@ -101,12 +101,27 @@ describe("api", () => {
             assert.strictEqual(currentBlock, initialBlock + 5);
           });
 
-        const provider = await getProvider();
-        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
-        await provider.request({ method: "evm_mine", params: [{ blocks: 5 }] });
-        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
-        assert.strictEqual(currentBlock, initialBlock + 5);
-      });
+          it("should mine `n` blocks if called `n` times without awaiting", async () => {
+            const provider = await getProvider(option);
+            const initialBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            let proms = [];
+            for (let i = 0; i < 5; i++) {
+              proms.push(
+                provider.request({
+                  method: "evm_mine",
+                  params: []
+                })
+              );
+            }
+
+            await Promise.all(proms);
+            const currentBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            assert.strictEqual(currentBlock, initialBlock + 5);
+          });
 
           it("should mine a block on demand", async () => {
             const provider = await getProvider(option);
