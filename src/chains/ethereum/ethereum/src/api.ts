@@ -303,31 +303,17 @@ export default class EthereumApi implements Api {
       if (blocks == null) {
         blocks = 1;
       }
-      const strictMiner = options.miner.instamine === "strict";
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const { transactions, blockNumber } = await blockchain.mine(
+        const { transactions } = await blockchain.mine(
           Capacity.FillBlock,
           timestamp,
           true
         );
 
-        if (strictMiner) {
-          // in strict mode we have to wait until the blocks are fully saved
-          // before mining the next ones, in eager mode they've already been
-          // saved
-          await new Promise(resolve => {
-            const off = blockchain.on("block", ({ header: { number } }) => {
-              if (number.toBuffer().equals(blockNumber)) {
-                off();
-                resolve(void 0);
-              }
-            });
-          });
-        }
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }

@@ -580,21 +580,60 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return this.#state === Status.started;
   };
 
+  #requestedBlocksQueue: string[] = [];
+  /**
+   * Creates an event listener inside of a promise that resolves when a block
+   * with the specified `blockNumber` is emitted by the chain.
+   * @param blockNumber The block number to wait to have emitted by the chain
+   */
+  #awaitBlockEmission = async (blockNumber: string) => {
+    return await new Promise(resolve => {
+      const off = this.on("block", ({ header: { number } }) => {
+        if (number.toString() === blockNumber) {
+          this.#requestedBlocksQueue.splice(
+            this.#requestedBlocksQueue.indexOf(blockNumber),
+            1
+          );
+          off();
+          resolve(void 0);
+        }
+      });
+    });
+  };
+
   mine = async (
     maxTransactions: number | Capacity,
     timestamp?: number,
     onlyOneBlock: boolean = false
   ) => {
-    const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+    let nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+    // prefix with "0x" to match against the emitted block's header.number
+    let blockNumber = `0x${nextBlock.header.number.toString()}`;
+
+    // make sure we haven't already requested the miner to mine this specific
+    // block number. This can happen if there are subsequent callers to this
+    // function without actually waiting for it to complete (like a user calling
+    // evm_mine repeatedly
+    while (this.#requestedBlocksQueue.includes(blockNumber)) {
+      // if we've requested this block number to be mined, wait for that
+      // specific block to be done
+      await this.#awaitBlockEmission(blockNumber);
+      // then make our new next block based off of the new "latest" block
+      nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+      blockNumber = `0x${nextBlock.header.number.toString()}`;
+    }
+    this.#requestedBlocksQueue.push(blockNumber);
+
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,
       onlyOneBlock
     );
+    // make sure our block is saved before (not necessarily emitted) before returning
     await this.#blockBeingSavedPromise;
     return {
       transactions,
-      blockNumber: nextBlock.header.number.toBuffer()
+      blockNumber: Quantity.toBuffer(blockNumber)
     };
   };
 
