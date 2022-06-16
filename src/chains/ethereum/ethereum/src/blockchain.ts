@@ -581,8 +581,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   };
 
   #requestedBlocksQueue: string[] = [];
+  /**
+   * Creates an event listener inside of a promise that resolves when a block
+   * with the specified `blockNumber` is emitted by the chain.
+   * @param blockNumber The block number to wait to have emitted by the chain
+   */
   #awaitBlockEmission = async (blockNumber: string) => {
-    // await the block we're actually mining, not just some block
     return await new Promise(resolve => {
       const off = this.on("block", ({ header: { number } }) => {
         if (number.toString() === blockNumber) {
