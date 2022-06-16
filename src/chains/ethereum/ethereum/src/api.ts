@@ -1097,7 +1097,7 @@ export default class EthereumApi implements Api {
   ): Promise<any> {
     if (this.#blockchain.fallback) {
       throw new Error(
-        "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details"
+        "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details."
       );
     }
 

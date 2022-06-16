@@ -18,13 +18,13 @@ describe("api", () => {
       let ownerBalance: string;
       let contractAccount: Account;
       const expectedContractAccountProof = [
-        "0xf901d1a0bddaa54ff11e3d79d1aa0f9df7ed9a8f9afbc0cdd35183106c0c3c377fd587cba0ab8cdb808c8303bb61fb48e276217be9770fa83ecf3f90f2234d558885f5abf180a0a95ba67dcf55d051db4ddc675999682e6f4c7f8f16804b4a0216b4b9103b01c0a0de26cb1b4fd99c4d3ed75d4a67931e3c252605c7d68e0148d5327f341bfd5283a05f1672e7a13fc3d588c018f066a010bbc3c2171c0435e17af22e2429fd868917a0c2c799b60a0cd6acd42c1015512872e86c186bcf196e85061e76842f3b7cf86080a02e0d86c3befd177f574a20ac63804532889077e955320c9361cd10b7cc6f5809a066cd3ba8af40fe37d4bfa45f61adb46466d589b337893028157f280ecc4d94f0a060ba1f8a43e38893005830b89ec3c4b560575461c3925d183e15aed75f8c6e8fa0bca2657fd15237f0fdc85c3c0739d8d7106530921b368ca73c0df81d51bcadf4a029087b3ba8c5129e161e2cb956640f4d8e31a35f3f133c19a1044993def98b61a06456f0a93d16a9f77ff0d31cf56ef090d81c2c56b12535a27c2c7c036dc8186da0a390f135abc61e0c4587b388cf0ba75d5858a1b35511d9e059c42baecb00635ea0144540d36e30b250d25bd5c34d819538742dc54c2017c4eb1fabb8e45f72759180",
-        "0xf869a03b2c95fd2a6e48d2dcb37be554d03b55e31ec582b450211db4e9c3883ffac678b846f8440180a0fe26ce2b5dafd303bdbd9adbd1bbc1ef59fceea4f81c282158ab624e2fd1787da0224b4f9317e44dbf233c853aa45f89db2f5b76989444a324ae9475fbed1d80a0"
+        "0xf901d1a0bddaa54ff11e3d79d1aa0f9df7ed9a8f9afbc0cdd35183106c0c3c377fd587cba0ab8cdb808c8303bb61fb48e276217be9770fa83ecf3f90f2234d558885f5abf180a0cb5392b1cf13d4255ffc62eec25be303d77b795bdb0e21835ded94d29323342ea0de26cb1b4fd99c4d3ed75d4a67931e3c252605c7d68e0148d5327f341bfd5283a05f1672e7a13fc3d588c018f066a010bbc3c2171c0435e17af22e2429fd868917a0c2c799b60a0cd6acd42c1015512872e86c186bcf196e85061e76842f3b7cf86080a02e0d86c3befd177f574a20ac63804532889077e955320c9361cd10b7cc6f5809a066cd3ba8af40fe37d4bfa45f61adb46466d589b337893028157f280ecc4d94f0a060ba1f8a43e38893005830b89ec3c4b560575461c3925d183e15aed75f8c6e8fa0bca2657fd15237f0fdc85c3c0739d8d7106530921b368ca73c0df81d51bcadf4a029087b3ba8c5129e161e2cb956640f4d8e31a35f3f133c19a1044993def98b61a06456f0a93d16a9f77ff0d31cf56ef090d81c2c56b12535a27c2c7c036dc8186da0a390f135abc61e0c4587b388cf0ba75d5858a1b35511d9e059c42baecb00635ea0144540d36e30b250d25bd5c34d819538742dc54c2017c4eb1fabb8e45f72759180",
+        "0xf869a03b2c95fd2a6e48d2dcb37be554d03b55e31ec582b450211db4e9c3883ffac678b846f8440180a0fe26ce2b5dafd303bdbd9adbd1bbc1ef59fceea4f81c282158ab624e2fd1787da067b59c91b38bdcd65d2f8129925a939a1469b88b66ef65395d22f74476582a5f"
       ];
       const emptyMerkelRoot = Data.toString(new SecureTrie().root);
 
       before(async () => {
-        contract = compile(join(__dirname, "./contracts/GetStorageAt.sol"));
+        contract = compile(join(__dirname, "./contracts/GetProof.sol"));
       });
 
       beforeEach(async () => {
@@ -59,6 +59,7 @@ describe("api", () => {
             contractAccount.address.toString()
           ])
         );
+
         const contractHashData = Data.from(keccak(deployedCode.toBuffer()));
         const contractAccountBalance = await provider.send("eth_getBalance", [
           contractAccount.address.toString()
@@ -67,10 +68,6 @@ describe("api", () => {
         contractAccount.codeHash = contractHashData.toBuffer();
         contractAccount.nonce = Quantity.from(0x1);
         contractAccount.balance = Quantity.from(contractAccountBalance);
-        contractAccount.codeHash = Buffer.from(
-          "224b4f9317e44dbf233c853aa45f89db2f5b76989444a324ae9475fbed1d80a0",
-          "hex"
-        );
         contractAccount.stateRoot = Buffer.from(
           "fe26ce2b5dafd303bdbd9adbd1bbc1ef59fceea4f81c282158ab624e2fd1787d",
           "hex"
@@ -82,6 +79,30 @@ describe("api", () => {
           ownerAddress,
           [],
           "latest"
+        ]);
+
+        assert.equal(result.address, ownerAddress, "Unexpected address");
+        assert.equal(result.balance, ownerBalance, "Unexpected balance");
+        assert.equal(
+          result.codeHash,
+          Data.toString(KECCAK256_NULL),
+          "Unexpected codeHash, should have been keccak hash of zero bytes"
+        );
+        assert.equal(result.nonce, "0x1", "Unexpected nonce");
+
+        assert.equal(
+          result.storageHash,
+          emptyMerkelRoot,
+          "Unexpected storageHash"
+        );
+        assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
+      });
+
+      it("gets the proof with an explicit block number", async () => {
+        const result = await provider.send("eth_getProof", [
+          ownerAddress,
+          [],
+          "0x1"
         ]);
 
         assert.equal(result.address, ownerAddress, "Unexpected address");
@@ -120,7 +141,7 @@ describe("api", () => {
         );
         assert.equal(
           result.codeHash,
-          Data.from(contractAccount.codeHash).toString(),
+          Data.toString(contractAccount.codeHash),
           "Unexpected codeHash"
         );
         assert.equal(
@@ -133,7 +154,6 @@ describe("api", () => {
           Data.from(contractAccount.stateRoot).toString(),
           "Unexpected storageHash"
         );
-
         assert.deepEqual(
           result.accountProof,
           expectedContractAccountProof,
@@ -176,7 +196,6 @@ describe("api", () => {
           Data.from(contractAccount.stateRoot).toString(),
           "Unexpected storageHash"
         );
-
         assert.deepEqual(
           result.accountProof,
           expectedContractAccountProof,
@@ -209,93 +228,26 @@ describe("api", () => {
         );
       });
 
-      it("throws for invalid length slot indices", () => {
-        const responseProm = provider.send("eth_getProof", [
-          contractAccount.address.toString(),
-          ["0x1"],
-          "latest"
-        ]);
-
-        assert.rejects(responseProm);
-      });
-
-      it("throws for invalid block number", () => {
+      it("throws for invalid block number", async () => {
         const responseProm = provider.send("eth_getProof", [
           contractAccount.address.toString(),
           [],
           "0x5"
         ]);
 
-        assert.rejects(responseProm);
-      });
-
-      it("returns an empty proof for an empty address", async () => {
-        const address = Address.toString("0x1234");
-        const proof = await provider.send("eth_getProof", [
-          address,
-          [Data.toString("0x0", 32)],
-          "latest"
-        ]);
-        assert.equal(proof.address, address.toString(), "Unexpected address");
-        assert.equal(proof.balance, "0x0", "Unexpected balance");
-        assert.equal(
-          proof.codeHash,
-          Data.toString(KECCAK256_NULL),
-          "Unexpected codeHash"
-        );
-        assert.equal(proof.nonce, "0x0", "Unexpected nonce");
-        assert.equal(
-          proof.storageHash,
-          emptyMerkelRoot,
-          "Unexpected storageHash"
-        );
-        assert.deepEqual(
-          proof.accountProof,
-          [
-            "0xf901d1a0bddaa54ff11e3d79d1aa0f9df7ed9a8f9afbc0cdd35183106c0c3c377fd587cba0ab8cdb808c8303bb61fb48e276217be9770fa83ecf3f90f2234d558885f5abf180a0a95ba67dcf55d051db4ddc675999682e6f4c7f8f16804b4a0216b4b9103b01c0a0de26cb1b4fd99c4d3ed75d4a67931e3c252605c7d68e0148d5327f341bfd5283a05f1672e7a13fc3d588c018f066a010bbc3c2171c0435e17af22e2429fd868917a0c2c799b60a0cd6acd42c1015512872e86c186bcf196e85061e76842f3b7cf86080a02e0d86c3befd177f574a20ac63804532889077e955320c9361cd10b7cc6f5809a066cd3ba8af40fe37d4bfa45f61adb46466d589b337893028157f280ecc4d94f0a060ba1f8a43e38893005830b89ec3c4b560575461c3925d183e15aed75f8c6e8fa0bca2657fd15237f0fdc85c3c0739d8d7106530921b368ca73c0df81d51bcadf4a029087b3ba8c5129e161e2cb956640f4d8e31a35f3f133c19a1044993def98b61a06456f0a93d16a9f77ff0d31cf56ef090d81c2c56b12535a27c2c7c036dc8186da0a390f135abc61e0c4587b388cf0ba75d5858a1b35511d9e059c42baecb00635ea0144540d36e30b250d25bd5c34d819538742dc54c2017c4eb1fabb8e45f72759180",
-            "0xf891808080808080a02bac582e860fd49c3f34de2a6f9fa706ea1ad70f4193a1a9823addd0d92b065ba025b6b0f704e82ae5780c18b069bac7b0b3ce2e3230ebe8d67b34e1df26c17750808080a08a0d76872abbc84b8b8ebad07baec7e6d30439fc2f62882638966a0f2b7307e28080a09452bc4c37d77b1c0d84313fe0398e0d5f3b11b7693a361a23f9aa21a250400d8080",
-            "0xf872a020fb8f3e702fd22bf02391cc16c6b4bc465084468f1627747e6e21e2005f880eb84ff84d01893635c8fbfa9ce7e31ca056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421a0c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
-          ],
-          "Unexpected accountProof"
-        );
-        assert.deepEqual(
-          proof.storageProof,
-          [
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000000",
-              value: "0x0",
-              proof: []
-            }
-          ],
-          "Unexpected storageProof"
-        );
+        await assert.rejects(responseProm, new Error("header not found"));
       });
 
       it("throws with a forked network", async () => {
-        process.env.INFURA_KEY = "ABC123";
-        try {
-          [
-            { url: "http://0.0.0.0" },
-            { network: "mainnet" },
-            { provider: await getProvider() }
-          ].forEach(forkConfig => {
-            const opts = { fork: forkConfig };
-            const forkedProvider = new EthereumProvider(opts as any, {} as any);
+        const fakeMainnet = await getProvider({});
+        const forkedProvider = await getProvider({ fork: { provider: fakeMainnet as any } });
+        const error = new Error("eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details.");
 
-            const error =
-              "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details.";
-            assert.rejects(
-              forkedProvider.send("eth_getProof", [
-                contractAccount.address.toString(),
-                [],
-                "latest"
-              ]),
-              error
-            );
-          });
-        } finally {
-          delete process.env.INFURA_KEY;
-        }
+        await assert.rejects(forkedProvider.send("eth_getProof", [
+          contractAccount.address.toString(),
+          [],
+          "latest"
+        ]), error);
       });
     });
   });
