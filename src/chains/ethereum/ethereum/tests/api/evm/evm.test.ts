@@ -4,6 +4,7 @@ import { Data, Quantity } from "@ganache/utils";
 import { EthereumProvider } from "../../../src/provider";
 import { Transaction } from "@ganache/ethereum-transaction";
 import memdown from "memdown";
+import { EthereumProviderOptions } from "@ganache/ethereum-options/typings";
 
 function between(x: number, min: number, max: number) {
   return x >= min && x <= max;
@@ -78,8 +79,28 @@ describe("api", () => {
       });
     });
 
-    describe("evm_mine", () => {
-      it("should mine `n` blocks on demand", async () => {
+    describe.only("evm_mine", () => {
+      const providerOptions: EthereumProviderOptions[] = [
+        { miner: { instamine: "eager" } },
+        { miner: { instamine: "strict" } }
+      ];
+      providerOptions.forEach(option => {
+        return describe(`in ${option.miner.instamine} instamine mode`, () => {
+          it("should mine `n` blocks on demand", async () => {
+            const provider = await getProvider(option);
+            const initialBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            await provider.request({
+              method: "evm_mine",
+              params: [{ blocks: 5 }]
+            });
+            const currentBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            assert.strictEqual(currentBlock, initialBlock + 5);
+          });
+
         const provider = await getProvider();
         const initialBlock = parseInt(await provider.send("eth_blockNumber"));
         await provider.request({ method: "evm_mine", params: [{ blocks: 5 }] });
@@ -87,82 +108,110 @@ describe("api", () => {
         assert.strictEqual(currentBlock, initialBlock + 5);
       });
 
-      it("should mine a block on demand", async () => {
-        const provider = await getProvider();
-        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
-        await provider.send("evm_mine");
-        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
-        assert.strictEqual(currentBlock, initialBlock + 1);
-      });
+          it("should mine a block on demand", async () => {
+            const provider = await getProvider(option);
+            const initialBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            await provider.send("evm_mine");
+            const currentBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            assert.strictEqual(currentBlock, initialBlock + 1);
+          });
 
-      it("should mine a block on demand at the specified timestamp", async () => {
-        const startDate = new Date(2019, 3, 15);
-        const miningTimestamp = Math.floor(
-          new Date(2020, 3, 15).getTime() / 1000
-        );
-        const provider = await getProvider({ chain: { time: startDate } });
-        await provider.send("evm_mine", [miningTimestamp]);
-        const currentBlock = await provider.send("eth_getBlockByNumber", [
-          "latest"
-        ]);
-        assert.strictEqual(parseInt(currentBlock.timestamp), miningTimestamp);
-      });
+          it("should mine a block on demand at the specified timestamp", async () => {
+            const startDate = new Date(2019, 3, 15);
+            const miningTimestamp = Math.floor(
+              new Date(2020, 3, 15).getTime() / 1000
+            );
+            const provider = await getProvider({
+              chain: { time: startDate },
+              ...option
+            });
+            await provider.send("evm_mine", [miningTimestamp]);
+            const currentBlock = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+            assert.strictEqual(
+              parseInt(currentBlock.timestamp),
+              miningTimestamp
+            );
+          });
 
-      it("should mine a block even when mining is stopped", async () => {
-        const provider = await getProvider();
-        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
-        await provider.send("miner_stop");
-        await provider.send("evm_mine");
-        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
-        assert.strictEqual(currentBlock, initialBlock + 1);
-      });
+          it("should mine a block even when mining is stopped", async () => {
+            const provider = await getProvider(option);
+            const initialBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            await provider.send("miner_stop");
+            await provider.send("evm_mine");
+            const currentBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            assert.strictEqual(currentBlock, initialBlock + 1);
+          });
 
-      it("should mine a block when in interval mode", async () => {
-        const provider = await getProvider({ miner: { blockTime: 1000 } });
-        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
-        await provider.send("evm_mine");
-        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
-        assert.strictEqual(currentBlock, initialBlock + 1);
-      });
+          it("should mine a block when in interval mode", async () => {
+            const provider = await getProvider({
+              miner: { blockTime: 1000, ...option.miner }
+            });
+            const initialBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            await provider.send("evm_mine");
+            const currentBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            assert.strictEqual(currentBlock, initialBlock + 1);
+          });
 
-      it("should mine a block when in interval mode even when mining is stopped", async () => {
-        const provider = await getProvider({ miner: { blockTime: 1000 } });
-        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
-        await provider.send("miner_stop");
-        await provider.send("evm_mine");
-        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
-        assert.strictEqual(currentBlock, initialBlock + 1);
-      });
+          it("should mine a block when in interval mode even when mining is stopped", async () => {
+            const provider = await getProvider({
+              miner: { blockTime: 1000, ...option.miner }
+            });
+            const initialBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            await provider.send("miner_stop");
+            await provider.send("evm_mine");
+            const currentBlock = parseInt(
+              await provider.send("eth_blockNumber")
+            );
+            assert.strictEqual(currentBlock, initialBlock + 1);
+          });
 
-      it("should save the block before returning", async () => {
-        // slow down memdown's _batch function to consistently reproduce a past
-        // race condition where a block was mined and returned by evm_mine
-        // before it actually saved to the database. for history, the race
-        // condition issue is documented here:
-        // https://github.com/trufflesuite/ganache/issues/3060
-        const db = memdown();
-        let customBatchCalled = false;
-        db._batch = (...args) => {
-          setTimeout(() => {
-            customBatchCalled = true;
-            Reflect.apply(memdown.prototype._batch, db, args);
-          }, 20);
-        };
+          it("should save the block before returning", async () => {
+            // slow down memdown's _batch function to consistently reproduce a past
+            // race condition where a block was mined and returned by evm_mine
+            // before it actually saved to the database. for history, the race
+            // condition issue is documented here:
+            // https://github.com/trufflesuite/ganache/issues/3060
+            const db = memdown();
+            let customBatchCalled = false;
+            db._batch = (...args) => {
+              setTimeout(() => {
+                customBatchCalled = true;
+                Reflect.apply(memdown.prototype._batch, db, args);
+              }, 20);
+            };
 
-        const options = { database: { db } };
-        const provider = await getProvider(options);
-        await provider.request({ method: "evm_mine", params: [{}] });
+            const options = { database: { db }, ...option };
+            const provider = await getProvider(options);
+            await provider.request({ method: "evm_mine", params: [{}] });
 
-        const block = await provider.request({
-          method: "eth_getBlockByNumber",
-          params: [`0x1`]
+            const block = await provider.request({
+              method: "eth_getBlockByNumber",
+              params: [`0x1`]
+            });
+            assert(
+              block,
+              `the block doesn't exist. evm_mine returned before saving the block`
+            );
+            // make sure our patch works
+            assert(customBatchCalled);
+          });
         });
-        assert(
-          block,
-          `the block doesn't exist. evm_mine returned before saving the block`
-        );
-        // make sure our patch works
-        assert(customBatchCalled);
       });
     });
 
