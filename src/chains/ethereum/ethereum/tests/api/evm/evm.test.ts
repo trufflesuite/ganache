@@ -79,7 +79,7 @@ describe("api", () => {
       });
     });
 
-    describe.only("evm_mine", () => {
+    describe("evm_mine", () => {
       const providerOptions: EthereumProviderOptions[] = [
         { miner: { instamine: "eager" } },
         { miner: { instamine: "strict" } }
@@ -100,13 +100,6 @@ describe("api", () => {
             );
             assert.strictEqual(currentBlock, initialBlock + 5);
           });
-
-        const provider = await getProvider();
-        const initialBlock = parseInt(await provider.send("eth_blockNumber"));
-        await provider.request({ method: "evm_mine", params: [{ blocks: 5 }] });
-        const currentBlock = parseInt(await provider.send("eth_blockNumber"));
-        assert.strictEqual(currentBlock, initialBlock + 5);
-      });
 
           it("should mine a block on demand", async () => {
             const provider = await getProvider(option);
