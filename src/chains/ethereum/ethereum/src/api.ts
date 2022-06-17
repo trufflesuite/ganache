@@ -31,10 +31,7 @@ import {
   PromiEvent,
   Api,
   keccak,
-  RPCQUANTITY_ZERO,
-  RPCQUANTITY_EMPTY,
-  JsonRpcErrorCode,
-  RPCQUANTITY_GWEI
+  JsonRpcErrorCode
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -63,8 +60,8 @@ async function autofillDefaultTransactionValues(
 ) {
   if (tx.gas.isNull()) {
     const defaultLimit = options.miner.defaultTransactionGasLimit;
-    if (defaultLimit === RPCQUANTITY_EMPTY) {
-      // if the default limit is `RPCQUANTITY_EMPTY` use a gas estimate
+    if (defaultLimit === Quantity.Empty) {
+      // if the default limit is `Quantity.Empty` use a gas estimate
       tx.gas = await eth_estimateGas(transaction, Tag.latest);
     } else {
       tx.gas = defaultLimit;
@@ -306,31 +303,17 @@ export default class EthereumApi implements Api {
       if (blocks == null) {
         blocks = 1;
       }
-      const strictMiner = options.miner.instamine === "strict";
       // TODO(perf): add an option to mine a bunch of blocks in a batch so
       // we can save them all to the database in one go.
       // Developers like to move the blockchain forward by thousands of blocks
       // at a time and doing this would make it way faster
       for (let i = 0; i < blocks; i++) {
-        const { transactions, blockNumber } = await blockchain.mine(
+        const { transactions } = await blockchain.mine(
           Capacity.FillBlock,
           timestamp,
           true
         );
 
-        if (strictMiner) {
-          // in strict mode we have to wait until the blocks are fully saved
-          // before mining the next ones, in eager mode they've already been
-          // saved
-          await new Promise(resolve => {
-            const off = blockchain.on("block", ({ header: { number } }) => {
-              if (number.toBuffer().equals(blockNumber)) {
-                off();
-                resolve(void 0);
-              }
-            });
-          });
-        }
         if (vmErrorsOnRPCResponse) {
           assertExceptionalTransactions(transactions);
         }
@@ -376,7 +359,7 @@ export default class EthereumApi implements Api {
     const account = await stateManager.getAccount({ buf: buffer } as any);
 
     account.nonce = {
-      toArrayLike: () => Quantity.from(nonce).toBuffer()
+      toArrayLike: () => Quantity.toBuffer(nonce)
     } as any;
 
     await stateManager.putAccount({ buf: buffer } as any, account);
@@ -414,7 +397,7 @@ export default class EthereumApi implements Api {
     const account = await stateManager.getAccount({ buf: buffer } as any);
 
     account.balance = {
-      toArrayLike: () => Quantity.from(balance).toBuffer()
+      toArrayLike: () => Quantity.toBuffer(balance)
     } as any;
 
     await stateManager.putAccount({ buf: buffer } as any, account);
@@ -447,7 +430,7 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     const addressBuffer = Address.from(address).toBuffer();
-    const codeBuffer = Data.from(code).toBuffer();
+    const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
     // The ethereumjs-vm StateManager does not allow to set empty code,
@@ -495,8 +478,8 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     const addressBuffer = Address.from(address).toBuffer();
-    const slotBuffer = Data.from(slot).toBuffer();
-    const valueBuffer = Data.from(value).toBuffer();
+    const slotBuffer = Data.toBuffer(slot);
+    const valueBuffer = Data.toBuffer(value);
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
     await stateManager.putContractStorage(
@@ -525,9 +508,8 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async evm_increaseTime(seconds: number | QUANTITY) {
     const milliseconds =
-      (typeof seconds === "number"
-        ? seconds
-        : Quantity.from(seconds).toNumber()) * 1000;
+      (typeof seconds === "number" ? seconds : Quantity.toNumber(seconds)) *
+      1000;
     return Math.floor(this.#blockchain.increaseTime(milliseconds) / 1000);
   }
 
@@ -560,7 +542,7 @@ export default class EthereumApi implements Api {
         timestamp = time;
         break;
       default:
-        timestamp = Quantity.from(time).toNumber();
+        timestamp = Quantity.toNumber(time);
         break;
     }
     const blockchain = this.#blockchain;
@@ -836,7 +818,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async web3_sha3(data: DATA) {
-    return Data.from(keccak(Data.from(data).toBuffer()));
+    return Data.from(keccak(Data.toBuffer(data)));
   }
   //#endregion
 
@@ -878,7 +860,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0)
   async net_peerCount() {
-    return RPCQUANTITY_ZERO;
+    return Quantity.Zero;
   }
   //#endregion
 
@@ -1249,9 +1231,7 @@ export default class EthereumApi implements Api {
       .catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[Quantity.from(index).toNumber()].toJSON(
-      blockchain.common
-    );
+    return transactions[Quantity.toNumber(index)].toJSON(blockchain.common);
   }
 
   /**
@@ -1296,9 +1276,7 @@ export default class EthereumApi implements Api {
     const block = await blockchain.blocks.get(number).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
-    return transactions[Quantity.from(index).toNumber()].toJSON(
-      blockchain.common
-    );
+    return transactions[Quantity.toNumber(index)].toJSON(blockchain.common);
   }
 
   /**
@@ -1314,7 +1292,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getUncleCountByBlockHash(hash: DATA) {
-    return RPCQUANTITY_ZERO;
+    return Quantity.Zero;
   }
 
   /**
@@ -1329,7 +1307,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getUncleCountByBlockNumber(blockNumber: QUANTITY | Ethereum.Tag) {
-    return RPCQUANTITY_ZERO;
+    return Quantity.Zero;
   }
 
   /**
@@ -1502,7 +1480,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0)
   async eth_hashrate() {
-    return RPCQUANTITY_ZERO;
+    return Quantity.Zero;
   }
 
   /**
@@ -1530,7 +1508,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0)
   async eth_maxPriorityFeePerGas() {
-    return RPCQUANTITY_GWEI;
+    return Quantity.Gwei;
   }
 
   /**
@@ -1686,7 +1664,7 @@ export default class EthereumApi implements Api {
     const trie = blockchain.trie.copy(false);
     trie.setContext(blockStateRoot, null, blockNum);
 
-    const posBuff = Quantity.from(position).toBuffer();
+    const posBuff = Quantity.toBuffer(position);
     const length = posBuff.length;
     let paddedPosBuff: Buffer;
     if (length < 32) {
@@ -1752,7 +1730,7 @@ export default class EthereumApi implements Api {
     | null
   > {
     const { transactions } = this.#blockchain;
-    const hashBuffer = Data.from(transactionHash).toBuffer();
+    const hashBuffer = Data.toBuffer(transactionHash);
 
     // we must check the database before checking the pending cache, because the
     // cache is updated _after_ the transaction is already in the database, and
@@ -1989,7 +1967,7 @@ export default class EthereumApi implements Api {
       throw new Error("cannot sign data; no private key");
     }
 
-    const messageHash = hashPersonalMessage(Data.from(message).toBuffer());
+    const messageHash = hashPersonalMessage(Data.toBuffer(message));
     const { v, r, s } = ecsign(messageHash, privateKey.toBuffer());
     return toRpcSig(v, r, s);
   }
@@ -2488,7 +2466,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getFilterChanges(filterId: QUANTITY): Promise<Data[]> {
-    const filter = this.#filters.get(Quantity.from(filterId).toString());
+    const filter = this.#filters.get(Quantity.toString(filterId));
     if (filter) {
       const updates = filter.updates;
       filter.updates = [];
@@ -2514,7 +2492,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_uninstallFilter(filterId: QUANTITY): Promise<boolean> {
-    const id = Quantity.from(filterId).toString();
+    const id = Quantity.toString(filterId);
     const filter = this.#filters.get(id);
     if (!filter) return false;
     filter.unsubscribe();
@@ -2558,7 +2536,7 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1)
   async eth_getFilterLogs(filterId: QUANTITY): Promise<Ethereum.Logs> {
-    const filter = this.#filters.get(Quantity.from(filterId).toString());
+    const filter = this.#filters.get(Quantity.toString(filterId));
     if (filter && filter.type === FilterTypes.log) {
       return this.eth_getLogs(filter.filter);
     } else {
@@ -2917,10 +2895,10 @@ export default class EthereumApi implements Api {
   ): Promise<Ethereum.StorageRangeAtResult<"private">> {
     return this.#blockchain.storageRangeAt(
       blockHash,
-      Quantity.from(transactionIndex).toNumber(),
+      Quantity.toNumber(transactionIndex),
       contractAddress,
       startKey,
-      Quantity.from(maxResult).toNumber()
+      Quantity.toNumber(maxResult)
     );
   }
 

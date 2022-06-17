@@ -3,7 +3,6 @@ import {
   Quantity,
   keccak,
   BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY,
   BUFFER_ZERO,
   JsonRpcErrorCode
 } from "@ganache/utils";
@@ -65,7 +64,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas = Quantity.from(data[2]);
       this.maxFeePerGas = Quantity.from(data[3]);
       this.gas = Quantity.from(data[4]);
-      this.to = data[5].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[5]);
+      this.to = data[5].length == 0 ? Quantity.Empty : Address.from(data[5]);
       this.value = Quantity.from(data[6]);
       this.data = Data.from(data[7]);
       const accessListData = AccessLists.getAccessListData(data[8]);
@@ -178,7 +177,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.toBuffer(fee));
       },
       getUpfrontCost: (baseFee: BN = new BN(0)) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;

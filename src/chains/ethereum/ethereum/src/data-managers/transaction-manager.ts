@@ -6,6 +6,7 @@ import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
 import type Common from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
+import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawExtraTx,
   TransactionFactory,
@@ -44,7 +45,7 @@ export default class TransactionManager extends Manager<NoOp> {
   fromFallback = async (transactionHash: Buffer) => {
     const { fallback } = this.#blockchain;
     const tx = await fallback.request<Transaction>("eth_getTransactionByHash", [
-      Data.from(transactionHash).toString()
+      Data.toString(transactionHash)
     ]);
     if (tx == null) return null;
 
@@ -57,12 +58,12 @@ export default class TransactionManager extends Manager<NoOp> {
     if (!fallback.isValidForkBlockNumber(blockNumber)) return null;
 
     const extra: GanacheRawExtraTx = [
-      Data.from(tx.from, 20).toBuffer(),
-      Data.from((tx as any).hash, 32).toBuffer(),
+      Address.toBuffer(tx.from),
+      Data.toBuffer((tx as any).hash, 32),
       blockHash.toBuffer(),
       blockNumber.toBuffer(),
       index.toBuffer(),
-      Quantity.from(tx.gasPrice).toBuffer()
+      Quantity.toBuffer(tx.gasPrice)
     ];
     const common = fallback.getCommonForBlockNumber(
       fallback.common,

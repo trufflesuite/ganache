@@ -1,116 +1,62 @@
-import { bigIntToBuffer } from "../../utils";
-import { uintToBuffer } from "../../utils";
-
-import { BUFFER_EMPTY } from "../../utils/constants";
-
-export const strCache = new WeakMap();
-export const bufCache = new WeakMap();
-export const toStrings = new WeakMap();
-export const toBuffers = new WeakMap();
-
+import {
+  JsonRpcInputArg,
+  parseAndValidateStringInput,
+  parseAndValidateBigIntInput,
+  parseAndValidateNumberInput
+} from "./input-parsers";
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 
-export class BaseJsonRpcType<
-  T extends number | bigint | string | Buffer =
-    | number
-    | bigint
-    | string
-    | Buffer
-> {
-  public [Symbol.toStringTag]: string;
+export class BaseJsonRpcType {
+  protected bufferValue: Buffer | null;
 
-  protected value: T;
   // used to make console.log debugging a little easier
-  private [inspect](_depth: number, _options: any): T {
-    return this.value;
+  private [inspect](_depth: number, _options: any): string {
+    return `[${this.constructor.name}] ${this.toString()}`;
   }
-  constructor(value: T) {
-    const self = this;
-    if (Buffer.isBuffer(value)) {
-      toStrings.set(this, () => value.toString("hex"));
-      bufCache.set(this, value);
-      self[Symbol.toStringTag] = "Buffer";
+
+  constructor(value: JsonRpcInputArg) {
+    if (value == null) {
+      this.bufferValue = null;
+    } else if (Buffer.isBuffer(value)) {
+      // empty buffer should be treated as null
+      this.bufferValue = value.length === 0 ? null : value;
     } else {
-      const type = typeof value;
-      switch (type) {
+      switch (typeof value) {
+        case "string":
+          this.bufferValue = parseAndValidateStringInput(value);
+          break;
         case "number":
-          if ((value as number) % 1 !== 0) {
-            throw new Error("`Cannot wrap a decimal value as a json-rpc type`");
-          }
-          toStrings.set(this, () => (value as number).toString(16));
-          toBuffers.set(this, () =>
-            value === 0 ? BUFFER_EMPTY : uintToBuffer(value as number)
-          );
+          this.bufferValue = parseAndValidateNumberInput(value);
           break;
         case "bigint":
-          toStrings.set(this, () => (value as bigint).toString(16));
-          toBuffers.set(this, () =>
-            value === 0n ? BUFFER_EMPTY : bigIntToBuffer(value as bigint)
-          );
+          this.bufferValue = parseAndValidateBigIntInput(value);
           break;
-        case "string": {
-          // handle hex-encoded string
-          if ((value as string).indexOf("0x") === 0) {
-            toStrings.set(this, () => (value as string).toLowerCase().slice(2));
-            strCache.set(this, (value as string).toLowerCase());
-            toBuffers.set(this, () => {
-              let fixedValue = (value as string).slice(2);
-              if (fixedValue.length % 2 === 1) {
-                fixedValue = "0" + fixedValue;
-              }
-              return Buffer.from(fixedValue, "hex");
-            });
-          } else {
-            throw new Error(
-              `cannot convert string value "${value}" into type \`${this.constructor.name}\`; strings must be hex-encoded and prefixed with "0x".`
-            );
-          }
-          break;
-        }
         default:
-          // handle undefined/null
-          if (value == null) {
-            // This is a weird thing that returns undefined/null for a call
-            // to toString().
-            this.toString = () => value as string;
-            bufCache.set(this, BUFFER_EMPTY);
-            break;
-          }
-          throw new Error(`Cannot wrap a "${type}" as a json-rpc type`);
+          throw new Error(`Cannot wrap a "${typeof value}" as a json-rpc type`);
       }
-      self[Symbol.toStringTag] = type;
     }
-
-    this.value = value;
   }
 
   toString(): string | null {
-    let str = strCache.get(this);
-    if (str === void 0) {
-      str = "0x" + toStrings.get(this)();
-      strCache.set(this, str);
+    if (this.bufferValue == null) {
+      return null;
     }
-    return str;
+    return `0x${this.bufferValue.toString("hex")}`;
   }
+
   toBuffer(): Buffer {
-    let buf = bufCache.get(this);
-    if (buf === void 0) {
-      buf = toBuffers.get(this)();
-      bufCache.set(this, buf);
-    }
-    return buf;
+    return this.bufferValue;
   }
-  valueOf(): T | null {
-    return this.value;
+
+  valueOf(): any {
+    return this.bufferValue;
   }
+
   toJSON(): string | null {
     return this.toString();
   }
+
   isNull() {
-    return this.value == null;
+    return this.bufferValue == null;
   }
 }
-
-export type JsonRpcType<
-  T extends number | bigint | string | Buffer
-> = BaseJsonRpcType<T>;
