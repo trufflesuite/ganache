@@ -201,9 +201,13 @@ export class Fork {
 
   public async initialize() {
     let cacheProm: Promise<PersistentCache>;
-    const { fork: options } = this.#options;
-    if (options.deleteCache) await PersistentCache.deleteDb();
-    if (options.disableCache === false) {
+    const {
+      fork: forkOptions,
+      chain: chainOptions,
+      miner: minerOptions
+    } = this.#options;
+    if (forkOptions.deleteCache) await PersistentCache.deleteDb();
+    if (forkOptions.disableCache === false) {
       // ignore cache start up errors as it is possible there is an `open`
       // conflict if another ganache fork is running at the time this one is
       // started. The cache isn't required (though performance will be
@@ -223,6 +227,13 @@ export class Fork {
       this.blockNumber.toBigInt()
     );
     this.block = new Block(BlockManager.rawFromJSON(block, common), common);
+    if (!chainOptions.time && minerOptions.timestampIncrement !== "clock") {
+      chainOptions.time = new Date(
+        (this.block.header.timestamp.toNumber() +
+          minerOptions.timestampIncrement.toNumber()) *
+          1000
+      );
+    }
     if (cache) await this.initCache(cache);
   }
   private async initCache(cache: PersistentCache) {

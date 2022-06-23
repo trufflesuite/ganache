@@ -1,6 +1,6 @@
-import { RPCQUANTITY_GWEI } from "@ganache/utils";
+import { Quantity } from "@ganache/utils";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import getProvider, { mnemonic } from "../../helpers/getProvider";
 
 function hex(length: number) {
@@ -52,7 +52,7 @@ describe("api", () => {
     describe("eth_maxPriorityFeePerGas", () => {
       it("should return 1 GWEI", async () => {
         const tip = await provider.send("eth_maxPriorityFeePerGas");
-        assert.strictEqual(tip, RPCQUANTITY_GWEI.toString());
+        assert.strictEqual(tip, Quantity.Gwei.toString());
       });
     });
 
@@ -429,28 +429,48 @@ describe("api", () => {
     it("eth_getTransactionByBlockNumberAndIndex", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
       const gasPrice = await provider.send("eth_gasPrice", []);
-      const txHash = await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: "0x1",
-          gasPrice
-        }
-      ]);
+
+      await provider.send("miner_stop");
+      const txArgs = {
+        from: accounts[0],
+        to: accounts[1],
+        value: "0x1",
+        gasPrice
+      };
+
+      const tx1Hash = await provider.send("eth_sendTransaction", [txArgs]);
+      const tx2Hash = await provider.send("eth_sendTransaction", [txArgs]);
+      await provider.send("miner_start");
+
       await provider.once("message");
 
-      const tx = await provider.send(
+      const retrievedTx1 = await provider.send(
         "eth_getTransactionByBlockNumberAndIndex",
         ["0x1", "0x0"]
       );
       assert.strictEqual(
-        tx.hash,
+        retrievedTx1.hash,
         "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
         "Unexpected transaction hash."
       );
       assert.strictEqual(
-        tx.hash,
-        txHash,
+        retrievedTx1.hash,
+        tx1Hash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
+      );
+
+      const retrievedTx2 = await provider.send(
+        "eth_getTransactionByBlockNumberAndIndex",
+        ["0x1", "0x1"]
+      );
+      assert.strictEqual(
+        retrievedTx2.hash,
+        "0x32b957c5669ff38b7baa8bfb9c4f84811f70ae3fb44fb2ad63e70ee959c88471",
+        "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        retrievedTx2.hash,
+        tx2Hash,
         "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
       );
     });
@@ -458,30 +478,53 @@ describe("api", () => {
     it("eth_getTransactionByBlockHashAndIndex", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
       const gasPrice = await provider.send("eth_gasPrice", []);
-      const txHash = await provider.send("eth_sendTransaction", [
-        {
-          from: accounts[0],
-          to: accounts[1],
-          value: "0x1",
-          gasPrice
-        }
-      ]);
-      const _message = await provider.once("message");
-      const block = await provider.send("eth_getBlockByNumber", ["0x1"]);
 
-      const tx = await provider.send("eth_getTransactionByBlockHashAndIndex", [
-        block.hash,
-        "0x0"
+      await provider.send("miner_stop");
+      const txArgs = {
+        from: accounts[0],
+        to: accounts[1],
+        value: "0x1",
+        gasPrice
+      };
+
+      const tx1Hash = await provider.send("eth_sendTransaction", [txArgs]);
+      const tx2Hash = await provider.send("eth_sendTransaction", [txArgs]);
+      await provider.send("miner_start");
+
+      await provider.once("message");
+
+      const { hash: blockHash } = await provider.send("eth_getBlockByNumber", [
+        "0x1"
       ]);
+      const retrievedTx1 = await provider.send(
+        "eth_getTransactionByBlockHashAndIndex",
+        [blockHash, "0x0"]
+      );
+
       assert.strictEqual(
-        tx.hash,
+        retrievedTx1.hash,
         "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
         "Unexpected transaction hash."
       );
       assert.strictEqual(
-        tx.hash,
-        txHash,
-        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
+        retrievedTx1.hash,
+        tx1Hash,
+        "eth_getTransactionByBlockHashAndIndex transaction hash doesn't match tx hash"
+      );
+
+      const retrievedTx2 = await provider.send(
+        "eth_getTransactionByBlockHashAndIndex",
+        [blockHash, "0x1"]
+      );
+      assert.strictEqual(
+        retrievedTx2.hash,
+        "0x32b957c5669ff38b7baa8bfb9c4f84811f70ae3fb44fb2ad63e70ee959c88471",
+        "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        retrievedTx2.hash,
+        tx2Hash,
+        "eth_getTransactionByBlockHashAndIndex transaction hash doesn't match tx hash"
       );
     });
 

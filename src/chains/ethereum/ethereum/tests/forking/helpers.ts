@@ -1,6 +1,6 @@
 import { Quantity, WEI } from "@ganache/utils";
 import getProvider from "../helpers/getProvider";
-import EthereumProvider from "../../src/provider";
+import { EthereumProvider } from "../../src/provider";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
 
 export const logging = {
@@ -10,7 +10,7 @@ export const logging = {
 };
 
 export const encodeValue = (val: number) => {
-  return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
+  return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
 };
 
 export const updateRemotesAccountsBalances = async (

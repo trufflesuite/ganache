@@ -2,12 +2,11 @@ import { Address } from "@ganache/ethereum-address";
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
-import { RPCQUANTITY_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
 import { AccessList } from "./access-lists";
 import Common from "@ethereumjs/common";
 import { TypedTransaction } from "./transaction-types";
 
-const STATUSES = [RPCQUANTITY_ZERO, RPCQUANTITY_ONE];
+const STATUSES = [Quantity.Zero, Quantity.One];
 
 type EthereumRawReceipt = [
   status: Buffer,
@@ -23,7 +22,7 @@ type GanacheExtrasRawReceipt = [
 
 type GanacheRawReceipt = [...EthereumRawReceipt, ...GanacheExtrasRawReceipt];
 
-export interface TransactionReceiptJSON {
+export interface TransactionReceipt {
   transactionHash: Data;
   transactionIndex: Quantity;
   blockNumber: Quantity;
@@ -52,7 +51,7 @@ export interface TransactionReceiptJSON {
   effectiveGasPrice: Quantity;
 }
 
-export class TransactionReceipt {
+export class InternalTransactionReceipt {
   public contractAddress: Buffer;
   #gasUsed: Buffer;
   raw: EthereumRawReceipt;
@@ -96,7 +95,7 @@ export class TransactionReceipt {
     contractAddress: Buffer,
     type: Quantity = null
   ) {
-    const receipt = new TransactionReceipt();
+    const receipt = new InternalTransactionReceipt();
     receipt.#init(
       status,
       cumulativeGasUsed,
@@ -158,7 +157,7 @@ export class TransactionReceipt {
     if (block.header.baseFeePerGas) {
       transaction.updateEffectiveGasPrice(block.header.baseFeePerGas);
     }
-    const json: TransactionReceiptJSON = {
+    const json: TransactionReceipt = {
       transactionHash,
       transactionIndex,
       blockNumber,

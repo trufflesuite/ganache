@@ -2,7 +2,7 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 import { join } from "path";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import {
   EthereumOptionsConfig,
   EthereumProviderOptions
@@ -332,7 +332,7 @@ describe("api", () => {
           const wallet = new Wallet(options.wallet);
 
           function makeKeys(address: string) {
-            const addressBuf = Data.from(address).toBuffer();
+            const addressBuf = Data.toBuffer(address);
             const pk = BigInt(wallet.createFakePrivateKey(address).toString());
             const naivePk = Quantity.from(
               Buffer.concat([addressBuf, addressBuf.slice(0, 12)])

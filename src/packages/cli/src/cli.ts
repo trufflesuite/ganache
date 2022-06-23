@@ -6,8 +6,8 @@ import args from "./args";
 import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
-import type { Provider as FilecoinProvider } from "@ganache/filecoin";
-import type { Provider as EthereumProvider } from "@ganache/ethereum";
+import type { FilecoinProvider } from "@ganache/filecoin";
+import type { EthereumProvider } from "@ganache/ethereum";
 import { VersionCheck } from "@ganache/version-check";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {

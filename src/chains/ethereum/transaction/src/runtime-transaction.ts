@@ -3,14 +3,8 @@ import {
   RETURN_TYPES,
   TransactionLog
 } from "@ganache/ethereum-utils";
-import {
-  Data,
-  Quantity,
-  RPCQUANTITY_ONE,
-  BUFFER_ZERO,
-  RPCQUANTITY_EMPTY
-} from "@ganache/utils";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
+import { Transaction } from "./rpc-transaction";
 import type Common from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
@@ -20,11 +14,11 @@ import {
 import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
-import { TransactionReceipt } from "./transaction-receipt";
+import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
-  const buffer = Data.from(address).toBuffer();
+  const buffer = Data.toBuffer(address);
   if (buffer.byteLength !== Address.ByteLength) {
     throw new Error(
       `The field ${fieldName} must have byte length of ${Address.ByteLength}`
@@ -34,8 +28,8 @@ export const toValidLengthAddress = (address: string, fieldName: string) => {
 };
 
 export const hasPartialSignature = (
-  data: TypedRpcTransaction
-): data is TypedRpcTransaction & {
+  data: Transaction
+): data is Transaction & {
   from?: string;
   v?: string;
   r?: string;
@@ -48,7 +42,7 @@ type TransactionFinalization =
   | { status: "confirmed"; error?: Error }
   | { status: "rejected"; error: Error };
 
-const ONE_BUFFER = RPCQUANTITY_ONE.toBuffer();
+const ONE_BUFFER = Quantity.One.toBuffer();
 
 /**
  * A RuntimeTransaction can be changed; its hash is not finalized and it is not
@@ -64,7 +58,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public locked: boolean = false;
 
   public logs: TransactionLog[];
-  public receipt: TransactionReceipt;
+  public receipt: InternalTransactionReceipt;
   public execException: RuntimeError;
 
   public raw: TypedDatabaseTransaction | null;
@@ -75,7 +69,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   private finalized: Promise<TransactionFinalization>;
 
   constructor(
-    data: TypedDatabasePayload | TypedRpcTransaction,
+    data: TypedDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -91,9 +85,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
       this.to =
-        data.to == null
-          ? RPCQUANTITY_EMPTY
-          : toValidLengthAddress(data.to, "to");
+        data.to == null ? Quantity.Empty : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =
         data.data == null
@@ -154,9 +146,9 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       status = ONE_BUFFER;
     }
 
-    const receipt = (this.receipt = TransactionReceipt.fromValues(
+    const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
       status,
-      Quantity.from(cumulativeGasUsed).toBuffer(),
+      Quantity.toBuffer(cumulativeGasUsed),
       result.bloom.bitvector,
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
       result.gasUsed.toArrayLike(Buffer),
@@ -166,7 +158,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return receipt.serialize(false);
   }
 
-  public getReceipt(): TransactionReceipt {
+  public getReceipt(): InternalTransactionReceipt {
     return this.receipt;
   }
 
@@ -174,7 +166,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     return this.logs;
   }
 
-  validateAndSetSignature = (data: TypedRpcTransaction) => {
+  validateAndSetSignature = (data: Transaction) => {
     // If we have v, r, or s validate and use them
     if (hasPartialSignature(data)) {
       if (data.v == null || data.r == null || data.s == null) {
@@ -200,13 +192,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       );
       this.raw = raw;
       if (!this.from) {
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, raw, this.common.chainId());
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, raw, this.common.chainId());
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches

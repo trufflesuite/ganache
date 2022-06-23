@@ -1,7 +1,7 @@
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import path from "path";
 import { Quantity, Data } from "@ganache/utils";
 
@@ -185,7 +185,7 @@ describe("api", () => {
 
       // The next line is gross, but it makes testing new values easy.
       const timesToRunLoopArgument = Data.from(
-        Quantity.from(timesToRunLoop).toBuffer(),
+        Quantity.toBuffer(timesToRunLoop),
         32
       )
         .toString()
@@ -211,8 +211,8 @@ describe("api", () => {
         {
           data: contract.code,
           from: from.toString(),
-          gasLimit: Quantity.from(6721975).toString(),
-          nonce: Quantity.from(0).toString()
+          gasLimit: Quantity.toString(6721975),
+          nonce: Quantity.toString(0)
         },
         common
       );
@@ -239,9 +239,9 @@ describe("api", () => {
           ).toString(),
           to: Address.from(contractAddress).toString(),
           from,
-          gasLimit: Quantity.from(6721975).toString(),
+          gasLimit: Quantity.toString(6721975),
           nonce: "0x1",
-          gasPrice: Quantity.from(0).toString()
+          gasPrice: Quantity.toString(0)
         },
         common
       );

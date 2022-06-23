@@ -1,13 +1,8 @@
-import {
-  Data,
-  JsonRpcErrorCode,
-  Quantity,
-  RPCQUANTITY_GWEI
-} from "@ganache/utils";
+import { Data, JsonRpcErrorCode, Quantity } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import {
   EIP1559FeeMarketDatabasePayload,
   EIP2930AccessListDatabasePayload,
@@ -61,7 +56,7 @@ export class TransactionFactory {
     this.tx = TransactionFactory.fromDatabaseTx(txData, common, extra);
   }
   private static _fromData(
-    txData: TypedRpcTransaction | TypedDatabasePayload,
+    txData: Transaction | TypedDatabasePayload,
     txType: TransactionType,
     common: Common,
     extra?: GanacheRawExtraTx
@@ -70,21 +65,17 @@ export class TransactionFactory {
     // return legacy txs as is and convert typed txs to legacy
     if (!common.isActivatedEIP(2718)) {
       return LegacyTransaction.fromTxData(
-        <LegacyDatabasePayload | TypedRpcTransaction>txData,
+        <LegacyDatabasePayload | Transaction>txData,
         common,
         extra
       );
     } else if (!common.isActivatedEIP(1559)) {
       if (txType === TransactionType.Legacy) {
-        return LegacyTransaction.fromTxData(
-          <TypedRpcTransaction>txData,
-          common,
-          extra
-        );
+        return LegacyTransaction.fromTxData(<Transaction>txData, common, extra);
       } else if (txType === TransactionType.EIP2930AccessList) {
         if (common.isActivatedEIP(2930)) {
           return EIP2930AccessListTransaction.fromTxData(
-            <EIP2930AccessListDatabasePayload | TypedRpcTransaction>txData,
+            <EIP2930AccessListDatabasePayload | Transaction>txData,
             common,
             extra
           );
@@ -146,7 +137,7 @@ export class TransactionFactory {
               tx.maxFeePerGas = Quantity.from(null);
             }
             if (!txData.maxPriorityFeePerGas) {
-              tx.maxPriorityFeePerGas = RPCQUANTITY_GWEI;
+              tx.maxPriorityFeePerGas = Quantity.Gwei;
             }
           }
           return tx;
@@ -178,7 +169,7 @@ export class TransactionFactory {
    * @param common - Options to pass on to the constructor of the transaction
    */
   public static fromRpc(
-    txData: TypedRpcTransaction,
+    txData: Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -239,7 +230,7 @@ export class TransactionFactory {
    * @param common - Options to pass on to the constructor of the transaction
    */
   public static fromString(txData: string, common: Common) {
-    let data = Data.from(txData).toBuffer();
+    let data = Data.toBuffer(txData);
     const type = data[0];
     const txType = this.typeOf(type);
     let tx: TypedTransaction;
@@ -294,7 +285,7 @@ export class TransactionFactory {
     return this.typeOf(type);
   }
 
-  public static typeOfRPC(rpc: TypedRpcTransaction) {
+  public static typeOfRPC(rpc: Transaction) {
     if (!("type" in rpc) || rpc.type === undefined) {
       return TransactionType.Legacy;
     } else {

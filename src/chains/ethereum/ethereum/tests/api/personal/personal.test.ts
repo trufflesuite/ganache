@@ -1,7 +1,7 @@
 import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 
 describe("api", () => {
   describe("personal", () => {
@@ -192,7 +192,7 @@ describe("api", () => {
       const transaction = {
         from: newAccount,
         to: newAccount,
-        gasLimit: Quantity.from(21000).toString(),
+        gasLimit: Quantity.toString(21000),
         gasPrice: "0x0",
         value: "0x0",
         nonce: "0x0"

@@ -37,6 +37,7 @@ const getArgv = () => {
 
 const isDir = (s: string) => lstat(s).isDirectory();
 const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
+const nameIncludesScope = (s: string) => s.indexOf("@") === 0;
 
 const COLORS = {
   Bold: "\x1b[1m",
@@ -107,6 +108,10 @@ process.stdout.write(`${COLORS.Reset}`);
   if (!nameValidation.validForNewPackages) {
     throw new Error(
       `the name "${name}" is not a valid npm package name:\n${nameValidation.errors}`
+    );
+  } else if (nameIncludesScope(name)) {
+    throw new Error(
+      `the name "${name}" is not a valid ganache package name:\nDo not include scope in name`
     );
   }
 

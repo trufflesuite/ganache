@@ -1,20 +1,14 @@
 import { LevelUp } from "levelup";
 import Manager from "./manager";
-import {
-  Data,
-  Quantity,
-  BUFFER_EMPTY,
-  RPCQUANTITY_ONE,
-  BUFFER_ZERO
-} from "@ganache/utils";
+import { Data, Quantity, BUFFER_EMPTY, BUFFER_ZERO } from "@ganache/utils";
 import Blockchain from "../blockchain";
-import { TransactionReceipt } from "@ganache/ethereum-transaction";
+import { InternalTransactionReceipt } from "@ganache/ethereum-transaction";
 import { Address } from "@ganache/ethereum-address";
 
-export default class TransactionReceiptManager extends Manager<TransactionReceipt> {
+export default class TransactionReceiptManager extends Manager<InternalTransactionReceipt> {
   #blockchain: Blockchain;
   constructor(base: LevelUp, blockchain: Blockchain) {
-    super(base, TransactionReceipt);
+    super(base, InternalTransactionReceipt);
     this.#blockchain = blockchain;
   }
 
@@ -30,22 +24,22 @@ export default class TransactionReceiptManager extends Manager<TransactionReceip
       if (!res) return null;
 
       const status =
-        res.status === "0x1" ? RPCQUANTITY_ONE.toBuffer() : BUFFER_ZERO;
-      const cumulativeGasUsed = Quantity.from(res.cumulativeGasUsed).toBuffer();
-      const logsBloom = Data.from(res.logsBloom, 256).toBuffer();
+        res.status === "0x1" ? Quantity.One.toBuffer() : BUFFER_ZERO;
+      const cumulativeGasUsed = Quantity.toBuffer(res.cumulativeGasUsed);
+      const logsBloom = Data.toBuffer(res.logsBloom, 256);
       const logs = res.logs.map(log => [
         Address.from(log.address).toBuffer(),
-        log.topics.map(topic => Data.from(topic).toBuffer()),
+        log.topics.map(topic => Data.toBuffer(topic)),
         Array.isArray(log.data)
-          ? log.data.map(data => Data.from(data).toBuffer())
-          : Data.from(log.data).toBuffer()
+          ? log.data.map(data => Data.toBuffer(data))
+          : Data.toBuffer(log.data)
       ]);
-      const gasUsed = Quantity.from(res.gasUsed).toBuffer();
+      const gasUsed = Quantity.toBuffer(res.gasUsed);
       const contractAddress =
         res.contractAddress == null
           ? BUFFER_EMPTY
           : Address.from(res.contractAddress).toBuffer();
-      return TransactionReceipt.fromValues(
+      return InternalTransactionReceipt.fromValues(
         status,
         cumulativeGasUsed,
         logsBloom,

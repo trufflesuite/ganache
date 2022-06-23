@@ -3,7 +3,7 @@ import getProvider from "../helpers/getProvider";
 import http from "http";
 import ganache from "../../../../../packages/core";
 import assert from "assert";
-import EthereumProvider from "../../src/provider";
+import { EthereumProvider } from "../../src/provider";
 import Server from "../../../../../packages/core/lib/src/server";
 import { Quantity, WEI } from "@ganache/utils";
 import {
@@ -817,7 +817,7 @@ describe("forking", function () {
           const blockNumber = parseInt((message.data.result as any).number, 16);
           const checkValue = await get(localProvider, "value1", blockNumber);
           assert.strictEqual(
-            Quantity.from(checkValue).toNumber(),
+            Quantity.toNumber(checkValue),
             snapshotValue,
             `Value after snapshot not as expected. Conditions: ${initialValue}, ${JSON.stringify(
               snapshotValues
@@ -1076,7 +1076,7 @@ describe("forking", () => {
 
         const originalChainIdCall = await remoteProvider.send("eth_call", [
           tx,
-          Quantity.from(contractBlockNum).toString()
+          Quantity.toString(contractBlockNum)
         ]);
         assert.strictEqual(parseInt(originalChainIdCall), originalChainId);
 
@@ -1084,7 +1084,7 @@ describe("forking", () => {
         // at or before our fork block number
         const forkChainIdAtForkBlockCall = await provider.send("eth_call", [
           tx,
-          Quantity.from(contractBlockNum + 2).toString()
+          Quantity.toString(contractBlockNum + 2)
         ]);
         assert.strictEqual(
           parseInt(forkChainIdAtForkBlockCall),
@@ -1097,7 +1097,7 @@ describe("forking", () => {
         assert.strictEqual(forkChainId, 1337); // sanity check
         const forkChainIdAfterForkBlockCall = await provider.send("eth_call", [
           tx,
-          Quantity.from(contractBlockNum + 3).toString()
+          Quantity.toString(contractBlockNum + 3)
         ]);
         assert.strictEqual(
           parseInt(forkChainIdAfterForkBlockCall),

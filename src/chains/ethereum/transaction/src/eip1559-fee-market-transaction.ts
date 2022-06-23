@@ -3,14 +3,13 @@ import {
   Quantity,
   keccak,
   BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY,
   BUFFER_ZERO,
   JsonRpcErrorCode
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
 import { BN } from "ethereumjs-util";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import {
@@ -54,7 +53,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x2");
 
   public constructor(
-    data: EIP1559FeeMarketDatabasePayload | TypedRpcTransaction,
+    data: EIP1559FeeMarketDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -65,7 +64,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas = Quantity.from(data[2]);
       this.maxFeePerGas = Quantity.from(data[3]);
       this.gas = Quantity.from(data[4]);
-      this.to = data[5].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[5]);
+      this.to = data[5].length == 0 ? Quantity.Empty : Address.from(data[5]);
       this.value = Quantity.from(data[6]);
       this.data = Data.from(data[7]);
       const accessListData = AccessLists.getAccessListData(data[8]);
@@ -87,13 +86,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
           );
         }
 
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw);
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, this.raw);
 
         this.from = from;
         this.serialized = serialized;
@@ -146,7 +140,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: EIP1559FeeMarketDatabasePayload | TypedRpcTransaction,
+    data: EIP1559FeeMarketDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -183,7 +177,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.toBuffer(fee));
       },
       getUpfrontCost: (baseFee: BN = new BN(0)) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;

@@ -11,7 +11,7 @@ import {
   TransactionFactory,
   TransactionType,
   TypedDatabaseTransaction,
-  TypedRpcTransaction
+  Transaction
 } from "../../transaction";
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
@@ -33,7 +33,7 @@ describe("@ganache/ethereum-transaction", async () => {
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
-  const privKeyBuf = Quantity.from(privKey).toBuffer();
+  const privKeyBuf = Quantity.toBuffer(privKey);
   const options = EthereumOptionsConfig.normalize({
     wallet: {
       accounts: [
@@ -50,12 +50,12 @@ describe("@ganache/ethereum-transaction", async () => {
 
   // #region configure transaction constants
   // #region legacy transaction
-  const untypedTx: TypedRpcTransaction = {
+  const untypedTx: Transaction = {
     from: from,
     to: to,
     gasPrice: "0xffff"
   };
-  const typedLegacyTx: TypedRpcTransaction = {
+  const typedLegacyTx: Transaction = {
     from: from,
     to: to,
     type: "0x0",
@@ -75,7 +75,7 @@ describe("@ganache/ethereum-transaction", async () => {
   // #region access list transactions
   const accessListStorageKey =
     "0x0000000000000000000000000000000000000000000000000000000000000004";
-  const accessListTx: TypedRpcTransaction = {
+  const accessListTx: Transaction = {
     from: from,
     to: to,
     type: "0x1",
@@ -100,7 +100,7 @@ describe("@ganache/ethereum-transaction", async () => {
   // #endregion access list transactions
 
   //#region fee market transactions
-  const feeMarketTx: TypedRpcTransaction = {
+  const feeMarketTx: Transaction = {
     from: from,
     to: to,
     type: "0x2",
@@ -558,7 +558,7 @@ describe("@ganache/ethereum-transaction", async () => {
 
   describe("Error and helper cases", () => {
     it("does not allow unsupported tx types from rpc data", async () => {
-      const rpc: TypedRpcTransaction = {
+      const rpc: Transaction = {
         from: from,
         to: to,
         type: "0x55",

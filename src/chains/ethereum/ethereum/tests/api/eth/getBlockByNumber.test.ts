@@ -1,7 +1,6 @@
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
-import compile from "../../helpers/compile";
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
 

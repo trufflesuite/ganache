@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Address, AddressProtocol } from "../../../src/things/address";
 import { KeyType } from "../../../src/things/key-type";
@@ -279,10 +279,11 @@ describe("api", () => {
         const directSignature = await account.address.signMessage(
           new Message(serializedMessage)
         );
-        const apiSignature: SerializedSignedMessage = await client.walletSignMessage(
-          account.address.value,
-          serializedMessage
-        );
+        const apiSignature: SerializedSignedMessage =
+          await client.walletSignMessage(
+            account.address.value,
+            serializedMessage
+          );
         assert.strictEqual(apiSignature.Signature.Type, SigType.SigTypeBLS);
         assert.strictEqual(
           directSignature.toString("base64"),

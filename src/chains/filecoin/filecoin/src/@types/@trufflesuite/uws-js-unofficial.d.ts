@@ -1,11 +1,11 @@
-import "@trufflesuite/uws-js-unofficial";
+import "uWebsockets.js";
 
 enum ListenOptions {
   LIBUS_LISTEN_DEFAULT = 0,
   LIBUS_LISTEN_EXCLUSIVE_PORT = 1
 }
 // uWebSockets.js doesn't include these in its TS def file.
-declare module "@trufflesuite/uws-js-unofficial" {
+declare module "uWebsockets.js" {
   export interface TemplatedApp {
     listen(
       host: RecognizedString,

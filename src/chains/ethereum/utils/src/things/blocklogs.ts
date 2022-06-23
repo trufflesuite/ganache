@@ -1,5 +1,5 @@
 import { Data, Quantity } from "@ganache/utils";
-import { BUFFER_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
+import { BUFFER_ZERO } from "@ganache/utils";
 import { decode, encode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
@@ -18,6 +18,18 @@ export type BlockLog = [
   data: TransactionLog[2]
 ];
 
+export type Log = {
+  address: Address;
+  blockHash: Data;
+  blockNumber: Quantity;
+  data: Data | Data[];
+  logIndex: Quantity;
+  removed: boolean;
+  topics: Data | Data[];
+  transactionHash: Data;
+  transactionIndex: Quantity;
+};
+
 const _raw = Symbol("raw");
 const _logs = Symbol("logs");
 
@@ -35,7 +47,7 @@ const filterByTopic = (
 
     let expectedTopicSet: string[];
     if (!Array.isArray(expectedTopic)) {
-      return logTopics[logPosition].equals(Data.from(expectedTopic).toBuffer());
+      return logTopics[logPosition].equals(Data.toBuffer(expectedTopic));
     }
     // an empty rule set means "anything"
     if (expectedTopic.length === 0) return true;
@@ -44,7 +56,7 @@ const filterByTopic = (
     const logTopic = logTopics[logPosition];
     // "OR" logic, e.g., [[A, B]] means log topic in the first position matching either "A" OR "B":
     return expectedTopicSet.some(expectedTopic =>
-      logTopic.equals(Data.from(expectedTopic).toBuffer())
+      logTopic.equals(Data.toBuffer(expectedTopic))
     );
   });
 };
@@ -54,7 +66,7 @@ export class BlockLogs {
 
   constructor(data: Buffer) {
     if (data) {
-      const decoded = (decode(data) as unknown) as [Buffer, BlockLog[]];
+      const decoded = decode(data) as unknown as [Buffer, BlockLog[]];
       this[_raw] = decoded;
     }
   }
@@ -120,14 +132,14 @@ export class BlockLogs {
       const address = Address.from(log.address);
       const blockNumber = log.blockNumber;
       const data = Array.isArray(log.data)
-        ? log.data.map(d => Data.from(d).toBuffer())
-        : Data.from(log.data).toBuffer();
+        ? log.data.map(d => Data.toBuffer(d))
+        : Data.toBuffer(log.data);
       const logIndex = log.logIndex;
       const removed =
-        log.removed === false ? BUFFER_ZERO : RPCQUANTITY_ONE.toBuffer();
+        log.removed === false ? BUFFER_ZERO : Quantity.One.toBuffer();
       const topics = Array.isArray(log.topics)
-        ? log.topics.map(t => Data.from(t, 32).toBuffer())
-        : Data.from(log.topics, 32).toBuffer();
+        ? log.topics.map(t => Data.toBuffer(t, 32))
+        : Data.toBuffer(log.topics, 32);
       const transactionHash = Data.from(log.transactionHash, 32);
       const transactionIndex = Quantity.from(log.transactionIndex);
       blockLogs.append(transactionIndex, transactionHash, [
@@ -192,7 +204,7 @@ export class BlockLogs {
     logIndex: Quantity,
     blockHash: Data,
     blockNumber: Quantity
-  ) {
+  ): Log {
     const topics = log[4];
     const data = log[5];
 

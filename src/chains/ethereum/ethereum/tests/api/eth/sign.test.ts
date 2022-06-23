@@ -38,7 +38,7 @@ describe("api", () => {
         const address = accounts[0];
         let sgn = await provider.send("eth_sign", [
           address,
-          Data.from(msg).toString()
+          Data.toString(msg)
         ]);
         sgn = sgn.slice(2);
 
@@ -56,7 +56,7 @@ describe("api", () => {
         // ecsign w/ the account set in this test's 'before' block.
         const msgHex =
           "0x07091653daf94aafce9acf09e22dbde1ddf77f740f9844ac1f0ab790334f0627";
-        const edgeCaseMsg = Data.from(msgHex).toBuffer();
+        const edgeCaseMsg = Data.toBuffer(msgHex);
         const msgHash = hashPersonalMessage(edgeCaseMsg);
 
         let sgn = await provider.send("eth_sign", [accounts[0], msgHex]);

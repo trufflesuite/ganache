@@ -1,5 +1,5 @@
 import assert from "assert";
-import EthereumProvider from "../../../src/provider";
+import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 import { join } from "path";
@@ -28,7 +28,7 @@ describe("api", () => {
 
         it("should return 0x for un-initialized address", async () => {
           const code = await provider.send("eth_getCode", [
-            "0xabcdefg012345678abcdefg012345678abcdefg0"
+            "0xabcdef012345678abcdef012345678abcdef0123"
           ]);
           assert.strictEqual(code, "0x");
         });
@@ -176,7 +176,7 @@ describe("api", () => {
             await assert.rejects(
               provider.send("eth_getCode", [
                 contractAddress,
-                Quantity.from(nextBlockNumber).toString()
+                Quantity.toString(nextBlockNumber)
               ]),
               {
                 message: "header not found"
