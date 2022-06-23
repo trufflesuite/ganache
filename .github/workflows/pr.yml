@@ -59,6 +59,7 @@ jobs:
           cd ./src/packages/ganache &&
           npm pack &&
           size="$(zcat ganache-*.tgz | wc -c)" &&
-          test $size -gt 100000000 && exit $size || exit 0
+          echo "Bundle size: $size" &&
+          test $size -lt 100000000
         env:
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
