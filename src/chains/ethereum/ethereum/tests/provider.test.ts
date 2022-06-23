@@ -314,7 +314,7 @@ describe("provider", () => {
       it("emits vm:tx:* events for eth_sendRawTransaction", async () => {
         const accounts = provider.getInitialAccounts();
         const gasPrice = await provider.send("eth_gasPrice", []);
-        const secretKey = Data.from(accounts[from].secretKey).toBuffer();
+        const secretKey = Data.toBuffer(accounts[from].secretKey);
         const tx = Transaction.fromTxData(
           // specify gasPrice so we don't have to deal with a type 2 transaction
           { ...transaction, nonce: "0x1", gasPrice },
@@ -337,7 +337,7 @@ describe("provider", () => {
         await testEvents(async () => {
           const subId = await provider.send("eth_subscribe", ["newHeads"]);
           const accounts = provider.getInitialAccounts();
-          const secretKey = Data.from(accounts[from].secretKey).toString();
+          const secretKey = Data.toString(accounts[from].secretKey);
           const password = "password";
           await provider.send("personal_importRawKey", [secretKey, password]);
           await provider.send("personal_sendTransaction", [

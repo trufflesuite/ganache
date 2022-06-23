@@ -43,7 +43,7 @@ export class RuntimeError extends CodedError {
       result:
         returnType === RETURN_TYPES.TRANSACTION_HASH
           ? hash
-          : Data.from(returnValue || "0x").toString(),
+          : Data.toString(returnValue || "0x"),
       reason: reason,
       message: error
     };

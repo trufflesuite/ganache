@@ -20,6 +20,6 @@ export class CallError extends CodedError {
     const { returnValue } = execResult;
     const reason = CodedError.createRevertReason(returnValue);
     this.message = reason ? message + " " + reason : message;
-    this.data = Data.from(returnValue).toString();
+    this.data = Data.toString(returnValue);
   }
 }

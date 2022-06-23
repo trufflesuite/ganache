@@ -192,7 +192,7 @@ describe("api", () => {
       const transaction = {
         from: newAccount,
         to: newAccount,
-        gasLimit: Quantity.from(21000).toString(),
+        gasLimit: Quantity.toString(21000),
         gasPrice: "0x0",
         value: "0x0",
         nonce: "0x0"
