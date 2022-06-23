@@ -45,7 +45,7 @@ jobs:
           FORCE_COLOR: 1
           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
-      - name: check bundle size
+      - name: Check bundle size
         # this should match the os and version used in the release.yml
         if: startsWith(matrix.os, 'ubuntu-20.04') && startsWith(matrix.node, '14.')
         # 1. build ganache
