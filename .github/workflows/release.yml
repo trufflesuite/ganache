@@ -6,6 +6,8 @@ on:
 
 jobs:
   release:
+    # this should match the os version used by the "check bundle size" step in
+    # pr.yml
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -16,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
+          # this should match the node version used by the "check bundle size"
+          # step in pr.yml
           node-version: 14
 
       - name: Import Robot GPG key

@@ -44,3 +44,21 @@ jobs:
         env:
           FORCE_COLOR: 1
           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+
+      - name: check bundle size
+        # this should match the os and version used in the release.yml
+        if: startsWith(matrix.os, 'ubuntu-20.04') && startsWith(matrix.node, '14.')
+        # 1. build ganache
+        # 2. pack it into a tarball
+        # 3. measure the _unpacked_ tarball's size
+        # 4. test to make sure the tarball is less than ~100MB
+        # 5. exit with non-zero exit code (the size of the unpacked tarball) if
+        #    the test fails.
+        run: |
+          npm run build &&
+          cd ./src/packages/ganache &&
+          npm pack &&
+          size="$(zcat ganache-*.tgz | wc -c)" &&
+          test $size -gt 100000000 && exit $size || exit 0
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
