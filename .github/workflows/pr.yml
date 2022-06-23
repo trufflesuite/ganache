@@ -52,8 +52,7 @@ jobs:
         # 2. pack it into a tarball
         # 3. measure the _unpacked_ tarball's size
         # 4. test to make sure the tarball is less than ~100MB
-        # 5. exit with non-zero exit code (the size of the unpacked tarball) if
-        #    the test fails.
+        # 5. exit with non-zero exit code if the test fails.
         run: |
           npm run build &&
           cd ./src/packages/ganache &&
