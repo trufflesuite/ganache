@@ -51,7 +51,8 @@ jobs:
         # 1. build ganache
         # 2. pack it into a tarball
         # 3. measure the _unpacked_ tarball's size
-        # 4. test to make sure the tarball is less than ~100MB
+        # 4. test to make sure the tarball is less than 99MB because jsDelivr
+        #    CDN doesn't allow bundles greater than 100MB.
         # 5. exit with non-zero exit code if the test fails.
         run: |
           npm run build &&
@@ -59,6 +60,6 @@ jobs:
           npm pack &&
           size="$(zcat ganache-*.tgz | wc -c)" &&
           echo "Bundle size: $size" &&
-          test "$size" -lt 100000000
+          test "$size" -lt 99000000
         env:
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
