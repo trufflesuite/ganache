@@ -63,4 +63,4 @@ jobs:
           echo "Bundle size is $([[ "$size" -lt 99000000 ]] && echo "ok" || echo "not ok")" &&
           test "$size" -lt 99000000
         env:
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
