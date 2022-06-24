@@ -19,7 +19,9 @@ const config: webpack.Configuration = merge({}, base, {
     alias: {
       // we don't use the debug module internally, so let's just not include it
       // in any package.
-      debug: require.resolve("./polyfills/debug")
+      debug: require.resolve("./polyfills/debug"),
+      // the `setimmediate` package is only used in the browser
+      setimmediate: false
     }
   },
   plugins: [
@@ -30,7 +32,12 @@ const config: webpack.Configuration = merge({}, base, {
       banner: "#!/usr/bin/env node",
       raw: true
     }),
-    new DeduplicatePlugin()
+    new DeduplicatePlugin(),
+    // replace process.env.IS_BROWSER with `false` to cause the minifier to
+    // remove code blocks that require `process.env.IS_BROWSER != true`
+    new webpack.EnvironmentPlugin({
+      IS_BROWSER: false
+    })
   ],
   optimization: {
     splitChunks: {
