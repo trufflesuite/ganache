@@ -45,12 +45,12 @@ const issueSection = [
     groups: [
       {
         name: "Top Priority",
-        milestones: ["7.0.x"],
+        priorities: ["priority1 🚨"],
         labels: ["bug"]
       },
       {
         name: "Coming Soon™",
-        milestones: ["7.1.0", "8.0.0"],
+        priorities: ["priority2 ⚠️"],
         labels: ["bug"]
       }
     ]
@@ -61,12 +61,12 @@ const issueSection = [
     groups: [
       {
         name: "Top Priority",
-        milestones: ["7.0.x"],
+        priorities: ["priority1 🚨"],
         labels: ["enhancement"]
       },
       {
         name: "Coming Soon™",
-        milestones: ["7.1.0", "8.0.0"],
+        priorities: ["priority2 ⚠️"],
         labels: ["enhancement"]
       }
     ]
@@ -318,17 +318,11 @@ const getCommitMetrics = (branch: string) => {
       const issueSectionMarkdown: string[] = [];
       let hasMatch = true;
       for (const group of section.groups) {
+        const quotedLabelSearch = group.labels.join('\\",\\"');
         const issueGroup: { number: number; title: string }[] = [];
-        for (const ms of group.milestones) {
-          const ghData = JSON.parse(
-            execSync(
-              `gh issue list --json number,title --milestone ${ms} --search "label:${group.labels.join(
-                ","
-              )}"`,
-              { encoding: "utf8" }
-            )
-          );
-
+        for (const priority of group.priorities) {
+          const cmd = `gh issue list --json number,title --search "label:\\"${priority}\\" label:\\"${quotedLabelSearch}\\""`;
+          const ghData = JSON.parse(execSync(cmd, { encoding: "utf8" }));
           issueGroup.push(...ghData);
         }
         // if this group in the section doesn't have data, we need to know not to print headers for the next group in the section
