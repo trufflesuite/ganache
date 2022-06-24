@@ -42,10 +42,13 @@ export class HttpHandler extends BaseHandler implements Handler {
       });
     }
   }
-  private handleLengthedResponse(res: http.IncomingMessage, length: number) {
-    let buffer = Buffer.allocUnsafe(length);
-    let offset = 0;
-    return new Promise<Buffer>((resolve, reject) => {
+  private async handleLengthedResponse(
+    res: http.IncomingMessage,
+    length: number
+  ) {
+    return await new Promise<Buffer>((resolve, reject) => {
+      const buffer = Buffer.allocUnsafe(length);
+      let offset = 0;
       function data(message: Buffer) {
         const messageLength = message.length;
         // note: Node will NOT send us more data than the content-length header
@@ -54,9 +57,9 @@ export class HttpHandler extends BaseHandler implements Handler {
         offset += messageLength;
       }
       function end() {
-        // note: Node doesn't check if the content-length matches, so we do that
-        // here
-        if (offset !== buffer.length) {
+        // note: Node doesn't check if the content-length matches (we might
+        // receive less data than expected), so we do that here
+        if (offset !== length) {
           // if we didn't receive enough data, throw
           reject(new Error("content-length mismatch"));
         } else {
@@ -65,24 +68,18 @@ export class HttpHandler extends BaseHandler implements Handler {
       }
       res.on("data", data);
       res.on("end", end);
+      res.on("error", reject);
     });
   }
-  private handleChunkedResponse(res: http.IncomingMessage) {
-    let buffer: Buffer;
-    return new Promise<Buffer>(resolve => {
-      res.on("data", (message: Buffer) => {
-        const chunk = message;
-        if (buffer) {
-          buffer = Buffer.concat([buffer, chunk], buffer.length + chunk.length);
-        } else {
-          buffer = Buffer.concat([chunk], chunk.length);
-        }
-      });
 
-      res.on("end", () => {
-        resolve(buffer);
-      });
-    });
+  private async handleChunkedResponse(res: http.IncomingMessage) {
+    const chunks = [];
+    let totalLength = 0;
+    for await (let chunk of res) {
+      chunks.push(chunk);
+      totalLength += chunk.length;
+    }
+    return chunks.length === 1 ? chunks[0] : Buffer.concat(chunks, totalLength);
   }
 
   public async request<T>(
@@ -119,17 +116,24 @@ export class HttpHandler extends BaseHandler implements Handler {
         const { headers } = res;
 
         let buffer: Promise<Buffer>;
-        // if we have a transfer-encoding we don't care about "content-length"
-        // (per HTTP spec). We also don't care about invalid lengths
-        if ("transfer-encoding" in headers) {
+        // in the browser we can't detect if the response is compressed (gzip),
+        // but it doesn't matter since the browser has decompressed already
+        // anyway
+        if (process.env.IS_BROWSER) {
           buffer = this.handleChunkedResponse(res);
         } else {
-          const length = (headers["content-length"] as any) / 1;
-          if (isNaN(length) || length <= 0) {
+          // if we have a transfer-encoding we don't care about "content-length"
+          // (per HTTP spec). We also don't care about invalid lengths
+          if ("transfer-encoding" in headers) {
             buffer = this.handleChunkedResponse(res);
           } else {
-            // we have a content-length; use it to pre-allocate the required memory
-            buffer = this.handleLengthedResponse(res, length);
+            const length = (headers["content-length"] as any) / 1;
+            if (isNaN(length) || length <= 0) {
+              buffer = this.handleChunkedResponse(res);
+            } else {
+              // we have a content-length; use it to pre-allocate the required memory
+              buffer = this.handleLengthedResponse(res, length);
+            }
           }
         }
 

@@ -1,13 +1,14 @@
 import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
-import path from "path";
+import { join } from "path";
 
-const VERSION = require(path.join(__dirname, "../package.json")).version;
-const CLI_VERSION = require(path.join(__dirname, "../../cli/package.json"))
-  .version;
-const CORE_VERSION = require(path.join(__dirname, "../../core/package.json"))
-  .version;
-const GANACHE_FILECOIN_VERSION = require(path.join(
+const VERSION = require(join(__dirname, "../package.json")).version;
+const CLI_VERSION = require(join(__dirname, "../../cli/package.json")).version;
+const CORE_VERSION = require(join(
+  __dirname,
+  "../../core/package.json"
+)).version;
+const GANACHE_FILECOIN_VERSION = require(join(
   __dirname,
   "../../../chains/filecoin/filecoin/package.json"
 )).version;
@@ -73,7 +74,15 @@ const base: webpack.Configuration = {
           sourceMap: true,
           // Truffle needs our stack traces in its tests:
           // https://github.com/trufflesuite/truffle/blob/b2742bc1187a3c1513173d19c58ce0d3a8fe969b/packages/contract-tests/test/errors.js#L280
-          keep_fnames: true
+          keep_fnames: true,
+          output: {
+            // terser will take strings like "\ufffd" (REPLACEMENT CHARACTER)
+            // and compress them into their single character representation: "�"
+            // (that should render as a question mark within a diamond). This is
+            // nice, but Chromium extensions don't like it and error with "It
+            // isn't UTF-8 encoded".
+            ascii_only: true
+          }
         }
       })
     ]
