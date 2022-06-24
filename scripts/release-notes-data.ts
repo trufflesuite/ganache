@@ -117,6 +117,8 @@ ${sectionTableContents.join("\n")}
 
 PREAMBLE
 
+If you have some time, we encourage you to browse our [issues](https://github.com/trufflesuite/ganache/issues) to find anything you'd like implemented/fixed sooner. Give them a +1 and we'll use this community feedback to help prioritize what we work on! Or better yet, [open a new issue](https://github.com/trufflesuite/ganache/issues/new), [open a PR](https://github.com/trufflesuite/ganache/compare) to fix an existing issue, or [apply to join our team](https://consensys.net/open-roles/?discipline=32535/) (we're hiring!) if you really want to get involved.
+
 We've changed ${metrics.fileCount} files across ${
     metrics.commitCount
   } merged pull requests, tallying ${metrics.additionCount} additions and ${
