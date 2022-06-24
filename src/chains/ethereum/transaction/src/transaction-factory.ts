@@ -1,9 +1,4 @@
-import {
-  Data,
-  JsonRpcErrorCode,
-  Quantity,
-  RPCQUANTITY_GWEI
-} from "@ganache/utils";
+import { Data, JsonRpcErrorCode, Quantity } from "@ganache/utils";
 import type Common from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
@@ -142,7 +137,7 @@ export class TransactionFactory {
               tx.maxFeePerGas = Quantity.from(null);
             }
             if (!txData.maxPriorityFeePerGas) {
-              tx.maxPriorityFeePerGas = RPCQUANTITY_GWEI;
+              tx.maxPriorityFeePerGas = Quantity.Gwei;
             }
           }
           return tx;
@@ -235,7 +230,7 @@ export class TransactionFactory {
    * @param common - Options to pass on to the constructor of the transaction
    */
   public static fromString(txData: string, common: Common) {
-    let data = Data.from(txData).toBuffer();
+    let data = Data.toBuffer(txData);
     const type = data[0];
     const txType = this.typeOf(type);
     let tx: TypedTransaction;

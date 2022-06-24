@@ -432,7 +432,7 @@ describe("api", () => {
             from: accounts[0],
             to: contractAddress,
             gas: "0x2fefd8",
-            data: `0x${methods["setValue(uint)"]}${initialValue}`
+            data: `0x${methods["setValue(uint256)"]}${initialValue}`
           }
         ]);
         await provider.once("message");

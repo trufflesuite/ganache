@@ -32,10 +32,8 @@ import {
   Quantity,
   Data,
   BUFFER_EMPTY,
-  RPCQUANTITY_EMPTY,
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
-  RPCQUANTITY_ZERO,
   findInsertPosition,
   unref,
   KNOWN_CHAINIDS
@@ -524,7 +522,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
 
-    str += `  Gas usage: ${Quantity.from(receipt.raw[1]).toNumber()}
+    str += `  Gas usage: ${Quantity.toNumber(receipt.raw[1])}
   Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
 
@@ -596,7 +594,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     await this.#blockBeingSavedPromise;
     return {
       transactions,
-      blockNumber: nextBlock.header.number.toBuffer()
+      blockNumber: nextBlock.header.number.toArrayLike(Buffer)
     };
   };
 
@@ -740,12 +738,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     await this.#commitAccounts(initialAccounts);
 
     // README: block `0` is weird in that a `0` _should_ be hashed as `[]`,
-    // instead of `[0]`, so we set it to `RPCQUANTITY_EMPTY` instead of
-    // `RPCQUANTITY_ZERO` here. A few lines down in this function we swap
-    // this `RPCQUANTITY_EMPTY` for `RPCQUANTITY_ZERO`. This is all so we don't
+    // instead of `[0]`, so we set it to `Quantity.Empty` instead of
+    // `Quantity.Zero` here. A few lines down in this function we swap
+    // this `Quantity.Empty` for `Quantity.Zero`. This is all so we don't
     // have to have a "treat empty as 0` check in every function that uses the
     // "latest" block (which this genesis block will be for brief moment).
-    const rawBlockNumber = RPCQUANTITY_EMPTY;
+    const rawBlockNumber = Quantity.Empty;
 
     // create the genesis block
     const baseFeePerGas = this.common.isActivatedEIP(1559)
@@ -759,7 +757,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       BUFFER_ZERO,
       Quantity.from(timestamp),
       this.#options.miner.difficulty,
-      RPCQUANTITY_ZERO, // we start the totalDifficulty at 0
+      Quantity.Zero, // we start the totalDifficulty at 0
       baseFeePerGas
     );
 
@@ -775,7 +773,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       new Map()
     );
     // README: set the block number to an actual 0 now.
-    block.header.number = RPCQUANTITY_ZERO;
+    block.header.number = Quantity.Zero;
     const hash = block.hash();
     return this.blocks
       .putBlock(block.header.number.toBuffer(), hash, serialized)
@@ -906,17 +904,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   public async revert(snapshotId: Quantity) {
-    const rawValue = snapshotId.valueOf();
-    if (rawValue === null || rawValue === undefined) {
+    if (snapshotId.isNull()) {
       throw new Error("invalid snapshotId");
     }
 
+    const rawValue = snapshotId.toBigInt();
     this.#options.logging.logger.log("Reverting to snapshot #" + snapshotId);
-
-    // snapshot ids can't be < 1, so we do a quick sanity check here
-    if (rawValue < 1n) {
-      return false;
-    }
 
     const snapshots = this.#snapshots;
     const snaps = snapshots.snaps;
@@ -1124,7 +1117,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } as any,
         data: transaction.data && transaction.data.toBuffer(),
         gasPrice: new BN(transaction.gasPrice.toBuffer()),
-        gasLimit: new BN(Quantity.from(gasLeft).toBuffer()),
+        gasLimit: new BN(Quantity.toBuffer(gasLeft)),
         to,
         value:
           transaction.value == null
@@ -1346,7 +1339,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                   rawKey
                 );
 
-                storage[Data.from(key, key.length).toString()] = {
+                storage[Data.toString(key, key.length)] = {
                   key: Data.from(rawKey, rawKey.length),
                   value: Data.from(result, 32)
                 };
@@ -1442,7 +1435,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transactionHash: string,
     options: TraceTransactionOptions
   ) {
-    const transactionHashBuffer = Data.from(transactionHash).toBuffer();
+    const transactionHashBuffer = Data.toBuffer(transactionHash);
     // #1 - get block via transaction object
     const transaction = await this.transactions.get(transactionHashBuffer);
 
@@ -1555,7 +1548,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       return new Promise<RangedStorageKeys>((resolve, reject) => {
-        const startKeyBuffer = Data.from(startKey).toBuffer();
+        const startKeyBuffer = Data.toBuffer(startKey);
         const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;
 
         const keys: Buffer[] = [];

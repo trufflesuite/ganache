@@ -19,7 +19,7 @@ export default class Manager<T> {
   }
   getRaw(key: string | Buffer): Promise<Buffer> {
     if (typeof key === "string") {
-      key = Data.from(key).toBuffer();
+      key = Data.toBuffer(key);
     }
 
     if (key.length === 0) {

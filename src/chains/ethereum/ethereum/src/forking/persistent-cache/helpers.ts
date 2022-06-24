@@ -1,5 +1,5 @@
 import { Tag } from "@ganache/ethereum-utils";
-import { BUFFER_EMPTY, Data, DATA_EMPTY, Quantity } from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { LevelUp } from "levelup";
 import { Tree } from "./tree";
 
@@ -165,7 +165,7 @@ export async function* findRelated(
     // if the chain has a block at this height, and the hash of the
     // block is the same as the one in the db we've found our closest
     // ancestor!
-    if (block != null && block.hash === Data.from(node.hash).toString()) {
+    if (block != null && block.hash === Data.toString(node.hash)) {
       yield node;
     }
   }
@@ -185,7 +185,7 @@ export async function findClosestAncestor(
 ) {
   const generator = findRelated(db, request, {
     gte: upTo,
-    lt: Tree.encodeKey(height, DATA_EMPTY),
+    lt: Tree.encodeKey(height, Data.Empty),
     reverse: true
   });
   const first = await generator.next();
@@ -204,7 +204,7 @@ export async function* findClosestDescendants(
   height: Quantity
 ) {
   const generator = findRelated(db, request, {
-    gte: Tree.encodeKey(Quantity.from(height.toBigInt() + 1n), DATA_EMPTY),
+    gte: Tree.encodeKey(Quantity.from(height.toBigInt() + 1n), Data.Empty),
     reverse: false
   });
   for await (const node of generator) {

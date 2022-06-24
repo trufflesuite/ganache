@@ -2,12 +2,11 @@ import { Address } from "@ganache/ethereum-address";
 import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
-import { RPCQUANTITY_ZERO, RPCQUANTITY_ONE } from "@ganache/utils";
 import { AccessList } from "./access-lists";
 import Common from "@ethereumjs/common";
 import { TypedTransaction } from "./transaction-types";
 
-const STATUSES = [RPCQUANTITY_ZERO, RPCQUANTITY_ONE];
+const STATUSES = [Quantity.Zero, Quantity.One];
 
 type EthereumRawReceipt = [
   status: Buffer,

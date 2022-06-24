@@ -13,7 +13,7 @@ export function encode(parts: Buffer[]) {
       pieces.push([BUFFER_ZERO, BUFFER_EMPTY]);
     } else {
       const length = part.length;
-      const lengthBuffer = Quantity.from(length).toBuffer();
+      const lengthBuffer = Quantity.toBuffer(length);
       const lengthLength = lengthBuffer.length;
 
       totalLength += 1 + lengthLength + length;

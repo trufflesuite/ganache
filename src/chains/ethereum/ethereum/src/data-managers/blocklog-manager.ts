@@ -55,7 +55,7 @@ export default class BlockLogManager extends Manager<BlockLogs> {
         // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
         // from, because we already started fetching that one)
         for (let i = fromBlockNumber + 1, l = toBlockNumber + 1; i < l; i++) {
-          pendingLogsPromises.push(this.get(Quantity.from(i).toBuffer()));
+          pendingLogsPromises.push(this.get(Quantity.toBuffer(i)));
         }
       }
 

@@ -201,7 +201,7 @@ export default class Blockchain extends Emittery<BlockchainEvents> {
     } else {
       this.tipsetManager.earliest = recordedGenesisTipset; // initialize earliest
       const data: Buffer = await this.#database.db!.get("latest-tipset");
-      const height = Quantity.from(data).toNumber();
+      const height = Quantity.toNumber(data);
       const latestTipset = await this.tipsetManager.getTipsetWithBlocks(height);
       this.tipsetManager.latest = latestTipset!; // initialize latest
     }
