@@ -195,6 +195,18 @@ const toBigIntOrString = (str: string) => {
     return BigInt(str);
   }
 };
+/**
+ * Handles defaultTransactionGasLimit special case of 'estimate' for tx value.
+ *
+ * @param str - the string literal 'estimate' or string that that represents a bigint, number, or hexadecimal value.
+ */
+const estimateOrToBigIntOrString = (str: string) => {
+  if (str === "estimate") {
+    return str;
+  } else {
+    return toBigIntOrString(str);
+  }
+};
 
 /**
  * Attempts to convert strings that don't start with `0x` to a number
@@ -259,7 +271,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
     cliType: "string",
-    cliCoerce: toBigIntOrString
+    cliCoerce: estimateOrToBigIntOrString
   },
   difficulty: {
     normalize: Quantity.from,

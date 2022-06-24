@@ -17,8 +17,11 @@ const config: webpack.Configuration = merge({}, base, {
       events: require.resolve("events/"),
       buffer: require.resolve("buffer/"),
       fs: false,
-      http: false,
-      https: false
+      // Taken from https://webpack.js.org/configuration/resolve/#resolvefallback
+      http: require.resolve("stream-http"),
+      https: require.resolve("https-browserify"),
+      // not needed by the browser as the browser does the work
+      zlib: false
       //#endregion node polyfills
     },
     alias: {
@@ -29,13 +32,13 @@ const config: webpack.Configuration = merge({}, base, {
       leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway
       "@trufflesuite/uws-js-unofficial": false,
+      // replace URL with a browser version -- sorta. just look at the polyfill code
+      url: require.resolve("./polyfills/url"),
       "@ganache/filecoin": false,
-      // `url` is already a global property in browser
-      url: false,
       // mcl-wasm may be needed when creating a new @ethereumjs/vm and requires a browser version for browsers
       "mcl-wasm": require.resolve("mcl-wasm/browser"),
-      // ws doesn't work in the browser, isomorphic-ws does
-      ws: require.resolve("isomorphic-ws/"),
+      // ws doesn't work in the browser so we polyfill it
+      ws: require.resolve("./polyfills/ws"),
       // we don't use the debug module internally, so let's just not include it
       // in any package.
       debug: require.resolve("./polyfills/debug")
@@ -47,7 +50,12 @@ const config: webpack.Configuration = merge({}, base, {
   },
   plugins: [
     new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-    new webpack.ProvidePlugin({ process: ["process"] })
+    new webpack.ProvidePlugin({ process: ["process"] }),
+    // replace process.env.IS_BROWSER with `true` to cause the minifier to
+    // remove code blocks that require `process.env.IS_BROWSER != false`
+    new webpack.EnvironmentPlugin({
+      IS_BROWSER: true
+    })
   ]
 });
 
