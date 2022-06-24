@@ -62,6 +62,15 @@ describe("@ganache/version-check", () => {
         "Default Config values do not match newly created version checker"
       );
     });
+    it("is set to opt out by default", () => {
+      const { config } = VersionCheck.DEFAULTS;
+
+      assert.equal(
+        config.enabled,
+        false,
+        "Default Config enabled is set to true, should be opt out by default for now"
+      );
+    });
     it("sets an optional config", () => {
       vc = new VersionCheck(testVersion, testConfig);
 
@@ -1233,6 +1242,7 @@ describe("@ganache/version-check", () => {
     });
 
     beforeEach(() => {
+      vc.setEnabled(true);
       vc = new VersionCheck(testVersion, {
         url: "http://localhost:" + apiSettings.port
       });
