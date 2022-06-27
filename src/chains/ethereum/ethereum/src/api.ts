@@ -46,6 +46,7 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
+import { Address as EthereumJsAddress } from "ethereumjs-util";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
@@ -1094,7 +1095,7 @@ export default class EthereumApi implements Api {
     address: DATA,
     slots: DATA[],
     blockNumber: QUANTITY | Ethereum.Tag
-  ): Promise<any> {
+  ): Promise<Ethereum.Proof> {
     if (this.#blockchain.fallback) {
       throw new Error(
         "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details."
@@ -1127,13 +1128,28 @@ export default class EthereumApi implements Api {
       common
     );
 
-    const addr: any = Address.from(address);
-    const buf = addr.toBuffer();
-    addr.buf = buf;
-    addr.equals = (a: { buf: Buffer }) => buf.equals(a.buf);
+    const ganacheAddress = Address.from(address);
+    const ethereumJsAddress = new EthereumJsAddress(ganacheAddress.toBuffer());
 
     const slotBuffers = slots.map(slotHex => Data.from(slotHex, 32).toBuffer());
-    return await vm.stateManager.getProof(addr, slotBuffers);
+    const proof = await vm.stateManager.getProof(
+      ethereumJsAddress,
+      slotBuffers
+    );
+
+    return {
+      address: ganacheAddress,
+      balance: Quantity.from(proof.balance),
+      codeHash: Data.from(proof.codeHash),
+      nonce: Quantity.from(proof.nonce),
+      storageHash: Data.from(proof.storageHash),
+      accountProof: proof.accountProof.map(p => Data.from(p)),
+      storageProof: proof.storageProof.map(storageProof => ({
+        key: Data.from(storageProof.key),
+        proof: storageProof.proof.map(p => Data.from(p)),
+        value: Data.from(storageProof.value)
+      }))
+    };
   }
 
   /**

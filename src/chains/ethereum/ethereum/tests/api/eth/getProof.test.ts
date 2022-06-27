@@ -1,8 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
-import compile, { CompileOutput } from "../../helpers/compile";
-import { join } from "path";
 import { Data, keccak, Quantity } from "@ganache/utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
 import { SecureTrie } from "merkle-patricia-tree";
@@ -13,7 +11,6 @@ describe("api", () => {
   describe("eth", () => {
     describe("getProof", () => {
       let provider: EthereumProvider;
-      let contract: CompileOutput;
       let ownerAddress: string;
       let ownerBalance: string;
       let contractAccount: Account;
@@ -21,11 +18,13 @@ describe("api", () => {
         "0xf901d1a0bddaa54ff11e3d79d1aa0f9df7ed9a8f9afbc0cdd35183106c0c3c377fd587cba0ab8cdb808c8303bb61fb48e276217be9770fa83ecf3f90f2234d558885f5abf180a0cb5392b1cf13d4255ffc62eec25be303d77b795bdb0e21835ded94d29323342ea0de26cb1b4fd99c4d3ed75d4a67931e3c252605c7d68e0148d5327f341bfd5283a05f1672e7a13fc3d588c018f066a010bbc3c2171c0435e17af22e2429fd868917a0c2c799b60a0cd6acd42c1015512872e86c186bcf196e85061e76842f3b7cf86080a02e0d86c3befd177f574a20ac63804532889077e955320c9361cd10b7cc6f5809a066cd3ba8af40fe37d4bfa45f61adb46466d589b337893028157f280ecc4d94f0a060ba1f8a43e38893005830b89ec3c4b560575461c3925d183e15aed75f8c6e8fa0bca2657fd15237f0fdc85c3c0739d8d7106530921b368ca73c0df81d51bcadf4a029087b3ba8c5129e161e2cb956640f4d8e31a35f3f133c19a1044993def98b61a06456f0a93d16a9f77ff0d31cf56ef090d81c2c56b12535a27c2c7c036dc8186da0a390f135abc61e0c4587b388cf0ba75d5858a1b35511d9e059c42baecb00635ea0144540d36e30b250d25bd5c34d819538742dc54c2017c4eb1fabb8e45f72759180",
         "0xf869a03b2c95fd2a6e48d2dcb37be554d03b55e31ec582b450211db4e9c3883ffac678b846f8440180a0fe26ce2b5dafd303bdbd9adbd1bbc1ef59fceea4f81c282158ab624e2fd1787da067b59c91b38bdcd65d2f8129925a939a1469b88b66ef65395d22f74476582a5f"
       ];
-      const emptyMerkelRoot = Data.toString(new SecureTrie().root);
+      const emptyMerkleRoot = Data.toString(new SecureTrie().root);
 
-      before(async () => {
-        contract = compile(join(__dirname, "./contracts/GetProof.sol"));
-      });
+      const contractCode =
+        "0x6080604052607b60005560018060006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555034801561005657600080fd5b50610169806100666000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80636e8d4ab51461003b5780637104ddb214610059575b600080fd5b610043610077565b60405161005091906100bc565b60405180910390f35b61006161007d565b60405161006e9190610118565b60405180910390f35b60005481565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6000819050919050565b6100b6816100a3565b82525050565b60006020820190506100d160008301846100ad565b92915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000610102826100d7565b9050919050565b610112816100f7565b82525050565b600060208201905061012d6000830184610109565b9291505056fea26469706673582212209c21580c5505f87f9862db81d9f3aed499a5b4966d1a626e72d1a4e999576cb064736f6c634300080b0033";
+      // todo: Generate contractCode from GetProof.sol. The generated code is operating system dependent (due to metadata). Differing code generates a different proof.
+      // This should be solved by generating the expected Proof direclty. Once this is done, most of the static assertions can be removed, as well as the deterministic wallet.
+      // See https://github.com/trufflesuite/ganache/issues/3303 for more information.
 
       beforeEach(async () => {
         provider = await getProvider({
@@ -42,7 +41,7 @@ describe("api", () => {
           [
             {
               from: ownerAddress,
-              data: contract.code
+              data: contractCode
             }
           ]
         );
@@ -74,7 +73,7 @@ describe("api", () => {
         );
       });
 
-      it("gets the proof for an externally owned address", async () => {
+      it("gets the proof for an externally owned account", async () => {
         const result = await provider.send("eth_getProof", [
           ownerAddress,
           [],
@@ -92,7 +91,7 @@ describe("api", () => {
 
         assert.equal(
           result.storageHash,
-          emptyMerkelRoot,
+          emptyMerkleRoot,
           "Unexpected storageHash"
         );
         assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
@@ -112,11 +111,11 @@ describe("api", () => {
           Data.toString(KECCAK256_NULL),
           "Unexpected codeHash, should have been keccak hash of zero bytes"
         );
-        assert.equal(result.nonce, "0x1", "Unexpected nonce");
 
+        assert.equal(result.nonce, "0x1", "Unexpected nonce");
         assert.equal(
           result.storageHash,
-          emptyMerkelRoot,
+          emptyMerkleRoot,
           "Unexpected storageHash"
         );
         assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
@@ -228,7 +227,64 @@ describe("api", () => {
         );
       });
 
-      it("throws for invalid block number", async () => {
+      it("gets the proof with unused storage indices", async () => {
+        const storageSlotIndices = [Data.from("0xff", 32)];
+
+        const result = await provider.send("eth_getProof", [
+          contractAccount.address.toString(),
+          storageSlotIndices.map(slot => slot.toString()),
+          "latest"
+        ]);
+
+        assert.equal(
+          result.address,
+          contractAccount.address.toString(),
+          "Unexpected address"
+        );
+        assert.equal(
+          result.balance,
+          contractAccount.balance.toString(),
+          "Unexpected balance"
+        );
+        assert.equal(
+          result.codeHash,
+          Data.from(contractAccount.codeHash).toString(),
+          "Unexpected codeHash"
+        );
+        assert.equal(
+          result.nonce,
+          contractAccount.nonce.toString(),
+          "Unexpected nonce"
+        );
+        assert.equal(
+          result.storageHash,
+          Data.from(contractAccount.stateRoot).toString(),
+          "Unexpected storageHash"
+        );
+        assert.deepEqual(
+          result.accountProof,
+          expectedContractAccountProof,
+          "Unexpected accountProof"
+        );
+
+        const expectedStorageProof = [
+          {
+            key: "0x00000000000000000000000000000000000000000000000000000000000000ff",
+            value: "0x00",
+            proof: [
+              "0xf8518080a0a75fd430c15087d0a2c54dcfe4bfa47c13129638e5ec6ea8236bd5df2ad66ac68080808080808080a0f4984a11f61a2921456141df88de6e1a710d28681b91af794c5a721e47839cd78080808080"
+            ]
+          }
+        ];
+
+        assert.deepEqual(
+          result.storageProof,
+          expectedStorageProof,
+          "Unexpected storageProof"
+        );
+      });
+
+      it("throws with invalid block number", async () => {
         const responseProm = provider.send("eth_getProof", [
           contractAccount.address.toString(),
           [],
@@ -240,14 +296,21 @@ describe("api", () => {
 
       it("throws with a forked network", async () => {
         const fakeMainnet = await getProvider({});
-        const forkedProvider = await getProvider({ fork: { provider: fakeMainnet as any } });
-        const error = new Error("eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details.");
+        const forkedProvider = await getProvider({
+          fork: { provider: fakeMainnet as any }
+        });
+        const error = new Error(
+          "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details."
+        );
 
-        await assert.rejects(forkedProvider.send("eth_getProof", [
-          contractAccount.address.toString(),
-          [],
-          "latest"
-        ]), error);
+        await assert.rejects(
+          forkedProvider.send("eth_getProof", [
+            contractAccount.address.toString(),
+            [],
+            "latest"
+          ]),
+          error
+        );
       });
     });
   });
