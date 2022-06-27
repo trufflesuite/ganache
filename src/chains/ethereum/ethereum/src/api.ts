@@ -1114,24 +1114,17 @@ export default class EthereumApi implements Api {
       targetBlock.header.number
     );
 
-    const common = blockchain.fallback
-      ? blockchain.fallback.getCommonForBlockNumber(
-          blockchain.common,
-          targetBlock.header.number.toBigInt()
-        )
-      : blockchain.common;
-
     const vm = await blockchain.createVmFromStateTrie(
       stateTrie,
       this.#options.chain.allowUnlimitedContractSize,
       false, // precompiles have already been initialized in the stateTrie
-      common
+      blockchain.common
     );
 
     const ganacheAddress = Address.from(address);
     const ethereumJsAddress = new EthereumJsAddress(ganacheAddress.toBuffer());
 
-    const slotBuffers = slots.map(slotHex => Data.from(slotHex, 32).toBuffer());
+    const slotBuffers = slots.map(slotHex => Data.toBuffer(slotHex, 32));
     const proof = await vm.stateManager.getProof(
       ethereumJsAddress,
       slotBuffers

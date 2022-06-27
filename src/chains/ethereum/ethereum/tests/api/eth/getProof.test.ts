@@ -85,14 +85,13 @@ describe("api", () => {
         assert.equal(
           result.codeHash,
           Data.toString(KECCAK256_NULL),
-          "Unexpected codeHash, should have been keccak hash of zero bytes"
+          "Unexpected codeHash, expected keccak hash of zero bytes"
         );
         assert.equal(result.nonce, "0x1", "Unexpected nonce");
-
         assert.equal(
           result.storageHash,
           emptyMerkleRoot,
-          "Unexpected storageHash"
+          "Unexpected storageHash, expected root of empty merkle trie"
         );
         assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
       });
@@ -109,14 +108,14 @@ describe("api", () => {
         assert.equal(
           result.codeHash,
           Data.toString(KECCAK256_NULL),
-          "Unexpected codeHash, should have been keccak hash of zero bytes"
+          "Unexpected codeHash, expected keccak hash of zero bytes"
         );
 
         assert.equal(result.nonce, "0x1", "Unexpected nonce");
         assert.equal(
           result.storageHash,
           emptyMerkleRoot,
-          "Unexpected storageHash"
+          "Unexpected storageHash, expected root of empty merkle trie"
         );
         assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
       });
@@ -162,11 +161,11 @@ describe("api", () => {
       });
 
       it("gets the proof with specific storage index", async () => {
-        const storageSlotIndices = [Data.from("0x0", 32), Data.from("0x1", 32)];
+        const storageSlotIndices = [Data.toString("0x0", 32), Data.toString("0x1", 32)];
 
         const result = await provider.send("eth_getProof", [
           contractAccount.address.toString(),
-          storageSlotIndices.map(slot => slot.toString()),
+          storageSlotIndices,
           "latest"
         ]);
 
@@ -228,11 +227,11 @@ describe("api", () => {
       });
 
       it("gets the proof with unused storage indices", async () => {
-        const storageSlotIndices = [Data.from("0xff", 32)];
+        const storageSlotIndices = [Data.toString("0xff", 32)];
 
         const result = await provider.send("eth_getProof", [
           contractAccount.address.toString(),
-          storageSlotIndices.map(slot => slot.toString()),
+          storageSlotIndices,
           "latest"
         ]);
 
