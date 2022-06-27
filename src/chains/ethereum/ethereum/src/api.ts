@@ -1064,7 +1064,7 @@ export default class EthereumApi implements Api {
    *   stateRoot-NODE, following the path of the SHA3 (address) as key.
    * * `storageProof`: `ARRAY` - Array of storage-entries as requested. Each entry is an object
    *   with the following properties:
-   *   * `key`: `QUANTITY` - the requested storage key.
+   *   * `key`: `DATA` - the requested storage key.
    *   * `value`: `QUANTITY` - the storage value.
    *   * `proof`: `ARRAY` - Array of rlp-serialized MerkleTree-Nodes, starting with the
    *     storageHash-Node, following the path of the SHA3 (key) as path.
@@ -1140,7 +1140,7 @@ export default class EthereumApi implements Api {
       storageProof: proof.storageProof.map(storageProof => ({
         key: Data.from(storageProof.key),
         proof: storageProof.proof.map(p => Data.from(p)),
-        value: Data.from(storageProof.value)
+        value: Quantity.from(storageProof.value)
       }))
     };
   }

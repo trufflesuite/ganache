@@ -199,7 +199,7 @@ export namespace Ethereum {
   export type StorageProof = {
     key: Data;
     proof: Data[];
-    value: Data;
+    value: Quantity;
   };
 
   export type Proof = {

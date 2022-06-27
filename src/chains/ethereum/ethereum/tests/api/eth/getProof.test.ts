@@ -211,7 +211,7 @@ describe("api", () => {
           },
           {
             key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-            value: "0x01",
+            value: "0x1",
             proof: [
               "0xf8518080a0a75fd430c15087d0a2c54dcfe4bfa47c13129638e5ec6ea8236bd5df2ad66ac68080808080808080a0f4984a11f61a2921456141df88de6e1a710d28681b91af794c5a721e47839cd78080808080",
               "0xe2a0310e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf601"
@@ -269,7 +269,7 @@ describe("api", () => {
         const expectedStorageProof = [
           {
             key: "0x00000000000000000000000000000000000000000000000000000000000000ff",
-            value: "0x00",
+            value: "0x0",
             proof: [
               "0xf8518080a0a75fd430c15087d0a2c54dcfe4bfa47c13129638e5ec6ea8236bd5df2ad66ac68080808080808080a0f4984a11f61a2921456141df88de6e1a710d28681b91af794c5a721e47839cd78080808080"
             ]
@@ -281,6 +281,52 @@ describe("api", () => {
           expectedStorageProof,
           "Unexpected storageProof"
         );
+      });
+
+      it("should return a proof for an unused address", async () => {
+        const address = "0x29b8eda7d9b53ff875f098d02c5b35eed2e9628b";
+        const result = await provider.send("eth_getProof", [
+          address,
+          [],
+          "latest"
+        ]);
+
+        assert.equal(
+          result.address,
+          address,
+          "Unexpected address"
+        );
+        assert.equal(
+          result.balance,
+          "0x0",
+          "Unexpected balance"
+        );
+        assert.equal(
+          result.codeHash,
+          Data.toString(KECCAK256_NULL),
+          "Unexpected codeHash, expected keccak hash of zero bytes"
+        );
+        assert.equal(
+          result.nonce,
+          "0x0",
+          "Unexpected nonce"
+        );
+        assert.equal(
+          result.storageHash,
+          emptyMerkleRoot,
+          "Unexpected storageHash, expected root of empty merkle trie"
+        );
+
+        const expectedAccountProof = [
+          "0xf901d1a0bddaa54ff11e3d79d1aa0f9df7ed9a8f9afbc0cdd35183106c0c3c377fd587cba0ab8cdb808c8303bb61fb48e276217be9770fa83ecf3f90f2234d558885f5abf180a0cb5392b1cf13d4255ffc62eec25be303d77b795bdb0e21835ded94d29323342ea0de26cb1b4fd99c4d3ed75d4a67931e3c252605c7d68e0148d5327f341bfd5283a05f1672e7a13fc3d588c018f066a010bbc3c2171c0435e17af22e2429fd868917a0c2c799b60a0cd6acd42c1015512872e86c186bcf196e85061e76842f3b7cf86080a02e0d86c3befd177f574a20ac63804532889077e955320c9361cd10b7cc6f5809a066cd3ba8af40fe37d4bfa45f61adb46466d589b337893028157f280ecc4d94f0a060ba1f8a43e38893005830b89ec3c4b560575461c3925d183e15aed75f8c6e8fa0bca2657fd15237f0fdc85c3c0739d8d7106530921b368ca73c0df81d51bcadf4a029087b3ba8c5129e161e2cb956640f4d8e31a35f3f133c19a1044993def98b61a06456f0a93d16a9f77ff0d31cf56ef090d81c2c56b12535a27c2c7c036dc8186da0a390f135abc61e0c4587b388cf0ba75d5858a1b35511d9e059c42baecb00635ea0144540d36e30b250d25bd5c34d819538742dc54c2017c4eb1fabb8e45f72759180",
+          "0xf8518080a09f433009e787104ea882024d7494d573a1907321e7edae2035ee2b9d0f1fce0880808080a0039506a93e91a1dfa150a383eb7a87abbd5fb51ea63dffbe198eb85db70b5f49808080808080808080"
+        ];
+        assert.deepEqual(
+          result.accountProof,
+          expectedAccountProof,
+          "Unexpected accountProof"
+        );
+        assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
       });
 
       it("throws with invalid block number", async () => {
