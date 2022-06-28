@@ -1104,10 +1104,9 @@ export default class EthereumApi implements Api {
 
     const blockchain = this.#blockchain;
     const targetBlock = await blockchain.blocks.get(blockNumber);
-    const stateTrie = this.#blockchain.trie.copy(false);
-
     if (targetBlock == null) throw new Error("header not found");
 
+    const stateTrie = this.#blockchain.trie.copy(false);
     stateTrie.setContext(
       targetBlock.header.stateRoot.toBuffer(),
       null,
