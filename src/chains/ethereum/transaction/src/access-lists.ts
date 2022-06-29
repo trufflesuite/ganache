@@ -80,4 +80,36 @@ export class AccessLists {
       dataFeeEIP2930: dataFee
     };
   }
+
+  public static isValidAccessList(accessList: AccessList): boolean {
+    if (!Array.isArray(accessList)) {
+      // an access list must be an array
+      return false;
+    }
+    for (const accessListItem of accessList) {
+      Object.keys(accessListItem).forEach(key => {
+        if (key !== "address" && key !== "storageKeys") {
+          // an access list item can only contain the "address" and
+          // "storageKeys" props
+          return false;
+        }
+      });
+      const { address, storageKeys } = accessListItem;
+      if (address.length != 42) {
+        // each address must be 20 bytes (plus "0x" in string version)
+        return false;
+      }
+      for (
+        let storageSlot = 0;
+        storageSlot < storageKeys.length;
+        storageSlot++
+      ) {
+        if (storageKeys[storageSlot].length != 66) {
+          // each storageKey must be 32 byes (plus "0x" in string version)
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 }
