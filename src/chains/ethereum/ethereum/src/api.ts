@@ -1106,10 +1106,12 @@ export default class EthereumApi implements Api {
     const targetBlock = await blockchain.blocks.get(blockNumber);
     if (targetBlock == null) throw new Error("header not found");
 
+    const ganacheAddress = Address.from(address);
+    const bufferAddress = ganacheAddress.toBuffer();
     const stateTrie = this.#blockchain.trie.copy(false);
     stateTrie.setContext(
       targetBlock.header.stateRoot.toBuffer(),
-      null,
+      bufferAddress,
       targetBlock.header.number
     );
 
@@ -1120,8 +1122,7 @@ export default class EthereumApi implements Api {
       blockchain.common
     );
 
-    const ganacheAddress = Address.from(address);
-    const ethereumJsAddress = new EthereumJsAddress(ganacheAddress.toBuffer());
+    const ethereumJsAddress = new EthereumJsAddress(bufferAddress);
 
     const slotBuffers = slots.map(slotHex => Data.toBuffer(slotHex, 32));
     const proof = await vm.stateManager.getProof(
