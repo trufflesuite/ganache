@@ -7,6 +7,7 @@ import { BN } from "ethereumjs-util";
 import EVM from "@ethereumjs/vm/dist/evm/evm";
 import { KECCAK256_NULL } from "ethereumjs-util";
 import { GanacheTrie } from "./trie";
+import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 
 export type SimulationTransaction = {
   /**
@@ -34,6 +35,10 @@ export type SimulationTransaction = {
    */
   data?: Data;
   block: RuntimeBlock;
+  /**
+   * Array of addresses and storage keys.
+   */
+  accessList?: AccessList;
 };
 
 type CallOverride =
