@@ -297,33 +297,36 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
+
+    let numBlocks,
+        timestamp;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
-      let { blocks, timestamp } = arg;
-      if (blocks == null) {
-        blocks = 1;
-      }
-      // TODO(perf): add an option to mine a bunch of blocks in a batch so
-      // we can save them all to the database in one go.
-      // Developers like to move the blockchain forward by thousands of blocks
-      // at a time and doing this would make it way faster
-      for (let i = 0; i < blocks; i++) {
-        const { transactions } = await blockchain.mine(
-          Capacity.FillBlock,
-          timestamp,
-          true
-        );
-
-        if (vmErrorsOnRPCResponse) {
-          assertExceptionalTransactions(transactions);
-        }
-      }
+      let { blocks, timestamp: time } = arg;
+      numBlocks = blocks;
+      timestamp = time;
     } else {
+      timestamp = arg as number | null;
+    }
+
+    if (numBlocks == null) {
+      numBlocks = 1;
+    }
+    if (timestamp) {
+      this.#blockchain.setTimeDiff(timestamp * 1000);
+    }
+
+    // TODO(perf): add an option to mine a bunch of blocks in a batch so
+    // we can save them all to the database in one go.
+    // Developers like to move the blockchain forward by thousands of blocks
+    // at a time and doing this would make it way faster
+    for (let i = 0; i < numBlocks; i++) {
       const { transactions } = await blockchain.mine(
         Capacity.FillBlock,
-        arg as number | null,
+        timestamp,
         true
       );
+
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
       }
