@@ -39,6 +39,13 @@ contract Inspector {
       assembly {
         result := sload(slot)
       }
+    }    
+    
+    function setStorageAt(uint256 slot, uint256 value) public returns (uint256 result) {
+      assembly {
+        sstore(slot, value)
+        result := sload(slot)
+      }
     }
 
     function createContract(bytes memory bytecode) public returns (address contractAddr) {
