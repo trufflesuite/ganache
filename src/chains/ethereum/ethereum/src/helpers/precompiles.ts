@@ -27,7 +27,11 @@ const makeAccount = (i: number): Address => {
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
   buf[19] = i;
-  return (accountCache[idx] = { buf } as any);
+  const address = {
+    buf,
+    equals: (a: { buf: Buffer }) => buf.equals(a.buf)
+  } as any;
+  return (accountCache[idx] = address);
 };
 
 /**
