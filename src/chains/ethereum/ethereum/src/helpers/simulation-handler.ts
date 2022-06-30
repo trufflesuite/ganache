@@ -4,6 +4,7 @@ import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { DefaultStateManager } from "@ethereumjs/vm/dist/state/index";
 import { Address } from "@ganache/ethereum-address";
 import { calculateIntrinsicGas } from "@ganache/ethereum-transaction";
+import { CallError } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, hasOwn, keccak, Quantity } from "@ganache/utils";
 import { makeStepEvent } from "../provider-events";
 import {
@@ -14,7 +15,12 @@ import {
 import { GanacheTrie } from "./trie";
 import Blockchain from "../blockchain";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import {
+  AccessList,
+  AccessLists
+} from "@ganache/ethereum-transaction/src/access-lists";
+import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
 import { warmPrecompiles } from "./precompiles";
 
 export type SimulationTransaction = {
@@ -226,6 +232,28 @@ export default class SimulationHandler {
       return { buf, equals: (a: { buf: Buffer }) => buf.equals(a.buf) } as any;
     } else {
       return null;
+    }
+  }
+
+  public async runCall(): Promise<EVMResult> {
+    let callResult: EVMResult;
+    if (this.#runCallOpts) {
+      callResult = await this.#vm.runCall(this.#runCallOpts);
+      this.#emitAfter();
+    } else {
+      callResult = {
+        execResult: {
+          runState: { programCounter: 0 },
+          exceptionError: new VmError(ERROR.OUT_OF_GAS),
+          returnValue: BUFFER_EMPTY
+        }
+      } as any;
+    }
+
+    if (callResult.execResult.exceptionError) {
+      throw new CallError(callResult);
+    } else {
+      return callResult;
     }
   }
   /**
