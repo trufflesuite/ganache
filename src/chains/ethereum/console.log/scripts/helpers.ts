@@ -1,6 +1,11 @@
 import { keccak } from "@ganache/utils";
 import { BytesN, FixedBytesN, Handler } from "../src/handlers";
 
+export type SignatureString = {
+  solidity?: string;
+  javascript?: string;
+};
+
 // for compatibility with hardhat's console.log, which uses `int` instead of
 // `int256`, we need to also include `int` aliases in the permutations.
 export type SolidityType =
@@ -26,9 +31,9 @@ export const primitiveTypes = [
  * Hardhat abi encodes uint instead of uint256. This saves a couple of bytes,
  * but is incorrect.
  */
-export const hardhatTypeAliases: Map<SolidityType, SolidityType[]> = new Map([
-  ["uint256", ["uint"]],
-  ["int256", ["int"]]
+export const hardhatTypeAliases: Map<SolidityType, SolidityType> = new Map([
+  ["uint256", "uint"],
+  ["int256", "int"]
 ]);
 
 export const typeToHandlerMap: Map<SolidityType, Handler> = new Map([
@@ -75,13 +80,13 @@ const signatureCache: Map<number, string> = new Map();
  * @param solidityFunctionName
  * @returns
  */
-export function getSignatureCode(
+export function getSignature(
   params: SolidityType[],
   solidityFunctionName = "log"
-) {
+): SignatureString {
   const abiParams = params.map(type => type.replace(" memory", ""));
   const abiSignatureString = `log(${abiParams.join(",")})`;
-  // the solidity 4-bytes signature:
+  // the solidity "4-bytes" signature:
   const signature = keccak(Buffer.from(abiSignatureString)).subarray(0, 4);
 
   // we store the signature as an int on the JS side:
@@ -92,7 +97,7 @@ export function getSignatureCode(
     throw new Error(
       `Signature collision detected between log(${params.join(
         ","
-      )}) and log(${signatureCache.get(signatureInt)})`
+      )}) and ???(${signatureCache.get(signatureInt)})`
     );
   }
 
@@ -128,17 +133,15 @@ export function getSignatureCode(
  * instead of just `log(string memory)` or `log(address)`.
  * @param type
  */
-export function* generateNamedSignatureCode(type: SolidityType) {
+export function* getNamedSignature(type: SolidityType) {
   const logName = `log${
     type[0].toUpperCase() + type.replace(" memory", "").slice(1)
   }`;
-  yield getSignatureCode([type], logName);
+  yield getSignature([type], logName);
 
   if (hardhatTypeAliases.get(type)) {
-    const aliases = hardhatTypeAliases.get(type);
-    for (const alias of aliases) {
-      yield* generateNamedSignatureCode(alias);
-    }
+    const alias = hardhatTypeAliases.get(type);
+    yield* getNamedSignature(alias);
   }
 }
 
@@ -151,7 +154,7 @@ export function* permute<T>(array: T[] | readonly T[]) {
   for (let i = 0; i < array.length; i++) {
     const length = Math.pow(array.length, i + 1);
     for (let j = 0; j < length; j++) {
-      const parameters = [];
+      const parameters: SolidityType[] = [];
 
       for (let k = i; k >= 0; k--) {
         const denominator = Math.pow(array.length, k);
@@ -159,7 +162,21 @@ export function* permute<T>(array: T[] | readonly T[]) {
         const type = combinatorTypes[index];
         parameters.push(type);
       }
-      yield getSignatureCode(parameters);
+      yield getSignature(parameters);
+
+      // generate javascript signature handlers for hardhat's uint/int
+      // signatures
+      if (parameters.some(p => hardhatTypeAliases.has(p))) {
+        const aliasParams = parameters.map(p =>
+          hardhatTypeAliases.has(p) ? hardhatTypeAliases.get(p) : p
+        );
+        const aliasSignature = getSignature(aliasParams);
+        // we don't want to include alias solidity signatures because they would
+        // just automatically be compiled to the uint256 and int256 versions
+        // anyway; the signatures are the same.
+        delete aliasSignature.solidity;
+        yield aliasSignature;
+      }
     }
   }
 }

@@ -27,7 +27,7 @@
   },
   "scripts": {
     "tsc": "tsc --build",
-    "test": "nyc npm run mocha",
+    "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
     "prepare": "ts-node ./scripts/generate.ts"
   },
@@ -54,14 +54,18 @@
   "devDependencies": {
     "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
+    "ethereumjs-abi": "0.6.5",
+    "memdown": "6.1.1",
     "mocha": "9.1.3",
     "nyc": "15.1.0",
+    "solc": "0.8.11",
     "ts-node": "10.4.0",
     "typescript": "4.6.4"
   },
   "dependencies": {
     "@ethereumjs/vm": "5.9.0",
     "@ganache/utils": "0.3.0",
-    "ethereumjs-util": "7.1.5"
+    "ethereumjs-util": "7.1.5",
+    "fast-check": "3.0.1"
   }
 }
