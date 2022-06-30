@@ -9,7 +9,7 @@ import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
 import { Address } from "@ganache/ethereum-address";
 import { Address as EthereumJsAddress } from "ethereumjs-util";
-import { SimulationTransaction } from "../../../src/helpers/run-call";
+import { SimulationTransaction } from "../../../src/helpers/simulation-handler";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   LegacyRpcTransaction,
