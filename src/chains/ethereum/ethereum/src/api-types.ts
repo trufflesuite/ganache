@@ -195,7 +195,14 @@ export namespace Ethereum {
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
 
-  // EIP-1559 JSON RPC
+  /**
+   *
+   * @property {string} oldestBlock - Lowest number block of returned range.
+   * @property {[string]} baseFeePerGas - An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+   * @property {[number]} gasUsedRatio - A two-dimensional array of effective priority fees per gas at the requested block percentiles.
+   * @property {[string]} reward
+   *
+   */
   export type FeeHistoryResult = {
     oldestBlock: string;
     baseFeePerGas: [string];
