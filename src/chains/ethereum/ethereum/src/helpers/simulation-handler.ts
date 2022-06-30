@@ -46,6 +46,27 @@ export type SimulationTransaction = {
    */
   accessList?: AccessList;
 };
+
+type CallOverride =
+  | Partial<{
+      code: string;
+      nonce: string;
+      balance: string;
+      state: { [slot: string]: string };
+      stateDiff: never;
+    }>
+  | Partial<{
+      code: string;
+      nonce: string;
+      balance: string;
+      state: never;
+      stateDiff: { [slot: string]: string };
+    }>;
+
+export type CallOverrides = {
+  [address: string]: CallOverride;
+};
+
 /**
  * Stripped down version of the type from EthereumJs
  */
