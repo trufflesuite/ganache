@@ -4,6 +4,38 @@ import { DefaultStateManager } from "@ethereumjs/vm/dist/state/index";
 import { Address as EthereumJsAddress } from "ethereumjs-util";
 import { GanacheTrie } from "./trie";
 import Blockchain from "../blockchain";
+
+export type SimulationTransaction = {
+  /**
+   * The address the transaction is sent from.
+   */
+  from: Address;
+  /**
+   * The address the transaction is directed to.
+   */
+  to?: Address;
+  /**
+   * Integer of the gas provided for the transaction execution. eth_call consumes zero gas, but this parameter may be needed by some executions.
+   */
+  gas: Quantity;
+  /**
+   * Integer of the gasPrice used for each paid gas
+   */
+  gasPrice: Quantity;
+  /**
+   * Integer of the value sent with this transaction
+   */
+  value?: Quantity;
+  /**
+   * Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation
+   */
+  data?: Data;
+  block: RuntimeBlock;
+  /**
+   * Array of addresses and storage keys.
+   */
+  accessList?: AccessList;
+};
 /**
  * Stripped down version of the type from EthereumJs
  */
