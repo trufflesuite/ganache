@@ -132,6 +132,38 @@ describe("api", () => {
             );
           });
 
+          it("should mine a subsequent block at the correct time after specifying a timestamp for a previous block", async () => {
+            const startDate = new Date(2019, 3, 15);
+            const miningTimestamp = Math.floor(
+              new Date(2020, 3, 15).getTime() / 1000
+            );
+
+            const evmMineArgumentPermutations = [
+              {timestamp: miningTimestamp, blocks: 1},
+              {timestamp: miningTimestamp},
+              miningTimestamp
+            ];
+
+            for (const evmMineArg of evmMineArgumentPermutations) {
+              const provider = await getProvider({
+                chain: { time: startDate },
+                ...option
+              });
+
+              await provider.send("evm_mine", [<any>evmMineArg]);
+              const {timestamp: specificBlockTime} = await provider.send("eth_getBlockByNumber", ["latest"]);
+
+              assert.equal(specificBlockTime, miningTimestamp);
+
+              await provider.send("evm_mine");
+              const {timestamp: subsequentBlockTime} = await provider.send("eth_getBlockByNumber", ["latest"]);
+              const subsequentBlockTimestamp = Quantity.toNumber(subsequentBlockTime);
+
+              // add 2 seconds in case testing is slow
+              assert(between(subsequentBlockTimestamp, miningTimestamp, miningTimestamp + 2))
+            }
+          });
+
           it("should mine a block even when mining is stopped", async () => {
             const provider = await getProvider(option);
             const initialBlock = parseInt(
