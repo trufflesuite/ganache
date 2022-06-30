@@ -298,13 +298,11 @@ export default class EthereumApi implements Api {
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
 
-    let numBlocks,
-        timestamp;
+    let numBlocks, timestamp;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
-      let { blocks, timestamp: time } = arg;
-      numBlocks = blocks;
-      timestamp = time;
+      numBlocks = arg.blocks;
+      timestamp = arg.timestamp;
     } else {
       timestamp = arg as number | null;
     }

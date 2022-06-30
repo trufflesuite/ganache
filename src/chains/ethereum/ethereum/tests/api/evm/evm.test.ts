@@ -139,8 +139,8 @@ describe("api", () => {
             );
 
             const evmMineArgumentPermutations = [
-              {timestamp: miningTimestamp, blocks: 1},
-              {timestamp: miningTimestamp},
+              { timestamp: miningTimestamp, blocks: 1 },
+              { timestamp: miningTimestamp },
               miningTimestamp
             ];
 
@@ -151,16 +151,29 @@ describe("api", () => {
               });
 
               await provider.send("evm_mine", [<any>evmMineArg]);
-              const {timestamp: specificBlockTime} = await provider.send("eth_getBlockByNumber", ["latest"]);
+              const { timestamp: specificBlockTime } = await provider.send(
+                "eth_getBlockByNumber",
+                ["latest"]
+              );
 
               assert.equal(specificBlockTime, miningTimestamp);
 
               await provider.send("evm_mine");
-              const {timestamp: subsequentBlockTime} = await provider.send("eth_getBlockByNumber", ["latest"]);
-              const subsequentBlockTimestamp = Quantity.toNumber(subsequentBlockTime);
+              const { timestamp: subsequentBlockTime } = await provider.send(
+                "eth_getBlockByNumber",
+                ["latest"]
+              );
+              const subsequentBlockTimestamp =
+                Quantity.toNumber(subsequentBlockTime);
 
               // add 2 seconds in case testing is slow
-              assert(between(subsequentBlockTimestamp, miningTimestamp, miningTimestamp + 2))
+              assert(
+                between(
+                  subsequentBlockTimestamp,
+                  miningTimestamp,
+                  miningTimestamp + 2
+                )
+              );
             }
           });
 
