@@ -22,6 +22,8 @@ import {
 } from "@ganache/ethereum-transaction/src/access-lists";
 import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
 import { warmPrecompiles } from "./precompiles";
+import { maybeGetLogs } from "@ganache/console.log";
+import { noop } from "lodash";
 
 export type SimulationTransaction = {
   /**
@@ -101,17 +103,22 @@ export default class SimulationHandler {
   readonly #emitEvents: boolean;
   readonly #emitStepEvent: boolean;
   readonly #transactionContext: object;
+  readonly #log: (message?: any, ...optionalParams: any[]) => void;
   constructor(
     blockchain: Blockchain,
     common: Common,
     emitEvents: boolean = false,
-    emitStepEvents: boolean = false
+    emitStepEvents: boolean = false,
+    log: (message?: any, ...optionalParams: any[]) => void = null
   ) {
     this.#blockchain = blockchain;
     this.#common = common;
     this.#emitEvents = emitEvents;
     this.#transactionContext = emitEvents ? {} : null;
     this.#emitStepEvent = emitEvents && emitStepEvents;
+    // if emitting events is enabled and a logging function wasn't provided,
+    // just do nothing with any logs.
+    this.#log = emitEvents && log === null ? noop : log;
   }
 
   async initialize(
@@ -130,7 +137,7 @@ export default class SimulationHandler {
     );
     this.#stateTrie = stateTrie;
     const vm = (this.#vm = await blockchain.createVmFromStateTrie(
-      this.#stateTrie,
+      stateTrie,
       false, // precompiles have already been initialized in the stateTrie
       common
     ));
@@ -202,10 +209,17 @@ export default class SimulationHandler {
 
   #setupStepEventEmits = () => {
     if (this.#emitEvents) {
+      const blockchain = this.#blockchain;
+      const log = this.#log;
       this.#vm.on("step", (event: InterpreterStep) => {
+        const logs = maybeGetLogs(event);
+        if (logs) {
+          log(...logs);
+          blockchain.emit("ganache:vm:tx:console.log", { context, logs });
+        }
         if (!this.#emitStepEvent) return;
         const ganacheStepEvent = makeStepEvent(this.#transactionContext, event);
-        this.#blockchain.emit("ganache:vm:tx:step", ganacheStepEvent);
+        blockchain.emit("ganache:vm:tx:step", ganacheStepEvent);
       });
     }
   };
