@@ -129,10 +129,12 @@ export default class SimulationHandler {
     const blockchain = this.#blockchain;
     const common = this.#common;
 
+    const caller = this.toLightEJSAddress(transaction.from);
+
     const stateTrie = blockchain.trie.copy(false);
     stateTrie.setContext(
       simulationBlock.header.stateRoot.toBuffer(),
-      null,
+      caller.buf,
       simulationBlock.header.number
     );
     this.#stateTrie = stateTrie;
@@ -164,8 +166,6 @@ export default class SimulationHandler {
 
     if (gasLeft >= 0n) {
       this.#setupStepEventEmits();
-
-      const caller = this.toLightEJSAddress(transaction.from);
 
       if (common.isActivatedEIP(2929)) {
         const precompiles = this.#warmDefaults(caller, to);
