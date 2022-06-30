@@ -53,4 +53,20 @@ contract Inspector {
         contractAddr := create(0, add(bytecode, 0x20), mload(bytecode))
       }
     }
+
+    function getStoredBalance(address addr, uint256 slot) public returns (uint256) {
+      address thisAddress = address(this);
+      address prev;
+      assembly {
+         prev := sload(slot)
+         sstore(slot, addr)
+         // if this is the first time calling this function, the data at some
+         // unknown slot can be 0, 1, or 2 because of our above declared storage
+         if or(eq(prev, 0), or(eq(prev, 1), eq(prev,2))) {
+          prev := thisAddress
+         }
+      }
+      return prev.balance;
+    }
+
 }
