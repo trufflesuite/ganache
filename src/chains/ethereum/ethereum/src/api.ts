@@ -2782,6 +2782,13 @@ export default class EthereumApi implements Api {
       overrides
     );
   }
+
+  @assertArgLength(2, 3)
+  async eth_feeHistory(
+    blockCount: QUANTITY,
+    newestBlock: QUANTITY | Ethereum.Tag,
+    rewardPercentiles?: [number]
+  ) {}
   //#endregion
 
   //#region debug
