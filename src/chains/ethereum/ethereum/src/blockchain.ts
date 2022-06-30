@@ -64,6 +64,7 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
+import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 import SimulationHandler, {
   CallOverrides,
   SimulationTransaction
@@ -1036,6 +1037,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     await simHandler.initialize(simulationBlock, transaction, overrides);
     const callResult = await simHandler.runCall();
     return Data.from(callResult.execResult.returnValue || "0x");
+  }
+
+  public async getAccessList(
+    transaction: SimulationTransaction,
+    simulationBlock: Block
+  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+    const common = this.fallback
+      ? this.fallback.getCommonForBlockNumber(
+          this.common,
+          BigInt(transaction.block.header.number.toString())
+        )
+      : this.common;
+    const simHandler = new SimulationHandler(this, common, false);
+    await simHandler.initialize(simulationBlock, transaction);
+    return await simHandler.getAccessList(transaction.accessList);
   }
 
   #traceTransaction = async (
