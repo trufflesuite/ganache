@@ -69,4 +69,20 @@ contract Inspector {
       return prev.balance;
     }
 
+    // this function should touch different accounts depending on the access list
+    // provided by the sender. if no access list is provided, it should touch
+    // addr1 only. if an access list with addr1 is provided, addr2 will also be 
+    // touched 
+    // COLD_ACCOUNT_ACCESS_COST is 2600 - the cost to read from an account with no access list
+    // WARM_STORAGE_READ_COST is 100 - the cost to read from an account with access list
+    function multiAccessList(address addr1, address addr2) public view {
+      uint256 startGas = gasleft();
+      uint256 bal1 = addr1.balance;
+      uint256 gasUsed = startGas - gasleft();
+      require(bal1 > 0, "Balance is less than 0");
+      if(gasUsed < 2600) {
+        uint256 bal2 = addr2.balance;
+        require(bal2 > 0, "Balance is less than 0");
+      }
+    } 
 }
