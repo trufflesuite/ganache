@@ -53,7 +53,7 @@ export const activatePrecompiles = async (stateManager: StateManager) => {
  * Puts the precompile accounts into the warmed addresses
  * @param stateManager -
  */
-export const warmPrecompiles = async (stateManager: DefaultStateManager) => {
+export const warmPrecompiles = (stateManager: DefaultStateManager) => {
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
     const account = makeAccount(i);
     stateManager.addWarmedAddress(account.buf);
