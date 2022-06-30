@@ -9,7 +9,6 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  CallError,
   StorageKeys,
   StorageRangeAtResult,
   StorageRecords,
@@ -19,19 +18,15 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { Address as EthereumJsAddress } from "ethereumjs-util";
 import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { decode } from "@ganache/rlp";
 import { BN, KECCAK256_RLP } from "ethereumjs-util";
 import Common from "@ethereumjs/common";
 import VM from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { VmError, ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
   Quantity,
   Data,
-  BUFFER_EMPTY,
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   findInsertPosition,
@@ -44,7 +39,6 @@ import TransactionManager from "./data-managers/transaction-manager";
 import { Fork } from "./forking/fork";
 import { Address } from "@ganache/ethereum-address";
 import {
-  calculateIntrinsicGas,
   InternalTransactionReceipt,
   VmTransaction,
   TypedTransaction
@@ -58,7 +52,7 @@ import {
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import type { LevelUp } from "levelup";
-import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
+import { activatePrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
 import {
@@ -70,7 +64,6 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import { maybeGetLogs } from "@ganache/console.log";
 import SimulationHandler, {
   CallOverrides,
   SimulationTransaction
@@ -1024,134 +1017,25 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   public async simulateTransaction(
     transaction: SimulationTransaction,
-    parentBlock: Block,
+    simulationBlock: Block,
     overrides: CallOverrides
   ) {
-    let result: EVMResult;
-
-    const data = transaction.data;
-    let gasLimit = transaction.gas.toBigInt();
-    // subtract out the transaction's base fee from the gas limit before
-    // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    const hasToAddress = transaction.to != null;
-    let to: EthereumJsAddress = null;
-    if (hasToAddress) {
-      const toBuf = transaction.to.toBuffer();
-      to = {
-        equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
-        buf: toBuf
-      } as any;
-    } else {
-      to = null;
-    }
-
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
-
-    const gasLeft =
-      gasLimit - calculateIntrinsicGas(data, hasToAddress, common);
-
-    const transactionContext = {};
-    this.emit("ganache:vm:tx:before", {
-      context: transactionContext
-    });
-
-    if (gasLeft >= 0n) {
-      const stateTrie = this.trie.copy(false);
-      stateTrie.setContext(
-        parentBlock.header.stateRoot.toBuffer(),
-        null,
-        parentBlock.header.number
-      );
-      const options = this.#options;
-
-      const vm = await this.createVmFromStateTrie(
-        stateTrie,
-        options.chain.allowUnlimitedContractSize,
-        false, // precompiles have already been initialized in the stateTrie
-        common
-      );
-
-      // take a checkpoint so the `runCall` never writes to the trie. We don't
-      // commit/revert later because this stateTrie is ephemeral anyway.
-      vm.stateManager.checkpoint();
-
-      vm.on("step", (event: InterpreterStep) => {
-        const logs = maybeGetLogs(event);
-        if (logs) {
-          options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", { context, logs });
-        }
-
-        if (!this.#emitStepEvent) return;
-        const ganacheStepEvent = makeStepEvent(transactionContext, event);
-        this.emit("ganache:vm:tx:step", ganacheStepEvent);
-      });
-
-      const caller = transaction.from.toBuffer();
-
-      if (common.isActivatedEIP(2929)) {
-        const stateManager = vm.stateManager as DefaultStateManager;
-        // handle Berlin hardfork warm storage reads
-        warmPrecompiles(stateManager);
-        stateManager.addWarmedAddress(caller);
-        if (to) stateManager.addWarmedAddress(to.buf);
-      }
-
-      // If there are any overrides requested for eth_call, apply
-      // them now before running the simulation.
-      await applySimulationOverrides(stateTrie, vm, overrides);
-
-      // we need to update the balance and nonce of the sender _before_
-      // we run this transaction so that things that rely on these values
-      // are correct (like contract creation!).
-      const fromAccount = await vm.stateManager.getAccount({
-        buf: caller
-      } as any);
-      fromAccount.nonce.iaddn(1);
-      const txCost = new BN(
-        (gasLimit * transaction.gasPrice.toBigInt()).toString()
-      );
-      fromAccount.balance.isub(txCost);
-      await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
-
-      // finally, run the call
-      result = await vm.runCall({
-        caller: {
-          buf: caller,
-          equals: (a: { buf: Buffer }) => caller.equals(a.buf)
-        } as any,
-        data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: new BN(transaction.gasPrice.toBuffer()),
-        gasLimit: new BN(Quantity.toBuffer(gasLeft)),
-        to,
-        value:
-          transaction.value == null
-            ? new BN(0)
-            : new BN(transaction.value.toBuffer()),
-        block: transaction.block as any
-      });
-    } else {
-      result = {
-        execResult: {
-          runState: { programCounter: 0 },
-          exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: BUFFER_EMPTY
-        }
-      } as any;
-    }
-    this.emit("ganache:vm:tx:after", {
-      context: transactionContext
-    });
-    if (result.execResult.exceptionError) {
-      throw new CallError(result);
-    } else {
-      return Data.from(result.execResult.returnValue || "0x");
-    }
+    const simHandler = new SimulationHandler(
+      this,
+      common,
+      true,
+      this.#emitStepEvent,
+      this.#options.logging.logger.log
+    );
+    await simHandler.initialize(simulationBlock, transaction, overrides);
+    const callResult = await simHandler.runCall();
+    return Data.from(callResult.execResult.returnValue || "0x");
   }
 
   #traceTransaction = async (
