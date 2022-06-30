@@ -128,4 +128,122 @@ export default class SimulationHandler {
 
     return precompiles;
   }
+  async #applySimulationOverrides(overrides: CallOverrides): Promise<void> {
+    const stateTrie = this.#stateTrie;
+    const stateManager = this.#stateManager;
+
+    for (const address in overrides) {
+      if (!hasOwn(overrides, address)) continue;
+      const { balance, nonce, code, state, stateDiff } = overrides[address];
+
+      const vmAddr = { buf: Address.from(address).toBuffer() } as any;
+      // group together overrides that update the account
+      if (nonce != null || balance != null || code != null) {
+        const account = await stateManager.getAccount(vmAddr);
+
+        if (nonce != null) {
+          account.nonce = {
+            toArrayLike: () =>
+              // geth treats empty strings as "0x0" nonce for overrides
+              nonce === "" ? BUFFER_EMPTY : Quantity.toBuffer(nonce)
+          } as any;
+        }
+        if (balance != null) {
+          account.balance = {
+            toArrayLike: () =>
+              // geth treats empty strings as "0x0" balance for overrides
+              balance === "" ? BUFFER_EMPTY : Quantity.toBuffer(balance)
+          } as any;
+        }
+        if (code != null) {
+          // geth treats empty strings as "0x" code for overrides
+          const codeBuffer = Data.toBuffer(code === "" ? "0x" : code);
+          // The ethereumjs-vm StateManager does not allow to set empty code,
+          // therefore we will manually set the code hash when "clearing" the contract code
+          const codeHash =
+            codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
+          account.codeHash = codeHash;
+          await stateTrie.db.put(codeHash, codeBuffer);
+        }
+        await stateManager.putAccount(vmAddr, account);
+      }
+      // group together overrides that update storage
+      if (state || stateDiff) {
+        if (state) {
+          // state and stateDiff fields are mutually exclusive
+          if (stateDiff) {
+            throw new Error("both state and stateDiff overrides specified");
+          }
+          // it's possible that the user fed an override with a valid address
+          // and slot, but not a value we can actually set in the storage. if
+          // so, we don't want to set the storage, and we also don't want to
+          // clear it out
+          let clearedState = false;
+          for (const slot in state) {
+            if (!hasOwn(state, slot)) continue;
+            const value = state[slot];
+            this.#validateStorageOverride(slot, value, "State");
+            if (!clearedState) {
+              // override.state clears all storage and sets just the specified slots
+              await stateManager.clearContractStorage(vmAddr);
+              clearedState = true;
+            }
+            const slotBuf = Data.toBuffer(slot, 32);
+            const valueBuf = Data.toBuffer(value);
+
+            await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          }
+        } else {
+          for (const slot in stateDiff) {
+            // don't set storage for invalid values
+            if (!hasOwn(stateDiff, slot)) continue;
+            const value = stateDiff[slot];
+            this.#validateStorageOverride(slot, value, "StateDiff");
+
+            const slotBuf = Data.toBuffer(slot, 32);
+            const valueBuf = Data.toBuffer(value);
+
+            await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          }
+        }
+      }
+    }
+  }
+
+  #validateStorageOverride = (
+    slot: string,
+    value: string,
+    fieldName: string
+  ) => {
+    // assume Quantity will handle other types, these are just special string cases
+    if (typeof slot === "string" && slot !== "" && slot.indexOf("0x") === 0) {
+      // assume we're starting with 0x cause Quantity will verify if not
+      if (slot.length != 66) {
+        throw new Error(
+          `${fieldName} override slot must be a 64 character hex string. Received ${
+            slot.length - 2
+          } character string.`
+        );
+      }
+    }
+    if (value === null || value === undefined) {
+      throw new Error(
+        `${fieldName} override data not valid. Received: ${value}`
+      );
+    }
+    // assume Quantity will handle other types, these are just special string cases
+    if (
+      typeof value === "string" &&
+      value !== "" &&
+      value.indexOf("0x") === 0
+    ) {
+      if (value.length != 66) {
+        throw new Error(
+          `${fieldName} override data must be a 64 character hex string. Received ${
+            value.length - 2
+          } character string.`
+        );
+      }
+    }
+  };
 }
