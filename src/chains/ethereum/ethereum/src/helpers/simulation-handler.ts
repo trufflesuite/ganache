@@ -287,8 +287,7 @@ export default class SimulationHandler {
           returnValue: BUFFER_EMPTY
         }
       } as any;
-    }
-    if (this.#runCallOpts) {
+    } else if (this.#runCallOpts) {
       callResult = await this.#vm.runCall(this.#runCallOpts);
       this.#emitAfter();
     } else {
