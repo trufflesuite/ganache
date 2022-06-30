@@ -2788,7 +2788,14 @@ export default class EthereumApi implements Api {
     blockCount: QUANTITY,
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles?: [number]
-  ) {}
+  ): Promise<Ethereum.FeeHistoryResult> {
+    // Do Stuff
+    return {
+      oldestBlock: "0x10",
+      baseFeePerGas: ["0x10"],
+      gasUsedRatio: [59.99]
+    };
+  }
   //#endregion
 
   //#region debug
