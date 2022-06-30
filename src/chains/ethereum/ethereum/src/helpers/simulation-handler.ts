@@ -102,4 +102,12 @@ export default class SimulationHandler {
     }
   };
 
+  public toLightEJSAddress(address?: Address): EthereumJsAddress {
+    if (address) {
+      const buf = address.toBuffer();
+      return { buf, equals: (a: { buf: Buffer }) => buf.equals(a.buf) } as any;
+    } else {
+      return null;
+    }
+  }
 }
