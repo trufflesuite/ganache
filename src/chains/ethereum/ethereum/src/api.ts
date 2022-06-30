@@ -51,7 +51,7 @@ import {
   AccessLists
 } from "@ganache/ethereum-transaction/src/access-lists";
 import Common from "@ethereumjs/common";
-import { SimulationTransaction } from "./helpers/run-call";
+import { SimulationTransaction } from "./helpers/simulation-handler";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,

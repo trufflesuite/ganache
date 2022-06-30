@@ -50,11 +50,6 @@ import {
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
-import {
-  SimulationTransaction,
-  applySimulationOverrides,
-  CallOverrides
-} from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
 import {
   DefaultStateManager,
@@ -76,6 +71,10 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
+import SimulationHandler, {
+  CallOverrides,
+  SimulationTransaction
+} from "./helpers/simulation-handler";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
