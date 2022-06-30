@@ -2783,7 +2783,7 @@ export default class EthereumApi implements Api {
       simulationBlock
     );
 
-    const { accessList, gasUsed } = await blockchain.getAccessList(
+    const { accessList, gasUsed } = await blockchain.createAccessList(
       simulatedTransaction,
       simulationBlock
     );
