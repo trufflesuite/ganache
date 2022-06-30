@@ -1102,7 +1102,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         buf: caller
       } as any);
       fromAccount.nonce.iaddn(1);
-      const txCost = new BN(transaction.gasPrice.multiply(gasLimit).toBigInt().toString());
+      const txCost = new BN(transaction.gasPrice.multiply(gasLimit).toBuffer());
       fromAccount.balance.isub(txCost);
       await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
 
