@@ -110,4 +110,22 @@ export default class SimulationHandler {
       return null;
     }
   }
+  /**
+   * Calls the StateManager's `addWarmedAddress` function for the transaction
+   * caller, all precompiles, and the to address, if applicable.
+   * @param stateManager
+   * @param caller
+   * @param to
+   * @returns An array of precompile addresses
+   */
+  #warmDefaults(caller: EthereumJsAddress, to?: EthereumJsAddress) {
+    const stateManager = this.#stateManager;
+    let precompiles: EthereumJsAddress[] = [];
+    // handle Berlin hardfork warm storage reads
+    precompiles = warmPrecompiles(stateManager);
+    stateManager.addWarmedAddress(caller.buf);
+    if (to) stateManager.addWarmedAddress(to.buf);
+
+    return precompiles;
+  }
 }
