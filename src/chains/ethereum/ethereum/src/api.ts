@@ -2740,6 +2740,31 @@ export default class EthereumApi implements Api {
     );
   }
 
+  @assertArgLength(1, 3)
+  async eth_createAccessList(
+    transaction: Ethereum.Transaction,
+    blockNumber: QUANTITY | Tag = Tag.latest
+  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+    const blockchain = this.#blockchain;
+    const common = blockchain.common;
+    const blocks = blockchain.blocks;
+    const simulationBlock = await blocks.get(blockNumber);
+
+    const simulatedTransaction = createSimulatedTransaction(
+      blockchain,
+      this.#options,
+      common,
+      transaction,
+      simulationBlock
+    );
+
+    const { accessList, gasUsed } = await blockchain.getAccessList(
+      simulatedTransaction,
+      simulationBlock
+    );
+    return { accessList, gasUsed };
+  }
+
   /**
    * Executes a new message call immediately without creating a transaction on the block chain.
    *
