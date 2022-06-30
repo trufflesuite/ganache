@@ -922,7 +922,6 @@ describe("api", () => {
           const vm = await blockchain.createVmFromStateTrie(
             trie,
             false,
-            false,
             blockchain.common
           );
           const fromState = await vm.stateManager.getAccount(

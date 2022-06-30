@@ -286,11 +286,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       }
 
       // create VM and listen to step events
-      this.vm = await this.createVmFromStateTrie(
-        this.trie,
-        options.chain.allowUnlimitedContractSize,
-        true
-      );
+      this.vm = await this.createVmFromStateTrie(this.trie, true);
 
       {
         // Grab current time once to be used in all references to "now", to avoid
@@ -647,11 +643,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   createVmFromStateTrie = async (
     stateTrie: GanacheTrie | ForkTrie,
-    allowUnlimitedContractSize: boolean,
     activatePrecompile: boolean,
     common?: Common
   ) => {
     const blocks = this.blocks;
+    const allowUnlimitedContractSize =
+      this.#options.chain.allowUnlimitedContractSize;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
       getBlock: async (number: BN) => {
