@@ -1057,6 +1057,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     return Data.from(callResult.execResult.returnValue || "0x");
   }
 
+  public async createAccessList(
+    transaction: SimulationTransaction,
+    simulationBlock: Block
+  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+    const common = this.fallback
+      ? this.fallback.getCommonForBlockNumber(
+          this.common,
+          BigInt(transaction.block.header.number.toString())
+        )
+      : this.common;
+    const simHandler = new SimulationHandler(this, common, false);
+    await simHandler.initialize(simulationBlock, transaction);
+    return await simHandler.createAccessList(transaction.accessList);
+  }
+
   #traceTransaction = async (
     transaction: VmTransaction,
     trie: GanacheTrie,
