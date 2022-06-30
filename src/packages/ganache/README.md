@@ -300,7 +300,7 @@ Miner:
 
   --miner.callGasLimit                  Sets the transaction gas limit in WEI for eth_call and eth_estimateGas
                                         calls.
-                                                                          [string] [default: 0x1fffffffffffff]
+                                                                                 [string] [default: 0x2faf080]
   --miner.instamine                     Set the instamine mode to either "eager" (default) or "strict". In
                                         "eager" mode a transaction will be included in a block before its hash
                                         is returned to the caller. In "strict" mode a transaction's hash is
