@@ -104,6 +104,17 @@ export default class SimulationHandler {
   readonly #emitStepEvent: boolean;
   readonly #transactionContext: object;
   readonly #log: (message?: any, ...optionalParams: any[]) => void;
+  /**
+   *
+   * @param blockchain
+   * @param common
+   * @param emitEvents Boolean indicating if any events should be emitted by the
+   * blockchain during the simulation.
+   * @param emitStepEvents Boolean indicating if step events should be emitted
+   * by the blockchain during simulation. Always false if `emitEvents` is false.
+   * @param log Logger function to use for any console.log events generated
+   * during simulation.
+   */
   constructor(
     blockchain: Blockchain,
     common: Common,
@@ -121,6 +132,15 @@ export default class SimulationHandler {
     this.#log = emitEvents && log === null ? noop : log;
   }
 
+  /**
+   * Sets up the simulation environment, copying the VM and state trie, setting
+   * up step events, warming addresses, updating sender account details, and
+   * generating parameters to `runCall`. All changes are made on the VM clone.
+   * @param simulationBlock The block to simulate when cloning the state trie.
+   * @param transaction The transaction that will be simulated.
+   * @param overrides Any VM state overrides to apply when running the
+   * simulation.
+   */
   async initialize(
     simulationBlock: Block,
     transaction: SimulationTransaction,
@@ -249,6 +269,11 @@ export default class SimulationHandler {
     }
   }
 
+  /**
+   * Runs `vm.runCall` based off of the options set from running `initialize`.
+   * Throws if there is an `exceptionError` on the result.
+   * @returns The `EVMResult` from running the transaction.
+   */
   public async runCall(): Promise<EVMResult> {
     let callResult: EVMResult;
     if (this.#runCallOpts) {
@@ -271,9 +296,16 @@ export default class SimulationHandler {
     }
   }
 
-  public async getAccessList(previousAccessList: AccessList) {
+  /**
+   * Recursively runs the `vm.runCall` function until the touched addresses and
+   * storage are the same as the previously generated access list.
+   * @param initialAccessList An access list to initially run the transaction with.
+   * @returns The final access list generated, plus an estimate of the gas
+   * consumed by the running the transaction _with_ the generated access list included.
+   */
+  public async getAccessList(initialAccessList: AccessList) {
     await this.#stateManager.checkpoint();
-    return await this.#getAccessList(previousAccessList);
+    return await this.#getAccessList(initialAccessList);
   }
 
   async #getAccessList(
