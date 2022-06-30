@@ -1,9 +1,19 @@
 import Common from "@ethereumjs/common";
 import VM from "@ethereumjs/vm";
+import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { DefaultStateManager } from "@ethereumjs/vm/dist/state/index";
-import { Address as EthereumJsAddress } from "ethereumjs-util";
+import { Address } from "@ganache/ethereum-address";
+import { BUFFER_EMPTY, Data, hasOwn, keccak, Quantity } from "@ganache/utils";
+import { makeStepEvent } from "../provider-events";
+import {
+  Address as EthereumJsAddress,
+  BN,
+  KECCAK256_NULL
+} from "ethereumjs-util";
 import { GanacheTrie } from "./trie";
 import Blockchain from "../blockchain";
+import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import { warmPrecompiles } from "./precompiles";
 
 export type SimulationTransaction = {
   /**
