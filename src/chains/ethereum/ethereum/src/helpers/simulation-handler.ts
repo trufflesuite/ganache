@@ -309,12 +309,12 @@ export default class SimulationHandler {
    * @returns The final access list generated, plus an estimate of the gas
    * consumed by the running the transaction _with_ the generated access list included.
    */
-  public async getAccessList(initialAccessList: AccessList) {
+  public async createAccessList(initialAccessList: AccessList) {
     await this.#stateManager.checkpoint();
-    return await this.#getAccessList(initialAccessList);
+    return await this.#createAccessList(initialAccessList);
   }
 
-  async #getAccessList(
+  async #createAccessList(
     previousAccessList: AccessList
   ): Promise<{ accessList: AccessList; gasUsed: string }> {
     const stateManager = this.#stateManager;
@@ -332,7 +332,7 @@ export default class SimulationHandler {
       return { accessList, gasUsed };
     } else {
       await stateManager.revert();
-      return await this.getAccessList(accessList);
+      return await this.#createAccessList(accessList);
     }
   }
 
