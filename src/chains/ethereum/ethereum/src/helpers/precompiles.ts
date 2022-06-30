@@ -21,12 +21,13 @@ const PRECOMPILED_ACCOUNT: Account = {
 
 const accountCache: Address[] = [];
 const makeAccount = (i: number): Address => {
-  if (accountCache[i]) return accountCache[i];
+  const idx = i - 1;
+  if (accountCache[idx]) return accountCache[idx];
 
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
   buf[19] = i;
-  return (accountCache[i] = { buf } as any);
+  return (accountCache[idx] = { buf } as any);
 };
 
 /**
