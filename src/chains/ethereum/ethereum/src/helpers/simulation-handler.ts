@@ -97,6 +97,7 @@ export default class SimulationHandler {
   #runCallOpts: RunCallOpts;
   #accessListExclusions: EthereumJsAddress[] = [];
   #intrinsicGas: bigint;
+  #initializationError: ERROR;
 
   readonly #blockchain: Blockchain;
   readonly #common: Common;
@@ -224,6 +225,8 @@ export default class SimulationHandler {
             : new BN(transaction.value.toBuffer()),
         block: transaction.block as any
       };
+    } else {
+      this.#initializationError = ERROR.OUT_OF_GAS;
     }
   }
 
@@ -276,17 +279,20 @@ export default class SimulationHandler {
    */
   public async runCall(): Promise<EVMResult> {
     let callResult: EVMResult;
+    if (this.#initializationError) {
+      callResult = {
+        execResult: {
+          runState: { programCounter: 0 },
+          exceptionError: new VmError(this.#initializationError),
+          returnValue: BUFFER_EMPTY
+        }
+      } as any;
+    }
     if (this.#runCallOpts) {
       callResult = await this.#vm.runCall(this.#runCallOpts);
       this.#emitAfter();
     } else {
-      callResult = {
-        execResult: {
-          runState: { programCounter: 0 },
-          exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: BUFFER_EMPTY
-        }
-      } as any;
+      throw new Error("Unknown error when simulating transaction.");
     }
 
     if (callResult.execResult.exceptionError) {
