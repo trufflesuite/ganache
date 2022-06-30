@@ -194,4 +194,12 @@ export namespace Ethereum {
 
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
+
+  // EIP-1559 JSON RPC
+  export type FeeHistoryResult = {
+    oldestBlock: string;
+    baseFeePerGas: [string];
+    gasUsedRatio: [number];
+    reward?: [string];
+  };
 }
