@@ -75,4 +75,31 @@ export default class SimulationHandler {
     this.#emitStepEvent = emitEvents && emitStepEvents;
   }
 
+
+  #setupStepEventEmits = () => {
+    if (this.#emitEvents) {
+      this.#vm.on("step", (event: InterpreterStep) => {
+        if (!this.#emitStepEvent) return;
+        const ganacheStepEvent = makeStepEvent(this.#transactionContext, event);
+        this.#blockchain.emit("ganache:vm:tx:step", ganacheStepEvent);
+      });
+    }
+  };
+
+  #emitBefore = () => {
+    if (this.#emitEvents) {
+      this.#blockchain.emit("ganache:vm:tx:before", {
+        context: this.#transactionContext
+      });
+    }
+  };
+
+  #emitAfter = () => {
+    if (this.#emitEvents) {
+      this.#blockchain.emit("ganache:vm:tx:after", {
+        context: this.#transactionContext
+      });
+    }
+  };
+
 }
