@@ -3,6 +3,7 @@ import VM from "@ethereumjs/vm";
 import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { DefaultStateManager } from "@ethereumjs/vm/dist/state/index";
 import { Address } from "@ganache/ethereum-address";
+import { calculateIntrinsicGas } from "@ganache/ethereum-transaction";
 import { BUFFER_EMPTY, Data, hasOwn, keccak, Quantity } from "@ganache/utils";
 import { makeStepEvent } from "../provider-events";
 import {
@@ -13,6 +14,7 @@ import {
 import { GanacheTrie } from "./trie";
 import Blockchain from "../blockchain";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
+import {
 import { warmPrecompiles } from "./precompiles";
 
 export type SimulationTransaction = {
@@ -106,6 +108,91 @@ export default class SimulationHandler {
     this.#emitStepEvent = emitEvents && emitStepEvents;
   }
 
+  async initialize(
+    simulationBlock: Block,
+    transaction: SimulationTransaction,
+    overrides?: CallOverrides
+  ) {
+    const blockchain = this.#blockchain;
+    const common = this.#common;
+
+    const stateTrie = blockchain.trie.copy(false);
+    stateTrie.setContext(
+      simulationBlock.header.stateRoot.toBuffer(),
+      null,
+      simulationBlock.header.number
+    );
+    this.#stateTrie = stateTrie;
+    const vm = (this.#vm = await blockchain.createVmFromStateTrie(
+      this.#stateTrie,
+      false, // precompiles have already been initialized in the stateTrie
+      common
+    ));
+    const stateManager = (this.#stateManager =
+      vm.stateManager as DefaultStateManager);
+    // take a checkpoint so the `runCall` never writes to the trie. We don't
+    // commit/revert later because this stateTrie is ephemeral anyway.
+    await stateManager.checkpoint();
+    const data = transaction.data;
+    let gasLimit = transaction.gas.toBigInt();
+    const hasToAddress = transaction.to != null;
+
+    const intrinsicGas = (this.#intrinsicGas = calculateIntrinsicGas(
+      data,
+      hasToAddress,
+      common
+    ));
+    // subtract out the transaction's base fee from the gas limit before
+    // simulating the tx, because `runCall` doesn't account for raw gas costs.
+    const gasLeft = gasLimit - intrinsicGas;
+    const to = this.toLightEJSAddress(transaction.to);
+
+    this.#emitBefore();
+
+    if (gasLeft >= 0n) {
+      this.#setupStepEventEmits();
+
+      const caller = this.toLightEJSAddress(transaction.from);
+
+      if (common.isActivatedEIP(2929)) {
+        const precompiles = this.#warmDefaults(caller, to);
+        this.#accessListExclusions.push(caller);
+        this.#accessListExclusions.push(...precompiles);
+      }
+      // If there are any overrides requested for eth_call, apply
+      // them now before running the simulation.
+      if (overrides) {
+        await this.#applySimulationOverrides(overrides);
+      }
+      if (transaction.accessList) {
+        this.#warmAccessList(transaction.accessList);
+      }
+
+      // we need to update the balance and nonce of the sender _before_
+      // we run this transaction so that things that rely on these values
+      // are correct (like contract creation!).
+      const fromAccount = await stateManager.getAccount(caller);
+      fromAccount.nonce.iaddn(1);
+      const txCost = new BN(
+        (gasLimit * transaction.gasPrice.toBigInt()).toString()
+      );
+      fromAccount.balance.isub(txCost);
+      await stateManager.putAccount(caller, fromAccount);
+
+      this.#runCallOpts = {
+        caller,
+        data: transaction.data && transaction.data.toBuffer(),
+        gasPrice: new BN(transaction.gasPrice.toBuffer()),
+        gasLimit: new BN(Quantity.toBuffer(gasLeft)),
+        to,
+        value:
+          transaction.value == null
+            ? new BN(0)
+            : new BN(transaction.value.toBuffer()),
+        block: transaction.block as any
+      };
+    }
+  }
 
   #setupStepEventEmits = () => {
     if (this.#emitEvents) {
