@@ -2790,7 +2790,7 @@ export default class EthereumApi implements Api {
    * @param newestBlock - Highest block of the requested range.
    * @param rewardPercentiles - (Optional) A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the coresponding effective tip for the percentile will be determined, accounting for gas consumed.
    *
-   * @returns The fee history for the returned block range. This can be a subsection of the requested range if not all blocks are available.Includes the oldestBlock, baseFeePerGas, gasUsedRatio, and percentile rewards.
+   * @returns The fee history for the returned block range. This can be a subsection of the requested range if not all blocks are available. Includes the oldestBlock, baseFeePerGas, gasUsedRatio, and percentile rewards.
    * @example for: blockCount: 2, newestBlock: 0x10, rewardPercentiles: [10, 25, 50]
    * {
    *   oldestBlock: "0x10",
@@ -2807,6 +2807,13 @@ export default class EthereumApi implements Api {
     rewardPercentiles?: [number]
   ): Promise<Ethereum.FeeHistoryResult> {
     // Do Stuff
+    let blocks = [];
+    console.log(blockCount);
+    console.log(newestBlock);
+    const block = await this.#blockchain.blocks
+      .get(newestBlock)
+      .catch<Block>(_ => null);
+    console.log(block);
     return {
       oldestBlock: "0x10",
       baseFeePerGas: ["0x10"],
