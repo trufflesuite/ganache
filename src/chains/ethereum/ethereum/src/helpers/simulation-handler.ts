@@ -159,6 +159,18 @@ export default class SimulationHandler {
 
     return precompiles;
   }
+
+  #warmAccessList(accessList: AccessList) {
+    const stateManager = this.#stateManager;
+    for (const { address, storageKeys } of accessList) {
+      const addressBuf = Address.from(address).toBuffer();
+      stateManager.addWarmedAddress(addressBuf);
+      for (const slot of storageKeys) {
+        stateManager.addWarmedStorage(addressBuf, Data.toBuffer(slot, 32));
+      }
+    }
+  }
+
   async #applySimulationOverrides(overrides: CallOverrides): Promise<void> {
     const stateTrie = this.#stateTrie;
     const stateManager = this.#stateManager;
