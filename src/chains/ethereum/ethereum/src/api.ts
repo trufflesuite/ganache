@@ -2740,6 +2740,31 @@ export default class EthereumApi implements Api {
     );
   }
 
+  /**
+   * Creates an `accessList` based of the given transaction.
+   *
+   * Transaction call object:
+   * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
+   * * `to`: `DATA`, 20 bytes - The address the transaction is sent to.
+   * * `gas`: `QUANTITY` (optional) - Integer of the maximum gas allowance for the transaction.
+   * * `gasPrice`: `QUANTITY` (optional) - Integer of the price of gas in wei.
+   * * `value`: `QUANTITY` (optional) - Integer of the value in wei.
+   * * `data`: `DATA` (optional) - Hash of the method signature and the ABI encoded parameters.
+   *
+   * @param transaction - The transaction call object as seen in source.
+   * @param blockNumber - Integer block number, or the string "latest", "earliest"
+   *  or "pending".
+   *
+   * @returns An array of addresses and storage keys used by the transaction, plus an estimate
+   * of the gas consumed by the running the transaction _with_ the generated access list included.
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * const txObj = { from, to };
+   * const result = await provider.request({ method: "eth_createAccessList", params: [txObj, "latest"] });
+   * console.log(result);
+   * ```
+   */
   @assertArgLength(1, 3)
   async eth_createAccessList(
     transaction: Ethereum.Transaction,
