@@ -256,6 +256,34 @@ export default class SimulationHandler {
       return callResult;
     }
   }
+
+  public async getAccessList(previousAccessList: AccessList) {
+    await this.#stateManager.checkpoint();
+    return await this.#getAccessList(previousAccessList);
+  }
+
+  async #getAccessList(
+    previousAccessList: AccessList
+  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+    const stateManager = this.#stateManager;
+    const callResult = await this.runCall();
+    const accessList = stateManager.generateAccessList(
+      this.#accessListExclusions
+    );
+    if (JSON.stringify(previousAccessList) === JSON.stringify(accessList)) {
+      const { dataFeeEIP2930 } = AccessLists.getAccessListData(accessList);
+      const baseFeeBN = new BN(
+        Quantity.toBuffer(this.#intrinsicGas + dataFeeEIP2930)
+      );
+      const gasUsedBN = callResult.gasUsed.add(baseFeeBN);
+      const gasUsed = Quantity.toString(gasUsedBN.toBuffer());
+      return { accessList, gasUsed };
+    } else {
+      await stateManager.revert();
+      return await this.getAccessList(accessList);
+    }
+  }
+
   /**
    * Calls the StateManager's `addWarmedAddress` function for the transaction
    * caller, all precompiles, and the to address, if applicable.
