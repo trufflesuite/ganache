@@ -30,7 +30,7 @@ export const maybeGetLogs = ({ opcode, memory, stack }: InterpreterStep) => {
   if (!handlers) return null;
 
   const start = 4; // we skip the first 4 bytes, as that is our signature
-  return handlers.map((handler, index) => {
+  return handlers().map((handler, index) => {
     const offset = start + index * WORD_SIZE;
     return handler(values, offset);
   });

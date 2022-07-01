@@ -64,7 +64,7 @@
     "@ganache/rlp": "0.4.2",
     "@ganache/secp256k1": "0.4.0",
     "@ganache/utils": "0.4.2",
-    "@trufflesuite/console.log": "0.1.0",
+    "@truffle/console.log": "0.1.0",
     "abort-controller": "3.0.0",
     "bip39": "3.0.4",
     "emittery": "0.10.0",

@@ -1,18 +1,12 @@
 import { keccak } from "@ganache/utils";
 import { BytesN, FixedBytesN, Handler } from "../src/handlers";
 
-export type SignatureString = {
+export type SignatureDetail = {
   solidity?: string;
   javascript?: string;
+  params: string[];
+  name: string;
 };
-
-// for compatibility with hardhat's console.log, which uses `int` instead of
-// `int256`, we need to also include `int` aliases in the permutations.
-export type SolidityType =
-  | typeof primitiveTypes[number]
-  | BytesN
-  | "uint"
-  | "int";
 
 export const combinatorTypes = [
   "address",
@@ -21,27 +15,27 @@ export const combinatorTypes = [
   "uint256"
 ] as const;
 
-export const primitiveTypes = [
-  ...combinatorTypes,
-  "bytes memory",
-  "int256"
-] as const;
+// for compatibility with hardhat's console.log, which uses `int` instead of
+// `int256`, we need to also include `int` aliases in the permutations.
+type SolidityType = typeof primitiveTypes[number] | BytesN | "uint" | "int";
+
+const primitiveTypes = [...combinatorTypes, "bytes memory", "int256"] as const;
 
 /**
  * Hardhat abi encodes uint instead of uint256. This saves a couple of bytes,
  * but is incorrect.
  */
-export const hardhatTypeAliases: Map<SolidityType, SolidityType> = new Map([
+const hardhatTypeAliases: Map<SolidityType, SolidityType> = new Map([
   ["uint256", "uint"],
   ["int256", "int"]
 ]);
 
-export const typeToHandlerMap: Map<SolidityType, Handler> = new Map([
+const typeToHandlerMap: Map<SolidityType, Handler> = new Map([
   ["address", "address"],
   ["bool", "bool"],
   ["bytes memory", "bytes"],
   ["int", "int256"],
-  ["int256", "uint256"],
+  ["int256", "int256"],
   ["string memory", "string"],
   ["uint", "uint256"],
   ["uint256", "uint256"],
@@ -52,7 +46,7 @@ export const typeToHandlerMap: Map<SolidityType, Handler> = new Map([
   ]) as [BytesN, FixedBytesN][])
 ]);
 
-export const COMMENT = `
+const COMMENT = `
     /**
     * Prints to \`stdout\` with newline. Multiple arguments can be passed, with the
     * first used as the primary message and all additional used as substitution
@@ -73,6 +67,7 @@ export const COMMENT = `
  * Cache used to ensure we do not accidentally generate 4 byte collisions.
  */
 const signatureCache: Map<number, string> = new Map();
+
 /**
  * Generates the solidity and javascript function signatures for a given set of
  * params.
@@ -80,10 +75,10 @@ const signatureCache: Map<number, string> = new Map();
  * @param solidityFunctionName
  * @returns
  */
-export function getSignature(
+function getSignature(
   params: SolidityType[],
   solidityFunctionName = "log"
-): SignatureString {
+): SignatureDetail {
   const abiParams = params.map(type => type.replace(" memory", ""));
   const abiSignatureString = `log(${abiParams.join(",")})`;
   // the solidity "4-bytes" signature:
@@ -120,28 +115,40 @@ export function getSignature(
 
   const javascriptHandlers = params.map(arg => typeToHandlerMap.get(arg));
   const javascript = `  // ${abiSignatureString}
-  [${signatureInt}, [${javascriptHandlers.join(", ")}]]`;
+  [${signatureInt}, () => [${javascriptHandlers.join(", ")}]]`;
 
   return {
     solidity,
-    javascript
+    javascript,
+    params,
+    name: solidityFunctionName
   };
+}
+
+function* getNamedLogFunctionName(type: SolidityType) {
+  const logName = `log${
+    type[0].toUpperCase() + type.replace(" memory", "").slice(1)
+  }`;
+  yield { type, logName };
+
+  if (hardhatTypeAliases.get(type)) {
+    const alias = hardhatTypeAliases.get(type);
+    yield* getNamedLogFunctionName(alias);
+  }
 }
 
 /**
  * Generates signature code as `logString(string memory)`or `logAddress(address)`
  * instead of just `log(string memory)` or `log(address)`.
- * @param type
+ *
+ * Might yield multiple signatures, like `"logUint256"` and `"logUint"` for
+ * `solidityType` `"uint256"`.
+ *
+ * @param solidityType
  */
-export function* getNamedSignature(type: SolidityType) {
-  const logName = `log${
-    type[0].toUpperCase() + type.replace(" memory", "").slice(1)
-  }`;
-  yield getSignature([type], logName);
-
-  if (hardhatTypeAliases.get(type)) {
-    const alias = hardhatTypeAliases.get(type);
-    yield* getNamedSignature(alias);
+function* getNamedSignature(solidityType: SolidityType) {
+  for (const { type, logName } of getNamedLogFunctionName(solidityType)) {
+    yield getSignature([type], logName);
   }
 }
 
@@ -150,7 +157,7 @@ export function* getNamedSignature(type: SolidityType) {
  * array.length.
  * @param array
  */
-export function* permute<T>(array: T[] | readonly T[]) {
+function* permute<T>(array: T[] | readonly T[]) {
   for (let i = 0; i < array.length; i++) {
     const length = Math.pow(array.length, i + 1);
     for (let j = 0; j < length; j++) {
@@ -179,4 +186,22 @@ export function* permute<T>(array: T[] | readonly T[]) {
       }
     }
   }
+}
+
+export function* getSignatures() {
+  const emptyLog = getSignature([]);
+  yield emptyLog;
+
+  // logString(string value), logBytes(bytes value), etc.
+  for (const signatures of primitiveTypes.map(getNamedSignature)) {
+    for (const signature of signatures) yield signature;
+  }
+
+  // logBytes1(bytes1 value1) ... logBytes32(bytes1 value1)
+  for (let n = 1; n <= 32; n++) {
+    yield getSignature([`bytes${n}` as any], `logBytes${n}`);
+  }
+
+  // all possible permutations of combinatorTypes:
+  for (const signature of permute(combinatorTypes)) yield signature;
 }
