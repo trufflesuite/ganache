@@ -85,4 +85,8 @@ contract Inspector {
         require(bal2 > 0, "Balance is less than 0");
       }
     } 
+
+    function send(address payable addr) payable public {
+      addr.transfer(msg.value);
+    }
 }
