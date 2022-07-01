@@ -308,17 +308,24 @@ export default class SimulationHandler {
   }
 
   /**
-   * Recursively runs the `vm.runCall` function until the touched addresses and
-   * storage are the same as the previously generated access list.
-   * @param initialAccessList An access list to initially run the transaction with.
-   * @returns The final access list generated, plus an estimate of the gas
-   * consumed by the running the transaction _with_ the generated access list included.
+   * Creates an access list for the simulated transaction.
+   * @param initialAccessList An initial access list to use for comparison
+   * against the generated access list.
+   * @returns
    */
   public async createAccessList(initialAccessList: AccessList) {
     await this.#stateManager.checkpoint();
     return await this.#createAccessList(initialAccessList);
   }
 
+  /**
+   * Recursively runs the `vm.runCall` function until the touched addresses and
+   * storage are the same as the previously generated access list.
+   * @param previousAccessList An access list to compare against the generated
+   * access list.
+   * @returns The final access list generated, plus an estimate of the gas
+   * consumed by the running the transaction _with_ the generated access list included.
+   */
   async #createAccessList(
     previousAccessList: AccessList
   ): Promise<{ accessList: AccessList; gasUsed: string }> {
