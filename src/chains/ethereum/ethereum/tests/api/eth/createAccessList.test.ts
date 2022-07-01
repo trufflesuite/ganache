@@ -149,16 +149,12 @@ describe("api", () => {
         ]);
         assert.strictEqual(
           accessList.length,
-          2,
-          `Unexpected size of access list: ${accessList.length}. Expected: 2`
+          1,
+          `Unexpected size of access list: ${accessList.length}. Expected: 1`
         );
         const addresses = accessList.map(entry => {
           return entry.address;
         });
-        assert(
-          addresses.includes(contractAddress),
-          `Access list didn't include called contract address`
-        );
         assert(
           addresses.includes(to),
           `Access list didn't include address read by contract`
@@ -166,11 +162,13 @@ describe("api", () => {
       });
 
       it("creates an access list containing all addresses written to by the transaction", async () => {
-        // make a transaction to send some moneys
+        // make a transaction to send some moneys, the complicated way
+        const data = `0x${contractMethods["send(address)"]}${encodedTo}`;
         const transaction = {
           from,
-          to,
-          value: "0xf"
+          to: contractAddress,
+          value: "0xf",
+          data
         };
 
         const { accessList } = await provider.send("eth_createAccessList", [
@@ -230,7 +228,6 @@ describe("api", () => {
           "eth_createAccessList",
           [transaction, "latest"]
         );
-
         // our call to this contract method should only have touched our
         // contract address in the first attempt
         assert.strictEqual(
@@ -250,17 +247,17 @@ describe("api", () => {
         assert.strictEqual(
           after.length,
           2,
-          `Unexpected size of access list: ${before.length}. Expected: 2`
+          `Unexpected size of access list: ${after.length}. Expected: 2`
         );
         const addresses = after.map(entry => {
           return entry.address;
         });
         assert(
-          addresses.includes(contractAddress),
-          `Access list didn't include called contract address`
+          addresses.includes(to),
+          `Access list didn't include address read by contract`
         );
         assert(
-          addresses.includes(to),
+          addresses.includes(contractAddress),
           `Access list didn't include address read by contract`
         );
       });
@@ -328,6 +325,26 @@ describe("api", () => {
         );
       });
 
+      it("returns empty accessList for transactions that only access exempt addresses", async () => {
+        // make a transaction to send some moneys
+        const transaction = {
+          from,
+          to,
+          value: "0xf"
+        };
+
+        const { accessList, gasUsed } = await provider.send(
+          "eth_createAccessList",
+          [transaction, "latest"]
+        );
+        assert.strictEqual(
+          accessList.length,
+          0,
+          `Unexpected size of access list: ${accessList.length}. Expected: 0`
+        );
+        assert.strictEqual(gasUsed, "0x5208");
+      });
+
       it("ignores a given access list if a better one is generated", async () => {
         // make some transaction that will generate an access list,
         // and pass it some nonsense access list to start with
@@ -368,16 +385,12 @@ describe("api", () => {
 
         assert.strictEqual(
           accessList.length,
-          3,
-          `Unexpected size of access list: ${accessList.length}. Expected: 2`
+          2,
+          `Unexpected size of access list: ${accessList.length}. Expected: 1`
         );
         const addresses = accessList.map(entry => {
           return entry.address;
         });
-        assert(
-          addresses.includes(contractAddress),
-          `Access list didn't include called contract address`
-        );
         assert(
           addresses.includes(to),
           `Access list didn't include "to" address read by contract`
