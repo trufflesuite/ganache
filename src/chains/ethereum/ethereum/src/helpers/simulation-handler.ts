@@ -95,7 +95,10 @@ export default class SimulationHandler {
   #vm: VM;
   #stateManager: DefaultStateManager;
   #runCallOpts: RunCallOpts;
+  // List of addresses to be excluded from access list
   #accessListExclusions: EthereumJsAddress[] = [];
+  // List of addresses only to be added in case of present storage slots
+  #addressesOnlyStorage: EthereumJsAddress[] = [];
   #intrinsicGas: bigint;
   #initializationError: ERROR;
 
@@ -191,6 +194,9 @@ export default class SimulationHandler {
       if (common.isActivatedEIP(2929)) {
         const precompiles = this.#warmDefaults(caller, to);
         this.#accessListExclusions.push(caller);
+        if (to) {
+          this.#addressesOnlyStorage.push(to);
+        }
         this.#accessListExclusions.push(...precompiles);
       }
       // If there are any overrides requested for eth_call, apply
@@ -319,7 +325,8 @@ export default class SimulationHandler {
     const stateManager = this.#stateManager;
     const callResult = await this.runCall();
     const accessList = stateManager.generateAccessList(
-      this.#accessListExclusions
+      this.#accessListExclusions,
+      this.#addressesOnlyStorage
     );
     if (JSON.stringify(previousAccessList) === JSON.stringify(accessList)) {
       const { dataFeeEIP2930 } = AccessLists.getAccessListData(accessList);
