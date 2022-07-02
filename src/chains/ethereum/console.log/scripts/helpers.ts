@@ -99,8 +99,9 @@ function getSignature(
   // we store the signature as an int on the JS side:
   const signatureInt = parseInt(signature.toString("hex"), 16);
 
-  // if we've already generated this signature before throw!
+  /* istanbul ignore if */
   if (signatureCache.has(signatureInt)) {
+    // if we've already generated this signature before throw!
     throw new Error(
       `Signature collision detected between log(${params.join(
         ","
