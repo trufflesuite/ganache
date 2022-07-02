@@ -308,6 +308,7 @@ export const compileContract = (contractSource: string) => {
     )
   );
 
+  /* istanbul ignore if */
   if (errors && errors.some(error => error.severity === "error")) {
     throw new Error(errors.map(e => e.formattedMessage).join("\n\n"));
   }
