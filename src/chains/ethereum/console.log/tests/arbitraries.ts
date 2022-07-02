@@ -1,14 +1,5 @@
-import solc from "solc";
 import fc from "fast-check";
 import { combinatorTypes } from "../scripts/helpers";
-import { readFileSync } from "fs";
-import { join } from "path";
-
-export type FunctionDescriptor = {
-  functionName: string;
-  params: { type: string }[];
-  consoleSolLogFunctionToCall: string;
-};
 
 /**
  * An arbitrary representing an `address` value
@@ -91,88 +82,6 @@ export const RandomCombinatorLogParams = () =>
     minLength: 1,
     maxLength: combinatorTypes.length
   });
-
-/**
- * Generates a source code for a contract that uses the specified log function
- * name and params.
- *
- * Example:
- *
- * ```solidity
- * // SPDX-License-Identifier: MIT
- * pragma solidity >= 0.4.22 <0.9.0;
- *
- * import "console.sol";
- *
- * contract Arbitrary {
- *   function testLog(string memory value) public view {
- *     console.log(value);
- *   }
- * }
- * ```
- *
- * @returns
- */
-export const createContract = (functions: FunctionDescriptor[]) => {
-  const functionStrings = functions.map(
-    ({ functionName, params, consoleSolLogFunctionToCall }) => {
-      return `  function ${functionName}(${params
-        .map((p, i) => `${p.type} a${i}`)
-        .join(", ")}) public view {
-      console.${consoleSolLogFunctionToCall}(${params
-        .map((_, i) => `a${i}`)
-        .join(", ")});
-  }`;
-    }
-  );
-  return `// SPDX-License-Identifier: MIT
-pragma solidity >= 0.4.22 <0.9.0;
-
-import "console.sol";
-
-contract Arbitrary {
-${functionStrings.join("\n\n")}
-}`;
-};
-
-export const compileContract = (contractSource: string) => {
-  const contractName = "Arbitrary";
-  const sources = {
-    "console.sol": {
-      content: readFileSync(join(__dirname, "../", "console.sol"), "utf8")
-    }
-  };
-
-  const { contracts, errors } = JSON.parse(
-    solc.compile(
-      JSON.stringify({
-        language: "Solidity",
-        sources: {
-          [contractName]: {
-            content: contractSource
-          },
-          ...sources
-        },
-        settings: {
-          outputSelection: {
-            "*": {
-              "*": ["*"]
-            }
-          }
-        }
-      })
-    )
-  );
-
-  if (errors && errors.some(error => error.severity === "error")) {
-    throw new Error(errors.map(e => e.formattedMessage).join("\n\n"));
-  }
-
-  const contract = contracts[contractName][contractName];
-  delete contracts[contractName];
-
-  return "0x" + contract.evm.bytecode.object;
-};
 
 /**
  * A mapping from log function name to an arbitrary that can be used to create

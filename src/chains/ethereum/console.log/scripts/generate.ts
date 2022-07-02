@@ -43,17 +43,16 @@ const solidityFile = `// SPDX-License-Identifier: MIT
 pragma solidity >= 0.4.22 <0.9.0;
 
 library console {
-  address constant CONSOLE_PRECOMPILE = address(0x000000000000000000636F6e736F6c652e6c6f67);
+    address constant CONSOLE_PRECOMPILE = address(0x000000000000000000636F6e736F6c652e6c6f67);
 
-  function _sendLogPayload(bytes memory payload) private view {
-      address consolePrecompile = CONSOLE_PRECOMPILE;
-      assembly {
-          let argumentsLength := mload(payload)
-          let argumentsOffset := add(payload, 32)
-          pop(staticcall(gas(), consolePrecompile, argumentsOffset, argumentsLength, 0, 0))
-      }
-  }
-
+    function _sendLogPayload(bytes memory payload) private view {
+        address consolePrecompile = CONSOLE_PRECOMPILE;
+        assembly {
+            let argumentsLength := mload(payload)
+            let argumentsOffset := add(payload, 32)
+            pop(staticcall(gas(), consolePrecompile, argumentsOffset, argumentsLength, 0, 0))
+        }
+    }
 ${solidityFunctions.join("\n")}
 }`;
 

@@ -2,26 +2,58 @@ import fc from "fast-check";
 import assert from "assert";
 import Ganache, { EthereumProvider } from "../../../../packages/core";
 import { rawEncode } from "ethereumjs-abi";
+import { RandomCombinatorLogParams, primitiveArbitraries } from "./arbitraries";
+import memdown from "memdown";
 import {
+  getSignatures,
   compileContract,
   createContract,
-  RandomCombinatorLogParams,
-  primitiveArbitraries,
   FunctionDescriptor
-} from "./arbitraries";
-import memdown from "memdown";
-import { getSignatures } from "../scripts/helpers";
+} from "../scripts/helpers";
 import { keccak } from "@ganache/utils";
 import { formatWithOptions } from "util";
 
-function get4ByteForSignature(signature: string) {
-  return `${keccak(Buffer.from(signature)).subarray(0, 4).toString("hex")}`;
-}
+type Param = {
+  type: string;
+  value: any;
+};
 
 const format = formatWithOptions.bind(null, {
   breakLength: Infinity
 });
 
+/**
+ * Generates the 4-byte signature for the given solidity signature string
+ * e.g. `log(address)` => `2c2ecbc2`
+ * @param signature
+ * @returns
+ */
+function get4ByteForSignature(signature: string) {
+  return `${keccak(Buffer.from(signature)).subarray(0, 4).toString("hex")}`;
+}
+
+/**
+ * Creates an array of pairs built out of two underlying arrays using the given
+ * `joiner` function.
+ * @param array1
+ * @param array2
+ * @param joiner
+ * @returns An array of tuple pairs, where the elements of each pair are corresponding elements of array1 and array2.
+ */
+function zip<T, U, V>(
+  array1: T[],
+  array2: U[],
+  joiner: (a: T, b: U) => V
+): V[] {
+  return array1.map((e, i) => joiner(e, array2[i]));
+}
+
+/**
+ * Normalizes a given solidity type, for example, `bytes memory` to just
+ * `bytes` and `uint` to `uint256`.
+ * @param type
+ * @returns
+ */
 function toAbiType(type: string) {
   return type.replace(" memory", "").replace(/^(int|uint)$/, "$1256");
 }
@@ -33,7 +65,7 @@ describe("@ganache/console.log", () => {
   let provider: EthereumProvider;
   let from: string;
 
-  before(function () {
+  before("set up a ganache provider", function () {
     provider = Ganache.provider({
       wallet: { deterministic: true, totalAccounts: 1 },
       miner: { blockGasLimit: "0xfffffffff" },
@@ -42,14 +74,22 @@ describe("@ganache/console.log", () => {
       // using memdown for performance
       database: { db: memdown() }
     });
+  });
+  before("get our account address", function () {
     [from] = Object.keys(provider.getInitialAccounts());
   });
 
-  after(async () => {
+  after("shut down the provider", async () => {
     provider && (await provider.disconnect());
     provider = null;
   });
 
+  /**
+   * Deploys the given 0x prefixed code to the provider and returns the
+   * `contractAddress`.
+   * @param code
+   * @returns
+   */
   async function deploy(code: string) {
     const transactionHash = await provider.send("eth_sendTransaction", [
       {
@@ -59,36 +99,34 @@ describe("@ganache/console.log", () => {
       } as any
     ]);
 
-    const { contractAddress } = await provider.send(
+    const { status, contractAddress } = await provider.send(
       "eth_getTransactionReceipt",
       [transactionHash]
     );
+    assert.strictEqual(status, "0x1", "Contract was not deployed");
     return contractAddress;
   }
 
-  function encode(
-    params: {
-      type: string;
-      value: any;
-    }[]
-  ) {
-    return rawEncode(
-      params.map(p => p.type).map(toAbiType),
-      params.map(p => {
-        if (
-          p.type === "uint256" ||
-          p.type === "int256" ||
-          p.type === "uint" ||
-          p.type === "int"
-        ) {
-          return `0x${p.value.toString(16)}`;
-        } else if (p.type.startsWith("bytes")) {
-          return Buffer.from(p.value.replace(/^0x/, ""), "hex");
-        } else {
-          return p.value;
-        }
-      })
-    );
+  function encode(params: Param[]) {
+    return params == null
+      ? Buffer.alloc(0)
+      : rawEncode(
+          params.map(p => p.type).map(toAbiType),
+          params.map(p => {
+            if (
+              p.type === "uint256" ||
+              p.type === "int256" ||
+              p.type === "uint" ||
+              p.type === "int"
+            ) {
+              return `0x${p.value.toString(16)}`;
+            } else if (p.type.startsWith("bytes")) {
+              return Buffer.from(p.value.replace(/^0x/, ""), "hex");
+            } else {
+              return p.value;
+            }
+          })
+        );
   }
 
   /**
@@ -97,64 +135,62 @@ describe("@ganache/console.log", () => {
    * @param params 
    * @returns 
    */
-  async function assertLogsAsync(
-    params: {
-      type: string;
-      value: any;
-    }[]
-  ) {
-    let resolve: (value: void) => void, reject: (reason?: any) => void;
-    const deferredPromise = new Promise<void>((_resolve, _reject) => {
-      resolve = _resolve;
-      reject = _reject;
-    });
+  async function collectLogs() {
+    const allLogs: any[] = [];
 
     // start listening for logs
     logger.log = (...logs: any[]) => {
-      try {
-        assert.deepStrictEqual(
-          logs,
-          params.map(p => p.value)
-        );
-        resolve();
-      } catch (e) {
-        console.log(logs, params);
-        return void reject(e);
-      } finally {
-        logger.log = () => {};
-      }
+      allLogs.push(logs);
     };
-    return deferredPromise;
+
+    // we're done listening to logs once the transaction completes
+    await provider.once("ganache:vm:tx:after");
+    logger.log = () => {};
+    return allLogs;
   }
 
   async function runTest(
-    params: {
-      type: string;
-      value: any;
-    }[],
+    params: Param[] | null,
     method: string,
     contractAddress: string
   ) {
-    logger.log = () => {};
     const snapshotId = await provider.request({
       method: "evm_snapshot",
       params: []
     });
     try {
-      const values = encode(params);
-
-      const prom = provider.send("eth_sendTransaction", [
+      // send our logging transaction
+      const transactionPromise = provider.send("eth_sendTransaction", [
         {
           from,
           to: contractAddress,
-          data: "0x" + method + values.toString("hex")
+          data: "0x" + method + encode(params).toString("hex")
         }
       ]);
-      await assertLogsAsync(params);
-      await prom;
-    } catch (e) {
-      console.error(e);
-      throw e;
+
+      // collection all logs during the transaction's execution
+      const allLogs = await collectLogs();
+
+      if (params == null) {
+        // if params is null we shouldn't have collected any logs
+        assert.strictEqual(allLogs.length, 0);
+      } else {
+        // ensure we logged the right things
+        assert.deepStrictEqual(
+          allLogs[0],
+          params.map(p => p.value)
+        );
+      }
+
+      const txHash = await transactionPromise;
+      const receipt = await provider.send("eth_getTransactionReceipt", [
+        txHash
+      ]);
+      assert.strictEqual(
+        receipt.status,
+        "0x1",
+        "Transaction didn't complete successfully"
+      );
     } finally {
       logger.log = () => {};
       await provider.request({
@@ -219,7 +255,7 @@ describe("@ganache/console.log", () => {
     function generateBytesN(n: number): [string, any[]] {
       return [`bytes${n}`, ["0x" + "00".padEnd(n * 2, "0")]];
     }
-    const staticTestValues = new Map([
+    const staticValues = new Map([
       ["string memory", ["", "This string takes up more than 32 bytes"]],
       [
         "address",
@@ -245,6 +281,8 @@ describe("@ganache/console.log", () => {
     function getCartesianProduct(args: any[][]) {
       const product: any[][] = [];
       const max = args.length - 1;
+      if (max === -1) return [[]];
+
       function helper(arr: any[], i: number) {
         for (let j = 0, l = args[i].length; j < l; j++) {
           const clone = arr.slice(0); // clone arr
@@ -267,47 +305,42 @@ describe("@ganache/console.log", () => {
       contractAddress = await deploy(code);
     });
 
+    it("doesn't log when console.sol is called adversarially or in odd ways", async () => {
+      // when the `adversarialTest` test contract function is called `runTest`
+      // should NOT detect any logs, the transaction should NOT fail, and
+      // Ganache should not crash (or return an error).
+      // basically this tests that Ganache doesn't do anything with adversarial
+      // calls to the `console.log`.
+      const method = get4ByteForSignature("adversarialTest()");
+      await runTest(null, method, contractAddress);
+    });
+
     let counter = 0;
-    for (const signature of getSignatures()) {
-      // we don't test signatures with int and uint because our `console.sol` doesn't use them
-      // these types are only for hardhat support
-      if (signature.params.includes("int") || signature.params.includes("uint"))
-        continue;
+    for (const { params, name } of getSignatures()) {
+      // don't test signatures with int and uint because our `console.sol`
+      // doesn't use them as these types are only for hardhat's console.sol
+      // compatability.
+      if (params.includes("int") || params.includes("uint")) continue;
 
       const functionName = `testLog${counter++}`;
       functions.push({
-        params: signature.params.map(type => ({ type })),
+        params: params.map(type => ({ type })),
         functionName,
-        consoleSolLogFunctionToCall: signature.name
+        consoleSolLogFunctionToCall: name
       });
 
-      describe(`${signature.name}(${signature.params.join(", ")})`, () => {
-        // special case for log()
-        if (signature.params.length === 0) {
-          it.only("log()", async () => {
-            const method = get4ByteForSignature(`${functionName}()`);
-            await runTest([], method, contractAddress);
-          });
-          return;
-        }
+      describe(`${name}(${params.join(", ")})`, () => {
+        const possibleValues = params.map(param => staticValues.get(param));
 
-        const allValues = signature.params.map(param => {
-          return staticTestValues.get(param);
-        });
+        const method = get4ByteForSignature(
+          `${functionName}(${params.map(toAbiType)})`
+        );
 
-        const products = getCartesianProduct(allValues);
-        products.forEach(values => {
-          it(`with values: ${format(values)}`, async () => {
-            const params = values.map((value, i) => {
-              return {
-                type: signature.params[i],
-                value
-              };
-            });
-            const method = get4ByteForSignature(
-              `${functionName}(${signature.params.map(toAbiType)})`
-            );
-            await runTest(params, method, contractAddress);
+        const cartesianProductOfAllValues = getCartesianProduct(possibleValues);
+        cartesianProductOfAllValues.forEach(vals => {
+          it(`with values: ${format(vals)}`, async () => {
+            const args = zip(params, vals, (type, value) => ({ type, value }));
+            await runTest(args, method, contractAddress);
           });
         });
       });
