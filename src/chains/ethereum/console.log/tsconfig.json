@@ -2,9 +2,10 @@
   "extends": "../../../tsconfig-base.json",
   "compilerOptions": {
     "outDir": "lib",
-    "declarationDir": "typings"
+    "declarationDir": "typings",
+    "composite": true
   },
-  "include": ["src", "index.ts", "scripts/generate.ts"],
+  "include": ["src", "index.ts", "scripts/generate.ts", "scripts/helpers.ts"],
   "references": [
     {
       "name": "@ganache/utils",

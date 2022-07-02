@@ -34,7 +34,7 @@ import {
   VmStepEvent,
   MessageEvent
 } from "./provider-events";
-import { ConsoleLogs } from "@truffle/console.log";
+import { ConsoleLogs } from "@ganache/console.log";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 

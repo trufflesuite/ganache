@@ -1,4 +1,3 @@
-import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { BN } from "ethereumjs-util";
 import { WORD_SIZE } from "./handlers";
 import { signatureMap } from "./signatures";
@@ -9,7 +8,13 @@ const CONSOLE_PRECOMPILE = new BN(
   ])
 );
 
-export const maybeGetLogs = ({ memory, stack }: InterpreterStep) => {
+export const maybeGetLogs = ({
+  memory,
+  stack
+}: {
+  memory: Buffer;
+  stack: BN[];
+}) => {
   // STATICCALL, which is the OPCODE that is used to initiate a console.log, has
   // 6 params, but we only care about the following 3.
   const [inLength, inOffset, toAddress] = stack.slice(-4, -1);

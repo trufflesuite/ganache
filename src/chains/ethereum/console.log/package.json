@@ -1,5 +1,5 @@
 {
-  "name": "@truffle/console.log",
+  "name": "@ganache/console.log",
   "publishConfig": {
     "access": "public"
   },
@@ -29,7 +29,7 @@
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
-    "prepare": "ts-node ./scripts/generate.ts"
+    "prepare": "cd scripts && ts-node generate"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -63,7 +63,6 @@
     "typescript": "4.6.4"
   },
   "dependencies": {
-    "@ethereumjs/vm": "5.9.0",
     "@ganache/utils": "0.3.0",
     "ethereumjs-util": "7.1.5",
     "fast-check": "3.0.1"

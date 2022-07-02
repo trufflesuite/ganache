@@ -5,7 +5,10 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
   "references": [
     {
       "name": "@ganache/ethereum-utils",
@@ -46,6 +49,10 @@
     {
       "name": "@ganache/secp256k1",
       "path": "../../../packages/secp256k1"
+    },
+    {
+      "name": "@ganache/console.log",
+      "path": "../console.log"
     }
   ]
 }
