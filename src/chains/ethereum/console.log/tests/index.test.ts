@@ -62,6 +62,7 @@ describe("@ganache/console.log", () => {
   const logger = {
     log: () => {}
   };
+  let snapshotId: string;
   let provider: EthereumProvider;
   let from: string;
 
@@ -82,6 +83,22 @@ describe("@ganache/console.log", () => {
   after("shut down the provider", async () => {
     provider && (await provider.disconnect());
     provider = null;
+  });
+
+  beforeEach("snapshot", async () => {
+    snapshotId = await provider.request({
+      method: "evm_snapshot",
+      params: []
+    });
+  });
+
+  afterEach("revert", async () => {
+    snapshotId &&
+      (await provider.request({
+        method: "evm_revert",
+        params: [snapshotId]
+      }));
+    snapshotId = null;
   });
 
   /**
@@ -154,10 +171,6 @@ describe("@ganache/console.log", () => {
     method: string,
     contractAddress: string
   ) {
-    const snapshotId = await provider.request({
-      method: "evm_snapshot",
-      params: []
-    });
     try {
       // send our logging transaction
       const transactionPromise = provider.send("eth_sendTransaction", [
@@ -193,10 +206,6 @@ describe("@ganache/console.log", () => {
       );
     } finally {
       logger.log = () => {};
-      await provider.request({
-        method: "evm_revert",
-        params: [snapshotId]
-      });
     }
   }
 
@@ -220,7 +229,7 @@ describe("@ganache/console.log", () => {
           await runTest(params, method, contractAddress);
         }),
         {
-          numRuns: 50,
+          numRuns: 10,
           endOnFailure: true
         }
       );
@@ -255,6 +264,8 @@ describe("@ganache/console.log", () => {
     function generateBytesN(n: number): [string, any[]] {
       return [`bytes${n}`, ["0x" + "00".padEnd(n * 2, "0")]];
     }
+
+    // `staticValues` genenerates 1000s of tests
     const staticValues = new Map([
       ["string memory", ["", "This string takes up more than 32 bytes"]],
       [
