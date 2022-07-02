@@ -71,6 +71,7 @@ const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
 
 const refresher = (item: TypedTransaction, context: Quantity) =>
   item.updateEffectiveGasPrice(context);
+
 export default class Miner extends Emittery<{
   block: {
     block: Block;
