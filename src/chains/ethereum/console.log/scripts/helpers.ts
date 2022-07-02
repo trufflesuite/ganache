@@ -273,7 +273,7 @@ contract ${CONTRACT_NAME} {
       pop(staticcall(gas(), consolePrecompile, 0, 4, 0, 0)) // tests no valid data in memory
       pop(staticcall(gas(), consolePrecompile, 999, 0, 0, 0)) // out of bounds memory read (offset)
       pop(staticcall(gas(), consolePrecompile, 0, 999, 0, 0)) // out of bounds memory read (length)
-      pop(staticcall(gas(), randomAddress, 0, 0, 0, 0))
+      pop(staticcall(gas(), randomAddress, 0, 0, 0, 0)) // ensure we don't listen to other contract addresses
     }
   }
 ${functionStrings.join("\n\n")}
