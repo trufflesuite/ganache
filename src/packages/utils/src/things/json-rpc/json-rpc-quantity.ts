@@ -76,7 +76,7 @@ export class Quantity extends BaseJsonRpcType {
     return bufferToBigInt(this.bufferValue);
   }
 
-  public toNumber() {
+  public toNumber(): number | null {
     if (this.bufferValue == null) {
       return this._nullable ? null : 0;
     }
@@ -94,7 +94,8 @@ export class Quantity extends BaseJsonRpcType {
       const trimmedBuffer =
         firstNonZeroByte === 0
           ? this.bufferValue
-          : this.bufferValue.subarray(firstNonZeroByte, length);
+          : this.bufferValue.subarray(firstNonZeroByte);
+
       result = Number(bufferToBigInt(trimmedBuffer));
 
       if (!Number.isSafeInteger(result)) {
@@ -139,9 +140,6 @@ export class Quantity extends BaseJsonRpcType {
 
     if (argumentType === "number") {
       const argumentNumber = argument as number;
-      if (argumentNumber < 0) {
-        throw new Error("Cannot wrap a negative value as a json-rpc type.");
-      }
       if (argumentNumber % 1) {
         throw new Error("Cannot wrap a decimal as a json-rpc type.");
       }
@@ -150,12 +148,9 @@ export class Quantity extends BaseJsonRpcType {
       }
       argumentValue = BigInt(argumentNumber);
     }  else if (argumentType === "bigint") {
-      if (argument < 0n) {
-        throw new Error("Cannot wrap a negative number as a JSON-RPC type.");
-      }
       argumentValue = argument as bigint;
     } else if (argumentType === "string") {
-      if ((argument as string).slice(2).toLowerCase() !== "0x") {
+      if ((argument as string).slice(0, 2).toLowerCase() !== "0x") {
         throw new Error(`Cannot wrap "${argument}" as a JSON-RPC type; strings must be hex-encoded and prefixed with "0x".`);
       }
       argumentValue = BigInt(argument as string);
@@ -181,9 +176,14 @@ export class Quantity extends BaseJsonRpcType {
       throw new Error(`Cannot add ${addend} to a Quantity`);
     }
 
-    const thisValue = this.toBigInt();
+    const sum = this.toBigInt() + addendValue;
 
-    const sumBuffer = bigIntToBuffer(thisValue + addendValue);
+    if (sum < 0n) {
+      throw new Error(`Cannot add ${addend} to a a Quantity of ${this}, as it results in a negative value`);
+    };
+
+    // convert to buffer directly, as this is cheaper than passing the bigint into the Quantity constructor
+    const sumBuffer = bigIntToBuffer(sum);
     return new Quantity(sumBuffer, this._nullable);
   }
 
@@ -193,6 +193,9 @@ export class Quantity extends BaseJsonRpcType {
     }
 
     const multiplierValue = Quantity.getArgumentAsBigInt(multiplier);
+    if (multiplierValue < 0) {
+      throw new Error(`Cannot multiply a Quantity by a negative multiplier`);
+    }
 
     if (multiplierValue === undefined) {
       throw new Error(`Cannot multiply a Quantity by ${multiplier}`);
@@ -204,19 +207,27 @@ export class Quantity extends BaseJsonRpcType {
     return new Quantity(productBuffer, this._nullable);
   }
 
-  static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer {
+  static toBuffer(value: JsonRpcInputArg, nullable?: false): Buffer;
+  static toBuffer(value: JsonRpcInputArg, nullable?: true): Buffer | null;
+  static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer | null {
     return Quantity.from(value, nullable).toBuffer();
   }
 
-  static toString(value: JsonRpcInputArg, nullable?: boolean): string {
+  static toString(value: JsonRpcInputArg, nullable?: false): string;
+  static toString(value: JsonRpcInputArg, nullable?: true): string | null;
+  static toString(value: JsonRpcInputArg, nullable?: boolean): string | null {
     return Quantity.from(value, nullable).toString();
   }
 
-  static toNumber(value: JsonRpcInputArg, nullable?: boolean): number {
+  static toNumber(value: JsonRpcInputArg, nullable?: false): number;
+  static toNumber(value: JsonRpcInputArg, nullable?: true): number | null;
+  static toNumber(value: JsonRpcInputArg, nullable?: boolean): number | null {
     return Quantity.from(value, nullable).toNumber();
   }
 
-  static toBigInt(value: JsonRpcInputArg, nullable?: boolean): bigint {
+  static toBigInt(value: JsonRpcInputArg, nullable?: false): bigint;
+  static toBigInt(value: JsonRpcInputArg, nullable?: true): bigint | null;
+  static toBigInt(value: JsonRpcInputArg, nullable?: boolean): bigint | null {
     return Quantity.from(value, nullable).toBigInt();
   }
 }

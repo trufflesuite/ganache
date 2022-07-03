@@ -2,8 +2,18 @@ import assert from "assert";
 import { Quantity } from "../src/things/json-rpc/json-rpc-quantity";
 import * as fc from "fast-check";
 
-// note: variations on non-buffer inputs are covered in the tests in ./input-parsers.test.ts
+const MAX_BYTE_LENGTH = 32;
 
+const arbitraryHexString = () => fc.hexaString({minLength: 1, maxLength: MAX_BYTE_LENGTH})
+  .map(str => `0x${str}`);
+
+const arbitraryBuffer = () => fc.uint8Array({minLength: 1, maxLength: MAX_BYTE_LENGTH})
+  .map(uintArray => Buffer.from(uintArray));
+
+const arbitraryQuantity = () => arbitraryBuffer()
+  .map(buffer => Quantity.from(buffer));
+
+// note: variations on non-buffer inputs are covered in the tests in ./input-parsers.test.ts
 const testData = [
   //[input, toString(), toNumber(), toBuffer()]
   [Buffer.from([0x00]), "0x0", 0, Buffer.alloc(0)],
@@ -187,14 +197,14 @@ describe("json-rpc-quantity", () => {
       });
     });
   });
-  
+
   const invalidMathFunctionArguments = [
-    -1,
+    //-1,
     Infinity,
     -Infinity,
     NaN,
     0.1,
-    -1n,
+    //-1n,
     "-0x123",
     "0xg",
     "0.123",
@@ -206,65 +216,107 @@ describe("json-rpc-quantity", () => {
     "0x1234-"
   ];
 
+  const invalidMultiplierArguments = [
+    ...invalidMathFunctionArguments,
+    -1
+  ];
+
   describe("add()", () => {
     it("should return the correct sum when adding a number", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.integer(), (qValue, addendValue) => {
-        const addend = Math.abs(addendValue);
-        const quantity = new Quantity(qValue);
+      fc.assert(fc.property(arbitraryQuantity(), fc.nat(), (quantity, addend) => {
         const sum = quantity.add(addend);
 
-        assert.equal(sum.toBigInt(), qValue + BigInt(addend), `Incorrect sum adding ${addend} to ${quantity}. Expected ${qValue + BigInt(addend)}, got ${sum}`);
+        const expected = (quantity.toBigInt() || 0n) + BigInt(addend);
+        assert.equal(sum.toBigInt(), expected, `Incorrect sum adding ${addend} to ${quantity}. Expected ${expected}, got ${sum.toBigInt()}`);
+      }));
+    });
+
+    it("should return the correct sum when adding a negative number", () => {
+      fc.assert(fc.property(arbitraryQuantity(), fc.nat(), (expected, addend) => {
+        const quantity = expected.add(addend);
+        const sum = quantity.add(-addend);
+
+        assert.equal(sum.toBigInt(), expected.toBigInt(), `Incorrect sum adding ${addend} to ${quantity}. Expected ${expected.toBigInt()}, got ${sum.toBigInt()}`);
+      }));
+    });
+
+    it("should throw when adding a negative number, resulting in a negative sum", () => {
+      fc.assert(fc.property(arbitraryQuantity().filter(q => (q.toNumber() || 0) < Number.MAX_SAFE_INTEGER), fc.nat().filter(n => n !== 0), (quantity, difference) => {        
+        const subtrahend = (quantity.toNumber() || 0) + difference;
+
+        const error = new Error(`Cannot add ${-subtrahend} to a a Quantity of ${quantity}, as it results in a negative value`);
+        assert.throws(() => quantity.add(-subtrahend), error);
+      }));
+    });
+
+    it("should return the correct sum when adding a negative BigInt", () => {
+      fc.assert(fc.property(arbitraryQuantity(), fc.bigUint(), (expected, addend) => {
+        const quantity = expected.add(addend);
+        const sum = quantity.add(-addend);
+
+        assert.equal(sum.toBigInt(), expected.toBigInt(), `Incorrect sum adding ${addend} to ${quantity}. Expected ${expected.toBigInt()}, got ${sum.toBigInt()}`);
+      }));
+    });
+
+    it("should throw when adding a negative BigInt, resulting in a negative sum", () => {
+      fc.assert(fc.property(arbitraryQuantity().filter(q => (q.toNumber() || 0) < Number.MAX_SAFE_INTEGER), fc.bigUint().filter(n => n !== 0n), (quantity, difference) => {        
+        const subtrahend = (quantity.toBigInt() || 0n) + difference;
+
+        const error = new Error(`Cannot add ${-subtrahend} to a a Quantity of ${quantity}, as it results in a negative value`);
+        assert.throws(() => quantity.add(-subtrahend), error);
       }));
     });
 
     it("should return the correct sum when adding a bigint", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, addend) => {
-        const quantity = new Quantity(qValue);
+      fc.assert(fc.property(arbitraryQuantity(), fc.bigUint(), (quantity, addend) => {
         const sum = quantity.add(addend);
 
-        assert.equal(sum.toBigInt(), qValue + addend, `Incorrect sum adding ${addend} to ${quantity}. Expected ${qValue + BigInt(addend)}, got ${sum}`);
+        const expected = (quantity.toBigInt() || 0n) + addend;
+        assert.equal(sum.toBigInt(), expected, `Incorrect sum adding ${addend} to ${quantity}. Expected ${expected}, got ${sum.toBigInt()}`);
+      }));
+    });
+
+    it("should return the correct sum when adding a hex string", () => {
+      fc.assert(fc.property(arbitraryQuantity(), arbitraryHexString(), (quantity, addend) => {
+        const sum = quantity.add(addend);
+
+        const expected = (quantity.toBigInt() || 0n) + Quantity.toBigInt(addend);
+        assert.equal(sum.toBigInt(), expected, `Incorrect sum adding ${addend} to ${quantity}. Expected ${expected}, got ${sum.toBigInt()}`);
       }));
     });
 
     it("should return the correct sum when adding a buffer", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, addendValue) => {
-        const quantity = new Quantity(qValue);
-        let addendHex = addendValue.toString(16);
-        if (addendHex.length & 1) {
-          addendHex = "0" + addendHex;
-        }
-        const addend = Buffer.from(addendHex, "hex");
+      fc.assert(fc.property(arbitraryQuantity(), arbitraryBuffer(), (quantity, addend) => {
         const sum = quantity.add(addend);
 
-        assert.equal(sum.toBigInt(), qValue + addendValue, `Incorrect sum adding 0x${addend.toString("hex")} to ${quantity}. Expected ${qValue + addendValue}, got ${sum}`);
+        const expected = (quantity.toBigInt() || 0n) + Quantity.toBigInt(addend);
+        assert.equal(sum.toBigInt(), expected, `Incorrect sum adding 0x${addend.toString("hex")} to ${quantity}. Expected ${expected}, got ${sum.toBigInt()}`);
       }));
     });
 
     it("should return the correct sum when adding a Quantity", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, addendValue) => {
-        const quantity = new Quantity(qValue);
-        const addend = Quantity.from(addendValue);
+      fc.assert(fc.property(arbitraryQuantity(), arbitraryQuantity(), (quantity, addend) => {
         const sum = quantity.add(addend);
 
-        assert.equal(sum.toBigInt(), qValue + addendValue, `Incorrect sum adding ${addend} to ${quantity}. Expected ${qValue + addendValue}, got ${sum.toString()}`);
+        const expected = (quantity.toBigInt() || 0n) + (addend.toBigInt() || 0n);
+        assert.equal(sum.toBigInt(), expected, `Incorrect sum adding ${addend} to ${quantity}. Expected ${expected}, got ${sum.toString()}`);
       }));
     });
 
     it(`should add a value to null`, () => {
-      fc.assert(fc.property(fc.integer(), (addendValue) => {
-        const addend = Math.abs(addendValue);
-        const quantity = new Quantity(null);
-        const result = quantity.add(addend);
+      fc.assert(fc.property(fc.nat(), (addend) => {
+        const result = Quantity.Null.add(addend);
+
         assert.equal(result.toNumber(), addend, `Incorrect sum adding ${addend} to a null Quantity. Expecting ${addend}, got ${result.toNumber()}.`);
       }));
     });
 
     it(`should add null`, () => {
-      fc.assert(fc.property(fc.integer(), (qValue) => {
+      fc.assert(fc.property(arbitraryQuantity(), (quantity) => {
         const addend = null;
-        const quantity = new Quantity(Math.abs(qValue));
-        const result = quantity.add(addend);
-        assert.equal(result.toNumber(), Math.abs(qValue), `Incorrect sum adding null to a ${quantity}. Expecting ${quantity}, got ${result}.`);
+        const sum = quantity.add(addend);
+
+        assert.equal(sum.toBigInt(), quantity.toBigInt(), `Incorrect sum adding null to a ${quantity}. Expecting ${quantity}, got ${sum.toBigInt()}.`);
       }));
     });
 
@@ -294,45 +346,48 @@ describe("json-rpc-quantity", () => {
 
   describe("multiply()", () => {
     it("should return the correct product when multiplying by a number", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.integer(), (qValue, multiplierValue) => {
+      fc.assert(fc.property(arbitraryQuantity(), fc.integer(), (quantity, multiplierValue) => {
         const multiplier = Math.abs(multiplierValue);
-        const quantity = new Quantity(qValue);
         const product = quantity.multiply(multiplier);
 
-        assert.equal(product.toBigInt(), qValue * BigInt(multiplier), `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${qValue * BigInt(multiplier)}, got ${product}`);
+        const expected = (quantity.toBigInt() || 0n) * BigInt(multiplier);
+        assert.equal(product.toBigInt(), expected, `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${expected}, got ${product.toBigInt()}`);
       }));
     });
 
     it("should return the correct product when multiplying by a bigint", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, multiplier) => {
-        const quantity = new Quantity(qValue);
+      fc.assert(fc.property(arbitraryQuantity(), fc.bigUint(), (quantity, multiplier) => {
         const product = quantity.multiply(multiplier);
 
-        assert.equal(product.toBigInt(), qValue * BigInt(multiplier), `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${qValue * multiplier}, got ${product}`);
+        const expected = (quantity.toBigInt() || 0n) * multiplier;
+        assert.equal(product.toBigInt(), expected, `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${expected}, got ${product.toBigInt()}`);
       }));
     });
 
     it("should return the correct product when multiplying by a buffer", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, multiplierValue) => {
-        const quantity = new Quantity(qValue);
-        let multiplierHex = multiplierValue.toString(16);
-        if (multiplierHex.length & 1) {
-          multiplierHex = "0" + multiplierHex;
-        }
-        const multiplier = Buffer.from(multiplierHex, "hex");
+      fc.assert(fc.property(arbitraryQuantity(), arbitraryBuffer(), (quantity, multiplier) => {
         const product = quantity.multiply(multiplier);
 
-        assert.equal(product.toBigInt(), qValue * multiplierValue, `Incorrect product multiplying ${quantity} by 0x${multiplier.toString("hex")}. Expected ${qValue * multiplierValue}, got ${product}`);
+        const expected = (quantity.toBigInt() || 0n) * Quantity.toBigInt(multiplier);
+        assert.equal(product.toBigInt(), expected, `Incorrect product multiplying ${quantity} by 0x${multiplier.toString("hex")}. Expected ${expected}, got ${product.toBigInt()}`);
       }));
     });
 
     it("should return the correct product when multiplying by a Quantity", () => {
-      fc.assert(fc.property(fc.bigUint(), fc.bigUint(), (qValue, multiplierValue) => {
-        const quantity = new Quantity(qValue);
-        const multiplier = Quantity.from(multiplierValue);
+      fc.assert(fc.property(arbitraryQuantity(), arbitraryQuantity(), (quantity, multiplier) => {
         const product = quantity.multiply(multiplier);
 
-        assert.equal(product.toBigInt(), qValue * multiplierValue, `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${qValue * multiplierValue}, got ${product}`);
+        const expected = (quantity.toBigInt() || 0n) * (multiplier.toBigInt() || 0n);
+        assert.equal(product.toBigInt(), expected, `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${expected}, got ${product.toBigInt()}`);
+      }));
+    });
+
+    it("should return the correct product when multiplying by a hex string", () => {
+      fc.assert(fc.property(arbitraryQuantity(), arbitraryHexString(), (quantity, multiplier) => {
+        const product = quantity.multiply(multiplier);
+
+        const expected = (quantity.toBigInt() || 0n) * Quantity.toBigInt(multiplier);
+        assert.equal(product.toBigInt(), expected, `Incorrect product multiplying ${quantity} by ${multiplier}. Expected ${expected}, got ${product.toBigInt()}`);
       }));
     });
 
@@ -352,7 +407,7 @@ describe("json-rpc-quantity", () => {
       });
     });
 
-    invalidMathFunctionArguments.forEach(input => {
+    invalidMultiplierArguments.forEach(input => {
       const q = Quantity.from(1);
       it(`should reject invalid value: ${input}`, () => {
         assert.throws(() => q.multiply(input));

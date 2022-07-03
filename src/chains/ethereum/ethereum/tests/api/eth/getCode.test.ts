@@ -123,7 +123,7 @@ describe("api", () => {
           it("should return the no code at the previous block number", async () => {
             const code = await provider.send("eth_getCode", [
               contractAddress,
-              Quantity.toString(blockNumber.toBigInt() - 1n)
+              Quantity.toString(blockNumber.add(-1n).toBigInt())
             ]);
             assert.strictEqual(code, "0x");
           });
