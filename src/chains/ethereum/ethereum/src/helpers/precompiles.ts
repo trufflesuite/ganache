@@ -41,9 +41,6 @@ export const activatePrecompiles = async (stateManager: StateManager) => {
     cache.put(account, PRECOMPILED_ACCOUNT);
     stateManager.touchAccount(account as any);
   }
-  const consoleLogAccount = activateConsoleLogPrecompile();
-  cache.put(consoleLogAccount, PRECOMPILED_ACCOUNT);
-  stateManager.touchAccount(consoleLogAccount as any);
   await stateManager.commit();
 };
 
@@ -56,15 +53,4 @@ export const warmPrecompiles = async (stateManager: DefaultStateManager) => {
     const account = makeAccount(i);
     stateManager.addWarmedAddress(account.buf);
   }
-  const consoleLogAccount = activateConsoleLogPrecompile();
-  stateManager.addWarmedAddress(consoleLogAccount.buf as any);
-};
-
-export const activateConsoleLogPrecompile = () => {
-  return {
-    buf: Buffer.from([
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0x63, 0x6f, 0x6e, 0x73, 0x6f, 0x6c, 0x65, 0x2e,
-      0x6c, 0x6f, 0x67
-    ])
-  };
 };
