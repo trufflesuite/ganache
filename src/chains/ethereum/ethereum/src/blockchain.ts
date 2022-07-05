@@ -70,11 +70,12 @@ import {
   makeStepEvent,
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
+  VmConsoleLogEvent,
   VmStepEvent
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import { ConsoleLogs } from "@ganache/console.log";
+import { maybeGetLogs } from "@ganache/console.log";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -98,7 +99,7 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
-  "ganache:vm:tx:console.log": ConsoleLogs;
+  "ganache:vm:tx:console.log": VmConsoleLogEvent;
   ready: undefined;
   stop: undefined;
 };
@@ -1082,6 +1083,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       vm.stateManager.checkpoint();
 
       vm.on("step", (event: InterpreterStep) => {
+        const logs = maybeGetLogs(event);
+        if (logs) this.emit("ganache:vm:tx:console.log", { context, logs });
+
         if (!this.#emitStepEvent) return;
         const ganacheStepEvent = makeStepEvent(transactionContext, event);
         this.emit("ganache:vm:tx:step", ganacheStepEvent);

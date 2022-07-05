@@ -32,7 +32,8 @@ import {
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
   VmStepEvent,
-  MessageEvent
+  MessageEvent,
+  VmConsoleLogEvent
 } from "./provider-events";
 import { ConsoleLogs } from "@ganache/console.log";
 
@@ -132,7 +133,7 @@ export class EthereumProvider
     "ganache:vm:tx:step": VmStepEvent;
     "ganache:vm:tx:before": VmBeforeTransactionEvent;
     "ganache:vm:tx:after": VmAfterTransactionEvent;
-    "ganache:vm:tx:console.log": ConsoleLogs;
+    "ganache:vm:tx:console.log": VmConsoleLogEvent;
     connect: undefined;
     disconnect: undefined;
   }>
@@ -175,9 +176,9 @@ export class EthereumProvider
     blockchain.on("ganache:vm:tx:after", event => {
       this.emit("ganache:vm:tx:after", event);
     });
-    blockchain.on("ganache:vm:tx:console.log", logs => {
-      providerOptions.logging.logger.log(...logs);
-      this.emit("ganache:vm:tx:console.log", logs);
+    blockchain.on("ganache:vm:tx:console.log", event => {
+      providerOptions.logging.logger.log(...event.logs);
+      this.emit("ganache:vm:tx:console.log", event);
     });
 
     hookEventSystem(this, (enable: boolean) => {

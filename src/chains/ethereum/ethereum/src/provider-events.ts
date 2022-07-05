@@ -1,5 +1,6 @@
 import { BUFFER_ZERO, Quantity } from "@ganache/utils";
 import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import { ConsoleLogs } from "@ganache/console.log";
 
 export type EvmStepContext = {};
 
@@ -73,6 +74,11 @@ export type VmBeforeTransactionEvent = {
 
 export type VmAfterTransactionEvent = {
   readonly context: EvmStepContext;
+};
+
+export type VmConsoleLogEvent = {
+  readonly context: EvmStepContext;
+  readonly logs: ConsoleLogs | null;
 };
 
 export type DataEvent = {

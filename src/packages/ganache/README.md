@@ -475,7 +475,7 @@ Server:
 
 ### Ganache Provider Events
 
-In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 3 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
+In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 4 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, `"ganache:vm:tx:after"`, and `"ganache:vm:tx:console.log"`.
 
 These events can be used to observe the lifecycle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
 
@@ -511,9 +511,15 @@ const contexts = new Map();
 provider.on("ganache:vm:tx:before", (event: { context: {} }) => {
   contexts.set(event.context, []);
 });
-provider.on("ganache:vm:tx:step", (event: StepEvent) => {
+provider.on("ganache:vm:tx:step", (event: { context: {}; data: StepEvent }) => {
   contexts.get(event.context).push(event.data);
 });
+provider.on(
+  "ganache:vm:tx:console.log",
+  (event: { context: {}; logs: (string | bigint | boolean)[] }) => {
+    console.log(...event.logs);
+  }
+);
 provider.on("ganache:vm:tx:after", (event: { context: {} }) => {
   doAThingWithThisTransactionsSteps(contexts.get(event.context));
   contexts.delete(event.context);

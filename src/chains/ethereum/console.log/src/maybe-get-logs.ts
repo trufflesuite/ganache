@@ -8,18 +8,34 @@ const CONSOLE_PRECOMPILE = new BN(
   ])
 );
 
+/**
+ * The purpose of this type is to help maintainers visualize the layout of
+ * the `stack`.
+ */
+type LogsStack = [
+  ...rest: BN[],
+  inLength: BN,
+  inOffset: BN,
+  toAddress: BN,
+  _: BN
+];
+
 export const maybeGetLogs = ({
+  opcode,
   memory,
   stack
 }: {
+  opcode: { name: string };
   memory: Buffer;
   stack: BN[];
-}) => {
-  // STATICCALL, which is the OPCODE that is used to initiate a console.log, has
-  // 6 params, but we only care about the following 3.
-  const [inLength, inOffset, toAddress] = stack.slice(-4, -1);
+}): ConsoleLogs | null => {
+  if (opcode.name !== "STATICCALL") return null;
 
-  // if the toAddress is our precompile address we should try parsing
+  // STATICCALL, which is the OPCODE that is used to initiate a console.log, has
+  // 6 params, but we only care about these 3:
+  const [inLength, inOffset, toAddress] = (stack as LogsStack).slice(-4, -1);
+
+  // only if the toAddress is our precompile address we should try parsing
   if (!toAddress.eq(CONSOLE_PRECOMPILE)) return null;
 
   // STATICCALL allows for passing in invalid pointers and lengths
@@ -42,4 +58,5 @@ export const maybeGetLogs = ({
   }
 };
 
-export type ConsoleLogs = ReturnType<typeof maybeGetLogs>;
+export type ConsoleLog = string | bigint | boolean;
+export type ConsoleLogs = ConsoleLog[];
