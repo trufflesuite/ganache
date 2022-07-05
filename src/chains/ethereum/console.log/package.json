@@ -16,9 +16,9 @@
     "test": "tests"
   },
   "files": [
-    "lib",
-    "typings",
-    "./console.sol"
+    "lib/",
+    "typings/",
+    "console.sol"
   ],
   "repository": {
     "type": "git",
