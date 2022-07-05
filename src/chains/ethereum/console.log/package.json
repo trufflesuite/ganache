@@ -4,7 +4,7 @@
     "access": "public"
   },
   "version": "0.1.0",
-  "description": "",
+  "description": "A Solidity library and EVM hooks for using console.log from Solidity contracts",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/console.log#readme",
   "license": "MIT",
@@ -39,6 +39,8 @@
     "ganache-core",
     "ganache-cli",
     "console.log",
+    "truffle console.log",
+    "solidity console.log",
     "ethereum",
     "evm",
     "blockchain",
