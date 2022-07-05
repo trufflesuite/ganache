@@ -110,11 +110,7 @@ function getSignature(
   }
 
   const names =
-    params.length === 1
-      ? ["value"]
-      : params.map((_, i) => {
-          return `value${i + 1}`;
-        });
+    params.length === 1 ? ["value"] : params.map((_, i) => `value${i + 1}`);
   const fullParamsWithNames = params.map((arg, i) => arg + " " + names[i]);
   const encodeArgs = [`"${abiSignatureString}"`, ...names];
   const printComment = params.length > 1 && abiParams[0] === "string";
