@@ -76,6 +76,7 @@ describe("@ganache/console.log", () => {
       database: { db: memdown() }
     });
   });
+
   before("get our account address", function () {
     [from] = Object.keys(provider.getInitialAccounts());
   });
@@ -166,6 +167,21 @@ describe("@ganache/console.log", () => {
     return allLogs;
   }
 
+  async function callLogFunction(
+    params: Param[] | null,
+    method: string,
+    contractAddress: string
+  ) {
+    // send our logging transaction
+    return provider.send("eth_sendTransaction", [
+      {
+        from,
+        to: contractAddress,
+        data: "0x" + method + encode(params).toString("hex")
+      }
+    ]);
+  }
+
   async function runTest(
     params: Param[] | null,
     method: string,
@@ -173,13 +189,11 @@ describe("@ganache/console.log", () => {
   ) {
     try {
       // send our logging transaction
-      const transactionPromise = provider.send("eth_sendTransaction", [
-        {
-          from,
-          to: contractAddress,
-          data: "0x" + method + encode(params).toString("hex")
-        }
-      ]);
+      const transactionPromise = callLogFunction(
+        params,
+        method,
+        contractAddress
+      );
 
       // collection all logs during the transaction's execution
       const allLogs = await collectLogs();
@@ -204,6 +218,7 @@ describe("@ganache/console.log", () => {
         "0x1",
         "Transaction didn't complete successfully"
       );
+      return receipt;
     } finally {
       logger.log = () => {};
     }
@@ -233,7 +248,7 @@ describe("@ganache/console.log", () => {
           endOnFailure: true
         }
       );
-    }).timeout(0);
+    }).timeout(30000);
 
     for (const [key, arb] of primitiveArbitraries.entries()) {
       it(`logs expected values for ${key} signatures`, async () => {
@@ -256,7 +271,7 @@ describe("@ganache/console.log", () => {
           }),
           { numRuns: 5, endOnFailure: true }
         );
-      }).timeout(0);
+      }).timeout(30000);
     }
   });
 
@@ -265,14 +280,15 @@ describe("@ganache/console.log", () => {
       return [`bytes${n}`, ["0x" + "00".padEnd(n * 2, "0")]];
     }
 
-    // `staticValues` genenerates 1000s of tests
+    // `staticValues` genenerates 1000s of tests, adding a single additional
+    // value increases test counts factorially
     const staticValues = new Map([
       ["string memory", ["", "This string takes up more than 32 bytes"]],
       [
         "address",
         [
-          "0xff00000000000000000000000000000000000000",
-          "0x00000000000000000000000000000000000000ff"
+          "0xff00000000000000000000000000000000000000", // preserves right padded
+          "0x00000000000000000000000000000000000000ff" // preserves left padded
         ]
       ],
       ["bool", [true, false]],
@@ -283,7 +299,7 @@ describe("@ganache/console.log", () => {
         [
           "0x00ff", // preserves left padded
           "0xff00", // preserves right padded
-          "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // 64 bytes
+          "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // two words wide (64 bytes)
         ]
       ],
       ...Array.from({ length: 32 }).map((_, i) => generateBytesN(i + 1))
@@ -324,6 +340,32 @@ describe("@ganache/console.log", () => {
       // calls to the `console.log`.
       const method = get4ByteForSignature("adversarialTest()");
       await runTest(null, method, contractAddress);
+    });
+
+    it("uses minimal gas", async () => {
+      // the console.sol contract needs to be warmed so that its gas usage is
+      // minimized. First-time account access, i.e., accessing an account that
+      // doesn't yet exist (and after byzantium the account must also have a
+      // non-zero balance), costs 25000 gas.
+      const func = functions.find(
+        f => f.params.length === 1 && f.params[0].type === "string memory"
+      );
+      const method = get4ByteForSignature(`${func.functionName}(string)`);
+      const receipt = await runTest(
+        [{ type: func.params[0].type, value: "Hello, World!" }],
+        method,
+        contractAddress
+      );
+
+      // Our expectation of the amount of gas used may need to be updated as new
+      // hardforks are added and other changes happen. This gas amount is a
+      // sanity check to ensure we don't accidentally introduce an expensive
+      // change into our console.sol contract. It doesn't _have_ to be this
+      // value; just keep it sane.
+      //
+      // Expected value for "log(Hello, World!)" at time of writing this
+      // comment: 26_070.
+      assert.strictEqual(parseInt(receipt.gasUsed, 16), 26_070);
     });
 
     let counter = 0;
