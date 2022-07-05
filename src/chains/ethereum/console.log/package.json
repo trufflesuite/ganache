@@ -28,7 +28,7 @@
   "scripts": {
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "mocha": "cross-env TS_NODE_FILES=true mocha --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
     "prepare": "cd scripts && ts-node generate"
   },
   "bugs": {
