@@ -23,7 +23,7 @@ The `console.sol` library is available at `@ganache/console.log/console.sol`.
 There are various ways to make this file available to your contracts and
 Solidity build pipelines, so this part is left up to the user.
 
-Use it in Solidity just like any other library, e.g.,:
+Use it in Solidity just like any other library, e.g.,
 
 ```solidity
 // SPDX-License-Identifier: MIT
