@@ -2834,7 +2834,7 @@ export default class EthereumApi implements Api {
         }
 
         if (!baseFee) {
-          baseFeePerGas.unshift(0);
+          baseFeePerGas.unshift(Quantity.from(0).toString());
         } else {
           baseFeePerGas.unshift(Quantity.from(baseFee).toString());
         }
