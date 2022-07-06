@@ -8,10 +8,13 @@ import {
   getSignatures,
   compileContract,
   createContract,
-  FunctionDescriptor
+  FunctionDescriptor,
+  hardhatTypeAliases,
+  combinatorTypes
 } from "../scripts/helpers";
 import { keccak } from "@ganache/utils";
 import { formatWithOptions } from "util";
+import { signatureMap } from "../src/signatures";
 
 type Param = {
   type: string;
@@ -300,7 +303,7 @@ describe("@ganache/console.log", () => {
         [
           "0x00ff", // preserves left padded
           "0xff00", // preserves right padded
-          "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // two words wide (64 bytes)
+          "0x" + "ff".repeat(64) // two words wide (64 bytes)
         ]
       ],
       ...Array.from({ length: 32 }).map((_, i) => generateBytesN(i + 1))
@@ -429,30 +432,61 @@ describe("@ganache/console.log", () => {
         assertLogs(await logsProm, null);
       });
 
-      it("does NOT log when `console.log` is called within an `debug_storageRangeAt`", async () => {
-        const txHash = await sendLoggingTransaction(
-          params,
-          method,
-          contractAddress
-        );
-        const receipt = await provider.send("eth_getTransactionReceipt", [
-          txHash
-        ]);
-        assert.strictEqual(receipt.status, "0x1");
+      describe("debug_storageRangeAt", () => {
+        before("stop the miner", async () => {
+          // we need to send two transactions in one block, so we stop the miner
+          // so we can add them to the pool:
+          await provider.send("miner_stop");
+        });
 
-        const logsProm = watchLogs();
-        // execute our logging tx via `debug_storageRangeAt`
-        const result = await provider.send("debug_storageRangeAt", [
-          receipt.blockHash,
-          parseInt(receipt.transactionIndex, 16),
-          receipt.to,
-          "0x00",
-          1
-        ]);
+        after("start the miner", async () => {
+          await provider.send("miner_start");
+        });
 
-        // make sure it didn't log
-        assertLogs(await logsProm, null);
-        return result;
+        it("does NOT log when `console.log` is called within an `debug_storageRangeAt`", async () => {
+          // note: this test is borderline silly to have, because the
+          // `debug_storageRangeAt` implementation never listens to the EVM step
+          // event, so it can't possibly call console.log. Leaving the test in
+          // despite this to help prevent future regressions.
+
+          // send first transaction to pool:
+          await sendLoggingTransaction(params, method, contractAddress);
+
+          // send second transaction to pool:
+          const txHash = await sendLoggingTransaction(
+            params,
+            method,
+            contractAddress
+          );
+
+          // mine them both:
+          await provider.send("evm_mine");
+
+          const receipt = await provider.send("eth_getTransactionReceipt", [
+            txHash
+          ]);
+          assert.strictEqual(receipt.status, "0x1");
+          assert.strictEqual(receipt.transactionIndex, "0x1");
+
+          const allLogs = [];
+          logger.log = (...logs: any[]) => {
+            if (logs[0] === "debug_storageRangeAt") return;
+            allLogs.push(logs);
+          };
+          try {
+            // execute our logging tx via `debug_storageRangeAt`
+            await provider.send("debug_storageRangeAt", [
+              receipt.blockHash,
+              parseInt(receipt.transactionIndex, 16),
+              receipt.to,
+              "0x00",
+              1
+            ]);
+            assert.strictEqual(allLogs.length, 0);
+          } finally {
+            logger.log = () => {};
+          }
+        });
       });
 
       it("uses minimal gas", async () => {
@@ -467,6 +501,25 @@ describe("@ganache/console.log", () => {
         // Expected value for "log(Hello, World!)" at time of writing this
         // comment: 26_070.
         assert.strictEqual(parseInt(receipt.gasUsed, 16), 26_070);
+      });
+
+      describe("hardhat aliases", () => {
+        for (const [type, alias] of hardhatTypeAliases.entries()) {
+          it(`handles hardhat alias signature for log(${type}) => log(${alias})`, () => {
+            const aliasSignature = parseInt(
+              get4ByteForSignature(`log(${alias})`),
+              16
+            );
+            const signature = parseInt(
+              get4ByteForSignature(`log(${type})`),
+              16
+            );
+            assert.notStrictEqual(aliasSignature, signature);
+            const aliasHandlers = signatureMap.get(aliasSignature);
+            const handlers = signatureMap.get(aliasSignature);
+            assert.deepStrictEqual(aliasHandlers, handlers);
+          });
+        }
       });
     });
   });

@@ -33,8 +33,8 @@ library console {
         _sendLogPayload(abi.encodeWithSignature("log(uint256)", value));
     }
 
-    function logUint(uint value) internal view {
-        _sendLogPayload(abi.encodeWithSignature("log(uint)", value));
+    function logUint(uint256 value) internal view {
+        _sendLogPayload(abi.encodeWithSignature("log(uint256)", value));
     }
 
     function logBytes(bytes memory value) internal view {
@@ -45,8 +45,8 @@ library console {
         _sendLogPayload(abi.encodeWithSignature("log(int256)", value));
     }
 
-    function logInt(int value) internal view {
-        _sendLogPayload(abi.encodeWithSignature("log(int)", value));
+    function logInt(int256 value) internal view {
+        _sendLogPayload(abi.encodeWithSignature("log(int256)", value));
     }
 
     function logBytes1(bytes1 value) internal view {

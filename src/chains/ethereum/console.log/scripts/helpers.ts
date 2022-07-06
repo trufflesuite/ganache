@@ -37,7 +37,7 @@ const primitiveTypes = [...combinatorTypes, "bytes memory", "int256"] as const;
  * Hardhat abi encodes uint instead of uint256. This saves a couple of bytes,
  * but is incorrect.
  */
-const hardhatTypeAliases: Map<SolidityType, SolidityType> = new Map([
+export const hardhatTypeAliases: Map<SolidityType, SolidityType> = new Map([
   ["uint256", "uint"],
   ["int256", "int"]
 ]);
@@ -134,16 +134,11 @@ function getSignature(
   };
 }
 
-function* getNamedLogFunctionName(type: SolidityType) {
+function getNamedLogFunctionName(type: SolidityType) {
   const logName = `log${
     type[0].toUpperCase() + type.replace(" memory", "").slice(1)
   }`;
-  yield { type, logName };
-
-  if (hardhatTypeAliases.get(type)) {
-    const alias = hardhatTypeAliases.get(type);
-    yield* getNamedLogFunctionName(alias);
-  }
+  return logName;
 }
 
 /**
@@ -156,8 +151,18 @@ function* getNamedLogFunctionName(type: SolidityType) {
  * @param solidityType
  */
 function* getNamedSignature(solidityType: SolidityType) {
-  for (const { type, logName } of getNamedLogFunctionName(solidityType)) {
-    yield getSignature([type], logName);
+  const logName = getNamedLogFunctionName(solidityType);
+  yield getSignature([solidityType], logName);
+
+  if (hardhatTypeAliases.get(solidityType)) {
+    const alias = hardhatTypeAliases.get(solidityType);
+    const aliasLogName = getNamedLogFunctionName(alias);
+    const solditiySignature = getSignature([solidityType], aliasLogName);
+    delete solditiySignature.javascript;
+    const javascriptSignature = getSignature([alias], aliasLogName);
+    delete javascriptSignature.solidity;
+    yield solditiySignature;
+    yield javascriptSignature;
   }
 }
 
