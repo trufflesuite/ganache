@@ -156,14 +156,19 @@ describe("@ganache/console.log", () => {
   async function collectLogs() {
     const allLogs: any[] = [];
 
+    await provider.once("ganache:vm:tx:before");
+
     // start listening for logs
     logger.log = (...logs: any[]) => {
       allLogs.push(logs);
     };
 
     // we're done listening to logs once the transaction completes
-    await provider.once("ganache:vm:tx:after");
-    logger.log = () => {};
+    try {
+      await provider.once("ganache:vm:tx:after");
+    } finally {
+      logger.log = () => {};
+    }
     return allLogs;
   }
 
@@ -182,46 +187,59 @@ describe("@ganache/console.log", () => {
     ]);
   }
 
-  async function runTest(
+  async function checkLogs(params: Param[] | null) {
+    // collection all logs during the transaction's execution
+    const allLogs = await collectLogs();
+
+    if (params == null) {
+      // if params is null we shouldn't have collected any logs
+      assert.strictEqual(allLogs.length, 0);
+    } else {
+      // ensure we logged the right things
+      assert.deepStrictEqual(
+        allLogs[0],
+        params.map(p => p.value)
+      );
+    }
+  }
+
+  async function runCallTest(
     params: Param[] | null,
     method: string,
     contractAddress: string
   ) {
-    try {
-      // send our logging transaction
-      const transactionPromise = callLogFunction(
-        params,
-        method,
-        contractAddress
-      );
-
-      // collection all logs during the transaction's execution
-      const allLogs = await collectLogs();
-
-      if (params == null) {
-        // if params is null we shouldn't have collected any logs
-        assert.strictEqual(allLogs.length, 0);
-      } else {
-        // ensure we logged the right things
-        assert.deepStrictEqual(
-          allLogs[0],
-          params.map(p => p.value)
-        );
+    // send our logging transaction
+    const logsProm = checkLogs(params);
+    const result = await provider.send("eth_call", [
+      {
+        from,
+        to: contractAddress,
+        data: "0x" + method + encode(params).toString("hex")
       }
+    ]);
+    await logsProm;
+    return result;
+  }
 
-      const txHash = await transactionPromise;
-      const receipt = await provider.send("eth_getTransactionReceipt", [
-        txHash
-      ]);
-      assert.strictEqual(
-        receipt.status,
-        "0x1",
-        "Transaction didn't complete successfully"
-      );
-      return receipt;
-    } finally {
-      logger.log = () => {};
-    }
+  async function runTransactionTest(
+    params: Param[] | null,
+    method: string,
+    contractAddress: string
+  ) {
+    const logsProm = checkLogs(params);
+    // send our logging transaction
+    const transactionPromise = callLogFunction(params, method, contractAddress);
+
+    await logsProm;
+
+    const txHash = await transactionPromise;
+    const receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
+    assert.strictEqual(
+      receipt.status,
+      "0x1",
+      "Transaction didn't complete successfully"
+    );
+    return receipt;
   }
 
   describe("fast-check", () => {
@@ -241,7 +259,7 @@ describe("@ganache/console.log", () => {
           );
           const code = compileContract(contractSource);
           const contractAddress = await deploy(code);
-          await runTest(params, method, contractAddress);
+          await runTransactionTest(params, method, contractAddress);
         }),
         {
           numRuns: 10,
@@ -267,7 +285,7 @@ describe("@ganache/console.log", () => {
             );
             const code = compileContract(contractSource);
             const contractAddress = await deploy(code);
-            await runTest([param], method, contractAddress);
+            await runTransactionTest([param], method, contractAddress);
           }),
           { numRuns: 5, endOnFailure: true }
         );
@@ -332,6 +350,18 @@ describe("@ganache/console.log", () => {
       contractAddress = await deploy(code);
     });
 
+    it("logs when `console.log` is called within an `eth_call`", async () => {
+      const func = functions.find(
+        f => f.params.length === 1 && f.params[0].type === "string memory"
+      );
+      const method = get4ByteForSignature(`${func.functionName}(string)`);
+      await runCallTest(
+        [{ type: func.params[0].type, value: "Hello, World!" }],
+        method,
+        contractAddress
+      );
+    });
+
     it("doesn't log when console.sol is called adversarially or in odd ways", async () => {
       // when the `adversarialTest` test contract function is called `runTest`
       // should NOT detect any logs, the transaction should NOT fail, and
@@ -339,23 +369,19 @@ describe("@ganache/console.log", () => {
       // basically this tests that Ganache doesn't do anything with adversarial
       // calls to the `console.log`.
       const method = get4ByteForSignature("adversarialTest()");
-      await runTest(null, method, contractAddress);
+      await runTransactionTest(null, method, contractAddress);
     });
 
     it("uses minimal gas", async () => {
-      // the console.sol contract needs to be warmed so that its gas usage is
-      // minimized. First-time account access, i.e., accessing an account that
-      // doesn't yet exist (and after byzantium the account must also have a
-      // non-zero balance), costs 25000 gas.
       const func = functions.find(
         f => f.params.length === 1 && f.params[0].type === "string memory"
       );
       const method = get4ByteForSignature(`${func.functionName}(string)`);
-      const receipt = await runTest(
+      const receipt = (await runTransactionTest(
         [{ type: func.params[0].type, value: "Hello, World!" }],
         method,
         contractAddress
-      );
+      )) as any;
 
       // Our expectation of the amount of gas used may need to be updated as new
       // hardforks are added and other changes happen. This gas amount is a
@@ -393,7 +419,7 @@ describe("@ganache/console.log", () => {
         cartesianProductOfAllValues.forEach(vals => {
           it(`with values: ${format(vals)}`, async () => {
             const args = zip(params, vals, (type, value) => ({ type, value }));
-            await runTest(args, method, contractAddress);
+            await runTransactionTest(args, method, contractAddress);
           });
         });
       });
