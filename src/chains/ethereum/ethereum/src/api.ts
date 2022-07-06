@@ -97,6 +97,7 @@ const RPC_MODULES = {
   evm: "1.0",
   personal: "1.0"
 } as const;
+const EIP1559_HARDFORK = "london";
 //#endregion
 
 //#region helpers
@@ -2806,18 +2807,59 @@ export default class EthereumApi implements Api {
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles?: [number]
   ): Promise<Ethereum.FeeHistoryResult> {
-    // Do Stuff
     let blocks = [];
-    console.log(blockCount);
-    console.log(newestBlock);
-    const block = await this.#blockchain.blocks
-      .get(newestBlock)
-      .catch<Block>(_ => null);
-    console.log(block);
+    const reward = [];
+    const baseFeePerGas = [];
+    const gasUsedRatio = [];
+    const blockchain = this.#blockchain;
+
+    let blocksToFetch = Quantity.toNumber(blockCount);
+    let currentBlockNumber = blockchain.blocks
+      .getEffectiveNumber(newestBlock)
+      .toNumber();
+    let oldestBlock = Quantity.from(currentBlockNumber).toString();
+
+    while (blocksToFetch > 0 && currentBlockNumber >= 0) {
+      const currentBlock = await blockchain.blocks.get(currentBlockNumber);
+      if (currentBlock) {
+        oldestBlock = Quantity.from(currentBlockNumber).toString();
+        const gasUsed = currentBlock.header.gasUsed.toBigInt();
+        const gasLimit = currentBlock.header.gasLimit.toBigInt();
+        const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
+
+        if (gasUsed === 0n) {
+          gasUsedRatio.unshift(0);
+        } else {
+          gasUsedRatio.unshift(Quantity.from(gasUsed / gasLimit).toNumber());
+        }
+
+        if (!baseFee) {
+          baseFeePerGas.unshift(0);
+        } else {
+          baseFeePerGas.unshift(Quantity.from(baseFee).toString());
+        }
+
+        // get reward percentile
+      }
+
+      // calc next block baseFeePerGas
+
+      console.log(currentBlockNumber);
+
+      currentBlockNumber--;
+      blocksToFetch--;
+    }
+
+    console.log({
+      oldestBlock,
+      baseFeePerGas,
+      gasUsedRatio
+    });
+
     return {
-      oldestBlock: "0x10",
-      baseFeePerGas: ["0x10"],
-      gasUsedRatio: [59.99]
+      oldestBlock,
+      baseFeePerGas,
+      gasUsedRatio
     };
   }
   //#endregion
