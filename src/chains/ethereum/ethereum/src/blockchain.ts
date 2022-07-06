@@ -346,8 +346,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         miner.on("ganache:vm:tx:after", event => {
           this.emit("ganache:vm:tx:after", event);
         });
-        miner.on("ganache:vm:tx:console.log", logs => {
-          this.emit("ganache:vm:tx:console.log", logs);
+        miner.on("ganache:vm:tx:console.log", event => {
+          options.logging.logger.log(...event.logs);
+          this.emit("ganache:vm:tx:console.log", event);
         });
         //#endregion
 
@@ -1070,10 +1071,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         null,
         parentBlock.header.number
       );
+      const options = this.#options;
 
       const vm = await this.createVmFromStateTrie(
         stateTrie,
-        this.#options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedContractSize,
         false, // precompiles have already been initialized in the stateTrie
         common
       );
@@ -1084,7 +1086,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       vm.on("step", (event: InterpreterStep) => {
         const logs = maybeGetLogs(event);
-        if (logs) this.emit("ganache:vm:tx:console.log", { context, logs });
+        if (logs) {
+          options.logging.logger.log(...logs);
+          this.emit("ganache:vm:tx:console.log", { context, logs });
+        }
 
         if (!this.#emitStepEvent) return;
         const ganacheStepEvent = makeStepEvent(transactionContext, event);

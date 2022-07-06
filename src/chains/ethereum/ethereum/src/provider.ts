@@ -177,7 +177,6 @@ export class EthereumProvider
       this.emit("ganache:vm:tx:after", event);
     });
     blockchain.on("ganache:vm:tx:console.log", event => {
-      providerOptions.logging.logger.log(...event.logs);
       this.emit("ganache:vm:tx:console.log", event);
     });
 

@@ -147,13 +147,36 @@ describe("@ganache/console.log", () => {
         );
   }
 
-  /**
-   * Hooks into ganache's log function and compares its output to what is
-  // expected (`params`).
-   * @param params 
-   * @returns 
-   */
-  async function collectLogs() {
+  async function sendLoggingTransaction(
+    params: Param[] | null,
+    method: string,
+    contractAddress: string
+  ) {
+    // send our logging transaction
+    return provider.send("eth_sendTransaction", [
+      {
+        from,
+        to: contractAddress,
+        data: "0x" + method + encode(params).toString("hex")
+      }
+    ]);
+  }
+
+  function assertLogs(logs: any[], expectedParams: Param[] | null) {
+    if (expectedParams == null) {
+      // if params is null we shouldn't have collected any logs
+      assert.strictEqual(logs.length, 0);
+    } else {
+      // ensure we logged the right things
+      assert.deepStrictEqual(
+        logs[0],
+        expectedParams.map(p => p.value)
+      );
+    }
+  }
+
+  async function watchLogs() {
+    // collection all logs during the transaction's execution
     const allLogs: any[] = [];
 
     await provider.once("ganache:vm:tx:before");
@@ -172,73 +195,31 @@ describe("@ganache/console.log", () => {
     return allLogs;
   }
 
-  async function callLogFunction(
+  async function runTxTest(
     params: Param[] | null,
     method: string,
     contractAddress: string
   ) {
+    const logsProm = watchLogs();
+
     // send our logging transaction
-    return provider.send("eth_sendTransaction", [
-      {
-        from,
-        to: contractAddress,
-        data: "0x" + method + encode(params).toString("hex")
-      }
-    ]);
-  }
+    const transactionPromise = sendLoggingTransaction(
+      params,
+      method,
+      contractAddress
+    );
 
-  async function checkLogs(params: Param[] | null) {
-    // collection all logs during the transaction's execution
-    const allLogs = await collectLogs();
-
-    if (params == null) {
-      // if params is null we shouldn't have collected any logs
-      assert.strictEqual(allLogs.length, 0);
-    } else {
-      // ensure we logged the right things
-      assert.deepStrictEqual(
-        allLogs[0],
-        params.map(p => p.value)
-      );
-    }
-  }
-
-  async function runCallTest(
-    params: Param[] | null,
-    method: string,
-    contractAddress: string
-  ) {
-    // send our logging transaction
-    const logsProm = checkLogs(params);
-    const result = await provider.send("eth_call", [
-      {
-        from,
-        to: contractAddress,
-        data: "0x" + method + encode(params).toString("hex")
-      }
-    ]);
-    await logsProm;
-    return result;
-  }
-
-  async function runTransactionTest(
-    params: Param[] | null,
-    method: string,
-    contractAddress: string
-  ) {
-    const logsProm = checkLogs(params);
-    // send our logging transaction
-    const transactionPromise = callLogFunction(params, method, contractAddress);
-
-    await logsProm;
+    assertLogs(await logsProm, params);
 
     const txHash = await transactionPromise;
     const receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
+
     assert.strictEqual(
       receipt.status,
       "0x1",
       "Transaction didn't complete successfully"
     );
+
     return receipt;
   }
 
@@ -259,7 +240,8 @@ describe("@ganache/console.log", () => {
           );
           const code = compileContract(contractSource);
           const contractAddress = await deploy(code);
-          await runTransactionTest(params, method, contractAddress);
+
+          await runTxTest(params, method, contractAddress);
         }),
         {
           numRuns: 10,
@@ -285,7 +267,8 @@ describe("@ganache/console.log", () => {
             );
             const code = compileContract(contractSource);
             const contractAddress = await deploy(code);
-            await runTransactionTest([param], method, contractAddress);
+
+            await runTxTest([param], method, contractAddress);
           }),
           { numRuns: 5, endOnFailure: true }
         );
@@ -344,54 +327,10 @@ describe("@ganache/console.log", () => {
     const functions: FunctionDescriptor[] = [];
 
     before("compile and deploy contract", async function () {
-      this.timeout(0); // compilation may take many seconds
+      this.timeout(60000); // compilation may take many seconds
       const contractSource = createContract(functions);
       const code = compileContract(contractSource);
       contractAddress = await deploy(code);
-    });
-
-    it("logs when `console.log` is called within an `eth_call`", async () => {
-      const func = functions.find(
-        f => f.params.length === 1 && f.params[0].type === "string memory"
-      );
-      const method = get4ByteForSignature(`${func.functionName}(string)`);
-      await runCallTest(
-        [{ type: func.params[0].type, value: "Hello, World!" }],
-        method,
-        contractAddress
-      );
-    });
-
-    it("doesn't log when console.sol is called adversarially or in odd ways", async () => {
-      // when the `adversarialTest` test contract function is called `runTest`
-      // should NOT detect any logs, the transaction should NOT fail, and
-      // Ganache should not crash (or return an error).
-      // basically this tests that Ganache doesn't do anything with adversarial
-      // calls to the `console.log`.
-      const method = get4ByteForSignature("adversarialTest()");
-      await runTransactionTest(null, method, contractAddress);
-    });
-
-    it("uses minimal gas", async () => {
-      const func = functions.find(
-        f => f.params.length === 1 && f.params[0].type === "string memory"
-      );
-      const method = get4ByteForSignature(`${func.functionName}(string)`);
-      const receipt = await runTransactionTest(
-        [{ type: func.params[0].type, value: "Hello, World!" }],
-        method,
-        contractAddress
-      );
-
-      // Our expectation of the amount of gas used may need to be updated as new
-      // hardforks are added and other changes happen. This gas amount is a
-      // sanity check to ensure we don't accidentally introduce an expensive
-      // change into our console.sol contract. It doesn't _have_ to be this
-      // value; just keep it sane.
-      //
-      // Expected value for "log(Hello, World!)" at time of writing this
-      // comment: 26_070.
-      assert.strictEqual(parseInt(receipt.gasUsed, 16), 26_070);
     });
 
     let counter = 0;
@@ -419,10 +358,116 @@ describe("@ganache/console.log", () => {
         cartesianProductOfAllValues.forEach(vals => {
           it(`with values: ${format(vals)}`, async () => {
             const args = zip(params, vals, (type, value) => ({ type, value }));
-            await runTransactionTest(args, method, contractAddress);
+            await runTxTest(args, method, contractAddress);
           });
         });
       });
     }
+
+    describe("miscellaneous", () => {
+      const func = functions.find(
+        f => f.params.length === 1 && f.params[0].type === "string memory"
+      );
+      const method = get4ByteForSignature(`${func.functionName}(string)`);
+      const params = [{ type: func.params[0].type, value: "Hello, World!" }];
+
+      it("doesn't log when console.sol is called adversarially or in odd ways", async () => {
+        // when the `adversarialTest` test contract function is called `runTest`
+        // should NOT detect any logs, the transaction should NOT fail, and
+        // Ganache should not crash (or return an error).
+        // basically this tests that Ganache doesn't do anything with adversarial
+        // calls to the `console.log`.
+        const method = get4ByteForSignature("adversarialTest()");
+        await runTxTest(null, method, contractAddress);
+      });
+
+      it("logs when `console.log` is called within an `eth_call`", async () => {
+        const logsProm = watchLogs();
+        await provider.send("eth_call", [
+          {
+            from,
+            to: contractAddress,
+            data: "0x" + method + encode(params).toString("hex")
+          }
+        ]);
+        assertLogs(await logsProm, params);
+      });
+
+      it("does NOT log when `console.log` is called within an `eth_estimateGas`", async () => {
+        const allLogs = [];
+        logger.log = (...logs: any[]) => {
+          if (logs[0] === "eth_estimateGas") return;
+
+          allLogs.push(logs);
+        };
+        try {
+          const result = await provider.send("eth_estimateGas", [
+            {
+              from,
+              to: contractAddress,
+              data: "0x" + method + encode(params).toString("hex")
+            }
+          ]);
+          assert.notEqual(result, "0x");
+        } finally {
+          logger.log = () => {};
+        }
+      });
+
+      it("does NOT log when `console.log` is called within an `debug_traceTransaction`", async () => {
+        const txHash = await sendLoggingTransaction(
+          params,
+          method,
+          contractAddress
+        );
+
+        const logsProm = watchLogs();
+        // execute our logging tx via `debug_traceTransaction`
+        await provider.send("debug_traceTransaction", [txHash]);
+
+        // make sure it didn't log
+        assertLogs(await logsProm, null);
+      });
+
+      it("does NOT log when `console.log` is called within an `debug_storageRangeAt`", async () => {
+        const txHash = await sendLoggingTransaction(
+          params,
+          method,
+          contractAddress
+        );
+        const receipt = await provider.send("eth_getTransactionReceipt", [
+          txHash
+        ]);
+        assert.strictEqual(receipt.status, "0x1");
+
+        const logsProm = watchLogs();
+        // execute our logging tx via `debug_storageRangeAt`
+        const result = await provider.send("debug_storageRangeAt", [
+          receipt.blockHash,
+          parseInt(receipt.transactionIndex, 16),
+          receipt.to,
+          "0x00",
+          1
+        ]);
+
+        // make sure it didn't log
+        assertLogs(await logsProm, null);
+        return result;
+      });
+
+      it("uses minimal gas", async () => {
+        const receipt = await runTxTest(params, method, contractAddress);
+
+        // Our expectation of the amount of gas used may need to be updated as new
+        // hardforks are added and other changes happen. This gas amount is a
+        // sanity check to ensure we don't accidentally introduce an expensive
+        // change into our console.sol contract. It doesn't _have_ to be this
+        // value; just keep it sane.
+        //
+        // Expected value for "log(Hello, World!)" at time of writing this
+        // comment: 26_070.
+        assert.strictEqual(parseInt(receipt.gasUsed, 16), 26_070);
+      });
+    });
   });
 });
