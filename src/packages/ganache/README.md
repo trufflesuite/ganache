@@ -29,6 +29,7 @@
 
 Ganache is an Ethereum simulator that makes developing Ethereum applications faster, easier, and safer. It includes all popular RPC functions and features (like events) and can be run deterministically to make development a breeze.
 
+- `console.log` in Solidity
 - Zero-config Mainnet Forking
 - Fork any Ethereum network without waiting to sync
 - Ethereum JSON-RPC support
@@ -531,6 +532,13 @@ The reason this `context` is necessary is that Ganache may run multiple transact
 The above events will be emitted for `eth_call`, `*sendTransaction`, `debug_traceTransaction`, and `debug_storageRangeAt`.
 
 Currently, we do not await the event listener's return value, however, we'll likely enable this in the future.
+
+## `console.log` in Solidity
+
+By default, Ganache logs to stdout when a contract executes a `console.log`
+Solidity statement during `eth_call`, `eth_sendTransaction`, `personal_sendTransaction`, and `eth_sendRawTransaction`.
+See the [@ganache/console.log package](https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/console.log)
+for implementation and usage.
 
 ## Community
 

@@ -3,7 +3,7 @@
 A Solidity library and EVM hooks for using `console.log` from Solidity
 contracts.
 
-Usage:
+## Usage:
 
 `@ganache/console.log` was designed to be used with the [`@ethereumjs/vm` npm
 package](https://www.npmjs.com/package/@ethereumjs/vm).
