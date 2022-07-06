@@ -374,9 +374,9 @@ describe("@ganache/console.log", () => {
       const params = [{ type: func.params[0].type, value: "Hello, World!" }];
 
       it("doesn't log when console.sol is called adversarially or in odd ways", async () => {
-        // when the `adversarialTest` test contract function is called `runTest`
-        // should NOT detect any logs, the transaction should NOT fail, and
-        // Ganache should not crash (or return an error).
+        // when the `adversarialTest` test contract function is called
+        // `runTxTest` should NOT detect any logs, the transaction should NOT
+        // fail, and Ganache should not crash (or return an error).
         // basically this tests that Ganache doesn't do anything with adversarial
         // calls to the `console.log`.
         const method = get4ByteForSignature("adversarialTest()");
