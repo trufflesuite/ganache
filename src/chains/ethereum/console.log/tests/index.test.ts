@@ -250,7 +250,7 @@ describe("@ganache/console.log", () => {
           endOnFailure: true
         }
       );
-    }).timeout(30000);
+    }).timeout(60000);
 
     for (const [key, arb] of primitiveArbitraries.entries()) {
       it(`logs expected values for ${key} signatures`, async () => {
@@ -274,7 +274,7 @@ describe("@ganache/console.log", () => {
           }),
           { numRuns: 5, endOnFailure: true }
         );
-      }).timeout(30000);
+      }).timeout(60000);
     }
   });
 
