@@ -9,8 +9,7 @@ import {
   compileContract,
   createContract,
   FunctionDescriptor,
-  hardhatTypeAliases,
-  combinatorTypes
+  hardhatTypeAliases
 } from "../scripts/helpers";
 import { keccak } from "@ganache/utils";
 import { formatWithOptions } from "util";
@@ -433,13 +432,13 @@ describe("@ganache/console.log", () => {
       });
 
       describe("debug_storageRangeAt", () => {
-        before("stop the miner", async () => {
+        beforeEach("stop the miner", async () => {
           // we need to send two transactions in one block, so we stop the miner
           // so we can add them to the pool:
           await provider.send("miner_stop");
         });
 
-        after("start the miner", async () => {
+        afterEach("start the miner", async () => {
           await provider.send("miner_start");
         });
 
@@ -499,8 +498,8 @@ describe("@ganache/console.log", () => {
         // value; just keep it sane.
         //
         // Expected value for "log(Hello, World!)" at time of writing this
-        // comment: 26_070.
-        assert.strictEqual(parseInt(receipt.gasUsed, 16), 26_070);
+        // comment: 26_071.
+        assert.strictEqual(parseInt(receipt.gasUsed, 16), 26_071);
       });
 
       describe("hardhat aliases", () => {
