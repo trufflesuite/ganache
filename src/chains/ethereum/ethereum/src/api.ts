@@ -195,7 +195,8 @@ function createSimulatedTransaction(
     gasPrice,
     value: transaction.value == null ? null : Quantity.from(transaction.value),
     data,
-    block
+    block,
+    accessList: transaction.accessList
   };
 }
 const version = process.env.VERSION || "DEV";
