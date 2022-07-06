@@ -2814,13 +2814,28 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
 
     let blocksToFetch = Quantity.toNumber(blockCount);
-    let currentBlockNumber = blockchain.blocks
+    let newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
       .toNumber();
-    let oldestBlock = Quantity.from(currentBlockNumber).toString();
+    let oldestBlock = Quantity.from(newestBlockNumber).toString();
+
+    let currentBlockNumber = newestBlockNumber;
 
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
       const currentBlock = await blockchain.blocks.get(currentBlockNumber);
+
+      // newestBlock can be 'latest' and pending block may not exist,
+      // Maths is cheaper than the db hit, regardless.
+      if (currentBlockNumber === newestBlockNumber) {
+        console.log("next block fee");
+        console.log(
+          Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
+        );
+        baseFeePerGas.unshift(
+          Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
+        );
+      }
+
       if (currentBlock) {
         oldestBlock = Quantity.from(currentBlockNumber).toString();
         const gasUsed = currentBlock.header.gasUsed.toBigInt();
@@ -2842,19 +2857,9 @@ export default class EthereumApi implements Api {
         // get reward percentile
       }
 
-      // calc next block baseFeePerGas
-
-      console.log(currentBlockNumber);
-
       currentBlockNumber--;
       blocksToFetch--;
     }
-
-    console.log({
-      oldestBlock,
-      baseFeePerGas,
-      gasUsedRatio
-    });
 
     return {
       oldestBlock,
