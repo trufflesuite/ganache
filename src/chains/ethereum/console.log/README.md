@@ -8,10 +8,10 @@ Usage:
 `@ganache/console.log` was designed to be used with the [`@ethereumjs/vm` npm
 package](https://www.npmjs.com/package/@ethereumjs/vm).
 
-Install `@ganache/console`:
+Install `@ganache/console.log`:
 
 ```console
-> npm install @ganache/console --save-exact
+> npm install @ganache/console.log --save-exact
 ```
 
 `@ganache/console.log` has two parts, a `console.sol` Solidity library file, and
