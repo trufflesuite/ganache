@@ -377,11 +377,11 @@ describe("@ganache/console.log", () => {
         f => f.params.length === 1 && f.params[0].type === "string memory"
       );
       const method = get4ByteForSignature(`${func.functionName}(string)`);
-      const receipt = (await runTransactionTest(
+      const receipt = await runTransactionTest(
         [{ type: func.params[0].type, value: "Hello, World!" }],
         method,
         contractAddress
-      )) as any;
+      );
 
       // Our expectation of the amount of gas used may need to be updated as new
       // hardforks are added and other changes happen. This gas amount is a
