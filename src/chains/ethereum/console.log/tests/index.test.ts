@@ -411,6 +411,7 @@ describe("@ganache/console.log", () => {
             }
           ]);
           assert.notEqual(result, "0x");
+          assert.strictEqual(allLogs.length, 0);
         } finally {
           logger.log = () => {};
         }
