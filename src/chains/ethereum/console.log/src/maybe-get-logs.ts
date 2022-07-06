@@ -2,7 +2,7 @@ import { BN } from "ethereumjs-util";
 import { WORD_SIZE } from "./handlers";
 import { signatureMap } from "./signatures";
 
-const CONSOLE_PRECOMPILE = new BN(
+const CONSOLE_ADDRESS = new BN(
   Buffer.from([
     0x63, 0x6f, 0x6e, 0x73, 0x6f, 0x6c, 0x65, 0x2e, 0x6c, 0x6f, 0x67
   ])
@@ -20,30 +20,39 @@ type LogsStack = [
   _: BN
 ];
 
-export const maybeGetLogs = ({
-  opcode,
-  memory,
-  stack
-}: {
+/**
+ * Returns arguments passed to console.sol's `console.log` if the given
+ * `@ethereumjs/vm` step event's `opcode`, `stack`, and `memory` fields contain
+ * valid `console.log` data.
+ *
+ * The event's `opcode.name` field must be `"STATICCALL"` and the `toAddress` on
+ * the `stack` must be the `console.log` address:
+ * `0x000000000000000000636f6e736f6c652e6c6f67`.
+ *
+ * @param event - `@ethereumjs/vm` step event
+ * @returns
+ */
+export const maybeGetLogs = (event: {
   opcode: { name: string };
   memory: Buffer;
   stack: BN[];
 }): ConsoleLogs | null => {
-  if (opcode.name !== "STATICCALL") return null;
+  if (event.opcode.name !== "STATICCALL") return null;
 
   // STATICCALL, which is the OPCODE that is used to initiate a console.log, has
   // 6 params, but we only care about these 3:
-  const [inLength, inOffset, toAddress] = (stack as LogsStack).slice(-4, -1);
+  const stack = event.stack as LogsStack;
+  const [inLength, inOffset, toAddress] = stack.slice(-4, -1);
 
-  // only if the toAddress is our precompile address we should try parsing
-  if (!toAddress.eq(CONSOLE_PRECOMPILE)) return null;
+  // only if the toAddress is our console address we should try parsing
+  if (!toAddress.eq(CONSOLE_ADDRESS)) return null;
 
-  // STATICCALL allows for passing in invalid pointers and lengths
-  // so we need to guard against failures with a try/catch
+  // STATICCALL allows for passing in invalid pointers and lengths so we need to
+  // guard against failures with a try/catch
   try {
     const memoryStart = inOffset.toNumber();
     const memoryEnd = memoryStart + inLength.toNumber();
-    const values: Buffer = memory.subarray(memoryStart, memoryEnd);
+    const values: Buffer = event.memory.subarray(memoryStart, memoryEnd);
     const method = values.readUInt32BE(0); // 4 bytes wide
     const handlers = signatureMap.get(method);
     if (!handlers) return null;
