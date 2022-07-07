@@ -56,4 +56,5 @@ vm.on("step", event => {
 ```
 
 Note: Ganache CLI, as well as `Ganache.server` and `Ganache.provider`, already
-implement the logger parser and will automatically log calls to `console.sol`.
+implement the logger parser and will automatically log calls to `console.sol` to
+standard output just like JavaScript's `console.log`.
