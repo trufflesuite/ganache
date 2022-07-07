@@ -76,7 +76,15 @@ const COMMENT = `
     */`;
 
 /**
- * Cache used to ensure we do not accidentally generate 4 byte collisions.
+ * A cache used to ensure we do not accidentally generate multiple Solidity
+ * function signatures that result in the same "4-byte".
+ *
+ * It is technically possible that `keccak("log(< some params >)").slice(0, 4)` and
+ * `keccak("log(< other params >)").slice(0, 4)` could be identical. In the
+ * very unlikely event that this happens we'll need to rename the signature so
+ * it no longer results in a "4-byte" collision.
+ *
+ * Note: this cache is only being used to detect "4-byte" signature collisions.
  */
 const signatureCache: Map<number, string> = new Map();
 
@@ -103,11 +111,12 @@ function getSignature(
   if (signatureCache.has(signatureInt)) {
     // if we've already generated this signature before throw!
     throw new Error(
-      `Signature collision detected between log(${params.join(
-        ","
-      )}) and ???(${signatureCache.get(signatureInt)})`
+      `Signature collision detected between log(${abiSignatureString}) and ???(${signatureCache.get(
+        signatureInt
+      )})`
     );
   }
+  signatureCache.set(signatureInt, abiSignatureString);
 
   const names =
     params.length === 1 ? ["value"] : params.map((_, i) => `value${i + 1}`);
