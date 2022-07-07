@@ -32,9 +32,9 @@ pragma solidity >= 0.4.22 <0.9.0;
 import "console.sol";
 
 contract MyContract {
-  constructor(){
-    console.log("got here");
-  }
+    constructor() {
+        console.log("got here");
+    }
 }
 ```
 
