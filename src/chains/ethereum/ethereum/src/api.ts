@@ -2817,24 +2817,12 @@ export default class EthereumApi implements Api {
     let newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
       .toNumber();
-    let oldestBlock = Quantity.from(newestBlockNumber).toString();
+    let oldestBlock; // = Quantity.from(newestBlockNumber).toString();
 
     let currentBlockNumber = newestBlockNumber;
 
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
       const currentBlock = await blockchain.blocks.get(currentBlockNumber);
-
-      // newestBlock can be 'latest' and pending block may not exist,
-      // Maths is cheaper than the db hit, regardless.
-      if (currentBlockNumber === newestBlockNumber) {
-        console.log("next block fee");
-        console.log(
-          Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
-        );
-        baseFeePerGas.unshift(
-          Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
-        );
-      }
 
       if (currentBlock) {
         oldestBlock = Quantity.from(currentBlockNumber).toString();
@@ -2851,6 +2839,11 @@ export default class EthereumApi implements Api {
         if (!baseFee) {
           baseFeePerGas.unshift(Quantity.from(0).toString());
         } else {
+          if (currentBlockNumber === newestBlockNumber) {
+            baseFeePerGas.unshift(
+              Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
+            );
+          }
           baseFeePerGas.unshift(Quantity.from(baseFee).toString());
         }
 
