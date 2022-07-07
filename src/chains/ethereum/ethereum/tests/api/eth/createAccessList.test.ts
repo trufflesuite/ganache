@@ -52,7 +52,7 @@ describe("api", () => {
         contractAddress = await deployContract(provider, from, contract.code);
         contractMethods = contract.contract.evm.methodIdentifiers;
         // make a random number between 0 and f to use as our slot for these tests
-        const random = 1; //Math.floor(Math.random() * 16).toString(16);
+        const random = Math.floor(Math.random() * 16).toString(16);
         slot = `000000000000000000000000000000000000000000000000000000000000000${random}`;
         hexSlot = `0x${slot}`;
         encodedTo = encodeValue(to);
