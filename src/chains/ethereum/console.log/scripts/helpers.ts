@@ -109,12 +109,18 @@ function getSignature(
 
   /* istanbul ignore if */
   if (signatureCache.has(signatureInt)) {
-    // if we've already generated this signature before throw!
-    throw new Error(
-      `Signature collision detected between log(${abiSignatureString}) and ???(${signatureCache.get(
-        signatureInt
-      )})`
-    );
+    // we have things like `logUint256(uint256)`, log(uint256), etc, that are
+    // *supposed* to generate the exact same abi signature, so the 4-bytes will
+    // match. We only want to throw if the signatures themselves differ while
+    // the 4-bytes match.
+    if (signatureCache.get(signatureInt) !== abiSignatureString) {
+      // if we've already generated this signature before throw!
+      throw new Error(
+        `Signature collision detected between log(${abiSignatureString}) and ???(${signatureCache.get(
+          signatureInt
+        )})`
+      );
+    }
   }
   signatureCache.set(signatureInt, abiSignatureString);
 
