@@ -2811,7 +2811,8 @@ export default class EthereumApi implements Api {
     const baseFeePerGas = [];
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
-    const PRECISION = 10000000000000000;
+    const PAD_PRECISION = 16;
+    const PRECISION = 10 ** PAD_PRECISION;
     //                30000000 * PRECISION = 300000000000000000000000
 
     let blocksToFetch = Quantity.toNumber(blockCount);
@@ -2830,22 +2831,25 @@ export default class EthereumApi implements Api {
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
-
+      console.log("here");
       // gasUsedRatio
       if (gasUsed === 0n) {
         gasUsedRatio.unshift(0);
       } else {
         gasUsedRatio.unshift(
-          Quantity.from(
-            (gasUsed * Quantity.from(PRECISION).toBigInt()) / gasLimit
-          ).toNumber() / PRECISION // MAX_SAFE_INT?
+          Number(
+            `0.${((gasUsed * Quantity.from(PRECISION).toBigInt()) / gasLimit)
+              .toString()
+              .padStart(PAD_PRECISION, "0")}`
+          )
         );
       }
-
+      console.log("here 2");
       // baseFeePerGas
       if (!baseFee) {
-        baseFeePerGas.unshift(Quantity.from(0).toString());
+        baseFeePerGas.unshift("0x0");
       } else {
+        // Next block fee is based on existing blocks
         if (currentBlockNumber === newestBlockNumber) {
           baseFeePerGas.unshift(
             Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
@@ -2868,14 +2872,37 @@ export default class EthereumApi implements Api {
             // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
             const baseFeePerGas = currentBlock.header.baseFeePerGas.toBigInt();
 
-            const { transactionReceipts } = blockchain;
-            const txReceipts = await Promise.all(
+            const transactionReceipts = await Promise.all(
               transactions.map(async (t, i) => {
                 return (
-                  await transactionReceipts.get(t.hash.toString())
+                  await blockchain.transactionReceipts.get(t.hash.toString())
                 ).toJSON(currentBlock, transactions[i], blockchain.common);
               })
             );
+
+            const effectiveGasRewardAndGas = transactionReceipts.map((r, i) => {
+              const tx = transactions[i];
+              const baseFeePerGas =
+                currentBlock.header.baseFeePerGas.toBigInt() ??
+                Quantity.from(0).toBigInt();
+
+              // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
+              let effectiveGasReward;
+              if ("maxPriorityFeePerGas" in tx) {
+                effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFeePerGas;
+                if (tx.maxPriorityFeePerGas < effectiveGasReward) {
+                  effectiveGasReward = tx.maxPriorityFeePerGas;
+                }
+              } else {
+                effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
+              }
+
+              return {
+                effectiveGasReward,
+                gasUsed: r.gasUsed ? r.gasUsed : Quantity.from(0)
+              };
+            });
+            //.sort((a, b) => a.effectiveGasReward - b.effectiveGasReward); // Sort
           }
         }
       }
@@ -2883,7 +2910,7 @@ export default class EthereumApi implements Api {
       currentBlockNumber--;
       blocksToFetch--;
     }
-
+    console.log("here 3");
     return {
       oldestBlock,
       baseFeePerGas,

@@ -79,7 +79,7 @@ describe("api", () => {
       afterEach(async () => {
         provider && (await provider.disconnect());
       });
-      it("calcs rewardPercentiles", async () => {
+      it.only("calcs rewardPercentiles", async () => {
         const tx = {
           from,
           to,
