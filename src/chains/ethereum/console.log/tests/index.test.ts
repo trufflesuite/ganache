@@ -24,6 +24,28 @@ const format = formatWithOptions.bind(null, {
   breakLength: Infinity
 });
 
+function encode(params: Param[] | null) {
+  return params == null
+    ? Buffer.alloc(0)
+    : rawEncode(
+        params.map(p => p.type).map(toAbiType),
+        params.map(p => {
+          if (
+            p.type === "uint256" ||
+            p.type === "int256" ||
+            p.type === "uint" ||
+            p.type === "int"
+          ) {
+            return `0x${p.value.toString(16)}`;
+          } else if (p.type.startsWith("bytes")) {
+            return Buffer.from(p.value.replace(/^0x/, ""), "hex");
+          } else {
+            return p.value;
+          }
+        })
+      );
+}
+
 /**
  * Generates the 4-byte signature for the given solidity signature string
  * e.g. `log(address)` => `2c2ecbc2`
@@ -125,28 +147,6 @@ describe("@ganache/console.log", () => {
     );
     assert.strictEqual(status, "0x1", "Contract was not deployed");
     return contractAddress;
-  }
-
-  function encode(params: Param[] | null) {
-    return params == null
-      ? Buffer.alloc(0)
-      : rawEncode(
-          params.map(p => p.type).map(toAbiType),
-          params.map(p => {
-            if (
-              p.type === "uint256" ||
-              p.type === "int256" ||
-              p.type === "uint" ||
-              p.type === "int"
-            ) {
-              return `0x${p.value.toString(16)}`;
-            } else if (p.type.startsWith("bytes")) {
-              return Buffer.from(p.value.replace(/^0x/, ""), "hex");
-            } else {
-              return p.value;
-            }
-          })
-        );
   }
 
   async function sendLoggingTransaction(
