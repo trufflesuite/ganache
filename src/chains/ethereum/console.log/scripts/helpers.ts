@@ -172,11 +172,11 @@ function* getNamedSignature(solidityType: SolidityType) {
   if (hardhatTypeAliases.get(solidityType)) {
     const alias = hardhatTypeAliases.get(solidityType);
     const aliasLogName = getNamedLogFunctionName(alias);
-    const solditiySignature = getSignature([solidityType], aliasLogName);
-    delete solditiySignature.javascript;
+    const soliditySignature = getSignature([solidityType], aliasLogName);
+    delete soliditySignature.javascript;
     const javascriptSignature = getSignature([alias], aliasLogName);
     delete javascriptSignature.solidity;
-    yield solditiySignature;
+    yield soliditySignature;
     yield javascriptSignature;
   }
 }
