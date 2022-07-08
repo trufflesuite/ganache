@@ -373,7 +373,7 @@ describe("@ganache/console.log", () => {
     for (const { params, name } of getSignatures()) {
       // don't test signatures with int and uint because our `console.sol`
       // doesn't use them as these types are only for hardhat's console.sol
-      // compatability.
+      // compatibility.
       if (params.includes("int") || params.includes("uint")) continue;
 
       const functionName = `testLog${counter++}`;
