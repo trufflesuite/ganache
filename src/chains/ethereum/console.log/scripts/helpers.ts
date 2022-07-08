@@ -1,6 +1,11 @@
 import solc from "solc";
 import { keccak } from "@ganache/utils";
-import { BytesN, FixedBytesN, Handler } from "../src/handlers";
+import {
+  BytesN,
+  FixedBytesN,
+  Handler,
+  SIGNATURE_BYTE_LENGTH
+} from "../src/handlers";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -102,7 +107,10 @@ function getSignature(
   const abiParams = params.map(type => type.replace(" memory", ""));
   const abiSignatureString = `log(${abiParams.join(",")})`;
   // the solidity "4-bytes" signature:
-  const signature = keccak(Buffer.from(abiSignatureString)).subarray(0, 4);
+  const signature = keccak(Buffer.from(abiSignatureString)).subarray(
+    0,
+    SIGNATURE_BYTE_LENGTH
+  );
 
   // we store the signature as an int on the JS side:
   const signatureInt = parseInt(signature.toString("hex"), 16);

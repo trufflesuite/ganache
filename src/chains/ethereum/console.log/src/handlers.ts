@@ -13,6 +13,16 @@ export type Handler = keyof typeof Handlers | FixedBytesN;
 export const WORD_SIZE = 32 as const; // bytes
 
 /**
+ * Number of bytes of an ABI signature, AKA "4-byte"
+ */
+export const SIGNATURE_BYTE_LENGTH = 4;
+
+/**
+ * Stored length of a Uint32, in bytes:
+ */
+export const UINT32_BYTE_LENGTH = 4;
+
+/**
  * Used to convert _from_ twos compliment
  * This is calculated via:
  * ~((1n << (8n * BigInt(WORD_SIZE))) - 1n)
@@ -32,8 +42,8 @@ const OR_WITH_TWOS_COMPLEMENT =
  * @returns The starting position of the value in `memory`, and the `end` position of the value.
  */
 function getDynamicDataMarkers(memory: Buffer, offset: number) {
-  // A Buffer's length maxes out at UInt32 max, 4294967295, (2**(8 * 4)) - 1) it
-  // is safe to decode the `start` and `length` values as UInt32s.
+  // A Buffer's length maxes out at UInt32 max, 4294967295, (2**(8 * 4)) - 1) so
+  // it is safe to decode the `start` and `length` values as UInt32s.
   //
   // If we had a start position "word" of:
   //   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 60
@@ -41,18 +51,24 @@ function getDynamicDataMarkers(memory: Buffer, offset: number) {
   // a Buffer's length can't be greater than UInt32 (which can be represented by
   // up to 4 bytes). So we only need to look at:
   // 00 00 00 60
-  // `offset + WORD_SIZE - 4` effectively tells `readUInt32BE` to read only
-  // these last 4 bytes of the word that represent the `start`
+  // `offset + WORD_SIZE - UINT32_BYTE_LENGTH` effectively tells `readUInt32BE`
+  // to read only these last 4 bytes of the word that represent the `start`
   // value.
-  // We add WORD_SIZE to this value because without it it doesn't work.
-  // We add `4` because `memory` includes the function signature, which is 4
-  // bytes, but the `start` position doesn't.
-  const start = memory.readUInt32BE(offset + WORD_SIZE - 4) + WORD_SIZE + 4;
+  // We add WORD_SIZE to this value because we are skipping over the location of
+  // the length and referencing the start of the location of the data itself.
+  // We add SIGNATURE_BYTE_LENGTH because `memory` includes the function
+  // signature, which is 4 bytes, but the `start` position doesn't.
+  const nextWordOffset = offset + WORD_SIZE;
+  const startUint32MemoryPosition = nextWordOffset - UINT32_BYTE_LENGTH;
+  const start =
+    memory.readUInt32BE(startUint32MemoryPosition) +
+    WORD_SIZE +
+    SIGNATURE_BYTE_LENGTH;
 
   // the same optimization is applied here.
   // The word that immediately precedes the data itself is the data's `length`:
-  const length = memory.readUInt32BE(start - 4);
-  return { start, end: start + length };
+  const end = start + memory.readUInt32BE(start - UINT32_BYTE_LENGTH);
+  return { start, end };
 }
 
 /**

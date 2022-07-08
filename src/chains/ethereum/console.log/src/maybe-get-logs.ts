@@ -1,5 +1,5 @@
 import { BN } from "ethereumjs-util";
-import { WORD_SIZE } from "./handlers";
+import { SIGNATURE_BYTE_LENGTH, WORD_SIZE } from "./handlers";
 import { signatureMap } from "./signatures";
 
 const CONSOLE_ADDRESS = new BN(
@@ -57,7 +57,8 @@ export const maybeGetLogs = (event: {
     const handlers = signatureMap.get(method);
     if (!handlers) return null;
 
-    const start = 4; // we skip the first 4 bytes, as that is our signature
+    // we skip the first 4 bytes, as that is our signature
+    const start = SIGNATURE_BYTE_LENGTH;
     return handlers.map((handler, index) => {
       const offset = start + index * WORD_SIZE;
       return handler(values, offset);
