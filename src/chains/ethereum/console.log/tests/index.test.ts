@@ -451,7 +451,7 @@ describe("@ganache/console.log", () => {
         }
       });
 
-      it("does NOT log when `console.log` is called within an `debug_traceTransaction`", async () => {
+      it("does NOT log when `console.log` is called within a `debug_traceTransaction`", async () => {
         const txHash = await sendLoggingTransaction(
           params,
           method,
