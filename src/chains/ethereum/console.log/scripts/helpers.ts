@@ -331,7 +331,5 @@ export const compileContract = (contractSource: string) => {
   }
 
   const contract = contracts[CONTRACT_NAME][CONTRACT_NAME];
-  delete contracts[CONTRACT_NAME];
-
   return "0x" + contract.evm.bytecode.object;
 };
