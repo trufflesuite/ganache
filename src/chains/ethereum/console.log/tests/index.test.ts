@@ -317,7 +317,7 @@ describe("@ganache/console.log", () => {
       return [`bytes${n}`, ["0x" + "00".padEnd(n * 2, "0")]];
     }
 
-    // `staticValues` genenerates 1000s of tests, adding a single additional
+    // `staticValues` generates 1000s of tests, adding a single additional
     // value increases test counts factorially
     const staticValues = new Map([
       ["string memory", ["", "This string takes up more than 32 bytes"]],
