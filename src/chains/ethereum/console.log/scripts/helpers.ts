@@ -194,7 +194,7 @@ function* permute<T>(array: T[] | readonly T[]) {
 
       for (let k = i; k >= 0; k--) {
         const denominator = Math.pow(array.length, k);
-        const index = Math.floor(j / denominator) % combinatorTypes.length;
+        const index = Math.floor(j / denominator) % array.length;
         const type = combinatorTypes[index];
         parameters.push(type);
       }
