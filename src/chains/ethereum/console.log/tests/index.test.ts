@@ -14,7 +14,6 @@ import {
 import { keccak } from "@ganache/utils";
 import { formatWithOptions } from "util";
 import { signatureMap } from "../src/signatures";
-import { SIGNATURE_BYTE_LENGTH } from "../src/handlers";
 
 type Param = {
   type: string;
@@ -32,9 +31,7 @@ const format = formatWithOptions.bind(null, {
  * @returns
  */
 function get4ByteForSignature(signature: string) {
-  return `${keccak(Buffer.from(signature))
-    .subarray(0, SIGNATURE_BYTE_LENGTH)
-    .toString("hex")}`;
+  return `${keccak(Buffer.from(signature)).subarray(0, 4).toString("hex")}`;
 }
 
 /**

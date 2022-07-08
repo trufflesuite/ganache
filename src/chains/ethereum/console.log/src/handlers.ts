@@ -13,16 +13,6 @@ export type Handler = keyof typeof Handlers | FixedBytesN;
 export const WORD_SIZE = 32 as const; // bytes
 
 /**
- * Number of bytes of an ABI signature, AKA "4-byte"
- */
-export const SIGNATURE_BYTE_LENGTH = 4;
-
-/**
- * Stored length of a Uint32, in bytes:
- */
-export const UINT32_BYTE_LENGTH = 4;
-
-/**
  * Used to convert _from_ twos compliment
  * This is calculated via:
  * ~((1n << (8n * BigInt(WORD_SIZE))) - 1n)
@@ -56,14 +46,10 @@ function getDynamicDataMarkers(memory: Buffer, offset: number) {
   // value.
   // We add WORD_SIZE to this value because we are skipping over the location of
   // the length and referencing the start of the location of the data itself.
-  // We add SIGNATURE_BYTE_LENGTH because `memory` includes the function
-  // signature, which is 4 bytes, but the `start` position doesn't.
+  const UINT32_BYTE_LENGTH = 4;
   const nextWordOffset = offset + WORD_SIZE;
   const startUint32MemoryPosition = nextWordOffset - UINT32_BYTE_LENGTH;
-  const start =
-    memory.readUInt32BE(startUint32MemoryPosition) +
-    WORD_SIZE +
-    SIGNATURE_BYTE_LENGTH;
+  const start = memory.readUInt32BE(startUint32MemoryPosition) + WORD_SIZE;
 
   // the same optimization is applied here.
   // The word that immediately precedes the data itself is the data's `length`:
