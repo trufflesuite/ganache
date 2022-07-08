@@ -42,7 +42,7 @@ export const maybeGetLogs = (event: {
   // STATICCALL, which is the OPCODE that is used to initiate a console.log, has
   // 6 params, but we only care about these 3:
   const stack = event.stack as LogsStack;
-  const [inLength, inOffset, toAddress] = stack.slice(-4, -1);
+  const [memoryLength, memoryOffset, toAddress] = stack.slice(-4, -1);
 
   // only if the toAddress is our console address we should try parsing
   if (!toAddress.eq(CONSOLE_ADDRESS)) return null;
@@ -50,8 +50,8 @@ export const maybeGetLogs = (event: {
   // STATICCALL allows for passing in invalid pointers and lengths so we need to
   // guard against failures with a try/catch
   try {
-    const memoryStart = inOffset.toNumber();
-    const memoryEnd = memoryStart + inLength.toNumber();
+    const memoryStart = memoryOffset.toNumber();
+    const memoryEnd = memoryStart + memoryLength.toNumber();
     const memory: Buffer = event.memory.subarray(memoryStart, memoryEnd);
     const method = memory.readUInt32BE(0); // 4 bytes wide
     const handlers = signatureMap.get(method);
