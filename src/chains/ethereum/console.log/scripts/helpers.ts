@@ -186,7 +186,7 @@ function* getNamedSignature(solidityType: SolidityType) {
  * array.length.
  * @param array
  */
-function* permute<T>(array: T[] | readonly T[]) {
+function* permute<T extends SolidityType>(array: T[] | readonly T[]) {
   for (let i = 0; i < array.length; i++) {
     const length = Math.pow(array.length, i + 1);
     for (let j = 0; j < length; j++) {
