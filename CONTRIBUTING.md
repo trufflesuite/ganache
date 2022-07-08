@@ -174,3 +174,34 @@ These are guidelines, not rules. :-)
 - Do not use bash scripts for critical development or configuration.
 - Do not use CLI commands in npm scripts or build scripts that aren't available by default on supported platforms.
 - Push your code often (at least every-other day!), even broken WIP code (to your own branch, of course).
+
+## Pull Requests
+
+This section is mostly for the maintainers of Ganache, not individual contributors. You may commit with any messages you
+find useful.
+
+We _always_ "Squash and Merge" Pull Requests into a single commit message when merging into the `develop` branch.
+
+The "Squash and Merge" commit message _must_ be in the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) format:
+
+```
+<type>[optional scope]: <description> (#PR Number)
+
+[optional body]
+
+[optional footer(s)]
+```
+
+Example:
+
+```
+fix: reduce bundle size and check size in CI (#1234)
+
+Co-authored-by: TinusLorvalds <lorvalds@finux-loundation.org>
+```
+
+Notice how the description is in lowercase (except for initialisms/acronyms). The description should be clear and consise. The subject line does _not_ have to be fewer than 50 characters if making it shorter removes useful information.
+
+Co-authors should be preserved.
+
+This format is what drives our automated release process and helps makes releases go smoothly.
