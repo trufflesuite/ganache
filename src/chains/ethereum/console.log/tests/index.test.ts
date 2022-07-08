@@ -127,7 +127,7 @@ describe("@ganache/console.log", () => {
     return contractAddress;
   }
 
-  function encode(params: Param[]) {
+  function encode(params: Param[] | null) {
     return params == null
       ? Buffer.alloc(0)
       : rawEncode(
