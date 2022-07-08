@@ -164,15 +164,49 @@ describe("@ganache/console.log", () => {
     ]);
   }
 
-  function assertLogs(logs: any[], expectedParams: Param[] | null) {
-    if (expectedParams == null) {
+  /**
+   * Throws if the given logs aren't a match for the given `expectedParamGroups`
+   *
+   * If `expectedParamGroups` is `null` `logs` is expected to be an empty array
+   * (`length === 0`).
+   *
+   * A Solidity contract with the following `console.log` statements:
+   *
+   * ```solidity
+   *   console.log("Hello", "World");
+   *   console.log(1234, 42);
+   * ```
+   *
+   * should generate `logs` that match:
+   *
+   * ```javascript
+   * [
+   *   ["Hello", "World"],
+   *   [1234, 42]
+   * ]
+   * ```
+   *
+   * while `expectedParamGroups` should be:
+   *
+   * ```javascript
+   * [
+   *   [{type: "string", value: "Hello"}, {type: "string", value: "World"}],
+   *   [{type: "uint256", value: 1234}, {type: "uint256", value: 42}]
+   * ]
+   * ```
+   *
+   * @param logs
+   * @param expectedParamGroups
+   */
+  function assertLogs(logs: any[][], expectedParamGroups: Param[][] | null) {
+    if (expectedParamGroups == null) {
       // if params is null we shouldn't have collected any logs
       assert.strictEqual(logs.length, 0);
     } else {
-      // ensure we logged the right things
+      assert.deepStrictEqual(logs.length, expectedParamGroups.length);
       assert.deepStrictEqual(
-        logs[0],
-        expectedParams.map(p => p.value)
+        logs,
+        expectedParamGroups.map(set => set.map(p => p.value))
       );
     }
   }
@@ -211,7 +245,7 @@ describe("@ganache/console.log", () => {
       contractAddress
     );
 
-    assertLogs(await logsProm, params);
+    assertLogs(await logsProm, [params]);
 
     const txHash = await transactionPromise;
     const receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
@@ -392,7 +426,7 @@ describe("@ganache/console.log", () => {
             data: "0x" + method + encode(params).toString("hex")
           }
         ]);
-        assertLogs(await logsProm, params);
+        assertLogs(await logsProm, [params]);
       });
 
       it("does NOT log when `console.log` is called within an `eth_estimateGas`", async () => {
