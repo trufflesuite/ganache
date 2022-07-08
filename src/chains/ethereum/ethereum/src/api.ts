@@ -2805,21 +2805,19 @@ export default class EthereumApi implements Api {
   async eth_feeHistory(
     blockCount: QUANTITY,
     newestBlock: QUANTITY | Ethereum.Tag,
-    rewardPercentiles?: [number]
+    rewardPercentiles?: number[]
   ): Promise<Ethereum.FeeHistoryResult> {
-    let blocks = [];
     const reward = [];
     const baseFeePerGas = [];
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
-    const { transactionReceipts } = blockchain;
     const PRECISION = 10000000000000000;
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
       .toNumber();
-    let oldestBlock; // = Quantity.from(newestBlockNumber).toString();
+    let oldestBlock;
 
     let currentBlockNumber = newestBlockNumber;
 
@@ -2828,21 +2826,10 @@ export default class EthereumApi implements Api {
 
       if (currentBlock) {
         oldestBlock = Quantity.from(currentBlockNumber).toString();
-        console.log("currentBlock.header");
 
         const gasUsed = currentBlock.header.gasUsed.toBigInt();
         const gasLimit = currentBlock.header.gasLimit.toBigInt();
         const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
-        const transactions = currentBlock.getTransactions();
-        const txReceipts = await Promise.all(
-          transactions.map(async (t, i) => {
-            return (await transactionReceipts.get(t.hash.toString())).toJSON(
-              currentBlock,
-              transactions[i],
-              blockchain.common
-            );
-          })
-        );
 
         if (gasUsed === 0n) {
           gasUsedRatio.unshift(0);
@@ -2865,6 +2852,26 @@ export default class EthereumApi implements Api {
           baseFeePerGas.unshift(Quantity.from(baseFee).toString());
 
           // get reward percentile
+          if (rewardPercentiles) {
+            const transactions = currentBlock.getTransactions();
+            if (transactions.length === 0) {
+              reward.unshift(
+                rewardPercentiles.map(() => {
+                  return 0;
+                })
+              );
+            } else {
+              reward.unshift(rewardPercentiles); // stubbed
+              const { transactionReceipts } = blockchain;
+              const txReceipts = await Promise.all(
+                transactions.map(async (t, i) => {
+                  return (
+                    await transactionReceipts.get(t.hash.toString())
+                  ).toJSON(currentBlock, transactions[i], blockchain.common);
+                })
+              );
+            }
+          }
         }
       }
 
@@ -2875,7 +2882,8 @@ export default class EthereumApi implements Api {
     return {
       oldestBlock,
       baseFeePerGas,
-      gasUsedRatio
+      gasUsedRatio,
+      reward: rewardPercentiles ? reward : undefined
     };
   }
   //#endregion

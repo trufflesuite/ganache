@@ -3,6 +3,7 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
+import { Quantity } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {
@@ -53,6 +54,58 @@ describe("api", () => {
           .catch(e => {
             assert.strictEqual(e.message, ERROR_HEADER_NOT_FOUND);
           });
+      });
+    });
+    describe("rewards", () => {
+      let to, from;
+
+      const gwei = Quantity.Gwei.toBigInt();
+      const tenGwei = Quantity.from(10n * gwei);
+      const maxBlockTime = 2147483;
+
+      beforeEach(async () => {
+        provider = await getProvider({
+          miner: {
+            blockTime: maxBlockTime
+          }
+        });
+        [to, from] = await provider.send("eth_accounts");
+        await provider.send("evm_mine", [
+          {
+            blocks: 10
+          }
+        ]);
+      });
+      afterEach(async () => {
+        provider && (await provider.disconnect());
+      });
+      it("calcs rewardPercentiles", async () => {
+        const tx = {
+          from,
+          to,
+          value: "0x123",
+          type: "0x2",
+          maxFeePerGas: "0xffffffff"
+        } as any;
+        await provider.send("eth_sendTransaction", [tx]);
+        await provider.send("eth_sendTransaction", [tx]);
+        await provider.send("eth_sendTransaction", [tx]);
+        await provider.send("eth_sendTransaction", [
+          { ...tx, maxPriorityFeePerGas: "0xf" }
+        ]);
+        await provider.send("evm_mine", [
+          {
+            blocks: 1
+          }
+        ]);
+
+        const feeHistory = await provider.send("eth_feeHistory", [
+          "0x2",
+          "latest",
+          [10, 20, 50]
+        ]);
+
+        console.log(feeHistory);
       });
     });
   });

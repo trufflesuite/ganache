@@ -207,6 +207,6 @@ export namespace Ethereum {
     oldestBlock: string;
     baseFeePerGas: string[];
     gasUsedRatio: number[];
-    reward?: [string];
+    reward?: string[];
   };
 }
