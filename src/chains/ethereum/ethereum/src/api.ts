@@ -2812,6 +2812,7 @@ export default class EthereumApi implements Api {
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
     const PRECISION = 10000000000000000;
+    //                30000000 * PRECISION = 300000000000000000000000
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
@@ -2824,53 +2825,57 @@ export default class EthereumApi implements Api {
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
       const currentBlock = await blockchain.blocks.get(currentBlockNumber);
 
-      if (currentBlock) {
-        oldestBlock = Quantity.from(currentBlockNumber).toString();
+      oldestBlock = Quantity.from(currentBlockNumber).toString();
 
-        const gasUsed = currentBlock.header.gasUsed.toBigInt();
-        const gasLimit = currentBlock.header.gasLimit.toBigInt();
-        const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
+      const gasUsed = currentBlock.header.gasUsed.toBigInt();
+      const gasLimit = currentBlock.header.gasLimit.toBigInt();
+      const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
 
-        if (gasUsed === 0n) {
-          gasUsedRatio.unshift(0);
-        } else {
-          gasUsedRatio.unshift(
-            Quantity.from(
-              (gasUsed * Quantity.from(PRECISION).toBigInt()) / gasLimit
-            ).toNumber() / PRECISION
+      // gasUsedRatio
+      if (gasUsed === 0n) {
+        gasUsedRatio.unshift(0);
+      } else {
+        gasUsedRatio.unshift(
+          Quantity.from(
+            (gasUsed * Quantity.from(PRECISION).toBigInt()) / gasLimit
+          ).toNumber() / PRECISION // MAX_SAFE_INT?
+        );
+      }
+
+      // baseFeePerGas
+      if (!baseFee) {
+        baseFeePerGas.unshift(Quantity.from(0).toString());
+      } else {
+        if (currentBlockNumber === newestBlockNumber) {
+          baseFeePerGas.unshift(
+            Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
           );
         }
+        baseFeePerGas.unshift(Quantity.from(baseFee).toString());
 
-        if (!baseFee) {
-          baseFeePerGas.unshift(Quantity.from(0).toString());
-        } else {
-          if (currentBlockNumber === newestBlockNumber) {
-            baseFeePerGas.unshift(
-              Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
+        // get reward percentile
+        if (rewardPercentiles) {
+          const transactions = currentBlock.getTransactions();
+
+          if (transactions.length === 0) {
+            reward.unshift(
+              rewardPercentiles.map(() => {
+                return 0;
+              })
             );
-          }
-          baseFeePerGas.unshift(Quantity.from(baseFee).toString());
+          } else {
+            reward.unshift(rewardPercentiles); // stubbed
+            // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
+            const baseFeePerGas = currentBlock.header.baseFeePerGas.toBigInt();
 
-          // get reward percentile
-          if (rewardPercentiles) {
-            const transactions = currentBlock.getTransactions();
-            if (transactions.length === 0) {
-              reward.unshift(
-                rewardPercentiles.map(() => {
-                  return 0;
-                })
-              );
-            } else {
-              reward.unshift(rewardPercentiles); // stubbed
-              const { transactionReceipts } = blockchain;
-              const txReceipts = await Promise.all(
-                transactions.map(async (t, i) => {
-                  return (
-                    await transactionReceipts.get(t.hash.toString())
-                  ).toJSON(currentBlock, transactions[i], blockchain.common);
-                })
-              );
-            }
+            const { transactionReceipts } = blockchain;
+            const txReceipts = await Promise.all(
+              transactions.map(async (t, i) => {
+                return (
+                  await transactionReceipts.get(t.hash.toString())
+                ).toJSON(currentBlock, transactions[i], blockchain.common);
+              })
+            );
           }
         }
       }
