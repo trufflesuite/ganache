@@ -2812,6 +2812,8 @@ export default class EthereumApi implements Api {
     const baseFeePerGas = [];
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
+    const { transactionReceipts } = blockchain;
+    const PRECISION = 10000000000000000;
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
@@ -2826,14 +2828,30 @@ export default class EthereumApi implements Api {
 
       if (currentBlock) {
         oldestBlock = Quantity.from(currentBlockNumber).toString();
+        console.log("currentBlock.header");
+
         const gasUsed = currentBlock.header.gasUsed.toBigInt();
         const gasLimit = currentBlock.header.gasLimit.toBigInt();
         const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
+        const transactions = currentBlock.getTransactions();
+        const txReceipts = await Promise.all(
+          transactions.map(async (t, i) => {
+            return (await transactionReceipts.get(t.hash.toString())).toJSON(
+              currentBlock,
+              transactions[i],
+              blockchain.common
+            );
+          })
+        );
 
         if (gasUsed === 0n) {
           gasUsedRatio.unshift(0);
         } else {
-          gasUsedRatio.unshift(Quantity.from(gasUsed / gasLimit).toNumber());
+          gasUsedRatio.unshift(
+            Quantity.from(
+              (gasUsed * Quantity.from(PRECISION).toBigInt()) / gasLimit
+            ).toNumber() / PRECISION
+          );
         }
 
         if (!baseFee) {
@@ -2845,9 +2863,9 @@ export default class EthereumApi implements Api {
             );
           }
           baseFeePerGas.unshift(Quantity.from(baseFee).toString());
-        }
 
-        // get reward percentile
+          // get reward percentile
+        }
       }
 
       currentBlockNumber--;
