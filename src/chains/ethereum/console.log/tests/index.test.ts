@@ -477,7 +477,7 @@ describe("@ganache/console.log", () => {
           await provider.send("miner_start");
         });
 
-        it("does NOT log when `console.log` is called within an `debug_storageRangeAt`", async () => {
+        it("does NOT log when `console.log` is called within a `debug_storageRangeAt`", async () => {
           // note: this test is borderline silly to have, because the
           // `debug_storageRangeAt` implementation never listens to the EVM step
           // event, so it can't possibly call console.log. Leaving the test in
