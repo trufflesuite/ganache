@@ -1,86 +1,25 @@
 import fc from "fast-check";
 import assert from "assert";
-import Ganache, { EthereumProvider } from "../../../../packages/core";
-import { rawEncode } from "ethereumjs-abi";
-import { RandomCombinatorLogParams, primitiveArbitraries } from "./arbitraries";
 import memdown from "memdown";
+import Ganache, { EthereumProvider } from "../../../../packages/core";
+import { RandomCombinatorLogParams, primitiveArbitraries } from "./arbitraries";
 import {
   getSignatures,
-  compileContract,
-  createContract,
   FunctionDescriptor,
   hardhatTypeAliases
 } from "../scripts/helpers";
-import { keccak } from "@ganache/utils";
-import { formatWithOptions } from "util";
 import { signatureMap } from "../src/signatures";
-
-type Param = {
-  type: string;
-  value: any;
-};
-
-const format = formatWithOptions.bind(null, {
-  breakLength: Infinity
-});
-
-function encode(params: Param[] | null) {
-  return params == null
-    ? Buffer.alloc(0)
-    : rawEncode(
-        params.map(p => p.type).map(toAbiType),
-        params.map(p => {
-          if (
-            p.type === "uint256" ||
-            p.type === "int256" ||
-            p.type === "uint" ||
-            p.type === "int"
-          ) {
-            return `0x${p.value.toString(16)}`;
-          } else if (p.type.startsWith("bytes")) {
-            return Buffer.from(p.value.replace(/^0x/, ""), "hex");
-          } else {
-            return p.value;
-          }
-        })
-      );
-}
-
-/**
- * Generates the 4-byte signature for the given solidity signature string
- * e.g. `log(address)` => `2c2ecbc2`
- * @param signature
- * @returns
- */
-function get4ByteForSignature(signature: string) {
-  return `${keccak(Buffer.from(signature)).subarray(0, 4).toString("hex")}`;
-}
-
-/**
- * Creates an array of pairs built out of two underlying arrays using the given
- * `joiner` function.
- * @param array1
- * @param array2
- * @param joiner
- * @returns An array of tuple pairs, where the elements of each pair are corresponding elements of array1 and array2.
- */
-function zip<T, U, V>(
-  array1: T[],
-  array2: U[],
-  joiner: (a: T, b: U) => V
-): V[] {
-  return array1.map((e, i) => joiner(e, array2[i]));
-}
-
-/**
- * Normalizes a given solidity type, for example, `bytes memory` to just
- * `bytes` and `uint` to `uint256`.
- * @param type
- * @returns
- */
-function toAbiType(type: string) {
-  return type.replace(" memory", "").replace(/^(int|uint)$/, "$1256");
-}
+import {
+  Param,
+  encode,
+  get4ByteForSignature,
+  toAbiType,
+  format,
+  zip,
+  compileContract,
+  createContract,
+  CONTRACT_NAME
+} from "./helpers";
 
 describe("@ganache/console.log", () => {
   const logger = {
@@ -127,7 +66,7 @@ describe("@ganache/console.log", () => {
   });
 
   /**
-   * Deploys the given 0x prefixed code to the provider and returns the
+   * Deploys the given 0x-prefixed code to the provider and returns the
    * `contractAddress`.
    * @param code
    * @returns
@@ -150,7 +89,7 @@ describe("@ganache/console.log", () => {
   }
 
   async function sendLoggingTransaction(
-    params: Param[] | null,
+    params: Param[][] | null,
     method: string,
     contractAddress: string
   ) {
@@ -159,7 +98,7 @@ describe("@ganache/console.log", () => {
       {
         from,
         to: contractAddress,
-        data: "0x" + method + encode(params).toString("hex")
+        data: "0x" + method + encode(params.flat()).toString("hex")
       }
     ]);
   }
@@ -232,7 +171,7 @@ describe("@ganache/console.log", () => {
   }
 
   async function runTxTest(
-    params: Param[] | null,
+    params: Param[][] | null,
     method: string,
     contractAddress: string
   ) {
@@ -245,7 +184,7 @@ describe("@ganache/console.log", () => {
       contractAddress
     );
 
-    assertLogs(await logsProm, [params]);
+    assertLogs(await logsProm, params);
 
     const txHash = await transactionPromise;
     const receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
@@ -277,7 +216,7 @@ describe("@ganache/console.log", () => {
           const code = compileContract(contractSource);
           const contractAddress = await deploy(code);
 
-          await runTxTest(params, method, contractAddress);
+          await runTxTest([params], method, contractAddress);
         }),
         {
           numRuns: 10,
@@ -304,7 +243,7 @@ describe("@ganache/console.log", () => {
             const code = compileContract(contractSource);
             const contractAddress = await deploy(code);
 
-            await runTxTest([param], method, contractAddress);
+            await runTxTest([[param]], method, contractAddress);
           }),
           { numRuns: 5, endOnFailure: true }
         );
@@ -394,7 +333,7 @@ describe("@ganache/console.log", () => {
         cartesianProductOfAllValues.forEach(vals => {
           it(`with values: ${format(vals)}`, async () => {
             const args = zip(params, vals, (type, value) => ({ type, value }));
-            await runTxTest(args, method, contractAddress);
+            await runTxTest([args], method, contractAddress);
           });
         });
       });
@@ -453,7 +392,7 @@ describe("@ganache/console.log", () => {
 
       it("does NOT log when `console.log` is called within a `debug_traceTransaction`", async () => {
         const txHash = await sendLoggingTransaction(
-          params,
+          [params],
           method,
           contractAddress
         );
@@ -464,6 +403,49 @@ describe("@ganache/console.log", () => {
 
         // make sure it didn't log
         assertLogs(await logsProm, null);
+      });
+
+      it("logs when multiple console.log statements are in one transaction", async () => {
+        const params = [
+          [{ type: "string", value: "Hello" }],
+          [{ type: "uint256", value: 123456n }]
+        ];
+        const code = compileContract(`// SPDX-License-Identifier: MIT
+pragma solidity >= 0.4.22 <0.9.0;
+
+import "console.sol";
+
+contract ${CONTRACT_NAME} {
+  function testLog(string memory value1, uint256 value2) public view {
+    console.log(value1);
+    console.log(value2);
+  }
+}`);
+
+        const contractAddress = await deploy(code);
+        const method = get4ByteForSignature(`testLog(string,uint256)`);
+        await runTxTest(params, method, contractAddress);
+
+        // const logsProm = watchLogs();
+
+        // // send our logging transaction
+        // const transactionPromise = sendLoggingTransaction(
+        //   params,
+        //   method,
+        //   contractAddress
+        // );
+
+        // assertLogs(await logsProm, [[params[0]], [params[1]]]);
+        // const txHash = await transactionPromise;
+        // const receipt = await provider.send("eth_getTransactionReceipt", [
+        //   txHash
+        // ]);
+
+        // assert.strictEqual(
+        //   receipt.status,
+        //   "0x1",
+        //   "Transaction didn't complete successfully"
+        // );
       });
 
       describe("debug_storageRangeAt", () => {
@@ -484,11 +466,11 @@ describe("@ganache/console.log", () => {
           // despite this to help prevent future regressions.
 
           // send first transaction to pool:
-          await sendLoggingTransaction(params, method, contractAddress);
+          await sendLoggingTransaction([params], method, contractAddress);
 
           // send second transaction to pool:
           const txHash = await sendLoggingTransaction(
-            params,
+            [params],
             method,
             contractAddress
           );
@@ -524,7 +506,7 @@ describe("@ganache/console.log", () => {
       });
 
       it("uses minimal gas", async () => {
-        const receipt = await runTxTest(params, method, contractAddress);
+        const receipt = await runTxTest([params], method, contractAddress);
 
         // Our expectation of the amount of gas used may need to be updated as new
         // hardforks are added and other changes happen. This gas amount is a
