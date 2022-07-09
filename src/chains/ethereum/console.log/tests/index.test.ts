@@ -98,7 +98,8 @@ describe("@ganache/console.log", () => {
       {
         from,
         to: contractAddress,
-        data: "0x" + method + encode(params.flat()).toString("hex")
+        data:
+          "0x" + method + encode(params ? params.flat() : null).toString("hex")
       }
     ]);
   }
