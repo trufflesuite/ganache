@@ -122,16 +122,13 @@ export const bool = (memory: Buffer, offset: number) =>
   memory[offset + 31] !== 0;
 
 /**
- * Handle decoding of solidity's `address` type from EVM memory
+ * Handle decoding of solidity's `address` type from EVM memory.
  * @param memory
  * @param offset
- * @returns A 20 byte hex encoding string, prefixed with 0x
+ * @returns A 20 byte hex encoded string, prefixed with 0x.
  */
 export const address = (memory: Buffer, offset: number) =>
-  `0x${memory
-    .subarray(offset + 12, offset + WORD_SIZE)
-    .toString("hex")
-    .padStart(40, "0")}`;
+  `0x${memory.subarray(offset + 12, offset + WORD_SIZE).toString("hex")}`;
 
 /**
  * Handle decoding of solidity's dynamic `bytes` type from EVM memory
