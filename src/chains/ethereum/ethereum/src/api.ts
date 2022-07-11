@@ -2807,7 +2807,7 @@ export default class EthereumApi implements Api {
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles?: number[]
   ): Promise<Ethereum.FeeHistoryResult> {
-    const reward = [];
+    let reward = [];
     const baseFeePerGas = [];
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
@@ -2831,7 +2831,7 @@ export default class EthereumApi implements Api {
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
-      console.log("here");
+
       // gasUsedRatio
       if (gasUsed === 0n) {
         gasUsedRatio.unshift(0);
@@ -2844,7 +2844,7 @@ export default class EthereumApi implements Api {
           )
         );
       }
-      console.log("here 2");
+
       // baseFeePerGas
       if (!baseFee) {
         baseFeePerGas.unshift("0x0");
@@ -2868,7 +2868,6 @@ export default class EthereumApi implements Api {
               })
             );
           } else {
-            reward.unshift(rewardPercentiles); // stubbed
             // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
             const baseFeePerGas = currentBlock.header.baseFeePerGas.toBigInt();
 
@@ -2880,29 +2879,66 @@ export default class EthereumApi implements Api {
               })
             );
 
-            const effectiveGasRewardAndGas = transactionReceipts.map((r, i) => {
-              const tx = transactions[i];
-              const baseFeePerGas =
-                currentBlock.header.baseFeePerGas.toBigInt() ??
-                Quantity.from(0).toBigInt();
+            const effectiveGasRewardAndGas = transactionReceipts
+              .map((r, i) => {
+                const tx = transactions[i];
+                const baseFeePerGas =
+                  currentBlock.header.baseFeePerGas.toBigInt() ??
+                  Quantity.from(0).toBigInt();
 
-              // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
-              let effectiveGasReward;
-              if ("maxPriorityFeePerGas" in tx) {
-                effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFeePerGas;
-                if (tx.maxPriorityFeePerGas < effectiveGasReward) {
-                  effectiveGasReward = tx.maxPriorityFeePerGas;
+                // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
+                let effectiveGasReward;
+                if ("maxPriorityFeePerGas" in tx) {
+                  effectiveGasReward =
+                    tx.maxFeePerGas.toBigInt() - baseFeePerGas;
+                  if (tx.maxPriorityFeePerGas < effectiveGasReward) {
+                    effectiveGasReward = tx.maxPriorityFeePerGas;
+                  }
+                } else {
+                  effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
                 }
-              } else {
-                effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
-              }
 
-              return {
-                effectiveGasReward,
-                gasUsed: r.gasUsed ? r.gasUsed : Quantity.from(0)
-              };
-            });
-            //.sort((a, b) => a.effectiveGasReward - b.effectiveGasReward); // Sort
+                return {
+                  hash: tx.hash,
+                  effectiveGasReward,
+                  gasUsed: r.gasUsed ? r.gasUsed : Quantity.from(0)
+                };
+              })
+              .sort((a, b) => {
+                if (a.effectiveGasReward > b.effectiveGasReward) return 1;
+                if (a.effectiveGasReward < b.effectiveGasReward) return -1;
+                return 0;
+              });
+            console.log(effectiveGasRewardAndGas);
+
+            // This should account for the gas used in the block, not the total possible gas
+            reward.unshift(
+              rewardPercentiles.map(p => {
+                let gasUsed = 0;
+                const targetGas =
+                  currentBlock.header.gasLimit.toNumber() * (p / 100);
+
+                console.log(
+                  "gasLimit",
+                  currentBlock.header.gasLimit.toNumber()
+                );
+                console.log("percentile", p);
+                console.log("targetGas", targetGas);
+
+                for (const values of effectiveGasRewardAndGas) {
+                  gasUsed = gasUsed + values.gasUsed.toNumber();
+                  console.log("gasUsed", gasUsed);
+                  console.log(targetGas <= gasUsed);
+                  if (targetGas <= gasUsed) {
+                    return values.effectiveGasReward;
+                  }
+                }
+
+                return effectiveGasRewardAndGas[
+                  effectiveGasRewardAndGas.length - 1
+                ].effectiveGasReward;
+              })
+            );
           }
         }
       }
@@ -2910,7 +2946,7 @@ export default class EthereumApi implements Api {
       currentBlockNumber--;
       blocksToFetch--;
     }
-    console.log("here 3");
+
     return {
       oldestBlock,
       baseFeePerGas,
