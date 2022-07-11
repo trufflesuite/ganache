@@ -119,7 +119,7 @@ export const string = (memory: Buffer, offset: number) => {
  * @returns
  */
 export const bool = (memory: Buffer, offset: number) =>
-  memory[offset + 31] !== 0;
+  memory[offset + WORD_SIZE - 1] !== 0;
 
 /**
  * Handle decoding of solidity's `address` type from EVM memory.
