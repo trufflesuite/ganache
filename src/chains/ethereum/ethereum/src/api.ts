@@ -1048,26 +1048,34 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Returns the account- and storage-values of the specified account including the Merkle-proof.
+   * Returns the details for the account at the specified address and block
+   * number, the account's Merkle proof, and the storage values for the
+   * specified storage keys with their Merkle-proofs.
+   *
    * @param address - Address of the account
-   * @param slots - Array of storage-keys which should be proofed and included.
-   * @param blockNumber - A block number, or the string "earliest", "latest" or "pending".
-   * @returns An object containing information about the account, including Merkle-proof of account
-   * and storage values
+   * @param slots - Array of storage keys to be proofed.
+   * @param blockNumber - A block number, or the string "earliest", "latest", or
+   * "pending".
+   * @returns An object containing the details for the account at the specified
+   * address and block number, the account's Merkle proof, and the
+   * storage-values for the specified storage keys with their Merkle-proofs:
    * * `balance`: `QUANTITY` - the balance of the account.
-   * * `codeHash`: `DATA` - 32 Bytes - hash of the account. A simple Account without code will
-   *   return "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+   * * `codeHash`: `DATA` - 32 Bytes - hash of the account. A simple account
+   *   without code will return
+   *   `"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"`
    * * `nonce`: `QUANTITY` - the nonce of the account.
-   * * `storageHash`: `DATA` - 32 Bytes - SHA3 of the StorageRoot. All storage will deliver a
-   *   MerkleProof starting with this rootHash.
-   * * `accountProof`: `ARRAY` - Array of rlp-serialized MerkleTree-Nodes, starting with the
-   *   stateRoot-NODE, following the path of the SHA3 (address) as key.
-   * * `storageProof`: `ARRAY` - Array of storage-entries as requested. Each entry is an object
-   *   with the following properties:
+   * * `storageHash`: `DATA` - 32 Bytes - SHA3 of the StorageRoot. All storage
+   *   will deliver a MerkleProof starting with this rootHash.
+   * * `accountProof`: `Array` - Array of rlp-serialized MerkleTree-Nodes,
+   *   starting with the stateRoot-NODE, following the path of the SHA3
+   *   (address) as key.
+   * * `storageProof`: `Array` - Array of storage entries as requested. Each
+   *   entry is an object with the following properties:
    *   * `key`: `DATA` - the requested storage key.
    *   * `value`: `QUANTITY` - the storage value.
-   *   * `proof`: `ARRAY` - Array of rlp-serialized MerkleTree-Nodes, starting with the
-   *     storageHash-Node, following the path of the SHA3 (key) as path.
+   *   * `proof`: `Array` - Array of rlp-serialized MerkleTree-Nodes, starting
+   *     with the storageHash-Node, following the path of the SHA3 (key) as
+   *     path.
    * @example
    * ```javascript
    * // Simple.sol
