@@ -14,8 +14,8 @@ const CONSOLE_ADDRESS = new BN(
  */
 type LogsStack = [
   ...rest: BN[],
-  inLength: BN,
-  inOffset: BN,
+  memoryLength: BN,
+  memoryOffset: BN,
   toAddress: BN,
   _: BN
 ];
