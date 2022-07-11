@@ -83,7 +83,7 @@ describe("api", () => {
 
     describe("eth_getWork", () => {
       it("should get compilers list", async () => {
-        const result = await provider.send("eth_getWork", ["0x0"]);
+        const result = await provider.send("eth_getWork");
         assert.deepStrictEqual(result, []);
       });
     });
