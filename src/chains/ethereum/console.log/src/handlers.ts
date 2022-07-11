@@ -128,7 +128,7 @@ export const bool = (memory: Buffer, offset: number) =>
  * @returns A 20 byte hex encoded string, prefixed with 0x.
  */
 export const address = (memory: Buffer, offset: number) =>
-  `0x${memory.subarray(offset + 12, offset + WORD_SIZE).toString("hex")}`;
+  `0x${memory.toString("hex", offset + 12, offset + WORD_SIZE)}`;
 
 /**
  * Handle decoding of solidity's dynamic `bytes` type from EVM memory
