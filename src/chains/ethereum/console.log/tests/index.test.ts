@@ -426,27 +426,6 @@ contract ${CONTRACT_NAME} {
         const contractAddress = await deploy(code);
         const method = get4ByteForSignature(`testLog(string,uint256)`);
         await runTxTest(params, method, contractAddress);
-
-        // const logsProm = watchLogs();
-
-        // // send our logging transaction
-        // const transactionPromise = sendLoggingTransaction(
-        //   params,
-        //   method,
-        //   contractAddress
-        // );
-
-        // assertLogs(await logsProm, [[params[0]], [params[1]]]);
-        // const txHash = await transactionPromise;
-        // const receipt = await provider.send("eth_getTransactionReceipt", [
-        //   txHash
-        // ]);
-
-        // assert.strictEqual(
-        //   receipt.status,
-        //   "0x1",
-        //   "Transaction didn't complete successfully"
-        // );
       });
 
       describe("debug_storageRangeAt", () => {
