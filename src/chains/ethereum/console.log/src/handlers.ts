@@ -76,7 +76,7 @@ export function fixedBytes(length: number) {
  * @returns
  */
 function handleBytes(memory: Buffer, start: number, end: number) {
-  return `0x${memory.subarray(start, end).toString("hex")}`;
+  return `0x${memory.toString("hex", start, end)}`;
 }
 
 export const int256 = (memory: Buffer, offset: number) => {
