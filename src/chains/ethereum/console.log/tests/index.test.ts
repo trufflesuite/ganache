@@ -107,7 +107,7 @@ describe("@ganache/console.log", () => {
   /**
    * Throws if the given logs aren't a match for the given `expectedParamGroups`
    *
-   * If `expectedParamGroups` is `null` `logs` is expected to be an empty array
+   * If `expectedParamGroups` is `null`, `logs` is expected to be an empty array
    * (`length === 0`).
    *
    * A Solidity contract with the following `console.log` statements:
