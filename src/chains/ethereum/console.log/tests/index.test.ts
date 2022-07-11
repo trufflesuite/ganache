@@ -254,7 +254,7 @@ describe("@ganache/console.log", () => {
 
   describe("static", () => {
     function generateBytesN(n: number): [string, any[]] {
-      return [`bytes${n}`, ["0x" + "00".padEnd(n * 2, "0")]];
+      return [`bytes${n}`, ["0x" + "00".repeat(n)]];
     }
 
     // `staticValues` generates 1000s of tests, adding a single additional
