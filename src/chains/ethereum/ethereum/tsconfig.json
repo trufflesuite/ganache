@@ -49,6 +49,10 @@
     {
       "name": "@ganache/secp256k1",
       "path": "../../../packages/secp256k1"
+    },
+    {
+      "name": "@ganache/console.log",
+      "path": "../console.log"
     }
   ]
 }
