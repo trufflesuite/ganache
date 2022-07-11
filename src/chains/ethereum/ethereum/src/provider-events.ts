@@ -78,7 +78,7 @@ export type VmAfterTransactionEvent = {
 
 export type VmConsoleLogEvent = {
   readonly context: EvmStepContext;
-  readonly logs: ConsoleLogs | null;
+  readonly logs: ConsoleLogs;
 };
 
 export type DataEvent = {
