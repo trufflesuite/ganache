@@ -46,7 +46,7 @@ export function encode(params: Param[] | null) {
  * @returns
  */
 export function get4ByteForSignature(signature: string) {
-  return `${keccak(Buffer.from(signature)).subarray(0, 4).toString("hex")}`;
+  return keccak(Buffer.from(signature)).toString("hex", 0, 4);
 }
 /**
  * Creates an array of pairs built out of two underlying arrays using the given
