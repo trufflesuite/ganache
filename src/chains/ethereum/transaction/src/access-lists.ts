@@ -95,7 +95,7 @@ export class AccessLists {
         }
       });
       const { address, storageKeys } = accessListItem;
-      if (address.length != 42) {
+      if (address.length !== 42) {
         // each address must be 20 bytes (plus "0x" in string version)
         return false;
       }
@@ -104,7 +104,7 @@ export class AccessLists {
         storageSlot < storageKeys.length;
         storageSlot++
       ) {
-        if (storageKeys[storageSlot].length != 66) {
+        if (storageKeys[storageSlot].length !== 66) {
           // each storageKey must be 32 byes (plus "0x" in string version)
           return false;
         }
