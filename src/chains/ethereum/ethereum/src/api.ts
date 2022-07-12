@@ -123,9 +123,10 @@ function createSimulatedTransaction(
   // "effectiveGasPrice". however, if `maxPriorityFeePerGas` or
   // `maxFeePerGas` values are set, the baseFeePerGas is used to calculate
   // the effectiveGasPrice, which is used to calculate tx costs/refunds.
-  const baseFeePerGasBigInt = simulationBlockHeader.baseFeePerGas
-    ? simulationBlockHeader.baseFeePerGas.toBigInt()
-    : undefined;
+  const baseFeePerGasBigInt =
+    simulationBlockHeader !== undefined
+      ? simulationBlockHeader.baseFeePerGas.toBigInt()
+      : undefined;
 
   let gasPrice: Quantity;
   const hasGasPrice = typeof transaction.gasPrice !== "undefined";
