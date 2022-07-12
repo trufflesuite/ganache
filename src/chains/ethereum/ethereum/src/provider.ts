@@ -35,7 +35,7 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { ConsoleLogs } from "@ganache/console.log";
+import { ClockBasedBlockTime, IncrementBasedBlockTime } from "./block-time";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -162,9 +162,26 @@ export class EthereumProvider
       providerOptions.fork.url ||
       providerOptions.fork.provider ||
       providerOptions.fork.network;
-    const fallback = fork ? new Fork(providerOptions, accounts) : null;
+
+    const startTime = this.#options.chain.time || new Date();
+    const blockTime =
+      this.#options.miner.timestampIncrement === "clock"
+        ? new ClockBasedBlockTime(startTime, () => new Date())
+        : new IncrementBasedBlockTime(
+            startTime,
+            this.#options.miner.timestampIncrement.toNumber() * 1000
+          );
+
+    const fallback = fork
+      ? new Fork(providerOptions, accounts, blockTime)
+      : null;
     const coinbase = parseCoinbase(providerOptions.miner.coinbase, accounts);
-    const blockchain = new Blockchain(providerOptions, coinbase, fallback);
+    const blockchain = new Blockchain(
+      providerOptions,
+      coinbase,
+      blockTime,
+      fallback
+    );
     this.#blockchain = blockchain;
 
     blockchain.on("ganache:vm:tx:before", event => {

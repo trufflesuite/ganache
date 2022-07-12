@@ -84,6 +84,7 @@ describe("api", () => {
         { miner: { instamine: "eager" } },
         { miner: { instamine: "strict" } }
       ];
+
       providerOptions.forEach(option => {
         return describe(`in ${option.miner.instamine} instamine mode`, () => {
           it("should mine `n` blocks on demand", async () => {

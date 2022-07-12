@@ -13,6 +13,7 @@ import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
+import { BlockTime } from "../block-time";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -45,17 +46,23 @@ export class Fork {
   #options: EthereumInternalOptions;
   #accounts: Account[];
   #hardfork: string;
+  readonly #blockTime: BlockTime;
 
   public blockNumber: Quantity;
   public stateRoot: Data;
   public block: Block;
   public chainId: number;
 
-  constructor(options: EthereumInternalOptions, accounts: Account[]) {
+  constructor(
+    options: EthereumInternalOptions,
+    accounts: Account[],
+    blockTime: BlockTime
+  ) {
     this.#options = options;
     const forkingOptions = options.fork;
     this.#hardfork = options.chain.hardfork;
     this.#accounts = accounts;
+    this.#blockTime = blockTime;
 
     const { url, network } = forkingOptions;
     if (url) {
@@ -227,11 +234,13 @@ export class Fork {
       this.blockNumber.toBigInt()
     );
     this.block = new Block(BlockManager.rawFromJSON(block, common), common);
-    if (!chainOptions.time && minerOptions.timestampIncrement !== "clock") {
-      chainOptions.time = new Date(
-        (this.block.header.timestamp.toNumber() +
-          minerOptions.timestampIncrement.toNumber()) *
-          1000
+    if (!chainOptions.time) {
+      // this needs to set the time of the _previous_ block,
+      // whereas in incrementBasedBlockTime we set the time of the _next_ block
+      // maybe when we call setTime, we increment the value passed in.
+      const blockTimestampMs = this.block.header.timestamp.toNumber() * 1000;
+      this.block.header.timestamp = Quantity.from(
+        this.#blockTime.createBlockTimestampInSeconds(blockTimestampMs)
       );
     }
     if (cache) await this.initCache(cache);

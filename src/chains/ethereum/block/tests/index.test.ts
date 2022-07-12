@@ -6,6 +6,7 @@ import Wallet from "../../ethereum/src/wallet";
 import { Transaction, TransactionFactory } from "@ganache/ethereum-transaction";
 import Blockchain from "../../ethereum/src/blockchain";
 import { EthereumOptionsConfig } from "../../options/src/index";
+import { ClockBasedBlockTime } from "../../ethereum/src/block-time";
 
 describe("@ganache/ethereum-block", async () => {
   describe("baseFeePerGas calculations", () => {
@@ -52,7 +53,11 @@ describe("@ganache/ethereum-block", async () => {
         },
         "london"
       );
-      blockchain = new Blockchain(options, fromAddress);
+      blockchain = new Blockchain(
+        options,
+        fromAddress,
+        new ClockBasedBlockTime(new Date(), () => new Date())
+      );
       await blockchain.initialize(wallet.initialAccounts);
       // to verify our calculations for the block's baseFeePerGas,
       // we're comparing our data to geth. Geth's gasLimit changes

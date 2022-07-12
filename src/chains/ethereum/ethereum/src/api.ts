@@ -307,11 +307,11 @@ export default class EthereumApi implements Api {
       timestamp = arg as number | null;
     }
 
-    if (numBlocks == null) {
+    if (numBlocks == undefined) {
       numBlocks = 1;
     }
-    if (timestamp) {
-      this.#blockchain.setTimeDiff(timestamp * 1000);
+    if (timestamp != undefined) {
+      this.#blockchain.setTime(timestamp * 1000);
     }
 
     // TODO(perf): add an option to mine a bunch of blocks in a batch so
@@ -319,9 +319,11 @@ export default class EthereumApi implements Api {
     // Developers like to move the blockchain forward by thousands of blocks
     // at a time and doing this would make it way faster
     for (let i = 0; i < numBlocks; i++) {
+      const timestampMilliseconds =
+        timestamp == undefined ? undefined : timestamp * 1000;
       const { transactions } = await blockchain.mine(
         Capacity.FillBlock,
-        timestamp,
+        timestampMilliseconds,
         true
       );
 
@@ -546,8 +548,7 @@ export default class EthereumApi implements Api {
         timestamp = Quantity.toNumber(time);
         break;
     }
-    const blockchain = this.#blockchain;
-    const offsetMilliseconds = blockchain.setTimeDiff(timestamp);
+    const offsetMilliseconds = this.#blockchain.setTime(timestamp);
     // convert offsetMilliseconds to seconds:
     return Math.floor(offsetMilliseconds / 1000);
   }

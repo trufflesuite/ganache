@@ -73,6 +73,7 @@ import {
   VmConsoleLogEvent,
   VmStepEvent
 } from "./provider-events";
+import { BlockTime } from "./block-time";
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
@@ -199,6 +200,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   readonly #database: Database;
   readonly #options: EthereumInternalOptions;
   readonly #instamine: boolean;
+  readonly #blockTime: BlockTime;
   public common: Common;
 
   public fallback: Fork;
@@ -214,6 +216,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   constructor(
     options: EthereumInternalOptions,
     coinbase: Address,
+    blockTime: BlockTime,
     fallback?: Fork
   ) {
     super();
@@ -223,6 +226,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     this.coinbase = coinbase;
     this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0;
     this.#database = new Database(options.database, this);
+    this.#blockTime = blockTime;
   }
 
   async initialize(initialAccounts: Account[]) {
@@ -299,14 +303,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // if we don't have a time from the user get one now
         if (options.chain.time == null) options.chain.time = new Date();
 
-        const timestamp = options.chain.time.getTime();
-        const firstBlockTime = Math.floor(timestamp / 1000);
-
-        // if we are using clock time we need to record the time offset so
-        // other blocks can have timestamps relative to our initial time.
-        if (options.miner.timestampIncrement === "clock") {
-          this.#timeAdjustment = timestamp - Date.now();
-        }
+        const firstBlockTime = this.#blockTime.createBlockTimestampInSeconds();
 
         // if we don't already have a latest block, create a genesis block!
         if (!latest) {
@@ -566,9 +563,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const previousHeader = previousBlock.header;
     const previousNumber = previousHeader.number.toBigInt() || 0n;
     const minerOptions = this.#options.miner;
-    if (timestamp == null) {
-      timestamp = this.#adjustedTime(previousHeader.timestamp);
-    }
+    const blockTimestamp =
+      this.#blockTime.createBlockTimestampInSeconds(timestamp);
 
     return new RuntimeBlock(
       Quantity.from(previousNumber + 1n),
@@ -576,7 +572,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.coinbase,
       minerOptions.blockGasLimit.toBuffer(),
       BUFFER_ZERO,
-      Quantity.from(timestamp),
+      Quantity.from(blockTimestamp),
       minerOptions.difficulty,
       previousHeader.totalDifficulty,
       Block.calcNextBaseFee(previousBlock)
@@ -589,10 +585,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   mine = async (
     maxTransactions: number | Capacity,
-    timestamp?: number,
+    timestampMilliseconds?: number,
     onlyOneBlock: boolean = false
   ) => {
-    const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+    const nextBlock = this.#readyNextBlock(
+      this.blocks.latest,
+      timestampMilliseconds
+    );
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,
@@ -791,54 +790,32 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   };
 
   /**
-   * The number of milliseconds time should be adjusted by when computing the
-   * "time" for a block.
-   */
-  #timeAdjustment: number = 0;
-
-  /**
-   * Returns the timestamp, adjusted by the timeAdjustment offset, in seconds.
-   * @param precedingTimestamp - the timestamp of the block to be used as the
-   * time source if `timestampIncrement` is not "clock".
-   */
-  #adjustedTime = (precedingTimestamp: Quantity) => {
-    const timeAdjustment = this.#timeAdjustment;
-    const timestampIncrement = this.#options.miner.timestampIncrement;
-    if (timestampIncrement === "clock") {
-      return Math.floor((Date.now() + timeAdjustment) / 1000);
-    } else {
-      return (
-        precedingTimestamp.toNumber() +
-        Math.floor(timeAdjustment / 1000) +
-        timestampIncrement.toNumber()
-      );
-    }
-  };
-
-  /**
    * @param milliseconds - the number of milliseconds to adjust the time by.
    * Negative numbers are treated as 0.
    * @returns the total time offset *in milliseconds*
    */
-  public increaseTime(milliseconds: number) {
-    if (milliseconds < 0) {
-      milliseconds = 0;
+  public increaseTime(milliseconds: number): number {
+    const currentOffset = this.#blockTime.getOffset();
+    if (milliseconds <= 0) {
+      return currentOffset;
     }
-    return (this.#timeAdjustment += milliseconds);
+
+    const newOffset = currentOffset + milliseconds;
+    this.#blockTime.setOffset(newOffset);
+
+    return newOffset;
   }
 
   /**
-   * @param newTime - the number of milliseconds to adjust the time by. Can be negative.
+   * @param timestamp - the new timestamp to set, in milliseconds
    * @returns the total time offset *in milliseconds*
    */
-  public setTimeDiff(newTime: number) {
-    // when using clock time use Date.now(), otherwise use the timestamp of the
-    // current latest block
-    const currentTime =
-      this.#options.miner.timestampIncrement === "clock"
-        ? Date.now()
-        : this.blocks.latest.header.timestamp.toNumber() * 1000;
-    return (this.#timeAdjustment = newTime - currentTime);
+  public setTime(timestamp: number) {
+    // we call createBlockTimestampInSeconds() here instead of setTime(), because we want
+    // the next blockTimestamp to be the specified timestamp + increment.
+    // see: https://github.com/trufflesuite/ganache/issues/3346 for discussion.
+    this.#blockTime.createBlockTimestampInSeconds(timestamp);
+    return this.#blockTime.getOffset();
   }
 
   #deleteBlockData = async (
@@ -892,7 +869,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // enough.
     const id = snaps.push({
       block: this.blocks.latest,
-      timeAdjustment: this.#timeAdjustment
+      timeAdjustment: this.#blockTime.getOffset()
     });
 
     // start listening to new blocks if this is the first snapshot
@@ -980,7 +957,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
 
     // put our time adjustment back
-    this.#timeAdjustment = snapshot.timeAdjustment;
+    this.#blockTime.setOffset(snapshot.timeAdjustment);
 
     // resume mining
     this.#miner.resume();

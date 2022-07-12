@@ -75,6 +75,7 @@ describe("provider", () => {
         method: "evm_mine",
         params: []
       });
+
       const block = await provider.request({
         method: "eth_getBlockByNumber",
         params: ["latest", false]
@@ -88,7 +89,7 @@ describe("provider", () => {
 
     it("uses time adjustment after `evm_setTime` when `timestampIncrement` is used", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
-      const timestampIncrement = 5;
+      const timestampIncrement = 5; // seconds
       const fastForward = 100 * 1000; // 100 seconds
       const provider = await getProvider({
         chain: { time },
@@ -107,8 +108,7 @@ describe("provider", () => {
         method: "eth_getBlockByNumber",
         params: ["latest", false]
       });
-      const expectedTime =
-        Math.floor((fastForward + +time) / 1000) + timestampIncrement;
+      const expectedTime = Math.floor((fastForward + +time) / 1000) + timestampIncrement;
       assert.strictEqual(parseInt(block.timestamp), expectedTime);
 
       await provider.disconnect();

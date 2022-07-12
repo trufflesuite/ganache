@@ -14,6 +14,7 @@ import {
   TransactionFactory
 } from "@ganache/ethereum-transaction";
 import Blockchain from "../../../src/blockchain";
+import { ClockBasedBlockTime } from "../../../src/block-time";
 
 describe("api", () => {
   describe("debug", () => {
@@ -201,7 +202,8 @@ describe("api", () => {
       const blockchain = new Blockchain(
         // using berlin here because we need this test to cost 0 gas
         EthereumOptionsConfig.normalize({ chain: { hardfork: "berlin" } }),
-        address
+        address,
+        new ClockBasedBlockTime(new Date(), () => new Date())
       );
 
       await blockchain.initialize(initialAccounts);
