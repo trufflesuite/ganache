@@ -8,7 +8,7 @@ import { Ethereum } from "../../../src/api-types";
 import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 
 const encodeValue = (val: number | string) => {
-  return Quantity.from(val).toBuffer().toString("hex").padStart(64, "0");
+  return Data.toString(val, 32).slice(2);
 };
 
 async function deployContract(provider, from, code) {
