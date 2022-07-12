@@ -1,5 +1,8 @@
 name: Release
 
+# allow only one "Release" workflow to run at a time
+concurrency: production
+
 on:
   push:
     branches: [alpha, beta, rc, master]
