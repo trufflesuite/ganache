@@ -204,7 +204,7 @@ export default class SimulationHandler {
       if (overrides) {
         await this.#applySimulationOverrides(overrides);
       }
-      if (transaction.accessList) {
+      if (common.isActivatedEIP(2930) && transaction.accessList) {
         this.#warmAccessList(transaction.accessList);
       }
 
