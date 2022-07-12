@@ -2813,7 +2813,7 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
     const PAD_PRECISION = 16;
     const PRECISION = 10 ** PAD_PRECISION;
-    //                30000000 * PRECISION = 300000000000000000000000
+    const PRECISION_BIG_INT = Quantity.from(PRECISION).toBigInt();
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
@@ -2838,7 +2838,7 @@ export default class EthereumApi implements Api {
       } else {
         gasUsedRatio.unshift(
           Number(
-            `0.${((gasUsed * Quantity.from(PRECISION).toBigInt()) / gasLimit)
+            `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
               .toString()
               .padStart(PAD_PRECISION, "0")}`
           )
@@ -2861,6 +2861,7 @@ export default class EthereumApi implements Api {
         if (rewardPercentiles) {
           const transactions = currentBlock.getTransactions();
 
+          // If there are no transactions, all reward percentiles are 0.
           if (transactions.length === 0) {
             reward.unshift(
               rewardPercentiles.map(() => {
@@ -2868,9 +2869,7 @@ export default class EthereumApi implements Api {
               })
             );
           } else {
-            // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
-            const baseFeePerGas = currentBlock.header.baseFeePerGas.toBigInt();
-
+            // Get receipts
             const transactionReceipts = await Promise.all(
               transactions.map(async (t, i) => {
                 return (
@@ -2879,14 +2878,15 @@ export default class EthereumApi implements Api {
               })
             );
 
-            const effectiveGasRewardAndGas = transactionReceipts
+            // Get effective rewards and gas used for each transaction
+            const effectiveRewardAndGasUsed = transactionReceipts
               .map((r, i) => {
                 const tx = transactions[i];
                 const baseFeePerGas =
-                  currentBlock.header.baseFeePerGas.toBigInt() ??
-                  Quantity.from(0).toBigInt();
+                  currentBlock.header.baseFeePerGas.toBigInt()
+                    ? currentBlock.header.baseFeePerGas.toBigInt()
+                    : Quantity.from(0).toBigInt();
 
-                // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
                 let effectiveGasReward;
                 if ("maxPriorityFeePerGas" in tx) {
                   effectiveGasReward =
@@ -2909,33 +2909,24 @@ export default class EthereumApi implements Api {
                 if (a.effectiveGasReward < b.effectiveGasReward) return -1;
                 return 0;
               });
-            console.log(effectiveGasRewardAndGas);
 
-            // This should account for the gas used in the block, not the total possible gas
             reward.unshift(
               rewardPercentiles.map(p => {
-                let gasUsed = 0;
+                let gasUsed = Quantity.from(0).toBigInt();
+                // p can be a float
                 const targetGas =
-                  currentBlock.header.gasLimit.toNumber() * (p / 100);
+                  currentBlock.header.gasUsed.toNumber() * (p / 100);
 
-                console.log(
-                  "gasLimit",
-                  currentBlock.header.gasLimit.toNumber()
-                );
-                console.log("percentile", p);
-                console.log("targetGas", targetGas);
+                for (const values of effectiveRewardAndGasUsed) {
+                  gasUsed = gasUsed + values.gasUsed.toBigInt();
 
-                for (const values of effectiveGasRewardAndGas) {
-                  gasUsed = gasUsed + values.gasUsed.toNumber();
-                  console.log("gasUsed", gasUsed);
-                  console.log(targetGas <= gasUsed);
                   if (targetGas <= gasUsed) {
                     return values.effectiveGasReward;
                   }
                 }
 
-                return effectiveGasRewardAndGas[
-                  effectiveGasRewardAndGas.length - 1
+                return effectiveRewardAndGasUsed[
+                  effectiveRewardAndGasUsed.length - 1
                 ].effectiveGasReward;
               })
             );
