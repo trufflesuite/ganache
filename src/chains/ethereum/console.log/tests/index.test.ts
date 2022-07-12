@@ -426,7 +426,7 @@ contract ${CONTRACT_NAME} {
         const contractAddress = await deploy(code);
         const method = get4ByteForSignature(`testLog(string,uint256)`);
         await runTxTest(params, method, contractAddress);
-      });
+      }).timeout(10000); // github action's mac runner is slow
 
       describe("debug_storageRangeAt", () => {
         beforeEach("stop the miner", async () => {
