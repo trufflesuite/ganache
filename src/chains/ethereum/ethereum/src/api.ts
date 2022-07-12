@@ -157,8 +157,9 @@ function createSimulatedTransaction(
       maxPriorityFeePerGas = BigInt(transaction.maxPriorityFeePerGas);
     }
     if (maxPriorityFeePerGas > 0 || maxFeePerGas > 0) {
-      const a = maxFeePerGas - baseFeePerGasBigInt;
-      const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+      const maybeTip = maxFeePerGas - baseFeePerGasBigInt;
+      const tip =
+        maybeTip < maxPriorityFeePerGas ? maybeTip : maxPriorityFeePerGas;
       gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
     } else {
       gasPrice = Quantity.from(0);
