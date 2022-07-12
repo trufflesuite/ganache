@@ -189,7 +189,7 @@ function createSimulatedTransaction(
 
   return {
     gas,
-    // if we don't have a from address, our caller sut be the configured coinbase address
+    // if we don't have a from address, our caller must be the configured coinbase address
     from:
       transaction.from == null
         ? blockchain.coinbase
