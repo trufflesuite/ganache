@@ -57,7 +57,9 @@ export function GetConnector<T = any>(
         : flavor.toString();
 
     const pluginPackageExports = eval("require")(pluginPackageName);
-    const pluginPackage = pluginPackageExports.default ?? pluginPackageExports;
+    const pluginPackage = pluginPackageExports.default
+      ? pluginPackageExports.default
+      : pluginPackageExports;
     return new pluginPackage.Connector(providerOptions, executor);
   } catch (e: any) {
     if (e.message.includes(`Cannot find module '${flavor}'`)) {
