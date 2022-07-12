@@ -97,7 +97,6 @@ const RPC_MODULES = {
   evm: "1.0",
   personal: "1.0"
 } as const;
-const EIP1559_HARDFORK = "london";
 //#endregion
 
 //#region helpers
@@ -2924,8 +2923,6 @@ export default class EthereumApi implements Api {
                   (currentBlock.header.gasUsed.toBigInt() *
                     Quantity.from(p * PRECISION).toBigInt()) /
                   PRECISION_BIG_INT_PERCENTILE;
-
-                console.log(targetGas);
 
                 for (const values of effectiveRewardAndGasUsed) {
                   gasUsed = gasUsed + values.gasUsed;

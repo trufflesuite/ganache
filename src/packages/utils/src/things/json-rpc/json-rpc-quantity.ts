@@ -92,7 +92,7 @@ export class Quantity extends BaseJsonRpcType {
       const trimmedBuffer =
         firstNonZeroByte === 0
           ? this.bufferValue
-          : this.bufferValue.subarray(firstNonZeroByte);
+          : this.bufferValue.subarray(firstNonZeroByte, length);
       result = Number(bufferToBigInt(trimmedBuffer));
 
       if (!Number.isSafeInteger(result)) {
