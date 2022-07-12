@@ -2907,7 +2907,7 @@ export default class EthereumApi implements Api {
                 return {
                   hash: tx.hash,
                   effectiveGasReward,
-                  gasUsed: r.gasUsed ? r.gasUsed : Quantity.from(0)
+                  gasUsed: r.gasUsed ? r.gasUsed.toBigInt() : ZERO_BIG_INT
                 };
               })
               .sort((a, b) => {
@@ -2918,7 +2918,7 @@ export default class EthereumApi implements Api {
 
             reward.unshift(
               rewardPercentiles.map(p => {
-                let gasUsed = Quantity.from(0).toBigInt();
+                let gasUsed = ZERO_BIG_INT;
                 // p can be a float
                 const targetGas =
                   (currentBlock.header.gasUsed.toBigInt() *
@@ -2928,7 +2928,7 @@ export default class EthereumApi implements Api {
                 console.log(targetGas);
 
                 for (const values of effectiveRewardAndGasUsed) {
-                  gasUsed = gasUsed + values.gasUsed.toBigInt();
+                  gasUsed = gasUsed + values.gasUsed;
 
                   if (targetGas <= gasUsed) {
                     return values.effectiveGasReward;
