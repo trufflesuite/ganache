@@ -2811,9 +2811,11 @@ export default class EthereumApi implements Api {
     const baseFeePerGas = [];
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
-    const PAD_PRECISION = 16;
+    const PAD_PRECISION = 16; // Matching geth/infura decimal precision formatting
     const PRECISION = 10 ** PAD_PRECISION;
     const PRECISION_BIG_INT = Quantity.from(PRECISION).toBigInt();
+    const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
+    const ZERO_BIG_INT = Quantity.from(0).toBigInt();
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
@@ -2823,17 +2825,21 @@ export default class EthereumApi implements Api {
 
     let currentBlockNumber = newestBlockNumber;
 
+    // Because tags are supported in newestBlock, starting from the oldest block
+    // Would require hitting the db for the latest block twice. Once to calc to oldest
+    // and once to process the block.
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
       const currentBlock = await blockchain.blocks.get(currentBlockNumber);
-
       oldestBlock = Quantity.from(currentBlockNumber).toString();
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
-      const baseFee = currentBlock.header.baseFeePerGas.toBigInt();
+      const baseFee = currentBlock.header.baseFeePerGas
+        ? currentBlock.header.baseFeePerGas.toBigInt()
+        : ZERO_BIG_INT;
 
       // gasUsedRatio
-      if (gasUsed === 0n) {
+      if (gasUsed === ZERO_BIG_INT) {
         gasUsedRatio.unshift(0);
       } else {
         gasUsedRatio.unshift(
@@ -2885,7 +2891,7 @@ export default class EthereumApi implements Api {
                 const baseFeePerGas =
                   currentBlock.header.baseFeePerGas.toBigInt()
                     ? currentBlock.header.baseFeePerGas.toBigInt()
-                    : Quantity.from(0).toBigInt();
+                    : ZERO_BIG_INT;
 
                 let effectiveGasReward;
                 if ("maxPriorityFeePerGas" in tx) {
@@ -2915,7 +2921,11 @@ export default class EthereumApi implements Api {
                 let gasUsed = Quantity.from(0).toBigInt();
                 // p can be a float
                 const targetGas =
-                  currentBlock.header.gasUsed.toNumber() * (p / 100);
+                  (currentBlock.header.gasUsed.toBigInt() *
+                    Quantity.from(p * PRECISION).toBigInt()) /
+                  PRECISION_BIG_INT_PERCENTILE;
+
+                console.log(targetGas);
 
                 for (const values of effectiveRewardAndGasUsed) {
                   gasUsed = gasUsed + values.gasUsed.toBigInt();
