@@ -1036,7 +1036,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     );
     await simHandler.initialize(simulationBlock, transaction, overrides);
     const callResult = await simHandler.runCall();
-    return Data.from(callResult.execResult.returnValue || "0x");
+    const callResultValue = callResult.execResult.returnValue;
+    return callResultValue === undefined
+      ? Data.Empty
+      : Data.from(callResultValue);
   }
 
   public async createAccessList(
