@@ -22,6 +22,16 @@ describe("api", () => {
         assert.strictEqual(totalAccounts, opts.wallet.totalAccounts);
       });
 
+      it("should cap the number of custom accounts at 1000", async () => {
+        const totalAccounts = 5000;
+        const maxAccounts = 1000;
+        const provider = await getProvider({ wallet: { totalAccounts } });
+        const accounts = await provider.send("eth_accounts");
+        assert.strictEqual(accounts.length, maxAccounts);
+        const opts = provider.getOptions();
+        assert.strictEqual(maxAccounts, opts.wallet.totalAccounts);
+      });
+
       it("should allow specifying 0 accounts", async () => {
         const totalAccounts = 0;
         const provider = await getProvider({ wallet: { totalAccounts } });

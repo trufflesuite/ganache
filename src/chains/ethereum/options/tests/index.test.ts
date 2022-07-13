@@ -79,4 +79,16 @@ describe("EthereumOptionsConfig", () => {
       });
     });
   });
+  describe("wallet-options", () => {
+    describe("totalAccounts", () => {
+      it("caps user-supplied value to 1000 total accounts", () => {
+        const totalAccounts = 5000;
+        const maxAccounts = 1000;
+        const options = EthereumOptionsConfig.normalize({
+          wallet: { totalAccounts }
+        });
+        assert.equal(options.wallet.totalAccounts, maxAccounts);
+      });
+    });
+  });
 });
