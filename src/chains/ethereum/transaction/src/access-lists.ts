@@ -112,4 +112,40 @@ export class AccessLists {
     }
     return true;
   }
+
+  /**
+   * Compares two access lists to check if they are the same, both in content
+   * and the order of the content.
+   * @param a An access list to compare.
+   * @param b An access list to compare.
+   * @returns Boolean indicating if the two access lists are the same.
+   */
+  public static areAccessListsSame(a: AccessList, b: AccessList) {
+    if (!a || !b) {
+      return false;
+    }
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+      const alItemA = a[i];
+      const alItemB = b[i];
+      if (alItemA.address !== alItemB.address) {
+        return false;
+      }
+
+      const aKeys = alItemA.storageKeys;
+      const bKeys = alItemB.storageKeys;
+      if (aKeys.length !== bKeys.length) {
+        return false;
+      }
+      for (let j = 0; j < aKeys.length; j++) {
+        if (aKeys[j] !== bKeys[j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 }
