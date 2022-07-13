@@ -3,11 +3,11 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { Quantity } from "@ganache/utils";
+import { Data } from "@ganache/utils";
 import { Ethereum } from "../../../src/api-types";
 import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 
-const encodeValue = (val: number | string) => {
+const encodeValue = (val: string) => {
   return Data.toString(val, 32).slice(2);
 };
 
