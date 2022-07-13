@@ -23,7 +23,7 @@ describe("api", () => {
       const contractCode =
         "0x6080604052607b60005560018060006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555034801561005657600080fd5b50610169806100666000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80636e8d4ab51461003b5780637104ddb214610059575b600080fd5b610043610077565b60405161005091906100bc565b60405180910390f35b61006161007d565b60405161006e9190610118565b60405180910390f35b60005481565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6000819050919050565b6100b6816100a3565b82525050565b60006020820190506100d160008301846100ad565b92915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000610102826100d7565b9050919050565b610112816100f7565b82525050565b600060208201905061012d6000830184610109565b9291505056fea26469706673582212209c21580c5505f87f9862db81d9f3aed499a5b4966d1a626e72d1a4e999576cb064736f6c634300080b0033";
       // todo: Generate contractCode from GetProof.sol. The generated code is operating system dependent (due to metadata). Differing code generates a different proof.
-      // This should be solved by generating the expected Proof direclty. Once this is done, most of the static assertions can be removed, as well as the deterministic wallet.
+      // This should be solved by generating the expected Proof directly. Once this is done, most of the static assertions can be removed, as well as the deterministic wallet.
       // See https://github.com/trufflesuite/ganache/issues/3303 for more information.
 
       beforeEach(async () => {
@@ -80,20 +80,20 @@ describe("api", () => {
           "latest"
         ]);
 
-        assert.equal(result.address, ownerAddress, "Unexpected address");
-        assert.equal(result.balance, ownerBalance, "Unexpected balance");
-        assert.equal(
+        assert.strictEqual(result.address, ownerAddress, "Unexpected address");
+        assert.strictEqual(result.balance, ownerBalance, "Unexpected balance");
+        assert.strictEqual(
           result.codeHash,
           Data.toString(KECCAK256_NULL),
           "Unexpected codeHash, expected keccak hash of zero bytes"
         );
-        assert.equal(result.nonce, "0x1", "Unexpected nonce");
-        assert.equal(
+        assert.strictEqual(result.nonce, "0x1", "Unexpected nonce");
+        assert.strictEqual(
           result.storageHash,
           emptyMerkleRoot,
           "Unexpected storageHash, expected root of empty merkle trie"
         );
-        assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
       });
 
       it("gets the proof with an explicit block number", async () => {
@@ -103,21 +103,21 @@ describe("api", () => {
           "0x1"
         ]);
 
-        assert.equal(result.address, ownerAddress, "Unexpected address");
-        assert.equal(result.balance, ownerBalance, "Unexpected balance");
-        assert.equal(
+        assert.strictEqual(result.address, ownerAddress, "Unexpected address");
+        assert.strictEqual(result.balance, ownerBalance, "Unexpected balance");
+        assert.strictEqual(
           result.codeHash,
           Data.toString(KECCAK256_NULL),
           "Unexpected codeHash, expected keccak hash of zero bytes"
         );
 
-        assert.equal(result.nonce, "0x1", "Unexpected nonce");
-        assert.equal(
+        assert.strictEqual(result.nonce, "0x1", "Unexpected nonce");
+        assert.strictEqual(
           result.storageHash,
           emptyMerkleRoot,
           "Unexpected storageHash, expected root of empty merkle trie"
         );
-        assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
       });
 
       it("gets the proof without specific storage indices", async () => {
@@ -127,37 +127,37 @@ describe("api", () => {
           "latest"
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           result.address,
           contractAccount.address.toString(),
           "Unexpected address"
         );
-        assert.equal(
+        assert.strictEqual(
           result.balance,
           contractAccount.balance.toString(),
           "Unexpected balance"
         );
-        assert.equal(
+        assert.strictEqual(
           result.codeHash,
           Data.toString(contractAccount.codeHash),
           "Unexpected codeHash"
         );
-        assert.equal(
+        assert.strictEqual(
           result.nonce,
           contractAccount.nonce.toString(),
           "Unexpected nonce"
         );
-        assert.equal(
+        assert.strictEqual(
           result.storageHash,
           Data.from(contractAccount.stateRoot).toString(),
           "Unexpected storageHash"
         );
-        assert.deepEqual(
+        assert.deepStrictEqual(
           result.accountProof,
           expectedContractAccountProof,
           "Unexpected accountProof"
         );
-        assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
       });
 
       it("gets the proof with specific storage index", async () => {
@@ -169,32 +169,32 @@ describe("api", () => {
           "latest"
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           result.address,
           contractAccount.address.toString(),
           "Unexpected address"
         );
-        assert.equal(
+        assert.strictEqual(
           result.balance,
           contractAccount.balance.toString(),
           "Unexpected balance"
         );
-        assert.equal(
+        assert.strictEqual(
           result.codeHash,
           Data.from(contractAccount.codeHash).toString(),
           "Unexpected codeHash"
         );
-        assert.equal(
+        assert.strictEqual(
           result.nonce,
           contractAccount.nonce.toString(),
           "Unexpected nonce"
         );
-        assert.equal(
+        assert.strictEqual(
           result.storageHash,
           Data.from(contractAccount.stateRoot).toString(),
           "Unexpected storageHash"
         );
-        assert.deepEqual(
+        assert.deepStrictEqual(
           result.accountProof,
           expectedContractAccountProof,
           "Unexpected accountProof"
@@ -219,7 +219,7 @@ describe("api", () => {
           }
         ];
 
-        assert.deepEqual(
+        assert.deepStrictEqual(
           result.storageProof,
           expectedStorageProof,
           "Unexpected storageProof"
@@ -235,32 +235,32 @@ describe("api", () => {
           "latest"
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           result.address,
           contractAccount.address.toString(),
           "Unexpected address"
         );
-        assert.equal(
+        assert.strictEqual(
           result.balance,
           contractAccount.balance.toString(),
           "Unexpected balance"
         );
-        assert.equal(
+        assert.strictEqual(
           result.codeHash,
           Data.from(contractAccount.codeHash).toString(),
           "Unexpected codeHash"
         );
-        assert.equal(
+        assert.strictEqual(
           result.nonce,
           contractAccount.nonce.toString(),
           "Unexpected nonce"
         );
-        assert.equal(
+        assert.strictEqual(
           result.storageHash,
           Data.from(contractAccount.stateRoot).toString(),
           "Unexpected storageHash"
         );
-        assert.deepEqual(
+        assert.deepStrictEqual(
           result.accountProof,
           expectedContractAccountProof,
           "Unexpected accountProof"
@@ -276,7 +276,7 @@ describe("api", () => {
           }
         ];
 
-        assert.deepEqual(
+        assert.deepStrictEqual(
           result.storageProof,
           expectedStorageProof,
           "Unexpected storageProof"
@@ -291,27 +291,27 @@ describe("api", () => {
           "latest"
         ]);
 
-        assert.equal(
+        assert.strictEqual(
           result.address,
           address,
           "Unexpected address"
         );
-        assert.equal(
+        assert.strictEqual(
           result.balance,
           "0x0",
           "Unexpected balance"
         );
-        assert.equal(
+        assert.strictEqual(
           result.codeHash,
           Data.toString(KECCAK256_NULL),
           "Unexpected codeHash, expected keccak hash of zero bytes"
         );
-        assert.equal(
+        assert.strictEqual(
           result.nonce,
           "0x0",
           "Unexpected nonce"
         );
-        assert.equal(
+        assert.strictEqual(
           result.storageHash,
           emptyMerkleRoot,
           "Unexpected storageHash, expected root of empty merkle trie"
@@ -321,12 +321,12 @@ describe("api", () => {
           "0xf901d1a0bddaa54ff11e3d79d1aa0f9df7ed9a8f9afbc0cdd35183106c0c3c377fd587cba0ab8cdb808c8303bb61fb48e276217be9770fa83ecf3f90f2234d558885f5abf180a0cb5392b1cf13d4255ffc62eec25be303d77b795bdb0e21835ded94d29323342ea0de26cb1b4fd99c4d3ed75d4a67931e3c252605c7d68e0148d5327f341bfd5283a05f1672e7a13fc3d588c018f066a010bbc3c2171c0435e17af22e2429fd868917a0c2c799b60a0cd6acd42c1015512872e86c186bcf196e85061e76842f3b7cf86080a02e0d86c3befd177f574a20ac63804532889077e955320c9361cd10b7cc6f5809a066cd3ba8af40fe37d4bfa45f61adb46466d589b337893028157f280ecc4d94f0a060ba1f8a43e38893005830b89ec3c4b560575461c3925d183e15aed75f8c6e8fa0bca2657fd15237f0fdc85c3c0739d8d7106530921b368ca73c0df81d51bcadf4a029087b3ba8c5129e161e2cb956640f4d8e31a35f3f133c19a1044993def98b61a06456f0a93d16a9f77ff0d31cf56ef090d81c2c56b12535a27c2c7c036dc8186da0a390f135abc61e0c4587b388cf0ba75d5858a1b35511d9e059c42baecb00635ea0144540d36e30b250d25bd5c34d819538742dc54c2017c4eb1fabb8e45f72759180",
           "0xf8518080a09f433009e787104ea882024d7494d573a1907321e7edae2035ee2b9d0f1fce0880808080a0039506a93e91a1dfa150a383eb7a87abbd5fb51ea63dffbe198eb85db70b5f49808080808080808080"
         ];
-        assert.deepEqual(
+        assert.deepStrictEqual(
           result.accountProof,
           expectedAccountProof,
           "Unexpected accountProof"
         );
-        assert.deepEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
       });
 
       it("throws with invalid block number", async () => {

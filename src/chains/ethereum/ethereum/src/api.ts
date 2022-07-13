@@ -1053,7 +1053,7 @@ export default class EthereumApi implements Api {
    * specified storage keys with their Merkle-proofs.
    *
    * @param address - Address of the account
-   * @param slots - Array of storage keys to be proofed.
+   * @param storageKeys - Array of storage keys to be proofed.
    * @param blockNumber - A block number, or the string "earliest", "latest", or
    * "pending".
    * @returns An object containing the details for the account at the specified
@@ -1101,7 +1101,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(3)
   async eth_getProof(
     address: DATA,
-    slots: DATA[],
+    storageKeys: DATA[],
     blockNumber: QUANTITY | Ethereum.Tag
   ): Promise<Ethereum.Proof> {
     if (this.#blockchain.fallback) {
@@ -1112,28 +1112,16 @@ export default class EthereumApi implements Api {
 
     const blockchain = this.#blockchain;
     const targetBlock = await blockchain.blocks.get(blockNumber);
-    if (targetBlock == null) throw new Error("header not found");
 
     const ganacheAddress = Address.from(address);
     const bufferAddress = ganacheAddress.toBuffer();
-    const stateTrie = this.#blockchain.trie.copy(false);
-    stateTrie.setContext(
-      targetBlock.header.stateRoot.toBuffer(),
-      bufferAddress,
-      targetBlock.header.number
-    );
+    const ethereumJsAddress = { buf: bufferAddress, equals: (a:{buf:Buffer}) => a.buf.equals(bufferAddress)} as any;
+    const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
 
-    const vm = await blockchain.createVmFromStateTrie(
-      stateTrie,
-      this.#options.chain.allowUnlimitedContractSize,
-      false, // precompiles have already been initialized in the stateTrie
-      blockchain.common
-    );
+    const stateManagerCopy = blockchain.vm.stateManager.copy();
+    await stateManagerCopy.setStateRoot(targetBlock.header.stateRoot.toBuffer());
 
-    const ethereumJsAddress = new EthereumJsAddress(bufferAddress);
-
-    const slotBuffers = slots.map(slotHex => Data.toBuffer(slotHex, 32));
-    const proof = await vm.stateManager.getProof(
+    const proof = await stateManagerCopy.getProof(
       ethereumJsAddress,
       slotBuffers
     );
