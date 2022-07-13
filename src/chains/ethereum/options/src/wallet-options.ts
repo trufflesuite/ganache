@@ -40,7 +40,7 @@ export type OptionsAccount = {
 export type WalletConfig = {
   options: {
     /**
-     * Number of accounts to generate at startup.
+     * Number of accounts to generate at startup. Capped at 1000 accounts.
      *
      * @defaultValue 10
      */
