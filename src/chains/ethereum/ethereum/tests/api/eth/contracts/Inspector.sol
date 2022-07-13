@@ -70,21 +70,32 @@ contract Inspector {
     }
 
     // this function should touch different accounts depending on the access list
-    // provided by the sender. if no access list is provided, it should touch
-    // addr1 only. if an access list with addr1 is provided, addr2 will also be 
-    // touched 
+    // provided by the sender. every time it is run with an accessList from the
+    // previous run, it can touch one more account. we cap the number of runs
+    // at 10. So, once an access list with the 10 accounts is sent alongside
+    // the transaction, the function will consistently touch the same number of
+    // accounts.
     // COLD_ACCOUNT_ACCESS_COST is 2600 - the cost to read from an account with no access list
     // WARM_STORAGE_READ_COST is 100 - the cost to read from an account with access list
-    function multiAccessList(address addr1, address addr2) public view {
-      uint256 startGas = gasleft();
-      uint256 bal1 = addr1.balance;
-      uint256 gasUsed = startGas - gasleft();
-      require(bal1 > 0, "Balance is less than 0");
-      if(gasUsed < 2600) {
-        uint256 bal2 = addr2.balance;
-        require(bal2 > 0, "Balance is less than 0");
+    function multiAccessList(address addr1) public view {
+      uint256 counter = 0;
+      bool flag = true;
+      do {
+        counter = counter + 1;
+        uint256 startGas = gasleft();
+        uint256 bal1 = addr1.balance;
+        uint256 gasUsed = startGas - gasleft();
+        require(bal1 >= 0, "Balance is less than 0");
+        if(gasUsed < 2600) {
+          uint160 temp = uint160(addr1);
+          addr1 = address(temp+1);
+        }
+        else {
+          flag = false;
+        }
       }
-    } 
+      while (flag && counter < 10);
+    }
 
     function send(address payable addr) payable public {
       addr.transfer(msg.value);
