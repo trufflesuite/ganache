@@ -3,9 +3,10 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { Data } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
 import { Ethereum } from "../../../src/api-types";
 import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
+import { Address } from "@ganache/ethereum-address";
 
 const encodeValue = (val: string) => {
   return Data.toString(val, 32).slice(2);
@@ -371,7 +372,7 @@ describe("api", () => {
       it("uses a generated access list to generate another, confirming that the best one is returned", async () => {
         // make a transaction that will generate different access lists based off of the
         // access list provided.
-        const data = `0x${contractMethods["multiAccessList(address,address)"]}${encodedTo}${encodedAddr}`;
+        const data = `0x${contractMethods["multiAccessList(address)"]}${encodedTo}`;
         const transaction = {
           from,
           to: contractAddress,
@@ -385,20 +386,20 @@ describe("api", () => {
 
         assert.strictEqual(
           accessList.length,
-          2,
+          10,
           `Unexpected size of access list: ${accessList.length}. Expected: 1`
         );
-        const addresses = accessList.map(entry => {
-          return entry.address;
+        accessList.forEach((entry, i) => {
+          const addressBn = Quantity.toBigInt(to);
+          const idxBn = Quantity.toBigInt(i);
+          const sumBn = addressBn + idxBn;
+          const address = Address.from(Quantity.toBuffer(sumBn)).toString();
+          assert.strictEqual(
+            entry.address,
+            address,
+            `Access list included incorrect address. Expected: ${address}. Actual: ${entry.address}.`
+          );
         });
-        assert(
-          addresses.includes(to),
-          `Access list didn't include "to" address read by contract`
-        );
-        assert(
-          addresses.includes(addr),
-          `Access list didn't include "addr" address read by contract`
-        );
       });
 
       it("does not create a transaction on the chain", async () => {
