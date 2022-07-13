@@ -413,6 +413,32 @@ describe("api", () => {
         ]);
         assert.strictEqual(beforeCall.number, afterCall.number);
       });
+
+      it("returns and empty access list if EIP-2930 isn't activated", async () => {
+        // make a transaction that would generate and access list if eip was activated
+        const data = `0x${contractMethods["getStorageAt(uint256)"]}${slot}`;
+        const transaction = {
+          from,
+          to: contractAddress,
+          data
+        };
+
+        // before EIP-2930 (berlin hardfork)
+        const customProvider = await getProvider({
+          chain: { hardfork: "byzantium" }
+        });
+
+        const { accessList } = await customProvider.send(
+          "eth_createAccessList",
+          [transaction, "latest"]
+        );
+        assert.strictEqual(
+          accessList.length,
+          0,
+          `Access list has content before EIP-2930 is activated.`
+        );
+        await customProvider.disconnect();
+      });
     });
   });
 });
