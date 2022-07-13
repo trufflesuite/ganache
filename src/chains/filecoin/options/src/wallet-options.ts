@@ -4,6 +4,7 @@ import Seedrandom from "seedrandom";
 import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
 const unseededRng = Seedrandom();
+const MAX_ACCOUNTS = 1000;
 
 const randomAlphaNumericString = (() => {
   const alphabet =
@@ -66,7 +67,7 @@ export type WalletConfig = {
 
 export const WalletOptions: Definitions<WalletConfig> = {
   totalAccounts: {
-    normalize,
+    normalize: rawInput => (rawInput > MAX_ACCOUNTS ? MAX_ACCOUNTS : rawInput),
     cliDescription: "Number of accounts to generate at startup.",
     default: () => 10,
     cliAliases: ["a"],
