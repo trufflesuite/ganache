@@ -4,7 +4,7 @@ import { entropyToMnemonic } from "bip39";
 import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
 
 const unseededRng = seedrandom();
-
+const MAX_ACCOUNTS = 1000;
 /**
  * WARNING: to maintain compatibility with ganache v2 this RNG only generates
  * numbers from 0-254 instead of 0-255! Hence the name, `notVeryRandomBytes`
@@ -229,7 +229,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     conflicts: ["totalAccounts"]
   },
   totalAccounts: {
-    normalize,
+    normalize: rawInput => (rawInput > MAX_ACCOUNTS ? MAX_ACCOUNTS : rawInput),
     cliDescription: "Number of accounts to generate at startup.",
     default: config => (config.accounts == null ? 10 : 0),
     legacyName: "total_accounts",
