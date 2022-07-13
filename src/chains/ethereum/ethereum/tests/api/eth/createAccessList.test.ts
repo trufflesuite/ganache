@@ -153,12 +153,12 @@ describe("api", () => {
           1,
           `Unexpected size of access list: ${accessList.length}. Expected: 1`
         );
-        const addresses = accessList.map(entry => {
-          return entry.address;
-        });
-        assert(
-          addresses.includes(to),
-          `Access list didn't include address read by contract`
+        const { address } = accessList[0];
+
+        assert.strictEqual(
+          address,
+          to,
+          `Access list didn't include expected address.`
         );
       });
 
@@ -310,9 +310,8 @@ describe("api", () => {
           params: [accessListHash]
         });
 
-        // @ts-ignore TODO: receipt types are being weird
         const { gasUsed: noAccessListGasUsed } = noAccessListReceipt;
-        // @ts-ignore
+
         const { gasUsed: accessListGasUsed } = accessListReceipt;
         assert.strictEqual(
           gasUsed,
