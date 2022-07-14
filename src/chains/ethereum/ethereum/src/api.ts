@@ -2943,17 +2943,11 @@ export default class EthereumApi implements Api {
       blocksToFetch--;
     }
 
-    console.log({
-      oldestBlock: Quantity.from(oldestBlock).toString(),
-      baseFeePerGas,
-      gasUsedRatio,
-      reward: rewardPercentiles.length > 0 ? reward : undefined
-    });
-
+    // The undefined/null is based on infura's response for blockCount 0
     return {
       oldestBlock: Quantity.from(oldestBlock).toString(),
-      baseFeePerGas,
-      gasUsedRatio,
+      baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
+      gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : null,
       reward: rewardPercentiles.length > 0 ? reward : undefined
     };
   }
