@@ -57,6 +57,17 @@ describe("api", () => {
         const baseLineOffset = Math.floor((newTime.getTime() - now) / 1000);
         assert(between(timeAdjustment, baseLineOffset - 2, baseLineOffset + 2));
       });
+
+      it("should set the time correctly to zero", async () => {
+        const provider = await getProvider();
+        const now = +Date.now();
+        const newTime = 0;
+
+        const timeAdjustment = await provider.send("evm_setTime", [newTime]);
+        const baseLineOffset = Math.floor(now / 1000);
+
+        assert(between(timeAdjustment, -baseLineOffset - 1, -baseLineOffset + 1));
+      });
     });
 
     describe("evm_increaseTime", () => {
