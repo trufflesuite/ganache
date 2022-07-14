@@ -1408,7 +1408,7 @@ export default class EthereumApi implements Api {
    * console.log(await provider.send("eth_getWork", [] ));
    * ```
    */
-  @assertArgLength(1)
+  @assertArgLength(0)
   async eth_getWork() {
     return [] as [string, string, string] | [];
   }
