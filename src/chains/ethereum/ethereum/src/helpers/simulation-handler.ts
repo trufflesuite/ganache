@@ -6,7 +6,13 @@ import { Address } from "@ganache/ethereum-address";
 import { calculateIntrinsicGas } from "@ganache/ethereum-transaction";
 import { CallError } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, hasOwn, keccak, Quantity } from "@ganache/utils";
-import { makeStepEvent } from "../provider-events";
+import {
+  makeStepEvent,
+  VmAfterTransactionEvent,
+  VmBeforeTransactionEvent,
+  VmConsoleLogEvent,
+  VmStepEvent
+} from "../provider-events";
 import {
   Address as EthereumJsAddress,
   BN,
@@ -23,7 +29,7 @@ import {
 import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
 import { warmPrecompiles } from "./precompiles";
 import { maybeGetLogs } from "@ganache/console.log";
-import { noop } from "lodash";
+import Emittery from "emittery";
 
 export type SimulationTransaction = {
   /**
@@ -90,7 +96,12 @@ interface RunCallOpts {
   block?: any;
 }
 
-export default class SimulationHandler {
+export default class SimulationHandler extends Emittery<{
+  "ganache:vm:tx:step": VmStepEvent;
+  "ganache:vm:tx:before": VmBeforeTransactionEvent;
+  "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": VmConsoleLogEvent;
+}> {
   #stateTrie: GanacheTrie;
   #vm: VM;
   #stateManager: DefaultStateManager;
@@ -104,10 +115,7 @@ export default class SimulationHandler {
 
   readonly #blockchain: Blockchain;
   readonly #common: Common;
-  readonly #emitEvents: boolean;
-  readonly #emitStepEvent: boolean;
   readonly #transactionContext: object;
-  readonly #log: (message?: any, ...optionalParams: any[]) => void;
   /**
    *
    * @param blockchain
@@ -119,21 +127,11 @@ export default class SimulationHandler {
    * @param log Logger function to use for any console.log events generated
    * during simulation.
    */
-  constructor(
-    blockchain: Blockchain,
-    common: Common,
-    emitEvents: boolean = false,
-    emitStepEvents: boolean = false,
-    log: (message?: any, ...optionalParams: any[]) => void = null
-  ) {
+  constructor(blockchain: Blockchain, common: Common) {
+    super();
     this.#blockchain = blockchain;
     this.#common = common;
-    this.#emitEvents = emitEvents;
-    this.#transactionContext = emitEvents ? {} : null;
-    this.#emitStepEvent = emitEvents && emitStepEvents;
-    // if emitting events is enabled and a logging function wasn't provided,
-    // just do nothing with any logs.
-    this.#log = emitEvents && log === null ? noop : log;
+    this.#transactionContext = {};
   }
 
   /**
@@ -237,36 +235,29 @@ export default class SimulationHandler {
   }
 
   #setupStepEventEmits = () => {
-    if (this.#emitEvents) {
-      const blockchain = this.#blockchain;
-      const log = this.#log;
-      this.#vm.on("step", (event: InterpreterStep) => {
-        const logs = maybeGetLogs(event);
-        if (logs) {
-          log(...logs);
-          blockchain.emit("ganache:vm:tx:console.log", { context, logs });
-        }
-        if (!this.#emitStepEvent) return;
-        const ganacheStepEvent = makeStepEvent(this.#transactionContext, event);
-        blockchain.emit("ganache:vm:tx:step", ganacheStepEvent);
-      });
-    }
+    this.#vm.on("step", (event: InterpreterStep) => {
+      const logs = maybeGetLogs(event);
+      if (logs) {
+        this.emit("ganache:vm:tx:console.log", {
+          context: this.#transactionContext,
+          logs
+        });
+      }
+      const ganacheStepEvent = makeStepEvent(this.#transactionContext, event);
+      this.emit("ganache:vm:tx:step", ganacheStepEvent);
+    });
   };
 
   #emitBefore = () => {
-    if (this.#emitEvents) {
-      this.#blockchain.emit("ganache:vm:tx:before", {
-        context: this.#transactionContext
-      });
-    }
+    this.emit("ganache:vm:tx:before", {
+      context: this.#transactionContext
+    });
   };
 
   #emitAfter = () => {
-    if (this.#emitEvents) {
-      this.#blockchain.emit("ganache:vm:tx:after", {
-        context: this.#transactionContext
-      });
-    }
+    this.emit("ganache:vm:tx:after", {
+      context: this.#transactionContext
+    });
   };
 
   public toLightEJSAddress(address?: Address): EthereumJsAddress {
