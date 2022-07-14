@@ -46,7 +46,6 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
-import { Address as EthereumJsAddress } from "ethereumjs-util";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,
