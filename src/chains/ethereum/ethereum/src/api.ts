@@ -2800,11 +2800,11 @@ export default class EthereumApi implements Api {
    * };
    *
    */
-  @assertArgLength(2, 3)
+  @assertArgLength(3)
   async eth_feeHistory(
     blockCount: QUANTITY,
     newestBlock: QUANTITY | Ethereum.Tag,
-    rewardPercentiles?: number[]
+    rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistoryResult> {
     let reward = [];
     const baseFeePerGas = [];
@@ -2814,7 +2814,7 @@ export default class EthereumApi implements Api {
     const PRECISION = 10 ** PAD_PRECISION;
     const PRECISION_BIG_INT = Quantity.from(PRECISION).toBigInt();
     const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
-    const ZERO_BIG_INT = Quantity.from(0).toBigInt();
+    const ZERO_BIG_INT = 0n;
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
@@ -2829,7 +2829,7 @@ export default class EthereumApi implements Api {
     // and once to process the block.
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
       const currentBlock = await blockchain.blocks.get(currentBlockNumber);
-      oldestBlock = Quantity.from(currentBlockNumber).toString();
+      oldestBlock = currentBlockNumber;
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
@@ -2851,93 +2851,91 @@ export default class EthereumApi implements Api {
       }
 
       // baseFeePerGas
+      // Next block fee is based on existing blocks
+      if (currentBlockNumber === newestBlockNumber) {
+        baseFeePerGas.unshift(
+          Quantity.from(Block.calcNextBaseFee(currentBlock))
+        );
+      }
       if (!baseFee) {
         baseFeePerGas.unshift("0x0");
       } else {
-        // Next block fee is based on existing blocks
-        if (currentBlockNumber === newestBlockNumber) {
-          baseFeePerGas.unshift(
-            Quantity.from(Block.calcNextBaseFee(currentBlock)).toString()
+        baseFeePerGas.unshift(Quantity.from(baseFee));
+      }
+
+      // get reward percentile
+      if (rewardPercentiles.length > 0) {
+        const transactions = currentBlock.getTransactions();
+
+        // If there are no transactions, all reward percentiles are 0.
+        if (transactions.length === 0) {
+          reward.unshift(
+            rewardPercentiles.map(() => {
+              return 0;
+            })
           );
-        }
-        baseFeePerGas.unshift(Quantity.from(baseFee).toString());
+        } else {
+          // Get receipts
+          const transactionReceipts = await Promise.all(
+            transactions.map(async (t, i) => {
+              return (
+                await blockchain.transactionReceipts.get(t.hash.toString())
+              ).toJSON(currentBlock, transactions[i], blockchain.common);
+            })
+          );
 
-        // get reward percentile
-        if (rewardPercentiles) {
-          const transactions = currentBlock.getTransactions();
+          // Get effective rewards and gas used for each transaction
+          const effectiveRewardAndGasUsed = transactionReceipts
+            .map((r, i) => {
+              const tx = transactions[i];
+              const baseFeePerGas = currentBlock.header.baseFeePerGas
+                ? currentBlock.header.baseFeePerGas.toBigInt()
+                : ZERO_BIG_INT;
 
-          // If there are no transactions, all reward percentiles are 0.
-          if (transactions.length === 0) {
-            reward.unshift(
-              rewardPercentiles.map(() => {
-                return 0;
-              })
-            );
-          } else {
-            // Get receipts
-            const transactionReceipts = await Promise.all(
-              transactions.map(async (t, i) => {
-                return (
-                  await blockchain.transactionReceipts.get(t.hash.toString())
-                ).toJSON(currentBlock, transactions[i], blockchain.common);
-              })
-            );
-
-            // Get effective rewards and gas used for each transaction
-            const effectiveRewardAndGasUsed = transactionReceipts
-              .map((r, i) => {
-                const tx = transactions[i];
-                const baseFeePerGas =
-                  currentBlock.header.baseFeePerGas.toBigInt()
-                    ? currentBlock.header.baseFeePerGas.toBigInt()
-                    : ZERO_BIG_INT;
-
-                let effectiveGasReward;
-                if ("maxPriorityFeePerGas" in tx) {
-                  effectiveGasReward =
-                    tx.maxFeePerGas.toBigInt() - baseFeePerGas;
-                  if (tx.maxPriorityFeePerGas < effectiveGasReward) {
-                    effectiveGasReward = tx.maxPriorityFeePerGas;
-                  }
-                } else {
-                  effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
+              let effectiveGasReward;
+              if ("maxPriorityFeePerGas" in tx) {
+                effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFeePerGas;
+                if (tx.maxPriorityFeePerGas < effectiveGasReward) {
+                  effectiveGasReward = tx.maxPriorityFeePerGas;
                 }
+              } else {
+                effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
+              }
 
-                return {
-                  hash: tx.hash,
-                  effectiveGasReward,
-                  gasUsed: r.gasUsed ? r.gasUsed.toBigInt() : ZERO_BIG_INT
-                };
-              })
-              .sort((a, b) => {
-                if (a.effectiveGasReward > b.effectiveGasReward) return 1;
-                if (a.effectiveGasReward < b.effectiveGasReward) return -1;
-                return 0;
-              });
+              return {
+                hash: tx.hash,
+                effectiveGasReward,
+                gasUsed: r.gasUsed ? r.gasUsed.toBigInt() : ZERO_BIG_INT
+              };
+            })
+            .sort((a, b) => {
+              if (a.effectiveGasReward > b.effectiveGasReward) return 1;
+              if (a.effectiveGasReward < b.effectiveGasReward) return -1;
+              return 0;
+            });
 
-            reward.unshift(
-              rewardPercentiles.map(p => {
-                let gasUsed = ZERO_BIG_INT;
-                // p can be a float
-                const targetGas =
-                  (currentBlock.header.gasUsed.toBigInt() *
-                    Quantity.from(p * PRECISION).toBigInt()) /
-                  PRECISION_BIG_INT_PERCENTILE;
+          reward.unshift(
+            rewardPercentiles.map(p => {
+              let gasUsed = ZERO_BIG_INT;
+              // p can be a float
+              const targetGas =
+                (currentBlock.header.gasUsed.toBigInt() *
+                  BigInt(p * PRECISION)) /
+                PRECISION_BIG_INT_PERCENTILE;
 
-                for (const values of effectiveRewardAndGasUsed) {
-                  gasUsed = gasUsed + values.gasUsed;
+              for (const values of effectiveRewardAndGasUsed) {
+                gasUsed = gasUsed + values.gasUsed;
 
-                  if (targetGas <= gasUsed) {
-                    return values.effectiveGasReward;
-                  }
+                if (targetGas <= gasUsed) {
+                  return values.effectiveGasReward.toString();
                 }
+              }
 
-                return effectiveRewardAndGasUsed[
-                  effectiveRewardAndGasUsed.length - 1
-                ].effectiveGasReward;
-              })
-            );
-          }
+              return effectiveRewardAndGasUsed[
+                effectiveRewardAndGasUsed.length - 1
+              ].effectiveGasReward.toString();
+            })
+          );
         }
       }
 
@@ -2946,10 +2944,10 @@ export default class EthereumApi implements Api {
     }
 
     return {
-      oldestBlock,
+      oldestBlock: Quantity.from(oldestBlock).toString(),
       baseFeePerGas,
       gasUsedRatio,
-      reward: rewardPercentiles ? reward : undefined
+      reward: rewardPercentiles.length > 0 ? reward : undefined
     };
   }
   //#endregion
