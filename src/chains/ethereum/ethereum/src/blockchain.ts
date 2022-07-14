@@ -1021,22 +1021,36 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     simulationBlock: Block,
     overrides: CallOverrides
   ) {
+    const options = this.#options;
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
-    const simHandler = new SimulationHandler(
-      this,
-      common,
-      true,
-      this.#emitStepEvent,
-      this.#options.logging.logger.log
-    );
+    const simHandler = new SimulationHandler(this, common);
+
+    // re-emit simulation events:
+    simHandler.on("ganache:vm:tx:before", event => {
+      this.emit("ganache:vm:tx:before", event);
+    });
+    simHandler.on("ganache:vm:tx:step", event => {
+      if (!this.#emitStepEvent) return;
+      this.emit("ganache:vm:tx:step", event);
+    });
+    simHandler.on("ganache:vm:tx:after", event => {
+      this.emit("ganache:vm:tx:after", event);
+    });
+    simHandler.on("ganache:vm:tx:console.log", event => {
+      options.logging.logger.log(...event.logs);
+      this.emit("ganache:vm:tx:console.log", event);
+    });
+
     await simHandler.initialize(simulationBlock, transaction, overrides);
+
     const callResult = await simHandler.runCall();
     const callResultValue = callResult.execResult.returnValue;
+
     return callResultValue === undefined
       ? Data.Empty
       : Data.from(callResultValue);
@@ -1052,7 +1066,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
-    const simHandler = new SimulationHandler(this, common, false);
+    const simHandler = new SimulationHandler(this, common);
     await simHandler.initialize(simulationBlock, transaction);
     return await simHandler.createAccessList(transaction.accessList);
   }
