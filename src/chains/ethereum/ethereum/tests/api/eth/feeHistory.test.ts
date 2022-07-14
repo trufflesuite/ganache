@@ -23,7 +23,6 @@ async function sendLegacyTransaction(params) {
     from,
     to,
     value: "0x123",
-
     maxFeePerGas: "0xffffffff"
   } as any;
   await provider.send("eth_sendTransaction", [tx]);
@@ -53,84 +52,115 @@ describe("api", () => {
         provider && (await provider.disconnect());
       });
 
-      describe("blockCount", () => {
-        it("retrieves a range of valid blocks", async () => {
-          const blockCount = "0x3";
-          const newestBlock = "0xa";
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
+      describe("params", () => {
+        describe("blockCount", () => {
+          it("retrieves a range of valid blocks", async () => {
+            const blockCount = "0x3";
+            const newestBlock = "0xa";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          assert.equal(feeHistory.oldestBlock, "0x8");
-          assert.equal(feeHistory.baseFeePerGas.length, 4); // blockCount + 1
-          assert.equal(feeHistory.gasUsedRatio.length, 3);
-        });
-        it("blockCount === 0", async () => {
-          const blockCount = "0x0";
-          const newestBlock = "0xa";
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
+            assert.equal(feeHistory.oldestBlock, "0x8");
+            assert.equal(feeHistory.baseFeePerGas.length, 4); // blockCount + 1
+            assert.equal(feeHistory.gasUsedRatio.length, 3);
+          });
+          it("matches infura response for blockCount === 0", async () => {
+            const blockCount = "0x0";
+            const newestBlock = "0xa";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          assert.equal(feeHistory.oldestBlock, "0x0");
-          assert.equal(feeHistory.baseFeePerGas, undefined);
-          assert.equal(feeHistory.gasUsedRatio, null);
-          assert.equal(feeHistory.reward, undefined);
-        });
-        it("ignores blocks that do not exist (pre-genesis blocks)", async () => {
-          const blockCount = "0xa";
-          const startingBlock = "0x2";
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            startingBlock,
-            []
-          ]);
+            assert.equal(feeHistory.oldestBlock, "0x0");
+            assert.equal(feeHistory.baseFeePerGas, undefined);
+            assert.equal(feeHistory.gasUsedRatio, null);
+            assert.equal(feeHistory.reward, undefined);
+          });
+          it("matches infura response for blockCount === 0 && newestBlock = 0x0", async () => {
+            const blockCount = "0x0";
+            const newestBlock = "0x0";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          assert.equal(feeHistory.oldestBlock, genesisBlock);
-          assert.equal(feeHistory.baseFeePerGas.length, 4); // blocks + 1
-          assert.equal(feeHistory.gasUsedRatio.length, 3);
-        });
-      });
-      describe("newestBlock", () => {
-        it("newestBlock = oldestBlock when blockCount = 1", async () => {
-          const blockCount = "0x1";
-          const startingBlock = "0x2";
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            startingBlock,
-            []
-          ]);
-
-          assert.equal(feeHistory.oldestBlock, startingBlock);
-          assert.equal(feeHistory.baseFeePerGas.length, 2); // blocks + 1
-          assert.equal(feeHistory.gasUsedRatio.length, 1);
-        });
-        it("throws if header is not found", async () => {
-          const blockCount = "0x1";
-          await provider
-            .send("eth_feeHistory", [blockCount, headerNotFoundBlock, []])
-            .catch(e => {
-              assert.strictEqual(e.message, ERROR_HEADER_NOT_FOUND);
+            assert.equal(feeHistory.oldestBlock, "0x0");
+            assert.equal(feeHistory.baseFeePerGas, undefined);
+            assert.equal(feeHistory.gasUsedRatio, null);
+            assert.equal(feeHistory.reward, undefined);
+          });
+          describe("newestBlock", () => {
+            it("throws if header is not found", async () => {
+              const blockCount = "0x1";
+              await provider
+                .send("eth_feeHistory", [blockCount, headerNotFoundBlock, []])
+                .catch(e => {
+                  assert.strictEqual(e.message, ERROR_HEADER_NOT_FOUND);
+                });
             });
-        });
-      });
-      describe("rewardPercentile", () => {
-        it("undefined if no percentiles given", async () => {
-          const blockCount = "0x1";
-          const startingBlock = "0x2";
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            startingBlock,
-            []
-          ]);
+          });
+          describe("rewardPercentile", () => {
+            it("undefined if no percentiles given", async () => {
+              const blockCount = "0x1";
+              const newestBlock = "0x2";
+              const feeHistory = await provider.send("eth_feeHistory", [
+                blockCount,
+                newestBlock,
+                []
+              ]);
 
-          assert.equal(feeHistory.reward, undefined);
+              assert.equal(feeHistory.reward, undefined);
+            });
+          });
         });
       });
+      describe("response", () => {
+        describe("oldestBlock", () => {
+          it("ignores blocks that do not exist (blockCount > newestBlock)", async () => {
+            const blockCount = "0xa";
+            const newestBlock = "0x2";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.equal(feeHistory.oldestBlock, genesisBlock);
+            assert.equal(feeHistory.baseFeePerGas.length, 4); // blocks found + 1
+            assert.equal(feeHistory.gasUsedRatio.length, 3);
+          });
+          it("newestBlock = oldestBlock when blockCount === 1", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "0x2";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.equal(feeHistory.oldestBlock, newestBlock);
+          });
+          it("oldestBlock = newestBlock - blockCount +1", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "0x2";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.equal(feeHistory.oldestBlock, newestBlock);
+          });
+        });
+      });
+      //describe("baseFeePerGas");
+      //describe("reward");
     });
   });
 });

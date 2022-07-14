@@ -2834,8 +2834,16 @@ export default class EthereumApi implements Api {
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas
-        ? currentBlock.header.baseFeePerGas.toBigInt()
-        : ZERO_BIG_INT;
+        ? currentBlock.header.baseFeePerGas
+        : "0x0";
+
+      // baseFeePerGas
+      if (currentBlockNumber === newestBlockNumber) {
+        baseFeePerGas.unshift(
+          Quantity.from(Block.calcNextBaseFee(currentBlock))
+        );
+      }
+      baseFeePerGas.unshift(baseFee);
 
       // gasUsedRatio
       if (gasUsed === ZERO_BIG_INT) {
@@ -2850,20 +2858,7 @@ export default class EthereumApi implements Api {
         );
       }
 
-      // baseFeePerGas
-      // Next block fee is based on existing blocks
-      if (currentBlockNumber === newestBlockNumber) {
-        baseFeePerGas.unshift(
-          Quantity.from(Block.calcNextBaseFee(currentBlock))
-        );
-      }
-      if (!baseFee) {
-        baseFeePerGas.unshift("0x0");
-      } else {
-        baseFeePerGas.unshift(Quantity.from(baseFee));
-      }
-
-      // get reward percentile
+      // reward percentile
       if (rewardPercentiles.length > 0) {
         const transactions = currentBlock.getTransactions();
 
@@ -2871,7 +2866,7 @@ export default class EthereumApi implements Api {
         if (transactions.length === 0) {
           reward.unshift(
             rewardPercentiles.map(() => {
-              return 0;
+              return "0x0";
             })
           );
         } else {
