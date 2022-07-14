@@ -276,7 +276,7 @@ Logging:
   -q, --logging.quiet                   Set to true to disable logging.
                                         deprecated aliases: --quiet                 [boolean] [default: false]
 
-  -v, --logging.verbose                 Set to true to log all RPC requests and responses.
+  -v, --logging.verbose                 Set to true to log detailed RPC requests.
                                         deprecated aliases: --verbose               [boolean] [default: false]
 
 
