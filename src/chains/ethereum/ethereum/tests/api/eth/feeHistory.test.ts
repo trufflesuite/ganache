@@ -330,7 +330,6 @@ describe("api", () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
           const tx = await provider.send("eth_getTransactionByHash", [txHash]);
 
-          const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
           const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
           let reward = effectiveGasReward;
 
@@ -355,14 +354,8 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
           const tx = await provider.send("eth_getTransactionByHash", [txHash]);
-          const receipt = await provider.send("eth_getTransactionReceipt", [
-            txHash
-          ]);
 
-          const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
-          const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
           let reward = tx.maxPriorityFeePerGas;
 
           const feeHistory = await provider.send("eth_feeHistory", [
@@ -462,7 +455,86 @@ describe("api", () => {
             ]
           ]);
         });
-        it("multiple blocks with many transactions");
+        it("multiple blocks with many transactions", async () => {
+          const blockCount = "0x2";
+          const newestBlock = "latest";
+
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: oneGwei,
+            to,
+            from
+          });
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: oneGwei,
+            to,
+            from
+          });
+
+          await mineNBlocks({ provider, blocks: 1 });
+          const firstBlock = await provider.send("eth_getBlockByNumber", [
+            "latest"
+          ]);
+
+          const firstBlockReward = Quantity.from(
+            oneGwei - firstBlock.baseFeePerGas
+          ).toString();
+
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: fourGwei,
+            to,
+            from
+          });
+
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: threeGwei,
+            to,
+            from
+          });
+
+          await mineNBlocks({ provider, blocks: 1 });
+          const secondBlock = await provider.send("eth_getBlockByNumber", [
+            "latest"
+          ]);
+
+          const secondBlockFirstHalf = Quantity.from(
+            threeGwei - secondBlock.baseFeePerGas
+          ).toString();
+          const secondBlockSecondHalf = Quantity.from(
+            fourGwei - secondBlock.baseFeePerGas
+          ).toString();
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            [0, 49, 50, 51, 100]
+          ]);
+
+          const blockOneRewards = [
+            firstBlockReward,
+            firstBlockReward,
+            firstBlockReward,
+            firstBlockReward,
+            firstBlockReward
+          ];
+          const blockTwoRewards = [
+            secondBlockFirstHalf,
+            secondBlockFirstHalf,
+            secondBlockFirstHalf,
+            secondBlockSecondHalf,
+            secondBlockSecondHalf
+          ];
+
+          console.log(feeHistory);
+
+          assert.deepEqual(feeHistory.reward, [
+            blockOneRewards,
+            blockTwoRewards
+          ]);
+        });
       });
     });
   });
