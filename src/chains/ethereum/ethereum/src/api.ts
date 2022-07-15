@@ -2823,9 +2823,6 @@ export default class EthereumApi implements Api {
 
     let currentBlockNumber = newestBlockNumber;
 
-    // Because tags are supported in newestBlock, starting from the oldest block
-    // Would require hitting the db for the latest block twice. Once to calc to oldest
-    // and once to process the block.
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
       const currentBlock = await blockchain.blocks.get(currentBlockNumber);
       oldestBlock = currentBlockNumber;
@@ -2878,7 +2875,7 @@ export default class EthereumApi implements Api {
             })
           );
 
-          // Get effective rewards and gas used for each transaction
+          // Effective reward is calculated for all transactions and sorted ascending
           const effectiveRewardAndGasUsed = transactionReceipts
             .map((r, i) => {
               const tx = transactions[i];
@@ -2908,6 +2905,7 @@ export default class EthereumApi implements Api {
               return 0;
             });
 
+          // reward percentile is the max effective reward by percentile of gas consumed
           reward.unshift(
             rewardPercentiles.map(p => {
               let gasUsed = 0n;
