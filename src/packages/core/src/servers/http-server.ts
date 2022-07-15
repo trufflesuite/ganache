@@ -9,6 +9,7 @@ import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/flavors";
 import { InternalOptions } from "../options";
 import { types } from "util";
+import { getFragmentGenerator } from "./utils/fragment-generator";
 
 type HttpMethods = "GET" | "OPTIONS" | "POST";
 
@@ -71,6 +72,7 @@ function prepareCORSResponseHeaders(method: HttpMethods, request: HttpRequest) {
 
 function sendResponse(
   response: HttpResponse,
+  closeConnection: boolean,
   statusCode: HttpResponseCodes,
   contentType: RecognizedString | null,
   data: RecognizedString | null,
@@ -82,24 +84,75 @@ function sendResponse(
     if (contentType != null) {
       response.writeHeader("Content-Type", contentType);
     }
-    if (data != null) {
-      response.end(data);
+
+    if (data !== null) {
+      response.end(data, closeConnection);
     } else {
-      response.end();
+      // in the case that body is not provided, it must specifically be <undefined> and not <null>
+      response.end(undefined, closeConnection);
     }
   });
 }
 
-export type HttpServerOptions = Pick<InternalOptions["server"], "rpcEndpoint">;
+function sendChunkedResponse(
+  response: HttpResponse,
+  closeConnection: boolean,
+  statusCode: HttpResponseCodes,
+  contentType: RecognizedString | null,
+  data: Generator<Buffer, void, void>,
+  chunkSize: number,
+  writeHeaders: (response: HttpResponse) => void = noop
+) {
+  const fragments = getFragmentGenerator(data, chunkSize);
+  // get our first fragment
+  const { value: firstFragment } = fragments.next();
+  // check if there is any more fragments after this one
+  let { value: nextFragment, done } = fragments.next();
+  // if there are no more fragments send the "firstFragment" via `sendResponse`,
+  // as we don't need to chunk it.
+  if (done) {
+    sendResponse(
+      response,
+      closeConnection,
+      statusCode,
+      contentType,
+      firstFragment as RecognizedString,
+      writeHeaders
+    );
+  } else {
+    response.cork(() => {
+      response.writeStatus(statusCode);
+      writeHeaders(response);
+      response.writeHeader("Content-Type", contentType);
+      // since we have at least two fragments send both now
+      response.write(firstFragment as RecognizedString);
+      response.write(nextFragment as RecognizedString);
+      // and then keep sending the rest
+      for (nextFragment of fragments) {
+        response.write(nextFragment as RecognizedString);
+      }
+      response.end(undefined, closeConnection);
+    });
+  }
+}
+
+export type HttpServerOptions = Pick<
+  InternalOptions["server"],
+  "rpcEndpoint" | "chunkSize"
+>;
 
 export default class HttpServer {
   #connector: Connector;
+  #options: HttpServerOptions;
+  #isClosing = false;
+
   constructor(
     app: TemplatedApp,
     connector: Connector,
     options: HttpServerOptions
   ) {
     this.#connector = connector;
+    this.#options = options;
 
     connector.addRoutes(app);
     // JSON-RPC routes...
@@ -111,6 +164,7 @@ export default class HttpServer {
     app.get("/418", response => {
       sendResponse(
         response,
+        this.#isClosing,
         HttpResponseCodes.IM_A_TEAPOT,
         ContentTypes.PLAIN,
         "418 I'm a teapot"
@@ -125,6 +179,7 @@ export default class HttpServer {
         // a client tried to connect via websocket. This is a Bad Request.
         sendResponse(
           response,
+          this.#isClosing,
           HttpResponseCodes.BAD_REQUEST,
           ContentTypes.PLAIN,
           "400 Bad Request"
@@ -133,6 +188,7 @@ export default class HttpServer {
         // all other requests don't mean anything to us, so respond with `404 Not Found`...
         sendResponse(
           response,
+          this.#isClosing,
           HttpResponseCodes.NOT_FOUND,
           ContentTypes.PLAIN,
           "404 Not Found"
@@ -168,6 +224,7 @@ export default class HttpServer {
         } catch (e: any) {
           sendResponse(
             response,
+            this.#isClosing,
             HttpResponseCodes.BAD_REQUEST,
             ContentTypes.PLAIN,
             "400 Bad Request: " + e.message,
@@ -187,19 +244,19 @@ export default class HttpServer {
             }
             const data = connector.format(result, payload);
             if (types.isGeneratorObject(data)) {
-              response.cork(() => {
-                response.writeStatus(HttpResponseCodes.OK);
-                writeHeaders(response);
-                response.writeHeader("Content-Type", ContentTypes.JSON);
-
-                for (const datum of data) {
-                  response.write(datum as RecognizedString);
-                }
-                response.end();
-              });
+              sendChunkedResponse(
+                response,
+                this.#isClosing,
+                HttpResponseCodes.OK,
+                ContentTypes.JSON,
+                data as Generator<Buffer, void, void>,
+                this.#options.chunkSize,
+                writeHeaders
+              );
             } else {
               sendResponse(
                 response,
+                this.#isClosing,
                 HttpResponseCodes.OK,
                 ContentTypes.JSON,
                 data,
@@ -216,6 +273,7 @@ export default class HttpServer {
             const data = connector.formatError(error, payload);
             sendResponse(
               response,
+              this.#isClosing,
               HttpResponseCodes.OK,
               ContentTypes.JSON,
               data,
@@ -238,13 +296,18 @@ export default class HttpServer {
     // OPTIONS responses don't have a body, so respond with `204 No Content`...
     sendResponse(
       response,
+      this.#isClosing,
       HttpResponseCodes.NO_CONTENT,
       null,
       null,
       writeHeaders
     );
   };
+
   public close() {
-    // currently a no op.
+    // flags the server as closing, indicating the connection should be closed with subsequent responses
+    // as there is no way presently to close existing connections outside of the request/response context
+    // see discussion: https://github.com/uNetworking/uWebSockets.js/issues/663#issuecomment-1026283415
+    this.#isClosing = true;
   }
 }

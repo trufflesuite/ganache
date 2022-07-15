@@ -11,13 +11,14 @@ import {
   TransactionFactory,
   TransactionType,
   TypedDatabaseTransaction,
-  TypedRpcTransaction
+  Transaction
 } from "../../transaction";
 import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
 import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
+import { SECP256K1_N } from "@ganache/secp256k1";
 
 describe("@ganache/ethereum-transaction", async () => {
   const common = Common.forCustomChain(
@@ -32,7 +33,7 @@ describe("@ganache/ethereum-transaction", async () => {
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
-  const privKeyBuf = Quantity.from(privKey).toBuffer();
+  const privKeyBuf = Quantity.toBuffer(privKey);
   const options = EthereumOptionsConfig.normalize({
     wallet: {
       accounts: [
@@ -49,12 +50,12 @@ describe("@ganache/ethereum-transaction", async () => {
 
   // #region configure transaction constants
   // #region legacy transaction
-  const untypedTx: TypedRpcTransaction = {
+  const untypedTx: Transaction = {
     from: from,
     to: to,
     gasPrice: "0xffff"
   };
-  const typedLegacyTx: TypedRpcTransaction = {
+  const typedLegacyTx: Transaction = {
     from: from,
     to: to,
     type: "0x0",
@@ -74,7 +75,7 @@ describe("@ganache/ethereum-transaction", async () => {
   // #region access list transactions
   const accessListStorageKey =
     "0x0000000000000000000000000000000000000000000000000000000000000004";
-  const accessListTx: TypedRpcTransaction = {
+  const accessListTx: Transaction = {
     from: from,
     to: to,
     type: "0x1",
@@ -99,7 +100,7 @@ describe("@ganache/ethereum-transaction", async () => {
   // #endregion access list transactions
 
   //#region fee market transactions
-  const feeMarketTx: TypedRpcTransaction = {
+  const feeMarketTx: Transaction = {
     from: from,
     to: to,
     type: "0x2",
@@ -168,6 +169,65 @@ describe("@ganache/ethereum-transaction", async () => {
         tempAccessListTx.accessList = undefined;
         const txFromRpc = TransactionFactory.fromRpc(tempAccessListTx, common);
         assert.strictEqual(txFromRpc.type.toString(), "0x0");
+      });
+
+      describe("EIP-2", () => {
+        it("rejects transactions with too-high S values only when EIP-2 is active", () => {
+          const genesis = Common.forCustomChain(
+            "mainnet",
+            {
+              name: "ganache",
+              chainId: 1,
+              comment: "Local test network",
+              bootstrapNodes: []
+            },
+            // EIP-2 was in homestead, the first hardfork, so we need to create
+            // a common at the genesis (aka chainstart) so we can test at a fork
+            // where it is NOT active:
+            "chainstart"
+          );
+
+          const tx = <LegacyTransaction>(
+            TransactionFactory.fromRpc(typedLegacyTx, genesis)
+          );
+          tx.nonce = Quantity.from(1);
+          tx.signAndHash(privKeyBuf);
+          // Use `tx` to create a new transaction with "flipped" s and v values.
+          // This is called transaction "malleability". By changing the
+          // signature this way we still have a valid signature for the same
+          // address! EIP-2 was introduced to forbid this.
+          // See: https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
+
+          // flip the `v` value:
+          tx.v = Quantity.from(tx.v.toBigInt() === 28n ? 27n : 28n);
+
+          // flip the `s` value:
+          tx.s = Quantity.from(SECP256K1_N - tx.s.toBigInt());
+
+          // convert to a JSON-RPC transaction:
+          const flipTx = JSON.parse(JSON.stringify(tx.toJSON(genesis)));
+
+          // make sure chainstart allows it (implicitly - by not throwing):
+          const flipTxInstance = TransactionFactory.fromRpc(flipTx, genesis);
+
+          // convert to a RAW transaction:
+          const flipRaw = `0x${flipTxInstance.serialized.toString("hex")}`;
+
+          // make sure chainstart allows it
+          assert.doesNotThrow(() =>
+            TransactionFactory.fromString(flipRaw, genesis)
+          );
+
+          const message =
+            "Invalid Signature: s-values greater than secp256k1n/2 are considered invalid";
+          // now check it against a common with a hardfork _after_ EIP-2
+          assert.throws(() => TransactionFactory.fromRpc(flipTx, common), {
+            message
+          });
+          assert.throws(() => TransactionFactory.fromString(flipRaw, common), {
+            message
+          });
+        });
       });
     });
 
@@ -498,7 +558,7 @@ describe("@ganache/ethereum-transaction", async () => {
 
   describe("Error and helper cases", () => {
     it("does not allow unsupported tx types from rpc data", async () => {
-      const rpc: TypedRpcTransaction = {
+      const rpc: Transaction = {
         from: from,
         to: to,
         type: "0x55",

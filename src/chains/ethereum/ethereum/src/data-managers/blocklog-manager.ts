@@ -4,6 +4,7 @@ import Manager from "./manager";
 import { Quantity } from "@ganache/utils";
 import Blockchain from "../blockchain";
 import { parseFilter, parseFilterDetails } from "../helpers/filter-parsing";
+import { Ethereum } from "../api-types";
 
 export default class BlockLogManager extends Manager<BlockLogs> {
   #blockchain: Blockchain;
@@ -27,7 +28,7 @@ export default class BlockLogManager extends Manager<BlockLogs> {
     return log;
   }
 
-  async getLogs(filter: FilterArgs) {
+  async getLogs(filter: FilterArgs): Promise<Ethereum.Logs> {
     const blockchain = this.#blockchain;
     if ("blockHash" in filter) {
       const { addresses, topics } = parseFilterDetails(filter);
@@ -54,15 +55,13 @@ export default class BlockLogManager extends Manager<BlockLogs> {
         // fetch all the blockLogs in-between `fromBlock` and `toBlock` (excluding
         // from, because we already started fetching that one)
         for (let i = fromBlockNumber + 1, l = toBlockNumber + 1; i < l; i++) {
-          pendingLogsPromises.push(this.get(Quantity.from(i).toBuffer()));
+          pendingLogsPromises.push(this.get(Quantity.toBuffer(i)));
         }
       }
 
       // now filter and compute all the blocks' blockLogs (in block order)
       return Promise.all(pendingLogsPromises).then(blockLogsRange => {
-        const filteredBlockLogs: ReturnType<
-          typeof BlockLogs["logToJSON"]
-        >[] = [];
+        const filteredBlockLogs: Ethereum.Logs = [];
         blockLogsRange.forEach(blockLogs => {
           // TODO(perf): this loops over all addresses for every block.
           // Maybe make it loop only once?

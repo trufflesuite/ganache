@@ -29,12 +29,12 @@ export const INTRINSIC_GAS_TOO_LOW = "intrinsic gas too low";
 export const GAS_LIMIT = "exceeds block gas limit";
 
 /**
- * Prefix for a single VM Exception occuring when running a transaction or block
+ * Prefix for a single VM Exception occurring when running a transaction or block
  */
 export const VM_EXCEPTION = "VM Exception while processing transaction: ";
 
 /**
- * Prefix for multiple VM Exceptions occuring when running transactions or a block
+ * Prefix for multiple VM Exceptions occurring when running transactions or a block
  */
 export const VM_EXCEPTIONS =
   "Multiple VM Exceptions while processing transactions: : \n\n";

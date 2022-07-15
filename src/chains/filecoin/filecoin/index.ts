@@ -5,7 +5,11 @@
  * @license MIT
  */
 
-import { Connector, Provider, StorageDealStatus } from "./src/connector";
+import {
+  Connector,
+  FilecoinProvider,
+  StorageDealStatus
+} from "./src/connector";
 import {
   filecoinCallback,
   ganachePlugin,
@@ -13,11 +17,15 @@ import {
   serverOptionsConfig
 } from "./src/plugin-callback";
 
-export type { Connector, Provider, StorageDealStatus } from "./src/connector";
+export type {
+  Connector,
+  FilecoinProvider,
+  StorageDealStatus
+} from "./src/connector";
 
 export default {
   Connector,
-  Provider,
+  FilecoinProvider,
   StorageDealStatus,
   filecoinCallback,
   ganachePlugin,

@@ -47,6 +47,7 @@ describe("api", () => {
         context.instance = {
           n: () => {
             const tx = {
+              from: "0x123",
               to,
               data: "0x" + methods["n()"]
             };
@@ -229,15 +230,10 @@ describe("api", () => {
         );
       });
 
-      it("evm_revert returns false for out-of-range subscriptionId values", async () => {
+      it("evm_revert returns false for out-of-range subscriptionId", async () => {
         const { send } = context;
-        const ids = [-1, Buffer.from([0])];
-        const promises = ids.map(id =>
-          send("evm_revert", [id]).then(result =>
-            assert.strictEqual(result, false)
-          )
-        );
-        await Promise.all(promises);
+        const result = await send("evm_revert", [0]);
+        assert.strictEqual(result, false);
       });
 
       it("removes transactions that are already in processing at the start of evm_revert", async () => {

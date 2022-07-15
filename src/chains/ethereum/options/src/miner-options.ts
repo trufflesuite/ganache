@@ -1,12 +1,5 @@
 import { normalize } from "./helpers";
-import {
-  Data,
-  Quantity,
-  ACCOUNT_ZERO,
-  DATA_EMPTY,
-  RPCQUANTITY_EMPTY,
-  RPCQUANTITY_ONE
-} from "@ganache/utils";
+import { Data, Quantity, ACCOUNT_ZERO } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { Definitions } from "@ganache/options";
 
@@ -31,6 +24,22 @@ export type MinerConfig = {
          */
         blockTime: number;
       };
+    };
+
+    /**
+     * The amount of time, in seconds, to add to the `timestamp` of each new
+     * block header.
+     *
+     * By default the value is `"clock"`, which uses your system clock time as
+     * the timestamp for each block.
+     *
+     * @defaultValue "clock"
+     */
+    timestampIncrement: {
+      type: "clock" | Quantity;
+      rawType: "clock" | string | number | bigint;
+      hasDefault: true;
+      cliType: string;
     };
 
     /**
@@ -146,6 +155,7 @@ export type MinerConfig = {
       rawType: string | number;
       type: Address | number;
       hasDefault: true;
+      cliType: string;
     };
 
     /**
@@ -176,13 +186,38 @@ export type MinerConfig = {
 /**
  * Attempts to convert strings that don't start with `0x` to a BigInt
  *
- * @param str - a string that represents a bigint, number, or hex number
+ * @param str - a string that represents a bigint, number, or hexadecimal value
  */
 const toBigIntOrString = (str: string) => {
   if (str.startsWith("0x")) {
     return str;
   } else {
     return BigInt(str);
+  }
+};
+/**
+ * Handles defaultTransactionGasLimit special case of 'estimate' for tx value.
+ *
+ * @param str - the string literal 'estimate' or string that that represents a bigint, number, or hexadecimal value.
+ */
+const estimateOrToBigIntOrString = (str: string) => {
+  if (str === "estimate") {
+    return str;
+  } else {
+    return toBigIntOrString(str);
+  }
+};
+
+/**
+ * Attempts to convert strings that don't start with `0x` to a number
+ *
+ * @param str - a string that represents a number, or hexadecimal value
+ */
+const toNumberOrString = (str: string) => {
+  if (str.startsWith("0x")) {
+    return str;
+  } else {
+    return parseInt(str);
   }
 };
 
@@ -201,6 +236,14 @@ export const MinerOptions: Definitions<MinerConfig> = {
     legacyName: "blockTime",
     cliAliases: ["b", "blockTime"],
     cliType: "number"
+  },
+  timestampIncrement: {
+    normalize: rawType =>
+      rawType === "clock" ? "clock" : Quantity.from(BigInt(rawType)),
+    cliDescription:
+      'The amount of time, in seconds, to add to the `timestamp` of each new block header. By default the value is `"clock"`, which uses your system clock time as the timestamp for each block.',
+    default: () => "clock",
+    cliType: "string"
   },
   defaultGasPrice: {
     normalize: Quantity.from,
@@ -223,17 +266,17 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   defaultTransactionGasLimit: {
     normalize: rawType =>
-      rawType === "estimate" ? RPCQUANTITY_EMPTY : Quantity.from(rawType),
+      rawType === "estimate" ? Quantity.Empty : Quantity.from(rawType),
     cliDescription:
       'Sets the default transaction gas limit in WEI. Set to "estimate" to use an estimate (slows down transaction execution by 40%+).',
     default: () => Quantity.from(90_000),
     cliType: "string",
-    cliCoerce: toBigIntOrString
+    cliCoerce: estimateOrToBigIntOrString
   },
   difficulty: {
     normalize: Quantity.from,
     cliDescription: "Sets the block difficulty.",
-    default: () => RPCQUANTITY_ONE,
+    default: () => Quantity.One,
     cliType: "string",
     cliCoerce: toBigIntOrString
   },
@@ -263,6 +306,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return typeof rawType === "number" ? rawType : Address.from(rawType);
     },
     cliDescription: "Sets the address where mining rewards will go.",
+    cliType: "string",
+    cliCoerce: toNumberOrString,
     default: () => Address.from(ACCOUNT_ZERO)
   },
   extraData: {
@@ -276,7 +321,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
       return bytes;
     },
     cliDescription: "Set the extraData block header field a miner can include.",
-    default: () => DATA_EMPTY,
+    default: () => Data.Empty,
     cliType: "string"
   },
   priceBump: {

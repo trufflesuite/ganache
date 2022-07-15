@@ -1,86 +1,150 @@
-import { bufferToBigInt, BUFFER_EMPTY } from "../../utils";
+import { bufferToBigInt } from "../../utils/buffer-to-bigint";
 import { BaseJsonRpcType } from "./json-rpc-base-types";
-// TODO(perf): rewrite this stuff since it isn't really caching anything
-export class Quantity extends BaseJsonRpcType {
-  _nullable: boolean = false;
-  public static from(
-    value: number | bigint | string | Buffer,
-    nullable = false
-  ) {
-    if (value instanceof Quantity) return value;
-    const q = new Quantity(value);
-    q._nullable = nullable;
-    return q;
-  }
-  public toString(): string | null {
-    // TODO(perf): memoize this stuff
-    if (Buffer.isBuffer(this.value)) {
-      let val = this.value.toString("hex").replace(/^(?:0+(.+?))?$/, "$1");
+import { JsonRpcInputArg } from "./input-parsers";
+import { BUFFER_EMPTY, BUFFER_ZERO } from "../../utils/constants";
 
-      if (val === "") {
-        if (this._nullable) {
-          return null;
-        }
-        // RPC Quantities must represent `0` as `0x0`
-        return "0x0";
-      }
-      return `0x${val}`;
-    } else if (this.value == null) {
-      return "0x";
-    } else {
-      return super.toString();
-    }
+export class Quantity extends BaseJsonRpcType {
+  public static Empty = Quantity.from(BUFFER_EMPTY, true);
+  public static Zero = Quantity.from(BUFFER_ZERO);
+  public static One = Quantity.from(1);
+  public static Gwei = Quantity.from(1000000000);
+
+  private static ZERO_VALUE_STRING = "0x0";
+
+  _nullable: boolean = false;
+
+  public static from(value: JsonRpcInputArg, nullable = false) {
+    if (value instanceof Quantity) return value;
+    return new Quantity(value, nullable);
   }
+
+  constructor(value: JsonRpcInputArg, nullable?: boolean) {
+    super(value);
+    if (value === "0x") {
+      throw new Error(
+        'Cannot wrap "0x" as a json-rpc Quantity type; strings must contain at least one hexadecimal character.'
+      );
+    }
+    this._nullable = nullable;
+  }
+
+  public toString(): string | null {
+    if (this.bufferValue == null) {
+      return this._nullable ? null : Quantity.ZERO_VALUE_STRING;
+    }
+
+    const firstNonZeroByte = this.findFirstNonZeroByteIndex();
+
+    // bufferValue is empty, or contains only 0 bytes
+    if (firstNonZeroByte === this.bufferValue.length) {
+      return Quantity.ZERO_VALUE_STRING;
+    }
+
+    let value = this.bufferValue.toString("hex", firstNonZeroByte);
+
+    // only need to check the first char, as we have already skipped 0 bytes in call to this.bufferValue.toString().
+    if (value[0] === "0") {
+      value = value.slice(1);
+    }
+
+    return `0x${value}`;
+  }
+
   public toBuffer(): Buffer {
-    // 0x0, 0x00, 0x000, etc should return BUFFER_EMPTY
-    if (Buffer.isBuffer(this.value)) {
-      // trim zeros from start
-      let best = 0;
-      for (best = 0; best < this.value.length; best++) {
-        if (this.value[best] !== 0) break;
-      }
-      if (best > 0) {
-        return this.value.slice(best);
-      } else {
-        return this.value;
-      }
-    } else if (typeof this.value === "string") {
-      let val = this.value.slice(2).replace(/^(?:0+(.+?))?$/, "$1");
-      if (val === "" || val === "0") {
-        return BUFFER_EMPTY;
-      }
-    } else if (this.value === 0 || this.value === 0n) {
+    if (this.bufferValue == null) {
       return BUFFER_EMPTY;
     }
 
-    return super.toBuffer();
-  }
-  public toBigInt(): bigint | null {
-    const value = this.value;
+    const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
-    // TODO(perf): memoize this stuff
-    if (Buffer.isBuffer(value)) {
-      const bigInt = bufferToBigInt(value);
-      return bigInt == null ? (this._nullable ? null : 0n) : bigInt;
+    if (firstNonZeroByte > 0) {
+      return this.bufferValue.subarray(firstNonZeroByte);
     } else {
-      return value == null ? (this._nullable ? null : 0n) : BigInt(value);
+      return this.bufferValue;
     }
   }
-  public toNumber() {
-    // TODO(perf): memoize this stuff
-    return typeof this.value === "number"
-      ? this.value
-      : Number(this.toBigInt());
+
+  public toBigInt(): bigint | null {
+    if (this.bufferValue == null) {
+      return this._nullable ? null : 0n;
+    }
+    if (this.bufferValue.length === 0) {
+      return 0n;
+    }
+    return bufferToBigInt(this.bufferValue);
   }
+
+  public toNumber() {
+    if (this.bufferValue == null) {
+      return this._nullable ? null : 0;
+    }
+
+    const firstNonZeroByte = this.findFirstNonZeroByteIndex();
+
+    const length = this.bufferValue.length - firstNonZeroByte;
+    if (length === 0) {
+      return 0;
+    }
+
+    let result: number;
+    // buffer.readUIntBE only supports up to 48 bits, so if larger then we need to convert to bigint first
+    if (length > 6) {
+      const trimmedBuffer =
+        firstNonZeroByte === 0
+          ? this.bufferValue
+          : this.bufferValue.subarray(firstNonZeroByte);
+      result = Number(bufferToBigInt(trimmedBuffer));
+
+      if (!Number.isSafeInteger(result)) {
+        console.warn(
+          `0x${this.bufferValue.toString(
+            "hex"
+          )} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(
+            16
+          )}`
+        );
+      }
+    } else {
+      result = this.bufferValue.readUIntBE(firstNonZeroByte, length);
+    }
+
+    return result;
+  }
+
   valueOf(): bigint {
-    const value = this.value;
-    if (value === null) {
-      return value as null;
-    } else if (value === undefined) {
-      return value as undefined;
+    if (this.bufferValue == null) {
+      return null;
     } else {
       return this.toBigInt();
     }
+  }
+
+  private findFirstNonZeroByteIndex(): number {
+    let firstNonZeroByte = 0;
+    for (
+      firstNonZeroByte = 0;
+      firstNonZeroByte < this.bufferValue.length;
+      firstNonZeroByte++
+    ) {
+      if (this.bufferValue[firstNonZeroByte] !== 0) break;
+    }
+    return firstNonZeroByte;
+  }
+
+  static toBuffer(value: JsonRpcInputArg, nullable?: boolean): Buffer {
+    return Quantity.from(value, nullable).toBuffer();
+  }
+
+  static toString(value: JsonRpcInputArg, nullable?: boolean): string {
+    return Quantity.from(value, nullable).toString();
+  }
+
+  static toNumber(value: JsonRpcInputArg, nullable?: boolean): number {
+    return Quantity.from(value, nullable).toNumber();
+  }
+
+  static toBigInt(value: JsonRpcInputArg, nullable?: boolean): bigint {
+    return Quantity.from(value, nullable).toBigInt();
   }
 }
 

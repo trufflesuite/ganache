@@ -1,4 +1,5 @@
 import { Definitions } from "..";
+import { kMaxLength } from "buffer";
 
 export type ServerConfig = {
   options: {
@@ -41,6 +42,17 @@ export type ServerConfig = {
       type: string;
       hasDefault: true;
     };
+
+    /**
+     * For memory and performance reasons ganache may respond with chunked
+     * transfer-encoding over HTTP and fragmented send over WebSockets.
+     * This option allows you to control the approximate size of each chunk.
+     * The default is 1MB.
+     */
+    readonly chunkSize: {
+      type: number;
+      hasDefault: true;
+    };
   };
 };
 const normalize = <T>(rawInput: T) => rawInput;
@@ -71,6 +83,18 @@ export const ServerOptions: Definitions<ServerConfig> = {
           return "/";
       }
     },
-    defaultDescription: '"/" (Ethereum), "/rpc/v0" (Filecoin)'
+    defaultDescription: '"/" (Ethereum)'
+  },
+  chunkSize: {
+    normalize: number => {
+      if (number < 0 || number > kMaxLength) {
+        throw new Error(`--server.chunkSize must be >= 0 and <= ${kMaxLength}`);
+      }
+      return number;
+    },
+    cliDescription:
+      "For memory and performance reasons ganache may respond with chunked transfer-encoding over HTTP and fragmented send over WebSockets. This option allows you to control the approximate size of each chunk.",
+    default: () => 1024 * 1024,
+    cliType: "number"
   }
 };

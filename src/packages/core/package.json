@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.1-canary.1335",
+  "version": "0.4.2",
   "description": "A library to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/core#readme",
@@ -28,7 +28,7 @@
     "tsc": "tsc --build",
     "test": "nyc npm run mocha && npm run mocha:fallback",
     "mocha:fallback": "cross-env UWS_USE_FALLBACK=true npm run mocha",
-    "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_FILES=true mocha --exit --colors --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_FILES=true mocha --timeout 5000 --exit --colors --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -48,11 +48,11 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/ethereum": "0.1.1-canary.1335",
-    "@ganache/flavors": "0.1.1-canary.1335",
-    "@ganache/options": "0.1.1-canary.1335",
-    "@ganache/utils": "0.1.1-canary.1335",
-    "@trufflesuite/uws-js-unofficial": "20.4.0-unofficial.2",
+    "@ganache/ethereum": "0.4.2",
+    "@ganache/flavors": "0.4.2",
+    "@ganache/options": "0.4.2",
+    "@ganache/utils": "0.4.2",
+    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
     "aggregate-error": "3.1.0",
     "emittery": "0.10.0",
     "promise.allsettled": "1.0.4"
@@ -66,7 +66,7 @@
     "nyc": "15.1.0",
     "superagent": "6.1.0",
     "ts-node": "10.4.0",
-    "typescript": "4.5.4",
+    "typescript": "4.6.4",
     "ws": "8.2.3"
   }
 }

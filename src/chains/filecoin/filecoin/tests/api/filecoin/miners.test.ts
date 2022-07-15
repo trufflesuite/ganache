@@ -1,5 +1,5 @@
 import assert from "assert";
-import FilecoinProvider from "../../../src/provider";
+import { FilecoinProvider } from "../../../src/provider";
 import { Address } from "../../../src/things/address";
 import getProvider from "../../helpers/getProvider";
 

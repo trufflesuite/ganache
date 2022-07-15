@@ -32,8 +32,10 @@ import {
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
   VmStepEvent,
-  MessageEvent
+  MessageEvent,
+  VmConsoleLogEvent
 } from "./provider-events";
+import { ConsoleLogs } from "@ganache/console.log";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -91,14 +93,24 @@ function hookEventSystem(
 }
 
 type Primitives = string | number | null | undefined | symbol | bigint;
-type Clean<X> = X extends Primitives
-  ? X
-  : X extends Quantity | Data | ITraceData
-  ? string
-  : { [N in keyof X]: Clean<X[N]> };
 
-type cleanAndMergePromiseGenerics<Type> = Promise<
-  Type extends Promise<infer X> ? Clean<X> : never
+// Externalize changes any `Quantity`, `Data`, `ITraceData` types into `string`
+// as that's how they are after being serialized to JSON. It's be nice if
+// `JSON.stringify` did that for us, as our types implement `toJSON()`, but it
+// doesn't
+export type Externalize<X> =
+  // if X is a Primitive return it as is
+  X extends Primitives
+    ? X
+    : // if X is a Quantity | Data | ITraceData return `string`
+    X extends Quantity | Data | ITraceData
+    ? string
+    : // if X can be iterated iterate and recurse on each element
+      { [N in keyof X]: Externalize<X[N]> };
+
+// Simplify makes the types more readable
+type Simplify<Type> = Promise<
+  Type extends Promise<infer X> ? Externalize<X> : never
 >;
 
 interface Callback {
@@ -113,7 +125,7 @@ type RequestParams<Method extends RequestMethods> = {
   readonly method: Method;
   readonly params: OverloadedParameters<EthereumApi[Method]> | undefined;
 };
-export default class EthereumProvider
+export class EthereumProvider
   extends Emittery<{
     message: MessageEvent;
     data: DataEvent;
@@ -121,10 +133,12 @@ export default class EthereumProvider
     "ganache:vm:tx:step": VmStepEvent;
     "ganache:vm:tx:before": VmBeforeTransactionEvent;
     "ganache:vm:tx:after": VmAfterTransactionEvent;
+    "ganache:vm:tx:console.log": VmConsoleLogEvent;
     connect: undefined;
     disconnect: undefined;
   }>
-  implements Provider<EthereumApi> {
+  implements Provider<EthereumApi>
+{
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #executor: Executor;
@@ -161,6 +175,9 @@ export default class EthereumProvider
     });
     blockchain.on("ganache:vm:tx:after", event => {
       this.emit("ganache:vm:tx:after", event);
+    });
+    blockchain.on("ganache:vm:tx:console.log", event => {
+      this.emit("ganache:vm:tx:console.log", event);
     });
 
     hookEventSystem(this, (enable: boolean) => {
@@ -216,7 +233,7 @@ export default class EthereumProvider
   public send<Method extends RequestMethods>(
     method: Method,
     params?: OverloadedParameters<EthereumApi[typeof method]>
-  ): cleanAndMergePromiseGenerics<ReturnType<EthereumApi[typeof method]>>;
+  ): Simplify<ReturnType<EthereumApi[typeof method]>>;
   /**
    * @param payload - payload
    * @param callback - callback
@@ -302,7 +319,7 @@ export default class EthereumProvider
       // this signature is (not) non-standard and is only a ganache thing!!!
       // we should probably remove it, but I really like it so I haven't yet.
       method = arg1;
-      params = (arg2 as unknown) as OverloadedParameters<EthereumApi[Method]>;
+      params = arg2 as unknown as OverloadedParameters<EthereumApi[Method]>;
       response = this.request({ method, params });
     } else if (typeof arg2 === "function") {
       // handle backward compatibility with callback-style ganache-core
@@ -335,7 +352,7 @@ export default class EthereumProvider
    */
   public async request<Method extends RequestMethods>(
     args: RequestParams<Method>
-  ): cleanAndMergePromiseGenerics<ReturnType<EthereumApi[Method]>> {
+  ): Simplify<ReturnType<EthereumApi[Method]>> {
     const rawResult = await this._requestRaw(args);
     const value = await rawResult.value;
     return JSON.parse(JSON.stringify(value));
@@ -354,9 +371,7 @@ export default class EthereumProvider
     this.#logRequest(method, params);
 
     const result = await this.#executor.execute(this.#api, method, params);
-    const promise = result.value as cleanAndMergePromiseGenerics<
-      typeof result.value
-    >;
+    const promise = result.value as Simplify<typeof result.value>;
     if (promise instanceof PromiEvent) {
       promise.on("message", data => {
         const normalizedData = JSON.parse(JSON.stringify(data));

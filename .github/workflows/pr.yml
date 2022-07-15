@@ -10,8 +10,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 17.x]
+        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
         os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
+        exclude:
+          # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
+          - os: ubuntu-18.04
+            node: 18.x
 
     runs-on: ${{ matrix.os }}
 
@@ -40,3 +44,23 @@ jobs:
         env:
           FORCE_COLOR: 1
           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+
+      - name: Check bundle size
+        # this should match the os and version used in the release.yml
+        if: startsWith(matrix.os, 'ubuntu-20.04') && startsWith(matrix.node, '14.')
+        # 1. build ganache
+        # 2. pack it into a tarball
+        # 3. measure the _unpacked_ tarball's size
+        # 4. test to make sure the tarball is less than 99MB because jsDelivr
+        #    CDN doesn't allow bundles greater than 100MB.
+        # 5. exit with non-zero exit code if the test fails.
+        run: |
+          npm run build &&
+          cd ./src/packages/ganache &&
+          npm pack &&
+          size="$(zcat ganache-*.tgz | wc -c)" &&
+          echo "Bundle size: $size" &&
+          echo "Bundle size is $([[ "$size" -lt 99000000 ]] && echo "ok" || echo "not ok")" &&
+          test "$size" -lt 99000000
+        env:
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}

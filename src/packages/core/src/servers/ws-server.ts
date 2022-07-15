@@ -6,9 +6,9 @@ import {
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
 import * as Flavors from "@ganache/flavors";
-import { hasOwn, PromiEvent } from "@ganache/utils";
-import { isGeneratorFunction, isGeneratorObject } from "util/types";
+import { PromiEvent } from "@ganache/utils";
 import { types } from "util";
+import { getFragmentGenerator } from "./utils/fragment-generator";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
@@ -20,6 +20,49 @@ type WebSocketCapableFlavorMap = {
     : never;
 };
 
+export function sendFragmented(
+  ws: WebSocket,
+  data: Generator<Buffer, void, void>,
+  useBinary: boolean,
+  chunkSize: number
+) {
+  ws.cork(() => {
+    // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
+    const shouldCompress = false;
+
+    const fragments = getFragmentGenerator(data, chunkSize);
+    // get our first fragment
+    const { value: firstFragment } = fragments.next();
+    // check if there is any more fragments after this one
+    let { value: maybeLastFragment, done } = fragments.next();
+    // if there are no more fragments send the "firstFragment" via `send`, as
+    // we don't need to chunk it.
+    if (done) {
+      ws.send(firstFragment as RecognizedString, useBinary);
+    } else {
+      // since we have at least two fragments send the first one now that it
+      // is "full"
+      ws.sendFirstFragment(firstFragment as RecognizedString, useBinary);
+      // at this point `maybeLastFragment` is the next fragment that should be
+      // sent. We iterate over all fragments, sending the _previous_ fragment
+      // (`maybeLastFragment`) then cache the current fragment (`fragment`)
+      // in the `maybeLastFragment` variable, which will be sent in the next
+      // iteration, or via `sendLastFragment`, below, if `fragment` was also the
+      // very last one.
+      for (const fragment of fragments) {
+        // definitely not the last fragment, send it!
+        ws.sendFragment(maybeLastFragment as RecognizedString, shouldCompress);
+        maybeLastFragment = fragment;
+      }
+      ws.sendLastFragment(
+        // definitely the last fragment at this point
+        maybeLastFragment as RecognizedString,
+        shouldCompress
+      );
+    }
+  });
+}
+
 export type WebSocketCapableFlavor = {
   [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
 }[keyof WebSocketCapableFlavorMap];
@@ -28,7 +71,7 @@ export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
   InternalOptions["server"],
-  "wsBinary" | "rpcEndpoint"
+  "wsBinary" | "rpcEndpoint" | "chunkSize"
 >;
 
 // matches geth's limit of 15 MebiBytes: https://github.com/ethereum/go-ethereum/blob/3526f690478482a02a152988f4d31074c176b136/rpc/websocket.go#L40
@@ -123,39 +166,14 @@ export default class WebsocketServer {
         }
 
         if (types.isGeneratorObject(data)) {
-          const localData = data;
-          ws.cork(() => {
-            const { value: first } = localData.next();
-
-            // get the second fragment, if there is one
-            // Note: we lag behind by one fragment because the last fragment
-            // needs to be sent via the `sendLastFragment` method.
-            // This value acts as a lookahead so we know if we are at the last
-            // value or not.
-            let { value: next, done } = localData.next();
-
-            // if there wasn't a second fragment, just send it the usual way.
-            if (done) {
-              ws.send(first, useBinary);
-            } else {
-              // fragment send: https://github.com/uNetworking/uWebSockets.js/issues/635
-              const shouldCompress = false;
-
-              // send the first fragment
-              ws.sendFirstFragment(first, useBinary, shouldCompress);
-
-              // Now send the rest of the data piece by piece.
-              let prev = next;
-              for (next of localData) {
-                ws.sendFragment(prev, shouldCompress);
-                prev = next;
-              }
-              // finally, send the last fragment
-              ws.sendLastFragment(next, shouldCompress);
-            }
-          });
+          sendFragmented(
+            ws,
+            data as Generator<Buffer, any, unknown>,
+            useBinary,
+            options.chunkSize
+          );
         } else {
-          ws.send(data as RecognizedString, useBinary);
+          ws.send(data, useBinary);
         }
       },
 

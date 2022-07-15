@@ -6,20 +6,32 @@ on:
 
 jobs:
   release:
+    # this should match the os version used by the "check bundle size" step in
+    # pr.yml
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # we need all commit history so we can merge master into develop
+          fetch-depth: 0
       - uses: actions/setup-node@v1
         with:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
+          # this should match the node version used by the "check bundle size"
+          # step in pr.yml
           node-version: 14
 
-      - name: Set git identity
+      - name: Import Robot GPG key
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.TRUFBOT_GPG_SECRET_KEY }}
+          passphrase: ${{ secrets.TRUFBOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Set git origin url
         run: |
-          git config --global user.name 'Robot'
-          git config --global user.email 'robot@trufflesuite.com'
           git remote set-url origin https://robot:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,9 +55,45 @@ jobs:
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
+      - name: Count features
+        if: ${{ env.TAG == 'latest'}}
+        # get all commits in develop that aren't in master, find any that start with feat: or feat(*):, then count them
+        # 1. `git tag --sort=-version:refname --no-contains HEAD`
+        #    - get a list of all tags that do NOT contain out current HEAD commit
+        #    - sort by version name
+        #    - in reverse order
+        # 2. `grep -P "^v(0|[1-9]\d*)?\.(0|[1-9]\d*)\.(0|[1-9]\d*)$"`
+        #    - filter the list for semver matching tags only, e.g. "v*.*.*" (ignores pre-releases!)
+        #    - ignores pre-releases
+        #    - ignores improper tags like v01.02.03 (no leading 0s)
+        # 3. `head -1`
+        #    - get the last tag in the list
+        # 4. `git log ^$LATEST_TAG HEAD --pretty=format:%s`
+        #    - get all from the `LATEST_TAG` (exclusive) to `HEAD`
+        # 5. `grep -o -P '^feat(\(.*?\))?:'`
+        #    - output only the matching part (in case a newline can get in here... probably not possible?)
+        #    - filter for only commit subjects that match conventional commits for features, i.e., `feat:` or `feat(<subject>):`
+        # 6. `wc -l`
+        #    - count how many matches we have
+        # 7.  `>> $GITHUB_ENV`
+        #    - assign the above `FEATURE_COUNT` to the `wc` result (e.g., "FEATURE_COUNT=1") and append it to `$GITHUB_ENV`
+        run: |
+          LATEST_TAG=$(git tag --sort=-version:refname --no-contains HEAD | grep -P '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | head -1) &&
+          echo FEATURE_COUNT="$(git log ^"${LATEST_TAG}" HEAD --pretty=format:%s | grep -o -P '^feat(\(.*?\))?:' | wc -l)" >> "${GITHUB_ENV}"
+
+      - name: Determine Release Kind (minor)
+        # if we are "latest" and we have features, set the release to "minor"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT != '0' }}
+        run: echo "RELEASE_KIND=minor" >> $GITHUB_ENV
+
+      - name: Determine Release Kind (patch)
+        # if we are "latest" and we do NOT have features, set the release to "patch"
+        if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
+        run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
+
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
-        run: $(npm bin)/lerna version patch --no-git-tag-version --no-push --yes --exact
+        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
 
       - name: Update package versions for pre-releases
         if: ${{ env.TAG != 'latest' }}
@@ -72,10 +120,10 @@ jobs:
         run: |
           git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
 
-      # TODO: sign the last commit and tag
       - name: Tag the amended release commit
         run: |
           git tag -a "ganache@${VERSION}" -m "ganache@${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
 
       - name: Push changes to git
         run: |
@@ -120,6 +168,12 @@ jobs:
             trufflesuite/ganache
             ghcr.io/${{ github.repository}}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@0522dcd2bf084920c411162fde334a308be75015
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@91cb32d715c128e5f0ede915cd7e196ab7799b83
+
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
@@ -128,5 +182,13 @@ jobs:
           push: true
           tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', env.TAG, env.VERSION) }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/arm64/v8,linux/amd64
           build-args: |
             INFURA_KEY=${{ secrets.INFURA_KEY }}
+
+      - name: Merge changes back into develop for latest release (master)
+        if: ${{ env.TAG == 'latest' }}
+        run: |
+          git checkout develop
+          git merge origin/master
+          git push origin develop

@@ -1,10 +1,26 @@
+import { KNOWN_CHAINIDS } from "@ganache/utils";
 import ConnectorLoader from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
 import Server from "./src/server";
 export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
-
-export type { Provider } from "@ganache/flavors";
+export type {
+  Provider
+} from "@ganache/flavors";
 export type { ProviderOptions, ServerOptions } from "./src/options";
+export type _ExperimentalInfo = Readonly<{
+  version: string;
+  fork: Readonly<{
+    /**
+     * Chains Ganache is known to be compatible with. Operations performed
+     * locally at historic block numbers will use the Ethereum Virtual Machine
+     * OPCODEs, gas prices, and EIPs that were active at the time the historic
+     * block originally took place.
+     */
+    knownChainIds: number[];
+  }>;
+}>;
+
+const version = process.env.VERSION || "DEV";
 
 /**
  * @public
@@ -41,9 +57,21 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  provider: <T = any>(options?: ProviderOptions<T>): any => {
+   provider: <T = any>(options?: ProviderOptions<T>): any => {
     const loader = ConnectorLoader.initialize<T>(options);
     return loader.connector["provider"];
+  },
+  /**
+   *
+   * @experimental
+   */
+  __experimental_info(): _ExperimentalInfo {
+    return {
+      version,
+      fork: {
+        knownChainIds: Array.from(KNOWN_CHAINIDS)
+      }
+    };
   }
 };
 
@@ -55,6 +83,10 @@ export const server = Ganache.server;
  * @public
  */
 export const provider = Ganache.provider;
+/**
+ * @experimental
+ */
+export const __experimental_info = Ganache.__experimental_info;
 /**
  * @public
  */

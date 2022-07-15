@@ -15,11 +15,9 @@ export type Options = {
   server: ServerConfig;
 };
 
-export type ServerOptions<T = any> = Partial<
-  {
-    [K in keyof Options]: ExternalConfig<Options[K]>;
-  }
-> &
+export type ServerOptions<T = any> = Partial<{
+  [K in keyof Options]: ExternalConfig<Options[K]>;
+}> &
   ProviderOptions<T>;
 
 export type InternalOptions = {

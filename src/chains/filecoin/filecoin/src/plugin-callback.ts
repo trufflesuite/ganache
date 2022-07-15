@@ -1,8 +1,10 @@
 import { GanachePlugin, OptionsConfig } from "@ganache/options";
 import { FilecoinDefaults } from "@ganache/filecoin-options";
-import { Provider } from "..";
+import { FilecoinProvider } from "..";
 
-export const filecoinCallback = async (provider: Provider): Promise<any> => {
+export const filecoinCallback = async (
+  provider: FilecoinProvider
+): Promise<any> => {
   const accounts = await provider.getInitialAccounts();
   const addresses = Object.keys(accounts);
   const accountsInfo: string[] = [];

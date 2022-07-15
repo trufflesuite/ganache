@@ -1,6 +1,6 @@
 import {
   Connector as EthereumConnector,
-  Provider as EthereumProvider
+  EthereumProvider
 } from "@ganache/ethereum";
 import {
   EthereumDefaults,
@@ -37,8 +37,8 @@ export type OptionsByName = {
 export type FlavorName = keyof ConnectorsByName;
 
 export type Connector = {
-  [K in keyof ConnectorsByName]: ConnectorsByName[K];
-}[keyof ConnectorsByName];
+  [K in FlavorName]: ConnectorsByName[K];
+}[FlavorName];
 
 export function GetConnector<T = any>(
   flavor: T,

@@ -51,7 +51,7 @@ export type BlockHeader = {
 
 /**
  * Returns the size of the serialized data as it would have been calculated had
- * we stored things geth does, i.e., `totalDfficulty` is not usually stored in
+ * we stored things geth does, i.e., `totalDifficulty` is not usually stored in
  * the block header.
  *
  * @param serialized -
@@ -131,7 +131,7 @@ export class RuntimeBlock {
       baseFeePerGas:
         baseFeePerGas === undefined
           ? new BnExtra(BUFFER_ZERO)
-          : new BnExtra(Quantity.from(baseFeePerGas).toBuffer())
+          : new BnExtra(Quantity.toBuffer(baseFeePerGas))
     };
     // When forking we might get a block that doesn't have a baseFeePerGas value,
     // but EIP-1559 might be active on our chain. We need to keep track on if
@@ -166,7 +166,7 @@ export class RuntimeBlock {
       header.difficulty.buf,
       header.number.buf,
       header.gasLimit.buf,
-      gasUsed === 0n ? BUFFER_EMPTY : Quantity.from(gasUsed).toBuffer(),
+      gasUsed === 0n ? BUFFER_EMPTY : Quantity.toBuffer(gasUsed),
       header.timestamp.buf,
       extraData.toBuffer(),
       BUFFER_32_ZERO, // mixHash

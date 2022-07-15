@@ -27,8 +27,10 @@ import {
   makeStepEvent,
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
+  VmConsoleLogEvent,
   VmStepEvent
 } from "../provider-events";
+import { maybeGetLogs } from "@ganache/console.log";
 
 /**
  * How many transactions should be in the block.
@@ -81,6 +83,7 @@ export default class Miner extends Emittery<{
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": VmConsoleLogEvent;
   idle: undefined;
 }> {
   #currentlyExecutingPrice = 0n;
@@ -268,10 +271,7 @@ export default class Miner extends Emittery<{
       // of the storage key and save it to the db along with it's keccak hashed version of
       // the storage key. Why you might ask? So we can reference the raw version in
       // debug_storageRangeAt.
-      const stepListener = (
-        event: InterpreterStep,
-        next: (error?: any, cb?: any) => void
-      ) => {
+      const stepListener = (event: InterpreterStep) => {
         if (event.opcode.name === "SSTORE") {
           const key = TraceData.from(
             event.stack[event.stack.length - 1].toArrayLike(Buffer)
@@ -279,7 +279,6 @@ export default class Miner extends Emittery<{
           const hashedKey = keccak(key);
           storageKeys.set(hashedKey.toString(), { key, hashedKey });
         }
-        next();
       };
 
       vm.on("step", stepListener);
@@ -344,9 +343,6 @@ export default class Miner extends Emittery<{
             numTransactions++;
 
             const pendingOrigin = pending.get(origin);
-            // since this transaction was successful, remove it from the "pending"
-            // transaction pool.
-            keepMining = pendingOrigin.removeBest();
             inProgress.add(best);
             best.once("finalized").then(() => {
               // it is in the database (or thrown out) so delete it from the
@@ -354,6 +350,19 @@ export default class Miner extends Emittery<{
               inProgress.delete(best);
             });
 
+            // since this transaction was successful, remove it from the "pending"
+            // transaction pool.
+            const hasMoreFromOrigin = pendingOrigin.removeBest();
+            if (hasMoreFromOrigin) {
+              // remove the newest (`best`) tx from this account's pending queue
+              // as we know we can fit another transaction in the block. Stick
+              // this tx into our `priced` heap.
+              keepMining = replaceFromHeap(priced, pendingOrigin);
+            } else {
+              // since we don't have any more txs from this account, just get the
+              // next best transaction sorted in our `priced` heap.
+              keepMining = this.#removeBestAndOrigin(origin);
+            }
             // if we:
             //  * don't have enough gas left for even the smallest of transactions
             //  * Or if we've mined enough transactions
@@ -364,26 +373,7 @@ export default class Miner extends Emittery<{
               blockGasLeft <= Params.TRANSACTION_GAS ||
               numTransactions === maxTransactions
             ) {
-              if (keepMining) {
-                // remove the newest (`best`) tx from this account's pending queue
-                // as we know we can fit another transaction in the block. Stick
-                // this tx into our `priced` heap.
-                keepMining = replaceFromHeap(priced, pendingOrigin);
-              } else {
-                keepMining = this.#removeBestAndOrigin(origin);
-              }
               break;
-            }
-
-            if (keepMining) {
-              // remove the newest (`best`) tx from this account's pending queue
-              // as we know we can fit another transaction in the block. Stick
-              // this tx into our `priced` heap.
-              keepMining = replaceFromHeap(priced, pendingOrigin);
-            } else {
-              // since we don't have any more txs from this account, just get the
-              // next bext transaction sorted in our `priced` heap.
-              keepMining = this.#removeBestAndOrigin(origin);
             }
           } else {
             // didn't fit in the current block
@@ -461,7 +451,10 @@ export default class Miner extends Emittery<{
     this.emit("ganache:vm:tx:before", { context });
     // we always listen to the step event even if `#emitStepEvent` is false in
     // case the user starts listening in the middle of the transaction.
-    const stepListener = event => {
+    const stepListener = (event: InterpreterStep) => {
+      const logs = maybeGetLogs(event);
+      if (logs) this.emit("ganache:vm:tx:console.log", { context, logs });
+
       if (!this.#emitStepEvent) return;
       this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
     };
@@ -509,7 +502,23 @@ export default class Miner extends Emittery<{
 
   #reset = () => {
     this.#origins.clear();
-    this.#priced.clear();
+    // HACK: see: https://github.com/trufflesuite/ganache/issues/3093
+    //
+    //When the priced heap is reset, meaning we're clearing out the heap
+    // and origins list to be set again when the miner is called, loop over
+    // the priced heap transactions and "unlock" them (set tx.locked = false)
+    //
+    // The real fix would include fixing the use of locked, as it's
+    // currently overloaded to mean "is in priced heap" and also "is being
+    // mined".
+    const priced = this.#priced;
+    const length = priced.length;
+    const pricedArray = priced.array;
+    for (let i = 0; i < length; i++) {
+      const bestFromOrigin = pricedArray[i];
+      bestFromOrigin.locked = false;
+    }
+    priced.clear();
     this.#isBusy = false;
   };
 

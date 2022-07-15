@@ -8,7 +8,7 @@ import args from "./args";
 import { EthereumFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
 import intializePlugin from "./initialize/plugin";
-import type { Provider as EthereumProvider } from "@ganache/ethereum";
+import type { EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code

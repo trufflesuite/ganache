@@ -1,14 +1,13 @@
-import { AbstractLevelDOWN } from "abstract-leveldown";
+import type { AbstractLevelDOWN } from "abstract-leveldown";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
-// import levelup, { LevelUp } from "levelup";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import levelup from "levelup";
-import type { LevelUp } from "levelup";
-import leveldown from "leveldown";
 import sub from "subleveldown";
 import encode from "encoding-down";
+import leveldown from "leveldown";
+import type { LevelUp } from "levelup";
+const levelup = require("levelup");
 
 setGracefulCleanup();
 const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
@@ -57,7 +56,7 @@ export default class Database extends Emittery {
     const store = this.#options.db;
     let db: LevelUp;
     if (store) {
-      this.#rootStore = encode(store as any, levelupOptions);
+      this.#rootStore = encode(store as AbstractLevelDOWN, levelupOptions);
       db = levelup(this.#rootStore, {});
     } else {
       let directory = this.#options.dbPath;

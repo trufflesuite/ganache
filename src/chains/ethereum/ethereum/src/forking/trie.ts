@@ -1,11 +1,5 @@
 import { Address } from "@ganache/ethereum-address";
-import {
-  keccak,
-  BUFFER_EMPTY,
-  RPCQUANTITY_EMPTY,
-  Quantity,
-  Data
-} from "@ganache/utils";
+import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
 import type { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
@@ -148,7 +142,7 @@ export class ForkTrie extends GanacheTrie {
       reverse: true
     });
     for await (const data of stream) {
-      const { key: encodedKey, value } = (data as unknown) as KVP;
+      const { key: encodedKey, value } = data as unknown as KVP;
       if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
     }
@@ -195,9 +189,8 @@ export class ForkTrie extends GanacheTrie {
   ) => {
     const { fallback } = this.blockchain;
 
-    const number = this.blockchain.fallback.selectValidForkBlockNumber(
-      blockNumber
-    );
+    const number =
+      this.blockchain.fallback.selectValidForkBlockNumber(blockNumber);
 
     // get nonce, balance, and code from the fork/fallback
     const codeProm = fallback.request<string>(GET_CODE, [address, number]);
@@ -215,7 +208,7 @@ export class ForkTrie extends GanacheTrie {
     try {
       const codeHex = await codeProm;
       if (codeHex !== "0x") {
-        const code = Data.from(codeHex).toBuffer();
+        const code = Data.toBuffer(codeHex);
         // the codeHash is just the keccak hash of the code itself
         account.codeHash = keccak(code);
         if (!account.codeHash.equals(KECCAK256_NULL)) {
@@ -234,9 +227,9 @@ export class ForkTrie extends GanacheTrie {
     // the serialized data
     const [nonce, balance] = await Promise.all(promises);
     account.nonce =
-      nonce === "0x0" ? RPCQUANTITY_EMPTY : Quantity.from(nonce, true);
+      nonce === "0x0" ? Quantity.Empty : Quantity.from(nonce, true);
     account.balance =
-      balance === "0x0" ? RPCQUANTITY_EMPTY : Quantity.from(balance);
+      balance === "0x0" ? Quantity.Empty : Quantity.from(balance);
 
     return account.serialize();
   };
@@ -291,7 +284,11 @@ export class ForkTrie extends GanacheTrie {
    */
   copy(includeCheckpoints: boolean = true) {
     const db = this.db.copy() as CheckpointDB;
-    const secureTrie = new ForkTrie(db._leveldb, this.root, this.blockchain);
+    const secureTrie = new ForkTrie(
+      db._leveldb as LevelUp,
+      this.root,
+      this.blockchain
+    );
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;

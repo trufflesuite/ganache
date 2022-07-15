@@ -3,16 +3,15 @@ import {
   Quantity,
   keccak,
   BUFFER_EMPTY,
-  BUFFER_32_ZERO,
-  RPCQUANTITY_EMPTY
+  BUFFER_32_ZERO
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type Common from "@ethereumjs/common";
-import { ecsign } from "ethereumjs-util";
-import { encodeRange, digest } from "@ganache/rlp";
+import { ECDSASignature, ECDSASignatureBuffer, ecsign } from "ethereumjs-util";
+import { encodeRange, digest, EncodedPart } from "@ganache/rlp";
 import { BN } from "ethereumjs-util";
 import { RuntimeTransaction } from "./runtime-transaction";
-import { TypedRpcTransaction } from "./rpc-transaction";
+import { Transaction } from "./rpc-transaction";
 import {
   EIP2930AccessListDatabasePayload,
   GanacheRawExtraTx,
@@ -27,7 +26,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x0");
 
   public constructor(
-    data: LegacyDatabasePayload | TypedRpcTransaction,
+    data: LegacyDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -36,7 +35,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.nonce = Quantity.from(data[0]);
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data[1]);
       this.gas = Quantity.from(data[2]);
-      this.to = data[3].length == 0 ? RPCQUANTITY_EMPTY : Address.from(data[3]);
+      this.to = data[3].length == 0 ? Quantity.Empty : Address.from(data[3]);
       this.value = Quantity.from(data[4]);
       this.data = Data.from(data[5]);
       this.v = Quantity.from(data[6]);
@@ -47,13 +46,8 @@ export class LegacyTransaction extends RuntimeTransaction {
       if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
-        const {
-          from,
-          serialized,
-          hash,
-          encodedData,
-          encodedSignature
-        } = this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+        const { from, serialized, hash, encodedData, encodedSignature } =
+          this.computeIntrinsics(this.v, this.raw, this.common.chainId());
 
         this.from = from;
         this.serialized = serialized;
@@ -98,7 +92,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: LegacyDatabasePayload | TypedRpcTransaction,
+    data: LegacyDatabasePayload | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -106,7 +100,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public static fromEIP2930AccessListTransaction(
-    data: EIP2930AccessListDatabasePayload | TypedRpcTransaction,
+    data: EIP2930AccessListDatabasePayload | Transaction,
     common: Common
   ) {
     if (Array.isArray(data)) {
@@ -146,12 +140,12 @@ export class LegacyTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.from(fee).toBuffer());
+        return new BN(Quantity.toBuffer(fee));
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
         const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.from(c).toBuffer());
+        return new BN(Quantity.toBuffer(c));
       },
       supports: (capability: Capability) => {
         return false;
@@ -170,20 +164,33 @@ export class LegacyTransaction extends RuntimeTransaction {
       );
     }
 
-    const chainId = this.common.chainId();
-    const raw: LegacyDatabasePayload = this.toEthRawTransaction(
-      Quantity.from(chainId).toBuffer(),
-      BUFFER_EMPTY,
-      BUFFER_EMPTY
-    );
-    const data = encodeRange(raw, 0, 6);
-    const dataLength = data.length;
+    // only legacy transactions can work with EIP-155 deactivated.
+    // (EIP-2930 and EIP-1559 made EIP-155 obsolete and this logic isn't needed
+    // for those transactions)
+    const eip155IsActive = this.common.gteHardfork("spuriousDragon");
+    let chainId: Buffer;
+    let raw: LegacyDatabasePayload;
+    let data: EncodedPart;
+    let dataLength: number;
+    let sig: ECDSASignature | ECDSASignatureBuffer;
+    if (eip155IsActive) {
+      chainId = this.common.chainIdBN().toArrayLike(Buffer);
+      raw = this.toEthRawTransaction(chainId, BUFFER_EMPTY, BUFFER_EMPTY);
+      data = encodeRange(raw, 0, 6);
+      dataLength = data.length;
 
-    const ending = encodeRange(raw, 6, 3);
-    const msgHash = keccak(
-      digest([data.output, ending.output], dataLength + ending.length)
-    );
-    const sig = ecsign(msgHash, privateKey, chainId);
+      const ending = encodeRange(raw, 6, 3);
+      const msgHash = keccak(
+        digest([data.output, ending.output], dataLength + ending.length)
+      );
+      sig = ecsign(msgHash, privateKey, chainId);
+    } else {
+      raw = this.toEthRawTransaction(BUFFER_EMPTY, BUFFER_EMPTY, BUFFER_EMPTY);
+      data = encodeRange(raw, 0, 6);
+      dataLength = data.length;
+      const msgHash = keccak(digest([data.output], dataLength));
+      sig = ecsign(msgHash, privateKey);
+    }
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);

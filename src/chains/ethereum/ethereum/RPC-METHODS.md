@@ -98,7 +98,7 @@ Attempts to replay the transaction as it was executed on the network and return 
 
 ##### Returns
 
-`Promise<StorageRangeResult>` : Returns a storage object with the keys being keccak-256 hashes of the storage keys, and the values being the raw, unhashed key and value for that specific storage slot. Also returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
+`Promise<Ethereum.StorageRangeResult>` : Returns a storage object with the keys being keccak-256 hashes of the storage keys, and the values being the raw, unhashed key and value for that specific storage slot. Also returns a next key which is the keccak-256 hash of the next key in storage for continuous downloading.
 
 ---
 
@@ -109,11 +109,11 @@ Attempt to run the transaction in the exact same manner as it was executed on th
 ##### Arguments
 
 - `transactionHash: DATA` : Hash of the transaction to trace.
-- `options?: TransactionTraceOptions` : See options in source.
+- `options?: Ethereum.TransactionTraceOptions` : See options in source.
 
 ##### Returns
 
-`Promise<TraceTransactionResult>` : Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction. The `structLogs` are an array of logs, which contains the following fields:
+`Promise<Ethereum.TraceTransactionResult>` : Returns the `gas`, `structLogs`, and `returnValue` for the traced transaction. The `structLogs` are an array of logs, which contains the following fields:
 
 - `depth`: The execution depth.
 - `error`: Information about an error, if one occurred.
@@ -155,6 +155,12 @@ Executes a new message call immediately without creating a transaction on the bl
 
 - `transaction: any` : The transaction call object as seen in source.
 - `blockNumber: QUANTITY | TAG` : Integer block number, or the string "latest", "earliest" or "pending".
+- `overrides: CallOverrides`: State overrides to apply during the simulation.
+
+  - `CallOverrides` - An address-to-state mapping, where each entry specifies some
+    state to be ephemerally overridden prior to executing the call. Each address maps to an object containing: - `balance: QUANTITY` (optional) - The balance to set for the account before executing the call. - `nonce: QUANTITY` (optional) - The nonce to set for the account before executing the call. - `code: DATA` (optional) - The EVM bytecode to set for the account before executing the call. - `state: OBJECT` (optional\*) - Key-value mapping to override _all_ slots in the account storage before executing the call. - `stateDiff: OBJECT` (optional\*) - Key-value mapping to override _individual_ slots in the account storage before executing the call.
+
+        _\*Note - `state` and `stateDiff` fields are mutually exclusive._
 
 ##### Returns
 
@@ -188,7 +194,7 @@ Generates and returns an estimate of how much gas is necessary to allow the tran
 
 ##### Arguments
 
-- `transaction: TypedRpcTransaction` : The transaction call object as seen in source.
+- `transaction: Ethereum.Transaction` : The transaction call object as seen in source.
 - `blockNumber: QUANTITY | TAG` : Integer block number, or the string "latest", "earliest" or "pending".
 
 ##### Returns
@@ -233,7 +239,7 @@ Returns information about a block by block hash.
 
 ##### Returns
 
-`Promise<object>` : The block, `null` if the block doesn't exist.
+`Promise<Ethereum.Block<IncludeTransactions>>` : The block, `null` if the block doesn't exist.
 
 ---
 
@@ -248,7 +254,7 @@ Returns information about a block by block number.
 
 ##### Returns
 
-`Promise<object>` : The block, `null` if the block doesn't exist.
+`Promise<Ethereum.Block<IncludeTransactions>>` : The block, `null` if the block doesn't exist.
 
 ---
 
@@ -349,7 +355,7 @@ Returns an array of all logs matching a given filter object.
 
 ##### Arguments
 
-- `filter: FilterArgs` : The filter options as seen in source.
+- `filter: Ethereum.LogsFilter` : The filter options as seen in source.
 
 ##### Returns
 
@@ -442,7 +448,7 @@ Returns the receipt of a transaction by transaction hash.
 
 ##### Returns
 
-`Promise<TransactionReceiptJSON>` : Returns the receipt of a transaction by transaction hash.
+`Promise<Ethereum.TransactionReceipt>` : Returns the receipt of a transaction by transaction hash.
 
 ---
 
@@ -568,7 +574,7 @@ Creates a filter object, based on filter options, to notify when the state chang
 
 ##### Arguments
 
-- `filter?: RangeFilterArgs` : The filter options as seen in source.
+- `filter?: Ethereum.Filter` : The filter options as seen in source.
 
 ##### Returns
 
@@ -616,7 +622,7 @@ Creates new message call transaction or a contract creation, if the data field c
 
 ##### Arguments
 
-- `transaction: TypedRpcTransaction` : The transaction call object as seen in source.
+- `transaction: Ethereum.Transaction` : The transaction call object as seen in source.
 
 ##### Returns
 
@@ -645,7 +651,7 @@ Signs a transaction that can be submitted to the network at a later time using `
 
 ##### Arguments
 
-- `transaction: TypedRpcTransaction` : The transaction call object as seen in source.
+- `transaction: Ethereum.Transaction` : The transaction call object as seen in source.
 
 ##### Returns
 
@@ -660,7 +666,7 @@ Identical to eth_signTypedData_v4.
 ##### Arguments
 
 - `address: DATA` : Address of the account that will sign the messages.
-- `typedData: TypedData` : Typed structured data to be signed.
+- `typedData: Ethereum.TypedData` : Typed structured data to be signed.
 
 ##### Returns
 
@@ -673,7 +679,7 @@ Identical to eth_signTypedData_v4.
 ##### Arguments
 
 - `address: DATA` : Address of the account that will sign the messages.
-- `typedData: TypedData` : Typed structured data to be signed.
+- `typedData: Ethereum.TypedData` : Typed structured data to be signed.
 
 ##### Returns
 
@@ -718,7 +724,7 @@ Starts a subscription to a particular event. For every event that matches the su
 
 ##### Arguments
 
-- `subscriptionName: SubscriptionName` : Name for the subscription.
+- `subscriptionName: Ethereum.SubscriptionName` : Name for the subscription.
 
 ##### Returns
 
@@ -756,7 +762,7 @@ Cancel a subscription to a particular event. Returns a boolean indicating if the
 
 ##### Arguments
 
-- `subscriptionId: SubscriptionId` : The ID of the subscription to unsubscribe to.
+- `subscriptionId: Ethereum.SubscriptionId` : The ID of the subscription to unsubscribe to.
 
 ##### Returns
 
@@ -1076,8 +1082,8 @@ Validate the given passphrase and submit transaction.
 
 ##### Arguments
 
-- `transaction: TypedRpcTransaction`
-- `passphrase: string` : The passphrase to decrpyt the private key belonging to `tx.from`.
+- `transaction: Ethereum.Transaction`
+- `passphrase: string` : The passphrase to decrypt the private key belonging to `tx.from`.
 
 ##### Returns
 
@@ -1091,7 +1097,7 @@ Validates the given passphrase and signs a transaction that can be submitted to 
 
 ##### Arguments
 
-- `transaction: TypedRpcTransaction` : The transaction call object as seen in source.
+- `transaction: Ethereum.Transaction` : The transaction call object as seen in source.
 - `passphrase: string`
 
 ##### Returns
@@ -1223,7 +1229,7 @@ Creates a whisper message and injects it into the network for distribution.
 
 ##### Arguments
 
-- `postData: WhisperPostObject`
+- `postData: Ethereum.WhisperPostObject`
 
 ##### Returns
 
@@ -1252,6 +1258,16 @@ Returns the current whisper protocol version.
 ##### Returns
 
 `Promise<string>` : The current whisper protocol version.
+
+---
+
+#### txpool_content()
+
+Returns the current content of the transaction pool.
+
+##### Returns
+
+`Promise<Ethereum.Pool.Content>` : The transactions currently pending or queued in the transaction pool.
 
 ---
 

@@ -2,8 +2,14 @@ import assert from "assert";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
 import { join } from "path";
-import EthereumProvider from "../../../src/provider";
-import { EthereumProviderOptions } from "@ganache/ethereum-options";
+import { EthereumProvider } from "../../../src/provider";
+import {
+  EthereumOptionsConfig,
+  EthereumProviderOptions
+} from "@ganache/ethereum-options";
+import Wallet from "../../../src/wallet";
+import { SECP256K1_N } from "@ganache/secp256k1";
+import { Data, Quantity } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {
@@ -317,6 +323,38 @@ describe("api", () => {
 
           const balance0_2 = await p.send("eth_getBalance", [accounts[0]]);
           assert.strictEqual(BigInt(balance0_1) + 123n, BigInt(balance0_2));
+        });
+
+        it("generates an EIP-2 compliant private key", async () => {
+          // https://eips.ethereum.org/EIPS/eip-2
+
+          const options = EthereumOptionsConfig.normalize({});
+          const wallet = new Wallet(options.wallet);
+
+          function makeKeys(address: string) {
+            const addressBuf = Data.toBuffer(address);
+            const pk = BigInt(wallet.createFakePrivateKey(address).toString());
+            const naivePk = Quantity.from(
+              Buffer.concat([addressBuf, addressBuf.slice(0, 12)])
+            ).toBigInt();
+            return { naivePk, pk };
+          }
+
+          // sanity test. the small key doesn't trigger the secp256k1 upper
+          // limit
+          const smallKey = makeKeys(
+            "0xfffffffffffffffffffffffffffffffebaaedce5"
+          );
+          assert.strictEqual(smallKey.pk, smallKey.naivePk);
+          assert(smallKey.pk < SECP256K1_N);
+
+          // this is first (smallest) key that will trigger the secp256k1 upper
+          // limit code path
+          const largeKey = makeKeys(
+            "0xfffffffffffffffffffffffffffffffebaaedce6"
+          );
+          assert.notStrictEqual(largeKey.pk, largeKey.naivePk);
+          assert(largeKey.pk < SECP256K1_N);
         });
       });
     });
