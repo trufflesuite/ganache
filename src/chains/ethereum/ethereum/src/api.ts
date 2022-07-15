@@ -2812,9 +2812,8 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
     const PAD_PRECISION = 16; // Matching geth/infura decimal precision formatting
     const PRECISION = 10 ** PAD_PRECISION;
-    const PRECISION_BIG_INT = Quantity.from(PRECISION).toBigInt();
+    const PRECISION_BIG_INT = BigInt(PRECISION);
     const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
-    const ZERO_BIG_INT = 0n;
 
     let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
@@ -2835,7 +2834,7 @@ export default class EthereumApi implements Api {
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas
         ? currentBlock.header.baseFeePerGas
-        : "0x0"; // mainnet forking on the genesis block will be null without this.
+        : "0x0"; // needed to match infura. Genesis blocks without EIP-1559 (e.g. forking mainnet) will be null without this.
 
       // baseFeePerGas
       if (currentBlockNumber === newestBlockNumber) {
@@ -2846,7 +2845,7 @@ export default class EthereumApi implements Api {
       baseFeePerGas.unshift(baseFee);
 
       // gasUsedRatio
-      if (gasUsed === ZERO_BIG_INT) {
+      if (gasUsed === 0n) {
         gasUsedRatio.unshift(0);
       } else {
         gasUsedRatio.unshift(
@@ -2885,7 +2884,7 @@ export default class EthereumApi implements Api {
               const tx = transactions[i];
               const baseFeePerGas = currentBlock.header.baseFeePerGas
                 ? currentBlock.header.baseFeePerGas.toBigInt()
-                : ZERO_BIG_INT;
+                : 0n;
 
               let effectiveGasReward;
               if ("maxPriorityFeePerGas" in tx) {
@@ -2900,7 +2899,7 @@ export default class EthereumApi implements Api {
               return {
                 hash: tx.hash,
                 effectiveGasReward,
-                gasUsed: r.gasUsed ? r.gasUsed.toBigInt() : ZERO_BIG_INT
+                gasUsed: r.gasUsed ? r.gasUsed.toBigInt() : 0n
               };
             })
             .sort((a, b) => {
@@ -2911,7 +2910,7 @@ export default class EthereumApi implements Api {
 
           reward.unshift(
             rewardPercentiles.map(p => {
-              let gasUsed = ZERO_BIG_INT;
+              let gasUsed = 0n;
               // p can be a float
               const targetGas =
                 (currentBlock.header.gasUsed.toBigInt() *
