@@ -2835,7 +2835,7 @@ export default class EthereumApi implements Api {
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas
         ? currentBlock.header.baseFeePerGas
-        : "0x0";
+        : "0x0"; // mainnet forking on the genesis block will be null without this.
 
       // baseFeePerGas
       if (currentBlockNumber === newestBlockNumber) {
