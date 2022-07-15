@@ -1,3 +1,4 @@
+// @ts-nocheck
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
@@ -6,27 +7,16 @@ let provider: EthereumProvider;
 import { Block } from "@ganache/ethereum-block";
 import { Quantity } from "@ganache/utils";
 
-async function sendEIP1559Transaction(params) {
-  const { provider, from, to } = params;
+async function sendTransaction(params) {
+  const { provider, from, to, maxPriorityFeePerGas } = params;
   const tx = {
     from,
     to,
     value: "0x123",
     type: "0x2",
-    maxPriorityFeePerGas: "0xf",
-    maxFeePerGas: "0xffffffff"
+    maxPriorityFeePerGas
   } as any;
-  await provider.send("eth_sendTransaction", [tx]);
-}
-async function sendLegacyTransaction(params) {
-  const { provider, from, to } = params;
-  const tx = {
-    from,
-    to,
-    value: "0x123",
-    maxFeePerGas: "0xffffffff"
-  } as any;
-  await provider.send("eth_sendTransaction", [tx]);
+  return await provider.send("eth_sendTransaction", [tx]);
 }
 async function mineNBlocks(params) {
   const { provider, blocks } = params;
@@ -48,7 +38,7 @@ describe("api", () => {
       beforeEach(async () => {
         provider = await getProvider({
           miner: {
-            blockTime: 1000
+            blockTime: 100000
           }
         });
         [to, from] = await provider.send("eth_accounts");
@@ -179,7 +169,7 @@ describe("api", () => {
           assert.equal(feeHistory.gasUsedRatio[0], 0);
         });
         it("returns gasUsed / maxGas", async () => {
-          await sendLegacyTransaction({ provider, to, from });
+          await sendTransaction({ provider, to, from });
 
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
 
@@ -200,7 +190,7 @@ describe("api", () => {
         });
         it("returns one entry for each block", async () => {
           await mineNBlocks({ provider, blocks: 1 });
-          await sendLegacyTransaction({ provider, to, from });
+          await sendTransaction({ provider, to, from });
           await mineNBlocks({ provider, blocks: 1 });
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
 
@@ -284,7 +274,101 @@ describe("api", () => {
           );
         });
       });
-      //describe("reward");
+      describe("reward", () => {
+        it("returns undefined if no reward is specified", async () => {
+          const blockCount = "0x1";
+          const newestBlock = "latest";
+
+          await mineNBlocks({ provider, blocks: 5 });
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            []
+          ]);
+
+          assert.equal(feeHistory.reward, undefined);
+        });
+        it("returns 0x0 for empty blocks at each percentile", async () => {
+          const blockCount = "0x1";
+          const newestBlock = "latest";
+
+          await mineNBlocks({ provider, blocks: 5 });
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            [10, 50, 80]
+          ]);
+
+          assert.deepEqual(feeHistory.reward, [["0x0", "0x0", "0x0"]]);
+        });
+        it("transactions with maxPriorityFeePerGas > effectiveGasReward", async () => {
+          const blockCount = "0x1";
+          const newestBlock = "latest";
+          const txHash = await sendTransaction({
+            provider,
+            to,
+            from
+          });
+
+          await mineNBlocks({ provider, blocks: 1 });
+
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+
+          //const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
+          const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
+          let reward = effectiveGasReward;
+          /*
+          if (maxPriorityFeePerGas < effectiveGasReward) {
+            reward = tx.maxPriorityFeePerGas;
+          }
+          */
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            [10, 50, 80] // for one transaction, it will be the same for all
+          ]);
+
+          assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
+        });
+        it("transactions with maxPriorityFeePerGas < effectiveGasReward", async () => {
+          const blockCount = "0x1";
+          const newestBlock = "latest";
+          const pointOneGwei = "0x989680";
+          const txHash = await sendTransaction({
+            provider,
+            to,
+            from,
+            maxPriorityFeePerGas: pointOneGwei
+          });
+
+          await mineNBlocks({ provider, blocks: 1 });
+
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+          const receipt = await provider.send("eth_getTransactionReceipt", [
+            txHash
+          ]);
+
+          const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
+          const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
+          let reward; // = Quantity.from(effectiveGasReward).toString();
+          if (maxPriorityFeePerGas < effectiveGasReward) {
+            reward = tx.maxPriorityFeePerGas;
+          }
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            [10, 50, 80] // for one transaction, it will be the same for all
+          ]);
+
+          assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
+        });
+      });
     });
   });
 });
