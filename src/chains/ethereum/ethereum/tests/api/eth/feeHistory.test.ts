@@ -2,10 +2,8 @@
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
-const DEFAULT_DIFFICULTY = 1;
-let provider: EthereumProvider;
-import { Block } from "@ganache/ethereum-block";
 import { Quantity } from "@ganache/utils";
+let provider: EthereumProvider;
 
 async function sendTransaction(params) {
   const { provider, from, to, maxPriorityFeePerGas } = params;
@@ -303,7 +301,7 @@ describe("api", () => {
 
           assert.deepEqual(feeHistory.reward, [["0x0", "0x0", "0x0"]]);
         });
-        it("transactions with maxPriorityFeePerGas > effectiveGasReward", async () => {
+        it("transaction with maxPriorityFeePerGas > effectiveGasReward", async () => {
           const blockCount = "0x1";
           const newestBlock = "latest";
           const txHash = await sendTransaction({
@@ -317,14 +315,9 @@ describe("api", () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
           const tx = await provider.send("eth_getTransactionByHash", [txHash]);
 
-          //const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
+          const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
           const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
           let reward = effectiveGasReward;
-          /*
-          if (maxPriorityFeePerGas < effectiveGasReward) {
-            reward = tx.maxPriorityFeePerGas;
-          }
-          */
 
           const feeHistory = await provider.send("eth_feeHistory", [
             blockCount,
@@ -334,15 +327,15 @@ describe("api", () => {
 
           assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
         });
-        it("transactions with maxPriorityFeePerGas < effectiveGasReward", async () => {
+        it("transaction with maxPriorityFeePerGas < effectiveGasReward", async () => {
           const blockCount = "0x1";
           const newestBlock = "latest";
-          const pointOneGwei = "0x989680";
+          const maxPrioFeePerGas = "0x989680";
           const txHash = await sendTransaction({
             provider,
             to,
             from,
-            maxPriorityFeePerGas: pointOneGwei
+            maxPriorityFeePerGas: maxPrioFeePerGas
           });
 
           await mineNBlocks({ provider, blocks: 1 });
@@ -355,10 +348,7 @@ describe("api", () => {
 
           const maxPriorityFeePerGas = Number(tx.maxPriorityFeePerGas);
           const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
-          let reward; // = Quantity.from(effectiveGasReward).toString();
-          if (maxPriorityFeePerGas < effectiveGasReward) {
-            reward = tx.maxPriorityFeePerGas;
-          }
+          let reward = tx.maxPriorityFeePerGas;
 
           const feeHistory = await provider.send("eth_feeHistory", [
             blockCount,
@@ -368,6 +358,10 @@ describe("api", () => {
 
           assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
         });
+        it("transactions without maxPriorityFeePerGas");
+        it("blocks with many transactions");
+        it("multiple blocks with many transactions");
+        it("float percentiles");
       });
     });
   });
