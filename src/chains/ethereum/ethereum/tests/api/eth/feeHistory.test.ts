@@ -4,6 +4,11 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 let provider: EthereumProvider;
+const oneGwei = Quantity.Gwei.toString();
+const twoGwei = Quantity.from(2e9).toString();
+const threeGwei = Quantity.from(3e9).toString();
+const fourGwei = Quantity.from(4e9).toString();
+const fiveGwei = Quantity.from(5e9).toString();
 
 async function sendTransaction(params) {
   const { provider, from, to, maxPriorityFeePerGas } = params;
@@ -13,6 +18,16 @@ async function sendTransaction(params) {
     value: "0x123",
     type: "0x2",
     maxPriorityFeePerGas
+  } as any;
+  return await provider.send("eth_sendTransaction", [tx]);
+}
+async function sendLegacyTransaction(params) {
+  const { provider, from, to, gasPrice } = params;
+  const tx = {
+    from,
+    to,
+    value: "0x123",
+    gasPrice
   } as any;
   return await provider.send("eth_sendTransaction", [tx]);
 }
@@ -358,10 +373,96 @@ describe("api", () => {
 
           assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
         });
-        it("transactions without maxPriorityFeePerGas");
-        it("blocks with many transactions");
+        it("transactions without maxPriorityFeePerGas (Legacy tx)", async () => {
+          const blockCount = "0x1";
+          const newestBlock = "latest";
+
+          const txHash = await sendLegacyTransaction({
+            provider,
+            gasPrice: oneGwei,
+            to,
+            from
+          });
+
+          await mineNBlocks({ provider, blocks: 1 });
+
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+
+          let reward = tx.gasPrice - block.baseFeePerGas;
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            [10, 50, 80] // for one transaction, it will be the same for all
+          ]);
+
+          assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
+        });
+        it("blocks with many transactions", async () => {
+          const blockCount = "0x1";
+          const newestBlock = "latest";
+
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: oneGwei,
+            to,
+            from
+          });
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: twoGwei,
+            to,
+            from
+          });
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: threeGwei,
+            to,
+            from
+          });
+          await sendLegacyTransaction({
+            provider,
+            gasPrice: fourGwei,
+            to,
+            from
+          });
+
+          await mineNBlocks({ provider, blocks: 1 });
+
+          // This block has 4 standard txs, gas usage will be 84,000
+          // Each tx burns 21,000 gas in the block, making reward percentiles four equal quartiles
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+
+          // reward = gasPrice - block.baseFeePerGas
+          const first25Reward = oneGwei - block.baseFeePerGas; // reward for first 25% of block gas
+          const second25Reward = twoGwei - block.baseFeePerGas; // reward for next 25% of block gas
+          const third25Reward = threeGwei - block.baseFeePerGas; // etc
+          const last25Reward = fourGwei - block.baseFeePerGas; // last 25%
+
+          const feeHistory = await provider.send("eth_feeHistory", [
+            blockCount,
+            newestBlock,
+            [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100, 200] // 200 is more target gas than was used, will fallback to largest reward
+          ]);
+
+          assert.deepEqual(feeHistory.reward, [
+            [
+              first25Reward,
+              first25Reward,
+              second25Reward,
+              second25Reward,
+              second25Reward,
+              third25Reward,
+              third25Reward,
+              third25Reward,
+              last25Reward,
+              last25Reward,
+              last25Reward
+            ]
+          ]);
+        });
         it("multiple blocks with many transactions");
-        it("float percentiles");
       });
     });
   });
