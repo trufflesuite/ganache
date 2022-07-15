@@ -2824,7 +2824,9 @@ export default class EthereumApi implements Api {
     let currentBlockNumber = newestBlockNumber;
 
     while (blocksToFetch > 0 && currentBlockNumber >= 0) {
-      const currentBlock = await blockchain.blocks.get(currentBlockNumber);
+      const currentBlock = await blockchain.blocks.get(
+        `0x${currentBlockNumber.toString(16)}`
+      );
       oldestBlock = currentBlockNumber;
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();

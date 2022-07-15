@@ -528,8 +528,6 @@ describe("api", () => {
             secondBlockSecondHalf
           ];
 
-          console.log(feeHistory);
-
           assert.deepEqual(feeHistory.reward, [
             blockOneRewards,
             blockTwoRewards

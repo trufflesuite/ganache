@@ -220,7 +220,7 @@ export default class BlockManager extends Manager<Block> {
     });
   }
 
-  async get(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
+  async get(tagOrBlockNumber: QUANTITY | number | Buffer | Tag) {
     if (typeof tagOrBlockNumber === "string") {
       const block = this.getBlockByTag(tagOrBlockNumber as Tag);
       if (block) return block;
