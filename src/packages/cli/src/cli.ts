@@ -36,6 +36,7 @@ const versionCheck = new VersionCheck(version);
 const versionMessage = versionCheck.getVersionMessage();
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
+
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
