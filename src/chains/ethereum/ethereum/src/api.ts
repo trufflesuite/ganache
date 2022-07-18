@@ -168,12 +168,9 @@ function createSimulatedTransaction(
 
   // if EIP 2930 is activated and they provided an invalid access list,
   // don't use it
-  let accessList =
-    common.isActivatedEIP(2930) &&
-    transaction.accessList &&
-    !AccessLists.isValidAccessList(transaction.accessList)
-      ? []
-      : transaction.accessList;
+  if (common.isActivatedEIP(2930) && transaction.accessList) {
+    AccessLists.validateAccessList(transaction.accessList);
+  }
 
   const block = new RuntimeBlock(
     simulationBlockHeader.number,
@@ -199,7 +196,7 @@ function createSimulatedTransaction(
     value: transaction.value == null ? null : Quantity.from(transaction.value),
     data,
     block,
-    accessList
+    accessList: transaction.accessList
   };
 }
 const version = process.env.VERSION || "DEV";

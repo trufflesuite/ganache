@@ -63,6 +63,24 @@ export class Data extends BaseJsonRpcType {
     return fixedLengthValue;
   }
 
+  /**
+   * Throws if `value`'s length is not equal to `byteLength`.
+   * @param value String to validate
+   * @param byteLength Expected byte length
+   * @returns
+   */
+  private static validateStringByteLength(value: string, byteLength: number) {
+    const desiredCharLength = byteLength * 2;
+
+    if (desiredCharLength === value.length) {
+      return value;
+    }
+
+    throw new Error(
+      `hex string has length ${value.length}, want ${desiredCharLength}`
+    );
+  }
+
   private static bufferToFixedByteLength(value: Buffer, byteLength: number) {
     if (byteLength === value.length) {
       return value;
@@ -88,5 +106,23 @@ export class Data extends BaseJsonRpcType {
 
   static toString(value: JsonRpcDataInputArg, byteLength?: number): string {
     return Data.from(value, byteLength).toString();
+  }
+
+  /**
+   * Validates the input by converting to a string and throwing if:
+   *  1. The string isn't prefixed with "0x".
+   *  2. The string contains non-hex characters.
+   *  3. The byte length of the string doesn't match `byteLength`.
+   * @param value The input to validate.
+   * @param byteLength The expected byte length.
+   */
+  static validateHexString(value: JsonRpcDataInputArg, byteLength: number) {
+    // Data.from will validate a "0x" prefix and that all characters are hex
+    const data = Data.from(value);
+
+    const strValue =
+      data.bufferValue == null ? "" : data.bufferValue.toString("hex");
+
+    Data.validateStringByteLength(strValue, byteLength);
   }
 }

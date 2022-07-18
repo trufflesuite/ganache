@@ -439,6 +439,112 @@ describe("api", () => {
         );
         await customProvider.disconnect();
       });
+
+      describe.only("invalid access lists", () => {
+        const validAddress = "0x0000000000000000000000000000000000000000";
+        const validSlot =
+          "0x000000000000000000000000000000000000000000000000000000000000000";
+        const getInvalidValues = () => {
+          const accessListBadBois = ["0x", 123, true, {}].map(badBoi => {
+            return {
+              accessList: badBoi,
+              error: "access list must be an array"
+            };
+          });
+          const badBoiValues = [
+            123,
+            true,
+            {},
+            [],
+            null,
+            "0x",
+            validAddress.slice(2),
+            validSlot.slice(2)
+          ];
+          const addressBadBois = badBoiValues.map(badBoi => {
+            return {
+              accessList: [{ address: badBoi, storageKeys: [] }],
+              error: `access list item's address property must be a valid 20 byte string prefixed with "0x"`
+            };
+          });
+
+          const storageKeyBadBois = ["0x", 123, true, null, {}].map(badBoi => {
+            return {
+              accessList: [{ address: validAddress, storageKeys: badBoi }],
+              error: `access list item's storageKeys property must be an array of storage keys`
+            };
+          });
+
+          const storageKeyValueBadBois = badBoiValues.map(badBoi => {
+            return {
+              accessList: [{ address: validAddress, storageKeys: [badBoi] }],
+              error: `each entry of access list item's storageKeys property must be a valid 32 byte string prefixed with "0x"`
+            };
+          });
+
+          return [
+            ...accessListBadBois,
+            {
+              accessList: [{}],
+              error: "access list item must have an address property"
+            },
+            {
+              accessList: [{ address: "" }],
+              error: "access list item must have a storageKeys property"
+            },
+            {
+              accessList: [
+                {
+                  address: "0x000000000000000000000000000000000000000g",
+                  storageKeys: []
+                }
+              ],
+              error: `Cannot wrap string value "0x000000000000000000000000000000000000000g" as a json-rpc type; the input value contains an invalid hex character.`
+            },
+            {
+              accessList: [
+                {
+                  address: validAddress,
+                  storageKeys: [
+                    "0x000000000000000000000000000000000000000000000000000000000000000g"
+                  ]
+                }
+              ],
+              error: `Cannot wrap string value "0x00000000000000000000000000000000000000000000000000000000000000g" as a json-rpc type; the input value contains an invalid hex character.`
+            },
+            ...addressBadBois,
+            ...storageKeyValueBadBois,
+            ...storageKeyBadBois
+          ];
+        };
+
+        const invalids = getInvalidValues();
+        for (const { accessList, error } of invalids) {
+          it(`validates that ${error} for invalid list ${JSON.stringify(
+            accessList
+          )}`, async () => {
+            // any old transaction will do
+            const transaction = { from, to, accessList };
+            // @ts-ignore (cause we're using invalid stuff)
+            const prom = provider.send("eth_createAccessList", [
+              transaction,
+              "latest"
+            ]);
+            try {
+              await prom;
+            } catch (e: any) {
+              if (e.message !== error) {
+                console.log(e.message);
+              }
+            }
+            await assert.rejects(
+              prom,
+              new Error(error),
+              `Invalid access list didn't throw with expected error. Expected error: ${error}`
+            );
+          });
+        }
+      });
     });
   });
 });

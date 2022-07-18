@@ -81,36 +81,38 @@ export class AccessLists {
     };
   }
 
-  public static isValidAccessList(accessList: AccessList): boolean {
+  /**
+   * Validates a transaction's access list. Throws if:
+   * 1. the access list is not an array.
+   * 2. each access list item does not have the required `address` and `storageKeys` properties.
+   * 3. each `address` is not a 20-byte prefixed hex string.
+   * 4. each `storageKeys` is not an array containing only 32-byte prefixed hex string.
+   * @param accessList Access list to validate.
+   */
+  public static validateAccessList(accessList: AccessList) {
     if (!Array.isArray(accessList)) {
-      // an access list must be an array
-      return false;
+      throw new Error("access list must be an array");
     }
     for (const accessListItem of accessList) {
-      Object.keys(accessListItem).forEach(key => {
-        if (key !== "address" && key !== "storageKeys") {
-          // an access list item can only contain the "address" and
-          // "storageKeys" props
-          return false;
-        }
-      });
       const { address, storageKeys } = accessListItem;
-      if (address.length !== 42) {
-        // each address must be 20 bytes (plus "0x" in string version)
-        return false;
+      if (address === undefined) {
+        throw new Error("access list item must have an address property");
       }
-      for (
-        let storageSlot = 0;
-        storageSlot < storageKeys.length;
-        storageSlot++
-      ) {
-        if (storageKeys[storageSlot].length !== 66) {
-          // each storageKey must be 32 byes (plus "0x" in string version)
-          return false;
-        }
+      if (storageKeys === undefined) {
+        throw new Error("access list item must have a storageKeys property");
+      }
+
+      Address.validAddress(address);
+
+      if (!Array.isArray(storageKeys)) {
+        throw new Error(
+          `access list item's storageKeys property must be an array of storage keys`
+        );
+      }
+      for (const storageKey of storageKeys) {
+        Data.validateHexString(storageKey, 32); // storage keys have to be 32 bytes
       }
     }
-    return true;
   }
 
   /**
