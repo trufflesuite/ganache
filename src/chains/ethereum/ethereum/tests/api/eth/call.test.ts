@@ -894,10 +894,8 @@ describe("api", () => {
             data: Data.from("0xabcdef1234"),
             block: block
           };
-          ethereumJsFromAddress = new EthereumJsAddress(
-            Quantity.toBuffer(from)
-          );
-          ethereumJsToAddress = new EthereumJsAddress(Quantity.toBuffer(to));
+          ethereumJsFromAddress = new EthereumJsAddress(Address.toBuffer(from));
+          ethereumJsToAddress = new EthereumJsAddress(Address.toBuffer(to));
           // set up a real transaction
           transaction = {
             from,
