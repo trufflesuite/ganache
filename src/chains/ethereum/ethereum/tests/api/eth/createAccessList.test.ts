@@ -265,7 +265,6 @@ describe("api", () => {
 
       it("calculates the gas that would be used by the transaction if sent with the returned access list", async () => {
         // make any transaction that will be different with/without an accessList
-        //const data = `0x${contractMethods["getStorageAt(uint256)"]}${slot}`;
         const data = `0x${contractMethods["getBalance(address)"]}${encodedTo}`;
         const transaction = {
           from,
