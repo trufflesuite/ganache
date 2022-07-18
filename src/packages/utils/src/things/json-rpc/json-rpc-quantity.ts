@@ -5,7 +5,6 @@ import { BUFFER_EMPTY, BUFFER_ZERO } from "../../utils/constants";
 import { bigIntToBuffer } from "../../utils/bigint-to-buffer";
 
 export class Quantity extends BaseJsonRpcType {
-  public static Null = Quantity.from(null, true);
   public static Empty = Quantity.from(BUFFER_EMPTY, true);
   public static Zero = Quantity.from(BUFFER_ZERO);
   public static One = Quantity.from(1);
@@ -15,8 +14,9 @@ export class Quantity extends BaseJsonRpcType {
 
   _nullable: boolean = false;
 
-  public static from(value: JsonRpcInputArg, nullable = false) {
-    if (value instanceof Quantity) return value;
+  public static from(value: JsonRpcInputArg, nullable = false): Quantity {
+    if (Quantity.isQuantity(value))
+      return value;
     return new Quantity(value, nullable);
   }
 
@@ -159,28 +159,37 @@ export class Quantity extends BaseJsonRpcType {
     const argumentType = typeof argument;
     let argumentValue: bigint;
 
-    if (argumentType === "number") {
-      const argumentNumber = argument as number;
-      if (argumentNumber % 1) {
-        throw new Error("Cannot wrap a decimal as a json-rpc type.");
-      }
-      if (!isFinite(argumentNumber)) {
-        throw new Error(`Cannot wrap ${argument} as a json-rpc type.`);
-      }
-      argumentValue = BigInt(argumentNumber);
-    }  else if (argumentType === "bigint") {
-      argumentValue = argument as bigint;
-    } else if (argumentType === "string") {
-      if ((argument as string).slice(0, 2).toLowerCase() !== "0x") {
-        throw new Error(`Cannot wrap "${argument}" as a JSON-RPC type; strings must be hex-encoded and prefixed with "0x".`);
-      }
-      argumentValue = BigInt(argument as string);
-    } else if (argument instanceof Quantity) {
-      argumentValue = argument.toBigInt();
-    } else if (Buffer.isBuffer(argument)) {
-      argumentValue = bufferToBigInt(argument);
-    } else if (argumentValue == null) {
-      argumentValue = 0n;
+    switch(argumentType) {
+      case "number":
+        const argumentNumber = argument as number;
+        if (argumentNumber % 1) {
+          throw new Error("Cannot wrap a decimal as a json-rpc type.");
+        }
+        if (!isFinite(argumentNumber)) {
+          throw new Error(`Cannot wrap ${argument} as a json-rpc type.`);
+        }
+        argumentValue = BigInt(argumentNumber);
+        break;
+      case "bigint":
+        argumentValue = argument as bigint;
+        break;
+      case "string":
+        if ((argument as string).slice(0, 2).toLowerCase() !== "0x") {
+          throw new Error(`Cannot wrap "${argument}" as a JSON-RPC type; strings must be hex-encoded and prefixed with "0x".`);
+        }
+        argumentValue = BigInt(argument as string);
+        break;
+      default:
+        if (Quantity.isQuantity(argument)) {
+          argumentValue = argument.toBigInt();
+        } else if (Buffer.isBuffer(argument)) {
+          argumentValue = bufferToBigInt(argument);
+        } else if (argument == null) {
+          argumentValue = 0n;
+        } else {
+          throw new Error(`Cannot wrap ${argument} as a JSON-RPC type.`);
+        }
+        break;
     }
 
     return argumentValue;
@@ -189,15 +198,11 @@ export class Quantity extends BaseJsonRpcType {
   public add(addend: JsonRpcInputArg | Quantity): Quantity {
     const addendValue = Quantity.getArgumentAsBigInt(addend);
 
-    if (addendValue === undefined) {
-      throw new Error(`Cannot add ${addend} to a Quantity`);
-    }
-
     const thisValue = (this.toBigInt() || 0n);
     const sum = thisValue + addendValue;
 
     if (sum < 0n) {
-      throw new Error(`Cannot add ${addend} to a a Quantity of ${this}, as it results in a negative value`);
+      throw new Error(`Cannot add ${addend} to a Quantity of ${this}, as it results in a negative value`);
     };
 
     // convert to buffer directly, as this is cheaper than passing the bigint into the Quantity constructor
@@ -207,7 +212,7 @@ export class Quantity extends BaseJsonRpcType {
 
   public multiply(multiplier: JsonRpcInputArg | Quantity): Quantity {
     const multiplierValue = Quantity.getArgumentAsBigInt(multiplier);
-    if (multiplierValue < 0) {
+    if (multiplierValue < 0n) {
       throw new Error(`Cannot multiply a Quantity by a negative multiplier`);
     }
 
@@ -218,6 +223,20 @@ export class Quantity extends BaseJsonRpcType {
     const thisValue = (this.toBigInt() || 0n);
     const productBuffer = bigIntToBuffer(thisValue * multiplierValue);
     return new Quantity(productBuffer, this._nullable);
+  }
+
+  /**
+   * Returns true if the instance passed conforms to the Quantity interface. This is a best guess effort,
+   * and doesn't confirm that the instance passed is an instance of the Quantity class.
+   * @param  {any} instance
+   * @returns boolean whether the instance conforms to the Quantity interface
+   */
+  private static isQuantity(instance: any): instance is Quantity {
+    return instance != undefined &&
+      typeof(instance.toBigInt) === "function" &&
+      typeof(instance.toNumber) === "function" &&
+      typeof(instance.toBuffer) === "function" &&
+      typeof(instance.toString) === "function";
   }
 
   static toBuffer(value: JsonRpcInputArg, nullable?: false): Buffer;

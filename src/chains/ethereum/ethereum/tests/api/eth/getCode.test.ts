@@ -123,7 +123,7 @@ describe("api", () => {
           it("should return the no code at the previous block number", async () => {
             const code = await provider.send("eth_getCode", [
               contractAddress,
-              Quantity.toString(blockNumber.add(-1n).toBigInt())
+              blockNumber.add(-1n).toString()
             ]);
             assert.strictEqual(code, "0x");
           });
@@ -169,7 +169,7 @@ describe("api", () => {
           });
 
           it("should return a `header not found` error for requests to non-existent blocks", async () => {
-            const nextBlockNumber = Quantity.from(await provider.send("eth_blockNumber")).add(1);
+            const nextBlockNumber = Quantity.from(await provider.send("eth_blockNumber")).add(1n);
 
             await assert.rejects(
               provider.send("eth_getCode", [

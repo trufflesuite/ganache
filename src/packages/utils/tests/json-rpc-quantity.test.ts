@@ -1,5 +1,6 @@
 import assert from "assert";
 import { Quantity } from "../src/things/json-rpc/json-rpc-quantity";
+import { JsonRpcInputArg } from "../src/things/json-rpc/input-parsers";
 import * as fc from "fast-check";
 
 const MAX_BYTE_LENGTH = 32;
@@ -27,7 +28,7 @@ const testData = [
   ]
 ];
 
-const nullLikeInputs = [null, undefined, Buffer.alloc(0)];
+const nullLikeInputs = <JsonRpcInputArg[]>[null, undefined, Buffer.alloc(0)];
 
 describe("json-rpc-quantity", () => {
   describe("constructor", () => {
@@ -198,13 +199,11 @@ describe("json-rpc-quantity", () => {
     });
   });
 
-  const invalidMathFunctionArguments = [
-    //-1,
+  const invalidMathFunctionArguments = <JsonRpcInputArg[]>[
     Infinity,
     -Infinity,
     NaN,
     0.1,
-    //-1n,
     "-0x123",
     "0xg",
     "0.123",
@@ -213,7 +212,9 @@ describe("json-rpc-quantity", () => {
     "0x-1",
     "-0x1",
     "0x1234five",
-    "0x1234-"
+    "0x1234-",
+    {},
+    []
   ];
 
   const invalidMultiplierArguments = [
@@ -244,7 +245,7 @@ describe("json-rpc-quantity", () => {
       fc.assert(fc.property(arbitraryQuantity().filter(q => (q.toNumber() || 0) < Number.MAX_SAFE_INTEGER), fc.nat().filter(n => n !== 0), (quantity, difference) => {        
         const subtrahend = (quantity.toNumber() || 0) + difference;
 
-        const error = new Error(`Cannot add ${-subtrahend} to a a Quantity of ${quantity}, as it results in a negative value`);
+        const error = new Error(`Cannot add ${-subtrahend} to a Quantity of ${quantity}, as it results in a negative value`);
         assert.throws(() => quantity.add(-subtrahend), error);
       }));
     });
@@ -262,7 +263,7 @@ describe("json-rpc-quantity", () => {
       fc.assert(fc.property(arbitraryQuantity().filter(q => (q.toNumber() || 0) < Number.MAX_SAFE_INTEGER), fc.bigUint().filter(n => n !== 0n), (quantity, difference) => {        
         const subtrahend = (quantity.toBigInt() || 0n) + difference;
 
-        const error = new Error(`Cannot add ${-subtrahend} to a a Quantity of ${quantity}, as it results in a negative value`);
+        const error = new Error(`Cannot add ${-subtrahend} to a Quantity of ${quantity}, as it results in a negative value`);
         assert.throws(() => quantity.add(-subtrahend), error);
       }));
     });
@@ -303,9 +304,9 @@ describe("json-rpc-quantity", () => {
       }));
     });
 
-    it(`should add a value to null`, () => {
+    it(`should add a value to Empty`, () => {
       fc.assert(fc.property(fc.nat(), (addend) => {
-        const result = Quantity.Null.add(addend);
+        const result = Quantity.Empty.add(addend);
 
         assert.equal(result.toNumber(), addend, `Incorrect sum adding ${addend} to a null Quantity. Expecting ${addend}, got ${result.toNumber()}.`);
       }));
