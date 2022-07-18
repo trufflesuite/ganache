@@ -168,6 +168,9 @@ function createSimulatedTransaction(
 
   // if EIP 2930 is activated and they provided an invalid access list,
   // don't use it
+  // TODO: https://github.com/trufflesuite/ganache/issues/3377 will add better
+  // validation so we can either normalize/fix the access list or throw
+  // depending on the mode ganache is running in
   let accessList =
     common.isActivatedEIP(2930) &&
     transaction.accessList &&
