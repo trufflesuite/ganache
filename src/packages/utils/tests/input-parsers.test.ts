@@ -30,7 +30,7 @@ describe("json-rpc-input-parsers", () => {
     ].forEach(([input, expectedByteArray]) => {
       it(`should return the correct buffer for special case: ${input}`, () => {
         const expected = Buffer.from(expectedByteArray);
-        const actual = parseAndValidateStringInput(<string>input);
+        const actual = parseAndValidateStringInput(<string>input).getValue();
         assert.deepEqual(actual, expected);
       });
     });
@@ -40,7 +40,7 @@ describe("json-rpc-input-parsers", () => {
         const evenLengthHexString = i.length & 1 ? `0${i}` : i;
         const expected = Buffer.from(evenLengthHexString, "hex");
         const input = `0x${i}`;
-        const actual = parseAndValidateStringInput(input);
+        const actual = parseAndValidateStringInput(input).getValue();
         assert.deepEqual(
           actual,
           expected,
@@ -67,7 +67,7 @@ describe("json-rpc-input-parsers", () => {
     ].forEach(([input, expectedByteArray]) => {
       it(`should return the correct buffer for special case: ${input}`, () => {
         const expected = Buffer.from(<any>expectedByteArray);
-        const actual = parseAndValidateNumberInput(<number>input);
+        const actual = parseAndValidateNumberInput(<number>input).getValue();
         assert.deepEqual(actual, expected);
       });
     });
@@ -78,7 +78,7 @@ describe("json-rpc-input-parsers", () => {
         const evenLengthHexString = i.length & 1 ? `0${i}` : i;
         const input = parseInt(i, 16);
         const expected = Buffer.from(evenLengthHexString, "hex");
-        const actual = parseAndValidateNumberInput(input);
+        const actual = parseAndValidateNumberInput(input).getValue();
         assert.deepEqual(
           actual,
           expected,
@@ -105,7 +105,7 @@ describe("json-rpc-input-parsers", () => {
     ].forEach(([input, expectedByteArray]) => {
       it(`should return the correct buffer for special case: ${input}`, () => {
         const expected = Buffer.from(<any>expectedByteArray);
-        const actual = parseAndValidateBigIntInput(<bigint>input);
+        const actual = parseAndValidateBigIntInput(<bigint>input).getValue();
         assert.deepEqual(actual, expected);
       });
     });
@@ -115,7 +115,7 @@ describe("json-rpc-input-parsers", () => {
         const evenLengthHexString = i.length & 1 ? `0${i}` : i;
         const expected = Buffer.from(evenLengthHexString, "hex");
         const input = BigInt(`0x${evenLengthHexString}`);
-        const actual = parseAndValidateBigIntInput(input);
+        const actual = parseAndValidateBigIntInput(input).getValue();
         assert.deepEqual(
           actual,
           expected,

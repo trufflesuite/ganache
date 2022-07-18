@@ -31,20 +31,21 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   public toString(): string | null {
-    if (this.bufferValue == null) {
+    const bufferValue = this._lazyBufferValue.getValue();
+    if (bufferValue == null) {
       return this._nullable ? null : Quantity.ZERO_VALUE_STRING;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
     // bufferValue is empty, or contains only 0 bytes
-    if (firstNonZeroByte === this.bufferValue.length) {
+    if (firstNonZeroByte === bufferValue.length) {
       return Quantity.ZERO_VALUE_STRING;
     }
 
-    let value = this.bufferValue.toString("hex", firstNonZeroByte);
+    let value = bufferValue.toString("hex", firstNonZeroByte);
 
-    // only need to check the first char, as we have already skipped 0 bytes in call to this.bufferValue.toString().
+    // only need to check the first char, as we have already skipped 0 bytes in call to bufferValue.toString().
     if (value[0] === "0") {
       value = value.slice(1);
     }
@@ -53,37 +54,56 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   public toBuffer(): Buffer {
-    if (this.bufferValue == null) {
+    const bufferValue = this._lazyBufferValue.getValue();
+    if (bufferValue == null) {
       return BUFFER_EMPTY;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
     if (firstNonZeroByte > 0) {
-      return this.bufferValue.subarray(firstNonZeroByte);
+      return bufferValue.subarray(firstNonZeroByte);
     } else {
-      return this.bufferValue;
+      return bufferValue;
     }
   }
 
   public toBigInt(): bigint | null {
-    if (this.bufferValue == null) {
+    switch (this._rawNumericType) {
+      case "bigint":
+        return <bigint><any>this._rawNumericValue;
+      case "number":
+        return BigInt(<number>this._rawNumericValue);
+      default: break;
+    }
+
+    const bufferValue = this._lazyBufferValue.getValue();
+    if (bufferValue == null) {
       return this._nullable ? null : 0n;
     }
-    if (this.bufferValue.length === 0) {
+    if (bufferValue.length === 0) {
       return 0n;
     }
-    return bufferToBigInt(this.bufferValue);
+    return bufferToBigInt(bufferValue);
   }
 
   public toNumber(): number | null {
-    if (this.bufferValue == null) {
+    switch (this._rawNumericType) {
+      case "bigint":
+        return Number(<bigint>this._rawNumericValue);
+      case "number":
+        return <number>this._rawNumericValue;
+      default: break;
+    }
+
+    const bufferValue = this._lazyBufferValue.getValue();
+    if (bufferValue == null) {
       return this._nullable ? null : 0;
     }
 
     const firstNonZeroByte = this.findFirstNonZeroByteIndex();
 
-    const length = this.bufferValue.length - firstNonZeroByte;
+    const length = bufferValue.length - firstNonZeroByte;
     if (length === 0) {
       return 0;
     }
@@ -93,14 +113,14 @@ export class Quantity extends BaseJsonRpcType {
     if (length > 6) {
       const trimmedBuffer =
         firstNonZeroByte === 0
-          ? this.bufferValue
-          : this.bufferValue.subarray(firstNonZeroByte);
+          ? bufferValue
+          : bufferValue.subarray(firstNonZeroByte);
 
       result = Number(bufferToBigInt(trimmedBuffer));
 
       if (!Number.isSafeInteger(result)) {
         console.warn(
-          `0x${this.bufferValue.toString(
+          `0x${bufferValue.toString(
             "hex"
           )} is too large - the maximum safe integer value is 0${Number.MAX_SAFE_INTEGER.toString(
             16
@@ -108,14 +128,14 @@ export class Quantity extends BaseJsonRpcType {
         );
       }
     } else {
-      result = this.bufferValue.readUIntBE(firstNonZeroByte, length);
+      result = bufferValue.readUIntBE(firstNonZeroByte, length);
     }
 
     return result;
   }
 
   valueOf(): bigint {
-    if (this.bufferValue == null) {
+    if (this._lazyBufferValue.getValue() == null) {
       return null;
     } else {
       return this.toBigInt();
@@ -123,13 +143,14 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   private findFirstNonZeroByteIndex(): number {
+    const bufferValue = this._lazyBufferValue.getValue();
     let firstNonZeroByte = 0;
     for (
       firstNonZeroByte = 0;
-      firstNonZeroByte < this.bufferValue.length;
+      firstNonZeroByte < bufferValue.length;
       firstNonZeroByte++
     ) {
-      if (this.bufferValue[firstNonZeroByte] !== 0) break;
+      if (bufferValue[firstNonZeroByte] !== 0) break;
     }
     return firstNonZeroByte;
   }
@@ -166,17 +187,14 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   public add(addend: JsonRpcInputArg | Quantity): Quantity {
-    if (this.bufferValue == null || this.bufferValue.length === 0) {
-      return addend instanceof Quantity ? addend : Quantity.from(addend, this._nullable);
-    }
-
     const addendValue = Quantity.getArgumentAsBigInt(addend);
 
     if (addendValue === undefined) {
       throw new Error(`Cannot add ${addend} to a Quantity`);
     }
 
-    const sum = this.toBigInt() + addendValue;
+    const thisValue = (this.toBigInt() || 0n);
+    const sum = thisValue + addendValue;
 
     if (sum < 0n) {
       throw new Error(`Cannot add ${addend} to a a Quantity of ${this}, as it results in a negative value`);
@@ -188,10 +206,6 @@ export class Quantity extends BaseJsonRpcType {
   }
 
   public multiply(multiplier: JsonRpcInputArg | Quantity): Quantity {
-    if (this.bufferValue == null ||this.bufferValue.length === 0) {
-      return this._nullable ? Quantity.Empty : Quantity.Zero;
-    }
-
     const multiplierValue = Quantity.getArgumentAsBigInt(multiplier);
     if (multiplierValue < 0) {
       throw new Error(`Cannot multiply a Quantity by a negative multiplier`);
@@ -201,8 +215,7 @@ export class Quantity extends BaseJsonRpcType {
       throw new Error(`Cannot multiply a Quantity by ${multiplier}`);
     }
 
-    const thisValue = this.toBigInt();
-
+    const thisValue = (this.toBigInt() || 0n);
     const productBuffer = bigIntToBuffer(thisValue * multiplierValue);
     return new Quantity(productBuffer, this._nullable);
   }

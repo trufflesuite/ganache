@@ -16,8 +16,8 @@ export class Data extends BaseJsonRpcType {
 
   public toString(byteLength?: number): string | null {
     const length = byteLength || this._byteLength;
-
-    if (this.bufferValue == null) {
+    const bufferValue = this._lazyBufferValue.getValue();
+    if (bufferValue == null) {
       return "0x";
     }
 
@@ -25,21 +25,22 @@ export class Data extends BaseJsonRpcType {
       return super.toString();
     }
 
-    const strValue = this.bufferValue.toString("hex");
+    const strValue = bufferValue.toString("hex");
     return `0x${Data.stringToFixedByteLength(strValue, length)}`;
   }
 
   public toBuffer(byteLength?: number): Buffer {
-    if (this.bufferValue == null) {
+    const bufferValue = this._lazyBufferValue.getValue();
+    if (bufferValue == null) {
       return BUFFER_EMPTY;
     }
 
     const length = byteLength || this._byteLength;
-    if (length == undefined || length === this.bufferValue.length) {
-      return this.bufferValue;
+    if (length == undefined || length === bufferValue.length) {
+      return bufferValue;
     }
 
-    return Data.bufferToFixedByteLength(this.bufferValue, length);
+    return Data.bufferToFixedByteLength(bufferValue, length);
   }
 
   public static from(value: JsonRpcDataInputArg, byteLength?: number) {

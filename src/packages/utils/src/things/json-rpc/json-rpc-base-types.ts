@@ -2,12 +2,17 @@ import {
   JsonRpcInputArg,
   parseAndValidateStringInput,
   parseAndValidateBigIntInput,
-  parseAndValidateNumberInput
+  parseAndValidateNumberInput,
+  Lazy
 } from "./input-parsers";
 const inspect = Symbol.for("nodejs.util.inspect.custom");
 
+const LAZY_BUFFER_NULL = Lazy.of(<Buffer>null);
+
 export class BaseJsonRpcType {
-  protected bufferValue: Buffer | null;
+  protected _lazyBufferValue: Lazy<Buffer | null>;
+  protected _rawNumericValue: number | bigint | undefined;
+  protected _rawNumericType: "number" | "bigint" | undefined;
 
   // used to make console.log debugging a little easier
   private [inspect](_depth: number, _options: any): string {
@@ -16,20 +21,24 @@ export class BaseJsonRpcType {
 
   constructor(value: JsonRpcInputArg) {
     if (value == null) {
-      this.bufferValue = null;
+      this._lazyBufferValue = LAZY_BUFFER_NULL;
     } else if (Buffer.isBuffer(value)) {
       // empty buffer should be treated as null
-      this.bufferValue = value.length === 0 ? null : value;
+      this._lazyBufferValue = value.length === 0 ? LAZY_BUFFER_NULL : Lazy.of(value);
     } else {
       switch (typeof value) {
         case "string":
-          this.bufferValue = parseAndValidateStringInput(value);
+          this._lazyBufferValue = parseAndValidateStringInput(value);
           break;
         case "number":
-          this.bufferValue = parseAndValidateNumberInput(value);
+          this._rawNumericValue = value;
+          this._rawNumericType = "number";
+          this._lazyBufferValue = parseAndValidateNumberInput(value);
           break;
         case "bigint":
-          this.bufferValue = parseAndValidateBigIntInput(value);
+          this._rawNumericValue = value;
+          this._rawNumericType = "bigint";
+          this._lazyBufferValue = parseAndValidateBigIntInput(value);
           break;
         default:
           throw new Error(`Cannot wrap a "${typeof value}" as a json-rpc type`);
@@ -38,18 +47,19 @@ export class BaseJsonRpcType {
   }
 
   toString(): string | null {
-    if (this.bufferValue == null) {
+    const buffer = this._lazyBufferValue.getValue();
+    if (buffer == null) {
       return null;
     }
-    return `0x${this.bufferValue.toString("hex")}`;
+    return `0x${buffer.toString("hex")}`;
   }
 
   toBuffer(): Buffer {
-    return this.bufferValue;
+    return this._lazyBufferValue.getValue();
   }
 
   valueOf(): any {
-    return this.bufferValue;
+    return this._lazyBufferValue.getValue();
   }
 
   toJSON(): string | null {
@@ -57,6 +67,6 @@ export class BaseJsonRpcType {
   }
 
   isNull() {
-    return this.bufferValue == null;
+    return this._lazyBufferValue.getValue() == null;
   }
 }

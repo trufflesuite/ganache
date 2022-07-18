@@ -1,20 +1,43 @@
 import { bigIntToBuffer } from "../../utils/bigint-to-buffer";
 import { uintToBuffer } from "../../utils/uint-to-buffer";
-
-const BUFFER_EMPTY = Buffer.allocUnsafe(0);
+import { BUFFER_EMPTY } from "../../utils/constants";
 
 export type JsonRpcInputArg = number | bigint | string | Buffer;
 
+export class Lazy<T> {
+  private _resolver?: () => T;
+
+  private constructor(resolver: (() => T)) {
+    this._resolver = resolver;
+  }
+
+  public getValue(): T {
+    const value = this._resolver();
+    this.getValue = () => value;
+    return value;
+  }
+
+  public static of<T>(value: T): Lazy<T> {
+    // no point in creating a true instance of Lazy<T> here, just wrap in an Object
+    // that implements Lazy<T>.
+    return {
+      getValue: () => value
+    };
+  }
+
+  public static from<T>(resolver: () => T): Lazy<T> {
+    return new Lazy(resolver);
+  }
+}
+
+const LAZY_BUFFER_EMPTY = Lazy.of(BUFFER_EMPTY);
+
 /**
- * Parse and validate a {@link number} to {@link Buffer} as internal representation for a JSON-RPC data type.
+ * Parses and validates {@link number} to {@link Buffer} as internal representation for a JSON-RPC data type.
  * @param {number} input - must be a positive, finite integer, or null.
  * @returns {Buffer}
  */
-export function parseAndValidateNumberInput(input: number): Buffer {
-  if (input === 0) {
-    return BUFFER_EMPTY;
-  }
-
+export function parseAndValidateNumberInput(input: number) {
   if (input < 0) {
     throw new Error("Cannot wrap a negative value as a json-rpc type");
   }
@@ -25,31 +48,36 @@ export function parseAndValidateNumberInput(input: number): Buffer {
     throw new Error(`Cannot wrap a ${input} as a json-rpc type`);
   }
 
-  return uintToBuffer(input as number);
+  if (input === 0) {
+    return LAZY_BUFFER_EMPTY;
+  }
+
+  return Lazy.from(() => uintToBuffer(input as number));
 }
 
 /**
- * Parse and validate a {@link bigint} to {@link Buffer} as internal representation for a JSON-RPC data type.
+ * Parses and validates {@link bigint} to {@link Buffer} as internal representation for a JSON-RPC data type.
  * @param  {bigint} input - must be a positive integer, or null.
- * @returns {Buffer}
+ * @returns {Lazy<Buffer>}
  */
-export function parseAndValidateBigIntInput(input: bigint): Buffer {
-  if (input === 0n) {
-    return BUFFER_EMPTY;
-  }
-
+export function parseAndValidateBigIntInput(input: bigint): Lazy<Buffer> {
   if (input < 0n) {
     throw new Error("Cannot wrap a negative value as a json-rpc type");
   }
-  return bigIntToBuffer(input as bigint);
+
+  if (input === 0n) {
+    return LAZY_BUFFER_EMPTY;
+  }
+
+  return Lazy.from(() => bigIntToBuffer(input as bigint));
 }
 
 /**
- * Parse and validate a {@link string} to {@link Buffer} as internal representation for a JSON-RPC data type.
+ * Parses and validates a {@link string} to {@link Buffer} as internal representation for a JSON-RPC data type.
  * @param  {string} input - must be a hex encoded integer prefixed with "0x".
- * @returns Buffer
+ * @returns {Lazy<Buffer>}
  */
-export function parseAndValidateStringInput(input: string): Buffer {
+export function parseAndValidateStringInput(input: string): Lazy<Buffer> {
   if (input.slice(0, 2).toLowerCase() !== "0x") {
     throw new Error(
       `Cannot wrap string value "${input}" as a json-rpc type; strings must be prefixed with "0x".`
@@ -74,5 +102,8 @@ export function parseAndValidateStringInput(input: string): Buffer {
     );
   }
 
-  return _buffer;
+  // Because validation depends on parsing the input, we only wrap the result in Lazy<Buffer> for consistency
+  // with the interface. If it were important to decouple validation and parsing, we could consider a different
+  // approach, but conversion to all JSON RPC output types from string require conversion to interim Buffer.
+  return Lazy.of(_buffer);
 }
