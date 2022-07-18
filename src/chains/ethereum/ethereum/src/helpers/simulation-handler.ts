@@ -113,24 +113,10 @@ export default class SimulationHandler extends Emittery<{
   #intrinsicGas: bigint;
   #initializationError: ERROR;
 
-  readonly #blockchain: Blockchain;
-  readonly #common: Common;
   readonly #transactionContext: object;
-  /**
-   *
-   * @param blockchain
-   * @param common
-   * @param emitEvents Boolean indicating if any events should be emitted by the
-   * blockchain during the simulation.
-   * @param emitStepEvents Boolean indicating if step events should be emitted
-   * by the blockchain during simulation. Always false if `emitEvents` is false.
-   * @param log Logger function to use for any console.log events generated
-   * during simulation.
-   */
-  constructor(blockchain: Blockchain, common: Common) {
+
+  constructor() {
     super();
-    this.#blockchain = blockchain;
-    this.#common = common;
     this.#transactionContext = {};
   }
 
@@ -144,13 +130,12 @@ export default class SimulationHandler extends Emittery<{
    * simulation.
    */
   async initialize(
+    blockchain: Blockchain,
+    common: Common,
     simulationBlock: Block,
     transaction: SimulationTransaction,
     overrides?: CallOverrides
   ) {
-    const blockchain = this.#blockchain;
-    const common = this.#common;
-
     const caller = this.toLightEJSAddress(transaction.from);
 
     const stateTrie = blockchain.trie.copy(false);
