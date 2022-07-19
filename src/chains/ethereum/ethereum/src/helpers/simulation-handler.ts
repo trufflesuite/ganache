@@ -296,7 +296,7 @@ export default class SimulationHandler extends Emittery<{
   ): Promise<{ accessList: AccessList; gasUsed: string }> {
     // no real reason why this is our max, feel free to change
     const MAX_ITERATIONS = 1000;
-    let previousAccessList = initialAccessList;
+    let previousAccessList = initialAccessList || [];
     let iterations = 0;
     do {
       // checkpoint so we can get back to this vm state after every time we
