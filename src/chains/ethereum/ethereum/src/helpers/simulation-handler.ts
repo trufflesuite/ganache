@@ -289,7 +289,7 @@ export default class SimulationHandler extends Emittery<{
    * @param initialAccessList An access list to compare against the generated
    * access list.
    * @returns The final access list generated, plus an estimate of the gas
-   * consumed by the running the transaction _with_ the generated access list included.
+   * consumed by running the transaction _with_ the generated access list included.
    */
   public async createAccessList(
     initialAccessList: AccessList
