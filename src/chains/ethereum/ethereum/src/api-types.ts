@@ -195,21 +195,9 @@ export namespace Ethereum {
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
 
-  //#region eth_getProof
-  export type StorageProof = {
-    key: Data;
-    proof: Data[];
-    value: Quantity;
-  };
-
-  export type Proof = {
-    address: Data;
-    balance: Quantity;
-    codeHash: Data;
-    nonce: Quantity;
-    storageHash: Data;
-    accountProof: Data[];
-    storageProof: StorageProof[];
-  };
-  //#endregion eth_getProof
+  // eth_getProof
+  export type AccountProof<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<AccountProof<"private">>
+      : UtilTypes.AccountProof;
 }

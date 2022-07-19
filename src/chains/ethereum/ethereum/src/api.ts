@@ -1102,13 +1102,12 @@ export default class EthereumApi implements Api {
     address: DATA,
     storageKeys: DATA[],
     blockNumber: QUANTITY | Ethereum.Tag
-  ): Promise<Ethereum.Proof> {
+  ): Promise<Ethereum.AccountProof<"private">> {
     if (this.#blockchain.fallback) {
       throw new Error(
         "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details."
       );
     }
-
     const blockchain = this.#blockchain;
     const targetBlock = await blockchain.blocks.get(blockNumber);
 
