@@ -139,7 +139,7 @@ export class VersionCheck {
       const latestVersion = this.cleanSemver(await this.fetchLatestVersion());
       this.setLatestVersion(latestVersion);
       return true;
-    } catch (e) {
+    } catch {
       // The fail is silent
       return false;
     }
