@@ -58,7 +58,7 @@ This usage will perform the the same steps as using `init`, however the `latestV
 vc.getVersionMessage();
 ```
 
-`getVersionMessage` returns a single string noting the `currentVersion` and `latestVersion` if a semver change is detected. This string is appended to the `detailedVersion` string in `@ganache/cli` for to support the `ganache --version` command switch.
+`getVersionMessage` returns a single string noting the `currentVersion` and `latestVersion` if a semver change is detected. This string is appended to the `detailedVersion` string in `@ganache/cli` to support the `ganache --version` command switch.
 
 #### Test
 
