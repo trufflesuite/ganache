@@ -225,7 +225,7 @@ export class VersionCheck {
     };
     const visibleCharacterLength = (str: string) => {
       // if the string contains unicode characters we need to count them,
-      // destructuring the string to get the characters as codePOints
+      // destructuring the string to get the characters as codePoints
       return [...str.replace(reAnsiEscapes, "")].length;
     };
 
