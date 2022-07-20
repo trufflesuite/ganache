@@ -1097,27 +1097,30 @@ export default class EthereumApi implements Api {
    * console.log(proof);
    * ```
    */
-  @assertArgLength(3)
+  @assertArgLength(2, 3)
   async eth_getProof(
     address: DATA,
     storageKeys: DATA[],
-    blockNumber: QUANTITY | Ethereum.Tag
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ): Promise<Ethereum.AccountProof<"private">> {
-    if (this.#blockchain.fallback) {
+    const blockchain = this.#blockchain;
+
+    if (blockchain.fallback) {
       throw new Error(
         "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details."
       );
     }
-    const blockchain = this.#blockchain;
     const targetBlock = await blockchain.blocks.get(blockNumber);
 
     const ganacheAddress = Address.from(address);
     const bufferAddress = ganacheAddress.toBuffer();
-    const ethereumJsAddress = { buf: bufferAddress, equals: (a:{buf:Buffer}) => a.buf.equals(bufferAddress)} as any;
+    const ethereumJsAddress = { buf: bufferAddress } as any;
     const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
 
     const stateManagerCopy = blockchain.vm.stateManager.copy();
-    await stateManagerCopy.setStateRoot(targetBlock.header.stateRoot.toBuffer());
+    await stateManagerCopy.setStateRoot(
+      targetBlock.header.stateRoot.toBuffer()
+    );
 
     const proof = await stateManagerCopy.getProof(
       ethereumJsAddress,

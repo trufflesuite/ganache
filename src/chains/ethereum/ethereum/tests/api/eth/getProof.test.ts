@@ -73,6 +73,29 @@ describe("api", () => {
         );
       });
 
+      it("gets the proof without supplying `blockNumber`", async () => {
+        const result = await provider.send("eth_getProof", [ownerAddress, []]);
+
+        assert.strictEqual(result.address, ownerAddress, "Unexpected address");
+        assert.strictEqual(result.balance, ownerBalance, "Unexpected balance");
+        assert.strictEqual(
+          result.codeHash,
+          Data.toString(KECCAK256_NULL),
+          "Unexpected codeHash, expected keccak hash of zero bytes"
+        );
+        assert.strictEqual(result.nonce, "0x1", "Unexpected nonce");
+        assert.strictEqual(
+          result.storageHash,
+          emptyMerkleRoot,
+          "Unexpected storageHash, expected root of empty merkle trie"
+        );
+        assert.deepStrictEqual(
+          result.storageProof,
+          [],
+          "Unexpected storageProof"
+        );
+      });
+
       it("gets the proof for an externally owned account", async () => {
         const result = await provider.send("eth_getProof", [
           ownerAddress,
@@ -93,7 +116,11 @@ describe("api", () => {
           emptyMerkleRoot,
           "Unexpected storageHash, expected root of empty merkle trie"
         );
-        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(
+          result.storageProof,
+          [],
+          "Unexpected storageProof"
+        );
       });
 
       it("gets the proof with an explicit block number", async () => {
@@ -117,7 +144,11 @@ describe("api", () => {
           emptyMerkleRoot,
           "Unexpected storageHash, expected root of empty merkle trie"
         );
-        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(
+          result.storageProof,
+          [],
+          "Unexpected storageProof"
+        );
       });
 
       it("gets the proof without specific storage indices", async () => {
@@ -157,11 +188,18 @@ describe("api", () => {
           expectedContractAccountProof,
           "Unexpected accountProof"
         );
-        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(
+          result.storageProof,
+          [],
+          "Unexpected storageProof"
+        );
       });
 
       it("gets the proof with specific storage index", async () => {
-        const storageSlotIndices = [Data.toString("0x0", 32), Data.toString("0x1", 32)];
+        const storageSlotIndices = [
+          Data.toString("0x0", 32),
+          Data.toString("0x1", 32)
+        ];
 
         const result = await provider.send("eth_getProof", [
           contractAccount.address.toString(),
@@ -291,26 +329,14 @@ describe("api", () => {
           "latest"
         ]);
 
-        assert.strictEqual(
-          result.address,
-          address,
-          "Unexpected address"
-        );
-        assert.strictEqual(
-          result.balance,
-          "0x0",
-          "Unexpected balance"
-        );
+        assert.strictEqual(result.address, address, "Unexpected address");
+        assert.strictEqual(result.balance, "0x0", "Unexpected balance");
         assert.strictEqual(
           result.codeHash,
           Data.toString(KECCAK256_NULL),
           "Unexpected codeHash, expected keccak hash of zero bytes"
         );
-        assert.strictEqual(
-          result.nonce,
-          "0x0",
-          "Unexpected nonce"
-        );
+        assert.strictEqual(result.nonce, "0x0", "Unexpected nonce");
         assert.strictEqual(
           result.storageHash,
           emptyMerkleRoot,
@@ -326,7 +352,11 @@ describe("api", () => {
           expectedAccountProof,
           "Unexpected accountProof"
         );
-        assert.deepStrictEqual(result.storageProof, [], "Unexpected storageProof");
+        assert.deepStrictEqual(
+          result.storageProof,
+          [],
+          "Unexpected storageProof"
+        );
       });
 
       it("throws with invalid block number", async () => {
