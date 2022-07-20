@@ -1101,6 +1101,73 @@ describe("@ganache/version-check", () => {
 
       assert.equal(didLogTwice, false, "logged the same version message twice");
     });
+
+    it("message contains the upgradeType", () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+      const didLog = vc.log();
+
+      const upgradeType = vc.detectSemverChange(
+        vc._currentVersion,
+        vc._config.latestVersion
+      );
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(upgradeType) >= 0,
+        true,
+        "Message does not contain the upgradeType"
+      );
+    });
+
+    it("message contains the packageName", () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+      const didLog = vc.log();
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(vc._config.packageName) >= 0,
+        true,
+        "Message does not contain the upgradeType"
+      );
+    });
+    it("message contains the currentVersion", () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+      const didLog = vc.log();
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(vc._currentVersion) >= 0,
+        true,
+        "Message does not contain the upgradeType"
+      );
+    });
+    it("message contains the latestVersion", () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+      const didLog = vc.log();
+
+      assert.equal(didLog, true, "Message did not log");
+      assert.equal(
+        message.indexOf(vc._config.latestVersion) >= 0,
+        true,
+        "Message does not contain the upgradeType"
+      );
+    });
+    it("process.stdout.columns === -1", () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+      process.stdout.columns = -1;
+
+      const didLog = vc.log();
+
+      assert.equal(didLog, true, "Message did not log");
+    });
+    it("process.stdout.columns === null", () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+      process.stdout.columns = null;
+
+      const didLog = vc.log();
+
+      assert.equal(didLog, true, "Message did not log");
+    });
   });
 
   describe("getLatestVersion/fetchLatestVersion", () => {
