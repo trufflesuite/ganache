@@ -1,5 +1,5 @@
 // @ts-nocheck
-process.env.TEST = "true";
+process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
 
 import { VersionCheck } from "../src/";
 import http2 from "http2";
@@ -43,6 +43,7 @@ describe("@ganache/version-check", () => {
 
   afterEach(() => {
     const testConfigFileLocation = vc.configFileLocation(); // process.env.TEST is set above
+
     fs.unlinkSync(testConfigFileLocation);
   });
 
@@ -54,8 +55,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("instantiates with the default config", () => {
-      const { config } = VersionCheck.DEFAULTS;
-
+      const config = VersionCheck.DEFAULTS;
       assert.deepStrictEqual(
         vc._config,
         config,
@@ -63,7 +63,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("is set to opt out by default", () => {
-      const { config } = VersionCheck.DEFAULTS;
+      const config = VersionCheck.DEFAULTS;
 
       assert.equal(
         config.enabled,
@@ -82,7 +82,7 @@ describe("@ganache/version-check", () => {
     });
     it("sets an optional sparse config", () => {
       const expectedConfig = {
-        ...VersionCheck.DEFAULTS.config,
+        ...VersionCheck.DEFAULTS,
         ...sparseConfig
       };
 
@@ -155,6 +155,17 @@ describe("@ganache/version-check", () => {
         "ConfigManager improperly saves config to disk"
       );
     });
+    it("persists the config across multiple instantiation types (no clobber)", () => {
+      let vc = new VersionCheck(testVersion);
+      const initialConfig = vc._config;
+      assert.deepStrictEqual(initialConfig, VersionCheck.DEFAULTS);
+
+      vc = new VersionCheck(testVersion);
+      assert.deepStrictEqual(initialConfig, vc._config);
+
+      vc = new VersionCheck(testVersion, testConfig);
+      assert.deepStrictEqual({ ...initialConfig, ...testConfig }, vc._config);
+    });
   });
 
   describe("config setters", () => {
@@ -167,7 +178,7 @@ describe("@ganache/version-check", () => {
         "_config incorrectly set"
       );
 
-      const savedConfig = vc.ConfigManager.get("config");
+      const savedConfig = vc.ConfigManager.get();
       assert.equal(
         packageName,
         savedConfig.packageName,

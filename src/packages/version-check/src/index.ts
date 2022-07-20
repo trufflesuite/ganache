@@ -28,7 +28,9 @@ export class VersionCheck {
   ) {
     // Creates a new config, or reads existing from disk
     this.ConfigManager = new Conf({
-      configName: process.env.TEST ? "testConfig" : "config", // config is the package default
+      configName: process.env.VERSION_CHECK_CONFIG_NAME
+        ? process.env.VERSION_CHECK_CONFIG_NAME
+        : "config", // config is the package default
       defaults: {
         ...VersionCheck.DEFAULTS,
         ...config
@@ -36,7 +38,8 @@ export class VersionCheck {
     });
 
     // pulls the config out of the manager, lays optional props over top
-    this._config = { ...this.ConfigManager.get("config"), ...config };
+
+    this._config = { ...this.ConfigManager.get(), ...config };
 
     // If config was passed in, save changes
     if (config) this.saveConfig();
@@ -97,7 +100,7 @@ export class VersionCheck {
   }
 
   private saveConfig() {
-    this.ConfigManager.set("config", this._config);
+    this.ConfigManager.set(this._config);
   }
 
   configFileLocation() {
@@ -276,16 +279,14 @@ export class VersionCheck {
     return "";
   }
 
-  static get DEFAULTS(): { config: VersionCheckConfig } {
+  static get DEFAULTS(): VersionCheckConfig {
     return {
-      config: {
-        packageName: "ganache",
-        enabled: false,
-        url: "https://version.trufflesuite.com",
-        ttl: 300, // http2session.setTimeout
-        latestVersion: "0.0.0", // Last version fetched from the server
-        latestVersionLogged: "0.0.0" // Last version to tell the user about
-      }
+      packageName: "ganache",
+      enabled: false,
+      url: "https://version.trufflesuite.com",
+      ttl: 300, // http2session.setTimeout
+      latestVersion: "0.0.0", // Last version fetched from the server
+      latestVersionLogged: "0.0.0" // Last version to tell the user about
     };
   }
 }
