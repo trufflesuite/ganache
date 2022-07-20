@@ -29,6 +29,7 @@
 
 Ganache is an Ethereum simulator that makes developing Ethereum applications faster, easier, and safer. It includes all popular RPC functions and features (like events) and can be run deterministically to make development a breeze.
 
+- `console.log` in Solidity
 - Zero-config Mainnet Forking
 - Fork any Ethereum network without waiting to sync
 - Ethereum JSON-RPC support
@@ -275,7 +276,7 @@ Logging:
   -q, --logging.quiet                   Set to true to disable logging.
                                         deprecated aliases: --quiet                 [boolean] [default: false]
 
-  -v, --logging.verbose                 Set to true to log all RPC requests and responses.
+  -v, --logging.verbose                 Set to true to log detailed RPC requests.
                                         deprecated aliases: --verbose               [boolean] [default: false]
 
 
@@ -475,7 +476,7 @@ Server:
 
 ### Ganache Provider Events
 
-In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 3 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
+In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 4 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, `"ganache:vm:tx:after"`, and `"ganache:vm:tx:console.log"`.
 
 These events can be used to observe the lifecycle of any transaction executed via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
 
@@ -511,9 +512,15 @@ const contexts = new Map();
 provider.on("ganache:vm:tx:before", (event: { context: {} }) => {
   contexts.set(event.context, []);
 });
-provider.on("ganache:vm:tx:step", (event: StepEvent) => {
+provider.on("ganache:vm:tx:step", (event: { context: {}; data: StepEvent }) => {
   contexts.get(event.context).push(event.data);
 });
+provider.on(
+  "ganache:vm:tx:console.log",
+  (event: { context: {}; logs: (string | bigint | boolean)[] }) => {
+    console.log(...event.logs);
+  }
+);
 provider.on("ganache:vm:tx:after", (event: { context: {} }) => {
   doAThingWithThisTransactionsSteps(contexts.get(event.context));
   contexts.delete(event.context);
@@ -525,6 +532,13 @@ The reason this `context` is necessary is that Ganache may run multiple transact
 The above events will be emitted for `eth_call`, `*sendTransaction`, `debug_traceTransaction`, and `debug_storageRangeAt`.
 
 Currently, we do not await the event listener's return value, however, we'll likely enable this in the future.
+
+## `console.log` in Solidity
+
+By default, Ganache logs to stdout when a contract executes a `console.log`
+Solidity statement during `eth_call`, `eth_sendTransaction`, `personal_sendTransaction`, and `eth_sendRawTransaction`.
+See the [@ganache/console.log package](https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/console.log)
+for implementation and usage.
 
 ## Community
 

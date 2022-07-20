@@ -49,7 +49,7 @@ export type LoggingConfig = {
     };
 
     /**
-     * Set to `true` to log all RPC requests and responses.
+     * Set to `true` to log detailed RPC requests.
      *
      * @defaultValue false
      */
@@ -105,7 +105,7 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   verbose: {
     normalize,
-    cliDescription: "Set to `true` to log all RPC requests and responses.",
+    cliDescription: "Set to `true` to log detailed RPC requests.",
     default: () => false,
     legacyName: "verbose",
     cliAliases: ["v", "verbose"],
