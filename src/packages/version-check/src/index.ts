@@ -129,6 +129,8 @@ export class VersionCheck {
     // No currentVersion version passed in
     if (!currentVersion) {
       return false;
+    } else if (!this._config.enabled) {
+      return false;
     } else if (this.alreadyLoggedThisVersion()) {
       return false;
     } else if (currentVersion === latestVersion) {
@@ -203,7 +205,7 @@ export class VersionCheck {
   }
 
   log() {
-    if (!this._config.enabled || !this.canNotifyUser()) return false;
+    if (!this.canNotifyUser()) return false;
 
     const currentVersion = this._currentVersion;
     const { packageName, latestVersion } = this._config;

@@ -305,7 +305,8 @@ describe("@ganache/version-check", () => {
     it("true if currentVersion is a valid semver < latestVersion that has not been previously logged to the user", () => {
       const currentVersion = "0.0.1";
       const config = {
-        latestVersion: "1.0.0"
+        latestVersion: "1.0.0",
+        enabled: true
       };
       vc = new VersionCheck(currentVersion, config);
       vc.alreadyLoggedThisVersion = () => false;
@@ -989,7 +990,6 @@ describe("@ganache/version-check", () => {
   describe("log", () => {
     it("will not log if disabled", () => {
       vc.setEnabled(false);
-      vc.canNotifyUser = () => true;
 
       assert.equal(vc.log(), false, "Version Check will log if disabled.");
     });
