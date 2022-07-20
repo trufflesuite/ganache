@@ -294,18 +294,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       {
-        // create first block
+        // Grab current time once to be used in all references to "now", to avoid
+        // any discrepancies. See https://github.com/trufflesuite/ganache/issues/3271
+        const startTime = new Date();
 
         // if we don't have a time from the user get one now
-        if (options.chain.time == null) options.chain.time = new Date();
+        if (options.chain.time == null) options.chain.time = startTime;
 
+        // create first block
         const timestamp = options.chain.time.getTime();
         const firstBlockTime = Math.floor(timestamp / 1000);
 
         // if we are using clock time we need to record the time offset so
         // other blocks can have timestamps relative to our initial time.
         if (options.miner.timestampIncrement === "clock") {
-          this.#timeAdjustment = timestamp - Date.now();
+          this.#timeAdjustment = timestamp - +startTime;
         }
 
         // if we don't already have a latest block, create a genesis block!
