@@ -27,8 +27,8 @@ export interface BlockTime {
 }
 
 export class ClockBasedBlockTime implements BlockTime {
-  #getReferenceClockTime: () => number | Date;
-  #timeOffset: number = 0;
+  private _getReferenceClockTime: () => number | Date;
+  private _timeOffset: number = 0;
 
   private static validateTimestamp(timestamp: number | Date) {
     if (timestamp < 0) {
@@ -37,7 +37,7 @@ export class ClockBasedBlockTime implements BlockTime {
   }
 
   constructor(getReferenceClockTime: () => number | Date, startTime: number | Date | undefined) {
-    this.#getReferenceClockTime = getReferenceClockTime;
+    this._getReferenceClockTime = getReferenceClockTime;
 
     if (startTime !== undefined) {
       ClockBasedBlockTime.validateTimestamp(startTime);
@@ -46,21 +46,21 @@ export class ClockBasedBlockTime implements BlockTime {
   }
 
   getOffset(): number {
-    return this.#timeOffset;
+    return this._timeOffset;
   }
 
   setOffset(offset: number) {
-    const referenceTimestamp = this.#getReferenceClockTime();
+    const referenceTimestamp = this._getReferenceClockTime();
     if (offset < -referenceTimestamp) {
       throw new Error(`Invalid offset: ${offset}, value must be greater than the negative of the current reference clock timestamp: ${referenceTimestamp}`);
     }
-    this.#timeOffset = offset;
+    this._timeOffset = offset;
   }
 
   setTime(timestamp: number | Date): number {
     ClockBasedBlockTime.validateTimestamp(timestamp);
-    this.#timeOffset = +timestamp - +this.#getReferenceClockTime();
-    return this.#timeOffset;
+    this._timeOffset = +timestamp - +this._getReferenceClockTime();
+    return this._timeOffset;
   }
 
   createBlockTimestampInSeconds(timestamp?: number | Date): number {
@@ -69,7 +69,7 @@ export class ClockBasedBlockTime implements BlockTime {
       this.setTime(timestamp);
       milliseconds = +timestamp;
     } else {
-      milliseconds = +this.#getReferenceClockTime() + this.#timeOffset;
+      milliseconds = +this._getReferenceClockTime() + this._timeOffset;
     }
 
     const seconds = Math.floor(milliseconds / 1000);
@@ -84,17 +84,17 @@ export class ClockBasedBlockTime implements BlockTime {
   createBlockTimestampInSeconds() is called.
 */
 export class IncrementBasedBlockTime extends ClockBasedBlockTime {
-  readonly #tickReferenceClock;
+  private readonly _tickReferenceClock: () => void;
 
   constructor(startTime: number | Date, incrementMilliseconds: number) {
     let referenceTime = +startTime;
     super(() => referenceTime, startTime)
-    this.#tickReferenceClock = () => referenceTime += incrementMilliseconds;
+    this._tickReferenceClock = () => referenceTime += incrementMilliseconds;
   }
 
   override createBlockTimestampInSeconds(timestamp?: number | Date): number {
     const blockTimestamp = super.createBlockTimestampInSeconds(timestamp);
-    this.#tickReferenceClock();
+    this._tickReferenceClock();
     return blockTimestamp;
   }
 }
