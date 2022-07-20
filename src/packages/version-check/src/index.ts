@@ -55,6 +55,7 @@ export class VersionCheck {
   }
 
   init() {
+    // this is async, but we don't `await` it here; we just want it to start doing work in the background.
     this.getLatestVersion();
     return this;
   }
