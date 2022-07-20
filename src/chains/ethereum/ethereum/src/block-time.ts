@@ -5,13 +5,13 @@ export interface BlockTime {
    * @returns number - The "offset" for the BlockTime instance in milliseconds.
    */
   setTime(timestamp: number | Date): number;
-  
+
   /**
    * Get the current offset of the BlockTime instance. This is the value that would be added to the system time in order to result in the desired timestamp.
    * @returns number - The "offset" for the BlockTime instance in milliseconds.
    */
   getOffset(): number;
-  
+
   /**
    * Set the current offset of the BlockTime instance. This is the value that would be added to the system time in order to result in the desired timestamp.
    * @param {number} offset - The "offset" for the BlockTime instance in milliseconds.
@@ -28,7 +28,7 @@ export interface BlockTime {
 
 export class ClockBasedBlockTime implements BlockTime {
   #getReferenceClockTime: () => number | Date;
-  #timeOffset: number;
+  #timeOffset: number = 0;
 
   private static validateTimestamp(timestamp: number | Date) {
     if (timestamp < 0) {
@@ -36,14 +36,17 @@ export class ClockBasedBlockTime implements BlockTime {
     }
   }
 
-  constructor(startTime: number | Date, getReferenceClockTime: () => number | Date) {
-    ClockBasedBlockTime.validateTimestamp(startTime);
+  constructor(getReferenceClockTime: () => number | Date, startTime: number | Date | undefined) {
     this.#getReferenceClockTime = getReferenceClockTime;
-    this.setTime(startTime);
+
+    if (startTime !== undefined) {
+      ClockBasedBlockTime.validateTimestamp(startTime);
+      this.setTime(startTime);
+    }
   }
 
   getOffset(): number {
-    return this.#timeOffset;                              
+    return this.#timeOffset;
   }
 
   setOffset(offset: number) {
@@ -77,15 +80,15 @@ export class ClockBasedBlockTime implements BlockTime {
 /*
   A BlockTime implementation that increments it's reference time by the duration specified by incrementMilliseconds,
   every time createBlockTimestampInSeconds() is called. The timestamp returned will be impacted by the timestamp offset,
-  so can be moved forward and backwards by calling .putOffset() independent of the start time, and increments caused 
-  by calls to createBlockTimestampInSeconds()
+  so can be moved forward and backwards by calling .putOffset() independent of the start time, and will increment when
+  createBlockTimestampInSeconds() is called.
 */
 export class IncrementBasedBlockTime extends ClockBasedBlockTime {
   readonly #tickReferenceClock;
 
   constructor(startTime: number | Date, incrementMilliseconds: number) {
     let referenceTime = +startTime;
-    super(startTime, () => referenceTime)
+    super(() => referenceTime, startTime)
     this.#tickReferenceClock = () => referenceTime += incrementMilliseconds;
   }
 

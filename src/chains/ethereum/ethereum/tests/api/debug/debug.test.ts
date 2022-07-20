@@ -203,7 +203,7 @@ describe("api", () => {
         // using berlin here because we need this test to cost 0 gas
         EthereumOptionsConfig.normalize({ chain: { hardfork: "berlin" } }),
         address,
-        new ClockBasedBlockTime(new Date(), () => new Date())
+        new ClockBasedBlockTime(Date.now, undefined)
       );
 
       await blockchain.initialize(initialAccounts);

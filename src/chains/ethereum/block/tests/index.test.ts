@@ -56,7 +56,7 @@ describe("@ganache/ethereum-block", async () => {
       blockchain = new Blockchain(
         options,
         fromAddress,
-        new ClockBasedBlockTime(new Date(), () => new Date())
+        new ClockBasedBlockTime(Date.now, undefined)
       );
       await blockchain.initialize(wallet.initialAccounts);
       // to verify our calculations for the block's baseFeePerGas,

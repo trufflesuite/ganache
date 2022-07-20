@@ -49,7 +49,7 @@ describe("miner", async () => {
       lowGasLimitBlockchain = new Blockchain(
         options,
         fromAddress,
-        new ClockBasedBlockTime(new Date(), () => new Date())
+        new ClockBasedBlockTime(Date.now, undefined)
       );
       await lowGasLimitBlockchain.initialize(wallet.initialAccounts);
       optionsJson.miner.blockGasLimit = "0xB749E0"; // 12012000
@@ -57,7 +57,7 @@ describe("miner", async () => {
       highGasLimitBlockchain = new Blockchain(
         highGasOptions,
         fromAddress,
-        new ClockBasedBlockTime(new Date(), () => new Date())
+        new ClockBasedBlockTime(Date.now, undefined)
       );
       await highGasLimitBlockchain.initialize(wallet.initialAccounts);
 

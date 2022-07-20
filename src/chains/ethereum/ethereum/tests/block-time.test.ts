@@ -34,7 +34,7 @@ describe("block-time", () => {
     describe("constructor", () => {
       it("should throw with negative timestamp", () => {
         assert.throws(
-          () => new ClockBasedBlockTime(-100, () => 0),
+          () => new ClockBasedBlockTime(() => 0, -100),
           new Error(`Invalid timestamp: -100. Value must be positive.`)
         );
       });
@@ -44,8 +44,8 @@ describe("block-time", () => {
       it("should get a positive offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            futureTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            futureTimestamp
           );
           const offset = blockTime.getOffset();
 
@@ -61,8 +61,8 @@ describe("block-time", () => {
       it("should get a negative offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            pastTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            pastTimestamp
           );
           const offset = blockTime.getOffset();
 
@@ -78,8 +78,20 @@ describe("block-time", () => {
       it("should get a neutral offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            referenceTimestamp
+          );
+          const offset = blockTime.getOffset();
+
+          assert.strictEqual(offset, 0, "Unexpected offset");
+        });
+      });
+
+      it("should get a neutral offset when no startTime is provided", () => {
+        [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
+          const blockTime = new ClockBasedBlockTime(
+            () => referenceTimestamp,
+            undefined
           );
           const offset = blockTime.getOffset();
 
@@ -92,8 +104,8 @@ describe("block-time", () => {
       it("should set a positive offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
           blockTime.setOffset(duration);
           const offset = blockTime.getOffset();
@@ -105,8 +117,8 @@ describe("block-time", () => {
       it("should set a negative offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
           blockTime.setOffset(-duration);
           const offset = blockTime.getOffset();
@@ -118,8 +130,8 @@ describe("block-time", () => {
       it("should set a netural offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            pastTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            pastTimestamp
           );
           blockTime.setOffset(0);
           const offset = blockTime.getOffset();
@@ -131,8 +143,8 @@ describe("block-time", () => {
       it("should throw when resulting timestamp is negative", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
 
           assert.throws(() => blockTime.setOffset(-referenceTimestamp - 1));
@@ -144,8 +156,8 @@ describe("block-time", () => {
       it("should return a positive offset when setting a time in the future", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
           const offset = blockTime.setTime(futureTimestamp);
 
@@ -160,8 +172,8 @@ describe("block-time", () => {
       it("should return a negative offset when setting a time in the past", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
           const offset = blockTime.setTime(pastTimestamp);
 
@@ -174,7 +186,7 @@ describe("block-time", () => {
       });
 
       it("should throw with negative timestamp", () => {
-        const blockTime = new ClockBasedBlockTime(midTimestamp, () => midTimestamp);
+        const blockTime = new ClockBasedBlockTime(() => midTimestamp, midTimestamp);
 
         assert.throws(
           () => blockTime.setTime(-100),
@@ -187,7 +199,7 @@ describe("block-time", () => {
       it("should create a sequence of incrementing block timestamps", () => {
         [midTimestamp, +midTimestamp].forEach(startTime => {
           const clock = createTickingReferenceClock(startTime);
-          const blockTime = new ClockBasedBlockTime(startTime, clock);
+          const blockTime = new ClockBasedBlockTime(clock, undefined);
 
           for (let i = 0; i < 10; i++) {
             const expectedTimestampSeconds = Math.floor(+clock() / 1000);
@@ -204,7 +216,7 @@ describe("block-time", () => {
       it("should create a sequence of incrementing blockTimestamps with a positive offset", () => {
         [midTimestamp, +midTimestamp].forEach(startTime => {
           const clock = createTickingReferenceClock(startTime);
-          const blockTime = new ClockBasedBlockTime(startTime, clock);
+          const blockTime = new ClockBasedBlockTime(clock, undefined);
           blockTime.setOffset(duration);
 
           for (let i = 0; i < 10; i++) {
@@ -222,7 +234,7 @@ describe("block-time", () => {
       it("should create a sequence of incrementing blockTimestamps with a negative offset", () => {
         [midTimestamp, +midTimestamp].forEach(startTime => {
           const clock = createTickingReferenceClock(startTime);
-          const blockTime = new ClockBasedBlockTime(startTime, clock);
+          const blockTime = new ClockBasedBlockTime(clock, undefined);
           blockTime.setOffset(-duration);
 
           for (let i = 0; i < 10; i++) {
@@ -242,8 +254,8 @@ describe("block-time", () => {
       it("should create a blockTimestamp equal to the specified timestamp with a positive offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
 
           const blockTimestamp = blockTime.createBlockTimestampInSeconds(
@@ -268,8 +280,8 @@ describe("block-time", () => {
       it("should create a blockTimestamp equal to the specified timestamp with a negative offset", () => {
         [midTimestamp, +midTimestamp].forEach(referenceTimestamp => {
           const blockTime = new ClockBasedBlockTime(
-            referenceTimestamp,
-            () => referenceTimestamp
+            () => referenceTimestamp,
+            undefined
           );
 
           const blockTimestamp = blockTime.createBlockTimestampInSeconds(
