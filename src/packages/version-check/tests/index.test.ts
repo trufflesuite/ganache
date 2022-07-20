@@ -344,18 +344,6 @@ describe("@ganache/version-check", () => {
           "detectSemverChange improperly handles null versions"
         );
       });
-      it("handles bad semver", () => {
-        assert(
-          vc.detectSemverChange(invalidVersion, "1.0.0") === null,
-          true,
-          "detectSemverChange improperly handles bad currentVersions"
-        );
-        assert(
-          vc.detectSemverChange("1.0.0", invalidVersion) === null,
-          true,
-          "detectSemverChange improperly handles bad latestVersions"
-        );
-      });
     });
     describe("patches", () => {
       it("0.0.0 -> 0.0.1", () => {

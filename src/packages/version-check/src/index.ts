@@ -142,8 +142,6 @@ export class VersionCheck {
     if (
       !currentVersion ||
       !latestVersion ||
-      !this.isValidSemver(currentVersion) ||
-      !this.isValidSemver(latestVersion) ||
       semverGte(currentVersion, latestVersion)
     )
       return null;
