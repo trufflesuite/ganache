@@ -133,9 +133,7 @@ export class VersionCheck {
       return false;
     } else if (this.alreadyLoggedThisVersion()) {
       return false;
-    } else if (currentVersion === latestVersion) {
-      return false;
-    }
+    } 
     // returns falsy if function cannot detect semver difference
     return true;
   }
