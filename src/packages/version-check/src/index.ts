@@ -54,6 +54,7 @@ export class VersionCheck {
   }
 
   init() {
+    // this is async, but we don't `await` it here; we just want it to start doing work in the background.
     this.getLatestVersion();
     return this;
   }
@@ -224,7 +225,7 @@ export class VersionCheck {
     };
     const visibleCharacterLength = (str: string) => {
       // if the string contains unicode characters we need to count them,
-      // destructuring the string to get the characters as codePOints
+      // destructuring the string to get the characters as codePoints
       return [...str.replace(reAnsiEscapes, "")].length;
     };
 
