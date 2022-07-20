@@ -290,7 +290,7 @@ describe("@ganache/version-check", () => {
         "Version Check will notify if alreadyLoggedThisVersion is true"
       );
     });
-    it("false if detectSumverChange is falsy", () => {
+    it("false if detectSemverChange is falsy", () => {
       vc.alreadyLoggedThisVersion = () => false;
       vc.detectSemverChange = () => null;
 
@@ -943,115 +943,6 @@ describe("@ganache/version-check", () => {
         vc.alreadyLoggedThisVersion(),
         true,
         "alreadyLoggedThisVersion is false when latestVersionLogged > latestVersion"
-      );
-    });
-  });
-
-  describe("logBannerMessage", () => {
-    let options;
-
-    beforeEach(() => {
-      options = {
-        upgradeType: "major",
-        packageName: "ganache",
-        currentVersion: "1.2.3",
-        latestVersion: "3.2.1"
-      };
-
-      vc = new VersionCheck(options.currentVersion, {}, testLogger);
-      message = "";
-    });
-
-    it("will not log if !upgradeType", () => {
-      options.upgradeType = null;
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, false, "Will log if !options.upgradeType");
-      assert.equal(message, "", "Will log if !options.upgradeType");
-    });
-    it("will not log if !packageName", () => {
-      options.packageName = null;
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, false, "Will log if !options.packageName ");
-      assert.equal(message, "", "Will log if !options.packageName");
-    });
-    it("will not log if !currentVersion", () => {
-      options.currentVersion = null;
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, false, "Will log if !options.currentVersion ");
-      assert.equal(message, "", "Will log if !options.currentVersion");
-    });
-    it("will not log if !latestVersion", () => {
-      options.latestVersion = null;
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, false, "Will log if !options.latestVersion ");
-      assert.equal(message, "", "Will log if !options.latestVersion");
-    });
-    it("message contains the upgradeType", () => {
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, true, "Message did not log");
-      assert.equal(
-        message.indexOf(options.upgradeType) >= 0,
-        true,
-        "Message does not contain the upgradeType"
-      );
-    });
-    it("message contains the packageName", () => {
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, true, "Message did not log");
-      assert.equal(
-        message.indexOf(options.packageName) >= 0,
-        true,
-        "Message does not contain the packageName"
-      );
-    });
-    it("message contains the currentVersion", () => {
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, true, "Message did not log");
-      assert.equal(
-        message.indexOf(options.currentVersion) >= 0,
-        true,
-        "Message does not contain the currentVersion"
-      );
-    });
-    it("message contains the latestVersion", () => {
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, true, "Message did not log");
-      assert.equal(
-        message.indexOf(options.latestVersion) >= 0,
-        true,
-        "Message does not contain the latestVersion"
-      );
-    });
-    it("process.stdout.columns === -1", () => {
-      process.stdout.columns = -1;
-
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, true, "Message did not log");
-      assert.equal(
-        message.indexOf(options.latestVersion) >= 0,
-        true,
-        "Message does not log when process.stdout.columns = -1"
-      );
-    });
-    it("process.stdout.columns === null", () => {
-      process.stdout.columns = null;
-
-      const didLog = vc.logBannerMessage(options);
-
-      assert.equal(didLog, true, "Message did not log");
-      assert.equal(
-        message.indexOf(options.latestVersion) >= 0,
-        true,
-        "Message does not log when process.stdout.columns = null"
       );
     });
   });
