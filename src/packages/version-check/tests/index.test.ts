@@ -43,8 +43,9 @@ describe("@ganache/version-check", () => {
 
   afterEach(() => {
     const testConfigFileLocation = vc.configFileLocation(); // process.env.TEST is set above
-
-    fs.unlinkSync(testConfigFileLocation);
+    if (fs.existsSync(testConfigFileLocation)) {
+      fs.unlinkSync(testConfigFileLocation);
+    }
   });
 
   describe("constructor", () => {

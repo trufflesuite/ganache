@@ -30,16 +30,15 @@ export class VersionCheck {
     this.ConfigManager = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME
-        : "config", // config is the package default
-      defaults: {
-        ...VersionCheck.DEFAULTS,
-        ...config
-      }
+        : "config" // config is the package default
     });
 
     // pulls the config out of the manager, lays optional props over top
-
-    this._config = { ...this.ConfigManager.get(), ...config };
+    this._config = {
+      ...VersionCheck.DEFAULTS,
+      ...this.ConfigManager.get(),
+      ...config
+    };
 
     // If config was passed in, save changes
     if (config) this.saveConfig();
