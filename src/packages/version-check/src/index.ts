@@ -136,7 +136,7 @@ export class VersionCheck {
   async getLatestVersion() {
     if (!this._config.enabled) return false;
     try {
-      const latestVersion = this.cleanSemver(await this.fetchLatestVersion());
+      const latestVersion = await this.fetchLatestVersion();
       this.setLatestVersion(latestVersion);
       return true;
     } catch {
