@@ -16,10 +16,10 @@ export type VersionCheckConfig = {
 };
 
 export class VersionCheck {
-  protected ConfigManager;
-  protected _config;
-  protected _logger;
-  protected _currentVersion;
+  private ConfigManager;
+  private _config: VersionCheckConfig;
+  private _logger: Function;
+  private _currentVersion: string;
 
   constructor(
     currentVersion: string,
@@ -47,7 +47,6 @@ export class VersionCheck {
       this._currentVersion = this.cleanSemver(currentVersion);
     } else {
       // Semver is invalid, turn off version check
-      this._currentVersion = false;
       this._config.enabled = false;
     }
 

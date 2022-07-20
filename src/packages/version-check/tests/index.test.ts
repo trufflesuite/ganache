@@ -94,7 +94,6 @@ describe("@ganache/version-check", () => {
     it("disables if currentVersion is not a valid semver", () => {
       vc = new VersionCheck(null);
 
-      assert.equal(vc._currentVersion, false);
       assert.equal(vc._config.enabled, false);
     });
     it("sets an optional logger", () => {
