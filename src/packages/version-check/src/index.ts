@@ -1,6 +1,7 @@
 import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
 import Conf from "conf";
+import { Logger } from "@ganache/ethereum-options";
 import { default as semverDiff } from "semver/functions/diff";
 import { default as semverValid } from "semver/functions/valid";
 import { default as semverClean } from "semver/functions/clean";
@@ -15,16 +16,22 @@ export type VersionCheckConfig = {
   latestVersionLogged: string;
 };
 
+export type ConfigManager = {
+  get: Function;
+  set: Function;
+  path: string;
+};
+
 export class VersionCheck {
-  private ConfigManager;
+  private ConfigManager: ConfigManager;
   private _config: VersionCheckConfig;
-  private _logger: Function;
+  private _logger: Logger;
   private _currentVersion: string;
 
   constructor(
     currentVersion: string,
     config?: VersionCheckConfig,
-    logger?: Function
+    logger?: Logger
   ) {
     // Creates a new config, or reads existing from disk
     this.ConfigManager = new Conf({

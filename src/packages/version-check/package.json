@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "@ganache/colors": "0.3.0",
+    "@ganache/ethereum-options": "0.4.2",
     "chalk": "4.1.2",
     "conf": "10.1.2",
     "semver": "7.3.7"
