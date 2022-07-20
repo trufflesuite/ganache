@@ -4,7 +4,6 @@ import Conf from "conf";
 import { Logger } from "@ganache/ethereum-options";
 import { default as semverDiff } from "semver/functions/diff";
 import { default as semverValid } from "semver/functions/valid";
-import { default as semverClean } from "semver/functions/clean";
 import { default as semverGte } from "semver/functions/gte";
 
 export type VersionCheckConfig = {
@@ -75,10 +74,6 @@ export class VersionCheck {
     return this;
   }
 
-  cleanSemver(semver: string) {
-    return semverClean(semver);
-  }
-
   isValidSemver(semver: string) {
     return semverValid(semver);
   }
@@ -88,9 +83,7 @@ export class VersionCheck {
   }
 
   setLatestVersion(latestVersion: string) {
-    if (this.isValidSemver(latestVersion)) {
-      this.set("latestVersion", latestVersion);
-    }
+    this.set("latestVersion", latestVersion);
   }
 
   setLatestVersionLogged(latestVersionLogged: string) {
@@ -122,19 +115,24 @@ export class VersionCheck {
     return this.ConfigManager.path;
   }
 
-  // Intentionally verbose here if we get logging involved it could aid debugging
+  alreadyLoggedThisVersion() {
+    return semverGte(
+      this._config.latestVersionLogged,
+      this._config.latestVersion
+    );
+  }
+
   canNotifyUser() {
     const currentVersion = this._currentVersion;
-    const latestVersion = this._config.latestVersion;
-    // No currentVersion version passed in
+
     if (!currentVersion) {
       return false;
     } else if (!this._config.enabled) {
       return false;
     } else if (this.alreadyLoggedThisVersion()) {
       return false;
-    } 
-    // returns falsy if function cannot detect semver difference
+    }
+
     return true;
   }
 
@@ -156,7 +154,6 @@ export class VersionCheck {
       this.setLatestVersion(latestVersion);
       return true;
     } catch {
-      // The fail is silent
       return false;
     }
   }
@@ -195,13 +192,6 @@ export class VersionCheck {
     });
   }
 
-  alreadyLoggedThisVersion() {
-    return semverGte(
-      this._config.latestVersionLogged,
-      this._config.latestVersion
-    );
-  }
-
   log() {
     if (!this.canNotifyUser()) return false;
 
@@ -210,7 +200,7 @@ export class VersionCheck {
 
     const upgradeType = this.detectSemverChange(currentVersion, latestVersion);
 
-    this.#logBannerMessage({
+    this.logBannerMessage({
       upgradeType,
       packageName,
       currentVersion,
@@ -220,7 +210,7 @@ export class VersionCheck {
     return true;
   }
 
-  #logBannerMessage(options: BannerMessageOptions) {
+  private logBannerMessage(options: BannerMessageOptions) {
     const { upgradeType, packageName, currentVersion, latestVersion } = options;
 
     const chalk = require("chalk");

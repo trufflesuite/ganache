@@ -123,16 +123,6 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("cleanSemver", () => {
-    it("cleans 'v' string from semver", () => {
-      assert.equal(vc.cleanSemver(versionString), version);
-    });
-    it("trims whitespace from the edges", () => {
-      const paddedSemver = " " + versionString + " ";
-      assert.equal(vc.cleanSemver(versionString), version);
-    });
-  });
-
   describe("isValidSemver", () => {
     it("returns semver if valid", () => {
       assert.equal(vc.isValidSemver(testVersion), testVersion);
@@ -214,15 +204,6 @@ describe("@ganache/version-check", () => {
       vc.setLatestVersion(latestVersion);
       assert.equal(
         latestVersion,
-        vc._config.latestVersion,
-        "latestVersion incorrectly set"
-      );
-    });
-    it("setLatestVersion will ignore invalid semvers", () => {
-      const latestVersion = "9001";
-      vc.setLatestVersion(latestVersion);
-      assert.equal(
-        vc._config.latestVersion,
         vc._config.latestVersion,
         "latestVersion incorrectly set"
       );
