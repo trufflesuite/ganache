@@ -1232,7 +1232,7 @@ describe("@ganache/version-check", () => {
         const method = headers[":method"];
 
         if (path === "/?name=ganache" && method === "GET") {
-          // Simulate a 'lazy server repose' with timeout === testTTL
+          // Simulate a 'lazy server response' with timeout === testTTL
           setTimeout(() => {
             if (stream.closed) return;
 
