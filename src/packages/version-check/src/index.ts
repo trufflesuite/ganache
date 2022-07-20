@@ -50,8 +50,10 @@ export class VersionCheck {
     // If config was passed in, save changes
     if (config) this.saveConfig();
 
-    if (this.isValidSemver(currentVersion)) {
-      this._currentVersion = this.cleanSemver(currentVersion);
+    const validSemver = this.isValidSemver(currentVersion);
+
+    if (validSemver) {
+      this._currentVersion = validSemver;
     } else {
       // Semver is invalid, turn off version check
       this._config.enabled = false;
@@ -66,37 +68,37 @@ export class VersionCheck {
     return this;
   }
 
-  cleanSemver(semver) {
+  cleanSemver(semver: string) {
     return semverClean(semver);
   }
 
-  isValidSemver(semver) {
+  isValidSemver(semver: string) {
     return semverValid(semver);
   }
 
-  setEnabled(enabled) {
+  setEnabled(enabled: boolean) {
     this.set("enabled", enabled);
   }
 
-  setLatestVersion(latestVersion) {
+  setLatestVersion(latestVersion: string) {
     if (this.isValidSemver(latestVersion)) {
       this.set("latestVersion", latestVersion);
     }
   }
 
-  setLatestVersionLogged(latestVersionLogged) {
+  setLatestVersionLogged(latestVersionLogged: string) {
     this.set("latestVersionLogged", latestVersionLogged);
   }
 
-  setPackageName(packageName) {
+  setPackageName(packageName: string) {
     this.set("packageName", packageName);
   }
 
-  setTTL(ttl) {
+  setTTL(ttl: number) {
     this.set("ttl", ttl);
   }
 
-  setUrl(url) {
+  setUrl(url: string) {
     this.set("url", url);
   }
 
@@ -127,7 +129,7 @@ export class VersionCheck {
     return !!this.detectSemverChange(currentVersion, latestVersion);
   }
 
-  detectSemverChange(currentVersion, latestVersion) {
+  detectSemverChange(currentVersion: string, latestVersion: string) {
     if (
       !currentVersion ||
       !latestVersion ||
