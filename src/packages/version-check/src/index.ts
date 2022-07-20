@@ -22,6 +22,13 @@ export type ConfigManager = {
   path: string;
 };
 
+type BannerMessageOptions = {
+  upgradeType: string;
+  packageName: string;
+  currentVersion: string;
+  latestVersion: string;
+};
+
 export class VersionCheck {
   private ConfigManager: ConfigManager;
   private _config: VersionCheckConfig;
@@ -203,7 +210,7 @@ export class VersionCheck {
 
     const upgradeType = this.detectSemverChange(currentVersion, latestVersion);
 
-    this.logBannerMessage({
+    this.#logBannerMessage({
       upgradeType,
       packageName,
       currentVersion,
@@ -213,11 +220,8 @@ export class VersionCheck {
     return true;
   }
 
-  logBannerMessage(options) {
+  #logBannerMessage(options: BannerMessageOptions) {
     const { upgradeType, packageName, currentVersion, latestVersion } = options;
-
-    if (!(upgradeType && packageName && currentVersion && latestVersion))
-      return false;
 
     const chalk = require("chalk");
 
