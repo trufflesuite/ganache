@@ -12,7 +12,7 @@ const getServer = async (port: number, pluginServerOptionsConfig = null) => {
         ws: true
       },
       chain: {
-        ipfsPort: 5002
+        ipfsPort: 5004
       }
     },
     pluginServerOptionsConfig

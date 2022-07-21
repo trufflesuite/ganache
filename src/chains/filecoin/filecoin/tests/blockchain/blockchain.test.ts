@@ -20,7 +20,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5003
+            ipfsPort: 5004
           },
           logging: {
             logger: {
@@ -32,7 +32,7 @@ describe("Blockchain", () => {
       blockchain2 = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5005
           },
           wallet: {
             totalAccounts: 2
@@ -98,7 +98,7 @@ describe("Blockchain", () => {
       const blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           miner: {
             blockTime: 0.1
@@ -135,7 +135,7 @@ describe("Blockchain", () => {
       const blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           logging: {
             logger: {
@@ -184,7 +184,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           miner: {
             mine: false
@@ -279,7 +279,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           miner: {
             blockTime: 0
@@ -343,7 +343,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           wallet: {
             seed: "tim is a swell guy"
@@ -366,7 +366,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           wallet: {
             seed: "tim is a swell person"

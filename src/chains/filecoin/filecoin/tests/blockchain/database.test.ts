@@ -25,7 +25,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           database: {
             dbPath
@@ -71,7 +71,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           database: {
             dbPath
@@ -97,7 +97,7 @@ describe("Blockchain", () => {
       blockchain = new Blockchain(
         FilecoinOptionsConfig.normalize({
           chain: {
-            ipfsPort: 5002
+            ipfsPort: 5004
           },
           database: {
             dbPath
