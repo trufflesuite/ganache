@@ -67,7 +67,13 @@ export type WalletConfig = {
 
 export const WalletOptions: Definitions<WalletConfig> = {
   totalAccounts: {
-    normalize: rawInput => (rawInput > MAX_ACCOUNTS ? MAX_ACCOUNTS : rawInput),
+    normalize: rawInput => {
+      if (rawInput >= MAX_ACCOUNTS)
+        console.log(
+          `wallet.totalAccounts set above MAX_ACCOUNTS: ${MAX_ACCOUNTS} and may affect performance.`
+        );
+      return rawInput;
+    },
     cliDescription: "Number of accounts to generate at startup.",
     default: () => 10,
     cliAliases: ["a"],
