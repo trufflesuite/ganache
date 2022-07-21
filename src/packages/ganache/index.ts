@@ -10,12 +10,13 @@ export type {
   Provider,
   ServerOptions,
   ProviderOptions,
+  Ethereum,
   _ExperimentalInfo
 } from "@ganache/core";
 
 // for backwards compatibility with previous versions of v7
 // we introduce a top-level `EthereumProvider`
-export { Provider as EthereumProvider } from "@ganache/core";
+export { EthereumProvider } from "@ganache/core";
 
 // polyfill "setImmediate" for the browser
 // this is removed by webpack for our Node.js build

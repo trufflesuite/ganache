@@ -2,6 +2,7 @@ import {
   Connector as EthereumConnector,
   EthereumProvider
 } from "@ganache/ethereum";
+export type { EthereumProvider, Ethereum } from "@ganache/ethereum";
 import {
   EthereumDefaults,
   EthereumProviderOptions,
