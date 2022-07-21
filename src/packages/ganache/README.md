@@ -327,7 +327,7 @@ Wallet:
                                         either form specifying the initial balance in wei.
                                         deprecated aliases: --account                                  [array]
 
-  -a, --wallet.totalAccounts            Number of accounts to generate at startup. Capped at 1000 accounts.
+  -a, --wallet.totalAccounts            Number of accounts to generate at startup.
                                         deprecated aliases: --accounts                  [number] [default: 10]
 
   -d, --wallet.deterministic            Use pre-defined, deterministic seed.

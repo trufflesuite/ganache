@@ -37,7 +37,7 @@ export type WalletConfig = {
     };
 
     /**
-     * Use pre-defined, deterministic seed. Capped at 1000 accounts.
+     * Use pre-defined, deterministic seed.
      */
     deterministic: {
       type: boolean;
