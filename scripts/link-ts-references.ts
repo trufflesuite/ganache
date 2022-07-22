@@ -93,12 +93,12 @@ function updateConfig(config: PackageInfo) {
   // add package.json deps to tsconfig references:
   references.forEach(name => {
     const referenceConfig = getConfigByName(name);
-    if(!referenceConfig) throw new Error(`missing config ${name}`);
+    if (!referenceConfig) throw new Error(`missing config ${name}`);
 
     // projects that are referenced by other projects must have the `composite: true` in their tsconfig compileOptions
     if (
-      (!referenceConfig.tsConfig.compilerOptions ||
-      !referenceConfig.tsConfig.compilerOptions.composite)
+      !referenceConfig.tsConfig.compilerOptions ||
+      !referenceConfig.tsConfig.compilerOptions.composite
     ) {
       if (!referenceConfig.tsConfig.compilerOptions)
         referenceConfig.tsConfig.compilerOptions = {};
