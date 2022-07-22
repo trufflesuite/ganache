@@ -50,9 +50,9 @@
     "emittery": "0.10.0"
   },
   "devDependencies": {
-    "@types/mocha": "9.0.0",
+    "@types/mocha": "9.1.1",
     "cross-env": "7.0.3",
-    "mocha": "9.1.3",
+    "mocha": "9.2.2",
     "ts-node": "10.4.0",
     "typescript": "4.6.4"
   }
