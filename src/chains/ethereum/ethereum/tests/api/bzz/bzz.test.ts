@@ -6,6 +6,7 @@ describe("api", () => {
   describe("bzz", () => {
     let provider: EthereumProvider;
     before(async function () {
+      // TODO: check if `windows-2022` is still slow to run this test:
       // GitHub Actions' windows-2019 Node v14 environment can sometimes take a
       // VERY long time to run this `before`, as it is CURRENTLY the first
       // @ganache/ethereum test that mocha runs (alphabetically)... and for some
