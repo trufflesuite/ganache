@@ -20,7 +20,7 @@ VC tracks the version that has been reported to the user to reduce its chattines
 
 On install, VC defaults the `latestVersion` and `latestVersionLogged` to `0.0.0`. This will always be below the first-run of the latest install.
 
-VC is specced to fail silently. If a request fails, returns invalid semver or any combination of current/latest version is not valid semver it will quit without informing the user. It is self-healing if the API incorrectly reports a version and is later corrected it will inform the user of the latest, correct, version.
+VC is specced to fail silently. If a request fails, returns invalid semver, or any combination of current/latest version is not valid semver it will quit without informing the user. It is self-healing if the API incorrectly reports a version and is later corrected it will inform the user of the latest, correct, version.
 
 VC's relies on the same `conf` package as truffle to manage the data persistence across environments (Linux, Mac, Windows).
 
