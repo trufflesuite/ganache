@@ -1176,7 +1176,7 @@ describe("@ganache/version-check", () => {
         }
       });
 
-      //api.listen(apiSettings.port);
+      api.listen(apiSettings.port);
     });
 
     beforeEach(() => {
@@ -1253,13 +1253,22 @@ describe("@ganache/version-check", () => {
     describe("init", () => {
       it.only("fetches the latest version without blocking", () => {
         vc = new VersionCheck("1.2.3", {
-          url: "http://localhost:4000"
+          ttl: ttlTestResponseDelay
         });
         const spy = sinon.spy(vc, "getLatestVersion");
+
+        const idleStatus = vc.status;
+
         vc.init();
+
+        const fetchingStatus = vc.status;
         vc.destroy();
+        const destroyedStatus = vc.status;
 
         assert(spy.calledOnce, true);
+        assert.equal(idleStatus, "idle");
+        assert.equal(fetchingStatus, "fetching");
+        assert.equal(destroyedStatus, "destroyed");
       });
     });
   });

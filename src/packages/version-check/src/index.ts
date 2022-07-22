@@ -28,14 +28,18 @@ type BannerMessageOptions = {
   latestVersion: string;
 };
 
+type VersionCheckStatus = "idle" | "fetching" | "destroyed";
+
 export class VersionCheck {
   private ConfigManager: ConfigManager;
   private _config: VersionCheckConfig;
   private _logger: Logger;
   private _currentVersion: string;
 
-  private session;
-  private request;
+  private _session: http2.ClientHttp2Session;
+  private _request: http2.ClientHttp2Stream;
+
+  private _status: VersionCheckStatus;
 
   constructor(
     currentVersion: string,
@@ -60,12 +64,14 @@ export class VersionCheck {
     if (config) this.saveConfig();
 
     const validSemver = this.isValidSemver(currentVersion);
-
+    this.setStatus("idle");
     if (validSemver) {
       this._currentVersion = validSemver;
+      this.setStatus("idle");
     } else {
       // Semver is invalid, turn off version check
-      this._config.enabled = false;
+      this.setEnabled(false);
+      this.setStatus("disabled");
     }
 
     this._logger = logger || console;
@@ -78,10 +84,11 @@ export class VersionCheck {
   }
 
   destroy() {
-    this.request.close();
-    this.session.close();
-    this.request = null;
-    this.session = null;
+    this._request.close();
+    this._session.close();
+    this._request = null;
+    this._session = null;
+    this.setStatus("destroyed");
   }
 
   isValidSemver(semver: string) {
@@ -112,13 +119,17 @@ export class VersionCheck {
     this.set("url", url);
   }
 
-  private set(key, value) {
+  private set(key: string, value: string | number | boolean) {
     this._config[key] = value;
     this.saveConfig();
   }
 
   private saveConfig() {
     this.ConfigManager.set(this._config);
+  }
+
+  private setStatus(status: VersionCheckStatus) {
+    this._status = status;
   }
 
   configFileLocation() {
@@ -160,8 +171,10 @@ export class VersionCheck {
   async getLatestVersion() {
     if (!this._config.enabled) return false;
     try {
+      this.setStatus("fetching");
       const latestVersion = await this.fetchLatestVersion();
       this.setLatestVersion(latestVersion);
+      this.setStatus("idle");
       return true;
     } catch {
       return false;
@@ -178,8 +191,8 @@ export class VersionCheck {
 
       const req = session.request({ ":path": `/?name=${packageName}` });
 
-      this.session = session;
-      this.request = req;
+      this._session = session;
+      this._request = req;
 
       req.setEncoding("utf8");
 
@@ -292,6 +305,10 @@ export class VersionCheck {
       return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
     }
     return "";
+  }
+
+  get status() {
+    return this._status;
   }
 
   static get DEFAULTS(): VersionCheckConfig {
