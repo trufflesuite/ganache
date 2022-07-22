@@ -1176,7 +1176,7 @@ describe("@ganache/version-check", () => {
         }
       });
 
-      api.listen(apiSettings.port);
+      //api.listen(apiSettings.port);
     });
 
     beforeEach(() => {
@@ -1251,9 +1251,13 @@ describe("@ganache/version-check", () => {
     });
 
     describe("init", () => {
-      it("fetches the latest version without blocking", () => {
+      it.only("fetches the latest version without blocking", () => {
+        vc = new VersionCheck("1.2.3", {
+          url: "http://localhost:4000"
+        });
         const spy = sinon.spy(vc, "getLatestVersion");
         vc.init();
+        vc.destroy();
 
         assert(spy.calledOnce, true);
       });

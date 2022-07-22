@@ -34,6 +34,9 @@ export class VersionCheck {
   private _logger: Logger;
   private _currentVersion: string;
 
+  private session;
+  private request;
+
   constructor(
     currentVersion: string,
     config?: VersionCheckConfig,
@@ -72,6 +75,13 @@ export class VersionCheck {
     // this is async, but we don't `await` it here; we just want it to start doing work in the background.
     this.getLatestVersion();
     return this;
+  }
+
+  destroy() {
+    this.request.close();
+    this.session.close();
+    this.request = null;
+    this.session = null;
   }
 
   isValidSemver(semver: string) {
@@ -167,6 +177,9 @@ export class VersionCheck {
       session.on("error", err => reject(err));
 
       const req = session.request({ ":path": `/?name=${packageName}` });
+
+      this.session = session;
+      this.request = req;
 
       req.setEncoding("utf8");
 
