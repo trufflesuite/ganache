@@ -47,9 +47,14 @@ const methods = ethereum.children.filter(
     method.name !== "constructor" && method.kindString === "Method"
 ) as Method[];
 
-type Tag = {
-  tag: string;
+type Content = {
+  kind: string;
   text: string;
+};
+
+type BlockTags = {
+  tag: `@${string}`;
+  content: Content[];
 };
 
 type Type = {
@@ -64,10 +69,8 @@ type Type = {
 };
 
 type Comment = {
-  shortText: string;
-  text: string;
-  tags: Tag[];
-  returns: string;
+  blockTags: BlockTags[];
+  summary: Content[];
 };
 
 type Method = {
@@ -93,8 +96,8 @@ type Method = {
 
 function renderReturns(method: Method) {
   const comment =
-    method.signatures[0].comment && method.signatures[0].comment.returns
-      ? method.signatures[0].comment.returns
+    method.signatures[0].comment && method.signatures[0].comment.summary.length
+      ? method.signatures[0].comment.summary.map(({ text }) => text).join("")
       : null;
   let returnType = renderReturnType(method);
   if (returnType.includes("Quantity")) {
@@ -147,8 +150,16 @@ function (${name}: ${type})
         .replace(/<span class="hljs-keyword">function<\/span> \((.*)\)/, "$1")
         .replace(/<\/?pre>/g, "");
       return `<li>${html}${
-        param.comment && param.comment.text && param.comment.text.trim().length
-          ? `: ${marked.parseInline(param.comment.text, markedOptions)}`
+        param.comment &&
+        param.comment.summary.length &&
+        param.comment.summary
+          .map(({ text }) => text)
+          .join("")
+          .trim().length
+          ? `<p>${marked.parseInline(
+              param.comment.summary.map(({ text }) => text).join(""),
+              markedOptions
+            )}</p>`
           : ""
       }</li>`;
     });
@@ -199,50 +210,53 @@ function renderMethodDocs(method: Method) {
 
 function renderMethodComment(method: Method) {
   const signature = method.signatures[0];
-  return signature.comment
-    ? `
-    ${
-      signature.comment.shortText
-        ? marked(signature.comment.shortText, markedOptions)
-        : ""
-    }
-    ${
-      signature.comment.text
-        ? marked(signature.comment.text, markedOptions)
-        : ""
-    }
-  `
-    : "";
+  return `
+    ${marked(
+      signature.comment.summary.map(({ text }) => text).join(""),
+      markedOptions
+    )}
+  `;
 }
 
-function renderTag(method: Method, tag: Tag, i: number) {
-  switch (tag.tag) {
+function renderTag(method: Method, tag: BlockTags, i: number) {
+  const tagName = tag.tag.slice(1);
+  switch (tagName) {
     case "example":
       const h = highlight();
-      const code = marked(tag.text, { highlight: h.fn });
-      const lang = h.raw.language || "javascript";
-      return `
+      return tag.content
+        .map(content => {
+          if (content.kind !== "code")
+            throw new Error("@example JSDOc must be code");
+
+          const code = marked(content.text, { highlight: h.fn });
+          const lang = h.raw.language || "javascript";
+          return `
           <div class="content wide-content example_container" style="position: relative">
-            <div class="tag content tag_${x(tag.tag)}">
-              ${x(tag.tag)}
+            <div class="tag content tag_${x(tagName)}">
+              ${x(tagName)}
             </div>
-            <div class="monaco" data-method="${x(
-              method.name
-            )}_${i}" data-language="${x(lang)}">
+            <div class="monaco" data-method="${x(method.name)}_${
+            i - 1
+          }" data-language="${x(lang)}">
               ${code}
             </div>
           </div>
         `;
-      break;
+        })
+        .join("\n");
+    case "returns":
+      return "";
     default:
       return `
           <div class="content">
             <div class="tag">
-              ${x(tag.tag)}
+              ${x(tagName)}
             </div>
-            <div>
-              ${marked(tag.text, markedOptions)}
-            </div>
+            ${tag.content.map(({ text }) => {
+              return `<div>
+                ${marked(text, markedOptions)}
+              </div>`;
+            })}
           </div>
         `;
   }
@@ -257,10 +271,12 @@ function renderTags(method: Method) {
   const signature = method.signatures[0];
   if (
     signature.comment &&
-    signature.comment.tags &&
-    signature.comment.tags.length
+    signature.comment.blockTags &&
+    signature.comment.blockTags.length
   ) {
-    return signature.comment.tags.map(renderTag.bind(null, method)).join("\n");
+    return signature.comment.blockTags
+      .map(renderTag.bind(null, method))
+      .join("\n");
   }
   return "";
 }
