@@ -73,7 +73,7 @@ $ export VERSION="1.2.3"; npm run start
 1.) No banner message is displayed (first run, assumes latest was installed)
 
 ```bash
-~/proj/ganache (feat/version-check) » export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                  hayek@rothbard
+$ export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                 
 
 > root@ start /home/hayek/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
