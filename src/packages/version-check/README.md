@@ -75,7 +75,7 @@ $ export VERSION="1.2.3"; npm run start
 ```bash
 $ export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                 
 
-> root@ start /home/hayek/proj/ganache
+> root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
 
 Debugger listening on ws://127.0.0.1:9229/b4dc2d61-8f90-4a2c-80ff-14db24160453
