@@ -65,4 +65,4 @@ jobs:
         env:
           # use a fake infura key for the bundle size check so this test will
           # run successfully on external contributor Pull Requests
-          INFURA_KEY: 00000000000000000000000000000000
+          INFURA_KEY: "deadc0dedeadc0dedeadc0dedeadc0de"
