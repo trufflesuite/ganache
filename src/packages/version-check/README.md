@@ -20,9 +20,9 @@ VC tracks the version that has been reported to the user to reduce its chattines
 
 On install, VC defaults the `latestVersion` and `latestVersionLogged` to `0.0.0`. This will always be below the first-run of the latest install.
 
-VC is specced to fail silently. If a request fails, returns invalid semver or any combination of current/latest version is not valid semver it will quit without informing the user. It is self-healing if the API incorrectly reports a version and is later corrected it will inform the user of the latest, correct, version.
+VC is specced to fail silently. If a request fails, returns invalid semver, or any combination of current/latest version is not valid semver it will quit without informing the user. It is self-healing if the API incorrectly reports a version and is later corrected it will inform the user of the latest, correct, version.
 
-VC's relies on the same `conf` package as truffle to manage the data persistence across environments (Linux, Mac, Windows).
+VC relies on the same `conf` package as truffle to manage the data persistence across environments (Linux, Mac, Windows).
 
 VC relies on the `semver` package to perform `diff` and validation of semver.
 
@@ -42,7 +42,7 @@ vc
   .log();
 ```
 
-`init` will send the request to fetch and set the `latestVersion` on disk.
+`init` will initialize a request to fetch the version in the background and then update the `latestVersion` on disk, if it has changed.
 `log` will perform the required notification checks and, if they pass, log the banner message to the user based on the current `latestVersion` on disk.
 
 `init` will not await the fetch, it fires the request and does not concern itself with the outcome or results. If the desired behavior is to wait for a response before logging to the user (forgoing the eventual consistency spec), VC can be used as such:
@@ -73,9 +73,9 @@ $ export VERSION="1.2.3"; npm run start
 1.) No banner message is displayed (first run, assumes latest was installed)
 
 ```bash
-~/proj/ganache (feat/version-check) » export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                  hayek@rothbard
+$ export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                 
 
-> root@ start /home/hayek/proj/ganache
+> root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
 
 Debugger listening on ws://127.0.0.1:9229/b4dc2d61-8f90-4a2c-80ff-14db24160453
@@ -144,7 +144,7 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 
 ##### Expected Results
 
-1.) Banner message does not display, user has already seen this version.
+1. Banner message does not display; user has already seen this version.
 
 ```bash
 export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                           130 ↵ hayek@rothbard
