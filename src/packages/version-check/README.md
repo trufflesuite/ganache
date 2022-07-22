@@ -144,7 +144,7 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 
 ##### Expected Results
 
-1.) Banner message does not display, user has already seen this version.
+1. Banner message does not display; user has already seen this version.
 
 ```bash
 export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                           130 ↵ hayek@rothbard
