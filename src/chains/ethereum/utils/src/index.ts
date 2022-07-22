@@ -18,3 +18,4 @@ export * from "./types/shh";
 export * from "./types/subscriptions";
 export * from "./types/trace-transaction";
 export * from "./types/tuple-from-union";
+export * from "./types/account-proof";
