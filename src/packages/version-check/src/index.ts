@@ -28,7 +28,7 @@ type BannerMessageOptions = {
   latestVersion: string;
 };
 
-type VersionCheckStatus = "idle" | "fetching" | "destroyed";
+type VersionCheckStatus = "disabled" | "idle" | "fetching" | "destroyed";
 
 export class VersionCheck {
   private ConfigManager: ConfigManager;
@@ -71,7 +71,6 @@ export class VersionCheck {
     } else {
       // Semver is invalid, turn off version check
       this.setEnabled(false);
-      this.setStatus("disabled");
     }
 
     this._logger = logger || console;
@@ -96,6 +95,7 @@ export class VersionCheck {
   }
 
   setEnabled(enabled: boolean) {
+    if (!enabled) this.setStatus("disabled");
     this.set("enabled", enabled);
   }
 

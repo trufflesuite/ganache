@@ -197,6 +197,7 @@ describe("@ganache/version-check", () => {
     it("setEnabled", () => {
       const enabled = false;
       vc.setEnabled(enabled);
+      assert.equal(vc.status, "disabled");
       assert.equal(enabled, vc._config.enabled, "Enabled incorrectly set");
     });
     it("setLatestVersion", () => {
@@ -1251,7 +1252,7 @@ describe("@ganache/version-check", () => {
     });
 
     describe("init", () => {
-      it.only("fetches the latest version without blocking", () => {
+      it("fetches the latest version without blocking shutdown", () => {
         vc = new VersionCheck("1.2.3", {
           ttl: ttlTestResponseDelay
         });
