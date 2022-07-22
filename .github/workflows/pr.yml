@@ -63,4 +63,6 @@ jobs:
           echo "Bundle size is $([[ "$size" -lt 99000000 ]] && echo "ok" || echo "not ok")" &&
           test "$size" -lt 99000000
         env:
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          # use a fake infura key for the bundle size check so this test will
+          # run successfully on external contributor Pull Requests
+          INFURA_KEY: DUMMY_INFURA_KEY_FOR_SIZE_CHECK!
