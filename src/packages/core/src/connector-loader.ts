@@ -39,9 +39,6 @@ const initialize = <T = any>(
   // TODO: remove the `connector.connect ? ` check and just use
   // `connector.connect()` after publishing the `@ganache/filecoin` with the
   // connector.connect interface
-  // const connectPromise = connector["connect"]
-  //   ? connector["connect"]()
-  //   : (connector as any).initialize();
   const connectPromise = connector.connect
     ? connector.connect()
     : ((connector as any).initialize() as Promise<void>);

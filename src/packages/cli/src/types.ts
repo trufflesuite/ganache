@@ -14,7 +14,6 @@ export type Argv = ServerOptions<FlavorName> & {
 export type CliSettings = { host: string; port: number };
 
 export type Command = FlavorName | ["$0", typeof DefaultFlavor];
-// export type Command = FlavorName | typeof DefaultFlavor;
 
 export type LoggingInformation = {
   data: Array<{

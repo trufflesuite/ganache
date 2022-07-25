@@ -8,7 +8,6 @@ import {
   EthereumProviderOptions,
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
-// import { TezosDefaults, TezosProviderOptions } from "@ganache/tezos-options";
 import { TruffleColors } from "@ganache/colors";
 import chalk from "chalk";
 

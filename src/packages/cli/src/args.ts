@@ -115,8 +115,6 @@ function processOption(
 
 function applyDefaults(
   flavorDefaults: any,
-  // | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
-  // | typeof _DefaultServerOptions,
   flavorArgs: yargs.Argv<{}>,
   flavor: any // keyof typeof DefaultOptionsByName
 ) {

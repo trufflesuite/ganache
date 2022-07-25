@@ -12,7 +12,7 @@
     "create": "cd scripts && ts-node create",
     "docs.build": "shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache && lerna run docs.build && cd scripts && ts-node build-docs",
     "docs.preview": "lerna run docs.preview",
-    "postinstall": "lerna bootstrap && npx patch-package && ts-node scripts/link-ts-references.ts && npm run tsc && ts-node scripts/postinstall && lerna run copyassets",
+    "postinstall": "lerna bootstrap && npx patch-package && npm run tsc && ts-node scripts/postinstall && lerna run copyassets",
     "reinstall": "npm run clean && npm install",
     "prepublishOnly": "cd scripts && ts-node filter-shrinkwrap.ts \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
     "postpublish": "git restore \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",

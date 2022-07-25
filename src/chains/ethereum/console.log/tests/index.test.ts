@@ -1,9 +1,7 @@
 import fc from "fast-check";
 import assert from "assert";
 import memdown from "memdown";
-import Ganache, {
-  Provider as EthereumProvider
-} from "../../../../packages/core";
+import Ganache, { EthereumProvider } from "../../../../packages/core";
 import { RandomCombinatorLogParams, primitiveArbitraries } from "./arbitraries";
 import {
   getSignatures,
