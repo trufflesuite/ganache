@@ -1197,16 +1197,15 @@ describe("@ganache/version-check", () => {
       );
     });
 
-    it("fetches the latest version from the API", async done => {
+    it("fetches the latest version from the API", async () => {
       let latestVersion;
 
       latestVersion = await vc.fetchLatestVersion();
 
       assert.equal(latestVersion === apiResponse, true);
-      done();
     });
 
-    it("does not fetch if vc is disabled", async done => {
+    it("does not fetch if vc is disabled", async () => {
       vc.setEnabled(false);
 
       let success = await vc.getLatestVersion();
@@ -1216,9 +1215,8 @@ describe("@ganache/version-check", () => {
 
       success = await vc.getLatestVersion();
       assert.equal(success, true);
-      done();
     });
-    it("fetches the latest version and sets it in the config file.", async done => {
+    it("fetches the latest version and sets it in the config file.", async () => {
       const currentVersion = vc._currentVersion;
 
       assert.equal(currentVersion === testVersion, true);
@@ -1230,26 +1228,23 @@ describe("@ganache/version-check", () => {
       const latestVersion = vc._config.latestVersion;
 
       assert.equal(latestVersion === apiResponse, true);
-      done();
     });
 
-    it("fails silently if the api is unavailable", async done => {
+    it("fails silently if the api is unavailable", async () => {
       vc.setUrl("http://localhost:" + 9999);
 
       const success = await vc.getLatestVersion();
 
       assert.equal(success, false);
-      done();
     });
-    it("quits silently if the api ttl expires", async done => {
+    it("quits silently if the api ttl expires", async () => {
       vc.setTTL(testTTL);
 
       const success = await vc.getLatestVersion();
 
       assert.equal(success, false);
-      done();
     });
-    it("fetches the latest version without blocking shutdown", async done => {
+    it("fetches the latest version without blocking shutdown", done => {
       vc = new VersionCheck(testConfig);
       vc.setEnabled(true);
       const spy = sinon.spy(vc, "getLatestVersion");
