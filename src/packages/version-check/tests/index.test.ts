@@ -1246,4 +1246,12 @@ describe("@ganache/version-check", () => {
       assert.equal(success, false);
     });
   });
+
+  describe("destroy", () => {
+    it("sets status to 'destroyed'", () => {
+      vc.destroy();
+
+      assert.equal(vc.status, "destroyed");
+    });
+  });
 });

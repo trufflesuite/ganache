@@ -83,8 +83,14 @@ export class VersionCheck {
   }
 
   destroy() {
-    this._request.close();
-    this._session.close();
+    if (this._request) {
+      this._request.close();
+    }
+
+    if (this._session) {
+      this._session.close();
+    }
+
     this._request = null;
     this._session = null;
     this.setStatus("destroyed");
