@@ -1150,7 +1150,7 @@ describe("@ganache/version-check", () => {
       path: "/?name=ganache"
     };
 
-    before(() => {
+    beforeEach(() => {
       api = http2.createServer();
       api.on("error", err => console.error(err));
 
@@ -1178,16 +1178,12 @@ describe("@ganache/version-check", () => {
       });
 
       api.listen(apiSettings.port);
-    });
 
-    beforeEach(() => {
       vc.setEnabled(true);
-      vc = new VersionCheck(testVersion, {
-        url: "http://localhost:" + apiSettings.port
-      });
+      vc.setUrl("http://localhost:" + apiSettings.port);
     });
 
-    after(() => {
+    afterEach(() => {
       api.close();
     });
 
@@ -1235,9 +1231,7 @@ describe("@ganache/version-check", () => {
     });
 
     it("fails silently if the api is unavailable", async () => {
-      vc = new VersionCheck(testVersion, {
-        url: "http://localhost:" + 9999
-      });
+      vc.setUrl("http://localhost:" + 9999);
 
       const success = await vc.getLatestVersion();
 
@@ -1250,10 +1244,9 @@ describe("@ganache/version-check", () => {
 
       assert.equal(success, false);
     });
-    it("fetches the latest version without blocking shutdown", async () => {
-      vc = new VersionCheck("1.2.3", {
-        ttl: ttlTestResponseDelay
-      });
+    it("fetches the latest version without blocking shutdown", async done => {
+      vc = new VersionCheck(testConfig);
+      vc.setEnabled(true);
       const spy = sinon.spy(vc, "getLatestVersion");
 
       const idleStatus = vc.status;
@@ -1265,9 +1258,11 @@ describe("@ganache/version-check", () => {
       const destroyedStatus = vc.status;
 
       assert(spy.calledOnce, true);
+
       assert.equal(idleStatus, "idle");
       assert.equal(fetchingStatus, "fetching");
       assert.equal(destroyedStatus, "destroyed");
+      done();
     });
   });
 });

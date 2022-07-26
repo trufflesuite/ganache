@@ -83,8 +83,8 @@ export class VersionCheck {
   }
 
   destroy() {
-    this._request.close();
-    this._session.close();
+    this._request?.close();
+    this._session?.close();
     this._request = null;
     this._session = null;
     this.setStatus("destroyed");
@@ -95,7 +95,7 @@ export class VersionCheck {
   }
 
   setEnabled(enabled: boolean) {
-    if (!enabled) this.setStatus("disabled");
+    enabled ? this.setStatus("idle") : this.setStatus("disabled");
     this.set("enabled", enabled);
   }
 
@@ -176,7 +176,7 @@ export class VersionCheck {
       this.setLatestVersion(latestVersion);
       this.setStatus("idle");
       return true;
-    } catch {
+    } catch (e) {
       return false;
     }
   }
@@ -212,7 +212,7 @@ export class VersionCheck {
         .setTimeout(ttl, () => {
           req.close();
           session.close();
-          reject();
+          reject(`ttl expired: ${ttl}`);
         });
       req.end();
     });
