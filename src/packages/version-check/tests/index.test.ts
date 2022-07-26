@@ -1245,25 +1245,5 @@ describe("@ganache/version-check", () => {
 
       assert.equal(success, false);
     });
-
-    it("fetches the latest version without blocking shutdown", () => {
-      vc = new VersionCheck(testConfig);
-      vc.setEnabled(true);
-      const spy = sinon.spy(vc, "fetchLatestVersion");
-
-      const idleStatus = vc.status;
-
-      vc.fetchLatestVersion();
-
-      const fetchingStatus = vc.status;
-      vc.destroy();
-      const destroyedStatus = vc.status;
-
-      assert(spy.calledOnce, true);
-
-      assert.equal(idleStatus, "idle");
-      assert.equal(fetchingStatus, "fetching");
-      assert.equal(destroyedStatus, "destroyed");
-    });
   });
 });
