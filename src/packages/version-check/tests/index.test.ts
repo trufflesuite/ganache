@@ -1197,15 +1197,16 @@ describe("@ganache/version-check", () => {
       );
     });
 
-    it("fetches the latest version from the API", async () => {
+    it("fetches the latest version from the API", async done => {
       let latestVersion;
 
       latestVersion = await vc.fetchLatestVersion();
 
       assert.equal(latestVersion === apiResponse, true);
+      done();
     });
 
-    it("does not fetch if vc is disabled", async () => {
+    it("does not fetch if vc is disabled", async done => {
       vc.setEnabled(false);
 
       let success = await vc.getLatestVersion();
@@ -1215,8 +1216,9 @@ describe("@ganache/version-check", () => {
 
       success = await vc.getLatestVersion();
       assert.equal(success, true);
+      done();
     });
-    it("fetches the latest version and sets it in the config file.", async () => {
+    it("fetches the latest version and sets it in the config file.", async done => {
       const currentVersion = vc._currentVersion;
 
       assert.equal(currentVersion === testVersion, true);
@@ -1228,21 +1230,24 @@ describe("@ganache/version-check", () => {
       const latestVersion = vc._config.latestVersion;
 
       assert.equal(latestVersion === apiResponse, true);
+      done();
     });
 
-    it("fails silently if the api is unavailable", async () => {
+    it("fails silently if the api is unavailable", async done => {
       vc.setUrl("http://localhost:" + 9999);
 
       const success = await vc.getLatestVersion();
 
       assert.equal(success, false);
+      done();
     });
-    it("quits silently if the api ttl expires", async () => {
+    it("quits silently if the api ttl expires", async done => {
       vc.setTTL(testTTL);
 
       const success = await vc.getLatestVersion();
 
       assert.equal(success, false);
+      done();
     });
     it("fetches the latest version without blocking shutdown", async done => {
       vc = new VersionCheck(testConfig);
