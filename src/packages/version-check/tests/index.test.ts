@@ -1250,27 +1250,24 @@ describe("@ganache/version-check", () => {
 
       assert.equal(success, false);
     });
-
-    describe("init", () => {
-      it("fetches the latest version without blocking shutdown", () => {
-        vc = new VersionCheck("1.2.3", {
-          ttl: ttlTestResponseDelay
-        });
-        const spy = sinon.spy(vc, "getLatestVersion");
-
-        const idleStatus = vc.status;
-
-        vc.init();
-
-        const fetchingStatus = vc.status;
-        vc.destroy();
-        const destroyedStatus = vc.status;
-
-        assert(spy.calledOnce, true);
-        assert.equal(idleStatus, "idle");
-        assert.equal(fetchingStatus, "fetching");
-        assert.equal(destroyedStatus, "destroyed");
+    it("fetches the latest version without blocking shutdown", async () => {
+      vc = new VersionCheck("1.2.3", {
+        ttl: ttlTestResponseDelay
       });
+      const spy = sinon.spy(vc, "getLatestVersion");
+
+      const idleStatus = vc.status;
+
+      vc.init();
+
+      const fetchingStatus = vc.status;
+      vc.destroy();
+      const destroyedStatus = vc.status;
+
+      assert(spy.calledOnce, true);
+      assert.equal(idleStatus, "idle");
+      assert.equal(fetchingStatus, "fetching");
+      assert.equal(destroyedStatus, "destroyed");
     });
   });
 });
