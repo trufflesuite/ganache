@@ -1230,14 +1230,6 @@ describe("@ganache/version-check", () => {
       assert.equal(latestVersion === apiResponse, true);
     });
 
-    it("fails silently if the api is unavailable", async () => {
-      vc.setUrl("http://localhost:" + 9999);
-
-      const success = await vc.getLatestVersion();
-
-      assert.equal(success, false);
-    });
-
     it("quits silently if the api ttl expires", async () => {
       vc.setTTL(testTTL);
 
