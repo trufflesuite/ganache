@@ -163,14 +163,17 @@ export class EthereumProvider
       providerOptions.fork.provider ||
       providerOptions.fork.network;
 
-    const startTime = this.#options.chain.time;
+    const startTime =
+      providerOptions.chain.time === undefined
+        ? Date.now()
+        : +providerOptions.chain.time;
     // if startTime is undefined, ClockBasedBlockTime will determine 0 offset from the reference time
     const blockTime =
-      this.#options.miner.timestampIncrement === "clock"
+      providerOptions.miner.timestampIncrement === "clock"
         ? new ClockBasedBlockTime(Date.now, startTime)
         : new IncrementBasedBlockTime(
-            startTime || Date.now(),
-            this.#options.miner.timestampIncrement.toNumber() * 1000
+            startTime,
+            providerOptions.miner.timestampIncrement.toNumber() * 1000
           );
 
     const fallback = fork

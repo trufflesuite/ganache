@@ -1,10 +1,10 @@
 export interface BlockTime {
   /**
    * Set the current time of the BlockTime instance. Mining immediately afterwards will result in a block timestamp of ~timestamp (some milliseconds could pass before the block is mined).
-   * @param  {number | Date} timestamp - The time that should be considered "current time".
+   * @param  {number} timestamp - The time that should be considered "current time".
    * @returns number - The "offset" for the BlockTime instance in milliseconds.
    */
-  setTime(timestamp: number | Date): number;
+  setTime(timestamp: number): number;
 
   /**
    * Get the current offset of the BlockTime instance. This is the value that would be added to the system time in order to result in the desired timestamp.
@@ -23,20 +23,20 @@ export interface BlockTime {
    * @param  {number} timestamp? - Optional - The timestamp for the block that will be mined, in milliseconds.
    * @returns number - the timestamp in seconds
    */
-  createBlockTimestampInSeconds(timestamp?: number | Date): number;
+  createBlockTimestampInSeconds(timestamp?: number): number;
 }
 
 export class ClockBasedBlockTime implements BlockTime {
-  private _getReferenceClockTime: () => number | Date;
+  private _getReferenceClockTime: () => number;
   private _timeOffset: number = 0;
 
-  private static validateTimestamp(timestamp: number | Date) {
+  private static validateTimestamp(timestamp: number) {
     if (timestamp < 0) {
       throw new Error(`Invalid timestamp: ${timestamp}. Value must be positive.`);
     }
   }
 
-  constructor(getReferenceClockTime: () => number | Date, startTime: number | Date | undefined) {
+  constructor(getReferenceClockTime: () => number, startTime: number | undefined) {
     this._getReferenceClockTime = getReferenceClockTime;
 
     if (startTime !== undefined) {
@@ -57,19 +57,19 @@ export class ClockBasedBlockTime implements BlockTime {
     this._timeOffset = offset;
   }
 
-  setTime(timestamp: number | Date): number {
+  setTime(timestamp: number): number {
     ClockBasedBlockTime.validateTimestamp(timestamp);
-    this._timeOffset = +timestamp - +this._getReferenceClockTime();
+    this._timeOffset = timestamp - this._getReferenceClockTime();
     return this._timeOffset;
   }
 
-  createBlockTimestampInSeconds(timestamp?: number | Date): number {
+  createBlockTimestampInSeconds(timestamp?: number): number {
     let milliseconds;
     if (timestamp != undefined) {
       this.setTime(timestamp);
-      milliseconds = +timestamp;
+      milliseconds = timestamp;
     } else {
-      milliseconds = +this._getReferenceClockTime() + this._timeOffset;
+      milliseconds = this._getReferenceClockTime() + this._timeOffset;
     }
 
     const seconds = Math.floor(milliseconds / 1000);
@@ -80,19 +80,19 @@ export class ClockBasedBlockTime implements BlockTime {
 /*
   A BlockTime implementation that increments it's reference time by the duration specified by incrementMilliseconds,
   every time createBlockTimestampInSeconds() is called. The timestamp returned will be impacted by the timestamp offset,
-  so can be moved forward and backwards by calling .putOffset() independent of the start time, and will increment when
+  so can be moved forward and backwards by calling .setOffset() independent of the start time, and will increment when
   createBlockTimestampInSeconds() is called.
 */
 export class IncrementBasedBlockTime extends ClockBasedBlockTime {
   private readonly _tickReferenceClock: () => void;
 
-  constructor(startTime: number | Date, incrementMilliseconds: number) {
-    let referenceTime = +startTime;
+  constructor(startTime: number, incrementMilliseconds: number) {
+    let referenceTime = startTime;
     super(() => referenceTime, startTime)
     this._tickReferenceClock = () => referenceTime += incrementMilliseconds;
   }
 
-  override createBlockTimestampInSeconds(timestamp?: number | Date): number {
+  override createBlockTimestampInSeconds(timestamp?: number): number {
     const blockTimestamp = super.createBlockTimestampInSeconds(timestamp);
     this._tickReferenceClock();
     return blockTimestamp;

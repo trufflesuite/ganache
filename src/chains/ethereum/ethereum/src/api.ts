@@ -298,20 +298,20 @@ export default class EthereumApi implements Api {
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
 
-    let numBlocks, timestamp;
+    let numBlocks: number, timestamp: number;
     // Since `typeof null === "object"` we have to guard against that
     if (arg !== null && typeof arg === "object") {
-      numBlocks = arg.blocks;
+      numBlocks = arg.blocks == null ? 1 : arg.blocks;
       timestamp = arg.timestamp;
     } else {
+      numBlocks = 1;
       timestamp = arg as number | null;
     }
 
-    if (numBlocks == undefined) {
-      numBlocks = 1;
-    }
+    let timestampMilliseconds: number;
     if (timestamp != undefined) {
-      this.#blockchain.setTime(timestamp * 1000);
+      timestampMilliseconds = timestamp * 1000;
+      this.#blockchain.setTime(timestampMilliseconds);
     }
 
     // TODO(perf): add an option to mine a bunch of blocks in a batch so
@@ -319,8 +319,6 @@ export default class EthereumApi implements Api {
     // Developers like to move the blockchain forward by thousands of blocks
     // at a time and doing this would make it way faster
     for (let i = 0; i < numBlocks; i++) {
-      const timestampMilliseconds =
-        timestamp == undefined ? undefined : timestamp * 1000;
       const { transactions } = await blockchain.mine(
         Capacity.FillBlock,
         timestampMilliseconds,

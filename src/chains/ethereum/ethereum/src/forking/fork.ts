@@ -242,6 +242,7 @@ export class Fork {
       this.block.header.timestamp = Quantity.from(
         this.#blockTime.createBlockTimestampInSeconds(blockTimestampMs)
       );
+      chainOptions.time = new Date(blockTimestampMs);
     }
     if (cache) await this.initCache(cache);
   }
