@@ -267,7 +267,8 @@ describe("@ganache/version-check", () => {
       const currentVersion = "0.0.1";
       const config = {
         latestVersion: "1.0.0",
-        enabled: true
+        enabled: true,
+        disableInCI: false
       };
       vc = new VersionCheck(currentVersion, config);
       vc.alreadyLoggedVersion = () => false;
@@ -286,7 +287,8 @@ describe("@ganache/version-check", () => {
     it("true if config.latestVersionLogged < latestVersion", () => {
       const config = {
         latestVersionLogged: "0.0.0",
-        latestVersion: "1.0.0"
+        latestVersion: "1.0.0",
+        disableInCI: false
       };
       vc = new VersionCheck("0.0.0", config);
 
@@ -299,7 +301,8 @@ describe("@ganache/version-check", () => {
     it("false if config.latestVersionLogged = latestVersion", () => {
       const config = {
         latestVersionLogged: "1.0.0",
-        latestVersion: "1.0.0"
+        latestVersion: "1.0.0",
+        disableInCI: false
       };
       vc = new VersionCheck("0.0.0", config);
 
@@ -312,7 +315,8 @@ describe("@ganache/version-check", () => {
     it("false if config.latestVersionLogged > latestVersion", () => {
       const config = {
         latestVersionLogged: "2.0.0",
-        latestVersion: "1.0.0"
+        latestVersion: "1.0.0",
+        disableInCI: false
       };
       vc = new VersionCheck("0.0.0", config);
 
@@ -332,7 +336,8 @@ describe("@ganache/version-check", () => {
         upgradeType: "major",
         packageName: "ganache",
         currentVersion: "1.2.3",
-        latestVersion: "3.2.1"
+        latestVersion: "3.2.1",
+        disableInCI: false
       };
 
       vc = new VersionCheck(
@@ -382,7 +387,7 @@ describe("@ganache/version-check", () => {
       assert.equal(vc.log(), false, "Version Check will log if disabled.");
     });
     it("will not log if currentVersion !== semver", () => {
-      vc = new VersionCheck("DEV");
+      vc = new VersionCheck("DEV", { disableInCI: false });
       assert.equal(
         vc.log(),
         false,
