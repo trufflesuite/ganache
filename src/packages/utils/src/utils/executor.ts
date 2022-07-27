@@ -12,6 +12,10 @@ export class Executor {
     this.#requestCoordinator = requestCoordinator;
   }
 
+  public disconnect() {
+    this.#requestCoordinator.disconnect();
+  }
+
   /**
    * Executes the method with the given methodName on the API
    * @param methodName - The name of the JSON-RPC method to execute.

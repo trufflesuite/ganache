@@ -1,6 +1,9 @@
 import { OverloadedParameters } from "../types";
 
 const noop = () => {};
+type RejectableTask = ((...args: any) => Promise<any>) & {
+  reject: (reason?: any) => void;
+};
 
 /**
  * Responsible for managing global concurrent requests.
@@ -14,7 +17,7 @@ export class RequestCoordinator {
   /**
    * The pending requests. You can't do anything with this array.
    */
-  public readonly pending: ((...args: any) => Promise<any>)[] = [];
+  public readonly pending: RejectableTask[] = [];
 
   /**
    * The number of tasks currently being processed.
@@ -74,6 +77,23 @@ export class RequestCoordinator {
     }
   };
 
+  public disconnect() {
+    this.pause();
+    // make this async to force a Promise return type
+    this.queue = async () => {
+      throw new Error("Cannot process request, Ganache is disconnected.");
+    };
+    // ensure that processing cannot be resumed
+    this.resume = () => {
+      throw new Error("Cannot resume processing requests, Ganache is disconnected.");
+    }
+
+    while (this.pending.length > 0) {
+      const current = this.pending.shift();
+      current.reject(new Error("Cannot process request, Ganache is disconnected."));
+    }
+  };
+
   /**
    * Insert a new function into the queue.
    */
@@ -97,6 +117,7 @@ export class RequestCoordinator {
           reject(e);
         }
       };
+      executor.reject = reject;
       this.pending.push(executor);
       this.#process();
     });

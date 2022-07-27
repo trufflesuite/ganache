@@ -420,9 +420,9 @@ export class EthereumProvider
   };
 
   public disconnect = async () => {
+    this.#executor.disconnect();
     await this.#blockchain.stop();
     this.emit("disconnect");
-    return;
   };
 
   //#region legacy

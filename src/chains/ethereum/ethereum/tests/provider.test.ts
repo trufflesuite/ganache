@@ -423,6 +423,16 @@ describe("provider", () => {
         }
       );
     });
+
+    it("stops responding to RPC methods once disconnected", async () => {
+      const provider = await getProvider();
+      await provider.disconnect();
+
+      await assert.rejects(
+        provider.send("eth_getBlockByNumber", ["latest"]),
+        new Error("Cannot process request, Ganache is disconnected.")
+      );
+    });
   });
 
   describe("web3 compatibility", () => {
