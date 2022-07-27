@@ -51,8 +51,13 @@ export const envVars = [
 
 export function detectCI() {
   let currentEnvVar = 0;
+
   while (currentEnvVar < envVars.length) {
-    if (process.env[envVars[currentEnvVar]]) return true;
+    if (process.env[envVars[currentEnvVar]]) {
+      return true;
+    }
+
+    currentEnvVar++;
   }
 
   return false;

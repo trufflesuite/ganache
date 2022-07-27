@@ -3,6 +3,7 @@ import http2 from "http2";
 import Conf from "conf";
 import { Logger } from "@ganache/ethereum-options";
 import { isValidSemver, semverUpgradeType } from "./semver";
+import { detectCI } from "./ci";
 
 export type VersionCheckConfig = {
   packageName: string;
@@ -62,10 +63,9 @@ export class VersionCheck {
     if (config) this.saveConfig();
 
     const validSemver = isValidSemver(currentVersion);
-    this.setStatus("idle");
+
     if (validSemver) {
       this._currentVersion = validSemver;
-      this.setStatus("idle");
     } else {
       // Semver is invalid, turn off version check
       this.setEnabled(false);
@@ -91,11 +91,9 @@ export class VersionCheck {
 
     this._request = null;
     this._session = null;
-    this.setStatus("destroyed");
   }
 
   setEnabled(enabled: boolean) {
-    enabled ? this.setStatus("idle") : this.setStatus("disabled");
     this.set("enabled", enabled);
   }
 
@@ -128,10 +126,6 @@ export class VersionCheck {
     this.ConfigManager.set(this._config);
   }
 
-  private setStatus(status: VersionCheckStatus) {
-    this._status = status;
-  }
-
   configFileLocation() {
     return this.ConfigManager.path;
   }
@@ -159,15 +153,9 @@ export class VersionCheck {
 
   async getLatestVersion() {
     if (!this._config.enabled) return false;
-    this.setStatus("fetching");
     try {
-      const latestVersion = await this.fetchLatest();
-      this.setLatestVersion(latestVersion);
-      this.setStatus("idle");
-      return true;
+      this.setLatestVersion(await this.fetchLatest());
     } catch {}
-    this.setStatus("idle");
-    return false;
   }
 
   private fetchLatest() {
@@ -175,14 +163,12 @@ export class VersionCheck {
 
     return new Promise<string>((resolve, reject) => {
       const session = http2.connect(url);
-
-      session.on("error", err => reject(err));
-
       const req = session.request({ ":path": `/?name=${packageName}` });
 
       this._session = session;
       this._request = req;
 
+      session.on("error", err => reject(err));
       req.setEncoding("utf8");
 
       req
