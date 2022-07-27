@@ -303,6 +303,8 @@ export default class SimulationHandler extends Emittery<{
     // no real reason why this is our max, feel free to change
     const MAX_ITERATIONS = 1000;
     let previousAccessList = initialAccessList || [];
+    const accessListExclusions = this.#accessListExclusions;
+    const addressesOnlyStorage = this.#addressesOnlyStorage;
     let iterations = 0;
     do {
       // checkpoint so we can get back to this vm state after every time we
@@ -311,8 +313,8 @@ export default class SimulationHandler extends Emittery<{
       const stateManager = this.#stateManager;
       const callResult = await this.runCall();
       const accessList = stateManager.generateAccessList(
-        this.#accessListExclusions,
-        this.#addressesOnlyStorage
+        accessListExclusions,
+        addressesOnlyStorage
       );
       // we're done making vm state changes so revert
       await stateManager.revert();
