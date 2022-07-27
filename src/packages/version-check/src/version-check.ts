@@ -28,8 +28,6 @@ type BannerMessageOptions = {
   latestVersion: string;
 };
 
-type VersionCheckStatus = "disabled" | "idle" | "fetching" | "destroyed";
-
 export class VersionCheck {
   private ConfigManager: ConfigManager;
   private _config: VersionCheckConfig;
