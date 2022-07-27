@@ -37,9 +37,7 @@ const vc = new VersionCheck(currentVersionSemVer, [config], [logger]);
 The constructor requires a `currentVersionSemVer` and accepts an optional config and logger function.
 
 ```javascript
-vc
-  .init();
-  .log();
+vc.init().log();
 ```
 
 `init` will initialize a request to fetch the version in the background and then update the `latestVersion` on disk, if it has changed.
@@ -73,7 +71,7 @@ $ export VERSION="1.2.3"; npm run start
 1.) No banner message is displayed (first run, assumes latest was installed)
 
 ```bash
-$ export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                 
+$ export VERSION="1.2.3"; npm run start
 
 > root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
@@ -88,14 +86,12 @@ Starting RPC server
 
 ```
 {
-        "config": {
-                "packageName": "ganache",
-                "enabled": true,
-                "url": "https://version.trufflesuite.com/",
-                "ttl": 300,
-                "latestVersion": "7.0.5",
-                "latestVersionLogged": "0.0.0"
-        }
+       "packageName": "ganache",
+       "enabled": true,
+       "url": "https://version.trufflesuite.com/",
+       "ttl": 300,
+       "latestVersion": "7.0.5",
+       "latestVersionLogged": "0.0.0"
 }
 ```
 
@@ -105,7 +101,7 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 
 1. Banner message displays, `latestVersion` > `latestVersionLogged`
 
-```bash
+```javascript
 export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                 hayek@rothbard
 
 > root@ start /home/hayek/proj/ganache

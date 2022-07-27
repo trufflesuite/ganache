@@ -5,7 +5,6 @@ import { VersionCheck } from "../src/";
 import http2 from "http2";
 import assert from "assert";
 import * as fs from "fs";
-import sinon from "sinon";
 
 describe("@ganache/version-check", () => {
   let vc;
