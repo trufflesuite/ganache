@@ -60,10 +60,16 @@ export class VersionCheck {
 
     const version = isValidSemver(currentVersion);
 
-    if (version && !detectCI()) {
+    if (version) {
       this._currentVersion = version;
     } else {
       this.setEnabled(false);
+    }
+
+    if (this._config.disableInCI) {
+      if (detectCI()) {
+        this.setEnabled(false);
+      }
     }
 
     this._logger = logger || console;
