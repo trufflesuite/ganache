@@ -1159,16 +1159,13 @@ describe("@ganache/version-check", () => {
         const method = headers[":method"];
 
         if (path === "/?name=ganache" && method === "GET") {
-          // Simulate a 'lazy server response' with timeout === testTTL
-          setTimeout(() => {
-            if (stream.closed) return;
+          if (stream.closed) return;
 
-            stream.respond({
-              ":status": 200
-            });
-            stream.write(apiResponse);
-            stream.end();
-          }, ttlTestResponseDelay);
+          stream.respond({
+            ":status": 200
+          });
+          stream.write(apiResponse);
+          stream.end();
         } else {
           stream.respond({
             ":status": 404
@@ -1231,7 +1228,7 @@ describe("@ganache/version-check", () => {
     });
 
     it("quits silently if the api ttl expires", async () => {
-      vc.setTTL(testTTL);
+      vc.setTTL(1);
 
       const success = await vc.getLatestVersion();
 
