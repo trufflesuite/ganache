@@ -79,20 +79,27 @@ export class RequestCoordinator {
 
   public disconnect() {
     this.pause();
-    // make this async to force a Promise return type
+    // ensure nothing can be requeued (although tasks can be added directly to this.pending
+    // but they will never be processed). We make this async to force a Promise return type.
     this.queue = async () => {
       throw new Error("Cannot process request, Ganache is disconnected.");
     };
-    // ensure that processing cannot be resumed
-    this.resume = () => {
-      throw new Error("Cannot resume processing requests, Ganache is disconnected.");
-    }
 
+    // ensure that processing cannot be resumed.
+    this.resume = () => {
+      throw new Error(
+        "Cannot resume processing requests, Ganache is disconnected."
+      );
+    };
+
+    // purge any pending tasks, respecting FIFO nature of the queue
     while (this.pending.length > 0) {
       const current = this.pending.shift();
-      current.reject(new Error("Cannot process request, Ganache is disconnected."));
+      current.reject(
+        new Error("Cannot process request, Ganache is disconnected.")
+      );
     }
-  };
+  }
 
   /**
    * Insert a new function into the queue.

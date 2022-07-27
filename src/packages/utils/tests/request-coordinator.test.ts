@@ -34,10 +34,7 @@ describe("request-coordinator", () => {
     });
 
     it("should reject all queued requests", async () => {
-      const neverEndingTask = () => {
-        return new Promise(() => {});
-      };
-      const taskPromise = coordinator.queue(neverEndingTask, this, []);
+      const taskPromise = coordinator.queue(() => null, this, []);
       coordinator.disconnect();
       await assert.rejects(
         taskPromise,
