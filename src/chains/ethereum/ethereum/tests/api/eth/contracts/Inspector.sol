@@ -69,14 +69,16 @@ contract Inspector {
       return prev.balance;
     }
 
-    // this function should touch different accounts depending on the access list
-    // provided by the sender. every time it is run with an accessList from the
-    // previous run, it can touch one more account. we cap the number of runs
-    // at 10. So, once an access list with the 10 accounts is sent alongside
-    // the transaction, the function will consistently touch the same number of
-    // accounts.
-    // COLD_ACCOUNT_ACCESS_COST is 2600 - the cost to read from an account with no access list
-    // WARM_STORAGE_READ_COST is 100 - the cost to read from an account with access list
+    /** 
+      @dev this function should touch different accounts depending on the access list
+      provided by the sender. every time it is run with an accessList from the
+      previous run, it can touch one more account. we cap the number of runs
+      at 10. So, once an access list with the 10 accounts is sent alongside
+      the transaction, the function will consistently touch the same number of
+      accounts.
+      COLD_ACCOUNT_ACCESS_COST is 2600 - the cost to read from an account with no access list
+      WARM_STORAGE_READ_COST is 100 - the cost to read from an account with access list
+    */ 
     function multiAccessList(address addr1) public view {
       uint256 counter = 0;
       bool flag = true;
