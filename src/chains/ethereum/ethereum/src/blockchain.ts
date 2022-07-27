@@ -68,6 +68,7 @@ import SimulationHandler, {
   CallOverrides,
   SimulationTransaction
 } from "./helpers/simulation-handler";
+import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
