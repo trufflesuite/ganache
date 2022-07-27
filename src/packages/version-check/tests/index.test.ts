@@ -121,6 +121,24 @@ describe("@ganache/version-check", () => {
 
       assert.equal(vc._currentVersion, version);
     });
+    it("disables if CI is detected", () => {
+      vc = new VersionCheck(versionString, {
+        enabled: true,
+        disableIfInCI: true
+      });
+      assert.equal(vc._config.enabled, true);
+
+      delete process.env.TRUFFLE_SHUFFLE_TEST;
+
+      process.env.TRUFFLE_SHUFFLE_TEST = true;
+
+      vc = new VersionCheck(versionString, {
+        enabled: true,
+        disableIfInCI: true
+      });
+      assert.equal(vc._config.enabled, false);
+      delete process.env.TRUFFLE_SHUFFLE_TEST;
+    });
   });
 
   describe("ConfigManager", () => {

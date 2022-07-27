@@ -7,8 +7,8 @@ import assert from "assert";
 describe("detectCI", () => {
   beforeEach(() => {});
   it("returns true if envVar is found", () => {
-    process.env.CI = true;
+    process.env.TRUFFLE_SHUFFLE_TEST = true;
     assert.equal(detectCI(), true);
-    process.env.CI = "";
+    delete process.env.TRUFFLE_SHUFFLE_TEST;
   });
 });

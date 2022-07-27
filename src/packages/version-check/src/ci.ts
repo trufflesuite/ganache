@@ -46,14 +46,17 @@ export const envVars = [
   "VERCEL_BITBUCKET_DEPLOYMENT",
   "VERCEL_GITHUB_DEPLOYMENT",
   "VERCEL_URL",
-  "WERCKER"
+  "WERCKER",
+  "TRUFFLE_SHUFFLE_TEST"
 ];
 
 export function detectCI() {
   let currentEnvVar = 0;
 
   while (currentEnvVar < envVars.length) {
-    if (process.env[envVars[currentEnvVar]]) {
+    const test = envVars[currentEnvVar];
+    if (!!process.env[test]) {
+      console.log(test);
       return true;
     }
 
