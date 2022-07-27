@@ -1226,14 +1226,6 @@ describe("@ganache/version-check", () => {
 
       assert.equal(latestVersion === apiResponse, true);
     });
-
-    it("quits silently if the api ttl expires", async () => {
-      vc.setTTL(1);
-
-      const success = await vc.getLatestVersion();
-
-      assert.equal(success, false);
-    });
   });
 
   describe("destroy", () => {
