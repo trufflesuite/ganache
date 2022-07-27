@@ -113,11 +113,10 @@ export default class SimulationHandler extends Emittery<{
   #intrinsicGas: bigint;
   #initializationError: ERROR;
 
-  readonly #transactionContext: object;
+  #initialized: boolean = false;
 
   constructor() {
     super();
-    this.#transactionContext = {};
   }
 
   /**
@@ -136,6 +135,13 @@ export default class SimulationHandler extends Emittery<{
     transaction: SimulationTransaction,
     overrides?: CallOverrides
   ) {
+    if (this.#initialized) {
+      console.warn(
+        "Simulation Handler can only be initialized once. Ignoring attempt to reinitialize."
+      );
+      return;
+    }
+    this.#initialized = true;
     const caller = this.toLightEJSAddress(transaction.from);
 
     const stateTrie = blockchain.trie.copy(false);
