@@ -298,7 +298,7 @@ export default class SimulationHandler extends Emittery<{
    * consumed by running the transaction _with_ the generated access list included.
    */
   public async createAccessList(
-    initialAccessList: AccessList
+    initialAccessList?: AccessList
   ): Promise<{ accessList: AccessList; gasUsed: string }> {
     // no real reason why this is our max, feel free to change
     const MAX_ITERATIONS = 1000;
