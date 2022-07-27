@@ -151,11 +151,40 @@ describe("@ganache/console.log", () => {
     }
   }
 
-  async function watchLogs() {
+  /**
+   * Collects all logs emitted via the `ganache:vm:tx:console.log` event as well
+   * as logs sent to `logger.log`. If the logs from each source do not match
+   * each other this function throws.
+   *
+   * This function also validates that the `context` object emitted by the
+   * `before`, `after`, and `log` are strictly equal to each other. If they do
+   * not match this function throws (this could be a bug in the test -- two
+   * transactions/calls could be running at the same time, or a bug in Ganache's
+   * event system).
+   *
+   * @returns all logs collected over the very next transaction event lifecycle
+   * for the `provider` (contextual)
+   */
+  async function watchForLogs() {
     // collection all logs during the transaction's execution
     const allLogs: any[] = [];
+    const eventLogs: any[] = [];
 
-    await provider.once("ganache:vm:tx:before");
+    const { context: beforeContext } = await provider.once(
+      "ganache:vm:tx:before"
+    );
+
+    const unsubLogs = provider.on(
+      "ganache:vm:tx:console.log",
+      ({ context: logContext, logs }) => {
+        assert.strictEqual(
+          logContext,
+          beforeContext,
+          "`console.log` event context did not match transaction `before` context"
+        );
+        eventLogs.push(logs);
+      }
+    );
 
     // start listening for logs
     logger.log = (...logs: any[]) => {
@@ -164,10 +193,23 @@ describe("@ganache/console.log", () => {
 
     // we're done listening to logs once the transaction completes
     try {
-      await provider.once("ganache:vm:tx:after");
+      const { context: afterContext } = await provider.once(
+        "ganache:vm:tx:after"
+      );
+      assert.strictEqual(
+        afterContext,
+        beforeContext,
+        "`after` event context did not match `before` context"
+      );
     } finally {
       logger.log = () => {};
     }
+    unsubLogs();
+    assert.deepStrictEqual(
+      eventLogs,
+      allLogs,
+      "logs emitted by `console.log` event didn't match logs captured via `logger.log`"
+    );
     return allLogs;
   }
 
@@ -176,7 +218,7 @@ describe("@ganache/console.log", () => {
     method: string,
     contractAddress: string
   ) {
-    const logsProm = watchLogs();
+    const logsProm = watchForLogs();
 
     // send our logging transaction
     const transactionPromise = sendLoggingTransaction(
@@ -358,7 +400,7 @@ describe("@ganache/console.log", () => {
       });
 
       it("logs when `console.log` is called within an `eth_call`", async () => {
-        const logsProm = watchLogs();
+        const logsProm = watchForLogs();
         await provider.send("eth_call", [
           {
             from,
@@ -398,7 +440,7 @@ describe("@ganache/console.log", () => {
           contractAddress
         );
 
-        const logsProm = watchLogs();
+        const logsProm = watchForLogs();
         // execute our logging tx via `debug_traceTransaction`
         await provider.send("debug_traceTransaction", [txHash]);
 
