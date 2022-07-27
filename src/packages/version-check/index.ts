@@ -5,4 +5,4 @@
  * @license MIT
  */
 
-export * from "./src/";
+export * from "./src/version-check";
