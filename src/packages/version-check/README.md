@@ -84,14 +84,14 @@ Starting RPC server
 
 2.) A config file now exists for the user `less ~/.config/@ganache/version-check-nodejs/config.json` (on linux)
 
-```
+```json
 {
-       "packageName": "ganache",
-       "enabled": true,
-       "url": "https://version.trufflesuite.com/",
-       "ttl": 300,
-       "latestVersion": "7.0.5",
-       "latestVersionLogged": "0.0.0"
+  "packageName": "ganache",
+  "enabled": true,
+  "url": "https://version.trufflesuite.com/",
+  "ttl": 300,
+  "latestVersion": "7.0.5",
+  "latestVersionLogged": "0.0.0"
 }
 ```
 
@@ -123,14 +123,14 @@ Starting RPC server
 
 2. Config updates `latestVersionLogged`
 
-```sh
+```json
 {
-       "packageName": "ganache",
-       "enabled": true,
-       "url": "https://version.trufflesuite.com/",
-       "ttl": 300,
-       "latestVersion": "7.0.5",
-       "latestVersionLogged": "7.0.5"
+  "packageName": "ganache",
+  "enabled": true,
+  "url": "https://version.trufflesuite.com/",
+  "ttl": 300,
+  "latestVersion": "7.0.5",
+  "latestVersionLogged": "7.0.5"
 }
 ```
 
