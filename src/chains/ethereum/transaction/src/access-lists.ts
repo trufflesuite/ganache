@@ -87,24 +87,20 @@ export class AccessLists {
       return false;
     }
     for (const accessListItem of accessList) {
-      Object.keys(accessListItem).forEach(key => {
-        if (key !== "address" && key !== "storageKeys") {
-          // an access list item can only contain the "address" and
-          // "storageKeys" props
-          return false;
-        }
-      });
       const { address, storageKeys } = accessListItem;
-      if (address.length !== 42) {
+      if (!address || address.length !== 42) {
         // each address must be 20 bytes (plus "0x" in string version)
         return false;
       }
+      // storageKeys must be an array
+      if (!Array.isArray(storageKeys)) return false;
       for (
         let storageSlot = 0;
         storageSlot < storageKeys.length;
         storageSlot++
       ) {
-        if (storageKeys[storageSlot].length !== 66) {
+        const key = storageKeys[storageSlot];
+        if (!key || key.length !== 66) {
           // each storageKey must be 32 byes (plus "0x" in string version)
           return false;
         }
