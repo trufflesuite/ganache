@@ -113,6 +113,7 @@ export default class SimulationHandler extends Emittery<{
   #intrinsicGas: bigint;
   #initializationError: ERROR;
 
+  #transactionContext: object;
   #initialized: boolean = false;
 
   constructor() {
@@ -175,11 +176,7 @@ export default class SimulationHandler extends Emittery<{
     const gasLeft = gasLimit - intrinsicGas;
     const to = this.toLightEJSAddress(transaction.to);
 
-    this.#emitBefore();
-
     if (gasLeft >= 0n) {
-      this.#setupStepEventEmits();
-
       if (common.isActivatedEIP(2929)) {
         const precompiles = this.#warmDefaults(caller, to);
         this.#accessListExclusions.push(caller);
@@ -240,8 +237,9 @@ export default class SimulationHandler extends Emittery<{
   };
 
   #emitBefore = () => {
+    const context = (this.#transactionContext = {});
     this.emit("ganache:vm:tx:before", {
-      context: this.#transactionContext
+      context
     });
   };
 
@@ -276,6 +274,8 @@ export default class SimulationHandler extends Emittery<{
         }
       } as any;
     } else if (this.#runCallOpts) {
+      this.#emitBefore();
+      this.#setupStepEventEmits();
       callResult = await this.#vm.runCall(this.#runCallOpts);
       this.#emitAfter();
     } else {
