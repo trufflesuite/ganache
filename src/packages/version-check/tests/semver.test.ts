@@ -1,53 +1,42 @@
 // @ts-nocheck
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
-
-import { VersionCheck } from "../src/version-check";
+import { isValidSemver, semverUpgradeType } from "../src/semver";
 import assert from "assert";
-import * as fs from "fs";
 
-describe("detectSemverChange", () => {
-  let vc;
+describe("semverUpgradeType", () => {
   const testVersion = "0.0.0";
   const version = "1.2.3";
   const alphaVersion = "1.2.3-alpha";
   const betaVersion = "1.2.3-beta";
+  const invalidVersion = "notasemver";
 
   let message;
 
   beforeEach(() => {
-    vc = new VersionCheck(testVersion);
-
     message = "";
-  });
-
-  afterEach(() => {
-    const testConfigFileLocation = vc.configFileLocation();
-    if (fs.existsSync(testConfigFileLocation)) {
-      fs.unlinkSync(testConfigFileLocation);
-    }
   });
 
   describe("nulls", () => {
     it("handles null currentVersion", () => {
       assert(
-        vc.detectSemverChange(null, "1.0.0") === null,
+        semverUpgradeType(null, "1.0.0") === null,
         true,
-        "detectSemverChange improperly handles null currentVersion"
+        "semverUpgradeType improperly handles null currentVersion"
       );
     });
     it("handles null latestVersion", () => {
       assert(
-        vc.detectSemverChange("1.0.0", null) === null,
+        semverUpgradeType("1.0.0", null) === null,
         true,
-        "detectSemverChange improperly handles null latestVersion"
+        "semverUpgradeType improperly handles null latestVersion"
       );
     });
 
     it("handles null versions", () => {
       assert(
-        vc.detectSemverChange(null, null) === null,
+        semverUpgradeType(null, null) === null,
         true,
-        "detectSemverChange improperly handles null versions"
+        "semverUpgradeType improperly handles null versions"
       );
     });
   });
@@ -57,7 +46,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "patch",
         "0.0.0 -> 0.0.1 fails"
       );
@@ -67,7 +56,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.0.1 -> 0.0.1 fails"
       );
@@ -77,7 +66,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.0.2 -> 0.0.1 fails"
       );
@@ -89,7 +78,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "minor",
         "0.0.0 -> 0.1.0 fails"
       );
@@ -99,7 +88,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.1.0 -> 0.1.0 fails"
       );
@@ -109,7 +98,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.2.0 -> 0.1.0 fails"
       );
@@ -121,7 +110,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "minor",
         "0.0.0 -> 0.1.1 fails"
       );
@@ -132,7 +121,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "minor",
         "0.0.1 -> 0.1.1 fails"
       );
@@ -143,7 +132,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "minor",
         "0.0.2 -> 0.1.1 fails"
       );
@@ -154,7 +143,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "patch",
         "0.1.0 -> 0.1.1 fails"
       );
@@ -165,7 +154,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.1.1 -> 0.1.1 fails"
       );
@@ -175,7 +164,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.1.2 -> 0.1.1 fails"
       );
@@ -185,7 +174,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.2.2 -> 0.1.1 fails"
       );
@@ -195,7 +184,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.2.0 -> 0.1.1 fails"
       );
@@ -205,7 +194,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "0.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "0.2.5 -> 0.1.1 fails"
       );
@@ -217,7 +206,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.0 -> 1.0.0 fails"
       );
@@ -227,7 +216,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "1.0.0 -> 1.0.0 fails"
       );
@@ -237,7 +226,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.0.0 -> 1.0.0 fails"
       );
@@ -249,7 +238,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.0 -> 1.0.1 fails"
       );
@@ -259,7 +248,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.1 -> 1.0.1 fails"
       );
@@ -269,7 +258,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.2 -> 1.0.1 fails"
       );
@@ -280,7 +269,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "patch",
         "1.0.0 -> 1.0.1 fails"
       );
@@ -291,7 +280,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "1.0.1 -> 1.0.1 fails"
       );
@@ -301,7 +290,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "1.0.2 -> 1.0.1 fails"
       );
@@ -311,7 +300,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.0.2 -> 1.0.1 fails"
       );
@@ -321,7 +310,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.0.0 -> 1.0.1 fails"
       );
@@ -331,7 +320,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.0.1";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.0.5 -> 1.0.1 fails"
       );
@@ -343,7 +332,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.0 -> 1.1.0 fails"
       );
@@ -354,7 +343,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.1.0 -> 1.1.0 fails"
       );
@@ -365,7 +354,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.2.0 -> 1.1.0 fails"
       );
@@ -376,7 +365,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "minor",
         "1.0.0 -> 1.1.0 fails"
       );
@@ -387,7 +376,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "1.1.0 -> 1.1.0 fails"
       );
@@ -397,7 +386,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "1.2.0 -> 1.1.0 fails"
       );
@@ -407,7 +396,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.2.0 -> 1.1.0 fails"
       );
@@ -417,7 +406,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.0.0 -> 1.1.0 fails"
       );
@@ -427,7 +416,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "1.1.0";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "2.5.0 -> 1.1.0 fails"
       );
@@ -439,7 +428,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.0 -> 5.5.5 fails"
       );
@@ -449,7 +438,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "5.5.5 -> 5.5.5 fails"
       );
@@ -459,7 +448,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "5.5.6 -> 5.5.5 fails"
       );
@@ -469,7 +458,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "5.6.5 -> 5.5.5 fails"
       );
@@ -479,7 +468,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "5.6.6 -> 5.5.5 fails"
       );
@@ -489,7 +478,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "6.5.5 -> 5.5.5 fails"
       );
@@ -499,7 +488,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "6.5.6 -> 5.5.5 fails"
       );
@@ -509,7 +498,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "6.6.6 -> 5.5.5 fails"
       );
@@ -519,7 +508,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.0.6 -> 5.5.5 fails"
       );
@@ -529,7 +518,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         "major",
         "0.6.0 -> 5.5.5 fails"
       );
@@ -539,7 +528,7 @@ describe("detectSemverChange", () => {
       const latestVersion = "5.5.5";
 
       assert.equal(
-        vc.detectSemverChange(currentVersion, latestVersion),
+        semverUpgradeType(currentVersion, latestVersion),
         null,
         "6.0.0 -> 5.5.5 fails"
       );
@@ -547,42 +536,50 @@ describe("detectSemverChange", () => {
   });
   describe("alphas and betas", () => {
     it("1.2.2 -> 1.2.3-alpha", () => {
-      assert.equal(vc.detectSemverChange("1.2.2", alphaVersion), "prepatch");
+      assert.equal(semverUpgradeType("1.2.2", alphaVersion), "prepatch");
     });
     it("1.2.2 -> 1.2.3-beta", () => {
-      assert.equal(vc.detectSemverChange("1.2.2", betaVersion), "prepatch");
+      assert.equal(semverUpgradeType("1.2.2", betaVersion), "prepatch");
     });
     it("alpha -> release", () => {
-      assert.equal(vc.detectSemverChange(alphaVersion, version), "prerelease");
+      assert.equal(semverUpgradeType(alphaVersion, version), "prerelease");
     });
     it("beta -> alpha", () => {
-      assert.equal(vc.detectSemverChange(alphaVersion, version), "prerelease");
+      assert.equal(semverUpgradeType(alphaVersion, version), "prerelease");
     });
     it("beta -> release", () => {
-      assert.equal(vc.detectSemverChange(alphaVersion, version), "prerelease");
+      assert.equal(semverUpgradeType(alphaVersion, version), "prerelease");
     });
     it("1.2.4 -> 1.2.3-alpha", () => {
-      assert.equal(vc.detectSemverChange("1.2.4", alphaVersion), null);
+      assert.equal(semverUpgradeType("1.2.4", alphaVersion), null);
     });
   });
   describe("version strings", () => {
     it("v0.0.1 -> v0.0.2", () => {
-      assert.equal(vc.detectSemverChange("v0.0.1", "v0.0.2"), "patch");
+      assert.equal(semverUpgradeType("v0.0.1", "v0.0.2"), "patch");
     });
     it("v0.0.1 -> 0.0.2", () => {
-      assert.equal(vc.detectSemverChange("v0.0.1", "0.0.2"), "patch");
+      assert.equal(semverUpgradeType("v0.0.1", "0.0.2"), "patch");
     });
     it("v0.1.0 -> v0.2.0", () => {
-      assert.equal(vc.detectSemverChange("v0.1.0", "v0.2.0"), "minor");
+      assert.equal(semverUpgradeType("v0.1.0", "v0.2.0"), "minor");
     });
     it("v0.1.0 -> 0.2.0", () => {
-      assert.equal(vc.detectSemverChange("v0.1.0", "0.2.0"), "minor");
+      assert.equal(semverUpgradeType("v0.1.0", "0.2.0"), "minor");
     });
     it("v0.0.1-alpha -> v0.0.2", () => {
-      assert.equal(vc.detectSemverChange("v0.0.1-alpha", "v0.0.2"), "prepatch");
+      assert.equal(semverUpgradeType("v0.0.1-alpha", "v0.0.2"), "prepatch");
     });
     it("v0.0.2 -> v0.0.2-alpha", () => {
-      assert.equal(vc.detectSemverChange("v0.0.2", "v0.0.2-alpha"), null);
+      assert.equal(semverUpgradeType("v0.0.2", "v0.0.2-alpha"), null);
+    });
+  });
+  describe("isValidSemver", () => {
+    it("returns semver if valid", () => {
+      assert.equal(isValidSemver(testVersion), testVersion);
+    });
+    it("returns null if invalid semver", () => {
+      assert.equal(isValidSemver(invalidVersion), null);
     });
   });
 });

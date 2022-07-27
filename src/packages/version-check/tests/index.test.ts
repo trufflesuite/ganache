@@ -2,6 +2,7 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
 
 import { VersionCheck } from "../src/version-check";
+import { semverUpgradeType } from "../src/semver";
 import http2 from "http2";
 import assert from "assert";
 import * as fs from "fs";
@@ -11,7 +12,6 @@ describe("@ganache/version-check", () => {
   const testVersion = "0.0.0";
   const versionString = "v1.2.3";
   const version = "1.2.3";
-  const invalidVersion = "notasemver";
 
   const testConfig = {
     packageName: "test",
@@ -117,15 +117,6 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck(versionString);
 
       assert.equal(vc._currentVersion, version);
-    });
-  });
-
-  describe("isValidSemver", () => {
-    it("returns semver if valid", () => {
-      assert.equal(vc.isValidSemver(testVersion), testVersion);
-    });
-    it("returns null if invalid semver", () => {
-      assert.equal(vc.isValidSemver(invalidVersion), null);
     });
   });
 
@@ -259,28 +250,17 @@ describe("@ganache/version-check", () => {
       );
     });
     it("false if latestVersionLogged === latestVersion", () => {
-      vc.alreadyLoggedThisVersion = () => true;
+      vc.alreadyLoggedVersion = () => true;
 
       const canNotifyUser = vc.canNotifyUser();
 
       assert.equal(
         canNotifyUser,
         false,
-        "Version Check will notify if alreadyLoggedThisVersion is true"
+        "Version Check will notify if alreadyLoggedVersion is true"
       );
     });
-    it("false if detectSemverChange is falsy", () => {
-      vc.alreadyLoggedThisVersion = () => false;
-      vc.detectSemverChange = () => null;
 
-      const canNotifyUser = vc.canNotifyUser();
-
-      assert.equal(
-        canNotifyUser,
-        false,
-        "Version Check will notify if detectSemverChange is falsy"
-      );
-    });
     it("true if currentVersion is a valid semver < latestVersion that has not been previously logged to the user", () => {
       const currentVersion = "0.0.1";
       const config = {
@@ -288,7 +268,7 @@ describe("@ganache/version-check", () => {
         enabled: true
       };
       vc = new VersionCheck(currentVersion, config);
-      vc.alreadyLoggedThisVersion = () => false;
+      vc.alreadyLoggedVersion = () => false;
 
       const canNotifyUser = vc.canNotifyUser();
 
@@ -300,7 +280,7 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("alreadyLoggedThisVersion", () => {
+  describe("alreadyLoggedVersion", () => {
     it("true if config.latestVersionLogged < latestVersion", () => {
       const config = {
         latestVersionLogged: "0.0.0",
@@ -309,9 +289,9 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedThisVersion(),
+        vc.alreadyLoggedVersion(),
         false,
-        "alreadyLoggedThisVersion is true when latestVersionLogged < latestVersion"
+        "alreadyLoggedVersion is true when latestVersionLogged < latestVersion"
       );
     });
     it("false if config.latestVersionLogged = latestVersion", () => {
@@ -322,9 +302,9 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedThisVersion(),
+        vc.alreadyLoggedVersion(),
         true,
-        "alreadyLoggedThisVersion is false when latestVersionLogged = latestVersion"
+        "alreadyLoggedVersion is false when latestVersionLogged = latestVersion"
       );
     });
     it("false if config.latestVersionLogged > latestVersion", () => {
@@ -335,9 +315,9 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedThisVersion(),
+        vc.alreadyLoggedVersion(),
         true,
-        "alreadyLoggedThisVersion is false when latestVersionLogged > latestVersion"
+        "alreadyLoggedVersion is false when latestVersionLogged > latestVersion"
       );
     });
   });
@@ -437,10 +417,10 @@ describe("@ganache/version-check", () => {
         "Log does not contain the packageName"
       );
     });
-    it("reports the upgradeType based on detectSemverChange", () => {
+    it("reports the upgradeType based on semverUpgradeType", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
 
-      const upgradeType = vc.detectSemverChange(
+      const upgradeType = semverUpgradeType(
         testVersion,
         testConfig.latestVersion
       );
@@ -500,7 +480,7 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
       const didLog = vc.log();
 
-      const upgradeType = vc.detectSemverChange(
+      const upgradeType = semverUpgradeType(
         vc._currentVersion,
         vc._config.latestVersion
       );
