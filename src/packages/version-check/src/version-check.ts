@@ -64,7 +64,7 @@ export class VersionCheck {
 
     const validSemver = isValidSemver(currentVersion);
 
-    if (validSemver) {
+    if (validSemver && !detectCI()) {
       this._currentVersion = validSemver;
     } else {
       // Semver is invalid, turn off version check

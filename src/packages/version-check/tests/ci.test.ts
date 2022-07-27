@@ -9,5 +9,6 @@ describe("detectCI", () => {
   it("returns true if envVar is found", () => {
     process.env.CI = true;
     assert.equal(detectCI(), true);
+    process.env.CI = "";
   });
 });
