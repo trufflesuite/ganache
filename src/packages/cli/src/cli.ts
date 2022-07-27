@@ -32,7 +32,7 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
 const version = process.env.VERSION || "DEV";
 const cliVersion = process.env.CLI_VERSION || "DEV";
 const coreVersion = process.env.CORE_VERSION || "DEV";
-const versionCheck = new VersionCheck(version);
+let versionCheck = new VersionCheck(version);
 const versionMessage = versionCheck.getVersionMessage();
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
@@ -76,6 +76,7 @@ const handleSignal = async (signal: NodeJS.Signals) => {
 };
 const closeHandler = async () => {
   try {
+    if (versionCheck) versionCheck.destroy();
     // graceful shutdown
     switch (server.status) {
       case ServerStatus.opening:
@@ -149,6 +150,7 @@ async function startGanache(err: Error) {
     }
   }
   versionCheck.init().log();
+  versionCheck = null;
 }
 console.log("Starting RPC server");
 server.listen(cliSettings.port, cliSettings.host, startGanache);
