@@ -106,9 +106,9 @@ export default class SimulationHandler extends Emittery<{
   #vm: VM;
   #stateManager: DefaultStateManager;
   #runCallOpts: RunCallOpts;
-  // List of addresses to be excluded from access list
+  /** The list of addresses to be excluded from access list */
   #accessListExclusions: EthereumJsAddress[] = [];
-  // List of addresses only to be added in case of present storage slots
+  /**The list of addresses only to be added in case of present storage slots */
   #addressesOnlyStorage: EthereumJsAddress[] = [];
   #intrinsicGas: bigint;
   #initializationError: ERROR;
