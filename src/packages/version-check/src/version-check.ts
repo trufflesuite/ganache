@@ -39,8 +39,6 @@ export class VersionCheck {
   private _session: http2.ClientHttp2Session;
   private _request: http2.ClientHttp2Stream;
 
-  private _status: VersionCheckStatus;
-
   constructor(
     currentVersion: string,
     config?: VersionCheckConfig,
@@ -274,10 +272,6 @@ export class VersionCheck {
       return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
     }
     return "";
-  }
-
-  get status() {
-    return this._status;
   }
 
   static get DEFAULTS(): VersionCheckConfig {
