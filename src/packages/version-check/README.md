@@ -125,14 +125,12 @@ Starting RPC server
 
 ```sh
 {
-        "config": {
-                "packageName": "ganache",
-                "enabled": true,
-                "url": "https://version.trufflesuite.com/",
-                "ttl": 300,
-                "latestVersion": "7.0.5",
-                "latestVersionLogged": "7.0.5"
-        }
+       "packageName": "ganache",
+       "enabled": true,
+       "url": "https://version.trufflesuite.com/",
+       "ttl": 300,
+       "latestVersion": "7.0.5",
+       "latestVersionLogged": "7.0.5"
 }
 ```
 
