@@ -4,7 +4,7 @@ import type * as UtilTypes from "@ganache/ethereum-utils";
 import type { EthereumProvider, Externalize } from "./provider";
 import { BlockHeader } from "@ganache/ethereum-block";
 import { Data, Quantity } from "@ganache/utils";
-import { CallOverrides } from "./helpers/run-call";
+import { CallOverrides } from "./helpers/simulation-handler";
 import { Log, InternalTag } from "@ganache/ethereum-utils";
 
 type EthSignedDataParams = Parameters<
