@@ -54,9 +54,8 @@ export function detectCI() {
   let currentEnvVar = 0;
 
   while (currentEnvVar < envVars.length) {
-    const test = envVars[currentEnvVar];
-    if (!!process.env[test]) {
-      console.log(test);
+    const current = envVars[currentEnvVar];
+    if (!!process.env[current]) {
       return true;
     }
 
