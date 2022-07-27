@@ -2,9 +2,7 @@ import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
 import Conf from "conf";
 import { Logger } from "@ganache/ethereum-options";
-import { default as semverDiff } from "semver/functions/diff";
-import { default as semverValid } from "semver/functions/valid";
-import { default as semverGte } from "semver/functions/gte";
+import { isValidSemver, semverUpgradeType } from "./semver";
 
 export type VersionCheckConfig = {
   packageName: string;
@@ -63,7 +61,7 @@ export class VersionCheck {
     // If config was passed in, save changes
     if (config) this.saveConfig();
 
-    const validSemver = this.isValidSemver(currentVersion);
+    const validSemver = isValidSemver(currentVersion);
     this.setStatus("idle");
     if (validSemver) {
       this._currentVersion = validSemver;
@@ -94,10 +92,6 @@ export class VersionCheck {
     this._request = null;
     this._session = null;
     this.setStatus("destroyed");
-  }
-
-  isValidSemver(semver: string) {
-    return semverValid(semver);
   }
 
   setEnabled(enabled: boolean) {
@@ -142,8 +136,8 @@ export class VersionCheck {
     return this.ConfigManager.path;
   }
 
-  alreadyLoggedThisVersion() {
-    return semverGte(
+  alreadyLoggedVersion() {
+    return !semverUpgradeType(
       this._config.latestVersionLogged,
       this._config.latestVersion
     );
@@ -156,22 +150,11 @@ export class VersionCheck {
       return false;
     } else if (!this._config.enabled) {
       return false;
-    } else if (this.alreadyLoggedThisVersion()) {
+    } else if (this.alreadyLoggedVersion()) {
       return false;
     }
 
     return true;
-  }
-
-  detectSemverChange(currentVersion: string, latestVersion: string) {
-    if (
-      !currentVersion ||
-      !latestVersion ||
-      semverGte(currentVersion, latestVersion)
-    )
-      return null;
-
-    return semverDiff(currentVersion, latestVersion);
   }
 
   async getLatestVersion() {
@@ -229,7 +212,7 @@ export class VersionCheck {
     const currentVersion = this._currentVersion;
     const { packageName, latestVersion } = this._config;
 
-    const upgradeType = this.detectSemverChange(currentVersion, latestVersion);
+    const upgradeType = semverUpgradeType(currentVersion, latestVersion);
 
     this.logBannerMessage({
       upgradeType,
@@ -306,7 +289,7 @@ export class VersionCheck {
   getVersionMessage() {
     const currentVersion = this._currentVersion;
     const { latestVersion } = this._config;
-    if (this.detectSemverChange(currentVersion, latestVersion)) {
+    if (semverUpgradeType(currentVersion, latestVersion)) {
       return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
     }
     return "";
