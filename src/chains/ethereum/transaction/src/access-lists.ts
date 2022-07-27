@@ -121,9 +121,6 @@ export class AccessLists {
    * @returns Boolean indicating if the two access lists are the same.
    */
   public static areAccessListsSame(a: AccessList, b: AccessList) {
-    if (!a && !b) {
-      return true;
-    }
     if (a.length !== b.length) {
       return false;
     }
