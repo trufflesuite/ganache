@@ -12,6 +12,7 @@ export type VersionCheckConfig = {
   ttl: number;
   latestVersion: string;
   latestVersionLogged: string;
+  disableInCI: boolean;
 };
 
 export type ConfigManager = {
@@ -45,29 +46,25 @@ export class VersionCheck {
     config?: VersionCheckConfig,
     logger?: Logger
   ) {
-    // Creates a new config, or reads existing from disk
     this.ConfigManager = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME
         : "config" // config is the package default
     });
 
-    // pulls the config out of the manager, lays optional props over top
     this._config = {
       ...VersionCheck.DEFAULTS,
       ...this.ConfigManager.get(),
       ...config
     };
 
-    // If config was passed in, save changes
     if (config) this.saveConfig();
 
-    const validSemver = isValidSemver(currentVersion);
+    const version = isValidSemver(currentVersion);
 
-    if (validSemver && !detectCI()) {
-      this._currentVersion = validSemver;
+    if (version && !detectCI()) {
+      this._currentVersion = version;
     } else {
-      // Semver is invalid, turn off version check
       this.setEnabled(false);
     }
 
@@ -75,7 +72,6 @@ export class VersionCheck {
   }
 
   init() {
-    // this is async, but we don't `await` it here; we just want it to start doing work in the background.
     this.getLatestVersion();
     return this;
   }
@@ -138,9 +134,7 @@ export class VersionCheck {
   }
 
   canNotifyUser() {
-    const currentVersion = this._currentVersion;
-
-    if (!currentVersion) {
+    if (!this._currentVersion) {
       return false;
     } else if (!this._config.enabled) {
       return false;
@@ -293,7 +287,8 @@ export class VersionCheck {
       url: "https://version.trufflesuite.com",
       ttl: 2000, // http2session.setTimeout
       latestVersion: "0.0.0", // Last version fetched from the server
-      latestVersionLogged: "0.0.0" // Last version to tell the user about
+      latestVersionLogged: "0.0.0", // Last version to tell the user about
+      disableInCI: true
     };
   }
 }

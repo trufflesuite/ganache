@@ -19,14 +19,16 @@ describe("@ganache/version-check", () => {
     url: "test",
     ttl: 100,
     latestVersion: "99.99.99",
-    latestVersionLogged: "99.99.90"
+    latestVersionLogged: "99.99.90",
+    disableInCI: false
   };
   const sparseConfig = {
     packageName: "test",
     enabled: true,
     url: "test",
     ttl: 100,
-    latestVersion: "99.99.99"
+    latestVersion: "99.99.99",
+    disableInCI: false
   };
 
   let message;
@@ -54,6 +56,7 @@ describe("@ganache/version-check", () => {
     });
     it("instantiates with the default config", () => {
       const config = VersionCheck.DEFAULTS;
+
       assert.deepStrictEqual(
         vc._config,
         config,
