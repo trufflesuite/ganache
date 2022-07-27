@@ -159,19 +159,20 @@ export class VersionCheck {
 
   async getLatestVersion() {
     if (!this._config.enabled) return false;
+    this.setStatus("fetching");
     try {
       const latestVersion = await this.fetchLatestVersion();
       this.setLatestVersion(latestVersion);
       this.setStatus("idle");
       return true;
-    } catch {
-      return false;
-    }
+    } catch {}
+    this.setStatus("idle");
+    return false;
   }
 
   private fetchLatestVersion() {
     const { packageName, url, ttl } = this._config;
-    this.setStatus("fetching");
+
     return new Promise<string>((resolve, reject) => {
       const session = http2.connect(url);
 
