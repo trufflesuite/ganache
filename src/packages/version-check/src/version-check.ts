@@ -161,7 +161,7 @@ export class VersionCheck {
     if (!this._config.enabled) return false;
     this.setStatus("fetching");
     try {
-      const latestVersion = await this.fetchLatestVersion();
+      const latestVersion = await this.fetchLatest();
       this.setLatestVersion(latestVersion);
       this.setStatus("idle");
       return true;
@@ -170,7 +170,7 @@ export class VersionCheck {
     return false;
   }
 
-  private fetchLatestVersion() {
+  private fetchLatest() {
     const { packageName, url, ttl } = this._config;
 
     return new Promise<string>((resolve, reject) => {

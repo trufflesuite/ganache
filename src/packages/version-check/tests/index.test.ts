@@ -544,7 +544,7 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("getLatestVersion/fetchLatestVersion", () => {
+  describe("getLatestVersion/fetchLatest", () => {
     let api;
     const apiResponse = "1.0.0";
     const apiSettings = {
@@ -592,14 +592,14 @@ describe("@ganache/version-check", () => {
       assert.equal(
         await vc.getLatestVersion(),
         false,
-        "Version Check will fetchLatestVersion if disabled."
+        "Version Check will fetchLatest if disabled."
       );
     });
 
     it("fetches the latest version from the API", async () => {
       let latestVersion;
 
-      latestVersion = await vc.fetchLatestVersion();
+      latestVersion = await vc.fetchLatest();
 
       assert.equal(latestVersion === apiResponse, true);
     });
