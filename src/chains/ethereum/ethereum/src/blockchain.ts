@@ -35,7 +35,6 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   findInsertPosition,
-  unref,
   KNOWN_CHAINIDS
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
@@ -71,10 +70,13 @@ import {
   makeStepEvent,
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
+  VmConsoleLogEvent,
   VmStepEvent
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
+import { maybeGetLogs } from "@ganache/console.log";
+
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
   mcl.verifyOrderG1(true); // subgroup checks for G1
@@ -97,6 +99,7 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": VmConsoleLogEvent;
   ready: undefined;
   stop: undefined;
 };
@@ -291,18 +294,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       {
-        // create first block
+        // Grab current time once to be used in all references to "now", to avoid
+        // any discrepancies. See https://github.com/trufflesuite/ganache/issues/3271
+        const startTime = new Date();
 
         // if we don't have a time from the user get one now
-        if (options.chain.time == null) options.chain.time = new Date();
+        if (options.chain.time == null) options.chain.time = startTime;
 
+        // create first block
         const timestamp = options.chain.time.getTime();
         const firstBlockTime = Math.floor(timestamp / 1000);
 
         // if we are using clock time we need to record the time offset so
         // other blocks can have timestamps relative to our initial time.
         if (options.miner.timestampIncrement === "clock") {
-          this.#timeAdjustment = timestamp - Date.now();
+          this.#timeAdjustment = timestamp - +startTime;
         }
 
         // if we don't already have a latest block, create a genesis block!
@@ -342,6 +348,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         });
         miner.on("ganache:vm:tx:after", event => {
           this.emit("ganache:vm:tx:after", event);
+        });
+        miner.on("ganache:vm:tx:console.log", event => {
+          options.logging.logger.log(...event.logs);
+          this.emit("ganache:vm:tx:console.log", event);
         });
         //#endregion
 
@@ -1064,10 +1074,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         null,
         parentBlock.header.number
       );
+      const options = this.#options;
 
       const vm = await this.createVmFromStateTrie(
         stateTrie,
-        this.#options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedContractSize,
         false, // precompiles have already been initialized in the stateTrie
         common
       );
@@ -1077,6 +1088,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       vm.stateManager.checkpoint();
 
       vm.on("step", (event: InterpreterStep) => {
+        const logs = maybeGetLogs(event);
+        if (logs) {
+          options.logging.logger.log(...logs);
+          this.emit("ganache:vm:tx:console.log", {
+            context: transactionContext,
+            logs
+          });
+        }
+
         if (!this.#emitStepEvent) return;
         const ganacheStepEvent = makeStepEvent(transactionContext, event);
         this.emit("ganache:vm:tx:step", ganacheStepEvent);

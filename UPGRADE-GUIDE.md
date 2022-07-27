@@ -431,6 +431,7 @@ sending account to cover the maximum cost.
 - default `coinbase` (`eth_coinbase` RPC call) is now the `0x0` address (fixes #201)
 - `sender doesn't have enough funds to send tx` errors are now prefixed with `VM Exception while processing transaction`
 - `logs` subscription events are emitted before `newHeads` events
+- the default `callGasLimit` has changed from `Number.MAX_SAFE_INTEGER` ($2^{53} - 1$) to `50_000_000`.
 
 
 
