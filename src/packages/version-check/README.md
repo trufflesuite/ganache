@@ -102,9 +102,9 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 1. Banner message displays, `latestVersion` > `latestVersionLogged`
 
 ```javascript
-export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                                 hayek@rothbard
+export VERSION="1.2.3"; npm run start
 
-> root@ start /home/hayek/proj/ganache
+> root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
 
 Debugger listening on ws://127.0.0.1:9229/911542db-3daa-433c-a31f-2aa662a084e2
@@ -123,7 +123,7 @@ Starting RPC server
 
 2. Config updates `latestVersionLogged`
 
-```bash
+```sh
 {
         "config": {
                 "packageName": "ganache",
@@ -142,10 +142,10 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 
 1. Banner message does not display; user has already seen this version.
 
-```bash
-export VERSION="1.2.3"; npm run start                                                                                                                                                                                                                           130 ↵ hayek@rothbard
+```sh
+export VERSION="1.2.3"; npm run start
 
-> root@ start /home/hayek/proj/ganache
+> root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
 
 Debugger listening on ws://127.0.0.1:9229/27f051e4-1c84-4bdf-a41d-95601466ba2b
