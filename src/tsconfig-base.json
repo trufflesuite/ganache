@@ -15,9 +15,7 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "newLine": "lf",
-    "lib": [
-      "ES2020"
-    ],
+    "lib": ["ES2020"],
     "experimentalDecorators": true
   }
 }
