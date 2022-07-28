@@ -28,7 +28,7 @@ export interface BlockTime {
 
 export class ClockBasedBlockTime implements BlockTime {
   private _getReferenceClockTime: () => number;
-  private _timeOffset: number = 0;
+  protected _timeOffset: number = 0;
 
   /**
    * Throws if the timestamp is not valid (for the purposes of providing a block timestamp). Although a negative timestamp
@@ -87,9 +87,9 @@ export class ClockBasedBlockTime implements BlockTime {
 }
 
 /*
-  A BlockTime implementation that will create a series of incremental block times. The static reference clock
-  will increment by the duration specified by incrementMilliseconds, every time createBlockTimestampInSeconds()
-  is called.
+  A BlockTime implementation that will create a series of incremental block times. The reference clock represents
+  the start time of the clock, and every time createBlockTimestampInSeconds() is called, the _timeOffset is incremented
+  by the duration specified by incrementMilliseconds.
 
   e.g., 
   const blockTime = new IncrementBasedBlockTime(0, 2);
@@ -104,17 +104,16 @@ export class ClockBasedBlockTime implements BlockTime {
   blockTime.createBlockTimestampInSeconds();
 */
 export class IncrementBasedBlockTime extends ClockBasedBlockTime {
-  private readonly _tickReferenceClock: () => void;
+  private readonly _incrementMilliseconds: number;
 
   constructor(startTime: number, incrementMilliseconds: number) {
-    let referenceTime = startTime;
-    super(() => referenceTime, startTime);
-    this._tickReferenceClock = () => (referenceTime += incrementMilliseconds);
+    super(() => startTime, startTime);
+    this._incrementMilliseconds = incrementMilliseconds;
   }
 
   override createBlockTimestampInSeconds(timestamp?: number): number {
     const blockTimestamp = super.createBlockTimestampInSeconds(timestamp);
-    this._tickReferenceClock();
+    this._timeOffset = this._timeOffset + this._incrementMilliseconds;
     return blockTimestamp;
   }
 }

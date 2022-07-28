@@ -441,15 +441,15 @@ describe("block-time", () => {
           blockTime.createBlockTimestampInSeconds(futureTimestamp);
         const offset = blockTime.getOffset();
 
-        assert(offset > 0);
         assert.strictEqual(
           blockTimestamp,
           Math.floor(futureTimestamp / 1000),
           "Unexpected blockTimestamp"
         );
+
         assert.strictEqual(
           offset,
-          futureTimestamp - startTime,
+          futureTimestamp - startTime + increment,
           "Unexpected offset"
         );
       });
@@ -470,7 +470,7 @@ describe("block-time", () => {
         );
         assert.strictEqual(
           offset,
-          pastTimestamp - startTime,
+          pastTimestamp - startTime + increment,
           "Unexpected offset"
         );
       });

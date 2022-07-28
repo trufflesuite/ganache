@@ -108,7 +108,8 @@ describe("provider", () => {
         method: "eth_getBlockByNumber",
         params: ["latest", false]
       });
-      const expectedTime = Math.floor((fastForward + +time) / 1000) + timestampIncrement;
+      const expectedTime =
+        Math.floor((fastForward + +time) / 1000) + timestampIncrement;
       assert.strictEqual(parseInt(block.timestamp), expectedTime);
 
       await provider.disconnect();
