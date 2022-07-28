@@ -56,7 +56,7 @@ const argv = yargs(getArgv())
     return yargs
       .usage(
         chalk`{hex("${TruffleColors.porsche}").bold Create a new package in the given {dim <}location{dim >} with the provided {dim <}name{dim >}.}\n\n` +
-          chalk`{bold Usage}\n  {bold $} ${COMMAND_NAME} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
+        chalk`{bold Usage}\n  {bold $} ${COMMAND_NAME} {dim <}name{dim >} {dim --}location {dim <}location{dim >} {dim [--folder <folder>]}`
       )
       .positional("name", {
         // the spaces here are a hack to make this command description line up with the others in the help output

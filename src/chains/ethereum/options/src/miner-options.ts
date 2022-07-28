@@ -328,7 +328,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     normalize: BigInt,
     cliDescription:
       "Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.",
-    default: () => BigInt(10n),
+    default: () => 10n,
     cliType: "string"
   }
 };

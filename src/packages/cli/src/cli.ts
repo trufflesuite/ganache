@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-// For backward compatiibility support flavor argument - filecoin
-
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import args from "./args";

@@ -8,7 +8,7 @@ const getProvider = async (options?: Partial<FilecoinProviderOptions>) => {
   const provider = new FilecoinProvider(
     {
       chain: {
-        ipfsPort: 5004 // Use a different port than the default, to test it works
+        ipfsPort: 5002 // Use a different port than the default, to test it works
       },
       logging: {
         logger: {

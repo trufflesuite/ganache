@@ -31,7 +31,7 @@ const chunkSize = 1024 * 1024;
 const IS_WINDOWS = process.platform === "win32";
 
 describe("server", () => {
-  const port = 5432;
+  const port = 5234;
   const networkId = 1234;
   const jsonRpcJson: any = {
     jsonrpc: "2.0",

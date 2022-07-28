@@ -40,7 +40,7 @@ export type Connector = {
   [K in FlavorName]: ConnectorsByName[K];
 }[FlavorName];
 
-export function GetConnector<T = any>(
+export function GetConnector<T = string>(
   flavor: T,
   providerOptions: Options<typeof flavor>,
   executor: Executor

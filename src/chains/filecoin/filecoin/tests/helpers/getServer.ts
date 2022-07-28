@@ -12,7 +12,12 @@ const getServer = async (port: number, pluginServerOptionsConfig = null) => {
         ws: true
       },
       chain: {
-        ipfsPort: 5004
+        ipfsPort: 5002 // Use a different port than the default, to test it works
+      },
+      logging: {
+        logger: {
+          log: () => {}
+        }
       }
     },
     pluginServerOptionsConfig
