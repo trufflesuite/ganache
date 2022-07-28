@@ -479,6 +479,12 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         inProgress.delete(transaction);
       });
     }
+
+    if (pending.size > 0) {
+      pending.forEach(txsFromOrigin => {
+        txsFromOrigin.array.forEach(tx => {
+          tx.locked = false;
+        });
       });
     }
     return executables;
