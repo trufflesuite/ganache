@@ -16,6 +16,7 @@ describe("@ganache/version-check", () => {
   const testConfig = {
     packageName: "test",
     enabled: true,
+    lastNotification: 0,
     url: "test",
     ttl: 100,
     latestVersion: "99.99.99",
@@ -271,6 +272,25 @@ describe("@ganache/version-check", () => {
         false,
         "Version Check will notify if alreadyLoggedVersion is true"
       );
+    });
+    it("false if notification Interval has not passed", async () => {
+      const currentVersion = "0.0.1";
+      const config = {
+        latestVersion: "1.0.0",
+        enabled: true,
+        disableInCI: false
+      };
+      vc = new VersionCheck(currentVersion, config);
+      vc.alreadyLoggedVersion = () => false;
+
+      let canNotifyUser = vc.canNotifyUser();
+
+      assert.equal(canNotifyUser, true);
+
+      vc._config.lastNotification = new Date().getTime();
+      canNotifyUser = vc.canNotifyUser();
+
+      assert.equal(canNotifyUser, false);
     });
 
     it("true if currentVersion is a valid semver < latestVersion that has not been previously logged to the user", () => {
@@ -633,6 +653,14 @@ describe("@ganache/version-check", () => {
 
       assert.equal(latestVersion === apiResponse, true);
     });
+    it("sets lastNotification in the config", async () => {
+      const lastNotification = vc._config.lastNotification;
+      await vc.getLatestVersion();
+
+      const thisNotification = vc._config.lastNotification;
+
+      assert.equal(thisNotification > lastNotification, true);
+    });
   });
 
   describe("destroy", () => {
@@ -641,6 +669,20 @@ describe("@ganache/version-check", () => {
 
       assert.equal(vc._request, null);
       assert.equal(vc._session, null);
+    });
+  });
+
+  describe("notificationIntervalHasPassed", () => {
+    it("returns true", () => {
+      const hasPassed = vc.notificationIntervalHasPassed();
+      assert.equal(hasPassed, true);
+    });
+    it("returns false", () => {
+      const lastNotification = new Date().getTime();
+      vc.setLastNotification(lastNotification);
+
+      const hasPassed = vc.notificationIntervalHasPassed();
+      assert.equal(hasPassed, false);
     });
   });
 });

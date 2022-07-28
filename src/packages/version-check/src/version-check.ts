@@ -12,6 +12,7 @@ export type VersionCheckConfig = {
   ttl: number;
   latestVersion: string;
   latestVersionLogged: string;
+  lastNotification: number;
   disableInCI: boolean;
 };
 
@@ -36,6 +37,7 @@ export class VersionCheck {
 
   private _session: http2.ClientHttp2Session;
   private _request: http2.ClientHttp2Stream;
+  private _notificationInterval: number = 86400;
 
   constructor(
     currentVersion: string,
@@ -56,18 +58,18 @@ export class VersionCheck {
 
     if (config) this.saveConfig();
 
+    if (this._config.disableInCI) {
+      if (detectCI()) {
+        this.setEnabled(false);
+      }
+    }
+
     const version = isValidSemver(currentVersion);
 
     if (version) {
       this._currentVersion = version;
     } else {
       this.setEnabled(false);
-    }
-
-    if (this._config.disableInCI) {
-      if (detectCI()) {
-        this.setEnabled(false);
-      }
     }
 
     this._logger = logger || console;
@@ -115,6 +117,10 @@ export class VersionCheck {
     this.set("url", url);
   }
 
+  setLastNotification(time: number) {
+    this.set("lastNotification", time);
+  }
+
   private set(key: string, value: string | number | boolean) {
     this._config[key] = value;
     this.saveConfig();
@@ -135,12 +141,19 @@ export class VersionCheck {
     );
   }
 
+  notificationIntervalHasPassed() {
+    const timePassed = new Date().getTime() - this._config.lastNotification;
+    return timePassed > this._notificationInterval;
+  }
+
   canNotifyUser() {
     if (!this._currentVersion) {
       return false;
     } else if (!this._config.enabled) {
       return false;
     } else if (this.alreadyLoggedVersion()) {
+      return false;
+    } else if (!this.notificationIntervalHasPassed()) {
       return false;
     }
 
@@ -151,10 +164,12 @@ export class VersionCheck {
     if (!this._config.enabled) return false;
     try {
       this.setLatestVersion(await this.fetchLatest());
+      this.setLastNotification(new Date().getTime());
     } catch {}
   }
 
   private fetchLatest() {
+    this.destroy();
     const { packageName, url, ttl } = this._config;
 
     return new Promise<string>((resolve, reject) => {
@@ -286,6 +301,7 @@ export class VersionCheck {
       ttl: 2000, // http2session.setTimeout
       latestVersion: "0.0.0", // Last version fetched from the server
       latestVersionLogged: "0.0.0", // Last version to tell the user about
+      lastNotification: 0,
       disableInCI: true
     };
   }
