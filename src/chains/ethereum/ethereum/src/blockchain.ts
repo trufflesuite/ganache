@@ -612,10 +612,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // on a few factors. in "instamine" mode (meaning blockTime = 0), we usually
     // only mine 1 transaction per block. However, if the miner is currently
     // paused (from miner_stop being called), whenever they restart the miner
-    // all executable transactions will be mined, so the pending contain all
-    // executables that will fit in a block. if we're not in instamine mode,
-    // the miner will always try to fill the block, regardless of whether the
-    // miner is paused or not
+    // all executable transactions will be mined, so the pending block should
+    // contain all executables that will fit in a block. if we're not in
+    // instamine mode, the miner will always try to fill the block, regardless
+    // of whether the miner is paused or not
     const paused = this.#isPaused();
     const maxTransactions = instamine
       ? paused
