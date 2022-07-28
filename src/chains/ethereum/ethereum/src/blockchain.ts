@@ -618,7 +618,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   resume(_threads: number = 1) {
     if (!this.#isPaused()) {
-      console.log("Warning: startMining called when miner was already started");
+      this.#options.logging.logger.log(
+        "Warning: startMining called when miner was already started"
+      );
       return;
     }
 
