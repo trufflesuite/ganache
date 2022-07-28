@@ -124,6 +124,10 @@ describe("api", () => {
           );
         };
 
+        /**
+         * Subscribes to new heads, calls `miner_start`, awaits a "message",
+         * and unsubscribes from the subscription.
+         */
         const subAndAwaitBlock = async () => {
           const subId = await provider.send("eth_subscribe", ["newHeads"]);
           // this won't do anything if the miner isn't paused, so no harm in
