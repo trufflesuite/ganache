@@ -15,16 +15,16 @@ export function parseFilterDetails(
   return { addresses, topics };
 }
 
-export async function parseFilterRange(
+export function parseFilterRange(
   filter: Omit<RangeFilterArgs, "address" | "topics">,
   blockchain: Blockchain
 ) {
   const latestBlock = blockchain.blocks.latest.header.number;
-  const fromBlock = await blockchain.blocks.getEffectiveNumber(
+  const fromBlock = blockchain.blocks.getEffectiveNumber(
     filter.fromBlock || Tag.latest
   );
   const latestBlockNumber = latestBlock.toNumber();
-  const toBlock = await blockchain.blocks.getEffectiveNumber(
+  const toBlock = blockchain.blocks.getEffectiveNumber(
     filter.toBlock || Tag.latest
   );
   let toBlockNumber: number;
@@ -40,12 +40,12 @@ export async function parseFilterRange(
     toBlockNumber
   };
 }
-export async function parseFilter(
+export function parseFilter(
   filter: RangeFilterArgs = { address: [], topics: [] },
   blockchain: Blockchain
 ) {
   const { addresses, topics } = parseFilterDetails(filter);
-  const { fromBlock, toBlock, toBlockNumber } = await parseFilterRange(
+  const { fromBlock, toBlock, toBlockNumber } = parseFilterRange(
     filter,
     blockchain
   );

@@ -156,13 +156,24 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  async getEffectiveNumber(
+  getEffectiveNumber(
     tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.latest
-  ): Promise<Quantity> {
+  ): Quantity {
     if (typeof tagOrBlockNumber === "string") {
-      const block = await this.getBlockByTag(tagOrBlockNumber as Tag);
-      if (block) {
-        return block.header.number;
+      // having another switch to get the number rather than using
+      // `getBlockByTag` allows us to run this synchronously since we don't have
+      // to make a pending block
+      const tag = tagOrBlockNumber as Tag;
+      switch (tag) {
+        case Tag.latest:
+          return this.latest.header.number;
+        case Tag.pending:
+          return Quantity.from(this.latest.header.number.toNumber() + 1);
+        case Tag.earliest:
+          return this.earliest.header.number;
+        default:
+          // the key is probably a hex string, let nature takes its course.
+          break;
       }
     }
     return Quantity.from(tagOrBlockNumber);
