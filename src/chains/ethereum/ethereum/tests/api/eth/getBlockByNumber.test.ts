@@ -124,6 +124,97 @@ describe("api", () => {
           );
         };
 
+        describe("basic checks", () => {
+          beforeEach(async () => {
+            provider = await getProvider({});
+            [from, to] = await provider.send("eth_accounts");
+          });
+          afterEach(async () => {
+            provider && (await provider.disconnect());
+          });
+
+          it(`has a block number of "latest" block + 1`, async () => {
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+            const latestBlock = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+            assert.strictEqual(
+              Quantity.toNumber(pendingBlock.number),
+              Quantity.toNumber(latestBlock.number) + 1,
+              `Pending block doesn't have expected number.`
+            );
+          });
+
+          it(`has the correct \`baseFeePerGas\``, async () => {
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+            const latestBlock = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+            // baseFeePerGas is .875 (aka 7/8) of the previous block if empty
+            const expected =
+              (Quantity.toBigInt(latestBlock.baseFeePerGas) * 7n) / 8n;
+            assert.strictEqual(
+              Quantity.toBigInt(pendingBlock.baseFeePerGas),
+              expected,
+              `Pending block doesn't have expected \`baseFeePerGas\`.`
+            );
+          });
+
+          it(`has no transactions if the pool is empty`, async () => {
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+            assert.strictEqual(
+              pendingBlock.transactions.length,
+              0,
+              `Pending block isn't empty when the transaction pool was empty.`
+            );
+          });
+        });
+
+        describe("`miner.blockTime=0` mode", () => {
+          beforeEach(async () => {
+            provider = await getProvider({
+              miner: {
+                // strict mode doesn't affect the contents of the pending block,
+                // but it will make it easier to fetch a pending block before
+                // transactions start mining
+                instamine: "strict",
+                blockGasLimit
+              }
+            });
+            [from, to] = await provider.send("eth_accounts");
+          });
+
+          afterEach(async () => {
+            provider && (await provider.disconnect());
+          });
+
+          it(`has one transaction regardless of the number of executables in the pool and is equal to next mined block`, async () => {
+            // send 1 more transaction than will fit in the block
+            for (let i = 0; i < emptyTransactionsPerBlock + 1; i++) {
+              // we're in strict mode, so we can await sending the transaction
+              // and it will be in the pool but not yet mined
+              await provider.send("eth_sendTransaction", [
+                { from, to, gas: "0x5208" }
+              ]);
+            }
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+            assert.strictEqual(
+              pendingBlock.transactions.length,
+              1,
+              `Pending block didn't have expected number of transactions.`
+            );
+            await assertPendingEqualsMined(pendingBlock);
+          });
+        });
+
         /**
          * Subscribes to new heads, calls `miner_start`, awaits a "message",
          * and unsubscribes from the subscription.
@@ -220,97 +311,6 @@ describe("api", () => {
               `Transaction pool changed while fetching pending block.`
             );
           });
-
-        describe("basic checks", () => {
-          beforeEach(async () => {
-            provider = await getProvider({});
-            [from, to] = await provider.send("eth_accounts");
-          });
-          afterEach(async () => {
-            provider && (await provider.disconnect());
-          });
-
-          it(`has a block number of "latest" block + 1`, async () => {
-            const pendingBlock = await provider.send("eth_getBlockByNumber", [
-              "pending"
-            ]);
-            const latestBlock = await provider.send("eth_getBlockByNumber", [
-              "latest"
-            ]);
-            assert.strictEqual(
-              Quantity.toNumber(pendingBlock.number),
-              Quantity.toNumber(latestBlock.number) + 1,
-              `Pending block doesn't have expected number.`
-            );
-          });
-
-          it(`has the correct \`baseFeePerGas\``, async () => {
-            const pendingBlock = await provider.send("eth_getBlockByNumber", [
-              "pending"
-            ]);
-            const latestBlock = await provider.send("eth_getBlockByNumber", [
-              "latest"
-            ]);
-            // baseFeePerGas is .875 (aka 7/8) of the previous block if empty
-            const expected =
-              (Quantity.toBigInt(latestBlock.baseFeePerGas) * 7n) / 8n;
-            assert.strictEqual(
-              Quantity.toBigInt(pendingBlock.baseFeePerGas),
-              expected,
-              `Pending block doesn't have expected \`baseFeePerGas\`.`
-            );
-          });
-
-          it(`has no transactions if the pool is empty`, async () => {
-            const pendingBlock = await provider.send("eth_getBlockByNumber", [
-              "pending"
-            ]);
-            assert.strictEqual(
-              pendingBlock.transactions.length,
-              0,
-              `Pending block isn't empty when the transaction pool was empty.`
-            );
-          });
-        });
-
-        describe("`miner.blockTime=0` mode", () => {
-          beforeEach(async () => {
-            provider = await getProvider({
-              miner: {
-                // strict mode doesn't affect the contents of the pending block,
-                // but it will make it easier to fetch a pending block before
-                // transactions start mining
-                instamine: "strict",
-                blockGasLimit
-              }
-            });
-            [from, to] = await provider.send("eth_accounts");
-          });
-
-          afterEach(async () => {
-            provider && (await provider.disconnect());
-          });
-
-          it(`has one transaction regardless of the number of executables in the pool and is equal to next mined block`, async () => {
-            // send 1 more transaction than will fit in the block
-            for (let i = 0; i < emptyTransactionsPerBlock + 1; i++) {
-              // we're in strict mode, so we can await sending the transaction
-              // and it will be in the pool but not yet mined
-              await provider.send("eth_sendTransaction", [
-                { from, to, gas: "0x5208" }
-              ]);
-            }
-            const pendingBlock = await provider.send("eth_getBlockByNumber", [
-              "pending"
-            ]);
-            assert.strictEqual(
-              pendingBlock.transactions.length,
-              1,
-              `Pending block didn't have expected number of transactions.`
-            );
-            await assertPendingEqualsMined(pendingBlock);
-          });
-        });
 
         describe("paused `miner.blockTime=0` mode", () => {
           beforeEach(async () => {
