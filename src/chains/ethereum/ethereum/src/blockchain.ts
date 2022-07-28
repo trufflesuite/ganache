@@ -587,9 +587,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   };
 
   createPendingBlock = async (previousBlock: Block) => {
-    const nextBlock = this.#readyNextBlock(previousBlock);
     const options = this.#options;
     const minerOpts = options.miner;
+    // "instamine" mode means blockTime = 0
+    const instamine = this.#instamine;
+    let timestamp: number = null;
+    if (!instamine) {
+      // we can't always get the pending block's timestamp right because they
+      // could have the miner paused, but if blockTime > 0, blocks are mined at
+      // regular intervals, so we can at least make an educated guess
+      timestamp =
+        previousBlock.header.timestamp.toNumber() + minerOpts.blockTime;
+    }
+    const nextBlock = this.#readyNextBlock(previousBlock, timestamp);
     // If the executables has inProgress transactions, we were already
     // in the middle of mining a block when the pending block was requested.
     // The block that is currently being mined is what we want to return as pending,
