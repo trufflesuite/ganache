@@ -370,7 +370,7 @@ export default class Miner extends Emittery<{
             // notice: when `maxTransactions` is `-1` (AKA infinite), `numTransactions === maxTransactions`
             // will always return false, so this comparison works out fine.
             if (
-              blockGasLeft <= Params.TRANSACTION_GAS ||
+              blockGasLeft < Params.TRANSACTION_GAS ||
               numTransactions === maxTransactions
             ) {
               break;
