@@ -472,7 +472,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
     if (inProgress.size > 0) {
       inProgress.forEach(transaction => {
-        // unlock the tx so it can actually be mined and "added" to the block
         transaction.locked = false;
         const origin = transaction.from.toString();
         if (pending.has(origin)) {
