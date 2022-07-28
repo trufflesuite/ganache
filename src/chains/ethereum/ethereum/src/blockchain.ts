@@ -607,7 +607,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // i.e. all inProgress executables are moved to the front of the pending executables.
     const executables =
       this.transactions.transactionPool.cloneAndResetExecutables();
-    const paused = this.#isPaused();
 
     // the number of transactions that should be included in this block depends
     // on a few factors. in "instamine" mode (meaning blockTime = 0), we usually
@@ -617,6 +616,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // executables that will fit in a block. if we're not in instamine mode,
     // the miner will always try to fill the block, regardless of whether the
     // miner is paused or not
+    const paused = this.#isPaused();
     const maxTransactions = instamine
       ? paused
         ? Capacity.FillBlock
