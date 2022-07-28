@@ -606,7 +606,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       options.chain.allowUnlimitedContractSize,
       true
     );
-    vm.stateManager.checkpoint();
+
     const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
     let pendingBlock: Block;
     // set up listener to actually assign the newly mined pending block
