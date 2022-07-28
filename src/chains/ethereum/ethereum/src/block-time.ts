@@ -30,13 +30,23 @@ export class ClockBasedBlockTime implements BlockTime {
   private _getReferenceClockTime: () => number;
   private _timeOffset: number = 0;
 
+  /**
+   * Throws if the timestamp is not valid (for the purposes of providing a block timestamp). Although a negative timestamp
+   * is generally valid, this cannot be represented by the block timestamp (Quantity must be a positive integer value).
+   * @param  {number} timestamp - the timestamp to validate
+   */
   private static validateTimestamp(timestamp: number) {
     if (timestamp < 0) {
-      throw new Error(`Invalid timestamp: ${timestamp}. Value must be positive.`);
+      throw new Error(
+        `Invalid timestamp: ${timestamp}. Value must be positive.`
+      );
     }
   }
 
-  constructor(getReferenceClockTime: () => number, startTime: number | undefined) {
+  constructor(
+    getReferenceClockTime: () => number,
+    startTime: number | undefined
+  ) {
     this._getReferenceClockTime = getReferenceClockTime;
 
     if (startTime !== undefined) {
@@ -51,9 +61,8 @@ export class ClockBasedBlockTime implements BlockTime {
 
   setOffset(offset: number) {
     const referenceTimestamp = this._getReferenceClockTime();
-    if (offset < -referenceTimestamp) {
-      throw new Error(`Invalid offset: ${offset}, value must be greater than the negative of the current reference clock timestamp: ${referenceTimestamp}`);
-    }
+    ClockBasedBlockTime.validateTimestamp(referenceTimestamp + offset);
+
     this._timeOffset = offset;
   }
 
@@ -78,18 +87,29 @@ export class ClockBasedBlockTime implements BlockTime {
 }
 
 /*
-  A BlockTime implementation that increments it's reference time by the duration specified by incrementMilliseconds,
-  every time createBlockTimestampInSeconds() is called. The timestamp returned will be impacted by the timestamp offset,
-  so can be moved forward and backwards by calling .setOffset() independent of the start time, and will increment when
-  createBlockTimestampInSeconds() is called.
+  A BlockTime implementation that will create a series of incremental block times. The static reference clock
+  will increment by the duration specified by incrementMilliseconds, every time createBlockTimestampInSeconds()
+  is called.
+
+  e.g., 
+  const blockTime = new IncrementBasedBlockTime(0, 2);
+  
+  // 0
+  blockTime.createBlockTimestampInSeconds();
+
+  // 2
+  blockTime.createBlockTimestampInSeconds();
+
+  // 4
+  blockTime.createBlockTimestampInSeconds();
 */
 export class IncrementBasedBlockTime extends ClockBasedBlockTime {
   private readonly _tickReferenceClock: () => void;
 
   constructor(startTime: number, incrementMilliseconds: number) {
     let referenceTime = startTime;
-    super(() => referenceTime, startTime)
-    this._tickReferenceClock = () => referenceTime += incrementMilliseconds;
+    super(() => referenceTime, startTime);
+    this._tickReferenceClock = () => (referenceTime += incrementMilliseconds);
   }
 
   override createBlockTimestampInSeconds(timestamp?: number): number {

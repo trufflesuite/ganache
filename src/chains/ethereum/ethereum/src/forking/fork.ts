@@ -13,7 +13,7 @@ import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
-import { BlockTime } from "../block-time";
+import { BlockTime, IncrementBasedBlockTime } from "../block-time";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -234,10 +234,13 @@ export class Fork {
       this.blockNumber.toBigInt()
     );
     this.block = new Block(BlockManager.rawFromJSON(block, common), common);
-    if (!chainOptions.time) {
-      // this needs to set the time of the _previous_ block,
-      // whereas in incrementBasedBlockTime we set the time of the _next_ block
-      // maybe when we call setTime, we increment the value passed in.
+    if (
+      !chainOptions.time &&
+      this.#blockTime instanceof IncrementBasedBlockTime
+    ) {
+      // Only in the case of IncrementBasedBlockTime do we want to set the internal
+      // time representation to be relative to the forked block time. In the case of
+      // ClockBasedBlockTime, the first block should use the current time (or chain.time).
       const blockTimestampMs = this.block.header.timestamp.toNumber() * 1000;
       this.block.header.timestamp = Quantity.from(
         this.#blockTime.createBlockTimestampInSeconds(blockTimestampMs)

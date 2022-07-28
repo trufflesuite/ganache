@@ -58,6 +58,8 @@ const PORT = 9999;
 describe("forking", function () {
   this.timeout(10000);
 
+  // we want the remote chain to be in the past for blocktime tests
+  const remoteChainTime = new Date("2010-01-01T02:01:29.151Z");
   const NETWORK_ID = 1234;
   const REMOTE_ACCOUNT_COUNT = 15;
   let remoteServer: Server;
@@ -66,9 +68,9 @@ describe("forking", function () {
 
   beforeEach("start remote chain", async () => {
     remoteServer = ganache.server({
-      logging,
+      logging, // ignore logging as forking can be quite noisy for the remote chain
       wallet: { deterministic: true, totalAccounts: REMOTE_ACCOUNT_COUNT },
-      chain: { networkId: NETWORK_ID }
+      chain: { networkId: NETWORK_ID, time: remoteChainTime }
     });
     remoteProvider = remoteServer.provider as unknown as EthereumProvider;
     remoteAccounts = Object.keys(remoteProvider.getInitialAccounts());
@@ -984,6 +986,91 @@ describe("forking", function () {
         )
       );
       assert.deepStrictEqual(localBlock, remoteBlock);
+    });
+  });
+
+  describe("block time", () => {
+    it("should create the first block with timestamp matching current time, with 'clock' timestampIncrement", async () => {
+      const startTimeSeconds = Math.floor(+new Date() / 1000);
+      const provider = ganache.provider({
+        fork: { provider: remoteProvider as any },
+        miner: { timestampIncrement: "clock" }
+      });
+
+      const { timestamp } = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["0x1", false]
+      });
+      const firstBlockTimeSeconds = Quantity.toNumber(timestamp);
+
+      // because the provider time is based on an internal Date.now() call, we cannot accurately
+      // calculate the timestamp. Because we grab startTimeSeconds _before_ starting the provider,
+      // we can be confident that the first block will have a timestamp greater than or equal to
+      // startTimeSeconds. If it were to take more than a second to instantiate the provider, we
+      // would probably consider that a bug - so a buffer of 1 seconds is probably sufficient.
+      assert(
+        firstBlockTimeSeconds >= startTimeSeconds &&
+          firstBlockTimeSeconds <= startTimeSeconds + 1,
+        `Unexpected firstBlockTimeSeconds: ${firstBlockTimeSeconds}. ` +
+          `Should be >= ${startTimeSeconds} and <= ${startTimeSeconds + 1}`
+      );
+    });
+
+    it("should create the first block with timestamp matching provided chain.time, with 'clock' timestampIncrement", async () => {
+      const chainTime = new Date("2018-07-28T02:21:50.752Z")
+      const provider = ganache.provider({
+        fork: { provider: remoteProvider as any },
+        miner: { timestampIncrement: "clock" },
+        chain: { time: chainTime }
+      });
+
+      const { timestamp } = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["0x1", false]
+      });
+      const firstBlockTimeSeconds = Quantity.toNumber(timestamp);
+
+
+      assert.strictEqual(firstBlockTimeSeconds, Math.floor(+chainTime / 1000));
+    });
+
+    it("should create the first block with timestamp matching the forked block time + increment", async () => {
+      const incrementSeconds = 10;
+
+      const provider = ganache.provider({
+        fork: { provider: remoteProvider as any },
+        miner: { timestampIncrement: incrementSeconds }
+      });
+
+      const { timestamp } = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["0x1", false]
+      });
+
+      const firstBlockTimeSeconds = Quantity.toNumber(timestamp);
+      const expectedFirstBlockTimeSeconds =
+        Math.floor(+remoteChainTime / 1000) + incrementSeconds;
+
+      assert.strictEqual(firstBlockTimeSeconds, expectedFirstBlockTimeSeconds);
+    });
+
+    it("should create the first block with timestamp matching provided chain.time, when timestampIncrement is numeric", async () => {
+      const chainTime = new Date("2018-07-28T02:21:50.752Z")
+      const incrementSeconds = 10;
+      const provider = ganache.provider({
+        fork: { provider: remoteProvider as any },
+        miner: { timestampIncrement: incrementSeconds },
+        chain: { time: chainTime }
+      });
+
+      const { timestamp } = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["0x1", false]
+      });
+      const firstBlockTimeSeconds = Quantity.toNumber(timestamp);
+
+      // the first block shall be mined at the provided chain.time, _without_ adding the increment
+      assert.strictEqual(firstBlockTimeSeconds, Math.floor(+chainTime / 1000));
     });
   });
 });
