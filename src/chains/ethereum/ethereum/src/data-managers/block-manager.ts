@@ -146,8 +146,7 @@ export default class BlockManager extends Manager<Block> {
       case Tag.latest:
         return this.latest;
       case Tag.pending:
-        // TODO: build a real pending block!
-        return await this.fetchPendingBlock(this.latest);
+        return await this.createPendingBlock(this.latest);
       case Tag.earliest:
         return this.earliest;
       default:
@@ -341,7 +340,7 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  async fetchPendingBlock(previousBlock: Block) {
+  async createPendingBlock(previousBlock: Block) {
     return await this.#blockchain.createPendingBlock(previousBlock);
   }
 }
