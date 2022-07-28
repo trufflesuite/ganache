@@ -460,8 +460,15 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
    */
   public cloneAndResetExecutables() {
     const executables = cloneDeep(this.executables);
-    const inProgress = executables.inProgress;
-    const pending = executables.pending;
+    const { inProgress, pending } = executables;
+
+    if (pending.size > 0) {
+      pending.forEach(txsFromOrigin => {
+        txsFromOrigin.array.forEach(tx => {
+          tx.locked = false;
+        });
+      });
+    }
 
     if (inProgress.size > 0) {
       inProgress.forEach(transaction => {
@@ -477,14 +484,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
           pending.set(origin, newHeap);
         }
         inProgress.delete(transaction);
-      });
-    }
-
-    if (pending.size > 0) {
-      pending.forEach(txsFromOrigin => {
-        txsFromOrigin.array.forEach(tx => {
-          tx.locked = false;
-        });
       });
     }
     return executables;
