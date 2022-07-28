@@ -462,19 +462,23 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const executables = cloneDeep(this.executables);
     const inProgress = executables.inProgress;
     const pending = executables.pending;
+
     if (inProgress.size > 0) {
-      inProgress.forEach(tx => {
-        tx.locked = false; // unlock the tx so it can actually be mined and "added" to the block
-        const origin = tx.from.toString();
+      inProgress.forEach(transaction => {
+        // unlock the tx so it can actually be mined and "added" to the block
+        transaction.locked = false;
+        const origin = transaction.from.toString();
         if (pending.has(origin)) {
-          const currentAtOrigin = pending.get(origin);
-          currentAtOrigin.push(tx);
-          pending.set(origin, currentAtOrigin);
+          const txsFromOrigin = pending.get(origin);
+          txsFromOrigin.push(transaction);
+          pending.set(origin, txsFromOrigin);
         } else {
-          const newHeap = Heap.from(tx, byNonce);
+          const newHeap = Heap.from(transaction, byNonce);
           pending.set(origin, newHeap);
         }
-        inProgress.delete(tx);
+        inProgress.delete(transaction);
+      });
+    }
       });
     }
     return executables;
