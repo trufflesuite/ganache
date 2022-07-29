@@ -18,7 +18,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
-import { ClockBasedBlockTime } from "../../../src/block-time";
+import { BlockTime } from "../../../src/block-time";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -868,7 +868,7 @@ describe("api", () => {
           blockchain = new Blockchain(
             options,
             new Address(wallet.addresses[0]),
-            new ClockBasedBlockTime(Date.now, undefined)
+            new BlockTime(Date.now, undefined)
           );
           await blockchain.initialize(wallet.initialAccounts);
 

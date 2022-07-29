@@ -7,7 +7,7 @@ import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import Wallet from "../src/wallet";
 import Blockchain from "../src/blockchain";
 import { Block } from "@ganache/ethereum-block";
-import { ClockBasedBlockTime } from "../src/block-time";
+import { BlockTime } from "../src/block-time";
 
 describe("blockchain", async () => {
   describe("interval mining", () => {
@@ -33,7 +33,7 @@ describe("blockchain", async () => {
       const blockchain = new Blockchain(
         options,
         initialAccounts[0].address,
-        new ClockBasedBlockTime(Date.now, blockTime)
+        new BlockTime(Date.now, blockTime)
       );
       await blockchain.initialize(wallet.initialAccounts);
       const common = blockchain.common;

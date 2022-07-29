@@ -8,6 +8,48 @@ const eth = "0x" + WEI.toString(16);
 
 describe("api", () => {
   describe("evm", () => {
+    describe("snapshot / revert with blocktime", () => {
+      it('reverts time offset when using "clock" based time', async () => {
+        const offsetSeconds = 120;
+        const provider = await getProvider({
+          miner: { timestampIncrement: "clock" }
+        });
+
+        const initialOffset = await provider.send("evm_increaseTime", [0]);
+
+        const snapshotId = await provider.request({
+          method: "evm_snapshot",
+          params: []
+        });
+        await provider.send("evm_increaseTime", [offsetSeconds]);
+
+        await provider.request({ method: "evm_revert", params: [snapshotId] });
+        const offset = await provider.send("evm_increaseTime", [0]);
+
+        assert.equal(offset, initialOffset);
+      });
+
+      it('mine a block with the same timestamp as a reverted block when using "incremental" based time', async () => {
+        const provider = await getProvider({
+          miner: { timestampIncrement: 120 }
+        });
+
+        const snapshotId = await provider.request({
+          method: "evm_snapshot",
+          params: []
+        });
+
+        await provider.request({ method: "evm_mine", params: [] });
+        const {timestamp: revertedTimestamp} = await provider.request({ method: "eth_getBlockByNumber", params: ["latest", false] });
+        await provider.request({ method: "evm_revert", params: [snapshotId] });
+
+        await provider.request({ method: "evm_mine", params: [] });
+        const {timestamp: replayTimestamp} = await provider.request({ method: "eth_getBlockByNumber", params: ["latest", false] });
+
+        assert.strictEqual(replayTimestamp, revertedTimestamp);
+      });
+    });
+
     describe("snapshot / revert", () => {
       let context = {} as any;
       let startingBalance;

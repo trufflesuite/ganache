@@ -35,7 +35,7 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { ClockBasedBlockTime, IncrementBasedBlockTime } from "./block-time";
+import { BlockTime, IncrementBasedBlockTime } from "./block-time";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 

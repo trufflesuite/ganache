@@ -9,7 +9,7 @@ import {
 import Blockchain from "../../src/blockchain";
 import Wallet from "../../src/wallet";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
-import { ClockBasedBlockTime } from "../../src/block-time";
+import { BlockTime } from "../../src/block-time";
 
 describe("miner", async () => {
   describe("pre-london transaction ordering", () => {});
@@ -49,7 +49,7 @@ describe("miner", async () => {
       lowGasLimitBlockchain = new Blockchain(
         options,
         fromAddress,
-        new ClockBasedBlockTime(Date.now, undefined)
+        new BlockTime(Date.now, undefined)
       );
       await lowGasLimitBlockchain.initialize(wallet.initialAccounts);
       optionsJson.miner.blockGasLimit = "0xB749E0"; // 12012000
@@ -57,7 +57,7 @@ describe("miner", async () => {
       highGasLimitBlockchain = new Blockchain(
         highGasOptions,
         fromAddress,
-        new ClockBasedBlockTime(Date.now, undefined)
+        new BlockTime(Date.now, undefined)
       );
       await highGasLimitBlockchain.initialize(wallet.initialAccounts);
 

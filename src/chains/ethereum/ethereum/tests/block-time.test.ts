@@ -1,6 +1,6 @@
 import assert from "assert";
 import {
-  ClockBasedBlockTime,
+  BlockTime,
   IncrementBasedBlockTime
 } from "../src/block-time";
 
@@ -9,7 +9,7 @@ const midTimestamp = +new Date("2021-06-04T16:42:33.875Z");
 const futureTimestamp = +new Date("2022-04-06T16:42:33.875Z");
 const duration = 843248;
 
-describe("block-time", () => {
+describe.only("block-time", () => {
   describe("ClockBasedBlockTime", () => {
     type TickingReferenceClock = {
       (): number;
@@ -31,8 +31,8 @@ describe("block-time", () => {
     describe("constructor", () => {
       it("should throw with negative timestamp", () => {
         assert.throws(
-          () => new ClockBasedBlockTime(() => 0, -100),
-          new Error(`Invalid timestamp: -100. Value must be positive.`)
+          () => new BlockTime(() => 0, -100),
+          new Error(`Invalid block timestamp: -100. Timestamp must be positive.`)
         );
       });
     });
@@ -40,7 +40,7 @@ describe("block-time", () => {
     describe("getOffset()", () => {
       it("should get a positive offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           futureTimestamp
         );
@@ -56,7 +56,7 @@ describe("block-time", () => {
 
       it("should get a negative offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           pastTimestamp
         );
@@ -72,7 +72,7 @@ describe("block-time", () => {
 
       it("should get a neutral offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           referenceTimestamp
         );
@@ -83,7 +83,7 @@ describe("block-time", () => {
 
       it("should get a neutral offset when no startTime is provided", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -96,7 +96,7 @@ describe("block-time", () => {
     describe("setOffset()", () => {
       it("should set a positive offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -108,7 +108,7 @@ describe("block-time", () => {
 
       it("should set a negative offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -120,7 +120,7 @@ describe("block-time", () => {
 
       it("should set a netural offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           pastTimestamp
         );
@@ -132,7 +132,7 @@ describe("block-time", () => {
 
       it("should throw when resulting timestamp is negative", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -144,7 +144,7 @@ describe("block-time", () => {
     describe("setTime", () => {
       it("should return a positive offset when setting a time in the future", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -159,7 +159,7 @@ describe("block-time", () => {
 
       it("should return a negative offset when setting a time in the past", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -173,23 +173,23 @@ describe("block-time", () => {
       });
 
       it("should throw with negative timestamp", () => {
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => midTimestamp,
           midTimestamp
         );
 
         assert.throws(
           () => blockTime.setTime(-100),
-          new Error(`Invalid timestamp: -100. Value must be positive.`)
+          new Error(`Invalid block timestamp: -100. Timestamp must be positive.`)
         );
       });
     });
 
     describe("createBlockTimestamp()", () => {
-      it("should create a sequence of incrementing block timestamps", () => {
+      it("should create a sequence of incrementing blockTimestamps", () => {
         const startTime = midTimestamp;
         const clock = createTickingReferenceClock(startTime);
-        const blockTime = new ClockBasedBlockTime(clock, undefined);
+        const blockTime = new BlockTime(clock, undefined);
 
         for (let i = 0; i < 10; i++) {
           const expectedTimestampSeconds = Math.floor(clock() / 1000);
@@ -205,7 +205,7 @@ describe("block-time", () => {
       it("should create a sequence of incrementing blockTimestamps with a positive offset", () => {
         const startTime = midTimestamp;
         const clock = createTickingReferenceClock(startTime);
-        const blockTime = new ClockBasedBlockTime(clock, undefined);
+        const blockTime = new BlockTime(clock, undefined);
         blockTime.setOffset(duration);
 
         for (let i = 0; i < 10; i++) {
@@ -224,7 +224,7 @@ describe("block-time", () => {
       it("should create a sequence of incrementing blockTimestamps with a negative offset", () => {
         const startTime = midTimestamp;
         const clock = createTickingReferenceClock(startTime);
-        const blockTime = new ClockBasedBlockTime(clock, undefined);
+        const blockTime = new BlockTime(clock, undefined);
         blockTime.setOffset(-duration);
 
         for (let i = 0; i < 10; i++) {
@@ -244,7 +244,7 @@ describe("block-time", () => {
     describe("createBlockTimestamp(timestamp)", () => {
       it("should create a blockTimestamp equal to the specified timestamp with a positive offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -268,7 +268,7 @@ describe("block-time", () => {
 
       it("should create a blockTimestamp equal to the specified timestamp with a negative offset", () => {
         const referenceTimestamp = midTimestamp;
-        const blockTime = new ClockBasedBlockTime(
+        const blockTime = new BlockTime(
           () => referenceTimestamp,
           undefined
         );
@@ -299,14 +299,14 @@ describe("block-time", () => {
       it("should throw with negative timestamp", () => {
         assert.throws(
           () => new IncrementBasedBlockTime(-100, increment),
-          new Error(`Invalid timestamp: -100. Value must be positive.`)
+          new Error(`Invalid block timestamp: -100. Timestamp must be positive.`)
         );
       });
     });
 
     describe("getOffset()", () => {
-      it("should get an initial offset of zero", () => {
-        [midTimestamp, midTimestamp, 0].forEach(startTime => {
+      it("should always have an initial offset of zero", () => {
+        [midTimestamp, 0].forEach(startTime => {
           const blockTime = new IncrementBasedBlockTime(startTime, increment);
           assert.strictEqual(blockTime.getOffset(), 0);
         });
@@ -378,24 +378,30 @@ describe("block-time", () => {
 
         assert.throws(
           () => blockTime.setTime(-100),
-          new Error(`Invalid timestamp: -100. Value must be positive.`)
+          new Error(`Invalid block timestamp: -100. Timestamp must be positive.`)
         );
       });
     });
 
     describe("createBlockTimestamp()", () => {
-      it("should create a sequence of incrementing block timestamps", () => {
+      it("should create a sequence of incrementing blockTimestamps", () => {
         const startTime = midTimestamp;
         const blockTime = new IncrementBasedBlockTime(startTime, increment);
 
         for (let i = 0; i < 10; i++) {
+          const expectedOffset = i * increment;
+
           // increment happens _after_ creating the block timestamp
           const expectedTimestampSeconds = Math.floor(
-            (startTime + i * increment) / 1000
+            (startTime + expectedOffset) / 1000
           );
 
           const blockTimestamp = blockTime.createBlockTimestampInSeconds();
           assert.strictEqual(blockTimestamp, expectedTimestampSeconds);
+
+          const offset = blockTime.getOffset();
+          // calling createBlockTimestampInSeconds() causes the offset to be increased by the value of increment
+          assert.strictEqual(offset, expectedOffset + increment);
         }
       });
 
@@ -405,13 +411,19 @@ describe("block-time", () => {
         blockTime.setOffset(duration);
 
         for (let i = 0; i < 10; i++) {
+          const expectedOffset = i * increment + duration;
+
           // increment happens _after_ creating the block timestamp
           const expectedTimestampSeconds = Math.floor(
-            (startTime + i * increment + duration) / 1000
+            (startTime + expectedOffset) / 1000
           );
 
           const blockTimestamp = blockTime.createBlockTimestampInSeconds();
           assert.strictEqual(blockTimestamp, expectedTimestampSeconds);
+
+          const offset = blockTime.getOffset();
+          // calling createBlockTimestampInSeconds() causes the offset to be increased by the value of increment
+          assert.strictEqual(offset, expectedOffset + increment);
         }
       });
 
@@ -421,13 +433,19 @@ describe("block-time", () => {
         blockTime.setOffset(-duration);
 
         for (let i = 0; i < 10; i++) {
+          const expectedOffset = i * increment - duration;
+
           // increment happens _after_ creating the block timestamp
           const expectedTimestampSeconds = Math.floor(
-            (startTime + i * increment - duration) / 1000
+            (startTime + expectedOffset) / 1000
           );
 
           const blockTimestamp = blockTime.createBlockTimestampInSeconds();
           assert.strictEqual(blockTimestamp, expectedTimestampSeconds);
+
+          const offset = blockTime.getOffset();
+          // calling createBlockTimestampInSeconds() causes the offset to be increased by the value of increment
+          assert.strictEqual(offset, expectedOffset + increment);
         }
       });
     });
