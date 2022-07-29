@@ -2928,11 +2928,8 @@ export default class EthereumApi implements Api {
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
-      const baseFee = currentBlock.header.baseFeePerGas
-        ? currentBlock.header.baseFeePerGas
-        : "0x0"; // needed to match infura. Genesis blocks without EIP-1559 (e.g. forking mainnet) will be null without this.
+      const baseFee = currentBlock.header.baseFeePerGas || "0x0";
 
-      // baseFeePerGas
       if (currentBlockNumber === newestBlockNumber) {
         baseFeePerGas.unshift(
           Quantity.from(Block.calcNextBaseFee(currentBlock))
@@ -2940,7 +2937,6 @@ export default class EthereumApi implements Api {
       }
       baseFeePerGas.unshift(baseFee);
 
-      // gasUsedRatio
       if (gasUsed === 0n) {
         gasUsedRatio.unshift(0);
       } else {
@@ -2953,7 +2949,6 @@ export default class EthereumApi implements Api {
         );
       }
 
-      // reward percentile
       if (rewardPercentiles.length > 0) {
         const transactions = currentBlock.getTransactions();
 
