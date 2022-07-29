@@ -27,8 +27,10 @@ import {
   makeStepEvent,
   VmAfterTransactionEvent,
   VmBeforeTransactionEvent,
+  VmConsoleLogEvent,
   VmStepEvent
 } from "../provider-events";
+import { maybeGetLogs } from "@ganache/console.log";
 
 /**
  * How many transactions should be in the block.
@@ -81,6 +83,7 @@ export default class Miner extends Emittery<{
   "ganache:vm:tx:step": VmStepEvent;
   "ganache:vm:tx:before": VmBeforeTransactionEvent;
   "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": VmConsoleLogEvent;
   idle: undefined;
 }> {
   #currentlyExecutingPrice = 0n;
@@ -268,10 +271,7 @@ export default class Miner extends Emittery<{
       // of the storage key and save it to the db along with it's keccak hashed version of
       // the storage key. Why you might ask? So we can reference the raw version in
       // debug_storageRangeAt.
-      const stepListener = (
-        event: InterpreterStep,
-        next: (error?: any, cb?: any) => void
-      ) => {
+      const stepListener = (event: InterpreterStep) => {
         if (event.opcode.name === "SSTORE") {
           const key = TraceData.from(
             event.stack[event.stack.length - 1].toArrayLike(Buffer)
@@ -279,7 +279,6 @@ export default class Miner extends Emittery<{
           const hashedKey = keccak(key);
           storageKeys.set(hashedKey.toString(), { key, hashedKey });
         }
-        next();
       };
 
       vm.on("step", stepListener);
@@ -452,7 +451,10 @@ export default class Miner extends Emittery<{
     this.emit("ganache:vm:tx:before", { context });
     // we always listen to the step event even if `#emitStepEvent` is false in
     // case the user starts listening in the middle of the transaction.
-    const stepListener = event => {
+    const stepListener = (event: InterpreterStep) => {
+      const logs = maybeGetLogs(event);
+      if (logs) this.emit("ganache:vm:tx:console.log", { context, logs });
+
       if (!this.#emitStepEvent) return;
       this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
     };

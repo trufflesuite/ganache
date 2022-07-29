@@ -209,4 +209,9 @@ export namespace Ethereum {
     gasUsedRatio: number[];
     reward?: string[];
   };
+  // eth_getProof
+  export type AccountProof<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<AccountProof<"private">>
+      : UtilTypes.AccountProof;
 }
