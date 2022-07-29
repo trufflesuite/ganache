@@ -343,10 +343,11 @@ describe("api", () => {
         });
 
         describe("`miner.blockTime>0` mode", () => {
+          const blockTime = 1;
           beforeEach(async () => {
             provider = await getProvider({
               miner: {
-                blockTime: 1,
+                blockTime,
                 blockGasLimit
               }
             });
@@ -360,6 +361,24 @@ describe("api", () => {
           itFillsBlock();
           itLeavesPoolUnchanged();
           itMinesQueuedTxs();
+
+          it(`has timestamp of \`latest.timestamp + blockTime\``, async () => {
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+
+            const latestBlock = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+            const expected = Quantity.toString(
+              Quantity.toNumber(latestBlock.timestamp) + blockTime
+            );
+            assert.strictEqual(
+              pendingBlock.timestamp,
+              expected,
+              `Pending block didn't have expected timestamp when mined in blockTime mode.`
+            );
+          });
         });
       });
     });
