@@ -272,7 +272,7 @@ describe("api", () => {
             newestBlock,
             []
           ]);
-          ``;
+          
           const latestBlockFeePerGas = Number(
             feeHistory.baseFeePerGas[blocks - 1]
           );
