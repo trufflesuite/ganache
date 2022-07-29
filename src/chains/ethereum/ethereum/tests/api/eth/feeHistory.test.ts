@@ -116,7 +116,7 @@ describe("api", () => {
             });
           });
           describe("rewardPercentile", () => {
-            it("undefined if no percentiles given", async () => {
+            it("returns undefined if no percentiles are given", async () => {
               const blockCount = "0x1";
               const newestBlock = "0x2";
               const feeHistory = await provider.send("eth_feeHistory", [
@@ -272,7 +272,7 @@ describe("api", () => {
             newestBlock,
             []
           ]);
-          ``;
+          
           const latestBlockFeePerGas = Number(
             feeHistory.baseFeePerGas[blocks - 1]
           );
