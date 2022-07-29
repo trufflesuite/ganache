@@ -2903,7 +2903,7 @@ export default class EthereumApi implements Api {
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistoryResult> {
-    let reward = [];
+    const reward = [];
     const baseFeePerGas = [];
     const gasUsedRatio = [];
     const blockchain = this.#blockchain;
