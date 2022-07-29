@@ -240,7 +240,7 @@ export class Fork {
     ) {
       // Only in the case of IncrementBasedBlockTime do we want to set the internal
       // time representation to be relative to the forked block time. In the case of
-      // ClockBasedBlockTime, the first block should use the current time (or chain.time).
+      // BlockTime, the first block should use the current time (or chain.time).
       const blockTimestampMs = this.block.header.timestamp.toNumber() * 1000;
       this.block.header.timestamp = Quantity.from(
         this.#blockTime.createBlockTimestampInSeconds(blockTimestampMs)

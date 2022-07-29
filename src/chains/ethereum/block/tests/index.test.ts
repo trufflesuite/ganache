@@ -6,7 +6,7 @@ import Wallet from "../../ethereum/src/wallet";
 import { Transaction, TransactionFactory } from "@ganache/ethereum-transaction";
 import Blockchain from "../../ethereum/src/blockchain";
 import { EthereumOptionsConfig } from "../../options/src/index";
-import { ClockBasedBlockTime } from "../../ethereum/src/block-time";
+import { BlockTime } from "../../ethereum/src/block-time";
 
 describe("@ganache/ethereum-block", async () => {
   describe("baseFeePerGas calculations", () => {
@@ -56,7 +56,7 @@ describe("@ganache/ethereum-block", async () => {
       blockchain = new Blockchain(
         options,
         fromAddress,
-        new ClockBasedBlockTime(Date.now, undefined)
+        new BlockTime(Date.now, undefined)
       );
       await blockchain.initialize(wallet.initialAccounts);
       // to verify our calculations for the block's baseFeePerGas,

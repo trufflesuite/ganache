@@ -167,10 +167,10 @@ export class EthereumProvider
       providerOptions.chain.time === undefined
         ? Date.now()
         : +providerOptions.chain.time;
-    // if startTime is undefined, ClockBasedBlockTime will determine 0 offset from the reference time
+    // if startTime is undefined, BlockTime will determine 0 offset from the reference time
     const blockTime =
       providerOptions.miner.timestampIncrement === "clock"
-        ? new ClockBasedBlockTime(Date.now, startTime)
+        ? new BlockTime(Date.now, startTime)
         : new IncrementBasedBlockTime(
             startTime,
             providerOptions.miner.timestampIncrement.toNumber() * 1000

@@ -10,7 +10,7 @@ const futureTimestamp = +new Date("2022-04-06T16:42:33.875Z");
 const duration = 843248;
 
 describe.only("block-time", () => {
-  describe("ClockBasedBlockTime", () => {
+  describe("BlockTime", () => {
     type TickingReferenceClock = {
       (): number;
       tick: (duration: number) => void;
