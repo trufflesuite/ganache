@@ -2923,10 +2923,10 @@ export default class EthereumApi implements Api {
     const baseFeePerGas = new Array(totalBlocks);
     const gasUsedRatio = new Array(totalBlocks);
 
-    let currentBlockNumber = newestBlockNumber;
+    let currentBlockNumber = oldestBlock;
+    let currentPosition = 0;
 
-    while (totalBlocks) {
-      const position = totalBlocks - 1;
+    while (currentBlockNumber <= newestBlockNumber && totalBlocks > 0) {
       const currentBlock = await blockchain.blocks.get(
         `0x${currentBlockNumber.toString(16)}`
       );
@@ -2940,12 +2940,12 @@ export default class EthereumApi implements Api {
           Block.calcNextBaseFee(currentBlock)
         );
       }
-      baseFeePerGas[position] = baseFee;
+      baseFeePerGas[currentPosition] = baseFee;
 
       if (gasUsed === 0n) {
-        gasUsedRatio[position] = 0;
+        gasUsedRatio[currentPosition] = 0;
       } else {
-        gasUsedRatio[position] = Number(
+        gasUsedRatio[currentPosition] = Number(
           `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
             .toString()
             .padStart(PAD_PRECISION, "0")}`
@@ -2957,7 +2957,7 @@ export default class EthereumApi implements Api {
 
         // If there are no transactions, all reward percentiles are 0.
         if (transactions.length === 0) {
-          reward[position] = rewardPercentiles.map(() => {
+          reward[currentPosition] = rewardPercentiles.map(() => {
             return "0x0";
           });
         } else {
@@ -3001,7 +3001,7 @@ export default class EthereumApi implements Api {
             });
 
           // reward percentile is the max effective reward by percentile of gas consumed
-          reward[position] = rewardPercentiles.map(p => {
+          reward[currentPosition] = rewardPercentiles.map(p => {
             let gasUsed = 0n;
             // p can be a float
             const targetGas =
@@ -3023,8 +3023,8 @@ export default class EthereumApi implements Api {
         }
       }
 
-      currentBlockNumber--;
-      totalBlocks--;
+      currentBlockNumber++;
+      currentPosition++;
     }
 
     // The undefined/null is based on infura's response for blockCount 0
