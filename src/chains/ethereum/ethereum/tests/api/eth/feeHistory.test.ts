@@ -8,7 +8,6 @@ const oneGwei = Quantity.Gwei.toString();
 const twoGwei = Quantity.from(2e9).toString();
 const threeGwei = Quantity.from(3e9).toString();
 const fourGwei = Quantity.from(4e9).toString();
-const fiveGwei = Quantity.from(5e9).toString();
 
 async function sendTransaction(params) {
   const { provider, from, to, maxPriorityFeePerGas } = params;
@@ -77,20 +76,7 @@ describe("api", () => {
             assert.equal(feeHistory.baseFeePerGas.length, 4); // blockCount + 1
             assert.equal(feeHistory.gasUsedRatio.length, 3);
           });
-          it("matches infura response for blockCount === 0", async () => {
-            const blockCount = "0x0";
-            const newestBlock = "0xa";
-            const feeHistory = await provider.send("eth_feeHistory", [
-              blockCount,
-              newestBlock,
-              []
-            ]);
 
-            assert.equal(feeHistory.oldestBlock, "0x0");
-            assert.equal(feeHistory.baseFeePerGas, undefined);
-            assert.equal(feeHistory.gasUsedRatio, null);
-            assert.equal(feeHistory.reward, undefined);
-          });
           it("matches infura response for blockCount === 0 && newestBlock = 0x0", async () => {
             const blockCount = "0x0";
             const newestBlock = "0x0";
@@ -272,7 +258,7 @@ describe("api", () => {
             newestBlock,
             []
           ]);
-          
+
           const latestBlockFeePerGas = Number(
             feeHistory.baseFeePerGas[blocks - 1]
           );
