@@ -2917,7 +2917,7 @@ export default class EthereumApi implements Api {
       Quantity.toNumber(blockCount),
       newestBlockNumber
     );
-    const oldestBlock = newestBlockNumber - (totalBlocks - 1);
+    const oldestBlock = newestBlockNumber - Math.max(totalBlocks - 1, 0);
 
     const reward = new Array(totalBlocks);
     const baseFeePerGas = new Array(totalBlocks);
