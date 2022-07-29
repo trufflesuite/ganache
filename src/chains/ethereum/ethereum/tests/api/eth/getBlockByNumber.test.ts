@@ -107,7 +107,12 @@ describe("api", () => {
 
         /**
          * Fetches a block with number `pendingBlock.number` and asserts that
-         * the resultant block is deep strict equal to the `pendingBlock`
+         * the resultant block is deep strict equal to the `pendingBlock`.
+         *
+         * NOTE: The `hash` and `timestamp` properties are removed from the
+         * block for comparison, since the `timestamp` of the block is largely
+         * dependent on CI speeds and the `hash` will be impacted by the
+         * `timestamp`.
          * @param pendingBlock The pending block to compare.
          */
         const assertPendingEqualsMined = async (
@@ -116,9 +121,14 @@ describe("api", () => {
           const minedBlock = await provider.send("eth_getBlockByNumber", [
             pendingBlock.number
           ]);
-
+          delete minedBlock.timestamp;
+          delete minedBlock.hash;
+          // clone so we don't delete keys on the pendingBlock
+          const pendingClone = JSON.parse(JSON.stringify(pendingBlock));
+          delete pendingClone.timestamp;
+          delete pendingClone.hash;
           assert.deepStrictEqual(
-            pendingBlock,
+            pendingClone,
             minedBlock,
             `Pending block wasn't equal to next mined block.`
           );
