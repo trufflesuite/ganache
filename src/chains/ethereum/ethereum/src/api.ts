@@ -2879,21 +2879,23 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Retrieves past blocks
+   * Transaction fee history.
    *
    * @param blockCount - Requested range of blocks. Will return less than the requested range if not all blocks are available.
    * @param newestBlock - Highest block of the requested range.
    * @param rewardPercentiles - (Optional) A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the coresponding effective tip for the percentile will be determined, accounting for gas consumed.
+   * @returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range
    *
-   * @returns The fee history for the returned block range. This can be a subsection of the requested range if not all blocks are available. Includes the oldestBlock, baseFeePerGas, gasUsedRatio, and percentile rewards.
-   * @example for: blockCount: 2, newestBlock: 0x10, rewardPercentiles: [10, 25, 50]
-   * {
-   *   oldestBlock: "0x10",
-   *   reward:[["0x59682f00","0x2a7b749c11","0x2a7b749c11"]],
-   *   baseFeePerGas:["0x40c9459e7","0x420068cc1","0x420068cc1"]
-   *   gasUsedRatio: [0.5750394293729167, 0.50]
-   * };
+   * * `oldestBlock`:  - Lowest number block of the returned range.
+   * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+   * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as teh ratio of gasUsed and gasLimit.
+   * * `reward`:  - (optional) An array of effective priority fee per gas data points from a single block. All zeroes are returned if the block is empty.
    *
+   * @example
+   * ```javascript
+   * const feeHistory = await provider.request({ method: "eth_feeHistory", params: ["0x5", "0xE5A51D", [10, 50, 80]] });
+   * console.log(feeHistory);
+   * ```
    */
   @assertArgLength(3)
   async eth_feeHistory(
