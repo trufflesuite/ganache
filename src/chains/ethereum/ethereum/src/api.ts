@@ -2903,49 +2903,52 @@ export default class EthereumApi implements Api {
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistoryResult> {
-    const reward = [];
-    const baseFeePerGas = [];
-    const gasUsedRatio = [];
     const blockchain = this.#blockchain;
-    const PAD_PRECISION = 16; // Matching geth/infura decimal precision formatting
+    const PAD_PRECISION = 16;
     const PRECISION = 10 ** PAD_PRECISION;
     const PRECISION_BIG_INT = BigInt(PRECISION);
     const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
 
-    let blocksToFetch = Quantity.toNumber(blockCount);
     let newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
       .toNumber();
-    let oldestBlock;
+
+    let totalBlocks = Math.min(
+      Quantity.toNumber(blockCount),
+      newestBlockNumber
+    );
+    const oldestBlock = newestBlockNumber - (totalBlocks - 1);
+
+    const reward = new Array(totalBlocks);
+    const baseFeePerGas = new Array(totalBlocks);
+    const gasUsedRatio = new Array(totalBlocks);
 
     let currentBlockNumber = newestBlockNumber;
 
-    while (blocksToFetch > 0 && currentBlockNumber >= 0) {
+    while (totalBlocks) {
+      const position = totalBlocks - 1;
       const currentBlock = await blockchain.blocks.get(
         `0x${currentBlockNumber.toString(16)}`
       );
-      oldestBlock = currentBlockNumber;
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas || "0x0";
 
       if (currentBlockNumber === newestBlockNumber) {
-        baseFeePerGas.unshift(
-          Quantity.from(Block.calcNextBaseFee(currentBlock))
+        baseFeePerGas[totalBlocks] = Quantity.from(
+          Block.calcNextBaseFee(currentBlock)
         );
       }
-      baseFeePerGas.unshift(baseFee);
+      baseFeePerGas[position] = baseFee;
 
       if (gasUsed === 0n) {
-        gasUsedRatio.unshift(0);
+        gasUsedRatio[position] = 0;
       } else {
-        gasUsedRatio.unshift(
-          Number(
-            `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
-              .toString()
-              .padStart(PAD_PRECISION, "0")}`
-          )
+        gasUsedRatio[position] = Number(
+          `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
+            .toString()
+            .padStart(PAD_PRECISION, "0")}`
         );
       }
 
@@ -2954,11 +2957,9 @@ export default class EthereumApi implements Api {
 
         // If there are no transactions, all reward percentiles are 0.
         if (transactions.length === 0) {
-          reward.unshift(
-            rewardPercentiles.map(() => {
-              return "0x0";
-            })
-          );
+          reward[position] = rewardPercentiles.map(() => {
+            return "0x0";
+          });
         } else {
           // Get receipts
           const transactionReceipts = await Promise.all(
@@ -3000,33 +3001,30 @@ export default class EthereumApi implements Api {
             });
 
           // reward percentile is the max effective reward by percentile of gas consumed
-          reward.unshift(
-            rewardPercentiles.map(p => {
-              let gasUsed = 0n;
-              // p can be a float
-              const targetGas =
-                (currentBlock.header.gasUsed.toBigInt() *
-                  BigInt(p * PRECISION)) /
-                PRECISION_BIG_INT_PERCENTILE;
+          reward[position] = rewardPercentiles.map(p => {
+            let gasUsed = 0n;
+            // p can be a float
+            const targetGas =
+              (currentBlock.header.gasUsed.toBigInt() * BigInt(p * PRECISION)) /
+              PRECISION_BIG_INT_PERCENTILE;
 
-              for (const values of effectiveRewardAndGasUsed) {
-                gasUsed = gasUsed + values.gasUsed;
+            for (const values of effectiveRewardAndGasUsed) {
+              gasUsed = gasUsed + values.gasUsed;
 
-                if (targetGas <= gasUsed) {
-                  return Quantity.from(values.effectiveGasReward).toString();
-                }
+              if (targetGas <= gasUsed) {
+                return Quantity.from(values.effectiveGasReward).toString();
               }
+            }
 
-              return effectiveRewardAndGasUsed[
-                effectiveRewardAndGasUsed.length - 1
-              ].effectiveGasReward.toString();
-            })
-          );
+            return effectiveRewardAndGasUsed[
+              effectiveRewardAndGasUsed.length - 1
+            ].effectiveGasReward.toString();
+          });
         }
       }
 
       currentBlockNumber--;
-      blocksToFetch--;
+      totalBlocks--;
     }
 
     // The undefined/null is based on infura's response for blockCount 0
