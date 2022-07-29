@@ -2919,15 +2919,25 @@ export default class EthereumApi implements Api {
     );
     const oldestBlock = newestBlockNumber - Math.max(totalBlocks - 1, 0);
 
-    const reward = new Array(totalBlocks);
+    if (totalBlocks === 0) {
+      return {
+        oldestBlock: Quantity.from(oldestBlock).toString(),
+        baseFeePerGas: undefined,
+        gasUsedRatio: null,
+        reward: undefined
+      };
+    }
+
+    let reward;
     const baseFeePerGas = new Array(totalBlocks);
     const gasUsedRatio = new Array(totalBlocks);
 
     let currentBlockNumber = oldestBlock;
     let currentPosition = 0;
+    let currentBlock;
 
-    while (currentBlockNumber <= newestBlockNumber && totalBlocks > 0) {
-      const currentBlock = await blockchain.blocks.get(
+    while (currentBlockNumber <= newestBlockNumber) {
+      currentBlock = await blockchain.blocks.get(
         `0x${currentBlockNumber.toString(16)}`
       );
 
@@ -2935,11 +2945,6 @@ export default class EthereumApi implements Api {
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
       const baseFee = currentBlock.header.baseFeePerGas || "0x0";
 
-      if (currentBlockNumber === newestBlockNumber) {
-        baseFeePerGas[totalBlocks] = Quantity.from(
-          Block.calcNextBaseFee(currentBlock)
-        );
-      }
       baseFeePerGas[currentPosition] = baseFee;
 
       if (gasUsed === 0n) {
@@ -2953,6 +2958,7 @@ export default class EthereumApi implements Api {
       }
 
       if (rewardPercentiles.length > 0) {
+        reward = new Array(totalBlocks);
         const transactions = currentBlock.getTransactions();
 
         // If there are no transactions, all reward percentiles are 0.
@@ -3027,7 +3033,12 @@ export default class EthereumApi implements Api {
       currentPosition++;
     }
 
-    // The undefined/null is based on infura's response for blockCount 0
+    if (currentBlock) {
+      baseFeePerGas[totalBlocks] = Quantity.from(
+        Block.calcNextBaseFee(currentBlock)
+      );
+    }
+
     return {
       oldestBlock: Quantity.from(oldestBlock).toString(),
       baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
