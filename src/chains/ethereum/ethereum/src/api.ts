@@ -2932,6 +2932,10 @@ export default class EthereumApi implements Api {
     const baseFeePerGas = new Array(totalBlocks);
     const gasUsedRatio = new Array(totalBlocks);
 
+    if (rewardPercentiles.length > 0) {
+      reward = new Array(totalBlocks);
+    }
+
     let currentBlockNumber = oldestBlock;
     let currentPosition = 0;
     let currentBlock;
@@ -2958,7 +2962,6 @@ export default class EthereumApi implements Api {
       }
 
       if (rewardPercentiles.length > 0) {
-        reward = new Array(totalBlocks);
         const transactions = currentBlock.getTransactions();
 
         // If there are no transactions, all reward percentiles are 0.
