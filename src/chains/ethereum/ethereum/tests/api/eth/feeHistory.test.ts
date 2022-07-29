@@ -77,7 +77,7 @@ describe("api", () => {
             assert.equal(feeHistory.gasUsedRatio.length, 3);
           });
 
-          it.only("returns empty result for blockCount === 0 && newestBlock = 0x0", async () => {
+          it("returns empty result for blockCount === 0 && newestBlock = 0x0", async () => {
             const blockCount = "0x0";
             const newestBlock = "0x0";
             const feeHistory = await provider.send("eth_feeHistory", [

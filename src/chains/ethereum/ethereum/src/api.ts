@@ -2915,7 +2915,7 @@ export default class EthereumApi implements Api {
 
     let totalBlocks = Math.min(
       Quantity.toNumber(blockCount),
-      newestBlockNumber
+      newestBlockNumber + 1
     );
     const oldestBlock = newestBlockNumber - Math.max(totalBlocks - 1, 0);
 
