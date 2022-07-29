@@ -2870,10 +2870,10 @@ export default class EthereumApi implements Api {
         } else {
           // Get receipts
           const transactionReceipts = await Promise.all(
-            transactions.map(async (t, i) => {
+            transactions.map(async t => {
               return (
                 await blockchain.transactionReceipts.get(t.hash.toString())
-              ).toJSON(currentBlock, transactions[i], blockchain.common);
+              ).toJSON(currentBlock, t, blockchain.common);
             })
           );
 
