@@ -2776,7 +2776,7 @@ export default class EthereumApi implements Api {
   async eth_createAccessList(
     transaction: Ethereum.Transaction,
     blockNumber: QUANTITY | Tag = Tag.latest
-  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+  ): Promise<Ethereum.CreateAccessListResult> {
     const blockchain = this.#blockchain;
     const common = blockchain.common;
     const blocks = blockchain.blocks;
