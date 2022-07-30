@@ -46,10 +46,7 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
-import {
-  AccessList,
-  AccessLists
-} from "@ganache/ethereum-transaction/src/access-lists";
+import { AccessLists } from "@ganache/ethereum-transaction/src/access-lists";
 import Common from "@ethereumjs/common";
 import { SimulationTransaction } from "./helpers/simulation-handler";
 
@@ -2878,7 +2875,7 @@ export default class EthereumApi implements Api {
   async eth_createAccessList(
     transaction: Ethereum.Transaction,
     blockNumber: QUANTITY | Tag = Tag.latest
-  ): Promise<Ethereum.CreateAccessListResult> {
+  ): Promise<Ethereum.CreateAccessListResult<"private">> {
     const blockchain = this.#blockchain;
     const common = blockchain.common;
     const blocks = blockchain.blocks;
