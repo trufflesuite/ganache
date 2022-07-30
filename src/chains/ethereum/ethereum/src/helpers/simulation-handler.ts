@@ -310,12 +310,12 @@ export default class SimulationHandler extends Emittery<{
     let previousAccessList = initialAccessList || [];
     const accessListExclusions = this.#accessListExclusions;
     const addressesOnlyStorage = this.#addressesOnlyStorage;
+    const stateManager = this.#stateManager;
     let iterations = 0;
     do {
       // checkpoint so we can get back to this vm state after every time we
       // run this loop
-      await this.#stateManager.checkpoint();
-      const stateManager = this.#stateManager;
+      await stateManager.checkpoint();
       const callResult = await this.runCall();
       const accessList = stateManager.generateAccessList(
         accessListExclusions,
