@@ -1084,7 +1084,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   public async createAccessList(
     transaction: SimulationTransaction,
     simulationBlock: Block
-  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+  ): Promise<CreateAccessListResult> {
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
