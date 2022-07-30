@@ -7,7 +7,7 @@ import { Data, Quantity } from "@ganache/utils";
 import {
   CallOverrides,
   CreateAccessListResult as CreateAccessListResultPrivate
-} from "./helpers/simulation-handler";
+} from "./helpers/simulations";
 import { Log, InternalTag } from "@ganache/ethereum-utils";
 
 type EthSignedDataParams = Parameters<

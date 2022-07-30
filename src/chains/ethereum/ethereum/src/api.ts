@@ -48,7 +48,7 @@ import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
 import { AccessLists } from "@ganache/ethereum-transaction/src/access-lists";
 import Common from "@ethereumjs/common";
-import { SimulationTransaction } from "./helpers/simulation-handler";
+import { SimulationTransaction } from "./helpers/simulations";
 
 async function autofillDefaultTransactionValues(
   tx: TypedTransaction,

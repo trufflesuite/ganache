@@ -66,8 +66,9 @@ import {
 import mcl from "mcl-wasm";
 import SimulationHandler, {
   CallOverrides,
+  CreateAccessListResult,
   SimulationTransaction
-} from "./helpers/simulation-handler";
+} from "./helpers/simulations";
 import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
