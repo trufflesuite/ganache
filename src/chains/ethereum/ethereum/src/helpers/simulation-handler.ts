@@ -83,6 +83,11 @@ export type CallOverrides = {
   [address: string]: CallOverride;
 };
 
+export type CreateAccessListResult = {
+  accessList: AccessList;
+  gasUsed: Quantity;
+};
+
 /**
  * Stripped down version of the type from EthereumJs
  */
@@ -299,7 +304,7 @@ export default class SimulationHandler extends Emittery<{
    */
   public async createAccessList(
     initialAccessList?: AccessList
-  ): Promise<{ accessList: AccessList; gasUsed: string }> {
+  ): Promise<CreateAccessListResult> {
     // no real reason why this is our max, feel free to change
     const MAX_ITERATIONS = 1000;
     let previousAccessList = initialAccessList || [];
@@ -323,11 +328,10 @@ export default class SimulationHandler extends Emittery<{
       // in a row, so this is our "best" access list.
       if (AccessLists.areAccessListsSame(previousAccessList, accessList)) {
         const { dataFeeEIP2930 } = AccessLists.getAccessListData(accessList);
-        const baseFeeBN = new BN(
-          Quantity.toBuffer(this.#intrinsicGas + dataFeeEIP2930)
-        );
-        const gasUsedBN = callResult.gasUsed.add(baseFeeBN);
-        const gasUsed = Quantity.toString(gasUsedBN.toBuffer());
+        const baseFeeBigInt = this.#intrinsicGas + dataFeeEIP2930;
+        const gasUsedBigInt =
+          Quantity.toBigInt(callResult.gasUsed.toBuffer()) + baseFeeBigInt;
+        const gasUsed = Quantity.from(gasUsedBigInt);
         return { accessList, gasUsed };
       } else {
         previousAccessList = accessList;

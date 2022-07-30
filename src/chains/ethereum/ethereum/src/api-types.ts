@@ -4,7 +4,10 @@ import type * as UtilTypes from "@ganache/ethereum-utils";
 import type { EthereumProvider, Externalize } from "./provider";
 import { BlockHeader } from "@ganache/ethereum-block";
 import { Data, Quantity } from "@ganache/utils";
-import { CallOverrides } from "./helpers/simulation-handler";
+import {
+  CallOverrides,
+  CreateAccessListResult as CreateAccessListResultPrivate
+} from "./helpers/simulation-handler";
 import { Log, InternalTag } from "@ganache/ethereum-utils";
 
 type EthSignedDataParams = Parameters<
@@ -200,4 +203,11 @@ export namespace Ethereum {
     P extends "public"
       ? Externalize<AccountProof<"private">>
       : UtilTypes.AccountProof;
+  /**
+   * Result returned from `eth_createAccessList`.
+   */
+  export type CreateAccessListResult<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<CreateAccessListResult<"private">>
+      : CreateAccessListResultPrivate;
 }
