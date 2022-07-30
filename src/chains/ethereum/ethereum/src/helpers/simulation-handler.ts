@@ -362,7 +362,7 @@ export default class SimulationHandler extends Emittery<{
   #warmAccessList(accessList: AccessList) {
     const stateManager = this.#stateManager;
     for (const { address, storageKeys } of accessList) {
-      const addressBuf = Address.from(address).toBuffer();
+      const addressBuf = Address.toBuffer(address);
       stateManager.addWarmedAddress(addressBuf);
       for (const slot of storageKeys) {
         stateManager.addWarmedStorage(addressBuf, Data.toBuffer(slot, 32));
