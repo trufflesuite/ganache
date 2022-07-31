@@ -298,20 +298,18 @@ export default class EthereumApi implements Api {
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
 
-    let numBlocks: number, timestamp: number;
-    // Since `typeof null === "object"` we have to guard against that
-    if (arg !== null && typeof arg === "object") {
+    let numBlocks: number, timestampMilliseconds: number;
+    if (arg == null) {
+      numBlocks = 1;
+    } else if (typeof arg === "object") {
+      // Since `typeof null === "object"` we have to guard against that
       numBlocks = arg.blocks == null ? 1 : arg.blocks;
-      timestamp = arg.timestamp;
+      if (typeof arg.timestamp === "number") {
+        timestampMilliseconds = arg.timestamp * 1000;
+      }
     } else {
       numBlocks = 1;
-      timestamp = arg as number | null;
-    }
-
-    let timestampMilliseconds: number;
-    if (timestamp != undefined) {
-      timestampMilliseconds = timestamp * 1000;
-      this.#blockchain.setTime(timestampMilliseconds);
+      timestampMilliseconds = arg as number * 1000;
     }
 
     // TODO(perf): add an option to mine a bunch of blocks in a batch so
