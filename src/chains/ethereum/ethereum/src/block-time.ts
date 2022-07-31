@@ -37,7 +37,7 @@ export class BlockTime {
    * "current" time. If the startTime argument is specified, the instance will be offset from the system clock
    * such that its initial time is equal to the value provided.
    * @param  {()=>number} getReferenceClockTime
-   * @param  {number|undefined} startTime
+   * @param  {number} startTime?
    */
   constructor(
     getReferenceClockTime: () => number,
