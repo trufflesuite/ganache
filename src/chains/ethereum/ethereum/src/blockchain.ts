@@ -298,10 +298,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       {
-        // create first block
+        // Grab current time once to be used in all references to "now", to avoid
+        // any discrepancies. See https://github.com/trufflesuite/ganache/issues/3271
+        const startTime = new Date();
 
         // if we don't have a time from the user get one now
-        if (options.chain.time == null) options.chain.time = new Date();
+        if (options.chain.time == null) options.chain.time = startTime;
 
         const firstBlockTime = this.#blockTime.createBlockTimestampInSeconds();
 
@@ -1065,7 +1067,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const logs = maybeGetLogs(event);
         if (logs) {
           options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", { context, logs });
+          this.emit("ganache:vm:tx:console.log", {
+            context: transactionContext,
+            logs
+          });
         }
 
         if (!this.#emitStepEvent) return;

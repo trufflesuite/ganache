@@ -50,6 +50,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public maxFeePerGas: Quantity;
   public accessList: AccessListBuffer;
   public accessListJSON: AccessList;
+  public accessListDataFee: bigint;
   public type: Quantity = Quantity.from("0x2");
 
   public constructor(
@@ -70,6 +71,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       const accessListData = AccessLists.getAccessListData(data[8]);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
+      this.accessListDataFee = accessListData.dataFeeEIP2930;
       this.v = Quantity.from(data[9]);
       this.r = Quantity.from(data[10]);
       this.s = Quantity.from(data[11]);
@@ -107,6 +109,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       const accessListData = AccessLists.getAccessListData(data.accessList);
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
+      this.accessListDataFee = accessListData.dataFeeEIP2930;
       this.validateAndSetSignature(data);
     }
   }
@@ -177,7 +180,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.toBuffer(fee));
+        return new BN(Quantity.toBuffer(fee + this.accessListDataFee));
       },
       getUpfrontCost: (baseFee: BN = new BN(0)) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;
