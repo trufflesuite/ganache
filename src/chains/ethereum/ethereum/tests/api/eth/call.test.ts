@@ -868,7 +868,7 @@ describe("api", () => {
           blockchain = new Blockchain(
             options,
             new Address(wallet.addresses[0]),
-            new BlockTime(Date.now, undefined)
+            BlockTime.fromSystemClock()
           );
           await blockchain.initialize(wallet.initialAccounts);
 

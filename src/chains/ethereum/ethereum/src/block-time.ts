@@ -6,7 +6,9 @@
  */
 function validateBlockTimestamp(timestamp: number) {
   if (timestamp < 0) {
-    throw new Error(`Invalid block timestamp: ${timestamp}. Timestamp must be positive.`);
+    throw new Error(
+      `Invalid block timestamp: ${timestamp}. Timestamp must be positive.`
+    );
   }
 }
 
@@ -20,9 +22,26 @@ export class BlockTime {
   protected _getReferenceClockTime: () => number;
   protected _offsetMilliseconds: number = 0;
 
+  /**
+   * Create an instance of BlockTime from the system clock. If the startTime argument is provided, the instance
+   * will be offset from the system clock such that its initial time is equal to the value provided.
+   * @param  {number} startTime? the start time of the BlockTime instance
+   * @returns BlockTime - a BlockTime instance using the system clock as it's reference clock
+   */
+  public static fromSystemClock(startTime?: number): BlockTime {
+    return new BlockTime(Date.now, startTime);
+  }
+
+  /**
+   * Create a new BlockTime instance, which will use the provided getReferenceClockTime function to fetch the
+   * "current" time. If the startTime argument is specified, the instance will be offset from the system clock
+   * such that its initial time is equal to the value provided.
+   * @param  {()=>number} getReferenceClockTime
+   * @param  {number|undefined} startTime
+   */
   constructor(
     getReferenceClockTime: () => number,
-    startTime: number | undefined
+    startTime?: number
   ) {
     this._getReferenceClockTime = getReferenceClockTime;
 

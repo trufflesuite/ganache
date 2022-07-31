@@ -33,7 +33,7 @@ describe("blockchain", async () => {
       const blockchain = new Blockchain(
         options,
         initialAccounts[0].address,
-        new BlockTime(Date.now, blockTime)
+        BlockTime.fromSystemClock(blockTime)
       );
       await blockchain.initialize(wallet.initialAccounts);
       const common = blockchain.common;
