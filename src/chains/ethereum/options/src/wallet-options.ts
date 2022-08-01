@@ -232,7 +232,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
     normalize: rawInput => {
       if (rawInput >= MAX_ACCOUNTS)
         console.log(
-          `wallet.totalAccounts set above MAX_ACCOUNTS: ${MAX_ACCOUNTS} and may affect performance.`
+          `The wallet.totalAccounts value of ${rawInput} is greater than ${MAX_ACCOUNTS} which may affect performance.`
         );
       return rawInput;
     },
