@@ -425,14 +425,13 @@ export class EthereumProvider
    * @return Promise<void> - indicating that the provider has been cleanly disconnected
    */
   public disconnect = async () => {
-    const coordinator = this.#executor.getCoordinator();
-
+    const executor = this.#executor;
     // We make a best effort to resolve any currently executing tasks, before rejecting pending tasks. This relies on
     // this.#blockchain.stop() waiting to resolve until after all executing tasks have settled. Executor does not
     // guarantee that no tasks are currently executing, before rejecting any remaining pending tasks.
-    coordinator.stop();
+    executor.stop();
     await this.#blockchain.stop();
-    coordinator.rejectPendingTasks();
+    executor.rejectPendingTasks();
 
     this.emit("disconnect");
   };
