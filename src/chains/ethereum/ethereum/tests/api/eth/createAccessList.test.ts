@@ -3,10 +3,12 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { Data, Quantity } from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { Ethereum } from "../../../src/api-types";
 import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 import { Address } from "@ganache/ethereum-address";
+import { CallError } from "@ganache/ethereum-utils";
+import { VmError } from "@ethereumjs/vm/dist/exceptions";
 
 const encodeValue = (val: string) => {
   return Data.toString(val, 32).slice(2);
@@ -437,6 +439,34 @@ describe("api", () => {
           `Access list has content before EIP-2930 is activated.`
         );
         await customProvider.disconnect();
+      });
+
+      it("returns VM exceptions", async () => {
+        const data = `0x${contractMethods["getBalance(address)"]}${encodedTo}`;
+        const transaction = {
+          from,
+          to: contractAddress,
+          data,
+          gas: "0x5208" // not enough gas
+        };
+
+        const prom = provider.send("eth_createAccessList", [
+          transaction,
+          "latest"
+        ]);
+        const callResult = {
+          execResult: {
+            runState: { programCounter: 0 },
+            exceptionError: new VmError("out of gas" as any),
+            returnValue: BUFFER_EMPTY
+          }
+        } as any;
+        const expected = new CallError(callResult);
+        await assert.rejects(
+          prom,
+          expected,
+          `Transaction with insufficient gas did not reject as expected.`
+        );
       });
     });
   });
