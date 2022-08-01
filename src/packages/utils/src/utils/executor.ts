@@ -12,9 +12,14 @@ export class Executor {
     this.#requestCoordinator = requestCoordinator;
   }
 
-  public disconnect() {
-    this.#requestCoordinator.disconnect();
+  public stop() {
+    this.#requestCoordinator.stop();
   }
+
+  public rejectPendingTasks() {
+    this.#requestCoordinator.rejectPendingTasks();
+  }
+
 
   /**
    * Executes the method with the given methodName on the API

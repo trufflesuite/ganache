@@ -35,7 +35,6 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { ConsoleLogs } from "@ganache/console.log";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -141,8 +140,8 @@ export class EthereumProvider
 {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
-  #executor: Executor;
   #wallet: Wallet;
+  readonly #executor: Executor;
   readonly #blockchain: Blockchain;
 
   constructor(
@@ -419,9 +418,22 @@ export class EthereumProvider
     }
   };
 
+  /**
+   * Disconnect the provider instance. This will cause the underlying blockchain to be stopped, and any pending
+   * tasks to be rejected. Await the returned Promise to ensure that everything has been cleanly shut down
+   * before terminating the process.
+   * @return Promise<void> - indicating that the provider has been cleanly disconnected
+   */
   public disconnect = async () => {
-    this.#executor.disconnect();
+    const coordinator = this.#executor.getCoordinator();
+
+    // We make a best effort to resolve any currently executing tasks, before rejecting pending tasks. This relies on
+    // this.#blockchain.stop() waiting to resolve until after all executing tasks have settled. Executor does not
+    // guarantee that no tasks are currently executing, before rejecting any remaining pending tasks.
+    coordinator.stop();
     await this.#blockchain.stop();
+    coordinator.rejectPendingTasks();
+
     this.emit("disconnect");
   };
 
