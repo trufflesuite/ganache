@@ -64,12 +64,13 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import SimulationHandler, {
+import {
   CallOverrides,
+  createAccessList,
   CreateAccessListResult,
+  runCall,
   SimulationTransaction
 } from "./helpers/simulations";
-import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1048,53 +1049,37 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
-    const simHandler = new SimulationHandler();
 
-    // re-emit simulation events:
-    simHandler.on("ganache:vm:tx:before", event => {
-      this.emit("ganache:vm:tx:before", event);
-    });
-    simHandler.on("ganache:vm:tx:step", event => {
-      if (!this.#emitStepEvent) return;
-      this.emit("ganache:vm:tx:step", event);
-    });
-    simHandler.on("ganache:vm:tx:after", event => {
-      this.emit("ganache:vm:tx:after", event);
-    });
-    simHandler.on("ganache:vm:tx:console.log", event => {
-      options.logging.logger.log(...event.logs);
-      this.emit("ganache:vm:tx:console.log", event);
-    });
-
-    await simHandler.initialize(
-      this,
+    return await runCall({
+      blockchain: this,
       common,
       simulationBlock,
       transaction,
+      options,
+      emitStepEvent: this.#emitStepEvent,
       overrides
-    );
-
-    const callResult = await simHandler.runCall();
-    const callResultValue = callResult.execResult.returnValue;
-
-    return callResultValue === undefined
-      ? Data.Empty
-      : Data.from(callResultValue);
+    });
   }
 
   public async createAccessList(
     transaction: SimulationTransaction,
     simulationBlock: Block
   ): Promise<CreateAccessListResult> {
+    const options = this.#options;
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
-    const simHandler = new SimulationHandler();
-    await simHandler.initialize(this, common, simulationBlock, transaction);
-    return await simHandler.createAccessList(transaction.accessList);
+    return await createAccessList({
+      blockchain: this,
+      common,
+      simulationBlock,
+      transaction,
+      options,
+      emitStepEvent: this.#emitStepEvent
+    });
   }
 
   #traceTransaction = async (
