@@ -640,6 +640,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         transactions: TypedTransaction[];
       }) => {
         pendingBlock = blockData.block;
+        pendingBlock.hash = () => {
+          return Quantity.from(null, true);
+        };
       }
     );
     // await so we're sure the above line has had time to set the pending block
