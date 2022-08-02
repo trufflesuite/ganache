@@ -512,4 +512,33 @@ describe("transaction pool", async () => {
       transaction.serialized.toString()
     );
   });
+
+  it("generates a nonce based off of the account's latest executed transaction", async () => {
+    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const transaction = TransactionFactory.fromRpc(rpcTx, common);
+    const { pending, inProgress } = txPool.executables;
+
+    await txPool.prepareTransaction(transaction, secretKey);
+    const drainPromise = txPool.on("drain", () => {
+      // when a transaction is run, the miner removes the transaction from the
+      // pending queue and adds it to the inProgress pool. There is a lag
+      // between running the transaction and saving the block, which can cause
+      // a race condition for nonce generation. we will make this lag infinite
+      // here, because we never save the block. If the account's nonce is looked
+      // up, it will not have changed, so the pool will have to rely on the
+      // inProgress transactions to set the nonce of the next transaction
+      const pendingOrigin = pending.get(from);
+      inProgress.add(transaction);
+      pendingOrigin.removeBest();
+    });
+    txPool.drain();
+    await drainPromise;
+
+    const anotherTransaction = TransactionFactory.fromRpc(rpcTx, common);
+    // our transaction doesn't have a nonce up front.
+    assert(anotherTransaction.nonce.isNull());
+    await txPool.prepareTransaction(anotherTransaction, secretKey);
+    // after it's prepared by the txPool, an appropriate nonce for the account is set
+    assert.strictEqual(anotherTransaction.nonce.toBigInt(), 1n);
+  });
 });
