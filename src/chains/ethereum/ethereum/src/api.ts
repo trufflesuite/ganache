@@ -2909,38 +2909,43 @@ export default class EthereumApi implements Api {
     const PRECISION_BIG_INT = BigInt(PRECISION);
     const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
 
-    let newestBlockNumber = blockchain.blocks
-      .getEffectiveNumber(newestBlock)
-      .toNumber();
+    let newestBlockNumber;
+    const newBlock = await blockchain.blocks.getBlockByTag(newestBlock as Tag);
 
-    let totalBlocks = Math.min(
+    if (newBlock) {
+      newestBlockNumber = newBlock.header.number.toNumber();
+    } else {
+      newestBlockNumber = Quantity.from(newestBlock).toNumber();
+    }
+
+    const totalBlocks = Math.min(
       Quantity.toNumber(blockCount),
       newestBlockNumber + 1
     );
-    const oldestBlock = newestBlockNumber - Math.max(totalBlocks - 1, 0);
+    const oldestBlockNumber = newestBlockNumber - Math.max(totalBlocks - 1, 0);
 
     if (totalBlocks === 0) {
       return {
-        oldestBlock: Quantity.from(oldestBlock).toString(),
+        oldestBlock: Quantity.from(oldestBlockNumber).toString(),
         baseFeePerGas: undefined,
         gasUsedRatio: null,
         reward: undefined
       };
     }
 
-    let reward;
     const baseFeePerGas = new Array(totalBlocks);
     const gasUsedRatio = new Array(totalBlocks);
-
+    let reward;
     if (rewardPercentiles.length > 0) {
       reward = new Array(totalBlocks);
     }
 
-    let currentBlockNumber = oldestBlock;
-    let currentPosition = 0;
+    let currentBlockNumber = oldestBlockNumber;
     let currentBlock;
 
     while (currentBlockNumber <= newestBlockNumber) {
+      const currentPosition = currentBlockNumber - oldestBlockNumber;
+
       currentBlock = await blockchain.blocks.get(
         `0x${currentBlockNumber.toString(16)}`
       );
@@ -3033,7 +3038,6 @@ export default class EthereumApi implements Api {
       }
 
       currentBlockNumber++;
-      currentPosition++;
     }
 
     // The next block fee is calculated based on the header of the current block, so it is included
@@ -3044,7 +3048,7 @@ export default class EthereumApi implements Api {
     }
 
     return {
-      oldestBlock: Quantity.from(oldestBlock).toString(),
+      oldestBlock: Quantity.from(oldestBlockNumber).toString(),
       baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
       gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : null,
       reward: rewardPercentiles.length > 0 ? reward : undefined
