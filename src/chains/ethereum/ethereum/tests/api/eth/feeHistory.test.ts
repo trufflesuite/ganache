@@ -48,11 +48,8 @@ describe("api", () => {
       const ERROR_HEADER_NOT_FOUND = "header not found";
 
       beforeEach(async () => {
-        provider = await getProvider({
-          miner: {
-            blockTime: 100000
-          }
-        });
+        provider = await getProvider();
+        await provider.send("miner_stop");
         [to, from] = await provider.send("eth_accounts");
         const blocks = 10;
         await mineNBlocks({ provider, blocks });
