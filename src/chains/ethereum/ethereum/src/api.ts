@@ -2952,7 +2952,7 @@ export default class EthereumApi implements Api {
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
       const gasLimit = currentBlock.header.gasLimit.toBigInt();
-      const baseFee = currentBlock.header.baseFeePerGas || "0x0";
+      const baseFee = currentBlock.header.baseFeePerGas || Quantity.Zero;
 
       baseFeePerGas[currentPosition] = baseFee;
 
