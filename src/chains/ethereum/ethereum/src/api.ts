@@ -2947,7 +2947,7 @@ export default class EthereumApi implements Api {
       const currentPosition = currentBlockNumber - oldestBlockNumber;
 
       currentBlock = await blockchain.blocks.get(
-        `0x${currentBlockNumber.toString(16)}`
+        Quantity.toBuffer(currentBlockNumber)
       );
 
       const gasUsed = currentBlock.header.gasUsed.toBigInt();
@@ -2966,7 +2966,7 @@ export default class EthereumApi implements Api {
         );
       }
 
-      if (rewardPercentiles.length > 0) {
+      if (reward) {
         const transactions = currentBlock.getTransactions();
 
         // If there are no transactions, all reward percentiles are 0.
@@ -2976,43 +2976,40 @@ export default class EthereumApi implements Api {
           });
         } else {
           // Get receipts
-          const transactionReceipts = await Promise.all(
-            transactions.map(async t => {
-              return (
-                await blockchain.transactionReceipts.get(t.hash.toString())
-              ).toJSON(currentBlock, t, blockchain.common);
-            })
-          );
+          const effectiveRewardAndGasUsed = (
+            await Promise.all(
+              transactions.map(async tx => {
+                const receipt = (
+                  await blockchain.transactionReceipts.get(tx.hash.toString())
+                ).toJSON(currentBlock, tx, blockchain.common);
 
-          // Effective reward is calculated for all transactions and sorted ascending
-          const effectiveRewardAndGasUsed = transactionReceipts
-            .map((r, i) => {
-              const tx = transactions[i];
-              const baseFeePerGas = currentBlock.header.baseFeePerGas
-                ? currentBlock.header.baseFeePerGas.toBigInt()
-                : 0n;
+                const baseFeePerGas = currentBlock.header.baseFeePerGas
+                  ? currentBlock.header.baseFeePerGas.toBigInt()
+                  : 0n;
 
-              let effectiveGasReward;
-              if ("maxPriorityFeePerGas" in tx) {
-                effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFeePerGas;
-                if (tx.maxPriorityFeePerGas < effectiveGasReward) {
-                  effectiveGasReward = tx.maxPriorityFeePerGas;
+                let effectiveGasReward;
+                if ("maxPriorityFeePerGas" in tx) {
+                  effectiveGasReward =
+                    tx.maxFeePerGas.toBigInt() - baseFeePerGas;
+                  if (tx.maxPriorityFeePerGas < effectiveGasReward) {
+                    effectiveGasReward = tx.maxPriorityFeePerGas;
+                  }
+                } else {
+                  effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
                 }
-              } else {
-                effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
-              }
 
-              return {
-                hash: tx.hash,
-                effectiveGasReward,
-                gasUsed: r.gasUsed ? r.gasUsed.toBigInt() : 0n
-              };
-            })
-            .sort((a, b) => {
-              if (a.effectiveGasReward > b.effectiveGasReward) return 1;
-              if (a.effectiveGasReward < b.effectiveGasReward) return -1;
-              return 0;
-            });
+                return {
+                  hash: tx.hash,
+                  effectiveGasReward,
+                  gasUsed: receipt.gasUsed ? receipt.gasUsed.toBigInt() : 0n
+                };
+              })
+            )
+          ).sort((a, b) => {
+            if (a.effectiveGasReward > b.effectiveGasReward) return 1;
+            if (a.effectiveGasReward < b.effectiveGasReward) return -1;
+            return 0;
+          });
 
           // reward percentile is the max effective reward by percentile of gas consumed
           reward[currentPosition] = rewardPercentiles.map(p => {
