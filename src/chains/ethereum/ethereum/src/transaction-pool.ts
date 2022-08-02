@@ -76,6 +76,19 @@ function shouldReplace(
     return true;
   }
 }
+function findHighestNonceByOrigin(set: Set<TypedTransaction>, origin: string) {
+  let highestNonce: bigint = null;
+  for (const transaction of set) {
+    if (
+      (transaction.from.toString() === origin &&
+        transaction.nonce.toBigInt() > highestNonce) ||
+      highestNonce === null
+    ) {
+      highestNonce = transaction.nonce.toBigInt();
+    }
+  }
+  return highestNonce;
+}
 
 function byNonce(values: TypedTransaction[], a: number, b: number) {
   return (
@@ -231,7 +244,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
-    const pending = this.executables.pending;
+    const { pending, inProgress } = this.executables;
     let executableOriginTransactions = pending.get(origin);
 
     const priceBump = this.#priceBump;
@@ -284,19 +297,33 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       // since we don't have any executable transactions at the moment, we need
       // to find our nonce from the account itself...
       const transactorNonce = transactor.nonce.toBigInt();
+
+      const highestNonceFromOrigin = findHighestNonceByOrigin(
+        inProgress,
+        origin
+      );
+
+      const useHighestNonce =
+        highestNonceFromOrigin !== null &&
+        highestNonceFromOrigin >= transactorNonce;
+
+      const effectiveNonce = useHighestNonce
+        ? highestNonceFromOrigin + 1n
+        : transactorNonce || 0n;
+
       if (txNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
         // nonce and mark as executable
-        txNonce = transactorNonce ? transactorNonce : 0n;
+        txNonce = effectiveNonce;
         transaction.nonce = Quantity.from(txNonce);
         transactionPlacement = TriageOption.Executable;
-      } else if (txNonce < transactorNonce) {
+      } else if (txNonce < effectiveNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
         throw new CodedError(
           `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${txNonce}`,
           JsonRpcErrorCode.INVALID_INPUT
         );
-      } else if (txNonce === transactorNonce) {
+      } else if (txNonce === effectiveNonce) {
         transactionPlacement = TriageOption.Executable;
       }
     }
