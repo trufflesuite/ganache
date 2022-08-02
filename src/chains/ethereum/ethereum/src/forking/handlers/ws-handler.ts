@@ -40,11 +40,11 @@ export class WsHandler extends BaseHandler implements Handler {
     // handler too.
     this.connection.binaryType = "nodebuffer";
 
-    this.open = this.connect(this.connection);
+    this.open = this.connect(this.connection, options);
     this.connection.onclose = () => {
       // try to connect again...
       // TODO: backoff and eventually fail
-      this.open = this.connect(this.connection);
+      this.open = this.connect(this.connection, options);
     };
     this.abortSignal.addEventListener("abort", () => {
       this.connection.onclose = null;
@@ -98,7 +98,7 @@ export class WsHandler extends BaseHandler implements Handler {
     }
   }
 
-  private connect(connection: WebSocket) {
+  private connect(connection: WebSocket, options: EthereumInternalOptions) {
     let open = new Promise((resolve, reject) => {
       connection.onopen = resolve;
       connection.onerror = reject;
@@ -109,7 +109,7 @@ export class WsHandler extends BaseHandler implements Handler {
         connection.onerror = null;
       },
       err => {
-        console.log(err);
+        options.logging.logger.log(err);
       }
     );
     return open;
