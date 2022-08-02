@@ -3027,9 +3027,10 @@ export default class EthereumApi implements Api {
               }
             }
 
-            return effectiveRewardAndGasUsed[
-              effectiveRewardAndGasUsed.length - 1
-            ].effectiveGasReward.toString();
+            return Quantity.from(
+              effectiveRewardAndGasUsed[effectiveRewardAndGasUsed.length - 1]
+                .effectiveGasReward
+            );
           });
         }
       }
