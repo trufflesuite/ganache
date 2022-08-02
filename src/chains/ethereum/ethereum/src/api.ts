@@ -2926,7 +2926,7 @@ export default class EthereumApi implements Api {
 
     if (totalBlocks === 0) {
       return {
-        oldestBlock: Quantity.from(oldestBlockNumber).toString(),
+        oldestBlock: Quantity.from(oldestBlockNumber),
         baseFeePerGas: undefined,
         gasUsedRatio: null,
         reward: undefined
@@ -3038,7 +3038,7 @@ export default class EthereumApi implements Api {
       currentBlockNumber++;
     }
 
-    // The next block fee is calculated based on the header of the current block, so it is included
+    // baseFeePerGas is calculated based on the header of the previous block, so the pending block is included
     if (currentBlock) {
       baseFeePerGas[totalBlocks] = Quantity.from(
         Block.calcNextBaseFee(currentBlock)
@@ -3046,7 +3046,7 @@ export default class EthereumApi implements Api {
     }
 
     return {
-      oldestBlock: Quantity.from(oldestBlockNumber).toString(),
+      oldestBlock: Quantity.from(oldestBlockNumber),
       baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
       gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : null,
       reward: rewardPercentiles.length > 0 ? reward : undefined

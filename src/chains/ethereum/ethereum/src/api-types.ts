@@ -204,7 +204,7 @@ export namespace Ethereum {
    *
    */
   export type FeeHistoryResult = {
-    oldestBlock: string;
+    oldestBlock: Quantity;
     baseFeePerGas: string[];
     gasUsedRatio: number[];
     reward?: string[];
