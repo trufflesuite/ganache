@@ -184,6 +184,17 @@ describe("api", () => {
               `Pending block isn't empty when the transaction pool was empty.`
             );
           });
+
+          it(`has \`hash\` of \`null\``, async () => {
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+            assert.strictEqual(
+              pendingBlock.hash,
+              null,
+              `Pending block doesn't have a \`hash\` of \`null\`. Actual: ${pendingBlock.hash}`
+            );
+          });
         });
 
         describe("`miner.blockTime=0` mode", () => {
