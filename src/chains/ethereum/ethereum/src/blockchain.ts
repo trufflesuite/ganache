@@ -617,11 +617,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // instamine mode, the miner will always try to fill the block, regardless
     // of whether the miner is paused or not
     const paused = this.#isPaused();
-    const maxTransactions = instamine
-      ? paused
-        ? Capacity.FillBlock
-        : Capacity.Single
-      : Capacity.FillBlock;
+    const maxTransactions =
+      instamine && !paused ? Capacity.Single : Capacity.FillBlock;
 
     // we don't want any events from mining to be
     // caught by `this.vm`, so we need to make a new one.
