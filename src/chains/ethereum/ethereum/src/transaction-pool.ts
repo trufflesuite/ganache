@@ -231,8 +231,8 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
-    const executables = this.executables.pending;
-    let executableOriginTransactions = executables.get(origin);
+    const pending = this.executables.pending;
+    let executableOriginTransactions = pending.get(origin);
 
     const priceBump = this.#priceBump;
     let length: number;
@@ -352,7 +352,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         } else {
           // if we don't yet have an executables queue for this origin make one now
           executableOriginTransactions = Heap.from(transaction, byNonce);
-          executables.set(origin, executableOriginTransactions);
+          pending.set(origin, executableOriginTransactions);
         }
 
         // Now we need to drain any queued transactions that were previously
