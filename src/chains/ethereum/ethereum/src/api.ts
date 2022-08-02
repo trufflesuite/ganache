@@ -2994,7 +2994,7 @@ export default class EthereumApi implements Api {
                 }
 
                 return {
-                  effectiveGasReward,
+                  effectiveGasReward: Quantity.toBigInt(effectiveGasReward),
                   gasUsed: receipt.gasUsed ? receipt.gasUsed.toBigInt() : 0n
                 };
               })
