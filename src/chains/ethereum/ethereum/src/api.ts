@@ -2955,16 +2955,11 @@ export default class EthereumApi implements Api {
       const baseFee = currentBlock.header.baseFeePerGas || Quantity.Zero;
 
       baseFeePerGas[currentPosition] = baseFee;
-
-      if (gasUsed === 0n) {
-        gasUsedRatio[currentPosition] = 0;
-      } else {
-        gasUsedRatio[currentPosition] = Number(
-          `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
-            .toString()
-            .padStart(PAD_PRECISION, "0")}`
-        );
-      }
+      gasUsedRatio[currentPosition] = Number(
+        `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
+          .toString()
+          .padStart(PAD_PRECISION, "0")}`
+      );
 
       if (reward) {
         const transactions = currentBlock.getTransactions();
