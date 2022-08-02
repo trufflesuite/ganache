@@ -2967,7 +2967,7 @@ export default class EthereumApi implements Api {
         // If there are no transactions, all reward percentiles are 0.
         if (transactions.length === 0) {
           reward[currentPosition] = rewardPercentiles.map(() => {
-            return "0x0";
+            return Quantity.Zero;
           });
         } else {
           // Get receipts
@@ -2994,7 +2994,6 @@ export default class EthereumApi implements Api {
                 }
 
                 return {
-                  hash: tx.hash,
                   effectiveGasReward,
                   gasUsed: receipt.gasUsed ? receipt.gasUsed.toBigInt() : 0n
                 };
