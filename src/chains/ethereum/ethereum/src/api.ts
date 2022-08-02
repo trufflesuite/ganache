@@ -3023,7 +3023,7 @@ export default class EthereumApi implements Api {
               gasUsed = gasUsed + values.gasUsed;
 
               if (targetGas <= gasUsed) {
-                return Quantity.from(values.effectiveGasReward).toString();
+                return Quantity.from(values.effectiveGasReward);
               }
             }
 
