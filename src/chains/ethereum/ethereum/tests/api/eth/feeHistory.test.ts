@@ -5,9 +5,9 @@ import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 let provider: EthereumProvider;
 const oneGwei = Quantity.Gwei.toString();
-const twoGwei = Quantity.from(2e9).toString();
-const threeGwei = Quantity.from(3e9).toString();
-const fourGwei = Quantity.from(4e9).toString();
+const twoGwei = Quantity.toString(2e9);
+const threeGwei = Quantity.toString(3e9);
+const fourGwei = Quantity.toString(4e9);
 
 async function sendTransaction(params) {
   const { provider, from, to, maxPriorityFeePerGas } = params;
