@@ -13,7 +13,6 @@ import {
   StorageKeys,
   StorageRangeAtResult,
   StorageRecords,
-  RangedStorageKeys,
   StructLog,
   TraceTransactionOptions,
   EthereumRawAccount,
@@ -34,7 +33,6 @@ import {
   BUFFER_EMPTY,
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
-  findInsertPosition,
   KNOWN_CHAINIDS
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
@@ -56,13 +54,11 @@ import {
   CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
-import {
-  DefaultStateManager,
-  StateManager
-} from "@ethereumjs/vm/dist/state/index";
+import { StateManager } from "@ethereumjs/vm/dist/state/index";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import type { LevelUp } from "levelup";
+import type { BaseTrie as Trie } from "merkle-patricia-tree";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -76,6 +72,8 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
+import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
+import { GanacheStateManager } from "./state-manager";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -675,7 +673,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       blockchain,
       stateManager: this.fallback
         ? new ForkStateManager({ common, trie: stateTrie as ForkTrie })
-        : new DefaultStateManager({ common, trie: stateTrie })
+        : new GanacheStateManager({ common, trie: stateTrie })
     });
     if (activatePrecompile) {
       await activatePrecompiles(vm.stateManager);
@@ -710,7 +708,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const { miner: minerOptions } = this.#options;
 
       // commit accounts, but for forking.
-      const stateManager = <DefaultStateManager>this.vm.stateManager;
+      const stateManager = <GanacheStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
       initialAccounts.forEach(acc => {
         const a = { buf: acc.address.toBuffer() } as any;
@@ -1121,7 +1119,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const caller = transaction.from.toBuffer();
 
       if (common.isActivatedEIP(2929)) {
-        const stateManager = vm.stateManager as DefaultStateManager;
+        const stateManager = vm.stateManager as GanacheStateManager;
         // handle Berlin hardfork warm storage reads
         warmPrecompiles(stateManager);
         stateManager.addWarmedAddress(caller);
@@ -1180,17 +1178,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
   }
 
-  #traceTransaction = async (
-    transaction: VmTransaction,
+  #fastForwardVM = async (
+    transactionIndex: number,
     trie: GanacheTrie,
-    newBlock: RuntimeBlock & { transactions: VmTransaction[] },
-    options: TraceTransactionOptions,
-    keys?: Buffer[],
-    contractAddress?: Buffer
-  ): Promise<TraceTransactionResult> => {
-    let currentDepth = -1;
-    const storageStack: TraceStorageMap[] = [];
-
+    block: RuntimeBlock & { transactions: VmTransaction[] }
+  ): Promise<VM & { stateManager: GanacheStateManager }> => {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
@@ -1203,20 +1195,59 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
-          BigInt(newBlock.header.number.toString())
+          BigInt(block.header.number.toString())
         )
       : this.common;
 
     const vm = await VM.create({
-      state: trie,
       activatePrecompiles: false,
       common,
       allowUnlimitedContractSize: this.vm.allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
         ? new ForkStateManager({ common, trie: trie as ForkTrie })
-        : new DefaultStateManager({ common, trie: trie })
+        : new GanacheStateManager({ common, trie: trie })
     });
+
+    // Don't even let the vm try to flush the block's _cache to the stateTrie.
+    // When forking some of the data that the traced function may request will
+    // exist only on the main chain. Because we pretty much lie to the VM by
+    // telling it we DO have data in our Trie, when we really don't, it gets
+    // lost during the commit phase when it traverses the "borrowed" datum's
+    // trie (as it may not have a valid root). Because this is a trace, and we
+    // don't need to commit the data, duck punching the `flush` method (the
+    // simplest method I could find) is fine.
+    // Remove this and you may see the infamous
+    // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
+    (vm.stateManager as any)._cache.flush = () => {};
+
+    // Process the block without committing the data.
+    await vm.stateManager.checkpoint();
+
+    for (let i = 0; i < transactionIndex; i++) {
+      const tx = block.transactions[i] as any;
+      const transactionEventContext = {};
+      this.emit("ganache:vm:tx:before", {
+        context: transactionEventContext
+      });
+      await vm.runTx({ tx, block: block as any });
+      this.emit("ganache:vm:tx:after", {
+        context: transactionEventContext
+      });
+    }
+    return vm as VM & { stateManager: GanacheStateManager };
+  };
+
+  #traceTransaction = async (
+    transactionIndex: number,
+    trie: GanacheTrie,
+    newBlock: RuntimeBlock & { transactions: VmTransaction[] },
+    options: TraceTransactionOptions
+  ): Promise<TraceTransactionResult> => {
+    const vm = await this.#fastForwardVM(transactionIndex, trie, newBlock);
+
+    let currentDepth = -1;
+    const storageStack: TraceStorageMap[] = [];
 
     const storage: StorageRecords = {};
 
@@ -1228,6 +1259,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();
 
+    const transaction = newBlock.transactions[transactionIndex];
     const transactionEventContext = {};
 
     const stepListener = async (
@@ -1341,67 +1373,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       }
     };
 
-    // Don't even let the vm try to flush the block's _cache to the stateTrie.
-    // When forking some of the data that the traced function may request will
-    // exist only on the main chain. Because we pretty much lie to the VM by
-    // telling it we DO have data in our Trie, when we really don't, it gets
-    // lost during the commit phase when it traverses the "borrowed" datum's
-    // trie (as it may not have a valid root). Because this is a trace, and we
-    // don't need to commit the data, duck punching the `flush` method (the
-    // simplest method I could find) is fine.
-    // Remove this and you may see the infamous
-    // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => {};
-
-    // Process the block without committing the data.
-    // The vmerr key on the result appears to be removed.
-    // The previous implementation had specific error handling.
-    // It's possible we've removed handling specific cases in this implementation.
-    // e.g., the previous incantation of RuntimeError
-    await vm.stateManager.checkpoint();
-    try {
-      for (let i = 0, l = newBlock.transactions.length; i < l; i++) {
-        const tx = newBlock.transactions[i] as any;
-        if (tx === transaction) {
-          if (keys && contractAddress) {
-            const database = this.#database;
-            const ejsContractAddress = { buf: contractAddress } as any;
-            await Promise.all(
-              keys.map(async key => {
-                // get the raw key using the hashed key
-                const rawKey = await database.storageKeys.get(key);
-
-                const result = await vm.stateManager.getContractStorage(
-                  ejsContractAddress,
-                  rawKey
-                );
-
-                storage[Data.toString(key, key.length)] = {
-                  key: Data.from(rawKey, rawKey.length),
-                  value: Data.from(result, 32)
-                };
-              })
-            );
-            break;
-          } else {
-            vm.on("step", stepListener);
-            // force the loop to break after running this transaction by setting
-            // the current iteration past the end
-            i = l;
-          }
-        }
-        this.emit("ganache:vm:tx:before", {
-          context: transactionEventContext
-        });
-        await vm.runTx({ tx, block: newBlock as any });
-        this.emit("ganache:vm:tx:after", {
-          context: transactionEventContext
-        });
-      }
-      vm.removeListener("step", stepListener);
-    } finally {
-      await vm.stateManager.revert();
-    }
+    vm.on("step", stepListener);
+    this.emit("ganache:vm:tx:before", {
+      context: transactionEventContext
+    });
+    await vm.runTx({ tx: transaction as any, block: newBlock as any });
+    this.emit("ganache:vm:tx:after", {
+      context: transactionEventContext
+    });
+    vm.removeListener("step", stepListener);
 
     // send state results back
     return {
@@ -1415,7 +1395,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #prepareNextBlock = (
     targetBlock: Block,
     parentBlock: Block,
-    transactionHash: Buffer
+    transactionIndex: number
   ): RuntimeBlock & {
     uncleHeaders: [];
     transactions: VmTransaction[];
@@ -1440,13 +1420,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     newBlock.uncleHeaders = [];
 
     const transactions = targetBlock.getTransactions();
-    for (const tx of transactions) {
+    for (let i = 0; i <= transactionIndex; i++) {
+      const tx = transactions[i];
       newBlock.transactions.push(tx.toVmTransaction());
-
-      // After including the target transaction, that's all we need to do.
-      if (tx.hash.toBuffer().equals(transactionHash)) {
-        break;
-      }
     }
 
     return newBlock;
@@ -1487,11 +1463,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       targetBlock.header.parentHash.toBuffer()
     );
 
-    const newBlock = this.#prepareNextBlock(
-      targetBlock,
-      parentBlock,
-      transactionHashBuffer
-    );
+    const txIndex = transaction.index.toNumber();
+    const newBlock = this.#prepareNextBlock(targetBlock, parentBlock, txIndex);
 
     // #2 - Set state root of original block
     //
@@ -1506,12 +1479,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     // #3 - Rerun every transaction in block prior to and including the requested transaction
     const { gas, structLogs, returnValue, storage } =
-      await this.#traceTransaction(
-        newBlock.transactions[transaction.index.toNumber()],
-        trie,
-        newBlock,
-        options
-      );
+      await this.#traceTransaction(txIndex, trie, newBlock, options);
 
     // #4 - Send results back
     return { gas, structLogs, returnValue, storage };
@@ -1545,7 +1513,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     startKey: string,
     maxResult: number
   ): Promise<StorageRangeAtResult> {
-    // #1 - get block information
+    // get block information
     const targetBlock = await this.blocks.getByHash(blockHash);
 
     // get transaction using txIndex
@@ -1557,102 +1525,53 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
     }
 
-    // #2 - set state root of block
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(
-      this,
-      this.#database.trie,
-      parentBlock.header.stateRoot
-    );
+    const { trie: trieDb, storageKeys: storageKeysDb } = this.#database;
+    const trie = makeTrie(this, trieDb, parentBlock.header.stateRoot);
 
     // get the contractAddress account storage trie
-    const contractAddressBuffer = Address.from(contractAddress).toBuffer();
-    const addressData = await trie.get(contractAddressBuffer);
-    if (!addressData) {
+    const contractAddressBuffer = Address.toBuffer(contractAddress);
+    const rawAccount = await trie.get(contractAddressBuffer);
+    if (!rawAccount) {
       throw new Error(`account ${contractAddress} doesn't exist`);
     }
-
-    // #3 - use the contractAddress storage trie to get relevant hashed keys
-    const getStorageKeys = () => {
-      const storageTrie = trie.copy(false);
-      // An address's stateRoot is stored in the 3rd rlp entry
-      storageTrie.setContext(
-        decode<EthereumRawAccount>(addressData)[2],
+    let storageTrie: Trie;
+    if (txIndex === 0) {
+      // there are no transactions to run, so let's just grab what we need
+      // from the last block's trie
+      const [, , stateRoot] = decode<EthereumRawAccount>(rawAccount);
+      storageTrie = trie;
+      trie.setContext(
+        stateRoot,
         contractAddressBuffer,
         parentBlock.header.number
       );
+    } else {
+      // prepare block to be run in traceTransaction
+      const newBlock = this.#prepareNextBlock(
+        targetBlock,
+        parentBlock,
+        txIndex
+      );
 
-      return new Promise<RangedStorageKeys>((resolve, reject) => {
-        const startKeyBuffer = Data.toBuffer(startKey);
-        const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;
+      // run every transaction in that block prior to the requested transaction
+      const vm = await this.#fastForwardVM(txIndex, trie, newBlock);
 
-        const keys: Buffer[] = [];
-        const handleData = ({ key }) => {
-          // ignore anything that comes before our starting point
-          if (startKeyBuffer.compare(key) > 0) return;
+      // ethereumjs-vm has a dumpStorage(account) method, but we need to honor
+      // `startKey` and `maxResult`, and we do that by not loading every key and
+      // value into memory, which `dumpStorage` would do. So we hack it like
+      // this:
+      storageTrie = await vm.stateManager.getStorageTrie(contractAddressBuffer);
+    }
 
-          // #4 - sort and filter keys
-          // insert the key exactly where it needs to go in the array
-          const position = findInsertPosition(keys, key, compare);
-          // ignore if the value couldn't possibly be relevant
-          if (position > maxResult) return;
-          keys.splice(position, 0, key);
-        };
-
-        const handleEnd = () => {
-          if (keys.length > maxResult) {
-            // we collected too much data, so we've got to trim it a bit
-            resolve({
-              // only take the maximum number of entries requested
-              keys: keys.slice(0, maxResult),
-              // assign nextKey
-              nextKey: Data.from(keys[maxResult])
-            });
-          } else {
-            resolve({
-              keys,
-              nextKey: null
-            });
-          }
-        };
-
-        const rs = storageTrie.createReadStream();
-        rs.on("data", handleData).on("error", reject).on("end", handleEnd);
-      });
-    };
-    const { keys, nextKey } = await getStorageKeys();
-
-    // #5 -  rerun every transaction in that block prior to and including the requested transaction
-    // prepare block to be run in traceTransaction
-    const transactionHashBuffer = transaction.hash.toBuffer();
-    const newBlock = this.#prepareNextBlock(
-      targetBlock,
-      parentBlock,
-      transactionHashBuffer
+    return await dumpTrieStorageDetails(
+      Data.toBuffer(startKey),
+      maxResult,
+      storageTrie,
+      storageKeysDb
     );
-    // get storage data given a set of keys
-    const options = {
-      disableMemory: true,
-      disableStack: true,
-      disableStorage: false
-    };
-
-    const { storage } = await this.#traceTransaction(
-      newBlock.transactions[transaction.index.toNumber()],
-      trie,
-      newBlock,
-      options,
-      keys,
-      contractAddressBuffer
-    );
-
-    // #6 - send back results
-    return {
-      storage,
-      nextKey
-    };
   }
 
   public toggleStepEvent(enable: boolean) {
