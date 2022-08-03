@@ -621,7 +621,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // checkpoint to prevent writing any changes to the database
     await vm.stateManager.checkpoint();
     const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
-    const pendingBlockPromise = new Promise<Block>((resolve, reject) => {
+    const pendingBlockPromise = new Promise<Block>(resolve => {
       miner.on(
         "block",
         async (blockData: {
@@ -630,10 +630,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           storageKeys: StorageKeys;
           transactions: TypedTransaction[];
         }) => {
-          blockData.block.hash = () => {
+          const { block } = blockData;
+          block.hash = () => {
             return Quantity.from(null, true);
           };
-          resolve(blockData.block);
+          resolve(block);
         }
       );
     });
