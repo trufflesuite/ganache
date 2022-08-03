@@ -361,6 +361,27 @@ describe("api", () => {
         // txIndex out of range
         await assert.rejects(debugStorage(blockHash, 3, 2), { message });
       });
+
+      it("throws with a forked network", async () => {
+        const fakeMainnet = await getProvider();
+        const forkedProvider = await getProvider({
+          fork: { provider: fakeMainnet as any }
+        });
+        const error = new Error(
+          "debug_storageRangeAt is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3488 for details."
+        );
+
+        await assert.rejects(
+          forkedProvider.send("debug_storageRangeAt", [
+            blockHash,
+            0,
+            contractAddress,
+            "0x00",
+            1
+          ]),
+          error
+        );
+      });
     });
 
     describe("DebugComplexStorage", () => {
