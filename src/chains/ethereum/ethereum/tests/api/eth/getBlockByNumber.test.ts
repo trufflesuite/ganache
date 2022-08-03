@@ -109,10 +109,10 @@ describe("api", () => {
          * Fetches a block with number `pendingBlock.number` and asserts that
          * the resultant block is deep strict equal to the `pendingBlock`.
          *
-         * NOTE: The `hash` and `timestamp` properties are removed from the
-         * block for comparison, since the `timestamp` of the block is largely
-         * dependent on CI speeds and the `hash` will be impacted by the
-         * `timestamp`.
+         * NOTE: The `hash`, `stateRoot`, and `timestamp` properties are removed
+         * from the block for comparison, since the `timestamp` of the block is
+         * largely dependent on CI speeds, and the `hash` and `stateRoot` values
+         * are constants in the pending block.
          * @param pendingBlock The pending block to compare.
          */
         const assertPendingEqualsMined = async (
@@ -123,10 +123,12 @@ describe("api", () => {
           ]);
           delete minedBlock.timestamp;
           delete minedBlock.hash;
+          delete minedBlock.stateRoot;
           // clone so we don't delete keys on the pendingBlock
           const pendingClone = JSON.parse(JSON.stringify(pendingBlock));
           delete pendingClone.timestamp;
           delete pendingClone.hash;
+          delete pendingClone.stateRoot;
           assert.deepStrictEqual(
             pendingClone,
             minedBlock,
@@ -193,6 +195,17 @@ describe("api", () => {
               pendingBlock.hash,
               null,
               `Pending block doesn't have a \`hash\` of \`null\`. Actual: ${pendingBlock.hash}`
+            );
+          });
+
+          it(`has \`stateRoot\` of \`"0x0000000000000000000000000000000000000000000000000000000000000000"\``, async () => {
+            const pendingBlock = await provider.send("eth_getBlockByNumber", [
+              "pending"
+            ]);
+            assert.strictEqual(
+              pendingBlock.stateRoot,
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              `Pending block doesn't have a \`stateRoot\` of \`"0x0000000000000000000000000000000000000000000000000000000000000000"\`. Actual: ${pendingBlock.stateRoot}`
             );
           });
         });
