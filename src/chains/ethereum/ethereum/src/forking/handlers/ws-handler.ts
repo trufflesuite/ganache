@@ -23,7 +23,10 @@ export class WsHandler extends BaseHandler implements Handler {
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
     super(options, abortSignal);
 
-    const { url, origin } = options.fork;
+    const {
+      fork: { url, origin },
+      logging
+    } = options;
 
     this.connection = new WebSocket(url.toString(), {
       origin,
@@ -40,11 +43,11 @@ export class WsHandler extends BaseHandler implements Handler {
     // handler too.
     this.connection.binaryType = "nodebuffer";
 
-    this.open = this.connect(this.connection, options);
+    this.open = this.connect(this.connection, logging);
     this.connection.onclose = () => {
       // try to connect again...
       // TODO: backoff and eventually fail
-      this.open = this.connect(this.connection, options);
+      this.open = this.connect(this.connection, logging);
     };
     this.abortSignal.addEventListener("abort", () => {
       this.connection.onclose = null;
@@ -98,7 +101,10 @@ export class WsHandler extends BaseHandler implements Handler {
     }
   }
 
-  private connect(connection: WebSocket, options: EthereumInternalOptions) {
+  private connect(
+    connection: WebSocket,
+    logging: EthereumInternalOptions["logging"]
+  ) {
     let open = new Promise((resolve, reject) => {
       connection.onopen = resolve;
       connection.onerror = reject;
@@ -109,7 +115,7 @@ export class WsHandler extends BaseHandler implements Handler {
         connection.onerror = null;
       },
       err => {
-        options.logging.logger.log(err);
+        logging.logger.log(err);
       }
     );
     return open;
