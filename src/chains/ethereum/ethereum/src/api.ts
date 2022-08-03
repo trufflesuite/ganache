@@ -2941,7 +2941,8 @@ export default class EthereumApi implements Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
-  // TODO: example doesn't return correct value: Issue 3203
+  // TODO: example doesn't return correct value
+  // Issue: https://github.com/trufflesuite/ganache/issues/3203
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
