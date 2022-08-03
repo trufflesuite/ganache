@@ -1534,12 +1534,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // there are no transactions to run, so let's just grab what we need
       // from the last block's trie
       const [, , stateRoot] = decode<EthereumRawAccount>(rawAccount);
-      storageTrie = trie;
       trie.setContext(
         stateRoot,
         contractAddressBuffer,
         parentBlock.header.number
       );
+      storageTrie = trie;
     } else {
       // prepare block to be run in traceTransaction
       const newBlock = this.#prepareNextBlock(
