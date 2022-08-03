@@ -16,8 +16,8 @@ import {
   TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
-import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { compareBlockchainState } from "../../helpers/compare-chain-state";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -853,8 +853,7 @@ describe("api", () => {
         let simTx: SimulationTransaction;
         let parentBlock: Block;
         let gas: Quantity;
-        let ethereumJsFromAddress: EthereumJsAddress,
-          ethereumJsToAddress: EthereumJsAddress;
+        const addresses: EthereumJsAddress[] = [];
         let transaction: LegacyRpcTransaction;
         let privateKey: Data;
 
@@ -894,8 +893,8 @@ describe("api", () => {
             data: Data.from("0xabcdef1234"),
             block: block
           };
-          ethereumJsFromAddress = new EthereumJsAddress(Address.toBuffer(from));
-          ethereumJsToAddress = new EthereumJsAddress(Address.toBuffer(to));
+          addresses.push(new EthereumJsAddress(Address.toBuffer(from)));
+          addresses.push(new EthereumJsAddress(Address.toBuffer(to)));
           // set up a real transaction
           transaction = {
             from,
@@ -908,87 +907,57 @@ describe("api", () => {
           privateKey = wallet.unlockedAccounts.get(from);
         });
 
-        const getDbData = async (trie: GanacheTrie) => {
-          let dbData: (string | Buffer)[] = [];
-          for await (const data of trie.db._leveldb.createReadStream()) {
-            dbData.push(data);
-          }
-          return dbData;
-        };
-
-        const getBlockchainState = async () => {
-          const trie = blockchain.trie.copy(true);
-          const trieDbData = await getDbData(trie);
-          const vm = await blockchain.createVmFromStateTrie(
-            trie,
-            false,
-            false,
-            blockchain.common
-          );
-          const fromState = await vm.stateManager.getAccount(
-            ethereumJsFromAddress
-          );
-          const toState = await vm.stateManager.getAccount(ethereumJsToAddress);
-          return { root: trie.root, db: trieDbData, fromState, toState };
-        };
-
         it("does not persist changes to vm or state trie", async () => {
-          // copy the trie, its database, the vm, and the accounts
-          const before = await getBlockchainState();
-
-          // simulate the transaction
-          await blockchain.simulateTransaction(simTx, parentBlock, {});
-
-          // copy the trie, its database, the vm, and the accounts again for comparison
-          const after = await getBlockchainState();
-
-          // simulating a transaction does not change any of the data
-          assert.deepStrictEqual(before, after);
+          const testFunction = async () => {
+            // simulate the transaction
+            await blockchain.simulateTransaction(simTx, parentBlock, {});
+          };
+          await compareBlockchainState(blockchain, addresses, testFunction);
 
           // as a sanity check, confirm sending a real transaction does alter state
-          await blockchain.queueTransaction(
-            TransactionFactory.fromRpc(transaction, blockchain.common),
-            privateKey
+          const statesChangeTestFunction = async () => {
+            await blockchain.queueTransaction(
+              TransactionFactory.fromRpc(transaction, blockchain.common),
+              privateKey
+            );
+            // wait for that new block to be mined
+            await blockchain.once("block");
+          };
+
+          await compareBlockchainState(
+            blockchain,
+            addresses,
+            statesChangeTestFunction,
+            false
           );
-          // wait for that new block to be mined
-          await blockchain.once("block");
-
-          // copy the trie, its database, the vm, and the accounts again for comparison
-          const afterTx = await getBlockchainState();
-
-          // simulating a transaction does change the trie root, db and VM accounts
-          assert.notDeepStrictEqual(before, afterTx);
         });
 
         it("does not persist changes to vm or state trie when overrides are set", async () => {
-          // copy the trie, its database, the vm, and the accounts
-          const before = await getBlockchainState();
-
-          // simulate the transaction, also setting overrides
-          const overrides = {
-            [from]: { balance: "0x0", nonce: "0xfff", code: "0x12345678" }
+          const testFunction = async () => {
+            // simulate the transaction, also setting overrides
+            const overrides = {
+              [from]: { balance: "0x0", nonce: "0xfff", code: "0x12345678" }
+            };
+            await blockchain.simulateTransaction(simTx, parentBlock, overrides);
           };
-          await blockchain.simulateTransaction(simTx, parentBlock, overrides);
-
-          // copy the trie, its database, the vm, and the accounts again for comparison
-          const after = await getBlockchainState();
-
-          // simulating a transaction with overrides does not change the trie or VM accounts
-          assert.deepStrictEqual(before, after);
+          await compareBlockchainState(blockchain, addresses, testFunction);
 
           // as a sanity check, confirm sending a real transaction does alter state
-          await blockchain.queueTransaction(
-            TransactionFactory.fromRpc(transaction, blockchain.common),
-            privateKey
+          const statesChangeTestFunction = async () => {
+            await blockchain.queueTransaction(
+              TransactionFactory.fromRpc(transaction, blockchain.common),
+              privateKey
+            );
+            // wait for that new block to be mined
+            await blockchain.once("block");
+          };
+
+          await compareBlockchainState(
+            blockchain,
+            addresses,
+            statesChangeTestFunction,
+            false
           );
-          // wait for that new block to be mined
-          await blockchain.once("block");
-
-          // copy the trie, its database, the vm, and the accounts again for comparison
-          const afterTx = await getBlockchainState();
-
-          // simulating a transaction does change the trie root, db and VM accounts
-          assert.notDeepStrictEqual(before, afterTx);
         });
       });
     });
