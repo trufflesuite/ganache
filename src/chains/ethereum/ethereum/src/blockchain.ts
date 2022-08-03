@@ -618,7 +618,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       options.chain.allowUnlimitedContractSize,
       true
     );
-
+    // checkpoint to prevent writing any changes to the database
+    await vm.stateManager.checkpoint();
     const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
     const pendingBlockPromise = new Promise<Block>((resolve, reject) => {
       miner.on(
