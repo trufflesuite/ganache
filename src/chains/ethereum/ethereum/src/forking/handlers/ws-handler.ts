@@ -43,7 +43,9 @@ export class WsHandler extends BaseHandler implements Handler {
     this.open = this.connect(this.connection);
     this.connection.onclose = () => {
       // try to connect again...
+      // Issue: https://github.com/trufflesuite/ganache/issues/3476
       // TODO: backoff and eventually fail
+      // Issue: https://github.com/trufflesuite/ganache/issues/3477
       this.open = this.connect(this.connection);
     };
     this.abortSignal.addEventListener("abort", () => {
@@ -73,6 +75,7 @@ export class WsHandler extends BaseHandler implements Handler {
       }>();
 
       // TODO: timeout an in-flight request after some amount of time
+      // Issue: https://github.com/trufflesuite/ganache/issues/3478
       this.inFlightRequests.set(messageId, deferred);
 
       this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
@@ -89,6 +92,7 @@ export class WsHandler extends BaseHandler implements Handler {
     const raw = event.data as Buffer;
 
     // TODO: handle invalid JSON (throws on parse)?
+    // Issue: https://github.com/trufflesuite/ganache/issues/3479
     const response = JSON.parse(raw) as JsonRpcResponse | JsonRpcError;
     const id = response.id;
     const prom = this.inFlightRequests.get(id);

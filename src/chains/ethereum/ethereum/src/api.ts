@@ -353,6 +353,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountNonce(address: DATA, nonce: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
@@ -391,6 +392,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountBalance(address: DATA, balance: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
@@ -429,6 +431,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountCode(address: DATA, code: DATA) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
@@ -477,6 +480,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountStorageAt(address: DATA, slot: DATA, value: DATA) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);

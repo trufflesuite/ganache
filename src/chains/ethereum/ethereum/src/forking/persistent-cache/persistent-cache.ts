@@ -222,6 +222,7 @@ export class PersistentCache {
 
     // TODO(perf): we always re-save the targetBlock but could optimize to only
     // resave if it is needed.
+    // Issue: https://github.com/trufflesuite/ganache/issues/3485
     atomicBatch.put(targetBlock.key, targetBlock.serialize());
 
     await atomicBatch.write();

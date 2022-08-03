@@ -82,6 +82,7 @@ export class TransactionFactory {
         } else {
           // TODO: I believe this is unreachable with current architecture.
           // If 2718 is supported, so is 2930.
+          // Issue: https://github.com/trufflesuite/ganache/issues/3487
           throw new CodedError(
             `EIP 2930 is not activated.`,
             JsonRpcErrorCode.INVALID_PARAMS
