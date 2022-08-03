@@ -620,26 +620,24 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     );
 
     const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
-    let pendingBlock: Block;
-    // set up listener to actually assign the newly mined pending block
-    miner.on(
-      "block",
-      async (blockData: {
-        block: Block;
-        serialized: Buffer;
-        storageKeys: StorageKeys;
-        transactions: TypedTransaction[];
-      }) => {
-        pendingBlock = blockData.block;
-        pendingBlock.hash = () => {
-          return Quantity.from(null, true);
-        };
-      }
-    );
-    // await so we're sure the above line has had time to set the pending block
-    // even though we don't actually need the result of `miner.mine`
+    const pendingBlockPromise = new Promise<Block>((resolve, reject) => {
+      miner.on(
+        "block",
+        async (blockData: {
+          block: Block;
+          serialized: Buffer;
+          storageKeys: StorageKeys;
+          transactions: TypedTransaction[];
+        }) => {
+          blockData.block.hash = () => {
+            return Quantity.from(null, true);
+          };
+          resolve(blockData.block);
+        }
+      );
+    });
     await miner.mine(nextBlock, maxTransactions, true);
-    return pendingBlock;
+    return await pendingBlockPromise;
   };
 
   isStarted = () => {
