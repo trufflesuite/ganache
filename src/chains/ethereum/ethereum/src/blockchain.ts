@@ -687,7 +687,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
     // skip `vm.init`, since we don't use any of it
     (vm as any)._isInitialized = true;
-    return vm;
+    return vm as VM & { stateManager: GanacheStateManager };
   };
 
   #commitAccounts = (accounts: Account[]) => {
@@ -1119,7 +1119,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const caller = transaction.from.toBuffer();
 
       if (common.isActivatedEIP(2929)) {
-        const stateManager = vm.stateManager as GanacheStateManager;
+        const stateManager = vm.stateManager;
         // handle Berlin hardfork warm storage reads
         warmPrecompiles(stateManager);
         stateManager.addWarmedAddress(caller);
