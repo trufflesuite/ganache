@@ -866,7 +866,6 @@ export default class EthereumApi implements Api {
 
   //#region eth
 
-  // TODO: example doesn't return correct value
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -2938,7 +2937,7 @@ export default class EthereumApi implements Api {
     return this.#blockchain.traceTransaction(transactionHash, options || {});
   }
 
-  // TODO: example doesn't return correct value
+  // TODO: example doesn't return correct value: Issue 3203
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
@@ -3014,7 +3013,6 @@ export default class EthereumApi implements Api {
     return this.#wallet.addresses;
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
@@ -3093,7 +3091,6 @@ export default class EthereumApi implements Api {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Unlocks the account for use.
    *
