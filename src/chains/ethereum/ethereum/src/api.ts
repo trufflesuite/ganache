@@ -3005,10 +3005,10 @@ export default class EthereumApi implements Api {
             return 0;
           });
 
-          // reward percentile is the max effective reward by percentile of gas consumed
+          // For each percentile of block gas consumed, what was the reward per gas spent
           reward[currentPosition] = rewardPercentiles.map(p => {
             let gasUsed = 0n;
-            // p can be a float
+
             const targetGas =
               (currentBlock.header.gasUsed.toBigInt() * BigInt(p * PRECISION)) /
               PRECISION_BIG_INT_PERCENTILE;
@@ -3032,12 +3032,11 @@ export default class EthereumApi implements Api {
       currentBlockNumber++;
     }
 
-    // baseFeePerGas is calculated based on the header of the previous block, so the pending block is included
-    if (currentBlock) {
-      baseFeePerGas[totalBlocks] = Quantity.from(
-        Block.calcNextBaseFee(currentBlock)
-      );
-    }
+    // baseFeePerGas is calculated based on the header of the previous block, include the block after newestBlock.
+
+    baseFeePerGas[totalBlocks] = Quantity.from(
+      Block.calcNextBaseFee(currentBlock)
+    );
 
     return {
       oldestBlock: Quantity.from(oldestBlockNumber),
