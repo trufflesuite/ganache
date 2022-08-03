@@ -1491,14 +1491,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
    * Returns a contract's storage given a starting key and max number of
    * entries to return.
    *
-   * Strategy:
-   *
-   *  1. Find block where transaction occurred
-   *  2. Set state root of that block
-   *  3. Use contract address storage trie to get the storage keys from the transaction
-   *  4. Sort and filter storage keys using the startKey and maxResult
-   *  5. Rerun every transaction in that block prior to and including the requested transaction
-   *  6. Send storage results back
    *
    * @param blockHash -
    * @param txIndex -
