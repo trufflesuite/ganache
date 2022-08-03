@@ -429,9 +429,11 @@ export class EthereumProvider
     // We make a best effort to resolve any currently executing tasks, before rejecting pending tasks. This relies on
     // this.#blockchain.stop() waiting to resolve until after all executing tasks have settled. Executor does not
     // guarantee that no tasks are currently executing, before rejecting any remaining pending tasks.
-    executor.stop();
-    await this.#blockchain.stop();
+
+    // await executor.stop() to ensure that all currently processing tasks are complete
+    await executor.stop();
     executor.rejectPendingTasks();
+    await this.#blockchain.stop();
 
     this.emit("disconnect");
   };

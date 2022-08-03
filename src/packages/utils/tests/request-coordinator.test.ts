@@ -33,6 +33,52 @@ describe("request-coordinator", () => {
         new Error("Cannot process request, Ganache is disconnected.")
       );
     });
+
+    it("should stop when tasks are queued", async () => {
+      const uncompletable = coordinator.queue(() => new Promise<void>(noop), this, []);
+      await coordinator.stop();
+
+      assert(coordinator.paused);
+    });
+
+    describe("should wait for in-flight tasks to complete before resolving", () => {
+      it("when the task resolves", async () => {
+        const inProgressTask = coordinator.queue(noop, this, []);
+        coordinator.resume();
+
+        let isStopped = false;
+        const stopped = coordinator.stop().then(() => (isStopped = true));
+
+        await inProgressTask;
+        assert(
+          !isStopped,
+          "return result of RequestCoordinator.stop() resolved before the pending task completed"
+        );
+
+        await assert.doesNotReject(stopped);
+      });
+
+      it("when the task rejects", async () => {
+        const inProgressTask = coordinator.queue(
+          () => Promise.reject(),
+          this,
+          []
+        );
+        coordinator.resume();
+
+        let isStopped = false;
+        const stopped = coordinator.stop().then(() => (isStopped = true));
+
+        // the promise returned from coordinator.queue will resolve, even though the underlying promise rejects
+        await inProgressTask;
+        assert(
+          !isStopped,
+          "return result of RequestCoordinator.stop() resolved before the pending task completed"
+        );
+
+        await assert.doesNotReject(stopped);
+      });
+    });
   });
 
   describe("rejectAllPendingRequests()", () => {
@@ -45,30 +91,34 @@ describe("request-coordinator", () => {
         const task = coordinator.queue(noop, this, []);
 
         let nextRejectionIndex = taskIndex;
-        pendingAssertions.push(task.catch(_ => {
-          assert.strictEqual(i, nextRejectionIndex, `Rejected in incorrect order, waiting on task at index ${nextRejectionIndex}, got ${i}.`);
-        }));
+        pendingAssertions.push(
+          task.catch(_ => {
+            assert.strictEqual(
+              i,
+              nextRejectionIndex,
+              `Rejected in incorrect order, waiting on task at index ${nextRejectionIndex}, got ${i}.`
+            );
+          })
+        );
 
         taskIndex++;
 
-        pendingAssertions.push(assert.rejects(task, new Error("Cannot process request, Ganache is disconnected.")));
+        pendingAssertions.push(
+          assert.rejects(
+            task,
+            new Error("Cannot process request, Ganache is disconnected.")
+          )
+        );
       }
 
       coordinator.rejectPendingTasks();
       await Promise.all(pendingAssertions);
-    });
 
-    it("should clear the pending tasks queue", () => {
-      coordinator.pause();
-
-      for (let i = 0; i < 10; i++) {
-        coordinator.queue(noop, this, []);
-      }
-
-      assert.equal(coordinator.pending.length, 10, "Incorrect pending queue length before calling rejectAllPendingRequests");
-
-      coordinator.rejectPendingTasks();
-      assert.equal(coordinator.pending.length, 0, "Incorrect pending queue length after calling rejectAllPendingRequests");
+      assert.equal(
+        coordinator.pending.length,
+        0,
+        "Incorrect pending queue length after calling rejectAllPendingRequests"
+      );
     });
   });
 });
