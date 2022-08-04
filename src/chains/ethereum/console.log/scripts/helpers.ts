@@ -23,7 +23,7 @@ export const combinatorTypes = [
 
 // for compatibility with hardhat's console.log, which uses `int` instead of
 // `int256`, we need to also include `int` aliases in the permutations.
-type SolidityType = typeof primitiveTypes[number] | BytesN | "uint" | "int";
+type SolidityType = (typeof primitiveTypes)[number] | BytesN | "uint" | "int";
 
 const primitiveTypes = [...combinatorTypes, "bytes memory", "int256"] as const;
 

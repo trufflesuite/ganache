@@ -34,8 +34,7 @@ describe("things", () => {
       const tipsetFromSerializedData = new Tipset({
         Cids: [
           {
-            "/":
-              "badvu4qhg4y390tu5i4ongi9t2vdf429cl7kp7tcsnbas1f5d66zeb4q30mbsl"
+            "/": "badvu4qhg4y390tu5i4ongi9t2vdf429cl7kp7tcsnbas1f5d66zeb4q30mbsl"
           }
         ],
         Blocks: [],

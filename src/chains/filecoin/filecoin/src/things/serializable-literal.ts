@@ -17,7 +17,8 @@ type LiteralDefinition<C extends BaseConfig> = {
 };
 
 abstract class SerializableLiteral<C extends BaseConfig>
-  implements Serializable<SerializedLiteral<C>> {
+  implements Serializable<SerializedLiteral<C>>
+{
   protected abstract get config(): LiteralDefinition<C>;
   value: Literal<C>;
 

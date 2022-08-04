@@ -55,13 +55,15 @@ describe("Blockchain", () => {
     });
 
     it("creates multiple accounts", async () => {
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
       assert.strictEqual(accounts.length, 10);
       assert.notStrictEqual(accounts[0].address, accounts[1].address);
     });
 
     it("creates a configurable amount of accounts", async () => {
-      const accounts = await blockchain2.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain2.accountManager.getControllableAccounts();
       assert.strictEqual(accounts.length, 2);
     });
 
@@ -189,7 +191,8 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
       const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -280,7 +283,8 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
       const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -334,7 +338,8 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.initialize();
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
 
       assert.strictEqual(accounts[0].address.value, expectedAddress);
     });
@@ -353,7 +358,8 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.initialize();
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager.getControllableAccounts();
 
       assert.notStrictEqual(accounts[0].address.value, expectedAddress);
     });

@@ -33,7 +33,8 @@ type BlockMessagesConfig = {
 
 class BlockMessages
   extends SerializableObject<BlockMessagesConfig>
-  implements DeserializedObject<BlockMessagesConfig> {
+  implements DeserializedObject<BlockMessagesConfig>
+{
   get config(): Definitions<BlockMessagesConfig> {
     return {
       blsMessages: {

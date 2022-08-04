@@ -19,7 +19,8 @@ type MessageSendSpecConfig = {
 
 class MessageSendSpec
   extends SerializableObject<MessageSendSpecConfig>
-  implements DeserializedObject<MessageSendSpecConfig> {
+  implements DeserializedObject<MessageSendSpecConfig>
+{
   get config(): Definitions<MessageSendSpecConfig> {
     return {
       maxFee: {

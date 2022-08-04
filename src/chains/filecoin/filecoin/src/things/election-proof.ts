@@ -24,7 +24,8 @@ interface ElectionProofConfig {
 
 class ElectionProof
   extends SerializableObject<ElectionProofConfig>
-  implements DeserializedObject<ElectionProofConfig> {
+  implements DeserializedObject<ElectionProofConfig>
+{
   get config(): Definitions<ElectionProofConfig> {
     return {
       winCount: {

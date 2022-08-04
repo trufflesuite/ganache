@@ -25,7 +25,8 @@ interface SignatureConfig {
 
 class Signature
   extends SerializableObject<SignatureConfig>
-  implements DeserializedObject<SignatureConfig> {
+  implements DeserializedObject<SignatureConfig>
+{
   get config(): Definitions<SignatureConfig> {
     return {
       type: {

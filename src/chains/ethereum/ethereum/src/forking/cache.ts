@@ -12,7 +12,11 @@ export class ForkCache extends Cache {
     const lookupAccount = async (address: Address) => {
       const rlp = await (trie as ForkTrie).get(address.buf);
       return rlp ? Account.fromRlpSerializedAccount(rlp) : new Account();
-    }
-    super({ getCb: lookupAccount, putCb: trie.put.bind(trie), deleteCb: trie.del.bind(trie) });
+    };
+    super({
+      getCb: lookupAccount,
+      putCb: trie.put.bind(trie),
+      deleteCb: trie.del.bind(trie)
+    });
   }
 }

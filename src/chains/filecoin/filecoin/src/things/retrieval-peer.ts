@@ -31,7 +31,8 @@ type RetrievalPeerConfig = {
 
 class RetrievalPeer
   extends SerializableObject<RetrievalPeerConfig>
-  implements DeserializedObject<RetrievalPeerConfig> {
+  implements DeserializedObject<RetrievalPeerConfig>
+{
   get config(): Definitions<RetrievalPeerConfig> {
     return {
       address: {

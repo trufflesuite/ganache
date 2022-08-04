@@ -20,7 +20,7 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 
 - Make sure `npm` commands are not run as `root`.
 - If you get an error that `make` isn't installed you might need to also install the `build-essential` package
- - example `sudo apt update && sudo apt install build-essential`
+  - example `sudo apt update && sudo apt install build-essential`
 
 ### on Windows
 

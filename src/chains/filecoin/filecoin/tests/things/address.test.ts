@@ -96,8 +96,7 @@ describe("things", () => {
       );
       const serializedMessage: SerializedMessage = {
         Version: 0,
-        To:
-          "f3r2y3dv7bmw3okvmil6mwrjedac5jcntqocwlnozszkqtpux44xegbbpjyv7zg4lwkonihnejimolyvmpwbsa",
+        To: "f3r2y3dv7bmw3okvmil6mwrjedac5jcntqocwlnozszkqtpux44xegbbpjyv7zg4lwkonihnejimolyvmpwbsa",
         From: blsAddress.testInfo.publicAddress.replace(/^t/, "f"), // our comparison uses 'f' network,
         Nonce: 0,
         Value: "42",
@@ -125,8 +124,7 @@ describe("things", () => {
       );
       const serializedMessage: SerializedMessage = {
         Version: 0,
-        To:
-          "f3r2y3dv7bmw3okvmil6mwrjedac5jcntqocwlnozszkqtpux44xegbbpjyv7zg4lwkonihnejimolyvmpwbsa",
+        To: "f3r2y3dv7bmw3okvmil6mwrjedac5jcntqocwlnozszkqtpux44xegbbpjyv7zg4lwkonihnejimolyvmpwbsa",
         From: secpAddress.testInfo.publicAddress.replace(/^t/, "f"), // our comparison uses 'f' network
         Nonce: 0,
         Value: "42",

@@ -89,8 +89,8 @@ depending on how you originally installed ganache-cli or ganache-core._
 #### Allowed transaction signature changes
 
 Previously, Ganache allowed transaction signatures to originate from 3 chains
- ids: `1`, `chainId`, and `networkId`. Ganache now allows only transactions
- signed with its own `chainId`.
+ids: `1`, `chainId`, and `networkId`. Ganache now allows only transactions
+signed with its own `chainId`.
 
 #### `_chainId` and `_chainIdRpc` options removed
 
@@ -113,7 +113,7 @@ and it defaulted to `true`.
 
 Ganache now _disables_ the `vmErrorsOnRPCResponse` functionality by default.
 
-If your code relies on these non-standard errors on transaction failure, you'll 
+If your code relies on these non-standard errors on transaction failure, you'll
 need to _enable_ the `vmErrorsOnRpcResponse` flag to restore this behavior:
 
 ```console
@@ -146,7 +146,7 @@ You may want to remove your old Docker images and containers and then pull
 Ganache from the new location before updating, but this step is not required.
 
 > Note: Before updating you may want to prune your Docker images and containers.
- Read more on [docker pruning](https://docs.docker.com/config/pruning/).
+> Read more on [docker pruning](https://docs.docker.com/config/pruning/).
 
 You can view the list of local Docker containers by running:
 
@@ -185,7 +185,6 @@ or to pull and run it simultaneously:
 $ docker run --port 8545:8545 trufflesuite/ganache:latest
 ```
 
-
 #### Default startup ether is now 1000 instead of 100
 
 We polled 50 developers about Ganache's startup Ether amount. 44% had no
@@ -209,7 +208,7 @@ ganache.provider({
   wallet: {
     defaultBalance: 100
   }
-})
+});
 ```
 
 #### Ganache's provider and server interfaces have changed
@@ -224,8 +223,8 @@ If you were previously programmatically accessing the VM step events by
 traversing Ganache internals you can now access these via a new Event System:
 
 In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"`
- event and the legacy `"data"` event, Ganache emits 3 additional events:
- `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
+event and the legacy `"data"` event, Ganache emits 3 additional events:
+`"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, and `"ganache:vm:tx:after"`.
 
 These events can be used to observe the lifecycle of any transaction executed
 via `*sendTransaction`, `eth_call`, `debug_traceTransaction`, or `debug_storageRangeAt`.
@@ -288,7 +287,7 @@ likely enable this in the future.
 
 Ganache's old database format is incompatible with this version. We've decided
 to hold off on building migration tools for this. If you will need a migration
-tool (you use the `db` flag or the `db_path` option and are unable to recreate 
+tool (you use the `db` flag or the `db_path` option and are unable to recreate
 your initial DB state) please
 [open an issue](https://github.com/trufflesuite/ganache/issues/new)
 to let us know.
@@ -343,7 +342,7 @@ If you send a transaction with `eth_sendTransaction` and that transaction doesn'
 
 ```typescript
 // send a "legacy" transaction
-const hash = await provider.request("eth_sendTransaction", [{ from }]); 
+const hash = await provider.request("eth_sendTransaction", [{ from }]);
 const tx = await provider.request("eth_getTransactionByHash", [hash]);
 // The returned `type` field indicates it was updated to a type 2 transaction
 assert.strictEqual(tx.type, "0x2");
@@ -435,17 +434,17 @@ sending account to cover the maximum cost.
 - `logs` subscription events are emitted before `newHeads` events
 - the default `callGasLimit` has changed from `Number.MAX_SAFE_INTEGER` ($2^{53} - 1$) to `50_000_000`.
 
+[^1]:
+    yarn and pnpm don't support dependency lock files, like npm's npm-shrinkwrap.json,
+    which permits supply-chain attacks through automatic transitive dependency
+    updates, like the [left-pad attack](https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm.html) and mostly recently the
+    [colors and faker attack](https://security.snyk.io/vuln/SNYK-JS-COLORS-2331906).
 
-
-[^1]: yarn and pnpm don't support dependency lock files, like npm's npm-shrinkwrap.json,
-which permits supply-chain attacks through automatic transitive dependency
-updates, like the [left-pad attack](https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm.html) and mostly recently the
-[colors and faker attack](https://security.snyk.io/vuln/SNYK-JS-COLORS-2331906).
-
-[^2]: `eth_call` can't always perfectly reproduce the state that the original
-transaction was run in if other transactions run before it in a block. This is
-very rare in testing scenarios, but should be something you are aware of. We'll
-be addressing this shortcoming in a future EIP and release by extending eth_call
-with an option to run the transaction at a certain _index_ in the specified
-block (you likely won't ever see this option enabled on public nodes, like
-Infura, as it can be a very CPU-intensive process).
+[^2]:
+    `eth_call` can't always perfectly reproduce the state that the original
+    transaction was run in if other transactions run before it in a block. This is
+    very rare in testing scenarios, but should be something you are aware of. We'll
+    be addressing this shortcoming in a future EIP and release by extending eth*call
+    with an option to run the transaction at a certain \_index* in the specified
+    block (you likely won't ever see this option enabled on public nodes, like
+    Infura, as it can be a very CPU-intensive process).

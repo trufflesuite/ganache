@@ -25,7 +25,8 @@ interface KeyInfoConfig {
 
 class KeyInfo
   extends SerializableObject<KeyInfoConfig>
-  implements DeserializedObject<KeyInfoConfig> {
+  implements DeserializedObject<KeyInfoConfig>
+{
   get config(): Definitions<KeyInfoConfig> {
     return {
       type: {

@@ -64,7 +64,8 @@ type StartDealParamsConfig = {
 
 class StartDealParams
   extends SerializableObject<StartDealParamsConfig>
-  implements DeserializedObject<StartDealParamsConfig> {
+  implements DeserializedObject<StartDealParamsConfig>
+{
   get config(): Definitions<StartDealParamsConfig> {
     return {
       data: {

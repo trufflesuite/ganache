@@ -25,9 +25,8 @@ export type ExternalConfig<C extends Base.Config> = Partial<
   ExclusiveGroupUnionAndUnconstrainedPlus<C, "rawType">
 >;
 
-export type InternalConfig<
-  C extends Base.Config
-> = ExclusiveGroupUnionAndUnconstrainedPlus<C, "type">;
+export type InternalConfig<C extends Base.Config> =
+  ExclusiveGroupUnionAndUnconstrainedPlus<C, "type">;
 
 export type Definitions<C extends Base.Config> = {
   [N in OptionName<C>]: {

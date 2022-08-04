@@ -29,7 +29,8 @@ type ChannelIDConfig = {
 
 class ChannelID
   extends SerializableObject<ChannelIDConfig>
-  implements DeserializedObject<ChannelIDConfig> {
+  implements DeserializedObject<ChannelIDConfig>
+{
   get config(): Definitions<ChannelIDConfig> {
     return {
       initiator: {

@@ -35,7 +35,8 @@ type StorageMarketDataRefConfig = {
 
 class StorageMarketDataRef
   extends SerializableObject<StorageMarketDataRefConfig>
-  implements DeserializedObject<StorageMarketDataRefConfig> {
+  implements DeserializedObject<StorageMarketDataRefConfig>
+{
   get config(): Definitions<StorageMarketDataRefConfig> {
     return {
       transferType: {
@@ -88,6 +89,7 @@ class StorageMarketDataRef
   pieceSize: number;
 }
 
-type SerializedStorageMarketDataRef = SerializedObject<StorageMarketDataRefConfig>;
+type SerializedStorageMarketDataRef =
+  SerializedObject<StorageMarketDataRefConfig>;
 
 export { StorageMarketDataRef, SerializedStorageMarketDataRef };

@@ -67,7 +67,8 @@ type QueryOfferConfig = {
 
 class QueryOffer
   extends SerializableObject<QueryOfferConfig>
-  implements DeserializedObject<QueryOfferConfig> {
+  implements DeserializedObject<QueryOfferConfig>
+{
   get config(): Definitions<QueryOfferConfig> {
     return {
       err: {
