@@ -515,32 +515,295 @@ describe("transaction pool", async () => {
     });
   });
 
-  it("generates a nonce based off of the account's latest executed transaction", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
-    const transaction = TransactionFactory.fromRpc(rpcTx, common);
-    const { pending, inProgress } = txPool.executables;
+  describe("nonce generation and validation", async () => {
+    beforeEach(beforeEachSetup);
 
-    await txPool.prepareTransaction(transaction, secretKey);
-    const drainPromise = txPool.on("drain", () => {
-      // when a transaction is run, the miner removes the transaction from the
-      // pending queue and adds it to the inProgress pool. There is a lag
-      // between running the transaction and saving the block, which can cause
-      // a race condition for nonce generation. we will make this lag infinite
-      // here, because we never save the block. If the account's nonce is looked
-      // up, it will not have changed, so the pool will have to rely on the
-      // inProgress transactions to set the nonce of the next transaction
-      const pendingOrigin = pending.get(from);
-      inProgress.add(transaction);
-      pendingOrigin.removeBest();
+    /**
+     * Adds transaction to pool. If location is "pending", verifies that the
+     * transaction is executable and is in the pending executables. If "queued",
+     * verifies that the transaction is not executable and is in the queued pool
+     * @param txPool
+     * @param transaction
+     * @param secretKey
+     * @param location
+     */
+    const addTxToPoolAndVerify = async (
+      txPool: TransactionPool,
+      transaction: TypedTransaction,
+      secretKey: Data,
+      location: "pending" | "queued"
+    ) => {
+      const isExecutable = await txPool.prepareTransaction(
+        transaction,
+        secretKey
+      );
+      let found: TypedTransaction;
+      if (location === "pending") {
+        assert(isExecutable);
+        // our transaction should be executable and found in the pending queue
+        const { pending } = txPool.executables;
+        found = findIn(transaction.hash.toBuffer(), pending);
+      } else {
+        // our transaction should not be executable and found in the queued pool
+        const origins = txPool.origins;
+        assert(!isExecutable);
+        found = findIn(transaction.hash.toBuffer(), origins);
+      }
+      assert.strictEqual(
+        found.serialized.toString(),
+        transaction.serialized.toString()
+      );
+    };
+
+    /**
+     * Adds a transaction to the pending pool and "drains" the pool, causing
+     * the transaction to move from pending to inProgress.
+     * @param txPool
+     * @returns
+     */
+    const addTxToInProgress = async (txPool: TransactionPool) => {
+      const transaction = TransactionFactory.fromRpc(rpcTx, common);
+      const { pending, inProgress } = txPool.executables;
+
+      const isExecutable = await txPool.prepareTransaction(
+        transaction,
+        secretKey
+      );
+      assert(isExecutable); // this tx will need to be executable to be moved to inProgress
+      const drainPromise = txPool.on("drain", () => {
+        // when a transaction is run, the miner removes the transaction from the
+        // pending queue and adds it to the inProgress pool. There is a lag
+        // between running the transaction and saving the block, which can cause
+        // a race condition for nonce generation. we will make this lag infinite
+        // here, because we never save the block. If the account's nonce is looked
+        // up, it will not have changed, so the pool will have to rely on the
+        // inProgress transactions to set the nonce of the next transaction
+        const pendingOrigin = pending.get(from);
+        inProgress.add(transaction);
+        pendingOrigin.removeBest();
+      });
+      txPool.drain();
+      await drainPromise;
+      return transaction.nonce;
+    };
+
+    describe("with no pending/inProgress transactions from the account", async () => {
+      const accountNonce = 1;
+      beforeEach(() => {
+        blockchain.accounts.getNonceAndBalance = async () => {
+          return {
+            // have different starting nonce for these tests
+            nonce: Quantity.from(accountNonce),
+            // 1000 ether
+            balance: Quantity.from("0x3635c9adc5dea00000")
+          };
+        };
+      });
+
+      it("generates a nonce equal to the account's transaction count", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const transaction = TransactionFactory.fromRpc(rpcTx, common);
+        assert(transaction.nonce.isNull());
+
+        await txPool.prepareTransaction(transaction, secretKey);
+
+        assert.deepStrictEqual(transaction.nonce.toNumber(), accountNonce);
+      });
+
+      it("allows a transaction with nonce equal to the account's transaction count", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce: Quantity.toString(accountNonce) },
+          common
+        );
+        assert.deepStrictEqual(transaction.nonce.toNumber(), accountNonce);
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "pending");
+      });
+
+      it("allows a transaction with nonce greater than the account's transaction count", async () => {
+        const futureNonce = accountNonce + 1;
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce: Quantity.toString(futureNonce) },
+          common
+        );
+        assert.deepStrictEqual(transaction.nonce.toNumber(), futureNonce);
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "queued");
+      });
+
+      it("rejects a transaction with nonce less than the account's transaction count", async () => {
+        const nonce = "0x0";
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce },
+          common
+        );
+        assert.deepStrictEqual(transaction.nonce.toString(), nonce);
+
+        await assert.rejects(
+          txPool.prepareTransaction(transaction, secretKey),
+          {
+            code: -32000,
+            message:
+              "the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0"
+          }
+        );
+      });
     });
-    txPool.drain();
-    await drainPromise;
 
-    const anotherTransaction = TransactionFactory.fromRpc(rpcTx, common);
-    // our transaction doesn't have a nonce up front.
-    assert(anotherTransaction.nonce.isNull());
-    await txPool.prepareTransaction(anotherTransaction, secretKey);
-    // after it's prepared by the txPool, an appropriate nonce for the account is set
-    assert.strictEqual(anotherTransaction.nonce.toBigInt(), 1n);
+    describe("with inProgress transactions from the account and no pending transactions from the account", async () => {
+      it("generates a nonce equal to the highest nonce of inProgress transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const transaction = TransactionFactory.fromRpc(rpcTx, common);
+        assert(transaction.nonce.isNull());
+
+        await txPool.prepareTransaction(transaction, secretKey);
+        assert.strictEqual(
+          transaction.nonce.toNumber(),
+          inProgressTxNonce.toNumber() + 1
+        );
+      });
+
+      it("allows a transaction with nonce equal to the highest nonce of inProgress transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const nonce = Quantity.toString(inProgressTxNonce.toNumber() + 1);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "pending");
+        assert.strictEqual(
+          transaction.nonce.toNumber(),
+          inProgressTxNonce.toNumber() + 1
+        );
+      });
+
+      it("allows a transaction with nonce greater than the highest nonce of inProgress transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const nonce = Quantity.toString(inProgressTxNonce.toNumber() + 2);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "queued");
+        assert.strictEqual(
+          transaction.nonce.toNumber(),
+          inProgressTxNonce.toNumber() + 2
+        );
+      });
+
+      it("rejects a transaction with nonce less than the highest nonce of inProgress transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce: inProgressTxNonce.toString() },
+          common
+        );
+
+        await assert.rejects(
+          txPool.prepareTransaction(transaction, secretKey),
+          {
+            code: -32000,
+            message:
+              "the tx doesn't have the correct nonce. account has nonce of: 1 tx has nonce of: 0"
+          }
+        );
+      });
+    });
+
+    describe("with pending transactions from the account", async () => {
+      it("generates a nonce equal to the highest nonce of pending transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const nonce = Quantity.toString(inProgressTxNonce.toNumber() + 1);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "pending");
+        assert.strictEqual(
+          transaction.nonce.toNumber(),
+          inProgressTxNonce.toNumber() + 1
+        );
+
+        const transaction2 = TransactionFactory.fromRpc(rpcTx, common);
+        assert(transaction2.nonce.isNull());
+
+        await addTxToPoolAndVerify(txPool, transaction2, secretKey, "pending");
+        assert.strictEqual(
+          transaction2.nonce.toString(),
+          Quantity.toString(transaction.nonce.toNumber() + 1)
+        );
+      });
+
+      it("allows a transaction with nonce equal to the highest nonce of pending transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const nonce = Quantity.toString(inProgressTxNonce.toNumber() + 1);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "pending");
+        assert.strictEqual(
+          transaction.nonce.toNumber(),
+          inProgressTxNonce.toNumber() + 1
+        );
+
+        const transaction2Nonce = Quantity.toString(
+          transaction.nonce.toNumber() + 1
+        );
+        const transaction2 = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce: transaction2Nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction2, secretKey, "pending");
+        assert.strictEqual(transaction2.nonce.toString(), transaction2Nonce);
+      });
+
+      it("allows a transaction with nonce greater than the highest nonce of pending transactions from the account plus 1", async () => {
+        const txPool = new TransactionPool(options.miner, blockchain, origins);
+        const inProgressTxNonce = await addTxToInProgress(txPool);
+
+        const nonce = Quantity.toString(inProgressTxNonce.toNumber() + 1);
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction, secretKey, "pending");
+        assert.strictEqual(
+          transaction.nonce.toNumber(),
+          inProgressTxNonce.toNumber() + 1
+        );
+
+        const transaction2Nonce = Quantity.toString(
+          transaction.nonce.toNumber() + 2
+        );
+        const transaction2 = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce: transaction2Nonce },
+          common
+        );
+
+        await addTxToPoolAndVerify(txPool, transaction2, secretKey, "queued");
+        assert.strictEqual(transaction2.nonce.toString(), transaction2Nonce);
+      });
+    });
   });
 });
