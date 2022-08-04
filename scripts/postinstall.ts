@@ -30,7 +30,11 @@ require("./link-ts-references");
 execSync("npm run tsc", execArgs);
 
 console.log("");
+console.log(chalk`{bold.cyan Tips:}`);
 console.log(
-  chalk`{bold.cyan Tip:} {cyan run} {bold.yellow.dim source completions.sh} {cyan to supply bash completions for npm scripts}`
+  chalk`  {cyan run} {bold.yellow.dim source completions.sh} {cyan to supply bash completions for npm scripts}`
+);
+console.log(
+  chalk`  {cyan run} {bold.yellow.dim git config blame.ignoreRevsFile .git-blame-ignore-revs} {cyan to ignore large formatting/style revisions from local {bold.yellow.dim git diff} results}`
 );
 console.log("");

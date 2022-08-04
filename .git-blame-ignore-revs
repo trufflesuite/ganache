@@ -1,0 +1,5 @@
+# .git-blame-ignore-revs
+
+# Ran `npx prettier@2.7.1 --write .` on the entire codebase
+
+## TODO: update this line with the commit hash of the `prettier --write .` commit once it lands in develop
