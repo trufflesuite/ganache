@@ -35,7 +35,7 @@ describe("request-coordinator", () => {
     });
 
     it("should stop when tasks are queued", async () => {
-      const uncompletable = coordinator.queue(() => new Promise<void>(noop), this, []);
+      coordinator.queue(() => new Promise<void>(noop), this, []);
       await coordinator.stop();
 
       assert(coordinator.paused);
@@ -78,6 +78,11 @@ describe("request-coordinator", () => {
 
         await assert.doesNotReject(stopped);
       });
+    });
+
+    it("should reject if called a second time", async () => {
+      coordinator.stop();
+      await assert.rejects(coordinator.stop(), new Error("Already stopped."));
     });
   });
 

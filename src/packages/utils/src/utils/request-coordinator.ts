@@ -83,46 +83,48 @@ export class RequestCoordinator {
         .catch(noop)
         .finally(() => {
           this.runningTasks--;
-
-          if (this.runningTasks === 0 && this.pending.length === 0) {
-            this.workComplete();
-          } else {
-            this.#process();
+          if (this.runningTasks === 0) {
+            this.#executingTasksFinished();
           }
+          this.#process();
         });
     }
   };
 
-  #whenFinished: () => void;
-  private workComplete() {
-    if (this.#whenFinished) {
-      this.#whenFinished();
-      this.#whenFinished = undefined;
+  // resolver which will be set by stop() function if it needs to wait on currently executing tasks to complete
+  #resolveStopAwaiter: () => void = undefined;
+  #executingTasksFinished = () => {
+    if (this.#resolveStopAwaiter !== undefined) {
+      this.#resolveStopAwaiter();
+      this.#resolveStopAwaiter = undefined;
     }
-  }
+  };
 
   /**
-   * Stop processing tasks - calls to queue(), and resume() will reject with an error indicating that Ganache is
+   * Stop processing tasks - calls to queue(), and resume() will reject or throw with an error indicating that Ganache is
    * disconnected. This is an irreversible action. If you wish to be able to resume processing, use pause() instead.
    *
    * Note: This will _not_ reject any pending tasks - see rejectPendingTasks()
-   * @returns Promise<void> - indicating that all currently executing tasks are complete
+   * @returns Promise<void> - resolves once all currently executing tasks are complete
    */
-  public async stop(): Promise<void> {
+  public stop = async () => {
+    if (this.#stopped) {
+      throw new Error("Already stopped.");
+    }
+
     this.pause();
     this.#stopped = true;
-
-    if (this.runningTasks > 0) {
-      await new Promise<void>((resolve, _) => {
-        this.#whenFinished = resolve;
-      });
+    if (this.runningTasks > 0 && this.#resolveStopAwaiter === undefined) {
+      await new Promise<void>(
+        (resolve, _) => (this.#resolveStopAwaiter = resolve)
+      );
     }
   }
 
   /**
    * Reject any pending tasks with an error indicating that Ganache is disconnected. Tasks are rejected in FIFO order.
    */
-  public rejectPendingTasks() {
+  public rejectPendingTasks = () => {
     let current: RejectableTask;
     while ((current = this.pending.shift())) {
       current.reject(
