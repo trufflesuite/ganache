@@ -60,7 +60,8 @@ type DataTransferChannelConfig = {
 
 class DataTransferChannel
   extends SerializableObject<DataTransferChannelConfig>
-  implements DeserializedObject<DataTransferChannelConfig> {
+  implements DeserializedObject<DataTransferChannelConfig>
+{
   get config(): Definitions<DataTransferChannelConfig> {
     return {
       transferId: {
@@ -141,6 +142,7 @@ class DataTransferChannel
   transferred: number;
 }
 
-type SerializedDataTransferChannel = SerializedObject<DataTransferChannelConfig>;
+type SerializedDataTransferChannel =
+  SerializedObject<DataTransferChannelConfig>;
 
 export { DataTransferChannel, SerializedDataTransferChannel };

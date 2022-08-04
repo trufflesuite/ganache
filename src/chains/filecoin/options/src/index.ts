@@ -54,11 +54,9 @@ export type FilecoinLegacyProviderOptions = Partial<
     MakeLegacyOptions<WalletConfig>
 >;
 
-export type FilecoinProviderOptions = Partial<
-  {
-    [K in keyof FilecoinConfig]: ExternalConfig<FilecoinConfig[K]>;
-  }
->;
+export type FilecoinProviderOptions = Partial<{
+  [K in keyof FilecoinConfig]: ExternalConfig<FilecoinConfig[K]>;
+}>;
 
 export type FilecoinInternalOptions = {
   [K in keyof FilecoinConfig]: InternalConfig<FilecoinConfig[K]>;

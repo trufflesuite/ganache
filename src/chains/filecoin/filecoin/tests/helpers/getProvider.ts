@@ -12,7 +12,7 @@ const getProvider = async (options?: Partial<FilecoinProviderOptions>) => {
       },
       logging: {
         logger: {
-          log: () => { }
+          log: () => {}
         }
       },
       ...options

@@ -24,7 +24,8 @@ type FileRefConfig = {
 
 class FileRef
   extends SerializableObject<FileRefConfig>
-  implements DeserializedObject<FileRefConfig> {
+  implements DeserializedObject<FileRefConfig>
+{
   get config(): Definitions<FileRefConfig> {
     return {
       path: {

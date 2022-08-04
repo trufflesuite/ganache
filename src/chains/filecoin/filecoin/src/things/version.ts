@@ -47,7 +47,8 @@ interface VersionConfig {
 
 class Version
   extends SerializableObject<VersionConfig>
-  implements DeserializedObject<VersionConfig> {
+  implements DeserializedObject<VersionConfig>
+{
   get config(): Definitions<VersionConfig> {
     return {
       version: {

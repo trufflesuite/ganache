@@ -45,11 +45,9 @@ export type EthereumLegacyProviderOptions = Partial<
     MakeLegacyOptions<ForkConfig>
 >;
 
-export type EthereumProviderOptions = Partial<
-  {
-    [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
-  }
->;
+export type EthereumProviderOptions = Partial<{
+  [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
+}>;
 
 export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;

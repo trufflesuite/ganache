@@ -31,7 +31,8 @@ interface TipsetConfig {
 
 class Tipset
   extends SerializableObject<TipsetConfig>
-  implements DeserializedObject<TipsetConfig> {
+  implements DeserializedObject<TipsetConfig>
+{
   get config(): Definitions<TipsetConfig> {
     return {
       cids: {

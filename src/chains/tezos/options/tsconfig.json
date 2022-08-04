@@ -5,7 +5,5 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

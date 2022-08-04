@@ -64,7 +64,8 @@ type MessageConfig = {
 
 class Message
   extends SerializableObject<MessageConfig>
-  implements DeserializedObject<MessageConfig> {
+  implements DeserializedObject<MessageConfig>
+{
   get config(): Definitions<MessageConfig> {
     return {
       version: {

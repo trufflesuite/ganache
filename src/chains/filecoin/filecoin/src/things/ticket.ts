@@ -19,7 +19,8 @@ interface TicketConfig {
 
 class Ticket
   extends SerializableObject<TicketConfig>
-  implements DeserializedObject<TicketConfig> {
+  implements DeserializedObject<TicketConfig>
+{
   get config(): Definitions<TicketConfig> {
     return {
       vrfProof: {

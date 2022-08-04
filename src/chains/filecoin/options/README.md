@@ -14,20 +14,20 @@ These options are provided alongside the `flavor` options. For example:
 
 ```json5
 {
-  "flavor": "filecoin",
-  "chain": {
+  flavor: "filecoin",
+  chain: {
     /* ... */
   },
-  "database": {
+  database: {
     /* ... */
   },
-  "logging": {
+  logging: {
     /* ... */
   },
-  "miner": {
+  miner: {
     /* ... */
   },
-  "wallet": {
+  wallet: {
     /* ... */
   }
 }

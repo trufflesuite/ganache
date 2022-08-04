@@ -28,7 +28,8 @@ type SignedMessageConfig = {
 
 class SignedMessage
   extends SerializableObject<SignedMessageConfig>
-  implements DeserializedObject<SignedMessageConfig> {
+  implements DeserializedObject<SignedMessageConfig>
+{
   get config(): Definitions<SignedMessageConfig> {
     return {
       message: {

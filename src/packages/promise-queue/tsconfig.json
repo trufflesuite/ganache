@@ -5,8 +5,5 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": [
-    "index.ts",
-    "src/**/*"
-  ]
+  "include": ["index.ts", "src/**/*"]
 }

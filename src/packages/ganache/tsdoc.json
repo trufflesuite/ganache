@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
 
   // Inherit the TSDoc configuration for API Extractor
-  "extends": [ "@microsoft/api-extractor/extends/tsdoc-base.json" ],
+  "extends": ["@microsoft/api-extractor/extends/tsdoc-base.json"],
   "tagDefinitions": [
     // Define a custom tag and specify how it should be parsed
     {
