@@ -320,7 +320,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       } else if (txNonce < effectiveNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
         throw new CodedError(
-          `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${txNonce}`,
+          `the tx doesn't have the correct nonce. account has nonce of: ${effectiveNonce} tx has nonce of: ${txNonce}`,
           JsonRpcErrorCode.INVALID_INPUT
         );
       } else if (txNonce === effectiveNonce) {
