@@ -423,6 +423,16 @@ describe("provider", () => {
         }
       );
     });
+
+    it("stops responding to RPC methods once disconnected", async () => {
+      const provider = await getProvider();
+      await provider.disconnect();
+
+      await assert.rejects(
+        provider.send("eth_getBlockByNumber", ["latest"]),
+        new Error("Cannot process request, Ganache is disconnected.")
+      );
+    });
   });
 
   describe("web3 compatibility", () => {
@@ -459,106 +469,6 @@ describe("provider", () => {
       assert(subscription != null);
       assert.deepStrictEqual(subscriptionId, "0x1");
       assert.notStrictEqual(hash, "");
-    });
-  });
-
-  describe("disconnect()", () => {
-    let provider: EthereumProvider;
-
-    [true, false].forEach(asyncRequestProcessing => {
-      describe(`asyncRequestProcessing: ${asyncRequestProcessing}`, () => {
-        beforeEach("Instantiate provider", async () => {
-          provider = await getProvider({
-            chain: { asyncRequestProcessing }
-          });
-        });
-
-        it("stops responding to RPC methods once disconnected", async () => {
-          await provider.disconnect();
-
-          await assert.rejects(
-            provider.send("eth_getBlockByNumber", ["latest"]),
-            new Error("Cannot process request, Ganache is disconnected.")
-          );
-        });
-
-        it("raises the 'disconnect' event", async () => {
-          const whenDisconnected = provider.once("disconnect");
-          await provider.disconnect();
-          await assert.doesNotReject(
-            whenDisconnected,
-            'The provider should raise the "disconnect" event'
-          );
-        });
-
-        it("successfully processes requests executed before disconnect is called", async () => {
-          const whenBlockByNumber = provider.request({
-            method: "eth_getBlockByNumber",
-            params: ["latest"]
-          });
-          const whenDisconnected = provider.disconnect();
-
-          await assert.doesNotReject(
-            whenBlockByNumber,
-            "A call to .request() on the provider before disconnect is called should succeed"
-          );
-          await assert.doesNotReject(
-            whenDisconnected,
-            'The provider should raise the "disconnect" event'
-          );
-        });
-
-        it("rejects requests after disconnect is called", async () => {
-          const whenDisconnected = provider.disconnect();
-          const whenBlockByNumber = provider.request({
-            method: "eth_getBlockByNumber",
-            params: ["latest"]
-          });
-
-          await assert.rejects(
-            whenBlockByNumber,
-            new Error("Cannot process request, Ganache is disconnected.")
-          );
-          await assert.doesNotReject(
-            whenDisconnected,
-            'The provider should raise the "disconnect" event'
-          );
-        });
-      });
-    });
-
-    describe("without asyncRequestProcessing", () => {
-      beforeEach("Instantiate provider", async () => {
-        provider = await getProvider({
-          chain: { asyncRequestProcessing: false }
-        });
-      });
-
-      // we only test this with asyncRequestProcessing: false, because it's impossible to force requests
-      // to be "pending" when asyncRequestProcessing: true
-      it("successfully processes started requests, but reject pending requests", async () => {
-        const active = provider.request({
-          method: "eth_getBlockByNumber",
-          params: ["latest"]
-        });
-        const pending = provider.request({
-          method: "eth_getBlockByNumber",
-          params: ["latest"]
-        });
-
-        const whenDisconnected = provider.disconnect();
-
-        await assert.rejects(
-          pending,
-          new Error("Cannot process request, Ganache is disconnected."),
-          "pending tasks should reject"
-        );
-        await assert.doesNotReject(active, "active tasks should not reject");
-        await assert.doesNotReject(
-          whenDisconnected,
-          'The provider should raise the "disconnect" event'
-        );
-      });
     });
   });
 });

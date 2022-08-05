@@ -138,9 +138,9 @@ export class EthereumProvider
   }>
   implements Provider<EthereumApi>
 {
-  readonly #options: EthereumInternalOptions;
-  readonly #api: EthereumApi;
-  readonly #wallet: Wallet;
+  #options: EthereumInternalOptions;
+  #api: EthereumApi;
+  #wallet: Wallet;
   readonly #executor: Executor;
   readonly #blockchain: Blockchain;
 
@@ -419,22 +419,19 @@ export class EthereumProvider
   };
 
   /**
-   * Disconnect the provider, the underlying blockchain will be stopped. Any tasks currently executing will be completed,
-   * any pending tasks will be rejected. The returned Promise will resolve when the provider is disconnected, and a
-   * "disconnect" event will be emitted.
-   * @returns Promise<void> - resolves when the provider has disconnected
+   * Disconnect the provider instance. This will cause the underlying blockchain to be stopped, and any pending
+   * tasks to be rejected. Await the returned Promise to ensure that everything has been cleanly shut down
+   * before terminating the process.
+   * @return Promise<void> - indicating that the provider has been cleanly disconnected
    */
   public disconnect = async () => {
     const executor = this.#executor;
-
-    // we await executor.stop() here to ensure that any currently executing tasks are complete before pulling the
-    // rug out by stopping the blockchain.
-    await executor.stop();
-
-    // we call rejectPendingTasks() _after_ executor.stop() has resolved, to ensure that all tasks are executed in
-    // FIFO order
-    executor.rejectPendingTasks();
+    // We make a best effort to resolve any currently executing tasks, before rejecting pending tasks. This relies on
+    // this.#blockchain.stop() waiting to resolve until after all executing tasks have settled. Executor does not
+    // guarantee that no tasks are currently executing, before rejecting any remaining pending tasks.
+    executor.stop();
     await this.#blockchain.stop();
+    executor.rejectPendingTasks();
 
     this.emit("disconnect");
   };

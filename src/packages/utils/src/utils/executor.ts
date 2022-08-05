@@ -12,8 +12,8 @@ export class Executor {
     this.#requestCoordinator = requestCoordinator;
   }
 
-  public stop(): Promise<void> {
-    return this.#requestCoordinator.stop();
+  public stop() {
+    this.#requestCoordinator.stop();
   }
 
   public rejectPendingTasks() {
