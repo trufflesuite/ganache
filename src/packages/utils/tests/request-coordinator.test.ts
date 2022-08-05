@@ -56,6 +56,8 @@ describe("request-coordinator", () => {
 
       coordinator.rejectPendingTasks();
       await Promise.all(pendingAssertions);
+
+      assert.equal(coordinator.pending.length, 0, "Coordinator pending list should be empty");
     });
 
     it("should clear the pending tasks queue", () => {

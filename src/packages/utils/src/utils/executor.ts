@@ -12,6 +12,10 @@ export class Executor {
     this.#requestCoordinator = requestCoordinator;
   }
 
+  /**
+   * Stop processing requests. We pass this call through to the requestCoordinator, which means that api 
+   * validation will continue to work after calling stop() in execute().
+   */
   public stop() {
     this.#requestCoordinator.stop();
   }
@@ -19,7 +23,6 @@ export class Executor {
   public rejectPendingTasks() {
     this.#requestCoordinator.rejectPendingTasks();
   }
-
 
   /**
    * Executes the method with the given methodName on the API

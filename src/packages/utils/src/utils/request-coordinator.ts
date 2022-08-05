@@ -25,6 +25,7 @@ export class RequestCoordinator {
    */
   public runningTasks: number = 0;
   #paused: boolean = true;
+  #stopped: boolean = false;
   public get paused(): boolean {
     return this.#paused;
   }
@@ -50,6 +51,11 @@ export class RequestCoordinator {
    * Resume processing.
    */
   public resume = () => {
+    if (this.#stopped) {
+      throw new Error(
+        "Cannot resume processing requests, Ganache is disconnected."
+      );
+    }
     this.#paused = false;
     this.#process();
   };
@@ -80,37 +86,27 @@ export class RequestCoordinator {
   };
 
   /**
-   * Stop processing tasks - calls to queue(), and resume() will reject with an error indicating that Ganache is
-   * disconnected. This is an irreversible action. If you wish to be able to resume processing, use pause() instead.
-   *
-   * Note: This will _not_ reject any pending tasks - see rejectPendingTasks()
+   * Stop processing tasks - calls to queue(), and resume() will reject with an error indicating
+   * that Ganache is disconnected. This is an irreversible action. If you wish to be able to resume
+   * processing, use pause() instead.
    */
   public stop() {
     this.pause();
-
-    // ensure nothing can be requeued (although tasks can be added directly to this.pending but they will never be
-    // processed). We make this async to force a Promise return type.
-    this.queue = async () => {
-      throw new Error("Cannot process request, Ganache is disconnected.");
-    };
-
-    // ensure that processing cannot be resumed.
-    this.resume = () => {
-      throw new Error(
-        "Cannot resume processing requests, Ganache is disconnected."
-      );
-    };
+    this.#stopped = true;
   }
 
   /**
-   * Reject any pending tasks with an error indicating that Ganache is disconnected. Tasks are rejected in FIFO order.
+   * All pending tasks will reject with an error indicating that Ganache is disconnected.
    */
   public rejectPendingTasks() {
-    let current: RejectableTask;
-    while(current = this.pending.shift()) {
+    for(const current of this.pending) {
       current.reject(
         new Error("Cannot process request, Ganache is disconnected.")
       );
+    }
+
+    if (this.pending.length > 0) {
+      this.pending.splice(0, this.pending.length);
     }
   }
 
@@ -122,6 +118,10 @@ export class RequestCoordinator {
     thisArgument: any,
     argumentsList: OverloadedParameters<T>
   ) => {
+    if (this.#stopped) {
+      return Promise.reject(new Error("Cannot process request, Ganache is disconnected."));
+    }
+
     return new Promise<{ value: ReturnType<typeof fn> }>((resolve, reject) => {
       // const executor is `async` to force the return value into a Promise.
       const execute = async () => {

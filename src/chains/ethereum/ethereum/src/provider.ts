@@ -420,19 +420,17 @@ export class EthereumProvider
 
   /**
    * Disconnect the provider instance. This will cause the underlying blockchain to be stopped, and any pending
-   * tasks to be rejected. Await the returned Promise to ensure that everything has been cleanly shut down
-   * before terminating the process.
+   * tasks to be rejected. Await the returned Promise to ensure that everything has been cleanly shut down before
+   * terminating the process.
    * @return Promise<void> - indicating that the provider has been cleanly disconnected
    */
   public disconnect = async () => {
-    const executor = this.#executor;
-    // We make a best effort to resolve any currently executing tasks, before rejecting pending tasks. This relies on
-    // this.#blockchain.stop() waiting to resolve until after all executing tasks have settled. Executor does not
-    // guarantee that no tasks are currently executing, before rejecting any remaining pending tasks.
-    executor.stop();
+    // executor.stop() will stop accepting new tasks, but will not wait for inflight tasks. These may reject with
+    // (unhelpful) internal errors. See https://github.com/trufflesuite/ganache/issues/3499
+    this.#executor.stop();
     await this.#blockchain.stop();
-    executor.rejectPendingTasks();
 
+    this.#executor.rejectPendingTasks();
     this.emit("disconnect");
   };
 
