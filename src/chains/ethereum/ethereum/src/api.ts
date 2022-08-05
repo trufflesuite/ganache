@@ -2902,7 +2902,7 @@ export default class EthereumApi implements Api {
     blockCount: QUANTITY,
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles: number[]
-  ): Promise<Ethereum.FeeHistoryResult> {
+  ): Promise<Ethereum.FeeHistory> {
     const blockchain = this.#blockchain;
     const PAD_PRECISION = 14;
     const PRECISION = 10 ** PAD_PRECISION;
@@ -2925,18 +2925,19 @@ export default class EthereumApi implements Api {
       Quantity.toNumber(blockCount),
       newestBlockNumber + 1
     );
-    // blockCount is inclusive of newestBlock so - 1.
-    const oldestBlockNumber = newestBlockNumber - Math.max(totalBlocks - 1, 0);
 
     // Cut out early if no range is given
     if (totalBlocks === 0) {
       return {
-        oldestBlock: Quantity.from(oldestBlockNumber),
+        oldestBlock: Quantity.from(newestBlock).toString(),
         baseFeePerGas: undefined,
         gasUsedRatio: null,
         reward: undefined
       };
     }
+
+    // blockCount is inclusive of newestBlock
+    const oldestBlockNumber = newestBlockNumber - (totalBlocks - 1);
 
     const baseFeePerGas = new Array(totalBlocks);
     const gasUsedRatio = new Array(totalBlocks);
@@ -3011,7 +3012,9 @@ export default class EthereumApi implements Api {
             return 0;
           });
 
-          // For each percentile of block gas consumed, what was the reward per gas spent
+          // All of the block transactions are ordered, ascending, from least to greatest by
+          // the fee paid per unit of gas. At each percentile of block gas that was consumed,
+          // what was the fee paid per unit of gas?
           reward[currentPosition] = rewardPercentiles.map(p => {
             let gasUsed = 0n;
 
@@ -3045,7 +3048,7 @@ export default class EthereumApi implements Api {
     );
 
     return {
-      oldestBlock: Quantity.from(oldestBlockNumber),
+      oldestBlock: Quantity.from(oldestBlockNumber).toString(),
       baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
       gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : null,
       reward: rewardPercentiles.length > 0 ? reward : undefined

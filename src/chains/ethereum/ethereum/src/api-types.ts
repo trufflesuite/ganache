@@ -195,20 +195,12 @@ export namespace Ethereum {
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
 
-  /**
-   *
-   * @property {string} oldestBlock - Lowest number block of returned range.
-   * @property {[string]} baseFeePerGas - An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
-   * @property {[number]} gasUsedRatio - A two-dimensional array of effective priority fees per gas at the requested block percentiles.
-   * @property {[string]} reward - A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the coresponding effective tip for the percentile will be determined, accounting for gas consumed.
-   *
-   */
-  export type FeeHistoryResult = {
-    oldestBlock: Quantity;
-    baseFeePerGas: string[];
-    gasUsedRatio: number[];
-    reward?: string[];
-  };
+  // eth_feeHistory
+  export type FeeHistory<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<FeeHistory<"private">>
+      : UtilTypes.FeeHistory;
+
   // eth_getProof
   export type AccountProof<P extends PublicPrivate = "public"> =
     P extends "public"
