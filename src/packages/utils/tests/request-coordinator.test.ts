@@ -35,29 +35,43 @@ describe("request-coordinator", () => {
     });
   });
 
-  describe("rejectAllPendingRequests()", () => {
+  describe("end()", () => {
     it("should reject pending requests in the order that they were received", async () => {
       coordinator.pause();
 
-      let taskIndex = 0;
+      let nextRejectionIndex = 0;
       const pendingAssertions: Promise<any>[] = [];
-      for (let i = 0; i < 10; i++) {
+
+      for (let taskIndex = 0; taskIndex < 10; taskIndex++) {
         const task = coordinator.queue(noop, this, []);
 
-        let nextRejectionIndex = taskIndex;
-        pendingAssertions.push(task.catch(_ => {
-          assert.strictEqual(i, nextRejectionIndex, `Rejected in incorrect order, waiting on task at index ${nextRejectionIndex}, got ${i}.`);
-        }));
+        pendingAssertions.push(
+          task.catch(_ => {
+            assert.strictEqual(
+              taskIndex,
+              nextRejectionIndex,
+              `Rejected in incorrect order, waiting on task at index ${nextRejectionIndex}, got ${taskIndex}.`
+            );
+            nextRejectionIndex++;
+          })
+        );
 
-        taskIndex++;
-
-        pendingAssertions.push(assert.rejects(task, new Error("Cannot process request, Ganache is disconnected.")));
+        pendingAssertions.push(
+          assert.rejects(
+            task,
+            new Error("Cannot process request, Ganache is disconnected.")
+          )
+        );
       }
 
-      coordinator.rejectPendingTasks();
+      coordinator.end();
       await Promise.all(pendingAssertions);
 
-      assert.equal(coordinator.pending.length, 0, "Coordinator pending list should be empty");
+      assert.equal(
+        coordinator.pending.length,
+        0,
+        "Pending array should be empty"
+      );
     });
 
     it("should clear the pending tasks queue", () => {
@@ -67,10 +81,18 @@ describe("request-coordinator", () => {
         coordinator.queue(noop, this, []);
       }
 
-      assert.equal(coordinator.pending.length, 10, "Incorrect pending queue length before calling rejectAllPendingRequests");
+      assert.equal(
+        coordinator.pending.length,
+        10,
+        "Incorrect pending queue length before calling end()"
+      );
 
-      coordinator.rejectPendingTasks();
-      assert.equal(coordinator.pending.length, 0, "Incorrect pending queue length after calling rejectAllPendingRequests");
+      coordinator.end();
+      assert.equal(
+        coordinator.pending.length,
+        0,
+        "Incorrect pending queue length after calling end()"
+      );
     });
   });
 });

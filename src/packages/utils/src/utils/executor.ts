@@ -20,8 +20,11 @@ export class Executor {
     this.#requestCoordinator.stop();
   }
 
-  public rejectPendingTasks() {
-    this.#requestCoordinator.rejectPendingTasks();
+  /**
+   * Finalise shutdown of the underlying RequestCoordinator.
+   */
+  public end() {
+    this.#requestCoordinator.end();
   }
 
   /**

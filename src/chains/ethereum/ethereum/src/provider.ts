@@ -420,9 +420,8 @@ export class EthereumProvider
 
   /**
    * Disconnect the provider instance. This will cause the underlying blockchain to be stopped, and any pending
-   * tasks to be rejected. Await the returned Promise to ensure that everything has been cleanly shut down before
-   * terminating the process.
-   * @return Promise<void> - indicating that the provider has been cleanly disconnected
+   * tasks to be rejected. Emits a `disconnect` event once successfully disconnected.
+   * @returns Fullfills with `undefined` once the provider has been disconnected.
    */
   public disconnect = async () => {
     // executor.stop() will stop accepting new tasks, but will not wait for inflight tasks. These may reject with
@@ -430,7 +429,7 @@ export class EthereumProvider
     this.#executor.stop();
     await this.#blockchain.stop();
 
-    this.#executor.rejectPendingTasks();
+    this.#executor.end();
     this.emit("disconnect");
   };
 

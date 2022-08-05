@@ -96,10 +96,11 @@ export class RequestCoordinator {
   }
 
   /**
-   * All pending tasks will reject with an error indicating that Ganache is disconnected.
+   * Finalise shutdown of the RequestCoordinator. Rejects all pending tasks in order. Should be
+   * called after all in-flight tasks have resolved in order to maintain overall FIFO order.
    */
-  public rejectPendingTasks() {
-    for(const current of this.pending) {
+  public end() {
+    for (const current of this.pending) {
       current.reject(
         new Error("Cannot process request, Ganache is disconnected.")
       );
@@ -119,11 +120,13 @@ export class RequestCoordinator {
     argumentsList: OverloadedParameters<T>
   ) => {
     if (this.#stopped) {
-      return Promise.reject(new Error("Cannot process request, Ganache is disconnected."));
+      return Promise.reject(
+        new Error("Cannot process request, Ganache is disconnected.")
+      );
     }
 
     return new Promise<{ value: ReturnType<typeof fn> }>((resolve, reject) => {
-      // const executor is `async` to force the return value into a Promise.
+      // const execute is `async` to force the return value into a Promise.
       const execute = async () => {
         try {
           const value = Reflect.apply(

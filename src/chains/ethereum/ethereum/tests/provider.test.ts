@@ -462,7 +462,7 @@ describe("provider", () => {
     });
   });
 
-  describe.only("disconnect()", () => {
+  describe("disconnect()", () => {
     let provider: EthereumProvider;
 
     [true, false].forEach(asyncRequestProcessing => {
@@ -473,26 +473,31 @@ describe("provider", () => {
           });
         });
 
-        it("stops responding to RPC methods once disconnected", async () => {
-          await provider.disconnect();
+        it("rejects requests after disconnect() is called", async () => {
+          provider.disconnect();
+          const whenBlockByNumber = provider.request({
+            method: "eth_getBlockByNumber",
+            params: ["latest"]
+          });
 
           await assert.rejects(
-            provider.send("eth_getBlockByNumber", ["latest"]),
-            new Error("Cannot process request, Ganache is disconnected.")
+            whenBlockByNumber,
+            new Error("Cannot process request, Ganache is disconnected."),
+            "Requests made after disconnect is called should reject"
           );
         });
 
-        it("raises the 'disconnect' event", async () => {
+        it("emits the 'disconnect' event", async () => {
           const whenDisconnected = provider.once("disconnect");
           await provider.disconnect();
           await assert.doesNotReject(
             whenDisconnected,
-            'The provider should raise the "disconnect" event'
+            'The provider should emit the "disconnect" event'
           );
         });
 
         // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
-        it.skip("successfully processes requests executed before disconnect is called", async () => {
+        it.skip("processes requests executed before disconnect is called", async () => {
           const whenBlockByNumber = provider.request({
             method: "eth_getProof",
             params: ["0xC7D9E2d5FE0Ff5C43102158C31BbC4aA2fDe10d8", [], "latest"]
@@ -501,46 +506,28 @@ describe("provider", () => {
 
           await assert.doesNotReject(
             whenBlockByNumber,
-            "A call to .request() on the provider before disconnect is called should succeed"
+            "Currently executing request should resolve"
           );
           await assert.doesNotReject(
             whenDisconnected,
-            'The provider should raise the "disconnect" event'
-          );
-        });
-
-        it("rejects requests after disconnect is called", async () => {
-          const whenDisconnected = provider.disconnect();
-          const whenBlockByNumber = provider.request({
-            method: "eth_getBlockByNumber",
-            params: ["latest"]
-          });
-
-          await assert.rejects(
-            whenBlockByNumber,
-            new Error("Cannot process request, Ganache is disconnected.")
-          );
-          await assert.doesNotReject(
-            whenDisconnected,
-            'The provider should raise the "disconnect" event'
+            'The provider should emit the "disconnect" event'
           );
         });
       });
     });
 
-    describe("without asyncRequestProcessing", () => {
-      beforeEach("Instantiate provider", async () => {
+    // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
+    describe.skip("without asyncRequestProcessing", () => {
+      // we only test this with asyncRequestProcessing: false, because it's impossible to force requests
+      // to be "pending" when asyncRequestProcessing: true
+      it("processes started requests, but reject pending requests", async () => {
         provider = await getProvider({
           chain: { asyncRequestProcessing: false }
         });
-      });
 
-      // we only test this with asyncRequestProcessing: false, because it's impossible to force requests
-      // to be "pending" when asyncRequestProcessing: true
-      it("successfully processes started requests, but reject pending requests", async () => {
         const active = provider.request({
-          method: "eth_getBlockByNumber",
-          params: ["latest"]
+          method: "eth_getProof",
+          params: ["0x4Ae2736a3b914C7597131fd1Ef30F74aC4B20874", [], "latest"]
         });
         const pending = provider.request({
           method: "eth_getBlockByNumber",
@@ -557,7 +544,7 @@ describe("provider", () => {
         await assert.doesNotReject(active, "active tasks should not reject");
         await assert.doesNotReject(
           whenDisconnected,
-          'The provider should raise the "disconnect" event'
+          'The provider should emit the "disconnect" event'
         );
       });
     });
