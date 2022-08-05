@@ -2976,7 +2976,8 @@ export default class EthereumApi implements Api {
             return Quantity.Zero;
           });
         } else {
-          // Get receipts
+          // For all transactions, effectiveGasReward = normalized fee per unit of gas
+          // earned by the miner regardless of transaction type
           const effectiveRewardAndGasUsed = (
             await Promise.all(
               transactions.map(async tx => {
@@ -3012,8 +3013,8 @@ export default class EthereumApi implements Api {
           });
 
           // All of the block transactions are ordered, ascending, from least to greatest by
-          // the fee paid per unit of gas. At each percentile of block gas that was consumed,
-          // what was the fee paid per unit of gas?
+          // the fee the tx paid per unit of gas. For each percentile of block gas consumed,
+          // what was the fee paid for the unit of gas at that percentile.
           reward[currentPosition] = rewardPercentiles.map(percentile => {
             let gasUsed = 0n;
 
