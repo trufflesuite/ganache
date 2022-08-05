@@ -30,6 +30,7 @@ function findIn(
 describe("transaction pool", async () => {
   let rpcTx: Transaction;
   let from: string;
+  let addresses: string[] = [];
   let secretKey: Data;
   let common: Common;
   let blockchain: any;
@@ -44,7 +45,8 @@ describe("transaction pool", async () => {
 
   const beforeEachSetup = () => {
     const wallet = new Wallet(options.wallet);
-    [from] = wallet.addresses;
+    addresses = wallet.addresses;
+    [from] = addresses;
     secretKey = wallet.unlockedAccounts.get(from);
     rpcTx = {
       from: from,
@@ -512,6 +514,78 @@ describe("transaction pool", async () => {
         found.serialized.toString(),
         transaction.serialized.toString()
       );
+    });
+
+    /**
+     * The plan is to queue up some transactions (from the same origin) without
+     * awaiting them. We'll loop over each of the subsequent promises and await
+     * them in the order they were sent. Once one is awaited, confirm that it is
+     * now in the pending queue, and that those promises which we _haven't_ yet
+     * awaited are _not_ yet in the queue (we actually check if they've been
+     * hashed yet, because this happens right before they're added to the queue)
+     */
+    it("adds same-origin transactions in series", async () => {
+      const txPool = new TransactionPool(options.miner, blockchain, origins);
+      const { pending } = txPool.executables;
+      const promises: Map<TypedTransaction, Promise<any>> = new Map();
+      const notInPool: TypedTransaction[] = [];
+
+      for (let i = 0; i < 10; i++) {
+        const transaction = TransactionFactory.fromRpc(rpcTx, common);
+        promises.set(
+          transaction,
+          txPool.prepareTransaction(transaction, secretKey)
+        );
+        notInPool.push(transaction);
+      }
+
+      notInPool.reverse();
+      for (const [transaction, promise] of promises.entries()) {
+        const isExecutable = await promise;
+        assert(isExecutable);
+        const found = findIn(transaction.hash.toBuffer(), pending);
+        assert.strictEqual(found.hash, transaction.hash);
+        notInPool.pop();
+        for (const unpooled of notInPool) {
+          // the transaction hasn't been signed and hashed yet cause it hasn't
+          // been through the pool
+          assert.strictEqual(unpooled.hash, undefined);
+        }
+      }
+    });
+
+    /**
+     * The plan is to queue up some transactions (from unique origins) and wait
+     * for _any one_ of them to be done. We'll then loop (backwards, so the most
+     * recently sent transaction is checked first) over each of the transactions
+     * and confirm that they are in the pending executables pool, even though we
+     * haven't technically awaited them. Because they are queued in parallel, w
+     * hen one is done, they should all be done.
+     *
+     * Note: Obviously this reasoning breaks down eventually, but the test timed
+     * out from too many transactions before it failed.
+     *
+     */
+    it("adds unique-origin transactions in parallel", async () => {
+      const txPool = new TransactionPool(options.miner, blockchain, origins);
+      const { pending } = txPool.executables;
+      const promises = [];
+      const transactions: TypedTransaction[] = [];
+
+      for (let i = 0; i < 10; i++) {
+        const uniqueOrigin = addresses[i];
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, from: uniqueOrigin },
+          common
+        );
+        promises.push(txPool.prepareTransaction(transaction, secretKey));
+      }
+      await Promise.race(promises);
+      for (let i = transactions.length - 1; i >= 0; i--) {
+        const transaction = transactions[i];
+        const found = findIn(transaction.hash.toBuffer(), pending);
+        assert.strictEqual(found.hash, transaction.hash);
+      }
     });
   });
 
