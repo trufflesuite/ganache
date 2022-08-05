@@ -80,9 +80,8 @@ function findHighestNonceByOrigin(set: Set<TypedTransaction>, origin: string) {
   let highestNonce: bigint = null;
   for (const transaction of set) {
     if (
-      (transaction.from.toString() === origin &&
-        transaction.nonce.toBigInt() > highestNonce) ||
-      highestNonce === null
+      transaction.from.toString() === origin &&
+      (highestNonce === null || transaction.nonce.toBigInt() > highestNonce)
     ) {
       highestNonce = transaction.nonce.toBigInt();
     }
