@@ -2904,10 +2904,9 @@ export default class EthereumApi implements Api {
     rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistory> {
     const blockchain = this.#blockchain;
-    const PAD_PRECISION = 14;
-    const PRECISION = 10 ** PAD_PRECISION;
-    const PRECISION_BIG_INT = BigInt(PRECISION);
-    const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
+    const PAD_PRECISION = 16;
+    const PRECISION_FLOAT = 1e14;
+    const PRECISION_BIG_INT = BigInt(1e16);
 
     // if newestBlock is a tag, we already keep a ref in the Block Manager.
     let newestBlockNumber;
@@ -2926,7 +2925,7 @@ export default class EthereumApi implements Api {
       newestBlockNumber + 1
     );
 
-    // Cut out early if no range is given
+    // Cut out early if no range is given.
     if (totalBlocks === 0) {
       return {
         oldestBlock: Quantity.from(newestBlock).toString(),
@@ -3015,12 +3014,13 @@ export default class EthereumApi implements Api {
           // All of the block transactions are ordered, ascending, from least to greatest by
           // the fee paid per unit of gas. At each percentile of block gas that was consumed,
           // what was the fee paid per unit of gas?
-          reward[currentPosition] = rewardPercentiles.map(p => {
+          reward[currentPosition] = rewardPercentiles.map(percentile => {
             let gasUsed = 0n;
 
             const targetGas =
-              (currentBlock.header.gasUsed.toBigInt() * BigInt(p * PRECISION)) /
-              PRECISION_BIG_INT_PERCENTILE;
+              (currentBlock.header.gasUsed.toBigInt() *
+                BigInt(percentile * PRECISION_FLOAT)) /
+              PRECISION_BIG_INT;
 
             for (const values of effectiveRewardAndGasUsed) {
               gasUsed = gasUsed + values.gasUsed;
