@@ -69,9 +69,9 @@ describe("api", () => {
               []
             ]);
 
-            assert.equal(feeHistory.oldestBlock, "0x8");
-            assert.equal(feeHistory.baseFeePerGas.length, 4); // blockCount + 1
-            assert.equal(feeHistory.gasUsedRatio.length, 3);
+            assert.strictEqual(feeHistory.oldestBlock, "0x8");
+            assert.strictEqual(feeHistory.baseFeePerGas.length, 4); // blockCount + 1
+            assert.strictEqual(feeHistory.gasUsedRatio.length, 3);
           });
 
           it("returns empty result for blockCount === 0 && newestBlock = 0x0", async () => {
@@ -83,19 +83,22 @@ describe("api", () => {
               []
             ]);
 
-            assert.equal(feeHistory.oldestBlock, "0x0");
-            assert.equal(feeHistory.baseFeePerGas, undefined);
-            assert.equal(feeHistory.gasUsedRatio, null);
-            assert.equal(feeHistory.reward, undefined);
+            assert.strictEqual(feeHistory.oldestBlock, "0x0");
+            assert.strictEqual(feeHistory.baseFeePerGas, undefined);
+            assert.strictEqual(feeHistory.gasUsedRatio, null);
+            assert.strictEqual(feeHistory.reward, undefined);
           });
           describe("newestBlock", () => {
             it("throws if header is not found", async () => {
               const blockCount = "0x1";
-              await provider
-                .send("eth_feeHistory", [blockCount, headerNotFoundBlock, []])
-                .catch(e => {
-                  assert.strictEqual(e.message, ERROR_HEADER_NOT_FOUND);
-                });
+              await assert.rejects(
+                provider.send("eth_feeHistory", [
+                  blockCount,
+                  headerNotFoundBlock,
+                  []
+                ]),
+                new Error(ERROR_HEADER_NOT_FOUND)
+              );
             });
           });
           describe("rewardPercentile", () => {
@@ -108,7 +111,7 @@ describe("api", () => {
                 []
               ]);
 
-              assert.equal(feeHistory.reward, undefined);
+              assert.strictEqual(feeHistory.reward, undefined);
             });
           });
         });
@@ -124,9 +127,9 @@ describe("api", () => {
               []
             ]);
 
-            assert.equal(feeHistory.oldestBlock, genesisBlock);
-            assert.equal(feeHistory.baseFeePerGas.length, 4); // blocks found + 1
-            assert.equal(feeHistory.gasUsedRatio.length, 3);
+            assert.strictEqual(feeHistory.oldestBlock, genesisBlock);
+            assert.strictEqual(feeHistory.baseFeePerGas.length, 4); // blocks found + 1
+            assert.strictEqual(feeHistory.gasUsedRatio.length, 3);
           });
           it("newestBlock = oldestBlock when blockCount === 1", async () => {
             const blockCount = "0x1";
@@ -137,7 +140,7 @@ describe("api", () => {
               []
             ]);
 
-            assert.equal(feeHistory.oldestBlock, newestBlock);
+            assert.strictEqual(feeHistory.oldestBlock, newestBlock);
           });
           it("oldestBlock = newestBlock - blockCount +1", async () => {
             const blockCount = "0x1";
@@ -148,7 +151,7 @@ describe("api", () => {
               []
             ]);
 
-            assert.equal(feeHistory.oldestBlock, newestBlock);
+            assert.strictEqual(feeHistory.oldestBlock, newestBlock);
           });
         });
       });
@@ -162,7 +165,7 @@ describe("api", () => {
             []
           ]);
 
-          assert.equal(feeHistory.gasUsedRatio[0], 0);
+          assert.strictEqual(feeHistory.gasUsedRatio[0], 0);
         });
         it("returns gasUsed / maxGas", async () => {
           await sendTransaction({ provider, to, from });
@@ -178,8 +181,8 @@ describe("api", () => {
             []
           ]);
 
-          assert.equal(feeHistory.gasUsedRatio.length, 1);
-          assert.equal(
+          assert.strictEqual(feeHistory.gasUsedRatio.length, 1);
+          assert.strictEqual(
             feeHistory.gasUsedRatio[0],
             Number(block.gasUsed) / Number(block.gasLimit)
           );
@@ -199,9 +202,9 @@ describe("api", () => {
             []
           ]);
 
-          assert.equal(feeHistory.gasUsedRatio.length, 2);
-          assert.equal(feeHistory.gasUsedRatio[0], 0);
-          assert.equal(
+          assert.strictEqual(feeHistory.gasUsedRatio.length, 2);
+          assert.strictEqual(feeHistory.gasUsedRatio[0], 0);
+          assert.strictEqual(
             feeHistory.gasUsedRatio[1],
             Number(block.gasUsed) / Number(block.gasLimit)
           );
@@ -220,7 +223,7 @@ describe("api", () => {
             []
           ]);
 
-          assert.equal(feeHistory.baseFeePerGas.length, blocks + 1);
+          assert.strictEqual(feeHistory.baseFeePerGas.length, blocks + 1);
         });
         it("baseFeePerGas matches block baseFeePerGas", async () => {
           const blockCount = "0x5";
@@ -238,8 +241,8 @@ describe("api", () => {
             newestBlock
           ]);
 
-          assert.equal(feeHistory.baseFeePerGas.length, blocks + 1);
-          assert.equal(
+          assert.strictEqual(feeHistory.baseFeePerGas.length, blocks + 1);
+          assert.strictEqual(
             feeHistory.baseFeePerGas[blocks - 1],
             block.baseFeePerGas
           );
@@ -264,7 +267,7 @@ describe("api", () => {
           );
           const emptyBlockDelta = 0.875; // empty blocks will adjust down by 12.5%
 
-          assert.equal(
+          assert.strictEqual(
             latestBlockFeePerGas * emptyBlockDelta,
             pendingBlockFeePerGas
           );
@@ -283,7 +286,7 @@ describe("api", () => {
             []
           ]);
 
-          assert.equal(feeHistory.reward, undefined);
+          assert.strictEqual(feeHistory.reward, undefined);
         });
         it("returns 0x0 for empty blocks at each percentile", async () => {
           const blockCount = "0x1";
