@@ -2904,26 +2904,31 @@ export default class EthereumApi implements Api {
     rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistoryResult> {
     const blockchain = this.#blockchain;
-    const PAD_PRECISION = 16;
+    const PAD_PRECISION = 14;
     const PRECISION = 10 ** PAD_PRECISION;
     const PRECISION_BIG_INT = BigInt(PRECISION);
     const PRECISION_BIG_INT_PERCENTILE = PRECISION_BIG_INT * 100n;
 
+    // if newestBlock is a tag, we already keep a ref in the Block Manager.
     let newestBlockNumber;
     const newBlock = await blockchain.blocks.getBlockByTag(newestBlock as Tag);
 
+    // If newestBlock is not a tag we can just use the newestBlock number.
     if (newBlock) {
       newestBlockNumber = newBlock.header.number.toNumber();
     } else {
       newestBlockNumber = Quantity.from(newestBlock).toNumber();
     }
 
+    // blockCount > newestBlock is technically valid but we cannot go past the Genesis Block.
     const totalBlocks = Math.min(
       Quantity.toNumber(blockCount),
       newestBlockNumber + 1
     );
+    // blockCount is inclusive of newestBlock so - 1.
     const oldestBlockNumber = newestBlockNumber - Math.max(totalBlocks - 1, 0);
 
+    // Cut out early if no range is given
     if (totalBlocks === 0) {
       return {
         oldestBlock: Quantity.from(oldestBlockNumber),
@@ -2944,19 +2949,20 @@ export default class EthereumApi implements Api {
     let currentBlock;
 
     while (currentBlockNumber <= newestBlockNumber) {
-      const currentPosition = currentBlockNumber - oldestBlockNumber;
-
       currentBlock = await blockchain.blocks.get(
         Quantity.toBuffer(currentBlockNumber)
       );
 
-      const gasUsed = currentBlock.header.gasUsed.toBigInt();
-      const gasLimit = currentBlock.header.gasLimit.toBigInt();
-      const baseFee = currentBlock.header.baseFeePerGas || Quantity.Zero;
+      const currentPosition = currentBlockNumber - oldestBlockNumber;
 
-      baseFeePerGas[currentPosition] = baseFee;
+      baseFeePerGas[currentPosition] =
+        currentBlock.header.baseFeePerGas || Quantity.Zero;
+
       gasUsedRatio[currentPosition] = Number(
-        `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
+        `0.${(
+          (currentBlock.header.gasUsed.toBigInt() * PRECISION_BIG_INT) /
+          currentBlock.header.gasLimit.toBigInt()
+        )
           .toString()
           .padStart(PAD_PRECISION, "0")}`
       );
