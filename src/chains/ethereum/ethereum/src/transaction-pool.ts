@@ -158,14 +158,10 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     secretKey?: Data
   ) {
     const origin = transaction.from.toString();
-    console.log(`processing origin ${origin}`);
     let queueForOrigin: Semaphore;
     if (!(queueForOrigin = this.#originsQueue.get(origin))) {
-      console.log("making new semaphore");
       queueForOrigin = Semaphore(1);
       this.#originsQueue.set(origin, queueForOrigin);
-    } else {
-      console.log(`semaphore already existed`);
     }
     await new Promise(resolve => queueForOrigin.take(resolve));
     try {
