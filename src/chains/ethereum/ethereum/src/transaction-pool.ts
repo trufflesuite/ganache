@@ -13,6 +13,7 @@ import {
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
+import Semaphore from "semaphore";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
 
 /**
@@ -130,6 +131,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
   #priceBump: bigint;
 
   #blockchain: Blockchain;
+  #originsQueue: Map<string, Semaphore> = new Map();
   constructor(
     options: EthereumInternalOptions["miner"],
     blockchain: Blockchain,
@@ -151,6 +153,31 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     Promise<{ balance: Quantity; nonce: Quantity }>
   >();
 
+  public async prepareTransaction(
+    transaction: TypedTransaction,
+    secretKey?: Data
+  ) {
+    const origin = transaction.from.toString();
+    console.log(`processing origin ${origin}`);
+    let queueForOrigin: Semaphore;
+    if (!(queueForOrigin = this.#originsQueue.get(origin))) {
+      console.log("making new semaphore");
+      queueForOrigin = Semaphore(1);
+      this.#originsQueue.set(origin, queueForOrigin);
+    } else {
+      console.log(`semaphore already existed`);
+    }
+    await new Promise(resolve => queueForOrigin.take(resolve));
+    try {
+      // check if transaction is in origins, if not add it
+      // if so, use semaphore to call prepareTransaction
+      // if not, just call prepare transaction
+      return await this._prepareTransaction(transaction, secretKey);
+    } finally {
+      queueForOrigin.leave();
+    }
+  }
+
   /**
    * Inserts a transaction into the pending queue, if executable, or future pool
    * if not.
@@ -159,7 +186,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
    * @param secretKey -
    * @returns data that can be used to drain the queue
    */
-  public async prepareTransaction(
+  public async _prepareTransaction(
     transaction: TypedTransaction,
     secretKey?: Data
   ) {
