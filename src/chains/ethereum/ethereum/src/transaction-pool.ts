@@ -158,10 +158,11 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     secretKey?: Data
   ) {
     const origin = transaction.from.toString();
+    const originsQueue = this.#originsQueue;
     let queueForOrigin: Semaphore;
-    if (!(queueForOrigin = this.#originsQueue.get(origin))) {
+    if (!(queueForOrigin = originsQueue.get(origin))) {
       queueForOrigin = Semaphore(1);
-      this.#originsQueue.set(origin, queueForOrigin);
+      originsQueue.set(origin, queueForOrigin);
     }
     await new Promise(resolve => queueForOrigin.take(resolve));
     try {
