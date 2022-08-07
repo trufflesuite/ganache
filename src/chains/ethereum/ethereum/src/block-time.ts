@@ -19,7 +19,7 @@ function validateBlockTimestamp(timestamp: number) {
  * be used (unless calls are made to setOffset(), or setTime()).
  */
 export class BlockTime {
-  protected _getReferenceClockTime: () => number;
+  protected _getReferenceTime: () => number;
   protected _offsetMilliseconds: number = 0;
 
   /**
@@ -33,17 +33,17 @@ export class BlockTime {
   }
 
   /**
-   * Create a new BlockTime instance, which will use the provided getReferenceClockTime function to fetch the
+   * Create a new BlockTime instance, which will use the provided getReferenceTime function to fetch the
    * "current" time. If the startTime argument is specified, the instance will be offset from the system clock
    * such that its initial time is equal to the value provided.
-   * @param  {()=>number} getReferenceClockTime
+   * @param  {()=>number} getReferenceTime
    * @param  {number} startTime?
    */
   constructor(
-    getReferenceClockTime: () => number,
+    getReferenceTime: () => number,
     startTime?: number
   ) {
-    this._getReferenceClockTime = getReferenceClockTime;
+    this._getReferenceTime = getReferenceTime;
 
     if (startTime !== undefined) {
       validateBlockTimestamp(startTime);
@@ -66,7 +66,7 @@ export class BlockTime {
    * @param {number} offset - The "offset" for the BlockTime instance in milliseconds.
    */
   setOffset(offset: number) {
-    const referenceTimestamp = this._getReferenceClockTime();
+    const referenceTimestamp = this._getReferenceTime();
     validateBlockTimestamp(referenceTimestamp + offset);
 
     this._offsetMilliseconds = offset;
@@ -81,7 +81,7 @@ export class BlockTime {
    */
   setTime(timestamp: number): number {
     validateBlockTimestamp(timestamp);
-    this._offsetMilliseconds = timestamp - this._getReferenceClockTime();
+    this._offsetMilliseconds = timestamp - this._getReferenceTime();
     return this._offsetMilliseconds;
   }
 
@@ -97,13 +97,37 @@ export class BlockTime {
       this.setTime(timestamp);
       milliseconds = timestamp;
     } else {
-      milliseconds = this._getReferenceClockTime() + this._offsetMilliseconds;
+      milliseconds = this._getReferenceTime() + this._offsetMilliseconds;
     }
 
     const seconds = Math.floor(milliseconds / 1000);
     return seconds;
   }
 }
+
+export class PreviousBlockBasedBlockTime extends BlockTime {
+  private readonly _incrementSeconds: number;
+  constructor(
+    getPreviousBlockTime: () => number,
+    incrementSeconds: number,
+    startTime?: number
+  ) {
+    super(() => {
+      const previousBlockTime = getPreviousBlockTime();
+      if (previousBlockTime === undefined) {
+        return startTime * 1000;
+      }
+      return previousBlockTime * 1000;
+    }, startTime);
+    this._incrementSeconds = incrementSeconds;
+  }
+
+  createBlockTimestampInSeconds(timestamp?: number): number {
+    const offsetTime = super.createBlockTimestampInSeconds(timestamp);
+    return offsetTime + this._incrementSeconds;
+  }
+}
+
 
 /**
  * A BlockTime implementation that will create a series of incremental block times. Every time

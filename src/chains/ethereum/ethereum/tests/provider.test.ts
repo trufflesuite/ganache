@@ -186,6 +186,15 @@ describe("provider", () => {
     });
 
     it("uses the `timestampIncrement` option when interval mining", async () => {
+      const provider = await getProvider({
+        chain: { time: 10 },
+        miner: { blockTime: 20000, timestampIncrement: 1 }
+      });
+
+      await provider.request({method: "evm_mine", params: []});
+    });
+
+    it("uses the `timestampIncrement` option when interval mining", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const blockTime = 2; // only mine once every 2 seconds
       const timestampIncrement = 1; // only increment by 1 second per block

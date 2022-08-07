@@ -35,7 +35,11 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { BlockTime, IncrementBasedBlockTime } from "./block-time";
+import {
+  BlockTime,
+  IncrementBasedBlockTime,
+  PreviousBlockBasedBlockTime
+} from "./block-time";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -171,9 +175,10 @@ export class EthereumProvider
     const blockTime =
       providerOptions.miner.timestampIncrement === "clock"
         ? BlockTime.fromSystemClock(startTime)
-        : new IncrementBasedBlockTime(
-            startTime,
-            providerOptions.miner.timestampIncrement.toNumber() * 1000
+        : new PreviousBlockBasedBlockTime(
+            () => this.#blockchain?.blocks?.latest?.header.timestamp.toNumber(),
+            providerOptions.miner.timestampIncrement.toNumber(),
+            startTime
           );
 
     const fallback = fork
