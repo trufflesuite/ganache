@@ -141,10 +141,10 @@ describe("provider", () => {
       await provider.disconnect();
     });
 
-    it("uses the adjustment only once when `timestampIncrement` is used", async () => {
+    it("applies the adjustment only once when `timestampIncrement` is used", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5; // seconds
-      const fastForward = 100; // seconds
+      const fastForwardSeconds = 100;
       const provider = await getProvider({
         chain: { time },
         miner: { timestampIncrement }
@@ -152,12 +152,11 @@ describe("provider", () => {
 
       await provider.request({
         method: "evm_increaseTime",
-        // fastForward into the future, evm_increaseTime param is in seconds
-        params: [`0x${fastForward.toString(16)}`]
+        params: [`0x${fastForwardSeconds.toString(16)}`]
       });
 
       const mineAndAssertTimestamp = async (
-        expectedTimestamp: number,
+        expectedTimestampSeconds: number,
         message?: string
       ) => {
         await provider.request({
@@ -170,7 +169,7 @@ describe("provider", () => {
         });
         assert.strictEqual(
           timestamp,
-          `0x${expectedTimestamp.toString(16)}`,
+          `0x${expectedTimestampSeconds.toString(16)}`,
           message
         );
       };
@@ -178,15 +177,15 @@ describe("provider", () => {
       let startTimeSeconds = Math.floor(+time / 1000);
 
       await mineAndAssertTimestamp(
-        startTimeSeconds + fastForward + timestampIncrement,
+        startTimeSeconds + fastForwardSeconds + timestampIncrement,
         "unexpected timestamp for the first block mined"
       );
       await mineAndAssertTimestamp(
-        startTimeSeconds + fastForward + timestampIncrement * 2,
+        startTimeSeconds + fastForwardSeconds + timestampIncrement * 2,
         "unexpected timestamp for the second block mined"
       );
       await mineAndAssertTimestamp(
-        startTimeSeconds + fastForward + timestampIncrement * 3
+        startTimeSeconds + fastForwardSeconds + timestampIncrement * 3
       ),
         "unexpected timestamp for the third block mined";
     });
