@@ -40,7 +40,7 @@ function shouldReplace(
   }
 
   // if the transaction being replaced is in the middle of being mined, we can't
-  // replpace it so let's back out early
+  // replace it so let's back out early
   if (replacee.locked) {
     throw new CodedError(
       TRANSACTION_LOCKED,
