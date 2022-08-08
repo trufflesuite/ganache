@@ -78,6 +78,11 @@ function shouldReplace(
   }
 }
 
+/**
+ * Throws insufficient funds error if `balance` < `cost`.
+ * @param cost The transaction cost.
+ * @param balance The account's balance.
+ */
 function validateSufficientFunds(cost: bigint, balance: bigint) {
   if (balance < cost) {
     throw new CodedError(
@@ -509,6 +514,14 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     return null;
   };
 
+  /**
+   * Searches all in progress transactions from the specified origin for the
+   * transaction with the highest nonce.
+   * @param origin The origin to search.
+   * @returns The in progress transaction with the highest nonce from the
+   * specified origin, along with the account's balance after running that
+   * transaction.
+   */
   readonly #getLatestInProgressFromOrigin = (origin: string) => {
     let highestNonceData: InProgressData = {
       transaction: null,
