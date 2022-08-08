@@ -289,9 +289,8 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       );
       validateSufficientFunds(transactionCost, balance.toBigInt());
     } else {
-      // since we don't have any executable transactions at the moment, we need
-      // to find our nonce from the account itself...
-
+      // we don't have any pending executable transactions, but we could have
+      // some inProgress executable transactions
       const {
         transaction: latestInProgressTransaction,
         originBalance: balanceAfterLatestInProgressTransaction
@@ -306,6 +305,8 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         effectiveNonce = highestInProgressNonce.toBigInt() + 1n;
         balance = balanceAfterLatestInProgressTransaction.toBigInt();
       } else {
+        // if we don't have in progress transactions either, we'll need to find
+        // our nonce from the account itself
         const transactor = await this.#blockchain.accounts.getNonceAndBalance(
           from
         );
@@ -316,8 +317,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       validateSufficientFunds(transactionCost, balance);
 
       if (txNonce === void 0) {
-        // if we don't have a transactionNonce, just use the account's next
-        // nonce and mark as executable
         txNonce = effectiveNonce;
         transaction.nonce = Quantity.from(txNonce);
         transactionPlacement = TriageOption.Executable;
