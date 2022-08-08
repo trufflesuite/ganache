@@ -214,22 +214,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       transaction.updateEffectiveGasPrice(baseFeePerGas);
     }
 
-    // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
-    // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous
-    // highest nonce... but what if that previous highest nonce was also invalidated?! we have to go back to the... you
-    // get the picture.
-    // So... we currently do things sub-optimally:
-    // if we currently have txs in `executableOriginTransactions`, we iterate over them to find the highest nonce
-    // and use that. Otherwise, we just fetch it from the database.
-    // Beware! There might still be race conditions here:
-    //  * if the highest tx executes, which causes it to be removed from the `executableOriginTransactions` heap,
-    // then a new tx comes in _before_ the block is persisted to the database, the nonce might be of the second
-    // tx would be too low.
-    //  * rough idea for a fix: transactions have a `finalize` method that is called _after_ the tx is saved. Maybe
-    // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the
-    // `executableOriginTransactions` map, always taking the highest of the two.
-    let highestNonce = 0n;
-
     const transactionCost =
       transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
       transaction.value.toBigInt();
@@ -250,6 +234,15 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as necessary.
+
+      // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
+      // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous
+      // highest nonce... but what if that previous highest nonce was also invalidated?! we have to go back to the... you
+      // get the picture.
+      // rough idea for a fix: transactions have a `finalize` method that is called _after_ the tx is saved. Maybe
+      // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the
+      // `executableOriginTransactions` map, always taking the highest of the two.
+      let highestNonce = 0n;
       const pendingArray = executableOriginTransactions.array;
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
