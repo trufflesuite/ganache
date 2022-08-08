@@ -12,7 +12,7 @@ import {
   INSUFFICIENT_FUNDS
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Executables } from "./miner/executables";
+import { Executables, InProgressData } from "./miner/executables";
 import Semaphore from "semaphore";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
 
@@ -77,17 +77,14 @@ function shouldReplace(
     return true;
   }
 }
-function findHighestNonceByOrigin(set: Set<TypedTransaction>, origin: string) {
-  let highestNonce: bigint = null;
-  for (const transaction of set) {
-    if (
-      transaction.from.toString() === origin &&
-      (highestNonce === null || transaction.nonce.toBigInt() > highestNonce)
-    ) {
-      highestNonce = transaction.nonce.toBigInt();
-    }
+
+function validateSufficientFunds(cost: bigint, balance: bigint) {
+  if (balance < cost) {
+    throw new CodedError(
+      INSUFFICIENT_FUNDS,
+      JsonRpcErrorCode.TRANSACTION_REJECTED
+    );
   }
-  return highestNonce;
 }
 
 function byNonce(values: TypedTransaction[], a: number, b: number) {
@@ -144,14 +141,10 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     this.#priceBump = options.priceBump;
   }
   public readonly executables: Executables = {
-    inProgress: new Set(),
+    inProgress: new Map(),
     pending: new Map()
   };
   public readonly origins: Map<string, Heap<TypedTransaction>>;
-  readonly #accountPromises = new Map<
-    string,
-    Promise<{ balance: Quantity; nonce: Quantity }>
-  >();
 
   public async prepareTransaction(
     transaction: TypedTransaction,
@@ -202,18 +195,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
     const origin = from.toString();
 
-    // We await the `transactorNoncePromise` async request to ensure we process
-    // transactions in FIFO order *by account*. We look up accounts because
-    // ganache fills in missing nonces automatically, and we need to do it in
-    // order.
-    // The trick here is that we might actually get the next nonce from the
-    // account's pending executable transactions, not the account...
-    // But another transaction might currently be getting the nonce from the
-    // account, if it is, we need to wait for it to be done doing that. Hence:
-    let transactorPromise = this.#accountPromises.get(origin);
-    if (transactorPromise) {
-      await transactorPromise;
-    }
     // if the user called sendTransaction or sendRawTransaction, effectiveGasPrice
     // hasn't been set yet on the tx. calculating the effectiveGasPrice requires
     // the block context, so we need to set it outside of the transaction. this
@@ -244,30 +225,15 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     // `executableOriginTransactions` map, always taking the highest of the two.
     let highestNonce = 0n;
 
-    if (!transactorPromise) {
-      transactorPromise = this.#blockchain.accounts.getNonceAndBalance(from);
-      this.#accountPromises.set(origin, transactorPromise);
-      transactorPromise.then(() => {
-        this.#accountPromises.delete(origin);
-      });
-    }
-    const transactor = await transactorPromise;
-
-    const cost =
+    const transactionCost =
       transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
       transaction.value.toBigInt();
-    if (transactor.balance.toBigInt() < cost) {
-      throw new CodedError(
-        INSUFFICIENT_FUNDS,
-        JsonRpcErrorCode.TRANSACTION_REJECTED
-      );
-    }
 
     const origins = this.origins;
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
-    const { pending, inProgress } = this.executables;
+    const { pending } = this.executables;
     let executableOriginTransactions = pending.get(origin);
 
     const priceBump = this.#priceBump;
@@ -316,23 +282,38 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         // origin's heap we are executable.
         transactionPlacement = TriageOption.Executable;
       }
+      // we've gotten the account's nonce the synchronous way (by looking at
+      // the pending queue), but we still need to look up the account's balance
+      const { balance } = await this.#blockchain.accounts.getNonceAndBalance(
+        from
+      );
+      validateSufficientFunds(transactionCost, balance.toBigInt());
     } else {
       // since we don't have any executable transactions at the moment, we need
       // to find our nonce from the account itself...
-      const transactorNonce = transactor.nonce.toBigInt();
 
-      const highestNonceFromOrigin = findHighestNonceByOrigin(
-        inProgress,
-        origin
-      );
+      const {
+        transaction: latestInProgressTransaction,
+        originBalance: balanceAfterLatestInProgressTransaction
+      } = this.#getLatestInProgressFromOrigin(origin);
 
-      const useHighestNonce =
-        highestNonceFromOrigin !== null &&
-        highestNonceFromOrigin >= transactorNonce;
+      const hasInProgressFromOrigin = latestInProgressTransaction !== null;
 
-      const effectiveNonce = useHighestNonce
-        ? highestNonceFromOrigin + 1n
-        : transactorNonce || 0n;
+      let balance: bigint;
+      let effectiveNonce: bigint;
+      if (hasInProgressFromOrigin) {
+        const highestInProgressNonce = latestInProgressTransaction.nonce;
+        effectiveNonce = highestInProgressNonce.toBigInt() + 1n;
+        balance = balanceAfterLatestInProgressTransaction.toBigInt();
+      } else {
+        const transactor = await this.#blockchain.accounts.getNonceAndBalance(
+          from
+        );
+        effectiveNonce = transactor.nonce.toBigInt();
+        balance = transactor.balance.toBigInt();
+      }
+
+      validateSufficientFunds(transactionCost, balance);
 
       if (txNonce === void 0) {
         // if we don't have a transactionNonce, just use the account's next
@@ -393,7 +374,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     if (secretKey) {
       transaction.signAndHash(secretKey.toBuffer());
     }
-
+    console.log(`txNonce ${txNonce}, origin: ${origin}`);
     switch (transactionPlacement) {
       case TriageOption.Executable:
         // if it is executable add it to the executables queue
@@ -455,7 +436,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
   public clear() {
     this.origins.clear();
-    this.#accountPromises.clear();
     this.executables.pending.clear();
   }
 
@@ -495,11 +475,14 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     // and finally transactions that have just been processed, but not yet saved
-    for (let tx of inProgress) {
-      if (tx.hash.toBuffer().equals(transactionHash)) {
-        return tx;
+    for (const [_, originData] of inProgress)
+      if (originData) {
+        for (let { transaction } of originData) {
+          if (transaction.hash.toBuffer().equals(transactionHash)) {
+            return transaction;
+          }
+        }
       }
-    }
     return null;
   }
 
@@ -525,5 +508,27 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     return null;
+  };
+
+  readonly #getLatestInProgressFromOrigin = (origin: string) => {
+    let highestNonceData: InProgressData = {
+      transaction: null,
+      originBalance: null
+    };
+    let highestNonce: bigint = null;
+    const originData = this.executables.inProgress.get(origin);
+    if (originData) {
+      for (const inProgressData of originData) {
+        const { transaction } = inProgressData;
+        if (
+          transaction.from.toString() === origin &&
+          (highestNonce === null || transaction.nonce.toBigInt() > highestNonce)
+        ) {
+          highestNonce = transaction.nonce.toBigInt();
+          highestNonceData = inProgressData;
+        }
+      }
+    }
+    return highestNonceData;
   };
 }

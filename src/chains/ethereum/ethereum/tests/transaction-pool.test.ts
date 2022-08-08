@@ -653,7 +653,16 @@ describe("transaction pool", async () => {
         // up, it will not have changed, so the pool will have to rely on the
         // inProgress transactions to set the nonce of the next transaction
         const pendingOrigin = pending.get(from);
-        inProgress.add(transaction);
+        const inProgressOrigin = inProgress.get(from);
+        const data = {
+          transaction,
+          originBalance: Quantity.from("0x3635c9adc5dea00000")
+        };
+        if (inProgressOrigin) {
+          inProgressOrigin.add(data);
+        } else {
+          inProgress.set(from, new Set([data]));
+        }
         pendingOrigin.removeBest();
       });
       txPool.drain();
