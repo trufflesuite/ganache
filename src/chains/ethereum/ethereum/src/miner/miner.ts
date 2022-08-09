@@ -344,6 +344,8 @@ export default class Miner extends Emittery<{
 
             const pendingOrigin = pending.get(origin);
             const inProgressOrigin = inProgress.get(origin);
+            // we cache the account balance with the inProgress transaction for
+            // an optimization in the transaction pool, so fetch it here
             const { balance } = await vm.stateManager.getAccount({
               buf: Quantity.toBuffer(origin)
             } as any);
