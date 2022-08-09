@@ -21,7 +21,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
-import { Executables } from "./executables";
+import { Executables, InProgressData } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   makeStepEvent,
@@ -349,7 +349,7 @@ export default class Miner extends Emittery<{
             const { balance } = await vm.stateManager.getAccount({
               buf: Quantity.toBuffer(origin)
             } as any);
-            const inProgressData = {
+            const inProgressData: InProgressData = {
               transaction: best,
               originBalance: Quantity.from(balance.toBuffer())
             };
