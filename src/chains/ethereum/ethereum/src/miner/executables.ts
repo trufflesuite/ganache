@@ -6,8 +6,7 @@ export type InProgressData = {
   originBalance: Quantity;
 };
 
-export type InProgress = Map<string, Set<InProgressData>>;
 export type Executables = {
-  inProgress: InProgress;
+  inProgress: Map<string, Set<InProgressData>>;
   pending: Map<string, Heap<TypedTransaction>>;
 };
