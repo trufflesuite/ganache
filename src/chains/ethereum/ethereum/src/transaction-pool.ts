@@ -151,6 +151,14 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
   };
   public readonly origins: Map<string, Heap<TypedTransaction>>;
 
+  /**
+   * Queues transactions to be inserted into the pool via `_prepareTransaction`
+   * such that unique-origin transactions are added to the pool concurrently and
+   * same-origin transactions are queued in series.
+   * @param transaction The transaction to be added to the transaction pool.
+   * @param secretKey The optional key to sign and hash the transaction.
+   * @returns Data that can be used to drain the queue.
+   */
   public async prepareTransaction(
     transaction: TypedTransaction,
     secretKey?: Data
@@ -158,10 +166,14 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const origin = transaction.from.toString();
     const originsQueue = this.#originsQueue;
     let queueForOrigin: Semaphore;
+    // each unique origin gets its own semaphore rather than them all sharing
+    // one because we only need transactions from the same origin to be added in
+    // series
     if (!(queueForOrigin = originsQueue.get(origin))) {
       queueForOrigin = Semaphore(1);
       originsQueue.set(origin, queueForOrigin);
     }
+    // the semaphore will hold on `take` until previous uses have resolved
     await new Promise(resolve => queueForOrigin.take(resolve));
     try {
       // check if transaction is in origins, if not add it
@@ -169,6 +181,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       // if not, just call prepare transaction
       return await this._prepareTransaction(transaction, secretKey);
     } finally {
+      // free up the semaphore once we finish
       queueForOrigin.leave();
     }
   }
