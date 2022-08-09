@@ -371,7 +371,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     if (secretKey) {
       transaction.signAndHash(secretKey.toBuffer());
     }
-    console.log(`txNonce ${txNonce}, origin: ${origin}`);
+
     switch (transactionPlacement) {
       case TriageOption.Executable:
         // if it is executable add it to the executables queue
