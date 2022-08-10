@@ -61,6 +61,12 @@ describe("@ganache/ethereum-transaction", async () => {
     type: "0x0",
     gasPrice: "0xffff"
   };
+  const unknownTypeTx: Transaction = {
+    from: from,
+    to: to,
+    type: "0x55",
+    gasPrice: "0xffff"
+  };
 
   const rawLegacyStrTx =
     "0xf8618082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b348080820a95a0d9c2d3cb65d7079f528d28d782fe752ed698381481f7b91790e067ea335c1dc0a0731131778ae061aa29567cc6b36fe3528092b687fb68c3f529493fca200c711d";
@@ -141,6 +147,12 @@ describe("@ganache/ethereum-transaction", async () => {
       it("infers legacy transaction if type omitted", () => {
         txFromRpc = <LegacyTransaction>(
           TransactionFactory.fromRpc(untypedTx, common)
+        );
+        assert.strictEqual(txFromRpc.type.toString(), "0x0");
+      });
+      it("assumes legacy transaction if type unknown", () => {
+        txFromRpc = <LegacyTransaction>(
+          TransactionFactory.fromRpc(unknownTypeTx, common)
         );
         assert.strictEqual(txFromRpc.type.toString(), "0x0");
       });
@@ -557,17 +569,6 @@ describe("@ganache/ethereum-transaction", async () => {
   });
 
   describe("Error and helper cases", () => {
-    it("does not allow unsupported tx types from rpc data", async () => {
-      const rpc: Transaction = {
-        from: from,
-        to: to,
-        type: "0x55",
-        gasPrice: "0xffff"
-      };
-      assert.throws(() => {
-        TransactionFactory.fromRpc(rpc, common);
-      });
-    });
     it("does not allow unsupported tx types from raw buffer data", async () => {
       const db = [
         Buffer.from("0x55"),
@@ -588,12 +589,6 @@ describe("@ganache/ethereum-transaction", async () => {
           db as TypedDatabaseTransaction,
           common
         );
-      });
-    });
-    it("does not allow unsupported tx types from raw string data", async () => {
-      const str: string = "0x55";
-      assert.throws(() => {
-        TransactionFactory.fromString(str, common);
       });
     });
     it("gets tx type from raw data", async () => {
