@@ -167,7 +167,7 @@ export default class BlockManager extends Manager<Block> {
         case Tag.latest:
           return this.latest.header.number;
         case Tag.pending:
-          return Quantity.from(this.latest.header.number.toNumber() + 1);
+          return Quantity.from(this.latest.header.number.toBigInt() + 1n);
         case Tag.earliest:
           return this.earliest.header.number;
         default:

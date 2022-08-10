@@ -153,8 +153,8 @@ describe("api", () => {
               "latest"
             ]);
             assert.strictEqual(
-              Quantity.toNumber(pendingBlock.number),
-              Quantity.toNumber(latestBlock.number) + 1,
+              Quantity.toBigInt(pendingBlock.number),
+              Quantity.toBigInt(latestBlock.number) + 1n,
               `Pending block doesn't have expected number.`
             );
           });
