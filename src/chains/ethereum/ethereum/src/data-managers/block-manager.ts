@@ -155,9 +155,7 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  getEffectiveNumber(
-    tagOrBlockNumber: QUANTITY | Buffer | Tag = Tag.latest
-  ): Quantity {
+  getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag): Quantity {
     if (typeof tagOrBlockNumber === "string") {
       // having another switch to get the number rather than using
       // `getBlockByTag` allows us to run this synchronously since we don't have
