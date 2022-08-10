@@ -621,26 +621,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // checkpoint to prevent writing any changes to the database
     await vm.stateManager.checkpoint();
     const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
-    const pendingBlockPromise = new Promise<Block>(resolve => {
-      miner.on(
-        "block",
-        async (blockData: {
-          block: Block;
-          serialized: Buffer;
-          storageKeys: StorageKeys;
-          transactions: TypedTransaction[];
-        }) => {
-          const { block } = blockData;
-          block.hash = () => {
-            return Quantity.from(null, true);
-          };
-          block.header.stateRoot = Data.from("0x", 32);
-          resolve(block);
-        }
-      );
-    });
-    await miner.mine(nextBlock, maxTransactions, true);
-    return await pendingBlockPromise;
+    miner.mine(nextBlock, maxTransactions, true);
+
+    const { block } = await miner.once("block");
+    block.hash = () => {
+      return Quantity.from(null, true);
+    };
+    block.header.stateRoot = Data.from("0x", 32);
+    return await block;
   };
 
   isStarted = () => {
