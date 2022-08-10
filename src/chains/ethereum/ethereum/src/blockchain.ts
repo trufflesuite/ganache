@@ -587,8 +587,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   };
 
   createPendingBlock = async (previousBlock: Block) => {
-    const options = this.#options;
-    const minerOpts = options.miner;
+    const { miner: minerOptions, chain: chainOptions } = this.#options;
     const nextBlock = this.#readyNextBlock(previousBlock);
     // If the executables has inProgress transactions, we were already
     // in the middle of mining a block when the pending block was requested.
@@ -615,12 +614,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // caught by `this.vm`, so we need to make a new one.
     const vm = await this.createVmFromStateTrie(
       this.trie.copy(false),
-      options.chain.allowUnlimitedContractSize,
+      chainOptions.allowUnlimitedContractSize,
       true
     );
     // checkpoint to prevent writing any changes to the database
     await vm.stateManager.checkpoint();
-    const miner = new Miner(minerOpts, executables, vm, this.#readyNextBlock);
+    const miner = new Miner(
+      minerOptions,
+      executables,
+      vm,
+      this.#readyNextBlock
+    );
     miner.mine(nextBlock, maxTransactions, true);
 
     const { block } = await miner.once("block");
