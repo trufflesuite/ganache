@@ -22,6 +22,8 @@ const NOTFOUND = 404;
 
 const EMPTY_BUFFER = Buffer.from([]);
 
+type RawOrBlock<T> = T extends true ? Buffer : Block;
+
 export default class BlockManager extends Manager<Block> {
   /**
    * The earliest block
@@ -210,44 +212,51 @@ export default class BlockManager extends Manager<Block> {
     }
   }
 
-  async getRawByBlockNumber(blockNumber: Quantity): Promise<Buffer> {
-    // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
-    // we don't have to fetch them from the db each time a block tag is used.
-    // Issue: https://github.com/trufflesuite/ganache/issues/3481
+  async getRawByBlockNumberOrTag(
+    tagOrBlockNumber: Quantity | QUANTITY | Buffer | Tag
+  ): Promise<Buffer> {
+    return await this._get(tagOrBlockNumber, true);
+  }
+
+  async _get<GetRaw extends boolean>(
+    tagOrBlockNumber: Quantity | QUANTITY | Buffer | Tag,
+    getRaw: GetRaw
+  ): Promise<RawOrBlock<GetRaw>> {
+    let blockNumber: Quantity;
+    if (typeof tagOrBlockNumber === "string") {
+      const block = await this.getBlockByTag(tagOrBlockNumber as Tag);
+      if (block) {
+        if (getRaw === true) return block.toRaw() as RawOrBlock<GetRaw>;
+        return block as RawOrBlock<GetRaw>;
+      }
+      blockNumber = Quantity.from(tagOrBlockNumber);
+    } else if (tagOrBlockNumber instanceof Quantity) {
+      blockNumber = tagOrBlockNumber;
+    } else {
+      blockNumber = Quantity.from(tagOrBlockNumber);
+    }
+
     const fallback = this.#blockchain.fallback;
     const numBuf = blockNumber.toBuffer();
-    return this.getRaw(numBuf).then(block => {
-      if (block == null && fallback) {
+    let isFromFallBack = false;
+    const rawBlock = await this.getRaw(numBuf).then(rawBlock => {
+      if (rawBlock == null && fallback) {
+        isFromFallBack = true;
         return this.fromFallback(blockNumber);
       }
-      return block;
+      return rawBlock;
     });
+    if (!rawBlock) throw new Error("header not found");
+    if (getRaw) return rawBlock as RawOrBlock<GetRaw>;
+
+    const common = isFromFallBack
+      ? fallback.getCommonForBlockNumber(this.#common, blockNumber.toBigInt())
+      : this.#common;
+    return new Block(rawBlock, common) as RawOrBlock<GetRaw>;
   }
 
   async get(tagOrBlockNumber: QUANTITY | Buffer | Tag) {
-    if (typeof tagOrBlockNumber === "string") {
-      const block = await this.getBlockByTag(tagOrBlockNumber as Tag);
-      if (block) return block;
-    }
-
-    const blockNumber = Quantity.from(tagOrBlockNumber);
-    const block = await this.getRaw(blockNumber.toBuffer());
-    const common = this.#common;
-    if (block) return new Block(block, common);
-    else {
-      const fallback = this.#blockchain.fallback;
-      if (fallback) {
-        const block = await this.fromFallback(blockNumber);
-        if (block) {
-          return new Block(
-            block,
-            fallback.getCommonForBlockNumber(common, blockNumber.toBigInt())
-          );
-        }
-      }
-    }
-
-    throw new Error("header not found");
+    return await this._get(tagOrBlockNumber, false);
   }
 
   /**

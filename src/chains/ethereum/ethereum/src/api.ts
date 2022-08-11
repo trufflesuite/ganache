@@ -1229,8 +1229,7 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag
   ) {
     const { blocks } = this.#blockchain;
-    const blockNum = blocks.getEffectiveNumber(blockNumber);
-    const rawBlock = await blocks.getRawByBlockNumber(blockNum);
+    const rawBlock = await blocks.getRawByBlockNumberOrTag(blockNumber);
     if (!rawBlock) return null;
 
     const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
@@ -1269,7 +1268,9 @@ export default class EthereumApi implements Api {
     const blockNum = await blocks.getNumberFromHash(hash);
     if (!blockNum) return null;
 
-    const rawBlock = await blocks.getRawByBlockNumber(Quantity.from(blockNum));
+    const rawBlock = await blocks.getRawByBlockNumberOrTag(
+      Quantity.from(blockNum)
+    );
     if (!rawBlock) return null;
 
     const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
@@ -1757,13 +1758,12 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ) {
     const blockchain = this.#blockchain;
-    const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
-    const block = await blockchain.blocks.getRawByBlockNumber(blockNum);
+    const block = await blockchain.blocks.get(blockNumber);
+    const blockBuf = block.toRaw();
 
-    if (!block) throw new Error("header not found");
-
-    const [[, , , blockStateRoot]] = decode<GanacheRawBlock>(block);
+    const [[, , , blockStateRoot]] = decode<GanacheRawBlock>(blockBuf);
     const trie = blockchain.trie.copy(false);
+    const blockNum = block.header.number;
     trie.setContext(blockStateRoot, null, blockNum);
 
     const posBuff = Quantity.toBuffer(position);
@@ -2493,6 +2493,7 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
     if (filter == null) filter = {};
     const { addresses, topics } = parseFilterDetails(filter || {});
+    console.log(`filter details: ${addresses}, ${topics}`);
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
       const blockNumber = blockLogs.blockNumber;
       // every time we get a blockLogs message we re-check what the filter's
@@ -2500,6 +2501,9 @@ export default class EthereumApi implements Api {
       // time the filter was set up, rather it is the actual latest *mined*
       // block (that is: not pending)
       const { fromBlock, toBlock } = parseFilterRange(filter, blockchain);
+      console.log(
+        `from block ${fromBlock.toString()}, toBlock ${toBlock.toString()}`
+      );
       if (fromBlock <= blockNumber && toBlock >= blockNumber) {
         value.updates.push(...blockLogs.filter(addresses, topics));
       }
