@@ -372,6 +372,40 @@ describe("api", () => {
       );
       assert.strictEqual(count, "0x1");
     });
+    it("eth_getBlockTransactionCountByNumber for pending tag", async () => {
+      await provider.send("eth_subscribe", ["newHeads"]);
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        }
+      ]);
+      await provider.once("message");
+      // stop the miner so the transaction stays in the pool
+      await provider.send("miner_stop");
+      // queue up two transactions
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        }
+      ]);
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        }
+      ]);
+
+      const count = await provider.send(
+        "eth_getBlockTransactionCountByNumber",
+        ["pending"]
+      );
+      assert.strictEqual(count, "0x2");
+    });
 
     it("eth_sendTransaction bad data (tiny gas limit)", async () => {
       await provider
