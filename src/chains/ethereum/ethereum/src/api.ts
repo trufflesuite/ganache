@@ -2493,7 +2493,6 @@ export default class EthereumApi implements Api {
     const blockchain = this.#blockchain;
     if (filter == null) filter = {};
     const { addresses, topics } = parseFilterDetails(filter || {});
-    console.log(`filter details: ${addresses}, ${topics}`);
     const unsubscribe = blockchain.on("blockLogs", (blockLogs: BlockLogs) => {
       const blockNumber = blockLogs.blockNumber;
       // every time we get a blockLogs message we re-check what the filter's
@@ -2501,9 +2500,6 @@ export default class EthereumApi implements Api {
       // time the filter was set up, rather it is the actual latest *mined*
       // block (that is: not pending)
       const { fromBlock, toBlock } = parseFilterRange(filter, blockchain);
-      console.log(
-        `from block ${fromBlock.toString()}, toBlock ${toBlock.toString()}`
-      );
       if (fromBlock <= blockNumber && toBlock >= blockNumber) {
         value.updates.push(...blockLogs.filter(addresses, topics));
       }
