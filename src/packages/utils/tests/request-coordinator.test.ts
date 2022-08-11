@@ -2,6 +2,8 @@ import assert from "assert";
 import { RequestCoordinator } from "../src/utils/request-coordinator";
 
 describe("request-coordinator", () => {
+  const thisArg = {};
+  const paramsArg: any[] = [];
   const noop = () => undefined;
   let coordinator: RequestCoordinator;
 
@@ -10,7 +12,7 @@ describe("request-coordinator", () => {
   });
 
   describe("stop()", () => {
-    it("should pause processing", () => {
+    it("should set `paused` property to `true`", () => {
       coordinator.stop();
 
       assert(coordinator.paused);
@@ -29,7 +31,7 @@ describe("request-coordinator", () => {
       coordinator.stop();
 
       await assert.rejects(
-        coordinator.queue(noop, this, []),
+        coordinator.queue(noop, thisArg, paramsArg),
         new Error("Cannot process request, Ganache is disconnected.")
       );
     });
@@ -43,10 +45,10 @@ describe("request-coordinator", () => {
       const pendingAssertions: Promise<any>[] = [];
 
       for (let taskIndex = 0; taskIndex < 10; taskIndex++) {
-        const task = coordinator.queue(noop, this, []);
+        const task = coordinator.queue(noop, thisArg, paramsArg);
 
         pendingAssertions.push(
-          task.catch(_ => {
+          task.finally(() => {
             assert.strictEqual(
               taskIndex,
               nextRejectionIndex,
@@ -78,7 +80,7 @@ describe("request-coordinator", () => {
       coordinator.pause();
 
       for (let i = 0; i < 10; i++) {
-        coordinator.queue(noop, this, []);
+        coordinator.queue(noop, thisArg, paramsArg);
       }
 
       assert.equal(

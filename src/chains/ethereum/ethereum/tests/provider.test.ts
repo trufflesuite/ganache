@@ -473,7 +473,7 @@ describe("provider", () => {
           });
         });
 
-        it("rejects requests after disconnect() is called", async () => {
+        it("immediately and syncronously stops accepting request when `disconnect()` is called", async () => {
           provider.disconnect();
           const whenBlockByNumber = provider.request({
             method: "eth_getBlockByNumber",

@@ -100,14 +100,10 @@ export class RequestCoordinator {
    * called after all in-flight tasks have resolved in order to maintain overall FIFO order.
    */
   public end() {
-    for (const current of this.pending) {
-      current.reject(
-        new Error("Cannot process request, Ganache is disconnected.")
-      );
-    }
-
-    if (this.pending.length > 0) {
-      this.pending.splice(0, this.pending.length);
+    while (this.pending.length > 0) {
+      this.pending
+        .shift()
+        .reject(new Error("Cannot process request, Ganache is disconnected."));
     }
   }
 
