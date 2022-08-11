@@ -101,7 +101,7 @@ describe("api", () => {
       });
 
       describe(`passing "pending" tag`, () => {
-        let from, to: string;
+        let from: string, to: string;
         const emptyTransactionsPerBlock = 2;
         const blockGasLimit = "0xA410"; // enough gas for 2 empty txs
 
@@ -159,7 +159,7 @@ describe("api", () => {
             );
           });
 
-          it(`has the correct \`baseFeePerGas\``, async () => {
+          it("has the correct `baseFeePerGas`", async () => {
             const pendingBlock = await provider.send("eth_getBlockByNumber", [
               "pending"
             ]);
@@ -187,7 +187,7 @@ describe("api", () => {
             );
           });
 
-          it(`has \`hash\` of \`null\``, async () => {
+          it("has `hash` of `null`", async () => {
             const pendingBlock = await provider.send("eth_getBlockByNumber", [
               "pending"
             ]);
@@ -198,7 +198,7 @@ describe("api", () => {
             );
           });
 
-          it(`has \`stateRoot\` of \`"0x0000000000000000000000000000000000000000000000000000000000000000"\``, async () => {
+          it('has `stateRoot` of `"0x0000000000000000000000000000000000000000000000000000000000000000"`', async () => {
             const pendingBlock = await provider.send("eth_getBlockByNumber", [
               "pending"
             ]);
@@ -263,7 +263,7 @@ describe("api", () => {
         };
 
         const itFillsBlock = () =>
-          it(`has all executable transactions in the pool that will fit within the block \`gasLimit\` and is equal to next mined block`, async () => {
+          it("has all executable transactions in the pool that will fit within the block `gasLimit` and is equal to next mined block", async () => {
             // send 1 more transaction than will fit in the block
             for (let i = 0; i < emptyTransactionsPerBlock + 1; i++) {
               await provider.send("eth_sendTransaction", [
