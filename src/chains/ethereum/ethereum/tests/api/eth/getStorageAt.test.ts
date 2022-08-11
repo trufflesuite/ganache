@@ -53,7 +53,10 @@ describe("api", () => {
           contractAddress,
           "0x1"
         ]);
-        assert.strictEqual(result2, "0x01");
+        assert.strictEqual(
+          result2,
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        );
       });
 
       it("returns the value at the 32-byte hex position", async () => {
@@ -66,7 +69,10 @@ describe("api", () => {
           contractAddress,
           "0x" + THIRTY_TWO_BYES.slice(-1) + "1"
         ]);
-        assert.strictEqual(result2, "0x01");
+        assert.strictEqual(
+          result2,
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        );
       });
 
       it("returns the value even when hex positions exceeds 32-bytes", async () => {
@@ -81,7 +87,10 @@ describe("api", () => {
           contractAddress,
           thirtyThreeBytePosition2
         ]);
-        assert.strictEqual(result2, "0x01");
+        assert.strictEqual(
+          result2,
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        );
       });
 
       it("rejects when the block doesn't exist", async () => {
