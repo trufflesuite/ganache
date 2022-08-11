@@ -3,7 +3,7 @@ import { RequestCoordinator } from "../src/utils/request-coordinator";
 
 describe("request-coordinator", () => {
   const thisArg = {};
-  const paramsArg: any[] = [];
+  const paramsArg: [] = [];
   const noop = () => undefined;
   let coordinator: RequestCoordinator;
 
