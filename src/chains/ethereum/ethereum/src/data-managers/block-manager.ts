@@ -148,7 +148,7 @@ export default class BlockManager extends Manager<Block> {
       case Tag.latest:
         return this.latest;
       case Tag.pending:
-        return await this.createPendingBlock(this.latest);
+        return await this.#blockchain.createPendingBlock(this.latest);
       case Tag.earliest:
         return this.earliest;
       default:
@@ -345,9 +345,5 @@ export default class BlockManager extends Manager<Block> {
           .catch(e => null);
       }
     }
-  }
-
-  async createPendingBlock(previousBlock: Block) {
-    return await this.#blockchain.createPendingBlock(previousBlock);
   }
 }
