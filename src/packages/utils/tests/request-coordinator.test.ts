@@ -48,7 +48,7 @@ describe("request-coordinator", () => {
         const task = coordinator.queue(noop, thisArg, paramsArg);
 
         pendingAssertions.push(
-          task.finally(() => {
+          task.catch(() => {
             assert.strictEqual(
               taskIndex,
               nextRejectionIndex,
