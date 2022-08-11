@@ -116,23 +116,6 @@ export class Block {
     }
   }
 
-  static fromParts(
-    rawHeader: EthereumRawBlockHeader,
-    txs: TypedDatabaseTransaction[],
-    totalDifficulty: Buffer,
-    extraTxs: GanacheRawBlockTransactionMetaData[],
-    size: number,
-    common: Common
-  ): Block {
-    const block = new Block(null, common);
-    block._raw = rawHeader;
-    block._rawTransactions = txs;
-    block.header = makeHeader(rawHeader, totalDifficulty);
-    block._rawTransactionMetaData = extraTxs;
-    block._size = size;
-    return block;
-  }
-
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {
     let nextBaseFee: bigint;
 
