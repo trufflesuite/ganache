@@ -38,7 +38,7 @@ describe("EthereumOptionsConfig", () => {
       const options = EthereumOptionsConfig.normalize({
         wallet: { totalAccounts: 7 }
       });
-      assert.equal(options.wallet.totalAccounts, 7);
+      assert.strictEqual(options.wallet.totalAccounts, 7);
     });
     it("throws an error when an option conflict is found", () => {
       assert.throws(() => {
@@ -55,7 +55,7 @@ describe("EthereumOptionsConfig", () => {
       it("accepts some legacy input formats", () => {
         const seed = "from their voids, cry to the dolphined sea";
         const options = EthereumOptionsConfig.normalize({ seed } as Object);
-        assert.equal(options.wallet.seed, seed);
+        assert.strictEqual(options.wallet.seed, seed);
       });
       it("errors if there is a conflict with legacy inputs", () => {
         const seed = "I ate three cookies";
