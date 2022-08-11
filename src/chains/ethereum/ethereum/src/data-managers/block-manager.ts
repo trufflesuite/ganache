@@ -218,6 +218,13 @@ export default class BlockManager extends Manager<Block> {
     return await this._get(tagOrBlockNumber, true);
   }
 
+  /**
+   * Gets a block by tag or block number. Returns the raw block if `getRaw` is
+   * `true`; returns a `Block` if `getRaw` is `false`.
+   * @param tagOrBlockNumber
+   * @param getRaw
+   * @returns
+   */
   async _get<GetRaw extends boolean>(
     tagOrBlockNumber: Quantity | QUANTITY | Buffer | Tag,
     getRaw: GetRaw
