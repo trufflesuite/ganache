@@ -159,9 +159,9 @@ export default class BlockManager extends Manager<Block> {
 
   getEffectiveNumber(tagOrBlockNumber: QUANTITY | Buffer | Tag): Quantity {
     if (typeof tagOrBlockNumber === "string") {
-      // having another switch to get the number rather than using
-      // `getBlockByTag` allows us to run this synchronously since we don't have
-      // to make a pending block
+      // this duplicates code used in `getBlockByTag`, but it's worth it because
+      // we can run this synchronously by bypassing actually making a pending
+      // block
       const tag = tagOrBlockNumber as Tag;
       switch (tag) {
         case Tag.latest:
