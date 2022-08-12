@@ -463,9 +463,11 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const { inProgress, pending } = executables;
 
     pending.forEach(txsFromOrigin => {
-      txsFromOrigin.array.forEach(tx => {
+      const { array } = txsFromOrigin;
+      for (let i = 0; i < txsFromOrigin.length; i++) {
+        const tx = array[i];
         tx.locked = false;
-      });
+      }
     });
 
     inProgress.forEach(transaction => {
