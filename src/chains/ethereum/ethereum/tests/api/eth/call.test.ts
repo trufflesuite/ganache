@@ -935,7 +935,7 @@ describe("api", () => {
           );
         });
 
-        it.only("does not persist changes to vm or state trie when overrides are set", async () => {
+        it("does not persist changes to vm or state trie when overrides are set", async () => {
           const testFunction = async () => {
             // simulate the transaction, also setting overrides
             const overrides = {
