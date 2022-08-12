@@ -7,7 +7,7 @@ describe("@ganache/ethereum-address", () => {
       const address = new Address("0x1");
       const stringifiedAddress = address.toString();
 
-      assert.equal(
+      assert.strictEqual(
         stringifiedAddress,
         "0x0000000000000000000000000000000000000001"
       );
@@ -17,14 +17,14 @@ describe("@ganache/ethereum-address", () => {
       const address = new Address("0x1");
       const stringifiedAddress = address.toString(1);
 
-      assert.equal(stringifiedAddress, "0x01");
+      assert.strictEqual(stringifiedAddress, "0x01");
     });
 
     it("should stringify a 20 byte address string", () => {
       const address = new Address("0x2104859394604359378433865360947116707876");
       const stringifiedAddress = address.toString();
 
-      assert.equal(
+      assert.strictEqual(
         stringifiedAddress,
         "0x2104859394604359378433865360947116707876"
       );
@@ -33,7 +33,7 @@ describe("@ganache/ethereum-address", () => {
     it("should pad an address to 20 bytes when called as static function", () => {
       const stringifiedAddress = Address.toString("0x1");
 
-      assert.equal(
+      assert.strictEqual(
         stringifiedAddress,
         "0x0000000000000000000000000000000000000001"
       );
@@ -54,7 +54,7 @@ describe("@ganache/ethereum-address", () => {
       const address = new Address("0x2104859394604359378433865360947116707876");
       const stringifiedAddress = address.toString(1);
 
-      assert.equal(stringifiedAddress, "0x21");
+      assert.strictEqual(stringifiedAddress, "0x21");
     });
 
     it("should convert a 20 byte address to a buffer", () => {
