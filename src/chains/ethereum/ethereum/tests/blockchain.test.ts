@@ -10,7 +10,7 @@ import Blockchain from "../src/blockchain";
 import { Block } from "@ganache/ethereum-block";
 import { Data, Quantity } from "@ganache/utils";
 import Common from "@ethereumjs/common";
-import { compareBlockchainState } from "./helpers/compare-chain-state";
+import { statesAreDeepStrictEqual } from "./helpers/compare-chain-state";
 import { Address } from "@ganache/ethereum-address";
 
 describe("blockchain", async () => {
@@ -178,7 +178,7 @@ describe("blockchain", async () => {
       const testFunc = async () => {
         await blockchain.createPendingBlock(blockchain.blocks.latest);
       };
-      await compareBlockchainState(blockchain, addresses, testFunc);
+      assert(await statesAreDeepStrictEqual(blockchain, addresses, testFunc));
     });
   });
 });

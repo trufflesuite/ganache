@@ -17,7 +17,7 @@ import {
 } from "@ganache/ethereum-transaction";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { Transaction } from "@ganache/ethereum-transaction";
-import { compareBlockchainState } from "../../helpers/compare-chain-state";
+import { statesAreDeepStrictEqual } from "../../helpers/compare-chain-state";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -912,7 +912,9 @@ describe("api", () => {
             // simulate the transaction
             await blockchain.simulateTransaction(simTx, parentBlock, {});
           };
-          await compareBlockchainState(blockchain, addresses, testFunction);
+          assert(
+            await statesAreDeepStrictEqual(blockchain, addresses, testFunction)
+          );
 
           // as a sanity check, confirm sending a real transaction does alter state
           const statesChangeTestFunction = async () => {
@@ -924,15 +926,16 @@ describe("api", () => {
             await blockchain.once("block");
           };
 
-          await compareBlockchainState(
-            blockchain,
-            addresses,
-            statesChangeTestFunction,
-            false
+          assert(
+            !(await statesAreDeepStrictEqual(
+              blockchain,
+              addresses,
+              statesChangeTestFunction
+            ))
           );
         });
 
-        it("does not persist changes to vm or state trie when overrides are set", async () => {
+        it.only("does not persist changes to vm or state trie when overrides are set", async () => {
           const testFunction = async () => {
             // simulate the transaction, also setting overrides
             const overrides = {
@@ -940,7 +943,9 @@ describe("api", () => {
             };
             await blockchain.simulateTransaction(simTx, parentBlock, overrides);
           };
-          await compareBlockchainState(blockchain, addresses, testFunction);
+          assert(
+            await statesAreDeepStrictEqual(blockchain, addresses, testFunction)
+          );
 
           // as a sanity check, confirm sending a real transaction does alter state
           const statesChangeTestFunction = async () => {
@@ -951,12 +956,12 @@ describe("api", () => {
             // wait for that new block to be mined
             await blockchain.once("block");
           };
-
-          await compareBlockchainState(
-            blockchain,
-            addresses,
-            statesChangeTestFunction,
-            false
+          assert(
+            !(await statesAreDeepStrictEqual(
+              blockchain,
+              addresses,
+              statesChangeTestFunction
+            ))
           );
         });
       });

@@ -1,5 +1,5 @@
-import assert from "assert";
 import { Address as EthereumJsAddress } from "ethereumjs-util";
+import { isDeepStrictEqual } from "util";
 import Blockchain from "../../src/blockchain";
 import { GanacheTrie } from "../../src/helpers/trie";
 
@@ -45,26 +45,29 @@ const getBlockchainState = async (
 
 /**
  * Gets trie and db data from `blockchain` and account data from each address
- * of `addresses` before and after running `testFunction`. Asserts whether the
- * data is `deepStrictEqual` or `notDeepStrictEqual`, as indicated by the
- * `equal` parameter.
+ * of `addresses` before and after running `testFunction`. Returns whether the
+ * data is `deepStrictEqual` or not.
  * @param blockchain
  * @param addresses
  * @param testFunction
- * @param equal
+ * @returns boolean
  */
-export const compareBlockchainState = async (
+/**
+ * Gets trie and db data from `blockchain` and account data from each address
+ * of `addresses` before and after running `testFunction`. Returns whether the
+ * data is `deepStrictEqual` or not.
+ * @param blockchain
+ * @param addresses
+ * @param testFunction
+ * @returns Boolean indicating whether the states are `deepStrictEqual` or not.
+ */
+export const statesAreDeepStrictEqual = async (
   blockchain: Blockchain,
   addresses: EthereumJsAddress[],
-  testFunction: () => void,
-  equal: boolean = true
+  testFunction: () => void
 ) => {
   const before = await getBlockchainState(blockchain, addresses);
   await testFunction();
   const after = await getBlockchainState(blockchain, addresses);
-  if (equal) {
-    assert.deepStrictEqual(before, after);
-  } else {
-    assert.notDeepStrictEqual(before, after);
-  }
+  return isDeepStrictEqual(before, after);
 };
