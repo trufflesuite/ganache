@@ -473,10 +473,9 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     inProgress.forEach(transaction => {
       transaction.locked = false;
       const origin = transaction.from.toString();
-      if (pending.has(origin)) {
-        const txsFromOrigin = pending.get(origin);
+      const txsFromOrigin = pending.get(origin);
+      if (txsFromOrigin) {
         txsFromOrigin.push(transaction);
-        pending.set(origin, txsFromOrigin);
       } else {
         const newHeap = Heap.from(transaction, byNonce);
         pending.set(origin, newHeap);
