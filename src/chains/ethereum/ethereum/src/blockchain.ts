@@ -607,7 +607,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       timestamp !== undefined &&
       this.#options.miner.timestampIncrement === "clock"
     ) {
-      // when miner.timestampIncrement is a number, the previous block timestamp is used as a reference for the next
+      // when miner.timestampIncrement is a number, the previous block timestamp is used as a reference
+      // for the next block, so this call is not required.
       this.setTimeDiff(timestamp * 1000);
     }
     return {

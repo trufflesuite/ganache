@@ -144,7 +144,6 @@ describe("provider", () => {
     describe("uses timestamp adjustment in subsequent blocks after calling `evm_mine` with a `timestamp` argument", () => {
       const timestampIncrement = 5; // seconds
       const timeArgumentSeconds = 100;
-      Math.floor(+new Date("1999-12-31T23:59:59.999Z") / 1000);
 
       async function mineBlocksForTimestamps(
         provider: EthereumProvider
