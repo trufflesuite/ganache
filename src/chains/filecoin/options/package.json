@@ -66,6 +66,6 @@
     "webpack-cli": "4.9.1"
   },
   "dependencies": {
-    "keccak": "3.0.1"
+    "keccak": "3.0.2"
   }
 }
