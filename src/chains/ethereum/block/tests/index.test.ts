@@ -50,7 +50,7 @@ describe("@ganache/ethereum-block", async () => {
           comment: "Local test network",
           bootstrapNodes: []
         },
-        "london"
+        "grayGlacier"
       );
       blockchain = new Blockchain(options, fromAddress);
       await blockchain.initialize(wallet.initialAccounts);
