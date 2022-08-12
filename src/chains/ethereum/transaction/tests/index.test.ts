@@ -29,7 +29,7 @@ describe("@ganache/ethereum-transaction", async () => {
       comment: "Local test network",
       bootstrapNodes: []
     },
-    "london"
+    "grayGlacier"
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;

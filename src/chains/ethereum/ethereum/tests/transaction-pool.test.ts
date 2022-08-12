@@ -76,7 +76,7 @@ describe("transaction pool", async () => {
         comment: "Local test network",
         bootstrapNodes: []
       },
-      "london"
+      "grayGlacier"
     );
     // we're spoofing a minimal fake blockchain for the tx pool that just
     // returns an account's nonce
