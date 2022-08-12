@@ -9,7 +9,7 @@ import { GanacheTrie } from "../../src/helpers/trie";
  * @returns
  */
 const getDbData = async (trie: GanacheTrie) => {
-  let dbData: (string | Buffer)[] = [];
+  const dbData: (string | Buffer)[] = [];
   for await (const data of trie.db._leveldb.createReadStream()) {
     dbData.push(data);
   }
