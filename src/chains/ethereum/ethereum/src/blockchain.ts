@@ -360,7 +360,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const mineAll = (maxTransactions: Capacity, onlyOneBlock = false) =>
           this.#isPaused()
             ? nullResolved
-            : this.mine(maxTransactions, null, onlyOneBlock);
+            : this.mine(maxTransactions, undefined, onlyOneBlock);
         if (instamine) {
           // insta mining
           // whenever the transaction pool is drained mine the txs into blocks
@@ -602,6 +602,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       onlyOneBlock
     );
     await this.#blockBeingSavedPromise;
+
+    if (
+      timestamp !== undefined &&
+      this.#options.miner.timestampIncrement === "clock"
+    ) {
+      // when miner.timestampIncrement is a number, the previous block timestamp is used as a reference for the next
+      this.setTimeDiff(timestamp * 1000);
+    }
     return {
       transactions,
       blockNumber: nextBlock.header.number.toArrayLike(Buffer)
@@ -833,7 +841,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   /**
-   * @param newTime - the number of milliseconds to adjust the time by. Can be negative.
+   * Adjusts the internal time adjustment such that the provided time is considered the "current" time.
+   * @param newTime - the time (in milliseconds) that will be considered the "current" time
    * @returns the total time offset *in milliseconds*
    */
   public setTimeDiff(newTime: number) {
