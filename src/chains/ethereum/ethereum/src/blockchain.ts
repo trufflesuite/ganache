@@ -595,7 +595,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // so we'll reset the executables to be what it was when mining started,
     // i.e. all inProgress executables are moved to the front of the pending executables.
     const executables =
-      this.transactions.transactionPool.cloneAndResetExecutables();
+      this.transactions.transactionPool.executables.cloneAndReset();
 
     // the number of transactions that should be included in this block depends
     // on a few factors. in "instamine" mode (meaning blockTime = 0), we usually

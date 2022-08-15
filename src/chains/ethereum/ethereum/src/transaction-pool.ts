@@ -14,8 +14,6 @@ import {
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
-import cloneDeep from "lodash.clonedeep";
-
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
  * in the transaction pool queue. Replacement eligibility requires that
@@ -78,7 +76,7 @@ function shouldReplace(
   }
 }
 
-function byNonce(values: TypedTransaction[], a: number, b: number) {
+export function byNonce(values: TypedTransaction[], a: number, b: number) {
   return (
     (values[b].nonce.toBigInt() || 0n) > (values[a].nonce.toBigInt() || 0n)
   );
@@ -130,10 +128,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     this.origins = origins;
     this.#priceBump = options.priceBump;
   }
-  public readonly executables: Executables = {
-    inProgress: new Set(),
-    pending: new Map()
-  };
+  public readonly executables = new Executables();
   public readonly origins: Map<string, Heap<TypedTransaction>>;
   readonly #accountPromises = new Map<
     string,
@@ -452,35 +447,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       }
     }
     return null;
-  }
-
-  public cloneAndResetExecutables() {
-    const executables: Executables = {
-      pending: new Map(),
-      inProgress: new Set()
-    };
-    const { inProgress, pending } = this.executables;
-    inProgress.forEach(transaction => {
-      const copy = transaction.copy();
-      copy.locked = false;
-      const origin = copy.from.toString();
-      const txsFromOrigin = executables.pending.get(origin);
-      if (txsFromOrigin) txsFromOrigin.push(copy);
-      else executables.pending.set(origin, Heap.from(copy, byNonce));
-    });
-    pending.forEach(({ array, length }, from) => {
-      let newOrigin = executables.pending.get(from);
-      if (!newOrigin) {
-        newOrigin = new Heap(byNonce);
-        executables.pending.set(from, newOrigin);
-      }
-      for (let i = 0; i < length; i++) {
-        const copy = array[i].copy();
-        copy.locked = false;
-        newOrigin.push(copy);
-      }
-    });
-    return executables;
   }
 
   readonly drain = () => {
