@@ -1,6 +1,9 @@
 name: Docker build
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - "move-docker-release"
 
 jobs:
   docker-publish-temp:
