@@ -453,36 +453,33 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
     return null;
   }
-  /**
-   * Deep clones and resets the transaction pool's `executables` such that `inProgress`
-   * transactions are moved back to `pending` and all transactions are unlocked.
-   * @returns Cloned and reset copy of transaction pool's `executables`.
-   */
+
   public cloneAndResetExecutables() {
-    const executables = cloneDeep(this.executables);
-    const { inProgress, pending } = executables;
-
-    pending.forEach(txsFromOrigin => {
-      const { array } = txsFromOrigin;
-      for (let i = 0; i < txsFromOrigin.length; i++) {
-        const tx = array[i];
-        tx.locked = false;
-      }
-    });
-
+    const executables: Executables = {
+      pending: new Map(),
+      inProgress: new Set()
+    };
+    const { inProgress, pending } = this.executables;
     inProgress.forEach(transaction => {
-      transaction.locked = false;
-      const origin = transaction.from.toString();
-      const txsFromOrigin = pending.get(origin);
-      if (txsFromOrigin) {
-        txsFromOrigin.push(transaction);
-      } else {
-        const newHeap = Heap.from(transaction, byNonce);
-        pending.set(origin, newHeap);
-      }
-      inProgress.delete(transaction);
+      const copy = transaction.copy();
+      copy.locked = false;
+      const origin = copy.from.toString();
+      const txsFromOrigin = executables.pending.get(origin);
+      if (txsFromOrigin) txsFromOrigin.push(copy);
+      else executables.pending.set(origin, Heap.from(copy, byNonce));
     });
-
+    pending.forEach(({ array, length }, from) => {
+      let newOrigin = executables.pending.get(from);
+      if (!newOrigin) {
+        newOrigin = new Heap(byNonce);
+        executables.pending.set(from, newOrigin);
+      }
+      for (let i = 0; i < length; i++) {
+        const copy = array[i].copy();
+        copy.locked = false;
+        newOrigin.push(copy);
+      }
+    });
     return executables;
   }
 
