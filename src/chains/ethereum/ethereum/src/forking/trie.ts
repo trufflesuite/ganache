@@ -121,6 +121,7 @@ export class ForkTrie extends GanacheTrie {
     // checking the database itself
     // TODO(perf): there is probably a better/faster way of doing this for the
     // common case.
+    // Issue: https://github.com/trufflesuite/ganache/issues/3483
     const checkpoints = this.metadata.checkpoints;
     for (let i = checkpoints.length - 1; i >= 0; i--) {
       for (let [encodedKeyStr, value] of checkpoints[i].keyValueMap.entries()) {
@@ -137,6 +138,7 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): this is just going to be slow once we get lots of keys
     // because it just checks every single key we've ever deleted (before this
     // one).
+    // Issue: https://github.com/trufflesuite/ganache/issues/3484
     const stream = this.metadata._leveldb.createReadStream({
       lte: this.createDelKey(key),
       reverse: true
