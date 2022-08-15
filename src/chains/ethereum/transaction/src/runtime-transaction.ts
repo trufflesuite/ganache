@@ -268,5 +268,10 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
   protected abstract toVmTransaction();
   protected abstract updateEffectiveGasPrice(baseFeePerGas?: Quantity);
+  /**
+   * Creates a copy of the transaction and all of the fields that are filled
+   * _before_ the transaction is mined onto the block. (Note: block and receipt
+   * data is not added to the copy.)
+   */
   protected abstract copy();
 }
