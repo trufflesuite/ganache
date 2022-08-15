@@ -11,7 +11,7 @@ import Wallet from "../src/wallet";
 import { byNonce } from "../src/transaction-pool";
 import { Executables } from "../src/miner/executables";
 
-describe.only("executables", async () => {
+describe("executables", async () => {
   describe("cloneAndReset", async () => {
     const executables = new Executables();
     let originalTransactions: TypedTransaction[];
