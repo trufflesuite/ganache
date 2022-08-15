@@ -5,6 +5,8 @@ WORKDIR /app
 
 COPY . .
 
+# yolo
+RUN npm config set user 0
 # clean and install dependencies
 RUN npm run clean
 RUN npm ci --unsafe-perm
