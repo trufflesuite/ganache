@@ -265,4 +265,15 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   }
 
   public updateEffectiveGasPrice() {}
+
+  public copy() {
+    const copy = Object.create(this) as EIP2930AccessListTransaction;
+    copy.gasPrice = this.gasPrice;
+    copy.chainId = this.chainId;
+    copy.accessList = this.accessList;
+    copy.accessListJSON = this.accessListJSON;
+    copy.accessListDataFee = this.accessListDataFee;
+    super.copyOnto(copy);
+    return copy;
+  }
 }
