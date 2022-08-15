@@ -49,13 +49,13 @@ export function GetConnector<T = string>(
     return new EthereumConnector(providerOptions, executor) as unknown;
   }
   try {
-    // for future plugin compatibility
     // for backward compatibility, filecoin is also supported along with @ganache/filecoin
     const pluginPackageName =
       flavor.toString() === "filecoin"
         ? "@ganache/" + flavor.toString()
         : flavor.toString();
 
+    // for future plugin compatibility
     const pluginPackageExports = eval("require")(pluginPackageName);
     const pluginPackage = pluginPackageExports.default
       ? pluginPackageExports.default

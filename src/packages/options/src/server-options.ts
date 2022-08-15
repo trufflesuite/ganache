@@ -76,13 +76,7 @@ export const ServerOptions: Definitions<ServerConfig> = {
     normalize,
     cliDescription:
       "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
-    default: (config, flavor) => {
-      switch (flavor) {
-        case "ethereum":
-        default:
-          return "/";
-      }
-    },
+    default: () => "/",
     defaultDescription: '"/" (Ethereum)'
   },
   chunkSize: {
