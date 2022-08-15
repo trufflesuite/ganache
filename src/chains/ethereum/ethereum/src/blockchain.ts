@@ -632,7 +632,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       return Quantity.from(null, true);
     };
     block.header.stateRoot = Data.from("0x", 32);
-    return await block;
+    return block;
   };
 
   isStarted = () => {
