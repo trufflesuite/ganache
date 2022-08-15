@@ -44,7 +44,7 @@ jobs:
           context: .
           file: ./src/packages/ganache/Dockerfile
           push: true
-          tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', "latest", "v7.4.1") }}
+          tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', latest, v7.4.1) }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/arm64/v8,linux/amd64
           build-args: |
