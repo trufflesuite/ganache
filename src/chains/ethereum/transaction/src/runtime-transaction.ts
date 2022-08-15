@@ -244,6 +244,16 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     // resolves the `#finalized` promise
     this.finalizer({ status, error });
   }
+
+  public copyOnto(transaction: RuntimeTransaction) {
+    transaction.encodedData = this.encodedData;
+    transaction.encodedSignature = this.encodedSignature;
+    transaction.hash = this.hash;
+    transaction.serialized = this.serialized;
+    transaction.raw = this.raw;
+    super.copyOnto(transaction);
+  }
+
   protected abstract toEthRawTransaction(
     v: Buffer,
     r: Buffer,
