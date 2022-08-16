@@ -167,6 +167,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Ganache's docker publish action
+        # we are running our local action, so point directly to a folder
+        # containing an `action.yml` file
         uses: ./.github/actions/docker-publish
         with:
           VERSION: ${{ env.VERSION }}
