@@ -1,5 +1,4 @@
 name: "Docker Publish"
-id: docker-publish
 description: "Builds and publishes a Docker image for the Ganache repo."
 inputs:
   VERSION:
