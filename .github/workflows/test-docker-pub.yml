@@ -13,7 +13,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Ganache's docker publish action
-        uses: ./.github/actions/docker-publish.yml
+        uses: ./.github/actions/docker-publish
         with:
           VERSION: ${{ env.VERSION }}
           TAG: ${{ env.TAG }}
