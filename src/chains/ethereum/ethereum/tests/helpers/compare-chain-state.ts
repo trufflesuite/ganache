@@ -4,7 +4,7 @@ import Blockchain from "../../src/blockchain";
 import { GanacheTrie } from "../../src/helpers/trie";
 
 /**
- * Gets all db data from a trie.
+ * Gets all underlying data in a trie's database.
  * @param trie
  * @returns
  */
@@ -29,6 +29,8 @@ const getBlockchainState = async (
   addresses: EthereumJsAddress[]
 ) => {
   const trie = blockchain.trie.copy(true);
+  // get all of the data in the trie so we can compare the underlying data
+  // and not just the trie root.
   const trieDbData = await getDbData(trie);
   const vm = await blockchain.createVmFromStateTrie(
     trie,
