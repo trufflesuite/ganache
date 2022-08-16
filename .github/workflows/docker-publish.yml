@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14
+      - name: Run installation
+        run: npm ci
       # - name: Run build
       #   run: npm run build
       #   env:
@@ -59,6 +61,7 @@ jobs:
         run: |
           echo "TAG=latest" >> $GITHUB_ENV
           echo "VERSION=v7.4.1" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
