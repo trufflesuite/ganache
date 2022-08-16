@@ -3,6 +3,7 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 import { Ethereum } from "../../../typings";
+import memdown from "memdown";
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
 
@@ -212,6 +213,16 @@ describe("api", () => {
 
         describe("`miner.blockTime=0` mode", () => {
           beforeEach(async () => {
+            // slow down calls to save data to the database. this is to ensure
+            // that we can send all of our transactions and still have them
+            // in the pool by the time we request the pending block
+            const db = memdown();
+            db._batch = (...args) => {
+              setTimeout(() => {
+                Reflect.apply(memdown.prototype._batch, db, args);
+              }, 20);
+            };
+
             provider = await getProvider({
               miner: {
                 // strict mode doesn't affect the contents of the pending block,
@@ -219,7 +230,8 @@ describe("api", () => {
                 // transactions start mining
                 instamine: "strict",
                 blockGasLimit
-              }
+              },
+              database: { db }
             });
             [from, to] = await provider.send("eth_accounts");
           });
