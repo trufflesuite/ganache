@@ -50,15 +50,6 @@ const getBlockchainState = async (
  * @param blockchain
  * @param addresses
  * @param testFunction
- * @returns boolean
- */
-/**
- * Gets trie and db data from `blockchain` and account data from each address
- * of `addresses` before and after running `testFunction`. Returns whether the
- * data is `deepStrictEqual` or not.
- * @param blockchain
- * @param addresses
- * @param testFunction
  * @returns Boolean indicating whether the states are `deepStrictEqual` or not.
  */
 export const statesAreDeepStrictEqual = async (
