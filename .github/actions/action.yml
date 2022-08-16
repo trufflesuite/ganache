@@ -20,15 +20,19 @@ inputs:
     description: "Infura key used to build the Docker image."
     required: true
 runs:
+  # this means we are using yml (rather than js or a docker) for our action
+  # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
   steps:
     - name: Use npm 14
       uses: actions/setup-node@v1
       with:
         node-version: 14
+
     - name: Run installation
       run: npm ci
       shell: bash
+
     - name: Log in to Docker Hub
       uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
       with:
