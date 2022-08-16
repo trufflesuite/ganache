@@ -22,7 +22,7 @@ const NOTFOUND = 404;
 
 const EMPTY_BUFFER = Buffer.from([]);
 
-type RawOrBlock<T> = T extends true ? Buffer : Block;
+type RawOrBlock<GetRaw extends boolean> = GetRaw extends true ? Buffer : Block;
 
 export default class BlockManager extends Manager<Block> {
   /**
