@@ -7,9 +7,15 @@ inputs:
   TAG:
     description: "The tag to be tagged to the Docker image, e.g. latest."
     required: true
+  TEMP_TEST_SECRET:
+    description: "a secret"
+    required: true
 runs:
   using: "composite"
   steps:
+    - name: Test how secrets work
+      run: echo Hello ${{ inputs.TEMP_TEST_SECRET }}.
+      shell: bash
     - name: Log in to Docker Hub
       uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
       with:
