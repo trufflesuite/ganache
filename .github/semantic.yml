@@ -2,4 +2,4 @@
 titleOnly: true
 # custom URL for the "Details" link (which appears next to the success/failure
 # message from the app) to be specified
-targetUrl: https://github.com/trufflesuite/ganache/blob/develop/CONTRIBUTING.md#pull-requests
+targetUrl: "https://github.com/trufflesuite/ganache/blob/develop/CONTRIBUTING.md#pull-requests"
