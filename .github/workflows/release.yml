@@ -167,8 +167,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Ganache's docker publish action
-        uses: ./actions
-        id: docker-publish
+        uses: ./.github/actions/docker-publish
         with:
-          VERSION: env.VERSION
-          TAG: env.TAG
+          VERSION: ${{ env.VERSION }}
+          TAG: ${{ env.TAG }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
