@@ -18,6 +18,6 @@ jobs:
           VERSION: env.VERSION
           TAG: env.TAG
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          TEMP_TEST_SECRET: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
