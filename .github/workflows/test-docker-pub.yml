@@ -17,3 +17,4 @@ jobs:
         with:
           VERSION: env.VERSION
           TAG: env.TAG
+          TEMP_TEST_SECRET: ${{ secrets.TEMP_TEST_SECRET }}
