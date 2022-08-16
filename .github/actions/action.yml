@@ -43,7 +43,7 @@ runs:
         context: .
         file: ./src/packages/ganache/Dockerfile
         push: true
-        tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', INPUT_TAG, INPUT_VERSION) }}
+        tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', inputs.TAG, inputs.VERSION) }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/arm64/v8,linux/amd64
         build-args: |
