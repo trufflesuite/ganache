@@ -629,7 +629,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const { block } = await miner.once("block");
     block.hash = () => {
-      return Quantity.from(null, true);
+      return Quantity.Empty;
     };
     block.header.stateRoot = Data.from("0x", 32);
     return block;
