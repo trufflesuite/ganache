@@ -1,0 +1,51 @@
+name: "Docker Publish"
+id: docker-publish
+description: "Builds and publishes a Docker image for the Ganache repo."
+inputs:
+  VERSION:
+    description: "The release version to be tagged to the Docker image, e.g. vX.x.x"
+    required: true
+  TAG:
+    description: "The tag to be tagged to the Docker image, e.g. latest."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Log in to Docker Hub
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: |
+          trufflesuite/ganache
+          ghcr.io/${{ github.repository}}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@0522dcd2bf084920c411162fde334a308be75015
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@91cb32d715c128e5f0ede915cd7e196ab7799b83
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: .
+        file: ./src/packages/ganache/Dockerfile
+        push: true
+        tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', INPUT_TAG, INPUT_VERSION) }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/arm64/v8,linux/amd64
+        build-args: |
+          INFURA_KEY=${{ secrets.INFURA_KEY }}
