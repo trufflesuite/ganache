@@ -13,7 +13,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Ganache's docker publish action
-        uses: ./actions
+        uses: ./
         id: action
         with:
           VERSION: env.VERSION
