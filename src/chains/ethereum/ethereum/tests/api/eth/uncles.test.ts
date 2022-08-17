@@ -100,6 +100,23 @@ describe("api", () => {
         );
         assert.deepStrictEqual(result, null);
       });
+
+      it("eth_getUncleByBlockNumberAndIndex for pending tag", async () => {
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: "0x1"
+          }
+        ]);
+
+        const result = await provider.send(
+          "eth_getUncleByBlockNumberAndIndex",
+          ["pending", "0x0"]
+        );
+        assert.deepStrictEqual(result, null);
+      });
     });
   });
 });
