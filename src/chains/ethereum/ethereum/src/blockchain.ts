@@ -631,7 +631,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     block.hash = () => {
       return Quantity.Empty;
     };
-    block.header.stateRoot = Data.from("0x", 32);
+    block.setToJSONStateRootOverride(Data.from("0x", 32));
     return block;
   };
 

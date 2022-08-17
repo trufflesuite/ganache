@@ -34,6 +34,12 @@ export class Block {
 
   public header: BlockHeader;
 
+  /**
+   * Used to override the `stateRoot` value of the return value of the `toJSON`
+   * function.
+   */
+  #toJSONStateRootOverride: Data;
+
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
     if (serialized) {
@@ -46,6 +52,7 @@ export class Block {
       // const uncles = deserialized[2];
       const totalDifficulty = deserialized[3];
       this.header = makeHeader(this._raw, totalDifficulty);
+      this.#toJSONStateRootOverride = this.header.stateRoot;
       this._rawTransactionMetaData = deserialized[4] || [];
       this._size = Quantity.toNumber(deserialized[5]);
     }
@@ -103,6 +110,7 @@ export class Block {
     return {
       hash,
       ...header,
+      stateRoot: this.#toJSONStateRootOverride,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
@@ -130,6 +138,14 @@ export class Block {
         this._rawTransactionMetaData
       ]).serialized)
     );
+  }
+
+  /**
+   * @param stateRoot The state root to set for the `#toJSONStateRootOverride`
+   * field.
+   */
+  setToJSONStateRootOverride(stateRoot: Data) {
+    this.#toJSONStateRootOverride = stateRoot;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {
