@@ -563,7 +563,6 @@ describe("api", () => {
     });
 
     it("eth_getTransactionByBlockNumberAndIndex for pending tag", async () => {
-      await provider.send("eth_subscribe", ["newHeads"]);
       const gasPrice = await provider.send("eth_gasPrice", []);
 
       await provider.send("miner_stop");
