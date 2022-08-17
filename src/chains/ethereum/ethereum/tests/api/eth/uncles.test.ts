@@ -48,6 +48,22 @@ describe("api", () => {
         assert.strictEqual(count, "0x0");
       });
 
+      it("eth_getUncleCountByBlockNumber for pending tag", async () => {
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: "0x1"
+          }
+        ]);
+
+        const count = await provider.send("eth_getUncleCountByBlockNumber", [
+          "pending"
+        ]);
+        assert.strictEqual(count, "0x0");
+      });
+
       it("eth_getUncleByBlockHashAndIndex", async () => {
         await provider.send("eth_subscribe", ["newHeads"]);
         await provider.send("eth_sendTransaction", [
