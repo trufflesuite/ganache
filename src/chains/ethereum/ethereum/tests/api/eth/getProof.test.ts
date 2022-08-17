@@ -96,6 +96,33 @@ describe("api", () => {
         );
       });
 
+      it("gets the proof with supplying 'pending' for `blockNumber`", async () => {
+        const result = await provider.send("eth_getProof", [
+          ownerAddress,
+          [],
+          "pending"
+        ]);
+
+        assert.strictEqual(result.address, ownerAddress, "Unexpected address");
+        assert.strictEqual(result.balance, ownerBalance, "Unexpected balance");
+        assert.strictEqual(
+          result.codeHash,
+          Data.toString(KECCAK256_NULL),
+          "Unexpected codeHash, expected keccak hash of zero bytes"
+        );
+        assert.strictEqual(result.nonce, "0x1", "Unexpected nonce");
+        assert.strictEqual(
+          result.storageHash,
+          emptyMerkleRoot,
+          "Unexpected storageHash, expected root of empty merkle trie"
+        );
+        assert.deepStrictEqual(
+          result.storageProof,
+          [],
+          "Unexpected storageProof"
+        );
+      });
+
       it("gets the proof for an externally owned account", async () => {
         const result = await provider.send("eth_getProof", [
           ownerAddress,
