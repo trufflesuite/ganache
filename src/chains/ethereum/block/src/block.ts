@@ -52,7 +52,6 @@ export class Block {
       // const uncles = deserialized[2];
       const totalDifficulty = deserialized[3];
       this.header = makeHeader(this._raw, totalDifficulty);
-      this.#toJSONStateRootOverride = this.header.stateRoot;
       this._rawTransactionMetaData = deserialized[4] || [];
       this._size = Quantity.toNumber(deserialized[5]);
     }
@@ -110,7 +109,7 @@ export class Block {
     return {
       hash,
       ...header,
-      stateRoot: this.#toJSONStateRootOverride,
+      stateRoot: this.#toJSONStateRootOverride || header.stateRoot,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
