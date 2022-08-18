@@ -1,5 +1,5 @@
-import { Account, Address } from "ethereumjs-util";
-import Cache from "@ethereumjs/vm/dist/state/cache";
+import { Account, Address } from "@ethereumjs/util";
+import { Cache } from "@ethereumjs/statemanager/dist/cache";
 import { GanacheTrie } from "../helpers/trie";
 import { ForkTrie } from "./trie";
 
