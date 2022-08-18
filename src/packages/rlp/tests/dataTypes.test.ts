@@ -40,13 +40,13 @@ describe("RLP encoding (string):", function () {
   it("should return itself if single byte and less than 0x7f:", function () {
     const encodedSelf = RLP.encode(Buffer.from("a"));
     assert.strictEqual(encodedSelf.toString(), "a");
-    assert.strictEqual(RLP.getLength(encodedSelf), 1);
+    assert.strictEqual(encodedSelf.length, 1);
   });
 
   it("length of string 0-55 should return (0x80+len(data)) plus data", function () {
     const encodedDog = RLP.encode(Buffer.from("dog"));
     assert.strictEqual(4, encodedDog.length);
-    assert.strictEqual(RLP.getLength(encodedDog), 4);
+    assert.strictEqual(encodedDog.length, 4);
     assert.strictEqual(encodedDog[0], 131);
     assert.strictEqual(encodedDog[1], 100);
     assert.strictEqual(encodedDog[2], 111);
@@ -60,7 +60,7 @@ describe("RLP encoding (string):", function () {
       )
     );
     assert.strictEqual(72, encodedLongString.length);
-    assert.strictEqual(RLP.getLength(encodedLongString), 2);
+    assert.strictEqual(encodedLongString.length, 2);
     assert.strictEqual(encodedLongString[0], 184);
     assert.strictEqual(encodedLongString[1], 70);
     assert.strictEqual(encodedLongString[2], 122);
