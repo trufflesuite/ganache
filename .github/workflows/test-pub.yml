@@ -1,0 +1,37 @@
+name: Test Publish
+
+on: push
+jobs:
+  test-pub:
+    strategy:
+      matrix:
+        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
+        os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
+        exclude:
+          # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
+          - os: ubuntu-18.04
+            node: 18.x
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install Ganache via npm
+        run: npm i ganache -g
+
+      - name: Get latest published version
+        # Gets the released version from ganache.
+        # 1. Run `ganache --help` to show the help message
+        # 2. `| head -n 1` get the first line of the help text
+        # 3. Store this first line of the help text as LINE_ONE
+        # 4. `echo "${LINE_ONE%(*}"`
+        #      - % will remove the characters at the end of the string
+        #        - %% does the above but greedy
+        #      - ( is the character we're matching to remove all characters after
+        # 5. Store this as PUBLISHED_VERSION
+        run: |
+          LINE_ONE=$(ganache --help | head -n 1) && PUBLISHED_VERSION=$(echo "${LINE_ONE%%(*}") >> "${GITHUB_ENV}"
