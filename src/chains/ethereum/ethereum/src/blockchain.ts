@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database from "./database";
+import Database, { GanacheSublevel } from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -19,14 +19,14 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { Address as EthereumJsAddress } from "ethereumjs-util";
-import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import type { Address as EthereumJsAddress } from "@ethereumjs/util";
+import type { InterpreterStep } from "@ethereumjs/evm/";
 import { decode } from "@ganache/rlp";
-import { BN, KECCAK256_RLP } from "ethereumjs-util";
-import Common from "@ethereumjs/common";
-import VM from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { VmError, ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { KECCAK256_RLP } from "@ethereumjs/util";
+import { Common } from "@ethereumjs/common";
+import { EEI, VM } from "@ethereumjs/vm";
+import { EVMResult, EVM } from "@ethereumjs/evm";
+import { EvmError as VmError, EvmErrorMessage as ERROR } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
   Quantity,
@@ -56,13 +56,10 @@ import {
   CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
-import {
-  DefaultStateManager,
-  StateManager
-} from "@ethereumjs/vm/dist/state/index";
+import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import type { LevelUp } from "levelup";
+import { LevelDB } from "@ethereumjs/trie";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -141,28 +138,40 @@ function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
   (stateManager as any)._storageTries = {};
 }
 
-function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
+function makeTrie(
+  blockchain: Blockchain,
+  db: GanacheSublevel | null,
+  root: Data
+) {
   if (blockchain.fallback) {
-    return new ForkTrie(db, root ? root.toBuffer() : null, blockchain);
+    return new ForkTrie(
+      new LevelDB(db as any),
+      root ? root.toBuffer() : null,
+      blockchain
+    );
   } else {
-    return new GanacheTrie(db, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(
+      new LevelDB(db as any),
+      root ? root.toBuffer() : null,
+      blockchain
+    );
   }
 }
 
 function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
-  const common = Common.forCustomChain(
-    // if we were given a chain id that matches a real chain, use it
-    // NOTE: I don't think Common serves a purpose other than instructing the
-    // VM what hardfork is in use. But just incase things change in the future
-    // its configured "more correctly" here.
-    KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+  const common = Common.custom(
     {
       name: "ganache",
       networkId: networkId,
       chainId: chainId,
-      comment: "Local test network"
+      comment: "Local test network",
+      defaultHardfork: hardfork
     },
-    hardfork
+    // if we were given a chain id that matches a real chain, use it
+    // NOTE: I don't think Common serves a purpose other than instructing the
+    // VM what hardfork is in use. But just incase things change in the future
+    // its configured "more correctly" here.
+    { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
   );
 
   // the VM likes to listen to "hardforkChanged" events from common, but:
@@ -238,8 +247,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         common = this.common = this.fallback.common;
         options.fork.blockNumber = this.fallback.blockNumber.toNumber();
-        options.chain.networkId = common.networkId();
-        options.chain.chainId = common.chainId();
+        options.chain.networkId = Number(common.networkId());
+        options.chain.chainId = Number(common.chainId());
       } else {
         await database.initialize();
         common = this.common = createCommon(
@@ -604,7 +613,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     await this.#blockBeingSavedPromise;
     return {
       transactions,
-      blockNumber: nextBlock.header.number.toArrayLike(Buffer)
+      blockNumber: nextBlock.header.number
     };
   };
 
@@ -642,8 +651,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
-      getBlock: async (number: BN) => {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+      getBlock: async (number: bigint) => {
+        const block = await blocks
+          .get(Quantity.toBuffer(number))
+          .catch(_ => null);
         return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     } as any;
@@ -654,8 +665,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     common = common || this.common;
 
+    // @ts-ignore
     const vm = new VM({
-      state: stateTrie,
       activatePrecompiles: false,
       common,
       allowUnlimitedContractSize,
@@ -663,9 +674,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       stateManager: this.fallback
         ? new ForkStateManager({ common, trie: stateTrie as ForkTrie })
         : new DefaultStateManager({ common, trie: stateTrie })
-    });
+    }) as VM;
     if (activatePrecompile) {
-      await activatePrecompiles(vm.stateManager);
+      await activatePrecompiles(vm.eei as EEI);
 
       if (common.isActivatedEIP(2537)) {
         // BLS12-381 curve, not yet included in any supported hardforks
@@ -702,7 +713,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       initialAccounts.forEach(acc => {
         const a = { buf: acc.address.toBuffer() } as any;
         (stateManager as any)._cache.put(a, acc);
-        stateManager.touchAccount(a);
+        (this.vm.eei as any).touchAccount(a);
       });
       await stateManager.commit();
 
@@ -1089,7 +1100,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit/revert later because this stateTrie is ephemeral anyway.
       vm.stateManager.checkpoint();
 
-      vm.on("step", (event: InterpreterStep) => {
+      (vm.evm as unknown as EVM).on("step", (event: InterpreterStep) => {
         const logs = maybeGetLogs(event);
         if (logs) {
           options.logging.logger.log(...logs);
@@ -1107,11 +1118,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const caller = transaction.from.toBuffer();
 
       if (common.isActivatedEIP(2929)) {
-        const stateManager = vm.stateManager as DefaultStateManager;
+        const eei = vm.eei as EEI;
         // handle Berlin hardfork warm storage reads
-        warmPrecompiles(stateManager);
-        stateManager.addWarmedAddress(caller);
-        if (to) stateManager.addWarmedAddress(to.buf);
+        warmPrecompiles(eei);
+        eei.addWarmedAddress(caller);
+        if (to) eei.addWarmedAddress(to.buf);
       }
 
       // If there are any overrides requested for eth_call, apply
@@ -1124,27 +1135,23 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const fromAccount = await vm.stateManager.getAccount({
         buf: caller
       } as any);
-      fromAccount.nonce.iaddn(1);
-      const txCost = new BN(
-        (gasLimit * transaction.gasPrice.toBigInt()).toString()
-      );
-      fromAccount.balance.isub(txCost);
+      fromAccount.nonce += 1n;
+      const txCost = gasLimit * transaction.gasPrice.toBigInt();
+      fromAccount.balance -= txCost;
       await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
 
       // finally, run the call
-      result = await vm.runCall({
+      // @ts-ignore types are dumbs
+      result = await vm.evm.runCall({
         caller: {
           buf: caller,
           equals: (a: { buf: Buffer }) => caller.equals(a.buf)
         } as any,
         data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: new BN(transaction.gasPrice.toBuffer()),
-        gasLimit: new BN(Quantity.toBuffer(gasLeft)),
+        gasPrice: transaction.gasPrice.toBigInt(),
+        gasLimit: gasLeft,
         to,
-        value:
-          transaction.value == null
-            ? new BN(0)
-            : new BN(transaction.value.toBuffer()),
+        value: transaction.value == null ? 0n : transaction.value.toBigInt(),
         block: transaction.block as any
       });
     } else {
@@ -1154,12 +1161,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           exceptionError: new VmError(ERROR.OUT_OF_GAS),
           returnValue: BUFFER_EMPTY
         }
-      } as any;
+      } as EVMResult;
     }
     this.emit("ganache:vm:tx:after", {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
+      // @ts-ignore types are dumbs
       throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
@@ -1180,8 +1188,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
-      getBlock: async (number: BN) => {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+      getBlock: async (number: bigint) => {
+        const block = await blocks
+          .get(Quantity.toBuffer(number))
+          .catch(_ => null);
         return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     } as any;
@@ -1194,10 +1204,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       : this.common;
 
     const vm = await VM.create({
-      state: trie,
       activatePrecompiles: false,
       common,
-      allowUnlimitedContractSize: this.vm.allowUnlimitedContractSize,
+      //@ts-ignore they moved a public propery to private
+      allowUnlimitedContractSize: this.vm.evm._allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
         ? new ForkStateManager({ common, trie: trie as ForkTrie })
@@ -1206,10 +1216,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const storage: StorageRecords = {};
 
-    // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
-    // (Ganache v2 didn't handle this possibility either, so it hasn't been
-    // updated yet)
-    let gas = 0;
+    let gas = 0n;
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();
 
@@ -1228,9 +1235,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         );
       }
 
-      const gasLeft = event.gasLeft.toNumber();
-      const totalGasUsedAfterThisStep =
-        transaction.gasLimit.toNumber() - gasLeft;
+      const gasLeft = event.gasLeft;
+      const totalGasUsedAfterThisStep = transaction.gasLimit - gasLeft;
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
       gas += gasUsedPreviousStep;
 
@@ -1249,14 +1255,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const stack: ITraceData[] = [];
       if (options.disableStack !== true) {
         for (const stackItem of event.stack) {
-          stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
+          stack.push(TraceData.from(Quantity.toBuffer(stackItem)));
         }
       }
 
       const structLog: StructLog = {
         depth: event.depth + 1,
         error: "",
-        gas: gasLeft,
+        gas: Quantity.from(gasLeft),
         gasCost: 0,
         memory,
         op: event.opcode.name,
@@ -1268,7 +1274,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // The gas difference calculated for each step is indicative of gas consumed in
       // the previous step. Gas consumption in the final step will always be zero.
       if (structLogs.length) {
-        structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
+        structLogs[structLogs.length - 1].gasCost = Number(gasUsedPreviousStep);
       }
 
       if (options.disableStorage === true) {
@@ -1369,7 +1375,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             );
             break;
           } else {
-            vm.on("step", stepListener);
+            (vm.evm as unknown as EVM).on("step", stepListener);
             // force the loop to break after running this transaction by setting
             // the current iteration past the end
             i = l;
@@ -1383,14 +1389,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           context: transactionEventContext
         });
       }
-      vm.removeListener("step", stepListener);
+      (vm.evm as any).removeListener("step", stepListener);
     } finally {
       await vm.stateManager.revert();
     }
 
     // send state results back
     return {
-      gas,
+      gas: Quantity.from(gas),
       structLogs,
       returnValue: "",
       storage
@@ -1603,8 +1609,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
         };
 
-        const rs = storageTrie.createReadStream();
-        rs.on("data", handleData).on("error", reject).on("end", handleEnd);
+        const rs = storageTrie.createReadStream() as any;
+        (rs as any)
+          .on("data", handleData)
+          .on("error", reject)
+          .on("end", handleEnd);
       });
     };
     const { keys, nextKey } = await getStorageKeys();

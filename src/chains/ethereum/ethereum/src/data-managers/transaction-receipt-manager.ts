@@ -1,4 +1,4 @@
-import { LevelUp } from "levelup";
+import { GanacheSublevel } from "../database";
 import Manager from "./manager";
 import { Data, Quantity, BUFFER_EMPTY, BUFFER_ZERO } from "@ganache/utils";
 import Blockchain from "../blockchain";
@@ -7,7 +7,7 @@ import { Address } from "@ganache/ethereum-address";
 
 export default class TransactionReceiptManager extends Manager<InternalTransactionReceipt> {
   #blockchain: Blockchain;
-  constructor(base: LevelUp, blockchain: Blockchain) {
+  constructor(base: GanacheSublevel, blockchain: Blockchain) {
     super(base, InternalTransactionReceipt);
     this.#blockchain = blockchain;
   }

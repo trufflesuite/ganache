@@ -1,15 +1,14 @@
 import { Address } from "@ganache/ethereum-address";
 import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
-import type { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
 import { GanacheTrie } from "../helpers/trie";
-import sub from "subleveldown";
-import { CheckpointDB } from "merkle-patricia-tree/dist/checkpointDb";
+import { CheckpointDB, DB, LevelDB } from "@ethereumjs/trie";
 import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
-import { KECCAK256_NULL } from "ethereumjs-util";
+import { KECCAK256_NULL } from "@ethereumjs/util";
+import { GanacheSublevel } from "../database";
 type KVP = { key: Buffer; value: Buffer };
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
@@ -18,11 +17,11 @@ const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap<LevelUp, LevelUp>();
+const MetadataSingletons = new WeakMap<GanacheSublevel, GanacheSublevel>();
 
 const LEVELDOWN_OPTIONS = {
-  keyEncoding: "binary",
-  valueEncoding: "binary"
+  keyEncoding: "buffer",
+  valueEncoding: "buffer"
 };
 
 function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
@@ -39,19 +38,25 @@ export class ForkTrie extends GanacheTrie {
   public blockNumber: Quantity;
   private metadata: CheckpointDB;
 
-  constructor(db: LevelUp | null, root: Buffer, blockchain: Blockchain) {
+  constructor(db: DB | null, root: Buffer, blockchain: Blockchain) {
     super(db, root, blockchain);
 
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
     this.forkBlockNumber = this.blockNumber.toBigInt();
 
-    if (MetadataSingletons.has(db)) {
-      this.metadata = new CheckpointDB(MetadataSingletons.get(db));
+    if (MetadataSingletons.has((db as any)._leveldb)) {
+      this.metadata = new CheckpointDB(
+        new LevelDB(MetadataSingletons.get((db as any)._leveldb) as any)
+      );
     } else {
-      const metadataDb = sub(db, "f", LEVELDOWN_OPTIONS);
-      MetadataSingletons.set(db, metadataDb);
-      this.metadata = new CheckpointDB(metadataDb);
+      const metadataDb = (db as any)._leveldb.sublevel(
+        "f",
+        LEVELDOWN_OPTIONS
+        // Level types don't properly pass generics all the way through.
+      ) as unknown as GanacheSublevel;
+      MetadataSingletons.set((db as any)._leveldb, metadataDb);
+      this.metadata = new CheckpointDB(new LevelDB(metadataDb as any));
     }
   }
 
@@ -94,15 +99,19 @@ export class ForkTrie extends GanacheTrie {
     startBlockNumber: Quantity,
     endBlockNumber: Quantity
   ) {
-    const db = this.metadata._leveldb;
+    const db = this.metadata.db;
+    //@ts-ignore
     const stream = db.createKeyStream({
       gte: lexico.encode([startBlockNumber.toBuffer()]),
       lt: lexico.encode([
         Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
       ])
     });
+    //@ts-ignore
     const batch = db.batch();
+    //@ts-ignore
     for await (const key of stream) batch.del(key);
+    //@ts-ignore
     await batch.write();
   }
 
@@ -137,7 +146,8 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): this is just going to be slow once we get lots of keys
     // because it just checks every single key we've ever deleted (before this
     // one).
-    const stream = this.metadata._leveldb.createReadStream({
+    //@ts-ignore
+    const stream = this.metadata.db.createReadStream({
       lte: this.createDelKey(key),
       reverse: true
     });
@@ -283,9 +293,8 @@ export class ForkTrie extends GanacheTrie {
    * underlying db.
    */
   copy(includeCheckpoints: boolean = true) {
-    const db = this.db.copy() as CheckpointDB;
     const secureTrie = new ForkTrie(
-      db._leveldb as LevelUp,
+      this.dbStorage.copy() as LevelDB,
       this.root,
       this.blockchain
     );

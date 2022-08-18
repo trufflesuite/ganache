@@ -1,9 +1,9 @@
-import { Address as EJS_Address } from "ethereumjs-util";
-import { decode } from "rlp";
-import StateManager from "@ethereumjs/vm/dist/state/stateManager";
+import { Address as EJS_Address } from "@ethereumjs/util";
+import { decode } from "@ganache/rlp";
+import { DefaultStateManager as StateManager } from "@ethereumjs/statemanager";
 import AccountManager from "../data-managers/account-manager";
 import { ForkCache } from "./cache";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { ForkTrie } from "./trie";
 
 /**
@@ -15,7 +15,7 @@ export interface DefaultStateManagerOpts {
    */
   common: Common;
   /**
-   * An [`merkle-patricia-tree`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
+   * An [`@ethereumjs/trie`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
    */
   trie: ForkTrie;
 }
@@ -82,6 +82,6 @@ export class ForkStateManager extends StateManager {
   async getContractStorage(address: EJS_Address, key: Buffer): Promise<Buffer> {
     const trie = (await this._getStorageTrie(address)) as ForkTrie;
     const value = await trie.get(key);
-    return decode(value);
+    return decode<Buffer>(value);
   }
 }

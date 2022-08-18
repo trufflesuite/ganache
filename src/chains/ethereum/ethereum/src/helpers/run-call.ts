@@ -1,11 +1,9 @@
 import { RuntimeBlock } from "@ganache/ethereum-block";
 import { Quantity, Data, hasOwn, keccak, BUFFER_EMPTY } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import Message from "@ethereumjs/vm/dist/evm/message";
-import VM from "@ethereumjs/vm";
-import { BN } from "ethereumjs-util";
-import EVM from "@ethereumjs/vm/dist/evm/evm";
-import { KECCAK256_NULL } from "ethereumjs-util";
+import { Message } from "@ethereumjs/evm";
+import { VM } from "@ethereumjs/vm";
+import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheTrie } from "./trie";
 
 export type SimulationTransaction = {
@@ -68,28 +66,23 @@ export function runCall(
   transaction: SimulationTransaction,
   gasLeft: bigint
 ) {
-  const caller = { buf: transaction.from.toBuffer() };
+  const caller = { buf: transaction.from.toBuffer() } as any;
   const to =
-    transaction.to == null ? undefined : { buf: transaction.to.toBuffer() };
-  const value = new BN(
-    transaction.value == null ? 0 : transaction.value.toBuffer()
-  );
+    transaction.to == null
+      ? undefined
+      : ({ buf: transaction.to.toBuffer() } as any);
+  const value = transaction.value == null ? 0n : transaction.value.toBigInt();
 
-  const txContext = {
-    gasPrice: new BN(transaction.gasPrice.toBuffer()),
-    origin: caller
-  } as any;
-
-  const message = new Message({
+  vm.evm.runCall({
+    origin: caller,
+    block: transaction.block as any,
+    gasPrice: transaction.gasPrice.toBigInt(),
     caller,
-    gasLimit: new BN(Quantity.toBuffer(gasLeft)),
+    gasLimit: gasLeft,
     to,
     value,
     data: transaction.data && transaction.data.toBuffer()
   });
-
-  const evm = new EVM(vm, txContext, transaction.block as any);
-  return evm.executeMessage(message);
 }
 
 const validateStorageOverride = (

@@ -4,7 +4,7 @@ import {
   QUANTITY,
   Tag
 } from "@ganache/ethereum-utils";
-import { KECCAK256_NULL } from "ethereumjs-util";
+import { KECCAK256_NULL } from "@ethereumjs/util";
 import { Quantity, Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
@@ -105,6 +105,17 @@ export default class AccountManager {
 
     const [, , , codeHash] = decode<EthereumRawAccount>(data);
     if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
-    else return this.#blockchain.trie.db.get(codeHash).then(Data.from);
+    else
+      try {
+        // @ethereumjs/vm prefixes code hashes with `0x63` ("c") as of their v6
+        this.#blockchain.trie.db
+          .get(Buffer.concat([Buffer.from([0x63]), codeHash]))
+          .then(Data.from);
+      } catch {
+        // TODO: remove this workaround when we ship v8.0
+        // This fallback is here for backward compatability with databases created before
+        // we switched to @ethereumjs/vm@v6
+        return this.#blockchain.trie.db.get(codeHash).then(Data.from);
+      }
   }
 }
