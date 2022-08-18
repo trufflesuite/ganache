@@ -3,7 +3,6 @@ import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-const THIRTY_TWO_BYES = "0".repeat(64);
 
 describe("api", () => {
   describe("eth", () => {
@@ -62,12 +61,12 @@ describe("api", () => {
       it("returns the value at the 32-byte hex position", async () => {
         const result = await provider.send("eth_getStorageAt", [
           contractAddress,
-          "0x" + THIRTY_TWO_BYES
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
         ]);
         assert.strictEqual(BigInt(result), 123n);
         const result2 = await provider.send("eth_getStorageAt", [
           contractAddress,
-          "0x" + THIRTY_TWO_BYES.slice(-1) + "1"
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
         ]);
         assert.strictEqual(
           result2,
@@ -76,13 +75,15 @@ describe("api", () => {
       });
 
       it("returns the value even when hex positions exceeds 32-bytes", async () => {
-        const thirtyThreeBytePosition = "0x1" + THIRTY_TWO_BYES;
+        const thirtyThreeBytePosition =
+          "0x10000000000000000000000000000000000000000000000000000000000000000";
         const result = await provider.send("eth_getStorageAt", [
           contractAddress,
           thirtyThreeBytePosition
         ]);
         assert.strictEqual(BigInt(result), 123n);
-        const thirtyThreeBytePosition2 = "0x" + THIRTY_TWO_BYES + "1";
+        const thirtyThreeBytePosition2 =
+          "0x00000000000000000000000000000000000000000000000000000000000000001";
         const result2 = await provider.send("eth_getStorageAt", [
           contractAddress,
           thirtyThreeBytePosition2
