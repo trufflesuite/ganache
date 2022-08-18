@@ -1,29 +1,27 @@
-import type { BN } from "ethereumjs-util";
-
 export type VmTransaction =
   | {
-      nonce: BN;
-      gasPrice?: BN;
-      gasLimit: BN;
+      nonce: bigint;
+      gasPrice?: bigint;
+      gasLimit: bigint;
       maxPriorityFeePerGas?: never;
       maxFeePerGas?: never;
       to: { buf: Buffer };
-      value: BN;
+      value: bigint;
       data: Buffer;
       getSenderAddress: () => { buf: Buffer };
-      getBaseFee: () => BN;
-      getUpfrontCost: () => BN;
+      getBaseFee: () => bigint;
+      getUpfrontCost: () => bigint;
     }
   | {
-      nonce: BN;
+      nonce: bigint;
       gasPrice?: never;
-      gasLimit: BN;
-      maxPriorityFeePerGas?: BN;
-      maxFeePerGas?: BN;
+      gasLimit: bigint;
+      maxPriorityFeePerGas?: bigint;
+      maxFeePerGas?: bigint;
       to: { buf: Buffer };
-      value: BN;
+      value: bigint;
       data: Buffer;
       getSenderAddress: () => { buf: Buffer };
-      getBaseFee: () => BN;
-      getUpfrontCost: () => BN;
+      getBaseFee: () => bigint;
+      getUpfrontCost: () => bigint;
     };

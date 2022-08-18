@@ -69,7 +69,6 @@
     "crypto-browserify": "3.12.0",
     "events": "3.3.0",
     "https-browserify": "1.0.0",
-    "level-js": "6.1.0",
     "mcl-wasm": "0.9.0",
     "mocha": "9.1.3",
     "node-loader": "1.0.2",
@@ -97,7 +96,7 @@
     "@types/seedrandom": "3.0.1",
     "emittery": "0.10.0",
     "keccak": "3.0.2",
-    "leveldown": "6.1.0",
+    "level": "8.0.0",
     "secp256k1": "4.0.3"
   },
   "optionalDependencies": {
@@ -108,7 +107,7 @@
     "@trufflesuite/bigint-buffer",
     "emittery",
     "keccak",
-    "leveldown",
+    "level",
     "secp256k1",
     "@types/bn.js",
     "@types/lru-cache",

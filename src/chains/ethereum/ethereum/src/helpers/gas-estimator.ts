@@ -1,4 +1,4 @@
-import { BN } from "ethereumjs-util";
+import BN from "bn.js";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
 import { Quantity } from "@ganache/utils";
 
@@ -117,7 +117,7 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
 
 const exactimate = async (vm, runArgs, callback) => {
   const steps = stepTracker();
-  vm.on("step", steps.collect);
+  vm.evm.on("step", steps.collect);
 
   const Context = (index: number, fee?: BN) => {
     const base = index === 0;

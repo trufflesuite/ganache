@@ -13,7 +13,7 @@ import {
   TypedDatabaseTransaction,
   Transaction
 } from "../../transaction";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
@@ -21,15 +21,15 @@ import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 import { SECP256K1_N } from "@ganache/secp256k1";
 
 describe("@ganache/ethereum-transaction", async () => {
-  const common = Common.forCustomChain(
-    "mainnet",
+  const common = Common.custom(
     {
       name: "ganache",
       chainId: 1337,
       comment: "Local test network",
-      bootstrapNodes: []
+      bootstrapNodes: [],
+      defaultHardfork: "grayGlacier"
     },
-    "grayGlacier"
+    { baseChain: "mainnet" }
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
@@ -211,18 +211,18 @@ describe("@ganache/ethereum-transaction", async () => {
 
       describe("EIP-2", () => {
         it("rejects transactions with too-high S values only when EIP-2 is active", () => {
-          const genesis = Common.forCustomChain(
-            "mainnet",
+          const genesis = Common.custom(
             {
               name: "ganache",
               chainId: 1,
               comment: "Local test network",
-              bootstrapNodes: []
+              bootstrapNodes: [],
+              // EIP-2 was in homestead, the first hardfork, so we need to create
+              // a common at the genesis (aka chainstart) so we can test at a fork
+              // where it is NOT active:
+              defaultHardfork: "chainstart"
             },
-            // EIP-2 was in homestead, the first hardfork, so we need to create
-            // a common at the genesis (aka chainstart) so we can test at a fork
-            // where it is NOT active:
-            "chainstart"
+            { baseChain: "mainnet" }
           );
 
           const tx = <LegacyTransaction>(
@@ -638,15 +638,15 @@ describe("@ganache/ethereum-transaction", async () => {
 
     describe("checks for hardfork's support of transaction types", () => {
       describe("pre-berlin checks", () => {
-        const preBerlin = Common.forCustomChain(
-          "mainnet",
+        const preBerlin = Common.custom(
           {
             name: "ganache",
             chainId: 1337,
             comment: "Local test network",
-            bootstrapNodes: []
+            bootstrapNodes: [],
+            defaultHardfork: "istanbul"
           },
-          "istanbul"
+          { baseChain: "mainnet" }
         );
         it("creates legacy transaction before berlin hardfork", () => {
           const txFromRpc = TransactionFactory.fromRpc(
@@ -715,15 +715,15 @@ describe("@ganache/ethereum-transaction", async () => {
       });
 
       describe("pre-london checks", () => {
-        const preLondon = Common.forCustomChain(
-          "mainnet",
+        const preLondon = Common.custom(
           {
             name: "ganache",
             chainId: 1337,
             comment: "Local test network",
-            bootstrapNodes: []
+            bootstrapNodes: [],
+            defaultHardfork: "berlin"
           },
-          "berlin"
+          { baseChain: "mainnet" }
         );
         it("creates legacy transaction before london hardfork", () => {
           const txFromRpc = TransactionFactory.fromRpc(

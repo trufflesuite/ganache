@@ -3,10 +3,9 @@ import {
   Quantity,
   BUFFER_EMPTY,
   BUFFER_32_ZERO,
-  BUFFER_8_ZERO,
-  BUFFER_ZERO
+  BUFFER_8_ZERO
 } from "@ganache/utils";
-import { BN, KECCAK256_RLP_ARRAY } from "ethereumjs-util";
+import { KECCAK256_RLP_ARRAY } from "@ethereumjs/util";
 import { EthereumRawBlockHeader, serialize } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
@@ -16,18 +15,6 @@ import {
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
-
-/**
- * BN, but with an extra `buf` property that caches the original Buffer value
- * we pass in.
- */
-class BnExtra extends BN {
-  public buf: Buffer;
-  constructor(number: Buffer) {
-    super(number, 10, "be");
-    this.buf = number;
-  }
-}
 
 export type BlockHeader = {
   parentHash: Data;
@@ -94,14 +81,14 @@ export class RuntimeBlock {
   private serializeBaseFeePerGas: boolean = true;
   public readonly header: {
     parentHash: Buffer;
-    difficulty: BnExtra;
+    difficulty: bigint;
     totalDifficulty: Buffer;
     coinbase: { buf: Buffer; toBuffer: () => Buffer };
-    number: BnExtra;
-    gasLimit: BnExtra;
-    gasUsed: BnExtra;
-    timestamp: BnExtra;
-    baseFeePerGas?: BnExtra;
+    number: bigint;
+    gasLimit: bigint;
+    gasUsed: bigint;
+    timestamp: bigint;
+    baseFeePerGas?: bigint;
   };
 
   constructor(
@@ -120,18 +107,15 @@ export class RuntimeBlock {
     this.header = {
       parentHash: parentHash.toBuffer(),
       coinbase: { buf: coinbaseBuffer, toBuffer: () => coinbaseBuffer },
-      number: new BnExtra(number.toBuffer()),
-      difficulty: new BnExtra(difficulty.toBuffer()),
-      totalDifficulty: Quantity.from(
+      number: number.toBigInt(),
+      difficulty: difficulty.toBigInt(),
+      totalDifficulty: Quantity.toBuffer(
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
-      ).toBuffer(),
-      gasLimit: new BnExtra(gasLimit),
-      gasUsed: new BnExtra(gasUsed),
-      timestamp: new BnExtra(ts),
-      baseFeePerGas:
-        baseFeePerGas === undefined
-          ? new BnExtra(BUFFER_ZERO)
-          : new BnExtra(Quantity.toBuffer(baseFeePerGas))
+      ),
+      gasLimit: Quantity.toBigInt(gasLimit),
+      gasUsed: Quantity.toBigInt(gasUsed),
+      timestamp: Quantity.toBigInt(ts),
+      baseFeePerGas: baseFeePerGas === undefined ? 0n : baseFeePerGas
     };
     // When forking we might get a block that doesn't have a baseFeePerGas value,
     // but EIP-1559 might be active on our chain. We need to keep track on if
@@ -163,17 +147,17 @@ export class RuntimeBlock {
       transactionsTrie,
       receiptTrie,
       bloom,
-      header.difficulty.buf,
-      header.number.buf,
-      header.gasLimit.buf,
+      Quantity.toBuffer(header.difficulty),
+      Quantity.toBuffer(header.number),
+      Quantity.toBuffer(header.gasLimit),
       gasUsed === 0n ? BUFFER_EMPTY : Quantity.toBuffer(gasUsed),
-      header.timestamp.buf,
+      Quantity.toBuffer(header.timestamp),
       extraData.toBuffer(),
       BUFFER_32_ZERO, // mixHash
       BUFFER_8_ZERO // nonce
     ];
     if (this.serializeBaseFeePerGas && header.baseFeePerGas !== undefined) {
-      rawHeader[15] = header.baseFeePerGas.buf;
+      rawHeader[15] = Quantity.toBuffer(header.baseFeePerGas);
     }
 
     const { totalDifficulty } = header;

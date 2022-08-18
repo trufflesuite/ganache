@@ -2,8 +2,8 @@ import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import { Data, keccak, Quantity } from "@ganache/utils";
-import { KECCAK256_NULL } from "ethereumjs-util";
-import { SecureTrie } from "merkle-patricia-tree";
+import { KECCAK256_NULL } from "@ethereumjs/util";
+import { SecureTrie } from "@ethereumjs/trie";
 import { Account } from "@ganache/ethereum-utils";
 import { Address } from "@ganache/ethereum-address";
 
