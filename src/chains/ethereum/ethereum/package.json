@@ -83,7 +83,6 @@
     "scrypt-js": "3.0.1",
     "seedrandom": "3.0.5",
     "semaphore": "1.1.0",
-    "subleveldown": "6.0.1",
     "tmp-promise": "3.0.2",
     "ws": "8.2.3"
   },
@@ -96,7 +95,6 @@
     "@types/lru-cache": "5.1.1",
     "@types/mocha": "9.0.0",
     "@types/seedrandom": "^3.0.1",
-    "@types/subleveldown": "4.1.1",
     "@types/superagent": "4.1.10",
     "@types/ws": "^7.4.7",
     "cheerio": "1.0.0-rc.3",
