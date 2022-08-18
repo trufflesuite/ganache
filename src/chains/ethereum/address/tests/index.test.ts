@@ -47,7 +47,7 @@ describe("@ganache/ethereum-address", () => {
       const expected = Buffer.alloc(20);
       expected[19] = 1;
 
-      assert.deepEqual(bufferAddress, expected);
+      assert.deepStrictEqual(bufferAddress, expected);
     });
 
     it("should truncate an address to the specified length", () => {
@@ -64,7 +64,7 @@ describe("@ganache/ethereum-address", () => {
         0x21, 0x04, 0x85, 0x93, 0x94, 0x60, 0x43, 0x59, 0x37, 0x84, 0x33, 0x86,
         0x53, 0x60, 0x94, 0x71, 0x16, 0x70, 0x78, 0x76
       ]);
-      assert.deepEqual(bufferAddress, expected);
+      assert.deepStrictEqual(bufferAddress, expected);
     });
 
     it("should pad an address to 20 bytes when called as static function", () => {
@@ -72,7 +72,7 @@ describe("@ganache/ethereum-address", () => {
       const expected = Buffer.alloc(20);
       expected[19] = 1;
 
-      assert.deepEqual(bufferAddress, expected);
+      assert.deepStrictEqual(bufferAddress, expected);
     });
   });
 });
