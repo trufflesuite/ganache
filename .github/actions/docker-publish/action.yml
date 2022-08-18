@@ -20,7 +20,7 @@ inputs:
     description: "Infura key used to build the Docker image."
     required: true
 runs:
-  # this means we are using yml (rather than js or a docker) for our action
+  # this means we are using yml (rather than js or docker) for our action
   # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
   steps:
