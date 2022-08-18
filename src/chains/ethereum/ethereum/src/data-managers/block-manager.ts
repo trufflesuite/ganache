@@ -210,6 +210,7 @@ export default class BlockManager extends Manager<Block> {
   async getRawByBlockNumber(blockNumber: Quantity): Promise<Buffer> {
     // TODO(perf): make the block's raw fields accessible on latest/earliest/pending so
     // we don't have to fetch them from the db each time a block tag is used.
+    // Issue: https://github.com/trufflesuite/ganache/issues/3481
     const fallback = this.#blockchain.fallback;
     const numBuf = blockNumber.toBuffer();
     return this.getRaw(numBuf).then(block => {

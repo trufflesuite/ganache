@@ -1209,6 +1209,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
     // updated yet)
+    // Issue: https://github.com/trufflesuite/ganache/issues/3473
     let gas = 0;
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();

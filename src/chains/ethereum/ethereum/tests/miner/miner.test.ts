@@ -29,7 +29,7 @@ describe("miner", async () => {
           comment: "Local test network",
           bootstrapNodes: []
         },
-        "london"
+        "grayGlacier"
       );
       const optionsJson = {
         wallet: {
