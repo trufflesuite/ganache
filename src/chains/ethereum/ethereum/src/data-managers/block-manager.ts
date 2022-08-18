@@ -2,7 +2,7 @@ import Manager from "./manager";
 import { Tag, QUANTITY } from "@ganache/ethereum-utils";
 import { LevelUp } from "levelup";
 import { Quantity, Data, BUFFER_ZERO } from "@ganache/utils";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
 import {
   Block,

@@ -12,7 +12,7 @@ import {
   unref,
   WEI
 } from "@ganache/utils";
-import { privateToAddress } from "ethereumjs-util";
+import { privateToAddress } from "@ethereumjs/util";
 import secp256k1, { SECP256K1_N } from "@ganache/secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import { alea } from "seedrandom";
