@@ -1,8 +1,8 @@
 import assert from "assert";
 import { join } from "path";
-import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
+import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
 import { Data, JsonRpcRequest } from "@ganache/utils";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { EthereumProvider } from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
@@ -447,7 +447,7 @@ describe("provider", () => {
           // specify gasPrice so we don't have to deal with a type 2 transaction
           { ...transaction, nonce: "0x1", gasPrice },
           {
-            common: Common.forCustomChain("mainnet", { chainId: 1337 })
+            common: Common.custom({ chainId: 1337 }, { baseChain: "mainnet" })
           }
         );
         const rawTransaction = Data.from(

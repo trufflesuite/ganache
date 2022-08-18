@@ -1,10 +1,10 @@
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { LevelUp } from "levelup";
+import { GanacheSublevel } from "../database";
 import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import {
@@ -34,7 +34,7 @@ export default class TransactionManager extends Manager<NoOp> {
     options: EthereumInternalOptions["miner"],
     common: Common,
     blockchain: Blockchain,
-    base: LevelUp
+    base: GanacheSublevel
   ) {
     super(base, TransactionFactory, common);
     this.#blockchain = blockchain;

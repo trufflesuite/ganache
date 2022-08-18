@@ -1,4 +1,5 @@
 import assert from "assert";
+import { Level } from "level";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
@@ -8,7 +9,7 @@ import { CallError } from "@ganache/ethereum-utils";
 import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
 import { Address } from "@ganache/ethereum-address";
-import { Address as EthereumJsAddress } from "ethereumjs-util";
+import { Address as EthereumJsAddress } from "@ethereumjs/util";
 import { SimulationTransaction } from "../../../src/helpers/run-call";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -242,7 +243,7 @@ describe("api", () => {
           ]);
         }
 
-        it("allows override of account nonce", async () => {
+        it.only("allows override of account nonce", async () => {
           // this is a kind of separate test case from the rest, since we can't easily
           // access an account's nonce in solidity. instead, we'll use the override to
           // set the account's nonce high and send a contract creating transaction. the
@@ -287,7 +288,7 @@ describe("api", () => {
           assert.strictEqual(overrideNonceAddress, overrideNonceAddress1);
           // the address generated depends on the nonce, so the two are difference
           assert.notEqual(overrideNonceAddress, defaultNonceAddress);
-        });
+        }).timeout(0);
 
         it("allows override of account code", async () => {
           const data = `0x${methods["getCode(address)"]}${encodedAddr}`;
@@ -909,8 +910,10 @@ describe("api", () => {
         });
 
         const getDbData = async (trie: GanacheTrie) => {
-          let dbData: (string | Buffer)[] = [];
-          for await (const data of trie.db._leveldb.createReadStream()) {
+          const dbData: [Buffer, Buffer][] = [];
+          for await (const data of (
+            trie.db.db as unknown as Level<Buffer, Buffer>
+          ).iterator()) {
             dbData.push(data);
           }
           return dbData;

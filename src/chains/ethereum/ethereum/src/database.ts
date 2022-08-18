@@ -1,13 +1,17 @@
-import type { AbstractLevelDOWN } from "abstract-leveldown";
+import { AbstractLevel, AbstractSublevel } from "abstract-level";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import sub from "subleveldown";
-import encode from "encoding-down";
-import leveldown from "leveldown";
-import type { LevelUp } from "levelup";
-const levelup = require("levelup");
+import { Level } from "level";
+
+export type GanacheLevel = Level<Buffer, Buffer>;
+export type GanacheSublevel = AbstractSublevel<
+  GanacheLevel,
+  Buffer,
+  Buffer,
+  Buffer
+>;
 
 setGracefulCleanup();
 const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
@@ -19,16 +23,16 @@ export default class Database extends Emittery {
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
-  public db: LevelUp = null;
-  public blocks: LevelUp;
-  public blockIndexes: LevelUp;
-  public blockLogs: LevelUp;
-  public transactions: LevelUp;
-  public transactionReceipts: LevelUp;
-  public storageKeys: LevelUp;
-  public trie: LevelUp;
+  public db: GanacheLevel;
+  public blocks: GanacheSublevel;
+  public blockIndexes: GanacheSublevel;
+  public blockLogs: GanacheSublevel;
+  public transactions: GanacheSublevel;
+  public transactionReceipts: GanacheSublevel;
+  public storageKeys: GanacheSublevel;
+  public trie: GanacheSublevel;
   public readonly initialized: boolean;
-  #rootStore: AbstractLevelDOWN;
+  #rootStore: GanacheLevel;
 
   /**
    * The Database handles the creation of the database, and all access to it.
@@ -49,15 +53,20 @@ export default class Database extends Emittery {
   }
 
   initialize = async () => {
-    const levelupOptions: any = {
-      keyEncoding: "binary",
-      valueEncoding: "binary"
+    const levelOptions = {
+      keyEncoding: "buffer" as const,
+      valueEncoding: "buffer" as const,
+      // specify an empty `prefix` for browser-based leveldown (level-js)
+      prefix: "" as const
     };
     const store = this.#options.db;
-    let db: LevelUp;
+    let db: GanacheLevel;
     if (store) {
-      this.#rootStore = encode(store as AbstractLevelDOWN, levelupOptions);
-      db = levelup(this.#rootStore, {});
+      if (typeof store === "string") {
+        db = <GanacheLevel>new Level(store, levelOptions);
+      } else {
+        db = <GanacheLevel>store;
+      }
     } else {
       let directory = this.#options.dbPath;
       if (!directory) {
@@ -70,18 +79,16 @@ export default class Database extends Emittery {
       }
       this.directory = directory;
 
-      // specify an empty `prefix` for browser-based leveldown (level-js)
-      const leveldownOpts = { prefix: "" };
-      const store = encode(leveldown(directory, leveldownOpts), levelupOptions);
+      const store = <GanacheLevel>new Level(directory, levelOptions);
       this.#rootStore = store;
-      db = levelup(store);
+      db = store;
     }
 
     // don't continue if we closed while we were waiting for the db
     if (this.#closed) return this.#cleanup();
 
     const open = db.open();
-    this.trie = sub(db, "T", levelupOptions);
+    this.trie = <GanacheSublevel>db.sublevel("T", levelOptions);
 
     this.db = db;
     await open;
@@ -89,12 +96,12 @@ export default class Database extends Emittery {
     // don't continue if we closed while we were waiting for it to open
     if (this.#closed) return this.#cleanup();
 
-    this.blocks = sub(db, "b", levelupOptions);
-    this.blockIndexes = sub(db, "i", levelupOptions);
-    this.blockLogs = sub(db, "l", levelupOptions);
-    this.transactions = sub(db, "t", levelupOptions);
-    this.transactionReceipts = sub(db, "r", levelupOptions);
-    this.storageKeys = sub(db, "s", levelupOptions);
+    this.blocks = <GanacheSublevel>db.sublevel("b", levelOptions);
+    this.blockIndexes = <GanacheSublevel>db.sublevel("i", levelOptions);
+    this.blockLogs = <GanacheSublevel>db.sublevel("l", levelOptions);
+    this.transactions = <GanacheSublevel>db.sublevel("t", levelOptions);
+    this.transactionReceipts = <GanacheSublevel>db.sublevel("r", levelOptions);
+    this.storageKeys = <GanacheSublevel>db.sublevel("s", levelOptions);
     return this.emit("ready");
   };
 
@@ -110,14 +117,14 @@ export default class Database extends Emittery {
    * of the provided function.
    */
   public batch<T>(fn: () => T) {
-    const rootDb = this.#rootStore.db;
+    const rootDb = this.#rootStore;
     const batch = this.db.batch();
 
     const originalPut = rootDb.put;
     const originalDel = rootDb.del;
 
-    rootDb.put = batch.put.bind(batch);
-    rootDb.del = batch.del.bind(batch);
+    rootDb.put = batch.put.bind(batch) as any;
+    rootDb.del = batch.del.bind(batch) as any;
     let prom: Promise<T>;
     try {
       const ret = fn();
