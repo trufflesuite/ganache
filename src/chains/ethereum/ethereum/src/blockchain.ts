@@ -618,7 +618,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   resume(_threads: number = 1) {
     if (!this.#isPaused()) {
-      console.log("Warning: startMining called when miner was already started");
+      this.#options.logging.logger.log(
+        "Warning: startMining called when miner was already started"
+      );
       return;
     }
 
@@ -1091,7 +1093,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const logs = maybeGetLogs(event);
         if (logs) {
           options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", { context, logs });
+          this.emit("ganache:vm:tx:console.log", {
+            context: transactionContext,
+            logs
+          });
         }
 
         if (!this.#emitStepEvent) return;

@@ -208,4 +208,15 @@ describe("types", () => {
       params: [123456]
     });
   });
+
+  it("returns the type for eth_getProof", async () => {
+    expectMethodReturn<"eth_getProof", Ethereum.AccountProof, 1>();
+  });
+
+  it("accepts correct types for eth_getProof", async () => {
+    MockRequest<"eth_getProof">({
+      method: "eth_getProof",
+      params: ["0x0", ["0x1"], "latest"]
+    });
+  });
 });

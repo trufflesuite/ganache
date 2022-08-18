@@ -194,4 +194,10 @@ export namespace Ethereum {
 
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
+
+  // eth_getProof
+  export type AccountProof<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<AccountProof<"private">>
+      : UtilTypes.AccountProof;
 }

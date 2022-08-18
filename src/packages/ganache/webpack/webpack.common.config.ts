@@ -26,9 +26,9 @@ if (
 
 // validate INFURA_KEY
 if (INFURA_KEY) {
-  if (!/[a-z0-9]{32}/.test(INFURA_KEY)) {
+  if (!/^[a-f0-9]{32}$/.test(INFURA_KEY)) {
     throw new Error(
-      "INFURA_KEY must 32 characters long and contain only the characters a-f0-9"
+      "INFURA_KEY must be 32 characters long and contain only the characters a-f0-9"
     );
   }
 }
