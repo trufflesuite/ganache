@@ -1,5 +1,5 @@
 import { Data, JsonRpcErrorCode, Quantity } from "@ganache/utils";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { Transaction } from "./rpc-transaction";

@@ -1,4 +1,4 @@
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { EVMResult } from "@ethereumjs/evm";
 import { VM_EXCEPTION } from "./errors";
 import { Data } from "@ganache/utils";
 import { CodedError } from "./coded-error";

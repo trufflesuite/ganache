@@ -22,7 +22,7 @@ import {
   ecsign,
   hashPersonalMessage,
   KECCAK256_NULL
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
 import { signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
