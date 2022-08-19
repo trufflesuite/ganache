@@ -1,10 +1,13 @@
-import { GanachePlugin, OptionsConfig } from "@ganache/options";
+import {
+  Defaults,
+  Definitions,
+  GanachePlugin,
+  OptionsConfig
+} from "@ganache/options";
 import { FilecoinDefaults } from "@ganache/filecoin-options";
 import { FilecoinProvider } from "..";
 
-export const filecoinCallback = async (
-  provider: FilecoinProvider
-): Promise<any> => {
+export const filecoinCallback = async (provider: FilecoinProvider) => {
   const accounts = await provider.getInitialAccounts();
   const addresses = Object.keys(accounts);
   const accountsInfo: string[] = [];
@@ -26,6 +29,7 @@ export const filecoinCallback = async (
     const privateKey = `(${index}) ${accounts[address].secretKey}`;
     privateKeys.push(privateKey);
   });
+
   return {
     data: [
       {
@@ -52,18 +56,38 @@ export const ganachePlugin: GanachePlugin = {
   callback: filecoinCallback
 };
 
-export const serverDefaults = {
-  server: {
-    rpcEndpoint: {
-      normalize,
-      cliDescription:
-        "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
-      default: (_config: any, _flavor: any) => {
-        return "/rpc/v0";
-      },
-      defaultDescription: '"fl" (Filecoin)'
-    }
+export type ServerConfig = {
+  options: {
+    /**
+     * Defines the endpoint route the HTTP and WebSocket servers will listen on.
+     *
+     * @defaultValue "/"
+     */
+    readonly rpcEndpoint: {
+      type: string;
+      hasDefault: true;
+    };
+  };
+};
+
+export const serverOptions: Definitions<ServerConfig> = {
+  rpcEndpoint: {
+    normalize,
+    cliDescription:
+      "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
+    default: (_config: any, _flavor: any) => {
+      return "/rpc/v0";
+    },
+    defaultDescription: '"fl" (Filecoin)'
   }
 };
 
-export const serverOptionsConfig = new OptionsConfig(serverDefaults as any);
+export type FilecoinServerConfig = {
+  server: ServerConfig;
+};
+
+export const serverDefaults: Defaults<FilecoinServerConfig> = {
+  server: serverOptions
+};
+
+export const serverOptionsConfig = new OptionsConfig(serverDefaults);
