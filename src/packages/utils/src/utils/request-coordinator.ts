@@ -24,8 +24,8 @@ export class RequestCoordinator {
    * The number of tasks currently being processed.
    */
   public runningTasks: number = 0;
+
   #paused: boolean = true;
-  #stopped: boolean = false;
   public get paused(): boolean {
     return this.#paused;
   }
@@ -51,11 +51,6 @@ export class RequestCoordinator {
    * Resume processing.
    */
   public resume = () => {
-    if (this.#stopped) {
-      throw new Error(
-        "Cannot resume processing requests, Ganache is disconnected."
-      );
-    }
     this.#paused = false;
     this.#process();
   };
@@ -86,13 +81,25 @@ export class RequestCoordinator {
   };
 
   /**
-   * Stop processing tasks - calls to queue(), and resume() will reject with an error indicating
-   * that Ganache is disconnected. This is an irreversible action. If you wish to be able to resume
-   * processing, use pause() instead.
+   * Stop processing tasks - calls to queue(), and resume() will reject with an
+   * error indicating that Ganache is disconnected. This is an irreversible
+   * action. If you wish to be able to resume processing, use pause() instead.
+   *
+   * Note: this changes the references of this.resume and this.queue. Any code
+   * that maintains references to the values referenced by this.resume or
+   * this.queue, could have unintended consequences after calling this.stop().
    */
   public stop() {
     this.pause();
-    this.#stopped = true;
+    this.resume = () => {
+      throw new Error(
+        "Cannot resume processing requests, Ganache is disconnected."
+      );
+    };
+
+    this.queue = async () => {
+      throw new Error("Cannot process request, Ganache is disconnected.");
+    };
   }
 
   /**
@@ -115,12 +122,6 @@ export class RequestCoordinator {
     thisArgument: any,
     argumentsList: OverloadedParameters<T>
   ) => {
-    if (this.#stopped) {
-      return Promise.reject(
-        new Error("Cannot process request, Ganache is disconnected.")
-      );
-    }
-
     return new Promise<{ value: ReturnType<typeof fn> }>((resolve, reject) => {
       // const execute is `async` to force the return value into a Promise.
       const execute = async () => {

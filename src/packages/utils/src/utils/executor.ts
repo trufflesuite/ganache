@@ -13,7 +13,7 @@ export class Executor {
   }
 
   /**
-   * Stop processing requests. We pass this call through to the requestCoordinator, which means that api 
+   * Stop processing requests. We pass this call through to the requestCoordinator, which means that api
    * validation will continue to work after calling stop() in execute().
    */
   public stop() {
@@ -58,6 +58,11 @@ export class Executor {
         // just double check, in case a API breaks the rules and adds non-fns
         // to their API interface.
         if (typeof fn === "function") {
+          // The function referenced by requestcoordinator.queue will be changed
+          // when requestCoordinator.stop() is called. Ensure that no references
+          // to the function are held, otherwise internal errors may be
+          // surfaced.
+
           // queue up this method for actual execution:
           return this.#requestCoordinator.queue(fn, api, params);
         }
