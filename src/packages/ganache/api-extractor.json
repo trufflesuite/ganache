@@ -79,8 +79,6 @@
     "semaphore-async-await",
     "eth-sig-util",
     "@trufflesuite/uws-js-unofficial",
-    "@ganache/filecoin",
-    "@ganache/filecoin-options",
     "levelup",
     "ipfs",
     "level-errors",

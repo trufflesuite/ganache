@@ -34,7 +34,6 @@ const config: webpack.Configuration = merge({}, base, {
       "@trufflesuite/uws-js-unofficial": false,
       // replace URL with a browser version -- sorta. just look at the polyfill code
       url: require.resolve("./polyfills/url"),
-      "@ganache/filecoin": false,
       // mcl-wasm may be needed when creating a new @ethereumjs/vm and requires a browser version for browsers
       "mcl-wasm": require.resolve("mcl-wasm/browser"),
       // ws doesn't work in the browser so we polyfill it
