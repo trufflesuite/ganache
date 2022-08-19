@@ -585,8 +585,9 @@ See [CONTRIBUTING.md](https://github.com/trufflesuite/ganache/blob/develop/CONTR
 
 ## Related
 
-- [Truffle](https://www.github.com/trufflesuite/truffle)
-- [Drizzle](https://www.github.com/trufflesuite/drizzle)
+- [Truffle GitHub](https://www.github.com/trufflesuite/truffle)
+- [Drizzle GitHub](https://www.github.com/trufflesuite/drizzle)
+- [Truffle Suite Website](https://www.trufflesuite.com/)
 
 <br/>
 
