@@ -141,6 +141,55 @@ describe("provider", () => {
       await provider.disconnect();
     });
 
+    it("applies the adjustment only once when `timestampIncrement` is used", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5; // seconds
+      const fastForwardSeconds = 100;
+      const provider = await getProvider({
+        chain: { time },
+        miner: { timestampIncrement }
+      });
+
+      await provider.request({
+        method: "evm_increaseTime",
+        params: [`0x${fastForwardSeconds.toString(16)}`]
+      });
+
+      const mineAndAssertTimestamp = async (
+        expectedTimestampSeconds: number,
+        message?: string
+      ) => {
+        await provider.request({
+          method: "evm_mine",
+          params: []
+        });
+        const { timestamp } = await provider.request({
+          method: "eth_getBlockByNumber",
+          params: ["latest", false]
+        });
+        assert.strictEqual(
+          timestamp,
+          `0x${expectedTimestampSeconds.toString(16)}`,
+          message
+        );
+      };
+
+      let startTimeSeconds = Math.floor(+time / 1000);
+
+      await mineAndAssertTimestamp(
+        startTimeSeconds + fastForwardSeconds + timestampIncrement,
+        "unexpected timestamp for the first block mined"
+      );
+      await mineAndAssertTimestamp(
+        startTimeSeconds + fastForwardSeconds + timestampIncrement * 2,
+        "unexpected timestamp for the second block mined"
+      );
+      await mineAndAssertTimestamp(
+        startTimeSeconds + fastForwardSeconds + timestampIncrement * 3
+      ),
+        "unexpected timestamp for the third block mined";
+    });
+
     it("uses the `timestampIncrement` for the first block when forking", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5;
