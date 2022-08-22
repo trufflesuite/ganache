@@ -86,9 +86,11 @@ function processOption(
     // the types held within each array
     const { cliType } = optionObj;
     const array = cliType && cliType.startsWith("array:"); // e.g. array:string or array:number
-    const type = (array
-      ? cliType.slice(6) // remove the "array:" part
-      : cliType) as YargsPrimitiveCliTypeStrings;
+    const type = (
+      array
+        ? cliType.slice(6) // remove the "array:" part
+        : cliType
+    ) as YargsPrimitiveCliTypeStrings;
 
     const options: Options = {
       group,
@@ -127,9 +129,9 @@ function applyDefaults(
     const group = `${category[0].toUpperCase()}${category.slice(
       1
     )}:` as GroupType;
-    const categoryObj = (flavorDefaults[
+    const categoryObj = flavorDefaults[
       category
-    ] as unknown) as Definitions<Base.Config>;
+    ] as unknown as Definitions<Base.Config>;
     const state = {};
     for (const option in categoryObj) {
       const optionObj = categoryObj[option];
@@ -225,6 +227,10 @@ export default function (version: string, isDocker: boolean) {
   }
 
   args = args
+    .option("detach", {
+      description: "Run Ganache in detached mode.",
+      type: "boolean"
+    })
     .showHelpOnFail(false, "Specify -? or --help for available options")
     .alias("help", "?")
     .wrap(wrapWidth)
@@ -235,14 +241,20 @@ export default function (version: string, isDocker: boolean) {
     flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
   } as Argv;
   for (let key in parsedArgs) {
-    // split on the first "."
-    const [group, option] = key.split(/\.(.+)/);
-    // only copy namespaced/group keys
-    if (option) {
-      if (!finalArgs[group]) {
-        finalArgs[group] = {};
+    // TODO: make this not horrible
+    // maybe make detach `server.detach` and just add an alias for `--detach` ?
+    if (key === "detach") {
+      finalArgs[key] = parsedArgs[key] as boolean;
+    } else {
+      // split on the first "."
+      const [group, option] = key.split(/\.(.+)/);
+      // only copy namespaced/group keys
+      if (option) {
+        if (!finalArgs[group]) {
+          finalArgs[group] = {};
+        }
+        finalArgs[group][option] = parsedArgs[key];
       }
-      finalArgs[group][option] = parsedArgs[key];
     }
   }
 

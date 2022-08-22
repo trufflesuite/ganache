@@ -8,6 +8,7 @@ type CliOptions = {
 export type Argv = ServerOptions<FlavorName> & {
   _: [FlavorName];
   server: CliOptions;
+  detach: boolean;
 };
 
 export type CliSettings = { host: string; port: number };

@@ -8,6 +8,7 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { FilecoinProvider } from "@ganache/filecoin";
 import type { EthereumProvider } from "@ganache/ethereum";
+import { fork } from "child_process";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -39,108 +40,144 @@ const isDocker =
 
 const argv = args(detailedVersion, isDocker);
 
-const flavor = argv.flavor;
+if (argv.detach) {
+  const module = process.argv[1];
+  const args = process.argv.slice(2);
+  args.splice(args.indexOf("--detach"), 1);
 
-const cliSettings = argv.server;
+  const child = fork(module, args, {
+    stdio: ["ignore", "ignore", "pipe", "ipc"],
+    detached: true
+  });
 
-console.log(detailedVersion);
-
-let server: ReturnType<typeof Ganache.server>;
-try {
-  server = Ganache.server(argv);
-} catch (error: any) {
-  console.error(error.message);
-  process.exit(1);
-}
-
-let started = false;
-process.on("uncaughtException", function (e) {
-  if (started) {
-    logAndForceExit([e], 1);
-  } else {
-    logAndForceExit([e.stack], 1);
-  }
-});
-
-let receivedShutdownSignal: boolean = false;
-const handleSignal = async (signal: NodeJS.Signals) => {
-  console.log(`\nReceived shutdown signal: ${signal}`);
-  closeHandler();
-};
-const closeHandler = async () => {
-  try {
-    // graceful shutdown
-    switch (server.status) {
-      case ServerStatus.opening:
-        receivedShutdownSignal = true;
-        console.log("Server is currently starting; waiting…");
-        return;
-      case ServerStatus.open:
-        console.log("Shutting down…");
-        await server.close();
-        console.log("Server has been shut down");
-        break;
+  child.on("message", message => {
+    if (message === "ready") {
+      console.log(child.pid);
+      child.unref();
+      child.disconnect();
     }
-    // don't just call `process.exit()` here, as we don't want to hide shutdown
-    // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
-    // anything other than act as a place to anchor this comment :-)
-    process.exitCode = 0;
-  } catch (err: any) {
-    logAndForceExit(
-      [
-        "\nReceived an error while attempting to shut down the server: ",
-        err.stack || err
-      ],
-      1
+  });
+
+  child.on("error", err => {
+    console.error(
+      `An error occurred starting Ganache in detached mode: ${err}`
     );
+    process.exit(1);
+  });
+
+  child.on("exit", (code: number) => {
+    console.error(`The child process exited with code ${code}`);
+    process.exit(code);
+  });
+} else {
+  const flavor = argv.flavor;
+
+  const cliSettings = argv.server;
+
+  console.log(detailedVersion);
+
+  let server: ReturnType<typeof Ganache.server>;
+  try {
+    server = Ganache.server(argv);
+  } catch (error: any) {
+    console.error(error.message);
+    process.exit(1);
   }
-};
 
-// See http://stackoverflow.com/questions/10021373/what-is-the-windows-equivalent-of-process-onsigint-in-node-js
-if (process.platform === "win32") {
-  const rl = (require("readline") as typeof Readline)
-    .createInterface({
-      input: process.stdin,
-      output: process.stdout
-    })
-    .on("SIGINT", () => {
-      // we must "close" the RL interface otherwise the process will think we
-      // are still listening
-      // https://nodejs.org/api/readline.html#readline_event_sigint
-      rl.close();
-      handleSignal("SIGINT");
-    });
-}
+  let started = false;
+  process.on("uncaughtException", function (e) {
+    if (started) {
+      logAndForceExit([e], 1);
+    } else {
+      logAndForceExit([e.stack], 1);
+    }
+  });
 
-process.on("SIGINT", handleSignal);
-process.on("SIGTERM", handleSignal);
-process.on("SIGHUP", handleSignal);
-
-async function startGanache(err: Error) {
-  if (err) {
-    console.log(err);
-    process.exitCode = 1;
-    return;
-  } else if (receivedShutdownSignal) {
+  let receivedShutdownSignal: boolean = false;
+  const handleSignal = async (signal: NodeJS.Signals) => {
+    console.log(`\nReceived shutdown signal: ${signal}`);
     closeHandler();
-    return;
-  }
-  started = true;
-
-  switch (flavor) {
-    case FilecoinFlavorName: {
-      await initializeFilecoin(
-        server.provider as FilecoinProvider,
-        cliSettings
+  };
+  const closeHandler = async () => {
+    try {
+      // graceful shutdown
+      switch (server.status) {
+        case ServerStatus.opening:
+          receivedShutdownSignal = true;
+          console.log("Server is currently starting; waiting…");
+          return;
+        case ServerStatus.open:
+          console.log("Shutting down…");
+          await server.close();
+          console.log("Server has been shut down");
+          break;
+      }
+      // don't just call `process.exit()` here, as we don't want to hide shutdown
+      // errors behind a forced shutdown. Note: `process.exitCode` doesn't do
+      // anything other than act as a place to anchor this comment :-)
+      process.exitCode = 0;
+    } catch (err: any) {
+      logAndForceExit(
+        [
+          "\nReceived an error while attempting to shut down the server: ",
+          err.stack || err
+        ],
+        1
       );
-      break;
     }
-    case EthereumFlavorName:
-    default: {
-      initializeEthereum(server.provider as EthereumProvider, cliSettings);
-      break;
+  };
+
+  // See http://stackoverflow.com/questions/10021373/what-is-the-windows-equivalent-of-process-onsigint-in-node-js
+  if (process.platform === "win32") {
+    const rl = (require("readline") as typeof Readline)
+      .createInterface({
+        input: process.stdin,
+        output: process.stdout
+      })
+      .on("SIGINT", () => {
+        // we must "close" the RL interface otherwise the process will think we
+        // are still listening
+        // https://nodejs.org/api/readline.html#readline_event_sigint
+        rl.close();
+        handleSignal("SIGINT");
+      });
+  }
+
+  process.on("SIGINT", handleSignal);
+  process.on("SIGTERM", handleSignal);
+  process.on("SIGHUP", handleSignal);
+
+  async function startGanache(err: Error) {
+    if (err) {
+      console.error(err);
+      process.exitCode = 1;
+      return;
+    } else if (receivedShutdownSignal) {
+      closeHandler();
+      return;
+    }
+    started = true;
+    switch (flavor) {
+      case FilecoinFlavorName: {
+        await initializeFilecoin(
+          server.provider as FilecoinProvider,
+          cliSettings
+        );
+        break;
+      }
+      case EthereumFlavorName:
+      default: {
+        initializeEthereum(server.provider as EthereumProvider, cliSettings);
+        break;
+      }
+    }
+
+    // in "detach" mode, the parent will wait until the "ready" message is
+    // received before disconnecting from the child process.
+    if (process.send) {
+      process.send("ready");
     }
   }
+  console.log("Starting RPC server");
+  server.listen(cliSettings.port, cliSettings.host, startGanache);
 }
-console.log("Starting RPC server");
-server.listen(cliSettings.port, cliSettings.host, startGanache);
