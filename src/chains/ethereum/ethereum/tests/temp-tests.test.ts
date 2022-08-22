@@ -136,7 +136,10 @@ describe("Random tests that are temporary!", () => {
       "0x0",
       receipt.blockNumber
     ]);
-    assert.strictEqual(storage, "0x05");
+    assert.strictEqual(
+      storage,
+      "0x0000000000000000000000000000000000000000000000000000000000000005"
+    );
 
     const raw25 =
       "0000000000000000000000000000000000000000000000000000000000000019";
@@ -159,7 +162,10 @@ describe("Random tests that are temporary!", () => {
       "0x0",
       txReceipt.blockNumber
     ]);
-    assert.strictEqual(storage2, "0x19");
+    assert.strictEqual(
+      storage2,
+      "0x0000000000000000000000000000000000000000000000000000000000000019"
+    );
   });
 
   it("transfers value", async () => {
