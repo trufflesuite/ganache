@@ -343,7 +343,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert.strictEqual(vmTx.nonce.toString(), "0");
+        assert("nonce" in vmTx);
       });
       it("has gasPrice property", () => {
         assert.strictEqual(vmTx.gasPrice.toString(), "65535");
@@ -418,7 +418,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert.strictEqual(vmTx.nonce.toString(), "0");
+        assert("nonce" in vmTx);
       });
       it("has gasPrice property", () => {
         assert.strictEqual(vmTx.gasPrice.toString(), "65535");
@@ -494,7 +494,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert.strictEqual(vmTx.nonce.toString(), "0");
+        assert("nonce" in vmTx);
       });
       it("has maxPriorityFeePerGas property", () => {
         assert.strictEqual(vmTx.maxPriorityFeePerGas.toString(), "255");
@@ -662,7 +662,10 @@ describe("@ganache/ethereum-transaction", async () => {
                 rawEIP2930StringData,
                 preBerlin
               ) as any,
-            { message: "Could not decode transaction: invalid remainder" }
+            {
+              message:
+                "Could not decode transaction: invalid RLP: remainder must be zero"
+            }
           );
         });
 
@@ -688,7 +691,10 @@ describe("@ganache/ethereum-transaction", async () => {
           assert.throws(
             () =>
               TransactionFactory.fromString(rawEIP1559StringData, preBerlin),
-            { message: "Could not decode transaction: invalid remainder" }
+            {
+              message:
+                "Could not decode transaction: invalid RLP: remainder must be zero"
+            }
           );
         });
       });
