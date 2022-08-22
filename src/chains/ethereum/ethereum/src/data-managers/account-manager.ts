@@ -113,7 +113,7 @@ export default class AccountManager {
           .then(Data.from);
       } catch {
         // TODO: remove this workaround when we ship v8.0
-        // This fallback is here for backward compatability with databases created before
+        // This fallback is here for backward compatibility with databases created before
         // we switched to @ethereumjs/vm@v6
         return this.#blockchain.trie.db.get(codeHash).then(Data.from);
       }
