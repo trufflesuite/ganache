@@ -108,7 +108,7 @@ export default class AccountManager {
     else
       try {
         // @ethereumjs/vm prefixes code hashes with `0x63` ("c") as of their v6
-        this.#blockchain.trie.db
+        return this.#blockchain.trie.db
           .get(Buffer.concat([Buffer.from([0x63]), codeHash]))
           .then(Data.from);
       } catch {
