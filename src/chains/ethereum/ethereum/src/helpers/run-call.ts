@@ -132,18 +132,10 @@ export async function applySimulationOverrides(
       const account = await stateManager.getAccount(vmAddr);
 
       if (nonce != null) {
-        account.nonce = {
-          toArrayLike: () =>
-            // geth treats empty strings as "0x0" nonce for overrides
-            nonce === "" ? BUFFER_EMPTY : Quantity.toBuffer(nonce)
-        } as any;
+        account.nonce = Quantity.toBigInt(nonce === "" ? "0x0" : nonce);
       }
       if (balance != null) {
-        account.balance = {
-          toArrayLike: () =>
-            // geth treats empty strings as "0x0" balance for overrides
-            balance === "" ? BUFFER_EMPTY : Quantity.toBuffer(balance)
-        } as any;
+        account.balance = Quantity.toBigInt(balance === "" ? "0x0" : balance);
       }
       if (code != null) {
         // geth treats empty strings as "0x" code for overrides
