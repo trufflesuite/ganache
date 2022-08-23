@@ -243,7 +243,7 @@ describe("api", () => {
           ]);
         }
 
-        it.only("allows override of account nonce", async () => {
+        it("allows override of account nonce", async () => {
           // this is a kind of separate test case from the rest, since we can't easily
           // access an account's nonce in solidity. instead, we'll use the override to
           // set the account's nonce high and send a contract creating transaction. the
@@ -288,7 +288,7 @@ describe("api", () => {
           assert.strictEqual(overrideNonceAddress, overrideNonceAddress1);
           // the address generated depends on the nonce, so the two are difference
           assert.notEqual(overrideNonceAddress, defaultNonceAddress);
-        }).timeout(0);
+        });
 
         it("allows override of account code", async () => {
           const data = `0x${methods["getCode(address)"]}${encodedAddr}`;
