@@ -22,7 +22,7 @@ async function deployContract(provider, from, code) {
       from,
       data: code,
       gas: "0xfffff"
-    } as any
+    }
   ]);
   await provider.once("message");
 
