@@ -159,7 +159,7 @@ function createSimulatedTransaction(
         maybeTip < maxPriorityFeePerGas ? maybeTip : maxPriorityFeePerGas;
       gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
     } else {
-      gasPrice = Quantity.from(0);
+      gasPrice = Quantity.Zero;
     }
   }
 
@@ -168,7 +168,7 @@ function createSimulatedTransaction(
   // TODO: https://github.com/trufflesuite/ganache/issues/3377 will add better
   // validation so we can either normalize/fix the access list or throw
   // depending on the mode ganache is running in
-  let accessList =
+  const accessList =
     common.isActivatedEIP(2930) &&
     transaction.accessList &&
     !AccessLists.isValidAccessList(transaction.accessList)
