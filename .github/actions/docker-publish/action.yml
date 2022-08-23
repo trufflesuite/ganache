@@ -8,13 +8,13 @@ inputs:
     description: "The tag to be tagged to the Docker image, e.g., latest."
     required: true
   DOCKER_USERNAME:
-    description: "Username to login to Docker hub."
+    description: "Username to log in to Docker hub."
     required: true
   DOCKER_ACCESS_TOKEN:
-    description: "Access token to login to Docker hub."
+    description: "Access token to log in to Docker hub."
     required: true
   GITHUB_TOKEN:
-    description: "Github token used to login to the container registry."
+    description: "Github token used to log in to the container registry."
     required: true
   INFURA_KEY:
     description: "Infura key used to build Ganache within the Docker image."
