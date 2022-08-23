@@ -50,6 +50,9 @@ export type SimulationTransaction = {
    * Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation
    */
   data?: Data;
+  /**
+   * RuntimeBlock that the transaction will be simulated against.
+   */
   block: RuntimeBlock;
   /**
    * Array of addresses and storage keys.
