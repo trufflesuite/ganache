@@ -357,10 +357,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         //#region automatic mining
         const nullResolved = Promise.resolve(null);
-        const mineAll = (maxTransactions: Capacity, onlyOneBlock = false) =>
+        const mineAll = (maxTransactions: Capacity, onlyOneBlock?: boolean) =>
           this.#isPaused()
             ? nullResolved
-            : this.mine(maxTransactions, undefined, onlyOneBlock);
+            : this.mine(maxTransactions, onlyOneBlock);
         if (instamine) {
           // insta mining
           // whenever the transaction pool is drained mine the txs into blocks
@@ -592,8 +592,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   mine = async (
     maxTransactions: number | Capacity,
-    timestamp?: number,
-    onlyOneBlock: boolean = false
+    onlyOneBlock: boolean = false,
+    timestamp?: number
   ) => {
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
     const transactions = await this.#miner.mine(
