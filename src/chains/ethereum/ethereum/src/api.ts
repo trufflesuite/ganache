@@ -2871,7 +2871,7 @@ export default class EthereumApi implements Api {
    * console.log(result);
    * ```
    */
-  @assertArgLength(1, 3)
+  @assertArgLength(1, 2)
   async eth_createAccessList(
     transaction: Ethereum.Transaction,
     blockNumber: QUANTITY | Tag = Tag.latest
