@@ -2,25 +2,25 @@ name: "Docker Publish"
 description: "Builds and publishes a Docker image for the Ganache repo."
 inputs:
   VERSION:
-    description: "The release version to be tagged to the Docker image, e.g. vX.x.x"
+    description: "The release version to be tagged to the Docker image, e.g., 4.0.1"
     required: true
   TAG:
-    description: "The tag to be tagged to the Docker image, e.g. latest."
+    description: "The tag to be tagged to the Docker image, e.g., latest."
     required: true
   DOCKER_USERNAME:
-    description: "Username to log into Docker hub."
+    description: "Username to login to Docker hub."
     required: true
   DOCKER_ACCESS_TOKEN:
-    description: "Access token to log into Docker hub."
+    description: "Access token to login to Docker hub."
     required: true
   GITHUB_TOKEN:
-    description: "Github token used to log into the container registry."
+    description: "Github token used to login to the container registry."
     required: true
   INFURA_KEY:
-    description: "Infura key used to build the Docker image."
+    description: "Infura key used to build Ganache within the Docker image."
     required: true
 runs:
-  # this means we are using yml (rather than js or docker) for our action
+  # "composite" means we are using yml (rather than js or docker) for our action
   # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
   steps:
