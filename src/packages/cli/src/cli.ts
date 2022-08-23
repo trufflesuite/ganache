@@ -40,7 +40,7 @@ const isDocker =
 
 const argv = args(detailedVersion, isDocker);
 
-if (argv.detach) {
+if (argv.cli.detach) {
   // Start Ganache in a child process, and allow it to run in the background.
   // The only output to stdout should be the PID of the child process.
   const module = process.argv[1];

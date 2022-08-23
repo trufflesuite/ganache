@@ -221,16 +221,18 @@ export default function (version: string, isDocker: boolean) {
             }
 
             return true;
+          })
+          .option("cli.detach", {
+            description: "Run Ganache in detached mode.",
+            type: "boolean",
+            alias: ["D", "detach"],
+            default: () => false
           });
       }
     );
   }
 
   args = args
-    .option("detach", {
-      description: "Run Ganache in detached mode.",
-      type: "boolean"
-    })
     .showHelpOnFail(false, "Specify -? or --help for available options")
     .alias("help", "?")
     .wrap(wrapWidth)
@@ -241,20 +243,14 @@ export default function (version: string, isDocker: boolean) {
     flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
   } as Argv;
   for (let key in parsedArgs) {
-    // TODO: make this not horrible
-    // maybe make detach `server.detach` and just add an alias for `--detach` ?
-    if (key === "detach") {
-      finalArgs[key] = parsedArgs[key] as boolean;
-    } else {
-      // split on the first "."
-      const [group, option] = key.split(/\.(.+)/);
-      // only copy namespaced/group keys
-      if (option) {
-        if (!finalArgs[group]) {
-          finalArgs[group] = {};
-        }
-        finalArgs[group][option] = parsedArgs[key];
+    // split on the first "."
+    const [group, option] = key.split(/\.(.+)/);
+    // only copy namespaced/group keys
+    if (option) {
+      if (!finalArgs[group]) {
+        finalArgs[group] = {};
       }
+      finalArgs[group][option] = parsedArgs[key];
     }
   }
 
