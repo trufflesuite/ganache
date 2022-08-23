@@ -145,14 +145,12 @@ function createSimulatedTransaction(
       );
     }
     // User specified 1559 gas fields (or none), use those
-    let maxFeePerGas = 0n;
-    let maxPriorityFeePerGas = 0n;
-    if (hasMaxFeePerGas) {
-      maxFeePerGas = BigInt(transaction.maxFeePerGas);
-    }
-    if (hasMaxPriorityFeePerGas) {
-      maxPriorityFeePerGas = BigInt(transaction.maxPriorityFeePerGas);
-    }
+    const maxFeePerGas = hasMaxFeePerGas
+      ? BigInt(transaction.maxFeePerGas)
+      : 0n;
+    const maxPriorityFeePerGas = hasMaxPriorityFeePerGas
+      ? BigInt(transaction.maxPriorityFeePerGas)
+      : 0n;
     if (maxPriorityFeePerGas > 0 || maxFeePerGas > 0) {
       const maybeTip = maxFeePerGas - baseFeePerGasBigInt;
       const tip =
