@@ -8,7 +8,7 @@ import { Ethereum } from "../../../src/api-types";
 import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 import { Address } from "@ganache/ethereum-address";
 import { CallError } from "@ganache/ethereum-utils";
-import { VmError } from "@ethereumjs/vm/dist/exceptions";
+import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
 
 const encodeValue = (val: string) => {
   return Data.toString(val, 32).slice(2);
@@ -457,7 +457,7 @@ describe("api", () => {
         const callResult = {
           execResult: {
             runState: { programCounter: 0 },
-            exceptionError: new VmError("out of gas" as any),
+            exceptionError: new VmError(ERROR.OUT_OF_GAS),
             returnValue: BUFFER_EMPTY
           }
         } as any;
