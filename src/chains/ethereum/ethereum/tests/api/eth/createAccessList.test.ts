@@ -9,6 +9,7 @@ import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
 import { Address } from "@ganache/ethereum-address";
 import { CallError } from "@ganache/ethereum-utils";
 import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 
 const encodeValue = (val: string) => {
   return Data.toString(val, 32).slice(2);
@@ -460,7 +461,7 @@ describe("api", () => {
             exceptionError: new VmError(ERROR.OUT_OF_GAS),
             returnValue: BUFFER_EMPTY
           }
-        } as any;
+        } as EVMResult;
         const expected = new CallError(callResult);
         await assert.rejects(
           prom,
