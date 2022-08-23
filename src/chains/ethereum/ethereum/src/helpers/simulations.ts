@@ -423,7 +423,7 @@ const runCallSetup = async ({
         exceptionError: new VmError(ERROR.OUT_OF_GAS),
         returnValue: BUFFER_EMPTY
       }
-    } as any;
+    } as EVMResult;
 
     throw new CallError(callResult);
   }
