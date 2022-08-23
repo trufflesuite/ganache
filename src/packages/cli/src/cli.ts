@@ -41,6 +41,8 @@ const isDocker =
 const argv = args(detailedVersion, isDocker);
 
 if (argv.detach) {
+  // Start Ganache in a child process, and allow it to run in the background.
+  // The only output to stdout should be the PID of the child process.
   const module = process.argv[1];
   const args = process.argv.slice(2);
   args.splice(args.indexOf("--detach"), 1);
@@ -50,15 +52,25 @@ if (argv.detach) {
     detached: true
   });
 
+  // Any messages output to stderr by the child process (before the `ready`
+  // event is emitted) will be streamed to stderr on the parent.
+  child.stderr.pipe(process.stderr);
+
   child.on("message", message => {
     if (message === "ready") {
       console.log(child.pid);
+
+      // Destroy the ReadableStream exposed by the child process, to allow the
+      // parent to exit gracefully.
+      child.stderr.destroy();
       child.unref();
       child.disconnect();
     }
   });
 
   child.on("error", err => {
+    // This only happens if there's an error starting the child process, not if
+    // the application throws within the child process.
     console.error(
       `An error occurred starting Ganache in detached mode: ${err}`
     );
@@ -66,7 +78,9 @@ if (argv.detach) {
   });
 
   child.on("exit", (code: number) => {
-    console.error(`The child process exited with code ${code}`);
+    // If the child process exits before the parent, something has gone wrong,
+    // so let the user know (even if the exit code is 0).
+    console.error(`The child process exited with exit code ${code}`);
     process.exit(code);
   });
 } else {
