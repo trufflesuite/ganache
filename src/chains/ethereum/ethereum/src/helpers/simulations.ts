@@ -164,9 +164,8 @@ const warmDefaults = (
   caller: EthereumJsAddress,
   to?: EthereumJsAddress
 ) => {
-  let precompiles: EthereumJsAddress[] = [];
   // handle Berlin hardfork warm storage reads
-  precompiles = warmPrecompiles(stateManager);
+  const precompiles: EthereumJsAddress[] = warmPrecompiles(stateManager);
   stateManager.addWarmedAddress(caller.buf);
   if (to) stateManager.addWarmedAddress(to.buf);
 
