@@ -38,7 +38,10 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
 import Emittery from "emittery";
-import estimateGas from "./helpers/gas-estimator";
+import estimateGas, {
+  EstimateGasResult,
+  EstimateGasRunArgs
+} from "./helpers/gas-estimator";
 import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
@@ -913,8 +916,8 @@ export default class EthereumApi implements Api {
     const parentHeader = parentBlock.header;
     const options = this.#options;
 
-    const generateVM = () => {
-      return blockchain.vm.copy();
+    const generateVM = async () => {
+      return await blockchain.vm.copy();
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
@@ -941,16 +944,20 @@ export default class EthereumApi implements Api {
         parentHeader.totalDifficulty,
         0n // no baseFeePerGas for estimates
       );
-      const runArgs = {
+      const runArgs: EstimateGasRunArgs = {
         tx: tx.toVmTransaction(),
         block,
         skipBalance: true,
         skipNonce: true
       };
-      estimateGas(generateVM, runArgs, (err: Error, result: any) => {
-        if (err) return reject(err);
-        resolve(Quantity.from(result.gasEstimate.toArrayLike(Buffer)));
-      });
+      estimateGas(
+        generateVM,
+        runArgs,
+        (err: Error, result: EstimateGasResult) => {
+          if (err) reject(err);
+          resolve(Quantity.from(result.gasEstimate));
+        }
+      );
     });
   }
 
