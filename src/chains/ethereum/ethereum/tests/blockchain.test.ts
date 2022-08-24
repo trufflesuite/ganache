@@ -178,7 +178,10 @@ describe("blockchain", async () => {
       const testFunc = async () => {
         await blockchain.createPendingBlock(blockchain.blocks.latest);
       };
-      assert(await statesAreDeepStrictEqual(blockchain, addresses, testFunc));
+      assert(
+        await statesAreDeepStrictEqual(blockchain, addresses, testFunc),
+        "Expected blockchain state to be the same before and after creating a pending block."
+      );
     });
   });
 });
