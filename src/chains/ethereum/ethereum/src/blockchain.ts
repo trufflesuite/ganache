@@ -145,7 +145,7 @@ function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
   if (blockchain.fallback) {
     return new ForkTrie(db, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(db, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(db, root ? root.toBuffer() : null);
   }
 }
 

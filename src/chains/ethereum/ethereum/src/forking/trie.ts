@@ -37,10 +37,12 @@ export class ForkTrie extends GanacheTrie {
   private forkBlockNumber: bigint;
   public blockNumber: Quantity;
   private metadata: CheckpointDB;
+  public blockchain: Blockchain;
 
   constructor(db: LevelUp | null, root: Buffer, blockchain: Blockchain) {
-    super(db, root, blockchain);
+    super(db, root);
 
+    this.blockchain = blockchain;
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
     this.forkBlockNumber = this.blockNumber.toBigInt();

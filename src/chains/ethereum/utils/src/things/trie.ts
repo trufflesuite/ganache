@@ -2,14 +2,10 @@ import { Quantity } from "@ganache/utils";
 import { LevelUp } from "levelup";
 import { SecureTrie } from "merkle-patricia-tree";
 import { CheckpointDB } from "merkle-patricia-tree/dist/checkpointDb";
-import Blockchain from "../blockchain";
 
 export class GanacheTrie extends SecureTrie {
-  public readonly blockchain: Blockchain;
-
-  constructor(db: LevelUp | null, root: Buffer, blockchain: Blockchain) {
+  constructor(db: LevelUp | null, root: Buffer) {
     super(db, root);
-    this.blockchain = blockchain;
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
@@ -24,7 +20,7 @@ export class GanacheTrie extends SecureTrie {
    * underlying db.
    */
   _copy(leveldb: LevelUp, includeCheckpoints: boolean) {
-    const secureTrie = new GanacheTrie(leveldb, this.root, this.blockchain);
+    const secureTrie = new GanacheTrie(leveldb, this.root);
     if (includeCheckpoints && this.isCheckpoint) {
       secureTrie.db.checkpoints = [...this.db.checkpoints];
     }
