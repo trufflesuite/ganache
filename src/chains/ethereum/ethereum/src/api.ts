@@ -1757,14 +1757,7 @@ export default class EthereumApi implements Api {
     position: QUANTITY,
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ) {
-    const blockchain = this.#blockchain;
-    const block = await blockchain.blocks.get(blockNumber);
-    const blockBuf = block.toRaw();
-
-    const [[, , , blockStateRoot]] = decode<GanacheRawBlock>(blockBuf);
-    const trie = blockchain.trie.copy(false);
-    const blockNum = block.header.number;
-    trie.setContext(blockStateRoot, null, blockNum);
+    const { accounts } = this.#blockchain;
 
     const posBuff = Quantity.toBuffer(position);
     const length = posBuff.length;
@@ -1782,12 +1775,11 @@ export default class EthereumApi implements Api {
       paddedPosBuff = posBuff.slice(-32);
     }
 
-    const addressBuf = Address.from(address).toBuffer();
-    const addressData = await trie.get(addressBuf);
-    // An address's stateRoot is stored in the 3rd rlp entry
-    const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
-    trie.setContext(addressStateRoot, addressBuf, blockNum);
-    const value = await trie.get(paddedPosBuff);
+    const value = await accounts.getStorageAt(
+      Address.from(address),
+      paddedPosBuff,
+      blockNumber
+    );
     return Data.from(decode(value), 32);
   }
 

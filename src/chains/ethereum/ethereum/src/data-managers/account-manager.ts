@@ -51,17 +51,18 @@ export default class AccountManager {
   public async getStorageAt(
     address: Address,
     key: Buffer,
-    blockNumber: Buffer | Tag = Tag.latest
+    blockNumber: string | Buffer | Tag = Tag.latest
   ) {
-    const { trie, blocks } = this.#blockchain;
-
     // get the block, its state root, and the trie at that state root
-    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
-    const trieCopy = trie.copy(false);
-    trieCopy.setContext(stateRoot.toBuffer(), address.toBuffer(), number);
+    const { trie } = await this.getTrieAt(blockNumber);
+    const number = this.#blockchain.blocks.getEffectiveNumber(blockNumber);
+    const addressBuf = address.toBuffer();
+    const addressData = await trie.get(addressBuf);
+    const [, , addressStateRoot] = decode<EthereumRawAccount>(addressData);
+    trie.setContext(addressStateRoot, addressBuf, number);
 
     // get the account from the trie
-    return await trieCopy.get(key);
+    return await trie.get(key);
   }
 
   public async getNonce(
