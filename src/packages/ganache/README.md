@@ -258,9 +258,8 @@ Chain:
 
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
-                                               [string] [choices: "constantinople", "byzantium", "petersburg",
-                                                 "istanbul", "muirGlacier", "berlin", "london","arrowGlacier"]
-                                                                                             [default: london]
+          [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
+                                                london", "arrowGlacier", "grayGlacier"] [default: grayGlacier]
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]
@@ -586,8 +585,9 @@ See [CONTRIBUTING.md](https://github.com/trufflesuite/ganache/blob/develop/CONTR
 
 ## Related
 
-- [Truffle](https://www.github.com/trufflesuite/truffle)
-- [Drizzle](https://www.github.com/trufflesuite/drizzle)
+- [Truffle GitHub](https://www.github.com/trufflesuite/truffle)
+- [Drizzle GitHub](https://www.github.com/trufflesuite/drizzle)
+- [Truffle Suite Website](https://www.trufflesuite.com/)
 
 <br/>
 

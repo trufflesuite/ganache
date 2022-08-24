@@ -2,6 +2,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
 import { AbortError } from "@ganache/ethereum-utils";
 // TODO: support http2
+// Issue: https://github.com/trufflesuite/ganache/issues/3474
 import http, { RequestOptions, Agent as HttpAgent } from "http";
 import https, { Agent as HttpsAgent } from "https";
 import { AbortSignal } from "abort-controller";
@@ -138,6 +139,7 @@ export class HttpHandler extends BaseHandler implements Handler {
         }
 
         // TODO: handle invalid JSON (throws on parse)?
+        // Issue: https://github.com/trufflesuite/ganache/issues/3475
         buffer.then(buffer => {
           try {
             deferred.resolve({

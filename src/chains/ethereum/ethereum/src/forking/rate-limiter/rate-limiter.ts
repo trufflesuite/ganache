@@ -4,9 +4,7 @@ import { AbortSignal } from "abort-controller";
 import Semaphore from "semaphore";
 import { LimitCounter } from "./limit-counter";
 
-type PromiseFn<T> = (
-  ...args: unknown[]
-) => Promise<{
+type PromiseFn<T> = (...args: unknown[]) => Promise<{
   response: { result: any } | { error: { message: string; code: number } };
   raw: T;
 }>;
@@ -234,6 +232,7 @@ export default class RateLimiter {
             // a LIMIT_EXCEEDED error behave, otherwise we'll just send ALL
             // requests back to Infura simultaneously after their initial 30
             // backoff_seconds have elapsed.
+            // Issue: https://github.com/trufflesuite/ganache/issues/3480
             //
             // When we are *not* self-rate limited (meaning fork.rps isn't set)
             // we need to be able to go at full speed until we are, and THEN we

@@ -357,6 +357,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountNonce(address: DATA, nonce: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
@@ -395,6 +396,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountBalance(address: DATA, balance: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
@@ -433,6 +435,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountCode(address: DATA, code: DATA) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
@@ -481,6 +484,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountStorageAt(address: DATA, slot: DATA, value: DATA) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);
@@ -870,7 +874,6 @@ export default class EthereumApi implements Api {
 
   //#region eth
 
-  // TODO: example doesn't return correct value
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -1785,7 +1788,7 @@ export default class EthereumApi implements Api {
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
     trie.setContext(addressStateRoot, addressBuf, blockNum);
     const value = await trie.get(paddedPosBuff);
-    return Data.from(decode(value));
+    return Data.from(decode(value), 32);
   }
 
   /**
@@ -2943,6 +2946,7 @@ export default class EthereumApi implements Api {
   }
 
   // TODO: example doesn't return correct value
+  // Issue: https://github.com/trufflesuite/ganache/issues/3203
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
@@ -3018,7 +3022,6 @@ export default class EthereumApi implements Api {
     return this.#wallet.addresses;
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
@@ -3097,7 +3100,6 @@ export default class EthereumApi implements Api {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Unlocks the account for use.
    *
