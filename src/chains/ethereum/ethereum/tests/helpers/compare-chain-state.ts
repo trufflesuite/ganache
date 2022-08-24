@@ -1,3 +1,5 @@
+import { Block } from "@ganache/ethereum-block";
+import { Quantity } from "@ganache/utils";
 import { Address as EthereumJsAddress } from "ethereumjs-util";
 import { isDeepStrictEqual } from "util";
 import Blockchain from "../../src/blockchain";
@@ -17,8 +19,8 @@ const getDbData = async (trie: GanacheTrie) => {
 };
 
 /**
- * Gets the trie, db data, and account data from the provided blockchain
- * and addresses
+ * Gets the trie, db data, blocks from earliest to latest, and account data from
+ * the provided blockchain and addresses.
  * @param blockchain
  * @param fromAddress
  * @param toAddress
@@ -42,13 +44,20 @@ const getBlockchainState = async (
   for (const address of addresses) {
     addressStates.push(await vm.stateManager.getAccount(address));
   }
-  return { root: trie.root, db: trieDbData, addressStates };
+  const blocks: Block[] = [];
+  const latest = await blockchain.blocks.get("latest");
+  const number = latest.header.number.toBigInt();
+  for (let i = 0n; i < number; i++) {
+    blocks.push(await blockchain.blocks.get(Quantity.toString(i)));
+  }
+  blocks.push(latest);
+  return { root: trie.root, db: trieDbData, addressStates, blocks };
 };
 
 /**
- * Gets trie and db data from `blockchain` and account data from each address
- * of `addresses` before and after running `testFunction`. Returns whether the
- * data is `deepStrictEqual` or not.
+ * Gets trie, db data, and blocks from `blockchain` and account data from each
+ * address of `addresses` before and after running `testFunction`. Returns
+ * whether the data is `deepStrictEqual` or not.
  * @param blockchain
  * @param addresses
  * @param testFunction
