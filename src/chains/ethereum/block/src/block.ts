@@ -14,6 +14,7 @@ import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
 import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
 import { BlockParams } from "./block-params";
+import { GanacheTrie } from "@ganache/ethereum-utils";
 
 export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;
@@ -39,6 +40,10 @@ export class Block {
    * function.
    */
   #toJSONStateRootOverride: Data;
+  /**
+   * Optional field to store the trie that was used when mining the block.
+   */
+  #trie: GanacheTrie;
 
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
@@ -145,6 +150,14 @@ export class Block {
    */
   setToJSONStateRootOverride(stateRoot: Data) {
     this.#toJSONStateRootOverride = stateRoot;
+  }
+
+  setTrie(trie: GanacheTrie) {
+    this.#trie = trie;
+  }
+
+  getTrie(): GanacheTrie | undefined {
+    return this.#trie;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {
