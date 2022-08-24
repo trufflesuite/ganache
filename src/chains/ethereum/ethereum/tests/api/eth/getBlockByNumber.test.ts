@@ -122,6 +122,7 @@ describe("api", () => {
           const minedBlock = await provider.send("eth_getBlockByNumber", [
             pendingBlock.number
           ]);
+          assert(minedBlock, "Block has not been mined yet.");
           delete minedBlock.timestamp;
           delete minedBlock.hash;
           delete minedBlock.stateRoot;
@@ -242,6 +243,7 @@ describe("api", () => {
 
           it(`has one transaction regardless of the number of executables in the pool and is equal to next mined block`, async () => {
             // send 1 more transaction than will fit in the block
+            await provider.send("eth_subscribe", ["newHeads"]);
             for (let i = 0; i < emptyTransactionsPerBlock + 1; i++) {
               // we're in strict mode, so we can await sending the transaction
               // and it will be in the pool but not yet mined
@@ -257,6 +259,7 @@ describe("api", () => {
               1,
               `Pending block didn't have expected number of transactions.`
             );
+            await provider.once("message");
             await assertPendingEqualsMined(pendingBlock);
           });
         });
