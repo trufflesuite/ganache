@@ -138,6 +138,31 @@ describe("api", () => {
         ]);
         assert.strictEqual(balance, "0x0");
       });
+
+      it("should allow passing the pending tag", async () => {
+        await provider.send("miner_stop");
+        const value = Quantity.from("0xfffffffffff");
+        await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: value.toString(),
+            gas: "0xfffff"
+          }
+        ]);
+        const pendingBalance = await provider.send("eth_getBalance", [
+          accounts[0],
+          "pending"
+        ]);
+        await provider.send("eth_subscribe", ["newHeads"]);
+        await provider.send("miner_start");
+        await provider.once("message");
+        const balanceAfter = await provider.send("eth_getBalance", [
+          accounts[0],
+          "latest"
+        ]);
+        assert.strictEqual(pendingBalance, balanceAfter);
+      });
     });
 
     describe("eth_getTransactionCount", () => {
