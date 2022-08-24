@@ -9,6 +9,7 @@ export * from "./things/blocklogs";
 export * from "./things/tags";
 export * from "./things/trace-data";
 export * from "./things/trace-storage-map";
+export * from "./things/trie";
 
 export * from "./types/debug-storage";
 export * from "./types/extract-values-from-types";

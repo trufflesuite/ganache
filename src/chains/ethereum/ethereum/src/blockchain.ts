@@ -17,7 +17,8 @@ import {
   StructLog,
   TraceTransactionOptions,
   EthereumRawAccount,
-  TraceTransactionResult
+  TraceTransactionResult,
+  GanacheTrie
 } from "@ganache/ethereum-utils";
 import type { Address as EthereumJsAddress } from "ethereumjs-util";
 import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
@@ -60,7 +61,6 @@ import {
   DefaultStateManager,
   StateManager
 } from "@ethereumjs/vm/dist/state/index";
-import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import type { LevelUp } from "levelup";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";

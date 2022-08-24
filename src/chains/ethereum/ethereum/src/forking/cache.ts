@@ -1,6 +1,6 @@
 import { Account, Address } from "ethereumjs-util";
 import Cache from "@ethereumjs/vm/dist/state/cache";
-import { GanacheTrie } from "../helpers/trie";
+import { GanacheTrie } from "@ganache/ethereum-utils";
 import { ForkTrie } from "./trie";
 
 export class ForkCache extends Cache {

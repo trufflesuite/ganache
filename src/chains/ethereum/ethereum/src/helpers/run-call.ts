@@ -6,7 +6,7 @@ import VM from "@ethereumjs/vm";
 import { BN } from "ethereumjs-util";
 import EVM from "@ethereumjs/vm/dist/evm/evm";
 import { KECCAK256_NULL } from "ethereumjs-util";
-import { GanacheTrie } from "./trie";
+import { GanacheTrie } from "@ganache/ethereum-utils";
 
 export type SimulationTransaction = {
   /**

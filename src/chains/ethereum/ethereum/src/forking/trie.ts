@@ -3,12 +3,11 @@ import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
 import type { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
-import { GanacheTrie } from "../helpers/trie";
 import sub from "subleveldown";
 import { CheckpointDB } from "merkle-patricia-tree/dist/checkpointDb";
 import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
-import { Account } from "@ganache/ethereum-utils";
+import { Account, GanacheTrie } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "ethereumjs-util";
 type KVP = { key: Buffer; value: Buffer };
 

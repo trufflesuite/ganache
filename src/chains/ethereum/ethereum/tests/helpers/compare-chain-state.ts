@@ -1,7 +1,7 @@
 import { Address as EthereumJsAddress } from "ethereumjs-util";
 import { isDeepStrictEqual } from "util";
 import Blockchain from "../../src/blockchain";
-import { GanacheTrie } from "../../src/helpers/trie";
+import { GanacheTrie } from "@ganache/ethereum-utils";
 
 /**
  * Gets all underlying data in a trie's database.
