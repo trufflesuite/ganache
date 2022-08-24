@@ -18,7 +18,10 @@ export class GanacheTrie extends SecureTrie {
 
   /**
    * Returns a copy of the underlying trie with the interface of GanacheTrie.
-   * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
+   * @param leveldb The underlying db to use for the new trie.
+   * @param includeCheckpoints - If true and during a checkpoint, the copy will
+   * contain the checkpointing metadata and will use the same scratch as
+   * underlying db.
    */
   _copy(leveldb: LevelUp, includeCheckpoints: boolean) {
     const secureTrie = new GanacheTrie(leveldb, this.root, this.blockchain);
@@ -29,7 +32,10 @@ export class GanacheTrie extends SecureTrie {
   }
   /**
    * Returns a copy of the underlying trie with the interface of GanacheTrie.
-   * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
+   * Uses a by-reference copy of the underlying db for the new trie.
+   * @param includeCheckpoints - If true and during a checkpoint, the copy will
+   * contain the checkpointing metadata and will use the same scratch as
+   * underlying db.
    */
   copy(includeCheckpoints = true) {
     const db = this.db.copy();
@@ -38,7 +44,10 @@ export class GanacheTrie extends SecureTrie {
 
   /**
    * Returns a copy of the underlying trie with the interface of GanacheTrie.
-   * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
+   * Uses a by-value in-memory copy of the underlying db for the new trie.
+   * @param includeCheckpoints - If true and during a checkpoint, the copy will
+   * contain the checkpointing metadata and will use the same scratch as
+   * underlying db.
    */
   async deepCopy(includeCheckpoints = true) {
     const db = this.db;
