@@ -222,11 +222,10 @@ export default function (version: string, isDocker: boolean) {
 
             return true;
           })
-          .option("cli.detach", {
-            description: "Run Ganache in detached mode.",
+          .option("detach", {
+            description: "Run Ganache in detached (daemon) mode",
             type: "boolean",
-            alias: ["D", "detach"],
-            default: () => false
+            alias: ["D", "😈"]
           });
       }
     );
@@ -240,7 +239,8 @@ export default function (version: string, isDocker: boolean) {
 
   const parsedArgs = args.argv;
   const finalArgs = {
-    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
+    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor,
+    detach: parsedArgs.detach
   } as Argv;
   for (let key in parsedArgs) {
     // split on the first "."

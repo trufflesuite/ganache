@@ -6,14 +6,10 @@ type CliServerOptions = {
   port: number;
 };
 
-type CliOptions = {
-  detach: boolean;
-};
-
 export type Argv = ServerOptions<FlavorName> & {
   _: [FlavorName];
   server: CliServerOptions;
-  cli: CliOptions;
+  detach: boolean;
 };
 
 export type CliSettings = CliServerOptions;
