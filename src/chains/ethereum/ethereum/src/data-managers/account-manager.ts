@@ -1,5 +1,5 @@
 import {
-  Account,
+  GanacheTrie,
   EthereumRawAccount,
   QUANTITY,
   Tag
@@ -16,28 +16,36 @@ export default class AccountManager {
     this.#blockchain = blockchain;
   }
 
-  public async get(
-    address: Address,
-    blockNumber: Buffer | Tag = Tag.latest
-  ): Promise<Account | null> {
-    const raw = await this.getRaw(address, blockNumber);
-    if (raw == null) return null;
-    return Account.fromBuffer(raw);
+  /**
+   * Creates a copy of the trie that was used to mine the specified
+   * `blockNumber`. Sets the context of the trie to the state root and number
+   * of `blockNumber`.
+   * @param blockNumber
+   * @returns
+   */
+  public async getTrieAt(blockNumber: string | Buffer | Tag = Tag.latest) {
+    const { trie, blocks } = this.#blockchain;
+
+    const block = await blocks.get(blockNumber);
+    const blockTrie = block.getTrie();
+    // if the block has its own trie stored, use that. otherwise copy from the
+    // chain's trie
+    const trieCopy = blockTrie || trie.copy(false);
+    const { stateRoot, number } = block.header;
+    trieCopy.setContext(stateRoot.toBuffer(), null, number);
+    return { trie: trieCopy };
   }
 
   public async getRaw(
     address: Address,
     blockNumber: string | Buffer | Tag = Tag.latest
-  ): Promise<Buffer | null> {
-    const { trie, blocks } = this.#blockchain;
-
+  ): Promise<{ raw: Buffer | null; trie: GanacheTrie }> {
     // get the block, its state root, and the trie at that state root
-    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
-    const trieCopy = trie.copy(false);
-    trieCopy.setContext(stateRoot.toBuffer(), null, number);
+    const { trie } = await this.getTrieAt(blockNumber);
 
     // get the account from the trie
-    return await trieCopy.get(address.toBuffer());
+    const raw = await trie.get(address.toBuffer());
+    return { raw, trie };
   }
 
   public async getStorageAt(
@@ -60,11 +68,11 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
-    const data = await this.getRaw(address, blockNumber);
+    const { raw } = await this.getRaw(address, blockNumber);
 
-    if (data == null) return Quantity.Zero;
+    if (raw == null) return Quantity.Zero;
 
-    const [nonce] = decode<EthereumRawAccount>(data);
+    const [nonce] = decode<EthereumRawAccount>(raw);
     return nonce.length === 0 ? Quantity.Zero : Quantity.from(nonce);
   }
 
@@ -72,11 +80,11 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
-    const data = await this.getRaw(address, blockNumber);
+    const { raw } = await this.getRaw(address, blockNumber);
 
-    if (data == null) return Quantity.Zero;
+    if (raw == null) return Quantity.Zero;
 
-    const [, balance] = decode<EthereumRawAccount>(data);
+    const [, balance] = decode<EthereumRawAccount>(raw);
     return balance.length === 0 ? Quantity.Zero : Quantity.from(balance);
   }
 
@@ -84,11 +92,11 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ) {
-    const data = await this.getRaw(address, blockNumber);
+    const { raw } = await this.getRaw(address, blockNumber);
 
-    if (data == null) return { nonce: Quantity.Zero, balance: Quantity.Zero };
+    if (raw == null) return { nonce: Quantity.Zero, balance: Quantity.Zero };
 
-    const [nonce, balance] = decode<EthereumRawAccount>(data);
+    const [nonce, balance] = decode<EthereumRawAccount>(raw);
     return {
       nonce: nonce.length === 0 ? Quantity.Zero : Quantity.from(nonce),
       balance: balance.length === 0 ? Quantity.Zero : Quantity.from(balance)
@@ -99,12 +107,12 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Data> {
-    const data = await this.getRaw(address, blockNumber);
+    const { raw, trie } = await this.getRaw(address, blockNumber);
 
-    if (data == null) return Data.Empty;
+    if (raw == null) return Data.Empty;
 
-    const [, , , codeHash] = decode<EthereumRawAccount>(data);
+    const [, , , codeHash] = decode<EthereumRawAccount>(raw);
     if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
-    else return this.#blockchain.trie.db.get(codeHash).then(Data.from);
+    else return trie.db.get(codeHash).then(Data.from);
   }
 }
