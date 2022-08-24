@@ -610,15 +610,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const maxTransactions =
       instamine && !paused ? Capacity.Single : Capacity.FillBlock;
 
+    // deep copy so we also create a new copy of the underlying database
+    const trie = await this.trie.deepCopy(false);
     // we don't want any events from mining to be
     // caught by `this.vm`, so we need to make a new one.
     const vm = await this.createVmFromStateTrie(
-      this.trie.copy(false),
+      trie,
       chainOptions.allowUnlimitedContractSize,
       true
     );
-    // checkpoint to prevent writing any changes to the database
-    await vm.stateManager.checkpoint();
+
     const miner = new Miner(
       minerOptions,
       executables,
@@ -632,6 +633,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       return Quantity.Empty;
     };
     block.setToJSONStateRootOverride(Data.from("0x", 32));
+    block.setTrie(trie);
     return block;
   };
 
