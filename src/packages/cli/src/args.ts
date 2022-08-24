@@ -148,7 +148,11 @@ function applyDefaults(
   }
 }
 
-export default function (version: string, isDocker: boolean) {
+export default function (
+  version: string,
+  isDocker: boolean,
+  rawArgs = process.argv.slice(2)
+) {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
@@ -237,10 +241,10 @@ export default function (version: string, isDocker: boolean) {
     .wrap(wrapWidth)
     .version(version);
 
-  const parsedArgs = args.argv;
+  const parsedArgs = args.parse(rawArgs);
   const finalArgs = {
     flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor,
-    detach: parsedArgs.detach
+    detach: parsedArgs.detach || false
   } as Argv;
   for (let key in parsedArgs) {
     // split on the first "."
