@@ -43,6 +43,10 @@ describe("api", () => {
       describe("code checks", () => {
         let provider: EthereumProvider;
         let from: string;
+        // we can preset the contract address because we have the wallet in
+        // deterministic mode. this allows us to get the storage at the contract
+        // address for the pending block before the contract is actually
+        // deployed
         const contractAddress = "0xe78a0f7e598cc8b0bb87894b0f60dd2a88d6a8ab";
         let blockNumber: Quantity;
         let contract: ReturnType<typeof compile>;
