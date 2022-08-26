@@ -1221,6 +1221,11 @@ describe("forking", function () {
         address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
         balance: "0x81744abdb769a3b6dc08b",
         block: "0x595434"
+      },
+      sepolia: {
+        address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
+        balance: "0x81744abdb769a3b6dc08b",
+        block: "0x595434"
       }
     };
     let localProvider: EthereumProvider;
