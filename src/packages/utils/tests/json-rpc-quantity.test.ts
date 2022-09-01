@@ -142,21 +142,21 @@ describe("json-rpc-quantity", () => {
       nullLikeInputs.forEach(input => {
         const result = new Quantity(input, true).toBuffer();
 
-        assert.deepEqual(result, Buffer.alloc(0));
+        assert.deepStrictEqual(result, Buffer.alloc(0));
       });
     });
 
     it("should return an empty buffer for an empty buffer input", () => {
       const result = new Quantity(Buffer.alloc(0), true).toBuffer();
 
-      assert.deepEqual(result, Buffer.alloc(0));
+      assert.deepStrictEqual(result, Buffer.alloc(0));
     });
 
     it("should return an empty buffer for null-like inputs", () => {
       nullLikeInputs.forEach(input => {
         const result = new Quantity(input, false).toBuffer();
 
-        assert.deepEqual(result, Buffer.alloc(0));
+        assert.deepStrictEqual(result, Buffer.alloc(0));
       });
     });
 
@@ -166,7 +166,7 @@ describe("json-rpc-quantity", () => {
       )).toString("hex")}`, () => {
         const result = new Quantity(input).toBuffer();
 
-        assert.deepEqual(result, expected);
+        assert.deepStrictEqual(result, expected);
       });
     });
   });

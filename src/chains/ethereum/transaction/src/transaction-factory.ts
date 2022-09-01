@@ -38,8 +38,6 @@ function assertValidTransactionSValue(common: Common, tx: TypedTransaction) {
   }
 }
 
-const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
-
 export enum TransactionType {
   Legacy = 0x0,
   EIP2930AccessList = 0x1,
@@ -266,14 +264,8 @@ export class TransactionFactory {
       type === TransactionType.EIP2930AccessList
     ) {
       return type;
-    } else if (
-      type >= UNTYPED_TX_START_BYTE ||
-      type === TransactionType.Legacy ||
-      type === undefined
-    ) {
-      return TransactionType.Legacy;
     } else {
-      throw new Error(`Invalid transaction type: ${type}`);
+      return TransactionType.Legacy;
     }
   }
 
