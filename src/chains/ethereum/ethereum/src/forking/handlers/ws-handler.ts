@@ -20,6 +20,12 @@ export class WsHandler extends BaseHandler implements Handler {
     }>
   >();
 
+  // retry configuration
+  private retryIntervalBase: number = 3;
+  private retryCounter: number = 5;
+  private initialRetryCounter = this.retryCounter;
+  private retryTimeoutId: NodeJS.Timeout;
+
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
     super(options, abortSignal);
 
@@ -46,10 +52,21 @@ export class WsHandler extends BaseHandler implements Handler {
     this.open = this.connect(this.connection, logging);
     this.connection.onclose = () => {
       // try to connect again...
-      // Issue: https://github.com/trufflesuite/ganache/issues/3476
-      // TODO: backoff and eventually fail
-      // Issue: https://github.com/trufflesuite/ganache/issues/3477
-      this.open = this.connect(this.connection, logging);
+      // backoff and eventually fail
+      if( this.retryCounter > 0 || this.retryCounter == -1 ) {
+        if( this.retryCounter !== -1 ) this.retryCounter--;
+        clearTimeout( this.retryTimeoutId );
+        this.retryTimeoutId = setTimeout( () => {
+          const onCloseEvent = this.connection.onclose;
+          this.connection = new WebSocket(url.toString(), {
+            origin,
+            headers: this.headers
+          });
+          this.connection.binaryType = "nodebuffer";
+          this.connection.onclose = onCloseEvent;
+          this.open = this.connect(this.connection, logging);
+        }, Math.pow( this.retryIntervalBase, this.initialRetryCounter - this.retryCounter ) * 1000 );
+    }
     };
     this.abortSignal.addEventListener("abort", () => {
       this.connection.onclose = null;
@@ -117,6 +134,8 @@ export class WsHandler extends BaseHandler implements Handler {
       () => {
         connection.onopen = null;
         connection.onerror = null;
+        // reset the retry counter
+        this.retryCounter = this.initialRetryCounter;
       },
       err => {
         logging.logger.log(err);
