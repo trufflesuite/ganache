@@ -142,12 +142,11 @@ describe("provider", () => {
     });
 
     describe("uses timestamp adjustment in subsequent blocks after calling `evm_mine` with a `timestamp` argument", () => {
-      const timestampIncrement = 5; // seconds
       const timeArgumentSeconds = 100;
 
       async function mineBlocksForTimestamps(
         provider: EthereumProvider
-      ): Promise<string[]> {
+      ): Promise<number[]> {
         // mine a block with a specified timestamp
         await provider.request({
           method: "evm_mine",
@@ -167,8 +166,9 @@ describe("provider", () => {
           params: ["latest", false]
         });
 
-        return [specifiedBlock.timestamp, unspecifiedBlock.timestamp];
+        return [+specifiedBlock.timestamp, +unspecifiedBlock.timestamp];
       }
+
       it("should work with `timestampIncrement` of `clock`", async () => {
         const provider = await getProvider({
           miner: { timestampIncrement: "clock" }
@@ -179,13 +179,13 @@ describe("provider", () => {
 
         assert.strictEqual(
           specifiedBlock,
-          `0x${timeArgumentSeconds.toString(16)}`,
+          timeArgumentSeconds,
           "Unexpected timestamp for block mined with specified timestamp"
         );
 
         assert(
-          +unspecifiedBlock >= timeArgumentSeconds &&
-            +unspecifiedBlock <= timeArgumentSeconds + 1000,
+          unspecifiedBlock >= timeArgumentSeconds &&
+            unspecifiedBlock <= timeArgumentSeconds + 1000,
           `Unexpected timestamp for block mined without specified timestamp - expected a value between ${timeArgumentSeconds} and ${
             timeArgumentSeconds + 1000
           }, got ${+unspecifiedBlock}`
@@ -195,6 +195,8 @@ describe("provider", () => {
       });
 
       it("should work with a numeric `timestampIncrement`", async () => {
+        const timestampIncrement = 5; // seconds
+
         const provider = await getProvider({
           miner: { timestampIncrement }
         });
@@ -204,13 +206,13 @@ describe("provider", () => {
 
         assert.strictEqual(
           specifiedBlock,
-          `0x${timeArgumentSeconds.toString(16)}`,
+          timeArgumentSeconds,
           "Unexpected timestamp for block mined with specified timestamp"
         );
 
         assert.strictEqual(
           unspecifiedBlock,
-          `0x${(timeArgumentSeconds + timestampIncrement).toString(16)}`,
+          timeArgumentSeconds + timestampIncrement,
           "Unexpected timestamp for block mined without specified timestamp"
         );
 

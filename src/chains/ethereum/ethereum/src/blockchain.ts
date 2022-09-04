@@ -597,11 +597,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   ) => {
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
 
-    // if block time is incremental, adjustments should only apply once, 
-    // otherwise they accumulate with each block.
-    if (this.#options.miner.timestampIncrement !== "clock") {
-      this.#timeAdjustment = 0;
-    }
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,
@@ -609,14 +604,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     );
     await this.#blockBeingSavedPromise;
 
-    if (
-      timestamp !== undefined &&
-      this.#options.miner.timestampIncrement === "clock"
-    ) {
-      // when miner.timestampIncrement is a number, the previous block timestamp is used as a reference
-      // for the next block, so this call is not required.
+    if (this.#options.miner.timestampIncrement !== "clock") {
+      // if block time is incremental, adjustments should only apply once,
+      // otherwise they accumulate with each block.
+      this.#timeAdjustment = 0;
+    } else if (timestamp !== undefined) {
+      // when miner.timestampIncrement is a number, the previous block timestamp
+      // is used as a reference for the next block, so this call is not
+      // required.
       this.setTimeDiff(timestamp * 1000);
     }
+
     return {
       transactions,
       blockNumber: nextBlock.header.number.toArrayLike(Buffer)
