@@ -236,6 +236,16 @@ export default function (
   }
 
   args = args
+    .command(
+      "stop [name]",
+      "Stop an instance of Ganache running in detached mode",
+      stopArgs => {
+        stopArgs.positional("name", {
+          type: "string",
+          name: "The name of the instance to stop"
+        });
+      }
+    )
     .showHelpOnFail(false, "Specify -? or --help for available options")
     .alias("help", "?")
     .wrap(wrapWidth)
@@ -246,7 +256,7 @@ export default function (
     flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor,
     detach: parsedArgs.detach || false
   } as Argv;
-  for (let key in parsedArgs) {
+  for (const key in parsedArgs) {
     // split on the first "."
     const [group, option] = key.split(/\.(.+)/);
     // only copy namespaced/group keys

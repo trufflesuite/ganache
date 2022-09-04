@@ -8,7 +8,26 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { FilecoinProvider } from "@ganache/filecoin";
 import type { EthereumProvider } from "@ganache/ethereum";
-import { fork } from "child_process";
+import {
+  cleanupDetachedInstanceFile,
+  notifyDetachedInstanceReady,
+  stopDetachedInstance,
+  startDetachedInstance
+} from "./detach";
+import { TruffleColors } from "@ganache/colors";
+import chalk from "chalk";
+
+// if process.send is defined, this is a child_process (we assume a detached
+// instance), so we need to notify that we are ready.
+const isDetachedInstance = process.send !== undefined;
+
+if (isDetachedInstance) {
+  // we want to attach this listener as early as possible, to avoid leaving a
+  // dangling instance file
+  process.on("exit", () => {
+    cleanupDetachedInstanceFile(process.pid);
+  });
+}
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -40,52 +59,26 @@ const isDocker =
 
 const argv = args(detailedVersion, isDocker);
 
-if (argv.detach) {
-  // Start Ganache in a child process, and allow it to run in the background.
-  // The only output to stdout should be the PID of the child process.
-  const module = process.argv[1];
-  const args = process.argv.slice(2);
-  args.splice(args.indexOf("--detach"), 1);
+// todo: defs need to improve this
+if (process.argv.indexOf("stop") !== -1) {
+  const instanceName = process.argv[process.argv.length - 1];
 
-  const child = fork(module, args, {
-    stdio: ["ignore", "ignore", "pipe", "ipc"],
-    detached: true
-  });
-
-  // Any messages output to stderr by the child process (before the `ready`
-  // event is emitted) will be streamed to stderr on the parent.
-  child.stderr.pipe(process.stderr);
-
-  child.on("message", message => {
-    if (message === "ready") {
-      console.log(child.pid);
-
-      // Destroy the ReadableStream exposed by the child process, to allow the
-      // parent to exit gracefully.
-      child.stderr.destroy();
-      child.unref();
-      child.disconnect();
-    }
-  });
-
-  child.on("error", err => {
-    // This only happens if there's an error starting the child process, not if
-    // the application throws within the child process.
-    console.error(
-      `An error occurred starting Ganache in detached mode: ${err}`
+  if (stopDetachedInstance(instanceName)) {
+    console.log("Process stopped");
+  } else {
+    console.error("Process not found");
+  }
+} else if (argv.detach) {
+  startDetachedInstance(process.argv).then(instance => {
+    const highlightedName = chalk.hex(TruffleColors.porsche)(
+      instance.friendlyName
     );
-    process.exit(1);
-  });
-
-  child.on("exit", (code: number) => {
-    // If the child process exits before the parent, something has gone wrong,
-    // so let the user know (even if the exit code is 0).
-    console.error(`The child process exited with exit code ${code}`);
-    process.exit(code);
+    // output only the friendly name to allow users to capture stdout and use to
+    // programmatically stop the instance
+    console.log(highlightedName);
   });
 } else {
   const flavor = argv.flavor;
-
   const cliSettings = argv.server;
 
   console.log(detailedVersion);
@@ -186,10 +179,8 @@ if (argv.detach) {
       }
     }
 
-    // in "detach" mode, the parent will wait until the "ready" message is
-    // received before disconnecting from the child process.
-    if (process.send) {
-      process.send("ready");
+    if (isDetachedInstance) {
+      notifyDetachedInstanceReady();
     }
   }
   console.log("Starting RPC server");
