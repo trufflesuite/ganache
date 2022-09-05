@@ -141,86 +141,86 @@ describe("provider", () => {
       await provider.disconnect();
     });
 
-    describe("uses timestamp adjustment in subsequent blocks after calling `evm_mine` with a `timestamp` argument", () => {
-      const timeArgumentSeconds = 100;
-
-      async function mineBlocksForTimestamps(
-        provider: EthereumProvider
-      ): Promise<number[]> {
-        // mine a block with a specified timestamp
-        await provider.request({
-          method: "evm_mine",
-          params: [timeArgumentSeconds]
-        });
-        const specifiedBlock = await provider.request({
-          method: "eth_getBlockByNumber",
-          params: ["latest", false]
-        });
-        // mine a block without a specified timestamp
-        await provider.request({
-          method: "evm_mine",
-          params: []
-        });
-        const unspecifiedBlock = await provider.request({
-          method: "eth_getBlockByNumber",
-          params: ["latest", false]
-        });
-
-        return [+specifiedBlock.timestamp, +unspecifiedBlock.timestamp];
-      }
-
-      it("should work with `timestampIncrement` of `clock`", async () => {
-        const provider = await getProvider({
-          miner: { timestampIncrement: "clock" }
-        });
-
-        const [specifiedBlock, unspecifiedBlock] =
-          await mineBlocksForTimestamps(provider);
-
-        assert.strictEqual(
-          specifiedBlock,
-          timeArgumentSeconds,
-          "Unexpected timestamp for block mined with specified timestamp"
-        );
-
-        assert(
-          unspecifiedBlock >= timeArgumentSeconds &&
-            unspecifiedBlock <= timeArgumentSeconds + 1000,
-          `Unexpected timestamp for block mined without specified timestamp - expected a value between ${timeArgumentSeconds} and ${
-            timeArgumentSeconds + 1000
-          }, got ${+unspecifiedBlock}`
-        );
-
-        await provider.disconnect();
+    async function mineBlocksForTimestamps(
+      provider: EthereumProvider
+    ): Promise<number[]> {
+      // mine a block with a specified timestamp
+      await provider.request({
+        method: "evm_mine",
+        params: [timeArgumentSeconds]
+      });
+      const specifiedBlock = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      // mine a block without a specified timestamp
+      await provider.request({
+        method: "evm_mine",
+        params: []
+      });
+      const unspecifiedBlock = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
       });
 
-      it("should work with a numeric `timestampIncrement`", async () => {
-        const timestampIncrement = 5; // seconds
+      return [+specifiedBlock.timestamp, +unspecifiedBlock.timestamp];
+    }
 
-        const provider = await getProvider({
-          miner: { timestampIncrement }
-        });
+    const timeArgumentSeconds = 100;
 
-        const [specifiedBlock, unspecifiedBlock] =
-          await mineBlocksForTimestamps(provider);
-
-        assert.strictEqual(
-          specifiedBlock,
-          timeArgumentSeconds,
-          "Unexpected timestamp for block mined with specified timestamp"
-        );
-
-        assert.strictEqual(
-          unspecifiedBlock,
-          timeArgumentSeconds + timestampIncrement,
-          "Unexpected timestamp for block mined without specified timestamp"
-        );
-
-        await provider.disconnect();
+    it("uses timestamp adjustment in subsequent blocks with `timestampIncrement` of `clock`", async () => {
+      const provider = await getProvider({
+        miner: { timestampIncrement: "clock" }
       });
+
+      const [specifiedBlock, unspecifiedBlock] = await mineBlocksForTimestamps(
+        provider
+      );
+
+      assert.strictEqual(
+        specifiedBlock,
+        timeArgumentSeconds,
+        "Unexpected timestamp for block mined with specified timestamp"
+      );
+
+      assert(
+        unspecifiedBlock >= timeArgumentSeconds &&
+          unspecifiedBlock <= timeArgumentSeconds + 1000,
+        `Unexpected timestamp for block mined without specified timestamp - expected a value between ${timeArgumentSeconds} and ${
+          timeArgumentSeconds + 1000
+        }, got ${+unspecifiedBlock}`
+      );
+
+      await provider.disconnect();
     });
 
-    it("applies the adjustment only once when `timestampIncrement` is used", async () => {
+    it("uses timestamp adjustment in subsequent blocks with numeric `timestampIncrement`", async () => {
+      const timestampIncrement = 5; // seconds
+
+      const provider = await getProvider({
+        miner: { timestampIncrement }
+      });
+
+      const [specifiedBlock, unspecifiedBlock] = await mineBlocksForTimestamps(
+        provider
+      );
+
+      assert.strictEqual(
+        specifiedBlock,
+        timeArgumentSeconds,
+        "Unexpected timestamp for block mined with specified timestamp"
+      );
+
+      assert.strictEqual(
+        unspecifiedBlock,
+        timeArgumentSeconds + timestampIncrement,
+        "Unexpected timestamp for block mined without specified timestamp"
+      );
+
+      await provider.disconnect();
+    });
+
+    it("applies timestamp adjustment only once when `timestampIncrement` is used", async () => {
       const time = new Date("2019-01-01T00:00:00.000Z");
       const timestampIncrement = 5; // seconds
       const fastForwardSeconds = 100;
