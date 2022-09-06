@@ -13,8 +13,8 @@ jobs:
     # pr.yml
     runs-on: ubuntu-20.04
     outputs:
-      TAG: ${{ steps.setTagOutput.TAG }}
-      VERSION: ${{ steps.setVersionOutput.VERSION }}
+      TAG: ${{ steps.set_tag_output.outputs.TAG }}
+      VERSION: ${{ steps.set_version_output.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -52,7 +52,8 @@ jobs:
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
-      - id: setTagOutput
+      - name: Set TAG as job output variable
+        id: set_tag_output
         run: echo "::set-output name=TAG::${TAG}"
 
       - name: Count features
@@ -125,7 +126,8 @@ jobs:
         run: |
           echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
-      - id: setVersionOutput
+      - name: Set VERSION as job output variable
+        id: set_version_output
         run: echo "::set-output name=VERSION::${VERSION}"
 
       - name: Commit all staged changes
