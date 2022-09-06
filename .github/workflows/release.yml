@@ -12,6 +12,9 @@ jobs:
     # this should match the os version used by the "check bundle size" step in
     # pr.yml
     runs-on: ubuntu-20.04
+    outputs:
+      TAG: ${{ steps.setTagOutput.TAG }}
+      VERSION: ${{ steps.setVersionOutput.VERSION }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -57,6 +60,9 @@ jobs:
         if: ${{ github.ref != 'refs/heads/master' }}
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - id: setTagOutput
+        run: echo "::set-output name=TAG::${TAG}"
 
       - name: Count features
         if: ${{ env.TAG == 'latest'}}
@@ -119,6 +125,9 @@ jobs:
         run: |
           echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
+      - id: setVersionOutput
+        run: echo "::set-output name=VERSION::${VERSION}"
+
       - name: Commit all staged changes
         run: |
           git commit -m "chore(release): publish v${VERSION}" -m "ganache@${VERSION}"
@@ -171,8 +180,8 @@ jobs:
         # containing an `action.yml` file
         uses: ./.github/actions/docker-publish
         with:
-          VERSION: ${{ env.VERSION }}
-          TAG: ${{ env.TAG }}
+          VERSION: ${{ needs.release.outputs.VERSION }}
+          TAG: ${{ needs.release.outputs.TAG }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
