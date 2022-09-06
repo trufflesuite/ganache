@@ -381,7 +381,7 @@ Fork:
 
                                         Use the shorthand command ganache --fork to automatically fork from
                                         Mainnet at the latest block.
-                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli"
+                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli",
                                                                                                     "sepolia"]
   --fork.blockNumber                    Block number the provider should fork from.
                                                                                 [default: Latest block number]
