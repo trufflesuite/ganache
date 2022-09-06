@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.5.2-alpha.1",
+  "version": "0.5.2-alpha.2",
   "description": "",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/utils#readme",
@@ -51,9 +51,9 @@
     "@ethereumjs/common": "2.6.5",
     "@ethereumjs/tx": "3.5.2",
     "@ethereumjs/vm": "5.9.3",
-    "@ganache/ethereum-address": "0.5.2-alpha.1",
-    "@ganache/rlp": "0.5.2-alpha.1",
-    "@ganache/utils": "0.5.2-alpha.1",
+    "@ganache/ethereum-address": "0.5.2-alpha.2",
+    "@ganache/rlp": "0.5.2-alpha.2",
+    "@ganache/utils": "0.5.2-alpha.2",
     "emittery": "0.10.0",
     "ethereumjs-abi": "0.6.8",
     "ethereumjs-util": "7.1.5"
