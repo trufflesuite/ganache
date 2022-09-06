@@ -42,15 +42,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run installation
-        run: npm ci
-
-      - name: Test
-        run: npm test
-        env:
-          FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
-
       - name: Set TAG for master to latest
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
@@ -99,6 +90,15 @@ jobs:
         # if we are "latest" and we do NOT have features, set the release to "patch"
         if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
         run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
+
+      - name: Run installation
+        run: npm ci
+
+      - name: Test
+        run: npm test
+        env:
+          FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
