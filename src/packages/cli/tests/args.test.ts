@@ -6,7 +6,14 @@ describe("args", () => {
     const versionString = "Version string";
     const isDocker = false;
 
-    const detachModeArgs = ["--detach", "--D", "--😈"];
+    const detachModeArgs = [
+      "--detach",
+      "--D",
+      "--😈",
+      "--detach=true",
+      "--D=true",
+      "--😈=true"
+    ];
     const notDetachModeArgs = [
       "--no-detach",
       "--no-D",
