@@ -53,6 +53,9 @@ describe("forking", function () {
         blockNumHex,
         true
       ]);
+      remoteBlock.transactions.forEach(transaction => {
+        delete transaction.chainId;
+      });
       assert.deepStrictEqual(block, remoteBlock);
     });
 
