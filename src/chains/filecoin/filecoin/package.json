@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.5.2-alpha.1",
+  "version": "0.5.2-alpha.2",
   "description": "Ganache's Filecoin client implementation",
   "author": "Tim Coulter",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/filecoin#readme",
