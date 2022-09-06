@@ -32,14 +32,16 @@ jobs:
         run: |
           echo "TAG=alpha" >> $GITHUB_ENV
 
-      - id: set_tag_output
+      - name: Set TAG as job output variable
+        id: set_tag_output
         run: echo "::set-output name=TAG::${TAG}"
 
       - name: Set VERSION
         run: |
           echo "VERSION=7.4.2-alpha.2" >> $GITHUB_ENV
 
-      - id: set_version_output
+      - name: Set VERSION as job output variable
+        id: set_version_output
         run: echo "::set-output name=VERSION::${VERSION}"
 
   publish-docker:
