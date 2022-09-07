@@ -2882,7 +2882,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Transaction fee history.
+   * Returns base fee per gas and transaction effective priority fee per gas history for the requested block range if available.
    *
    * @param blockCount - Requested range of blocks. Will return less than the requested range if not all blocks are available.
    * @param newestBlock - Highest block of the requested range.
@@ -2911,16 +2911,9 @@ export default class EthereumApi implements Api {
     const PRECISION_FLOAT = 1e14;
     const PRECISION_BIG_INT = BigInt(1e16);
 
-    // if newestBlock is a tag, we already keep a ref in the Block Manager.
-    let newestBlockNumber;
-    const newBlock = await blockchain.blocks.getBlockByTag(newestBlock as Tag);
-
-    // If newestBlock is not a tag we can just use the newestBlock number.
-    if (newBlock) {
-      newestBlockNumber = newBlock.header.number.toNumber();
-    } else {
-      newestBlockNumber = Quantity.from(newestBlock).toNumber();
-    }
+    const newestBlockNumber = blockchain.blocks
+      .getEffectiveNumber(newestBlock)
+      .toNumber();
 
     // blockCount > newestBlock is technically valid but we cannot go past the Genesis Block.
     const totalBlocks = Math.min(
@@ -2931,15 +2924,12 @@ export default class EthereumApi implements Api {
     // Cut out early if no range is given.
     if (totalBlocks === 0) {
       return {
-        oldestBlock: Quantity.from(newestBlock).toString(),
+        oldestBlock: Quantity.from(newestBlockNumber).toString(),
         baseFeePerGas: undefined,
         gasUsedRatio: null,
         reward: undefined
       };
     }
-
-    // blockCount is inclusive of newestBlock
-    const oldestBlockNumber = newestBlockNumber - (totalBlocks - 1);
 
     const baseFeePerGas = new Array(totalBlocks);
     const gasUsedRatio = new Array(totalBlocks);
@@ -2947,9 +2937,10 @@ export default class EthereumApi implements Api {
     if (rewardPercentiles.length > 0) {
       reward = new Array(totalBlocks);
     }
-
+    // blockCount is inclusive of newestBlock
+    const oldestBlockNumber = newestBlockNumber - (totalBlocks - 1);
     let currentBlockNumber = oldestBlockNumber;
-    let currentBlock;
+    let currentBlock: Block;
 
     while (currentBlockNumber <= newestBlockNumber) {
       currentBlock = await blockchain.blocks.get(
@@ -2992,19 +2983,23 @@ export default class EthereumApi implements Api {
                   ? currentBlock.header.baseFeePerGas.toBigInt()
                   : 0n;
 
-                let effectiveGasReward;
+                let effectiveGasReward: bigint;
                 if ("maxPriorityFeePerGas" in tx) {
                   effectiveGasReward =
                     tx.maxFeePerGas.toBigInt() - baseFeePerGas;
-                  if (tx.maxPriorityFeePerGas < effectiveGasReward) {
-                    effectiveGasReward = tx.maxPriorityFeePerGas;
+
+                  const maxPriorityFeePerGas =
+                    tx.maxPriorityFeePerGas.toBigInt();
+
+                  if (maxPriorityFeePerGas < effectiveGasReward) {
+                    effectiveGasReward = maxPriorityFeePerGas;
                   }
                 } else {
                   effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
                 }
 
                 return {
-                  effectiveGasReward: Quantity.toBigInt(effectiveGasReward),
+                  effectiveGasReward: effectiveGasReward,
                   gasUsed: receipt.gasUsed ? receipt.gasUsed.toBigInt() : 0n
                 };
               })
