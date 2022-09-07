@@ -49,7 +49,7 @@
   "devDependencies": {
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
     "@types/mocha": "9.0.0",
-    "cheerio": "1.0.0-rc.3",
+    "cheerio": "1.0.0-rc.12",
     "cross-env": "7.0.3",
     "local-web-server": "4.2.1",
     "mocha": "9.1.3",
