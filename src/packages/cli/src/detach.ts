@@ -10,6 +10,7 @@ import {
   readFileSync
 } from "fs";
 import path from "path";
+import psList from "ps-list";
 
 export type DetachedInstance = {
   friendlyName: string;
@@ -61,7 +62,6 @@ export async function stopDetachedInstance(
   instanceName: string
 ): Promise<boolean> {
   const instance = await findDetachedInstanceByName(instanceName);
-
   if (instance !== undefined) {
     try {
       process.kill(instance.pid, "SIGTERM");
@@ -87,7 +87,9 @@ export async function startDetachedInstance(
   port: number
 ): Promise<DetachedInstance> {
   const module = argv[1];
-  const args = argv.slice(1).splice(argv.indexOf("--detach"), 1);
+  const args = argv.slice(2);
+  args.splice(args.indexOf("--detach"), 1);
+
   const child = fork(module, args, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
@@ -112,12 +114,15 @@ export async function startDetachedInstance(
     child.on("error", err => {
       // This only happens if there's an error starting the child process, not if
       // the application throws within the child process.
+      console.error(err);
+      process.exitCode = 1;
       reject(err);
     });
 
     child.on("exit", (code: number) => {
-      // If the child process exits before the parent, something has gone wrong,
-      // so let the user know (even if the exit code is 0).
+      // This shouldn't happen, so only surface the child's exit code if it's
+      // not 0
+      process.exitCode = code === 0 ? 1 : code;
       reject(new Error(`The child process exited with code ${code}`));
     });
   });
@@ -155,7 +160,7 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   const files = readdirSync(dataPath);
   const instances: DetachedInstance[] = [];
 
-  const pids = await getAllPids();
+  const pids = (await psList()).map(process => process.pid);
 
   for (let i = 0; i < files.length; i++) {
     const pid = files[i];
@@ -190,16 +195,4 @@ async function findDetachedInstanceByName(
       return instances[i];
     }
   }
-}
-
-// todo: this is a terrible hack, and definitely not cross-platform. `ps-list`
-// appears to be a better solution, but is distributed as ESM only
-import { exec } from "child_process";
-async function getAllPids(): Promise<number[]> {
-  return new Promise<number[]>((resolve, reject) => {
-    exec("ps -A -o pid", (err, res) => {
-      const pids = res.split("\n").slice(1);
-      resolve(pids.map(p => parseInt(p, 10)));
-    });
-  });
 }

@@ -1,4 +1,5 @@
 import { TruffleColors } from "@ganache/colors";
+
 import yargs, { Options } from "yargs";
 import {
   DefaultFlavor,
@@ -158,7 +159,7 @@ export default function (
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
-  let args = yargs
+  const args = yargs
     // disable dot-notation because yargs just can't coerce args properly...
     // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
     .parserConfiguration({ "dot-notation": false })
@@ -193,7 +194,7 @@ export default function (
         defaultPort = 8545;
     }
 
-    args = args.command(
+    args.command(
       command,
       chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
@@ -235,51 +236,36 @@ export default function (
           });
       },
       parsedArgs => {
-        const selectedFlavor =
-          parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor;
-        finalArgs = {
-          flavor: selectedFlavor,
-          action: parsedArgs.detach ? "detach" : "start"
-        } as Argv;
-        for (const key in parsedArgs) {
-          // split on the first "."
-          const [group, option] = key.split(/\.(.+)/);
-          // only copy namespaced/group keys
-          if (option) {
-            if (!finalArgs[group]) {
-              finalArgs[group] = {};
-            }
-            finalArgs[group][option] = parsedArgs[key];
-          }
-        }
+        parsedArgs.action = parsedArgs.detach ? "detach" : "start";
       }
     );
   }
 
-  args = args
+  args
     .command(
-      "stop [name]",
-      "Stop an instance of Ganache running in detached mode",
-      stopArgs => {
-        stopArgs.positional("name", {
-          type: "string",
-          name: "The name of the instance to stop"
-        });
-      },
-      parsedArgs => {
-        finalArgs = {
-          action: "stop",
-          name: parsedArgs.name as string
-        };
-      }
-    )
-    .command(
-      "list",
-      "List instances of Ganache running in detached mode",
-      _ => {
-        finalArgs = {
-          action: "list"
-        };
+      "instances",
+      "Manage instances of Ganache running in detached mode",
+      _yargs => {
+        _yargs
+          .command(
+            "list",
+            "List instances running in detached mode",
+            _ => {},
+            listArgs => {
+              listArgs.action = "list";
+            }
+          )
+          .command(
+            "stop <name>",
+            "Stop the instance specified by <name>",
+            stopArgs => {
+              stopArgs.positional("name", { type: "string" });
+            },
+            stopArgs => {
+              stopArgs.action = "stop";
+            }
+          )
+          .version(false);
       }
     )
     .showHelpOnFail(false, "Specify -? or --help for available options")
@@ -287,6 +273,34 @@ export default function (
     .wrap(wrapWidth)
     .version(version);
 
-  args.parse(rawArgs);
+  const parsedArgs = args.parse(rawArgs);
+
+  if (parsedArgs.action === "stop") {
+    finalArgs = {
+      action: parsedArgs.action,
+      name: parsedArgs.name as string
+    };
+  } else if (parsedArgs.action === "list") {
+    finalArgs = { action: parsedArgs.action };
+  } else {
+    const selectedFlavor =
+      parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor;
+    finalArgs = {
+      flavor: selectedFlavor,
+      action: parsedArgs.action
+    } as Argv;
+    for (const key in parsedArgs) {
+      // split on the first "."
+      const [group, option] = key.split(/\.(.+)/);
+      // only copy namespaced/group keys
+      if (option) {
+        if (!finalArgs[group]) {
+          finalArgs[group] = {};
+        }
+        finalArgs[group][option] = parsedArgs[key];
+      }
+    }
+  }
+
   return finalArgs;
 }

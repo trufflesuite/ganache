@@ -186,22 +186,27 @@ if (argv.action === "start") {
 } else if (argv.action === "stop") {
   const instanceName = argv.name;
 
-  if (stopDetachedInstance(instanceName)) {
-    console.log("Process stopped");
-  } else {
-    console.error("Process not found");
-  }
+  stopDetachedInstance(instanceName).then(instanceFound => {
+    if (instanceFound) {
+      console.log("Process stopped");
+    } else {
+      console.error("Process not found");
+    }
+  });
 } else if (argv.action === "detach") {
-  startDetachedInstance(process.argv, argv.server.host, argv.server.port).then(
-    instance => {
+  startDetachedInstance(process.argv, argv.server.host, argv.server.port)
+    .then(instance => {
       const highlightedName = chalk.hex(TruffleColors.porsche)(
         instance.friendlyName
       );
       // output only the friendly name to allow users to capture stdout and use to
       // programmatically stop the instance
       console.log(highlightedName);
-    }
-  );
+    })
+    .catch(err => {
+      // the child process would have output it's error to stdout, so no need to
+      // output anything more
+    });
 } else if (argv.action === "list") {
   getDetachedInstances().then(instances => {
     const now = Date.now();
