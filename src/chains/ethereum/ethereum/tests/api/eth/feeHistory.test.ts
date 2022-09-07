@@ -316,8 +316,7 @@ describe("api", () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
           const tx = await provider.send("eth_getTransactionByHash", [txHash]);
 
-          const effectiveGasReward = tx.maxFeePerGas - block.baseFeePerGas;
-          let reward = effectiveGasReward;
+          const reward = tx.maxFeePerGas - block.baseFeePerGas;
 
           const feeHistory = await provider.send("eth_feeHistory", [
             blockCount,
