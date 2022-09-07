@@ -3043,7 +3043,6 @@ export default class EthereumApi implements Api {
     }
 
     // baseFeePerGas is calculated based on the header of the previous block, include the block after newestBlock.
-
     baseFeePerGas[totalBlocks] = Quantity.from(
       Block.calcNextBaseFee(currentBlock)
     );
