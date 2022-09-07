@@ -15,6 +15,8 @@ export type DetachedInstance = {
   friendlyName: string;
   pid: number;
   startTime: number;
+  host: string;
+  port: number;
 };
 
 const dataPath = envPaths(`ganache`).data;
@@ -55,7 +57,7 @@ function registerDetachedInstance(instance: DetachedInstance) {
 
   writeFileSync(
     instanceFilename,
-    `${instance.friendlyName}|${instance.startTime}`
+    `${instance.friendlyName}|${instance.startTime}|${instance.host}|${instance.port}`
   );
 }
 
@@ -92,11 +94,12 @@ export function stopDetachedInstance(instanceName: string): boolean {
  * is started and ready to receive requests.
  */
 export async function startDetachedInstance(
-  argv: string[]
+  argv: string[],
+  host: string,
+  port: number
 ): Promise<DetachedInstance> {
   const module = argv[1];
   const args = argv.slice(1).splice(argv.indexOf("--detach"), 1);
-
   const child = fork(module, args, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
@@ -140,12 +143,33 @@ export async function startDetachedInstance(
   const instance = {
     startTime: Date.now(),
     pid: child.pid,
-    friendlyName
+    friendlyName,
+    host,
+    port
   };
 
   registerDetachedInstance(instance);
 
   return instance;
+}
+
+export async function getDetachedInstances(): Promise<DetachedInstance[]> {
+  const files = readdirSync(dataPath);
+  const instances: DetachedInstance[] = [];
+  for (let i = 0; i < files.length; i++) {
+    const filepath = path.join(dataPath, files[i]);
+    const content = readFileSync(filepath).toString("utf8");
+    const [friendlyName, startTime, host, port] = content.split("|");
+    instances.push({
+      friendlyName,
+      startTime: parseInt(startTime, 10),
+      pid: parseInt(files[i]),
+      host,
+      port: parseInt(port)
+    });
+  }
+
+  return instances;
 }
 
 function findInstanceByName(
@@ -155,12 +179,14 @@ function findInstanceByName(
   for (let i = 0; i < files.length; i++) {
     const filepath = path.join(dataPath, files[i]);
     const content = readFileSync(filepath).toString("utf8");
-    const [name, startTime] = content.split("|");
+    const [name, startTime, host, port] = content.split("|");
     if (name === friendlyName) {
       return {
         friendlyName,
         pid: parseInt(files[i]),
-        startTime: parseInt(startTime)
+        startTime: parseInt(startTime),
+        host,
+        port: parseInt(port)
       };
     }
   }

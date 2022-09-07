@@ -12,9 +12,11 @@ import {
   cleanupDetachedInstanceFile,
   notifyDetachedInstanceReady,
   stopDetachedInstance,
-  startDetachedInstance
+  startDetachedInstance,
+  getDetachedInstances
 } from "./detach";
 import { TruffleColors } from "@ganache/colors";
+import { table } from "table";
 import chalk from "chalk";
 
 // if process.send is defined, this is a child_process (we assume a detached
@@ -48,6 +50,20 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
   process.exit(exitCode);
 };
 
+const formatDuration = (ms: number) => {
+  ms = Math.abs(ms);
+  const time = {
+    day: Math.floor(ms / 86400000),
+    hour: Math.floor(ms / 3600000) % 24,
+    minute: Math.floor(ms / 60000) % 60,
+    second: Math.floor(ms / 1000) % 60
+  };
+  return Object.entries(time)
+    .filter(val => val[1] !== 0)
+    .map(([key, val]) => `${val} ${key}${val !== 1 ? "s" : ""}`)
+    .join(", ");
+};
+
 const version = process.env.VERSION || "DEV";
 const cliVersion = process.env.CLI_VERSION || "DEV";
 const coreVersion = process.env.CORE_VERSION || "DEV";
@@ -59,25 +75,53 @@ const isDocker =
 
 const argv = args(detailedVersion, isDocker);
 
-// todo: defs need to improve this
-if (process.argv.indexOf("stop") !== -1) {
-  const instanceName = process.argv[process.argv.length - 1];
+if (argv.action === "stop") {
+  const instanceName = argv.name;
 
   if (stopDetachedInstance(instanceName)) {
     console.log("Process stopped");
   } else {
     console.error("Process not found");
   }
-} else if (argv.detach) {
-  startDetachedInstance(process.argv).then(instance => {
-    const highlightedName = chalk.hex(TruffleColors.porsche)(
-      instance.friendlyName
-    );
-    // output only the friendly name to allow users to capture stdout and use to
-    // programmatically stop the instance
-    console.log(highlightedName);
+} else if (argv.action === "detach") {
+  startDetachedInstance(process.argv, argv.server.host, argv.server.port).then(
+    instance => {
+      const highlightedName = chalk.hex(TruffleColors.porsche)(
+        instance.friendlyName
+      );
+      // output only the friendly name to allow users to capture stdout and use to
+      // programmatically stop the instance
+      console.log(highlightedName);
+    }
+  );
+} else if (argv.action === "list") {
+  const now = Date.now();
+  getDetachedInstances().then(instances => {
+    const rows = [
+      [
+        chalk.bold("PID"),
+        chalk.bold("Name"),
+        chalk.bold("Host"),
+        chalk.bold("Port"),
+        chalk.bold("Uptime")
+      ]
+    ];
+    for (let i = 0; i < instances.length; i++) {
+      const instance = instances[i];
+
+      const uptime = now - instance.startTime;
+      rows.push([
+        instance.pid.toString(),
+        chalk.hex(TruffleColors.porsche)(instance.friendlyName),
+        instance.host,
+        instance.port.toString(),
+        formatDuration(uptime)
+      ]);
+    }
+
+    console.log(table(rows, {}));
   });
-} else {
+} else if (argv.action === "start") {
   const flavor = argv.flavor;
   const cliSettings = argv.server;
 

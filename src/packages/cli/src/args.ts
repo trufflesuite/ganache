@@ -153,6 +153,8 @@ export default function (
   isDocker: boolean,
   rawArgs = process.argv.slice(2)
 ) {
+  let finalArgs: Argv;
+
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
@@ -231,6 +233,25 @@ export default function (
             type: "boolean",
             alias: ["D", "😈"]
           });
+      },
+      parsedArgs => {
+        const selectedFlavor =
+          parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor;
+        finalArgs = {
+          flavor: selectedFlavor,
+          action: parsedArgs.detach ? "detach" : "start"
+        } as Argv;
+        for (const key in parsedArgs) {
+          // split on the first "."
+          const [group, option] = key.split(/\.(.+)/);
+          // only copy namespaced/group keys
+          if (option) {
+            if (!finalArgs[group]) {
+              finalArgs[group] = {};
+            }
+            finalArgs[group][option] = parsedArgs[key];
+          }
+        }
       }
     );
   }
@@ -244,6 +265,21 @@ export default function (
           type: "string",
           name: "The name of the instance to stop"
         });
+      },
+      parsedArgs => {
+        finalArgs = {
+          action: "stop",
+          name: parsedArgs.name as string
+        };
+      }
+    )
+    .command(
+      "list",
+      "List instances of Ganache running in detached mode",
+      _ => {
+        finalArgs = {
+          action: "list"
+        };
       }
     )
     .showHelpOnFail(false, "Specify -? or --help for available options")
@@ -251,22 +287,6 @@ export default function (
     .wrap(wrapWidth)
     .version(version);
 
-  const parsedArgs = args.parse(rawArgs);
-  const finalArgs = {
-    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor,
-    detach: parsedArgs.detach || false
-  } as Argv;
-  for (const key in parsedArgs) {
-    // split on the first "."
-    const [group, option] = key.split(/\.(.+)/);
-    // only copy namespaced/group keys
-    if (option) {
-      if (!finalArgs[group]) {
-        finalArgs[group] = {};
-      }
-      finalArgs[group][option] = parsedArgs[key];
-    }
-  }
-
+  args.parse(rawArgs);
   return finalArgs;
 }
