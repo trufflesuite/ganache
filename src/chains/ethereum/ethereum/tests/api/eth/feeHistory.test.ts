@@ -247,7 +247,7 @@ describe("api", () => {
             block.baseFeePerGas
           );
         });
-        it("calculates the lastbaseFeePerGas based on the latest block", async () => {
+        it("calculates the last baseFeePerGas based on the latest block", async () => {
           const blockCount = "0x5";
           const blocks = 5;
           const newestBlock = "latest";
