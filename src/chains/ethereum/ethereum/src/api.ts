@@ -2956,14 +2956,19 @@ export default class EthereumApi implements Api {
       baseFeePerGas[currentPosition] =
         currentBlock.header.baseFeePerGas || Quantity.Zero;
 
-      gasUsedRatio[currentPosition] = Number(
-        `0.${(
-          (currentBlock.header.gasUsed.toBigInt() * PRECISION_BIG_INT) /
-          currentBlock.header.gasLimit.toBigInt()
-        )
-          .toString()
-          .padStart(PAD_PRECISION, "0")}`
-      );
+      const { gasUsed, gasLimit } = currentBlock.header;
+      if (gasUsed === gasLimit) {
+        gasUsedRatio[currentPosition] = 1;
+      } else {
+        gasUsedRatio[currentPosition] = Number(
+          `0.${(
+            (currentBlock.header.gasUsed.toBigInt() * PRECISION_BIG_INT) /
+            currentBlock.header.gasLimit.toBigInt()
+          )
+            .toString()
+            .padStart(PAD_PRECISION, "0")}`
+        );
+      }
 
       if (reward) {
         const transactions = currentBlock.getTransactions();
@@ -2976,17 +2981,13 @@ export default class EthereumApi implements Api {
         } else {
           // For all transactions, effectiveGasReward = normalized fee per unit of gas
           // earned by the miner regardless of transaction type
+          const baseFeePerGas = currentBlock.header.baseFeePerGas
+            ? currentBlock.header.baseFeePerGas.toBigInt()
+            : 0n;
+
           const effectiveRewardAndGasUsed = (
             await Promise.all(
               transactions.map(async tx => {
-                const receipt = (
-                  await blockchain.transactionReceipts.get(tx.hash.toBuffer())
-                ).toJSON(currentBlock, tx, blockchain.common);
-
-                const baseFeePerGas = currentBlock.header.baseFeePerGas
-                  ? currentBlock.header.baseFeePerGas.toBigInt()
-                  : 0n;
-
                 let effectiveGasReward: bigint;
                 if ("maxPriorityFeePerGas" in tx) {
                   effectiveGasReward =
@@ -3002,6 +3003,9 @@ export default class EthereumApi implements Api {
                   effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
                 }
 
+                const receipt = (
+                  await blockchain.transactionReceipts.get(tx.hash.toBuffer())
+                ).toJSON(currentBlock, tx, blockchain.common);
                 return {
                   effectiveGasReward: effectiveGasReward,
                   gasUsed: receipt.gasUsed ? receipt.gasUsed.toBigInt() : 0n
