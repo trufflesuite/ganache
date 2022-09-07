@@ -9,7 +9,7 @@ import initializeFilecoin from "./initialize/filecoin";
 import type { FilecoinProvider } from "@ganache/filecoin";
 import type { EthereumProvider } from "@ganache/ethereum";
 import {
-  cleanupDetachedInstanceFile,
+  removeDetachedInstanceFile,
   notifyDetachedInstanceReady,
   stopDetachedInstance,
   startDetachedInstance,
@@ -27,7 +27,7 @@ if (isDetachedInstance) {
   // we want to attach this listener as early as possible, to avoid leaving a
   // dangling instance file
   process.on("exit", () => {
-    cleanupDetachedInstanceFile(process.pid);
+    removeDetachedInstanceFile(process.pid);
   });
 }
 
@@ -75,53 +75,7 @@ const isDocker =
 
 const argv = args(detailedVersion, isDocker);
 
-if (argv.action === "stop") {
-  const instanceName = argv.name;
-
-  if (stopDetachedInstance(instanceName)) {
-    console.log("Process stopped");
-  } else {
-    console.error("Process not found");
-  }
-} else if (argv.action === "detach") {
-  startDetachedInstance(process.argv, argv.server.host, argv.server.port).then(
-    instance => {
-      const highlightedName = chalk.hex(TruffleColors.porsche)(
-        instance.friendlyName
-      );
-      // output only the friendly name to allow users to capture stdout and use to
-      // programmatically stop the instance
-      console.log(highlightedName);
-    }
-  );
-} else if (argv.action === "list") {
-  const now = Date.now();
-  getDetachedInstances().then(instances => {
-    const rows = [
-      [
-        chalk.bold("PID"),
-        chalk.bold("Name"),
-        chalk.bold("Host"),
-        chalk.bold("Port"),
-        chalk.bold("Uptime")
-      ]
-    ];
-    for (let i = 0; i < instances.length; i++) {
-      const instance = instances[i];
-
-      const uptime = now - instance.startTime;
-      rows.push([
-        instance.pid.toString(),
-        chalk.hex(TruffleColors.porsche)(instance.friendlyName),
-        instance.host,
-        instance.port.toString(),
-        formatDuration(uptime)
-      ]);
-    }
-
-    console.log(table(rows, {}));
-  });
-} else if (argv.action === "start") {
+if (argv.action === "start") {
   const flavor = argv.flavor;
   const cliSettings = argv.server;
 
@@ -229,4 +183,52 @@ if (argv.action === "stop") {
   }
   console.log("Starting RPC server");
   server.listen(cliSettings.port, cliSettings.host, startGanache);
+} else if (argv.action === "stop") {
+  const instanceName = argv.name;
+
+  if (stopDetachedInstance(instanceName)) {
+    console.log("Process stopped");
+  } else {
+    console.error("Process not found");
+  }
+} else if (argv.action === "detach") {
+  startDetachedInstance(process.argv, argv.server.host, argv.server.port).then(
+    instance => {
+      const highlightedName = chalk.hex(TruffleColors.porsche)(
+        instance.friendlyName
+      );
+      // output only the friendly name to allow users to capture stdout and use to
+      // programmatically stop the instance
+      console.log(highlightedName);
+    }
+  );
+} else if (argv.action === "list") {
+  getDetachedInstances().then(instances => {
+    const now = Date.now();
+
+    const rows = [
+      [
+        chalk.bold("PID"),
+        chalk.bold("Name"),
+        chalk.bold("Host"),
+        chalk.bold("Port"),
+        chalk.bold("Uptime")
+      ]
+    ];
+
+    for (let i = 0; i < instances.length; i++) {
+      const instance = instances[i];
+
+      const uptime = now - instance.startTime;
+      rows.push([
+        instance.pid.toString(),
+        chalk.hex(TruffleColors.porsche)(instance.friendlyName),
+        instance.host,
+        instance.port.toString(),
+        formatDuration(uptime)
+      ]);
+    }
+
+    console.log(table(rows, {}));
+  });
 }

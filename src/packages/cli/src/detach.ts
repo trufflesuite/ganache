@@ -38,27 +38,13 @@ export function notifyDetachedInstanceReady() {
  * @param  {number} pid the pid of the detached instance
  * @returns boolean indicating whether the instance file was cleaned up successfully
  */
-export function cleanupDetachedInstanceFile(pid: number): boolean {
+export function removeDetachedInstanceFile(pid: number): boolean {
   const instanceFilename = `${dataPath}/${pid}`;
   if (existsSync(instanceFilename)) {
     rmSync(instanceFilename);
     return true;
   }
   return false;
-}
-
-/**
- * Register a new detached instance. Creates an instance file containing
- * information about the instance.
- * @param  {DetachedInstance} instance
- */
-function registerDetachedInstance(instance: DetachedInstance) {
-  const instanceFilename = `${dataPath}/${instance.pid}`;
-
-  writeFileSync(
-    instanceFilename,
-    `${instance.friendlyName}|${instance.startTime}|${instance.host}|${instance.port}`
-  );
 }
 
 /**
@@ -71,15 +57,17 @@ function registerDetachedInstance(instance: DetachedInstance) {
  * @param  {string} instanceName
  * @returns boolean indicating whether the instance was found.
  */
-export function stopDetachedInstance(instanceName: string): boolean {
-  const instance = findInstanceByName(instanceName);
+export async function stopDetachedInstance(
+  instanceName: string
+): Promise<boolean> {
+  const instance = await findDetachedInstanceByName(instanceName);
 
-  if (instance) {
+  if (instance !== undefined) {
     try {
       process.kill(instance.pid, "SIGTERM");
     } catch (err) {
       // process.kill throws if the process was not found (or was a group process in Windows)
-      cleanupDetachedInstanceFile(instance.pid);
+      removeDetachedInstanceFile(instance.pid);
       return false;
     }
     return true;
@@ -112,7 +100,7 @@ export async function startDetachedInstance(
   let friendlyName: string;
   do {
     friendlyName = createProcessName();
-  } while (findInstanceByName(friendlyName));
+  } while (await findDetachedInstanceByName(friendlyName));
 
   await new Promise<void>((resolve, reject) => {
     child.on("message", message => {
@@ -148,46 +136,70 @@ export async function startDetachedInstance(
     port
   };
 
-  registerDetachedInstance(instance);
+  const instanceFilename = `${dataPath}/${instance.pid}`;
+
+  writeFileSync(
+    instanceFilename,
+    `${instance.friendlyName}|${instance.startTime}|${instance.host}|${instance.port}`
+  );
 
   return instance;
 }
 
+/**
+ * Fetch all instance of Ganache running in detached mode. Cleans up any
+ * instance files for processes that are no longer running.
+ * @returns Promise<DetachedInstance[]> resolves with an array of instances
+ */
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   const files = readdirSync(dataPath);
   const instances: DetachedInstance[] = [];
+
+  const pids = await getAllPids();
+
   for (let i = 0; i < files.length; i++) {
-    const filepath = path.join(dataPath, files[i]);
-    const content = readFileSync(filepath).toString("utf8");
-    const [friendlyName, startTime, host, port] = content.split("|");
-    instances.push({
-      friendlyName,
-      startTime: parseInt(startTime, 10),
-      pid: parseInt(files[i]),
-      host,
-      port: parseInt(port)
-    });
+    const pid = files[i];
+
+    if (pids.some(p => p === parseInt(pid))) {
+      const filepath = path.join(dataPath, pid);
+      const content = readFileSync(filepath).toString("utf8");
+      const [friendlyName, startTime, host, port] = content.split("|");
+
+      instances.push({
+        friendlyName,
+        startTime: parseInt(startTime, 10),
+        pid: parseInt(files[i]),
+        host,
+        port: parseInt(port)
+      });
+    } else {
+      removeDetachedInstanceFile(parseInt(pid));
+    }
   }
 
   return instances;
 }
 
-function findInstanceByName(
+async function findDetachedInstanceByName(
   friendlyName: string
-): DetachedInstance | undefined {
-  const files = readdirSync(dataPath);
-  for (let i = 0; i < files.length; i++) {
-    const filepath = path.join(dataPath, files[i]);
-    const content = readFileSync(filepath).toString("utf8");
-    const [name, startTime, host, port] = content.split("|");
-    if (name === friendlyName) {
-      return {
-        friendlyName,
-        pid: parseInt(files[i]),
-        startTime: parseInt(startTime),
-        host,
-        port: parseInt(port)
-      };
+): Promise<DetachedInstance | undefined> {
+  const instances = await getDetachedInstances();
+
+  for (let i = 0; i < instances.length; i++) {
+    if (instances[i].friendlyName === friendlyName) {
+      return instances[i];
     }
   }
+}
+
+// todo: this is a terrible hack, and definitely not cross-platform. `ps-list`
+// appears to be a better solution, but is distributed as ESM only
+import { exec } from "child_process";
+async function getAllPids(): Promise<number[]> {
+  return new Promise<number[]>((resolve, reject) => {
+    exec("ps -A -o pid", (err, res) => {
+      const pids = res.split("\n").slice(1);
+      resolve(pids.map(p => parseInt(p, 10)));
+    });
+  });
 }
