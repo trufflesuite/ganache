@@ -2891,7 +2891,7 @@ export default class EthereumApi implements Api {
    *
    * * `oldestBlock`:  - Lowest number block of the returned range.
    * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
-   * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as teh ratio of gasUsed and gasLimit.
+   * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.
    * * `reward`:  - (optional) An array of effective priority fee per gas data points from a single block. All zeroes are returned if the block is empty.
    *
    * @example
@@ -3046,7 +3046,6 @@ export default class EthereumApi implements Api {
     }
 
     // baseFeePerGas is calculated based on the header of the previous block, include the block after newestBlock.
-
     baseFeePerGas[totalBlocks] = Quantity.from(
       Block.calcNextBaseFee(currentBlock)
     );
