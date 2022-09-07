@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.5.0",
+  "version": "0.5.2",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/utils#readme",
@@ -48,7 +48,7 @@
   ],
   "dependencies": {
     "emittery": "0.10.0",
-    "keccak": "3.0.1",
+    "keccak": "3.0.2",
     "seedrandom": "3.0.5"
   },
   "devDependencies": {

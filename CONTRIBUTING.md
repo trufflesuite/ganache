@@ -182,7 +182,7 @@ find useful.
 
 We _always_ "Squash and Merge" Pull Requests into a single commit message when merging into the `develop` branch.
 
-The "Squash and Merge" commit message _must_ be in the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) format:
+The PR title and "Squash and Merge" commit message _must_ be in the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) format. The [semantic-prs](https://github.com/Ezard/semantic-prs#readme) Github app is enabled for the repo and configured to require a PR title in the conventional commit format. When you "Squash and Merge", the commit message will automatically pull from the PR title, so just don't change this and there shouldn't be any issues. The conventional commit format is as follows:
 
 ```
 <type>[optional scope]: <description> (#PR Number)
