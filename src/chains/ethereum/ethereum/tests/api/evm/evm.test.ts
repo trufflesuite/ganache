@@ -283,7 +283,7 @@ describe("api", () => {
         const [account] = await provider.send("eth_accounts");
         const slot =
           "0x0000000000000000000000000000000000000000000000000000000000000005";
-        const newStorage = Data.from("0xbaddad42");
+        const newStorage = Data.from("0xbaddad42", 32);
         const initialStorage = await provider.send("eth_getStorageAt", [
           account,
           slot

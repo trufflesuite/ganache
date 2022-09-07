@@ -56,13 +56,13 @@
     "typescript": "4.6.4"
   },
   "dependencies": {
-    "@ethereumjs/common": "2.6.4",
+    "@ethereumjs/common": "2.6.5",
     "@ganache/ethereum-address": "0.5.1",
     "@ganache/ethereum-transaction": "0.5.1",
     "@ganache/ethereum-utils": "0.5.1",
     "@ganache/rlp": "0.5.1",
     "@ganache/utils": "0.5.1",
     "emittery": "0.10.0",
-    "ethereumjs-util": "7.1.4"
+    "ethereumjs-util": "7.1.5"
   }
 }
