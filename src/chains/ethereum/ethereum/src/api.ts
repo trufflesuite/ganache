@@ -2949,7 +2949,7 @@ export default class EthereumApi implements Api {
     }
 
     let currentBlockNumber = oldestBlockNumber;
-    let currentBlock;
+    let currentBlock: Block;
 
     while (currentBlockNumber <= newestBlockNumber) {
       currentBlock = await blockchain.blocks.get(
