@@ -2886,13 +2886,17 @@ export default class EthereumApi implements Api {
    *
    * @param blockCount - Requested range of blocks. Will return less than the requested range if not all blocks are available.
    * @param newestBlock - Highest block of the requested range.
-   * @param rewardPercentiles - (Optional) A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile will be determined, accounting for gas consumed.
+   * @param rewardPercentiles - (Optional) A monotonically increasing list of percentile values. For each block in the requested range,
+   * the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile
+   * will be determined, accounting for gas consumed.
    * @returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range
    *
    * * `oldestBlock`:  - Lowest number block of the returned range.
-   * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+   * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,
+   * because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
    * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.
-   * * `reward`:  - (optional) An array of effective priority fee per gas data points from a single block. All zeroes are returned if the block is empty.
+   * * `reward`:  - (optional) An array of effective priority fee per gas data points from a single block. All zeroes are returned if the
+   * block is empty.
    *
    * @example
    * ```javascript
@@ -2905,7 +2909,7 @@ export default class EthereumApi implements Api {
     blockCount: QUANTITY,
     newestBlock: QUANTITY | Ethereum.Tag,
     rewardPercentiles: number[]
-  ): Promise<Ethereum.FeeHistory> {
+  ): Promise<Ethereum.FeeHistory<"private">> {
     const blockchain = this.#blockchain;
     const PAD_PRECISION = 16;
     const PRECISION_FLOAT = 1e14;
@@ -2924,7 +2928,7 @@ export default class EthereumApi implements Api {
     // Cut out early if no range is given.
     if (totalBlocks === 0) {
       return {
-        oldestBlock: Quantity.from(newestBlockNumber).toString(),
+        oldestBlock: Quantity.from(newestBlockNumber),
         baseFeePerGas: undefined,
         gasUsedRatio: null,
         reward: undefined
@@ -3046,7 +3050,7 @@ export default class EthereumApi implements Api {
     );
 
     return {
-      oldestBlock: Quantity.from(oldestBlockNumber).toString(),
+      oldestBlock: Quantity.from(oldestBlockNumber),
       baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
       gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : null,
       reward: rewardPercentiles.length > 0 ? reward : undefined
