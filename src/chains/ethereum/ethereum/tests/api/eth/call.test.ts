@@ -970,7 +970,11 @@ describe("api", () => {
 
           // simulate the transaction, also setting overrides
           const overrides = {
-            [from]: { balance: "0x0", nonce: "0xfff", code: "0x12345678" }
+            [from]: {
+              balance: "0xffffffffffffffff",
+              nonce: "0xfff",
+              code: "0x12345678"
+            }
           };
           await blockchain.simulateTransaction(simTx, parentBlock, overrides);
 
