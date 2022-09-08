@@ -1140,7 +1140,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       } as any);
       fromAccount.nonce += 1n;
       const txCost = gasLimit * transaction.gasPrice.toBigInt();
-      fromAccount.balance -= txCost;
+      const startBalance = fromAccount.balance;
+      // TODO: should we throw if insufficient funds?
+      fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
       await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
 
       // finally, run the call
