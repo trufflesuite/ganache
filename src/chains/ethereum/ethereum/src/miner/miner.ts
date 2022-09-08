@@ -16,6 +16,7 @@ import {
 import { encode } from "@ganache/rlp";
 import { Trie } from "@ethereumjs/trie";
 import Emittery from "emittery";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { VM } from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
@@ -241,10 +242,10 @@ export default class Miner extends Emittery<{
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
-          transactionsTrie.root,
-          receiptTrie.root,
+          transactionsTrie.root(),
+          receiptTrie.root(),
           BUFFER_256_ZERO,
-          (vm.stateManager as any)._trie.root,
+          (vm.stateManager as DefaultStateManager)._trie.root(),
           0n, // gas used
           options.extraData,
           [],
@@ -281,7 +282,7 @@ export default class Miner extends Emittery<{
         }
       };
 
-      (vm.evm as unknown as EVM).on("step" as any, stepListener);
+      vm.evm.events.on("step" as any, stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
@@ -310,9 +311,8 @@ export default class Miner extends Emittery<{
         await vm.stateManager.checkpoint();
 
         // Set the internal trie's block number (for forking)
-        (vm.stateManager as any)._trie.blockNumber = Quantity.from(
-          runtimeBlock.header.number
-        );
+        // (vm.stateManager as DefaultStateManager)._trie.blockNumber =
+        //   Quantity.from(runtimeBlock.header.number);
 
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
@@ -398,13 +398,13 @@ export default class Miner extends Emittery<{
       await Promise.all(promises);
       await vm.stateManager.commit();
 
-      (vm.evm as unknown as EVM).removeListener("step", stepListener);
+      vm.evm.events.removeListener("step", stepListener);
 
       const finalizedBlockData = runtimeBlock.finalize(
-        transactionsTrie.root,
-        receiptTrie.root,
+        transactionsTrie.root(),
+        receiptTrie.root(),
         blockBloom,
-        (vm.stateManager as any)._trie.root,
+        (vm.stateManager as DefaultStateManager)._trie.root(),
         blockGasUsed,
         options.extraData,
         blockTransactions,
@@ -456,7 +456,7 @@ export default class Miner extends Emittery<{
       if (!this.#emitStepEvent) return;
       this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
     };
-    (vm.evm as unknown as EVM).on("step", stepListener);
+    vm.evm.events.on("step", stepListener);
     try {
       return await vm.runTx({
         tx: tx.toVmTransaction() as any,
@@ -489,7 +489,7 @@ export default class Miner extends Emittery<{
       tx.finalize("rejected", error);
       return null;
     } finally {
-      (vm.evm as unknown as EVM).removeListener("step", stepListener);
+      vm.evm.events.removeListener("step", stepListener);
       this.emit("ganache:vm:tx:after", { context });
     }
   };

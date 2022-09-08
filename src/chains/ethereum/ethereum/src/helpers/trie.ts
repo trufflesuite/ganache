@@ -1,17 +1,17 @@
 import { Quantity } from "@ganache/utils";
-import { DB, SecureTrie } from "@ethereumjs/trie";
+import { DB, Trie } from "@ethereumjs/trie";
 import Blockchain from "../blockchain";
 
-export class GanacheTrie extends SecureTrie {
+export class GanacheTrie extends Trie {
   public readonly blockchain: Blockchain;
 
   constructor(db: DB | null, root: Buffer, blockchain: Blockchain) {
-    super({ db, root, persistRoot: true });
+    super({ db, root, useRootPersistence: true, useKeyHashing: true });
     this.blockchain = blockchain;
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
-    this.root = stateRoot;
+    this.root(stateRoot);
   }
 
   /**
@@ -20,12 +20,12 @@ export class GanacheTrie extends SecureTrie {
    */
   copy(includeCheckpoints: boolean = true) {
     const secureTrie = new GanacheTrie(
-      this.dbStorage.copy(),
-      this.root,
+      this._db.copy().db,
+      this.root(),
       this.blockchain
     );
-    if (includeCheckpoints && this.isCheckpoint) {
-      secureTrie.db.checkpoints = [...this.db.checkpoints];
+    if (includeCheckpoints && this.hasCheckpoints()) {
+      secureTrie._db.checkpoints = [...this._db.checkpoints];
     }
     return secureTrie;
   }

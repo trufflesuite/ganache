@@ -3,12 +3,14 @@ import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
 import { GanacheTrie } from "../helpers/trie";
-import { CheckpointDB, DB, LevelDB } from "@ethereumjs/trie";
+import { CheckpointDB, DB } from "@ethereumjs/trie";
+
 import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheSublevel } from "../database";
+import { LevelDB } from "../leveldb";
 type KVP = { key: Buffer; value: Buffer };
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
@@ -60,17 +62,9 @@ export class ForkTrie extends GanacheTrie {
     }
   }
 
-  set root(value: Buffer) {
-    (this as any)._root = value;
-  }
-
-  get root() {
-    return (this as any)._root;
-  }
-
   checkpoint() {
     super.checkpoint();
-    this.metadata.checkpoint(this.root);
+    this.metadata.checkpoint(this.root());
   }
   async commit() {
     await Promise.all([super.commit(), this.metadata.commit()]);
@@ -146,23 +140,20 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): this is just going to be slow once we get lots of keys
     // because it just checks every single key we've ever deleted (before this
     // one).
-    //@ts-ignore
-    const stream = this.metadata.db.createReadStream({
-      lte: this.createDelKey(key),
-      reverse: true
-    });
-    for await (const data of stream) {
-      const { key: encodedKey, value } = data as unknown as KVP;
-      if (!value || !value.equals(DELETED_VALUE)) continue;
+    const stream = this.createReadStream();
+    // @ts-ignore TODO: why is this necessary? seems like a bug on ejs' end
+    stream.on("data", (data: [Buffer, Buffer]) => {
+      const [encodedKey, value] = data;
+      //if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
-    }
+    });
 
     // we didn't find proof of deletion so we return `false`
     return false;
   }
 
   async del(key: Buffer) {
-    await this.lock.wait();
+    await this._lock.acquire();
 
     // we only track if the key was deleted (locally) for state tries _after_
     // the fork block because we can't possibly delete keys _before_ the fork
@@ -183,7 +174,7 @@ export class ForkTrie extends GanacheTrie {
       if (node) await this._deleteNode(hash, stack);
     }
 
-    this.lock.signal();
+    this._lock.release();
   }
 
   /**
@@ -223,7 +214,7 @@ export class ForkTrie extends GanacheTrie {
         account.codeHash = keccak(code);
         if (!account.codeHash.equals(KECCAK256_NULL)) {
           // insert the code directly into the database with a key of `codeHash`
-          promises[2] = this.db.put(account.codeHash, code);
+          promises[2] = this._db.put(account.codeHash, code);
         }
       }
     } catch (e) {
@@ -294,15 +285,15 @@ export class ForkTrie extends GanacheTrie {
    */
   copy(includeCheckpoints: boolean = true) {
     const secureTrie = new ForkTrie(
-      this.dbStorage.copy() as LevelDB,
-      this.root,
+      this._db.copy().db,
+      this.root(),
       this.blockchain
     );
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;
-    if (includeCheckpoints && this.isCheckpoint) {
-      secureTrie.db.checkpoints = [...this.db.checkpoints];
+    if (includeCheckpoints && this.hasCheckpoints()) {
+      secureTrie._db.checkpoints = [...this._db.checkpoints];
 
       // Our `metadata.checkpoints` needs to be the same reference to the
       // parent's metadata.checkpoints so that we can continue to track these

@@ -911,11 +911,12 @@ describe("api", () => {
 
         const getDbData = async (trie: GanacheTrie) => {
           const dbData: [Buffer, Buffer][] = [];
-          for await (const data of (
-            trie.db.db as unknown as Level<Buffer, Buffer>
-          ).iterator()) {
+          const stream = trie.createReadStream();
+          // @ts-ignore TODO: why is this necessary? seems like a bug on ejs' end
+          stream.on("data", (data: [Buffer, Buffer]) => {
             dbData.push(data);
-          }
+          });
+
           return dbData;
         };
 

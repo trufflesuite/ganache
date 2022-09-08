@@ -25,7 +25,7 @@ import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
 import { EEI, VM } from "@ethereumjs/vm";
-import { EVMResult, EVM } from "@ethereumjs/evm";
+import { EVMResult } from "@ethereumjs/evm";
 import { EvmError as VmError, EvmErrorMessage as ERROR } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
@@ -59,7 +59,7 @@ import { ForkStateManager } from "./forking/state-manager";
 import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import { LevelDB } from "@ethereumjs/trie";
+import { LevelDB } from "./leveldb";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -133,9 +133,9 @@ export type BlockchainOptions = {
  * @param stateRoot -
  */
 function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
-  (stateManager as any)._trie.root = stateRoot;
-  (stateManager as any)._cache.clear();
-  (stateManager as any)._storageTries = {};
+  (stateManager as DefaultStateManager)._trie.root(stateRoot);
+  (stateManager as DefaultStateManager)._cache.clear();
+  (stateManager as DefaultStateManager)._storageTries = {};
 }
 
 function makeTrie(
@@ -672,8 +672,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
-        ? new ForkStateManager({ common, trie: stateTrie as ForkTrie })
-        : new DefaultStateManager({ common, trie: stateTrie })
+        ? new ForkStateManager({
+            trie: stateTrie as ForkTrie,
+            prefixCodeHashes: false
+          })
+        : new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
     }) as VM;
     if (activatePrecompile) {
       await activatePrecompiles(vm.eei as EEI);
@@ -743,7 +746,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         KECCAK256_RLP,
         KECCAK256_RLP,
         BUFFER_256_ZERO,
-        this.trie.root,
+        this.trie.root(),
         0n,
         minerOptions.extraData,
         [],
@@ -789,7 +792,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       KECCAK256_RLP,
       KECCAK256_RLP,
       BUFFER_256_ZERO,
-      this.trie.root,
+      this.trie.root(),
       0n,
       this.#options.miner.extraData,
       [],
@@ -1100,7 +1103,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit/revert later because this stateTrie is ephemeral anyway.
       vm.stateManager.checkpoint();
 
-      (vm.evm as unknown as EVM).on("step", (event: InterpreterStep) => {
+      vm.evm.events.on("step", (event: InterpreterStep) => {
         const logs = maybeGetLogs(event);
         if (logs) {
           options.logging.logger.log(...logs);
@@ -1210,8 +1213,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       allowUnlimitedContractSize: this.vm.evm._allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
-        ? new ForkStateManager({ common, trie: trie as ForkTrie })
-        : new DefaultStateManager({ common, trie: trie })
+        ? new ForkStateManager({
+            trie: trie as ForkTrie,
+            prefixCodeHashes: false
+          })
+        : new DefaultStateManager({ trie: trie, prefixCodeHashes: false })
     });
 
     const storage: StorageRecords = {};
@@ -1342,7 +1348,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => {};
+    (vm.stateManager as DefaultStateManager)._cache.flush = async () => {};
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
@@ -1375,7 +1381,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             );
             break;
           } else {
-            (vm.evm as unknown as EVM).on("step", stepListener);
+            vm.evm.events.on("step", stepListener);
             // force the loop to break after running this transaction by setting
             // the current iteration past the end
             i = l;
@@ -1389,7 +1395,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           context: transactionEventContext
         });
       }
-      (vm.evm as any).removeListener("step", stepListener);
+      vm.evm.events.removeListener("step", stepListener);
     } finally {
       await vm.stateManager.revert();
     }
@@ -1672,7 +1678,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     clearTimeout(this.#timer);
 
     // clean up listeners
-    this.vm && this.vm.removeAllListeners();
+    if (this.vm) {
+      this.vm.events.removeAllListeners();
+      this.vm.evm && this.vm.evm.events.removeAllListeners();
+    }
 
     // pause processing new transactions...
     this.transactions && (await this.transactions.pause());

@@ -145,9 +145,7 @@ export async function applySimulationOverrides(
         const codeHash =
           codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
         account.codeHash = codeHash;
-        // TODO: this should be stored as an option and done conditionally
-        const prefixedCodeHash = Buffer.concat([Buffer.from([0x63]), codeHash]);
-        await stateTrie.db.put(prefixedCodeHash, codeBuffer);
+        await stateTrie.database().put(codeHash, codeBuffer);
       }
       await stateManager.putAccount(vmAddr, account);
     }
