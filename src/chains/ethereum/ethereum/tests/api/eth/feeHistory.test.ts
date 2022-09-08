@@ -2,6 +2,7 @@ import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
+import { Transaction, TransactionFactory } from "@ganache/ethereum-transaction";
 
 let provider: EthereumProvider;
 const oneGwei = Quantity.Gwei;
@@ -313,8 +314,12 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+          const block: any = await provider.send("eth_getBlockByNumber", [
+            "latest"
+          ]);
+          const tx: any = await provider.send("eth_getTransactionByHash", [
+            txHash
+          ]);
 
           const reward = tx.maxFeePerGas - block.baseFeePerGas;
 
@@ -339,7 +344,9 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+          const tx: any = await provider.send("eth_getTransactionByHash", [
+            txHash
+          ]);
 
           const reward = tx.maxPriorityFeePerGas;
 
@@ -364,8 +371,12 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+          const block: any = await provider.send("eth_getBlockByNumber", [
+            "latest"
+          ]);
+          const tx: any = await provider.send("eth_getTransactionByHash", [
+            txHash
+          ]);
 
           const reward = tx.gasPrice - block.baseFeePerGas;
 
