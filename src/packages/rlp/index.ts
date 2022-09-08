@@ -1,6 +1,5 @@
 import type { RangeOf, Remainders } from "./types";
 import { uintToBuffer } from "@ganache/utils";
-import { BlockList } from "net";
 
 export declare type Input = Buffer | Buffer[] | List;
 export interface List extends Array<Input> {}

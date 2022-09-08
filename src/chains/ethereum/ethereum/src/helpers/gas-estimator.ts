@@ -164,7 +164,7 @@ const exactimate = async (
   callback: (err: Error, result?: EstimateGasResult) => void
 ) => {
   const steps = stepTracker();
-  (vm.evm as unknown as EVM).on("step", steps.collect);
+  vm.evm.events.on("step", steps.collect);
 
   type ContextType = ReturnType<typeof Context>;
   const Context = (index: number, fee?: BN) => {
