@@ -21,8 +21,8 @@ export class WsHandler extends BaseHandler implements Handler {
   >();
 
   // retry configuration
-  private retryIntervalBase: number = 3;
-  private retryCounter: number = 5;
+  private retryIntervalBase: number = 2;
+  private retryCounter: number = 3;
   private initialRetryCounter = this.retryCounter;
   private retryTimeoutId: NodeJS.Timeout;
 
@@ -34,38 +34,16 @@ export class WsHandler extends BaseHandler implements Handler {
       logging
     } = options;
 
-    this.connection = new WebSocket(url.toString(), {
-      origin,
-      headers: this.headers
-    });
-    // `nodebuffer` is already the default, but I just wanted to be explicit
-    // here because when `nodebuffer` is the binaryType the `message` event's
-    // data type is guaranteed to be a `Buffer`. We don't need to check for
-    // different types of data.
-    // I mention all this because if `arraybuffer` or `fragment` is used for the
-    // binaryType the `"message"` event's `data` may end up being
-    // `ArrayBuffer | Buffer`, or `Buffer[] | Buffer`, respectively.
-    // If you need to change this, you probably need to change our `onMessage`
-    // handler too.
-    this.connection.binaryType = "nodebuffer";
-
-    this.open = this.connect(this.connection, logging);
+    this.open = this.connect(url.toString(), origin, logging);
     this.connection.onclose = () => {
       // try to connect again...
       // backoff and eventually fail
-      if( this.retryCounter > 0 || this.retryCounter == -1 ) {
-        if( this.retryCounter !== -1 ) this.retryCounter--;
+      if( this.retryCounter > 0 ) {
         clearTimeout( this.retryTimeoutId );
         this.retryTimeoutId = setTimeout( () => {
-          const onCloseEvent = this.connection.onclose;
-          this.connection = new WebSocket(url.toString(), {
-            origin,
-            headers: this.headers
-          });
-          this.connection.binaryType = "nodebuffer";
-          this.connection.onclose = onCloseEvent;
-          this.open = this.connect(this.connection, logging);
+          this.reconnect(url.toString(), origin, logging);
         }, Math.pow( this.retryIntervalBase, this.initialRetryCounter - this.retryCounter ) * 1000 );
+        this.retryCounter--;
     }
     };
     this.abortSignal.addEventListener("abort", () => {
@@ -123,17 +101,32 @@ export class WsHandler extends BaseHandler implements Handler {
   }
 
   private connect(
-    connection: WebSocket,
+    url: string,
+    origin: string,
     logging: EthereumInternalOptions["logging"]
   ) {
+    this.connection = new WebSocket(url, {
+      origin,
+      headers: this.headers
+    });
+    // `nodebuffer` is already the default, but I just wanted to be explicit
+    // here because when `nodebuffer` is the binaryType the `message` event's
+    // data type is guaranteed to be a `Buffer`. We don't need to check for
+    // different types of data.
+    // I mention all this because if `arraybuffer` or `fragment` is used for the
+    // binaryType the `"message"` event's `data` may end up being
+    // `ArrayBuffer | Buffer`, or `Buffer[] | Buffer`, respectively.
+    // If you need to change this, you probably need to change our `onMessage`
+    // handler too.
+    this.connection.binaryType = "nodebuffer";
     let open = new Promise((resolve, reject) => {
-      connection.onopen = resolve;
-      connection.onerror = reject;
+      this.connection.onopen = resolve;
+      this.connection.onerror = reject;
     });
     open.then(
       () => {
-        connection.onopen = null;
-        connection.onerror = null;
+        this.connection.onopen = null;
+        this.connection.onerror = null;
         // reset the retry counter
         this.retryCounter = this.initialRetryCounter;
       },
@@ -142,6 +135,14 @@ export class WsHandler extends BaseHandler implements Handler {
       }
     );
     return open;
+  }
+
+  private reconnect (url: string,
+    origin: string,
+    logging: EthereumInternalOptions["logging"]) {
+    const onCloseEvent = this.connection.onclose;
+    this.open = this.connect(url, origin, logging);
+    this.connection.onclose = onCloseEvent;
   }
 
   public async close() {
