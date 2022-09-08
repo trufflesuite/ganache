@@ -1,13 +1,13 @@
-// @ts-nocheck
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
+
 let provider: EthereumProvider;
-const oneGwei = Quantity.Gwei.toString();
-const twoGwei = Quantity.toString(2e9);
-const threeGwei = Quantity.toString(3e9);
-const fourGwei = Quantity.toString(4e9);
+const oneGwei = Quantity.Gwei;
+const twoGwei = Quantity.from(2e9);
+const threeGwei = Quantity.from(3e9);
+const fourGwei = Quantity.from(4e9);
 
 async function sendTransaction(params) {
   const { provider, from, to, maxPriorityFeePerGas } = params;
@@ -413,10 +413,15 @@ describe("api", () => {
           const block = await provider.send("eth_getBlockByNumber", ["latest"]);
 
           // reward = gasPrice - block.baseFeePerGas
-          const first25Reward = oneGwei - block.baseFeePerGas; // reward for first 25% of block gas
-          const second25Reward = twoGwei - block.baseFeePerGas; // reward for next 25% of block gas
-          const third25Reward = threeGwei - block.baseFeePerGas; // etc
-          const last25Reward = fourGwei - block.baseFeePerGas; // last 25%
+          const first25Reward =
+            oneGwei.toBigInt() - Quantity.from(block.baseFeePerGas).toBigInt(); // reward for first 25% of block gas
+          const second25Reward =
+            twoGwei.toBigInt() - Quantity.from(block.baseFeePerGas).toBigInt(); // reward for next 25% of block gas
+          const third25Reward =
+            threeGwei.toBigInt() -
+            Quantity.from(block.baseFeePerGas).toBigInt(); // etc
+          const last25Reward =
+            fourGwei.toBigInt() - Quantity.from(block.baseFeePerGas).toBigInt(); // last 25%
 
           const feeHistory = await provider.send("eth_feeHistory", [
             blockCount,
@@ -463,7 +468,8 @@ describe("api", () => {
           ]);
 
           const firstBlockReward = Quantity.from(
-            oneGwei - firstBlock.baseFeePerGas
+            oneGwei.toBigInt() -
+              Quantity.from(firstBlock.baseFeePerGas).toBigInt()
           ).toString();
 
           await sendLegacyTransaction({
@@ -486,10 +492,12 @@ describe("api", () => {
           ]);
 
           const secondBlockFirstHalf = Quantity.from(
-            threeGwei - secondBlock.baseFeePerGas
+            threeGwei.toBigInt() -
+              Quantity.from(secondBlock.baseFeePerGas).toBigInt()
           ).toString();
           const secondBlockSecondHalf = Quantity.from(
-            fourGwei - secondBlock.baseFeePerGas
+            fourGwei.toBigInt() -
+              Quantity.from(secondBlock.baseFeePerGas).toBigInt()
           ).toString();
 
           const feeHistory = await provider.send("eth_feeHistory", [
