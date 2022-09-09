@@ -12,6 +12,9 @@ jobs:
     # this should match the os version used by the "check bundle size" step in
     # pr.yml
     runs-on: ubuntu-20.04
+    outputs:
+      TAG: ${{ steps.set_tag_output.outputs.TAG }}
+      VERSION: ${{ steps.set_version_output.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -39,15 +42,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run installation
-        run: npm ci
-
-      - name: Test
-        run: npm test
-        env:
-          FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
-
       - name: Set TAG for master to latest
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
@@ -57,6 +51,10 @@ jobs:
         if: ${{ github.ref != 'refs/heads/master' }}
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Set TAG as job output variable
+        id: set_tag_output
+        run: echo "::set-output name=TAG::${TAG}"
 
       - name: Count features
         if: ${{ env.TAG == 'latest'}}
@@ -94,6 +92,15 @@ jobs:
         if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
         run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
 
+      - name: Run installation
+        run: npm ci
+
+      - name: Test
+        run: npm test
+        env:
+          FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
         run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
@@ -118,6 +125,10 @@ jobs:
       - name: Set VERSION
         run: |
           echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+
+      - name: Set VERSION as job output variable
+        id: set_version_output
+        run: echo "::set-output name=VERSION::${VERSION}"
 
       - name: Commit all staged changes
         run: |
@@ -171,8 +182,8 @@ jobs:
         # containing an `action.yml` file
         uses: ./.github/actions/docker-publish
         with:
-          VERSION: ${{ env.VERSION }}
-          TAG: ${{ env.TAG }}
+          VERSION: ${{ needs.release.outputs.VERSION }}
+          TAG: ${{ needs.release.outputs.TAG }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
           INFURA_KEY: ${{ secrets.INFURA_KEY }}
