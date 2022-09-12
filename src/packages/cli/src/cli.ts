@@ -193,7 +193,7 @@ if (argv.action === "start") {
       console.error("Process not found");
     }
   });
-} else if (argv.action === "detach") {
+} else if (argv.action === "start-detached") {
   startDetachedInstance(process.argv, argv.server.host, argv.server.port)
     .then(instance => {
       const highlightedName = chalk.hex(TruffleColors.porsche)(

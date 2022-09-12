@@ -6,15 +6,23 @@ type CliServerOptions = {
   port: number;
 };
 
-export type Argv =
-  | (ServerOptions<FlavorName> & {
-      _: [FlavorName];
-      server: CliServerOptions;
-      action: "start" | "detach";
-    })
-  | { action: "stop"; name: string }
-  | { action: "list" };
+type Action = "start" | "start-detached" | "list" | "stop";
+
+type AbstractArgs<TAction = Action> = {
+  action: TAction;
+};
+
+export type StartArgs<TFlavorName extends FlavorName> =
+  ServerOptions<TFlavorName> & {
+    _: [TFlavorName];
+    server: CliServerOptions;
+  } & AbstractArgs<"start" | "start-detached">;
+
+export type GeneralArgs =
+  | (AbstractArgs<"stop"> & { name: string })
+  | AbstractArgs<"list">
+  | StartArgs<FlavorName>;
 
 export type CliSettings = CliServerOptions;
 
-export type Command = FlavorName | ["$0", typeof DefaultFlavor];
+export type FlavorCommand = FlavorName | ["$0", typeof DefaultFlavor];

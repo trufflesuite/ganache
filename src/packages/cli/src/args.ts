@@ -4,14 +4,15 @@ import yargs, { Options } from "yargs";
 import {
   DefaultFlavor,
   FilecoinFlavorName,
-  DefaultOptionsByName
+  DefaultOptionsByName,
+  FlavorName
 } from "@ganache/flavors";
 import {
   Base,
   Definitions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
-import { Command, Argv } from "./types";
+import { FlavorCommand, StartArgs, GeneralArgs } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
@@ -154,7 +155,7 @@ export default function (
   isDocker: boolean,
   rawArgs = process.argv.slice(2)
 ) {
-  let finalArgs: Argv;
+  let finalArgs: GeneralArgs;
 
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
@@ -177,7 +178,7 @@ export default function (
   let flavor: keyof typeof DefaultOptionsByName;
   for (flavor in DefaultOptionsByName) {
     const flavorDefaults = DefaultOptionsByName[flavor];
-    let command: Command;
+    let command: FlavorCommand;
     let defaultPort: number;
     switch (flavor) {
       // since "ethereum" is the DefaultFlavor we don't need a `case` for it
@@ -277,18 +278,19 @@ export default function (
 
   if (parsedArgs.action === "stop") {
     finalArgs = {
-      action: parsedArgs.action,
+      action: "stop",
       name: parsedArgs.name as string
     };
   } else if (parsedArgs.action === "list") {
-    finalArgs = { action: parsedArgs.action };
+    finalArgs = { action: "list" };
   } else {
+    const action = parsedArgs.detach ? "start-detached" : "start";
     const selectedFlavor =
       parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor;
     finalArgs = {
       flavor: selectedFlavor,
-      action: parsedArgs.action
-    } as Argv;
+      action
+    } as StartArgs<FlavorName>;
     for (const key in parsedArgs) {
       // split on the first "."
       const [group, option] = key.split(/\.(.+)/);
