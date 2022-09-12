@@ -2,7 +2,14 @@ import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
-import { Transaction, TransactionFactory } from "@ganache/ethereum-transaction";
+import {
+  EIP1559FeeMarketRpcTransaction,
+  EIP1559FeeMarketTransaction,
+  Transaction,
+  LegacyRpcTransaction,
+  EIP1559FeeMarketTransactionJSON
+} from "@ganache/ethereum-transaction";
+import { Ethereum } from "../../../src/api-types";
 
 let provider: EthereumProvider;
 const oneGwei = Quantity.Gwei;
@@ -12,23 +19,23 @@ const fourGwei = Quantity.from(4e9);
 
 async function sendTransaction(params) {
   const { provider, from, to, maxPriorityFeePerGas } = params;
-  const tx = {
+  const tx: EIP1559FeeMarketRpcTransaction = {
     from,
     to,
     value: "0x123",
     type: "0x2",
     maxPriorityFeePerGas
-  } as any;
+  };
   return await provider.send("eth_sendTransaction", [tx]);
 }
 async function sendLegacyTransaction(params) {
   const { provider, from, to, gasPrice } = params;
-  const tx = {
+  const tx: LegacyRpcTransaction = {
     from,
     to,
     value: "0x123",
     gasPrice
-  } as any;
+  };
   return await provider.send("eth_sendTransaction", [tx]);
 }
 async function mineNBlocks(params) {
@@ -314,14 +321,13 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const block: any = await provider.send("eth_getBlockByNumber", [
-            "latest"
-          ]);
-          const tx: any = await provider.send("eth_getTransactionByHash", [
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          const tx = (await provider.send("eth_getTransactionByHash", [
             txHash
-          ]);
-
-          const reward = tx.maxFeePerGas - block.baseFeePerGas;
+          ])) as Ethereum.Block.Transaction.EIP1559;
+          const reward =
+            Quantity.from(tx.maxFeePerGas).toBigInt() -
+            Quantity.from(block.baseFeePerGas).toBigInt();
 
           const feeHistory = await provider.send("eth_feeHistory", [
             blockCount,
@@ -344,9 +350,9 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const tx: any = await provider.send("eth_getTransactionByHash", [
+          const tx = (await provider.send("eth_getTransactionByHash", [
             txHash
-          ]);
+          ])) as Ethereum.Block.Transaction.EIP1559;
 
           const reward = tx.maxPriorityFeePerGas;
 
@@ -371,14 +377,12 @@ describe("api", () => {
 
           await mineNBlocks({ provider, blocks: 1 });
 
-          const block: any = await provider.send("eth_getBlockByNumber", [
-            "latest"
-          ]);
-          const tx: any = await provider.send("eth_getTransactionByHash", [
-            txHash
-          ]);
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
 
-          const reward = tx.gasPrice - block.baseFeePerGas;
+          const reward =
+            Quantity.from(tx.gasPrice).toBigInt() -
+            Quantity.from(block.baseFeePerGas).toBigInt();
 
           const feeHistory = await provider.send("eth_feeHistory", [
             blockCount,
