@@ -306,3 +306,37 @@ export default function (
 
   return finalArgs;
 }
+
+/**
+ * Takes the parsed, and namespaced args, and flattens them into an array
+ * of arguments to be passed to a child process. This handles "special"
+ * arguments, such as "action", "flavor" and "--detach".
+ * @param  {StartArgs<FlavorName>} args to be flattened
+ * @returns string[] of flattened arguments
+ */
+export function createFlatChildArgs(args: StartArgs<FlavorName>): string[] {
+  const flattenedArgs = [];
+
+  function flatten(namespace: string, args: object) {
+    const prefix = namespace === null ? "" : `${namespace}.`;
+    for (const key in args) {
+      const value = args[key];
+      if (key === "flavor") {
+        // flavor is input as a command, e.g. `ganache filecoin`, so we just
+        // unshift it to the start of the array
+        flattenedArgs.unshift(value);
+        // action doesn't need to be specified in the returned arguments array
+      } else if (key !== "action") {
+        if (typeof value === "object") {
+          flatten(`${prefix}${key}`, value);
+        } else {
+          flattenedArgs.push(`--${prefix}${key}=${value}`);
+        }
+      }
+    }
+  }
+
+  flatten(null, args);
+
+  return flattenedArgs;
+}

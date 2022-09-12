@@ -74,7 +74,6 @@ const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
 const argv = args(detailedVersion, isDocker);
-
 if (argv.action === "start") {
   const flavor = argv.flavor;
   const cliSettings = argv.server;
@@ -194,7 +193,9 @@ if (argv.action === "start") {
     }
   });
 } else if (argv.action === "start-detached") {
-  startDetachedInstance(process.argv, argv.server.host, argv.server.port)
+  const module = process.argv[1];
+
+  startDetachedInstance(module, argv)
     .then(instance => {
       const highlightedName = chalk.hex(TruffleColors.porsche)(
         instance.friendlyName
@@ -215,6 +216,7 @@ if (argv.action === "start") {
       [
         chalk.bold("PID"),
         chalk.bold("Name"),
+        chalk.bold("Flavor"),
         chalk.bold("Host"),
         chalk.bold("Port"),
         chalk.bold("Uptime")
@@ -228,6 +230,7 @@ if (argv.action === "start") {
       rows.push([
         instance.pid.toString(),
         chalk.hex(TruffleColors.porsche)(instance.friendlyName),
+        instance.flavor,
         instance.host,
         instance.port.toString(),
         formatDuration(uptime)

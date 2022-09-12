@@ -1,7 +1,34 @@
 import assert from "assert";
-import args from "../src/args";
+import args, { flatten } from "../src/args";
 
-describe("args", () => {
+describe.only("args", () => {
+  describe.only("flatten", () => {
+    it("should flatten a simple object", () => {
+      const input = {
+        a: "value-a",
+        b: "value-b"
+      };
+
+      const result = flatten(input);
+
+      assert.deepStrictEqual(result, ["--a=value-a", "--b=value-b"]);
+    });
+
+    it("should flatten a namespaced object", () => {
+      const input = {
+        a: {
+          aa: "value-aa"
+        },
+        b: {
+          bb: "value-bb"
+        }
+      };
+
+      const result = flatten(input);
+      assert.deepStrictEqual(result, ["--a.aa=value-aa", "--b.bb=value-bb"]);
+    });
+  });
+
   describe("detach", () => {
     const versionString = "Version string";
     const isDocker = false;
@@ -28,8 +55,8 @@ describe("args", () => {
       const options = args(versionString, isDocker, rawArgs);
 
       assert.strictEqual(
-        options.detach,
-        false,
+        options.action,
+        "start",
         `Expected "options.detach" to be false when no argument is provided`
       );
     });
@@ -40,8 +67,8 @@ describe("args", () => {
         const options = args(versionString, false, rawArgs);
 
         assert.strictEqual(
-          options.detach,
-          true,
+          options.action,
+          "start-detached",
           `Expected "options.detach" to be true with arg ${arg}`
         );
       });
@@ -53,8 +80,8 @@ describe("args", () => {
         const options = args(versionString, false, rawArgs);
 
         assert.strictEqual(
-          options.detach,
-          false,
+          options.action,
+          "start",
           `Expected "options.detach" to be false with arg ${arg}`
         );
       });

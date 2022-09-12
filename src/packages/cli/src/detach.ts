@@ -11,6 +11,9 @@ import {
 } from "fs";
 import path from "path";
 import psList from "ps-list";
+import { StartArgs } from "./types";
+import { FlavorName } from "@ganache/flavors";
+import { createFlatChildArgs } from "./args";
 
 export type DetachedInstance = {
   friendlyName: string;
@@ -18,6 +21,7 @@ export type DetachedInstance = {
   startTime: number;
   host: string;
   port: number;
+  flavor: FlavorName;
 };
 
 const dataPath = envPaths(`ganache`).data;
@@ -82,15 +86,12 @@ export async function stopDetachedInstance(
  * is started and ready to receive requests.
  */
 export async function startDetachedInstance(
-  argv: string[],
-  host: string,
-  port: number
+  module: string,
+  args: StartArgs<FlavorName>
 ): Promise<DetachedInstance> {
-  const module = argv[1];
-  const args = argv.slice(2);
-  args.splice(args.indexOf("--detach"), 1);
-
-  const child = fork(module, args, {
+  const flavor = args.flavor;
+  const childArgs = createFlatChildArgs(args);
+  const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
   });
@@ -99,10 +100,13 @@ export async function startDetachedInstance(
   // event is emitted) will be streamed to stderr on the parent.
   child.stderr.pipe(process.stderr);
 
+  const instances = await getDetachedInstances();
+  const instanceNames = instances.map(instance => instance.friendlyName);
+
   let friendlyName: string;
   do {
     friendlyName = createProcessName();
-  } while (await findDetachedInstanceByName(friendlyName));
+  } while (instanceNames.indexOf(friendlyName) !== -1);
 
   await new Promise<void>((resolve, reject) => {
     child.on("message", message => {
@@ -133,20 +137,18 @@ export async function startDetachedInstance(
   child.unref();
   child.disconnect();
 
-  const instance = {
+  const instance: DetachedInstance = {
     startTime: Date.now(),
     pid: child.pid,
     friendlyName,
-    host,
-    port
+    host: args.server.host,
+    port: args.server.port,
+    flavor
   };
 
   const instanceFilename = `${dataPath}/${instance.pid}`;
 
-  writeFileSync(
-    instanceFilename,
-    `${instance.friendlyName}|${instance.startTime}|${instance.host}|${instance.port}`
-  );
+  writeFileSync(instanceFilename, JSON.stringify(instance));
 
   return instance;
 }
@@ -168,15 +170,8 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
     if (pids.some(p => p === parseInt(pid))) {
       const filepath = path.join(dataPath, pid);
       const content = readFileSync(filepath).toString("utf8");
-      const [friendlyName, startTime, host, port] = content.split("|");
-
-      instances.push({
-        friendlyName,
-        startTime: parseInt(startTime, 10),
-        pid: parseInt(files[i]),
-        host,
-        port: parseInt(port)
-      });
+      const instance = JSON.parse(content) as DetachedInstance;
+      instances.push(instance);
     } else {
       removeDetachedInstanceFile(parseInt(pid));
     }
