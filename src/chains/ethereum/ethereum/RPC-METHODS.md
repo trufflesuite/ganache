@@ -518,10 +518,6 @@ Returns: An Array with the following elements:
 2. `DATA`, 32 Bytes - the seed hash used for the DAG.
 3. `DATA`, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
 
-##### Arguments
-
-- `filterId: QUANTITY` : A filter id.
-
 ##### Returns
 
 `Promise<[] | [string, string, string]>` : The hash of the current block, the seedHash, and the boundary condition to be met ("target").

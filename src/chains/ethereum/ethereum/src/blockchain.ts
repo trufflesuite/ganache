@@ -294,18 +294,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       {
-        // create first block
+        // Grab current time once to be used in all references to "now", to avoid
+        // any discrepancies. See https://github.com/trufflesuite/ganache/issues/3271
+        const startTime = new Date();
 
         // if we don't have a time from the user get one now
-        if (options.chain.time == null) options.chain.time = new Date();
+        if (options.chain.time == null) options.chain.time = startTime;
 
+        // create first block
         const timestamp = options.chain.time.getTime();
         const firstBlockTime = Math.floor(timestamp / 1000);
 
         // if we are using clock time we need to record the time offset so
         // other blocks can have timestamps relative to our initial time.
         if (options.miner.timestampIncrement === "clock") {
-          this.#timeAdjustment = timestamp - Date.now();
+          this.#timeAdjustment = timestamp - +startTime;
         }
 
         // if we don't already have a latest block, create a genesis block!
@@ -593,6 +596,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     onlyOneBlock: boolean = false
   ) => {
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
+
+    // if block time is incremental, adjustments should only apply once, 
+    // otherwise they accumulate with each block.
+    if (this.#options.miner.timestampIncrement !== "clock") {
+      this.#timeAdjustment = 0;
+    }
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,
@@ -615,7 +624,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   resume(_threads: number = 1) {
     if (!this.#isPaused()) {
-      console.log("Warning: startMining called when miner was already started");
+      this.#options.logging.logger.log(
+        "Warning: startMining called when miner was already started"
+      );
       return;
     }
 
@@ -1088,7 +1099,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const logs = maybeGetLogs(event);
         if (logs) {
           options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", { context, logs });
+          this.emit("ganache:vm:tx:console.log", {
+            context: transactionContext,
+            logs
+          });
         }
 
         if (!this.#emitStepEvent) return;
@@ -1201,6 +1215,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
     // (Ganache v2 didn't handle this possibility either, so it hasn't been
     // updated yet)
+    // Issue: https://github.com/trufflesuite/ganache/issues/3473
     let gas = 0;
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();

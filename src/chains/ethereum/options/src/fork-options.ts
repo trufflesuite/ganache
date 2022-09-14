@@ -17,14 +17,16 @@ type KnownNetworks =
   | "kovan"
   | "rinkeby"
   | "goerli"
-  | "görli";
+  | "görli"
+  | "sepolia";
 export const KNOWN_NETWORKS = [
   "mainnet",
   "ropsten",
   "kovan",
   "rinkeby",
   "goerli",
-  "görli"
+  "görli",
+  "sepolia"
 ] as UnionToTuple<KnownNetworks>;
 
 export type ForkConfig = {

@@ -65,6 +65,7 @@ export default class BlockLogManager extends Manager<BlockLogs> {
         blockLogsRange.forEach(blockLogs => {
           // TODO(perf): this loops over all addresses for every block.
           // Maybe make it loop only once?
+          // Issue: https://github.com/trufflesuite/ganache/issues/3482
           if (blockLogs)
             filteredBlockLogs.push(...blockLogs.filter(addresses, topics));
         });

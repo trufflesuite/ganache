@@ -82,11 +82,14 @@ describe("blockchain", async () => {
           try {
             const blockNumber = block.header.number.toString();
             const expectedBlockNumber = startingBlockNumber + i + 1;
-            assert.equal(blockNumber, `0x${expectedBlockNumber.toString(16)}`);
-            assert.equal(transactions.length, 1);
+            assert.strictEqual(
+              blockNumber,
+              `0x${expectedBlockNumber.toString(16)}`
+            );
+            assert.strictEqual(transactions.length, 1);
 
             const transaction = transactions[0];
-            assert.equal(
+            assert.strictEqual(
               transaction.hash.toString(),
               transactionHashes[i].toString()
             );

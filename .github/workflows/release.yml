@@ -1,5 +1,8 @@
 name: Release
 
+# allow only one "Release" workflow to run at a time
+concurrency: production
+
 on:
   push:
     branches: [alpha, beta, rc, master]
@@ -9,6 +12,9 @@ jobs:
     # this should match the os version used by the "check bundle size" step in
     # pr.yml
     runs-on: ubuntu-20.04
+    outputs:
+      TAG: ${{ steps.set_tag_output.outputs.TAG }}
+      VERSION: ${{ steps.set_version_output.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -36,15 +42,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run installation
-        run: npm ci
-
-      - name: Test
-        run: npm test
-        env:
-          FORCE_COLOR: 1
-          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
-
       - name: Set TAG for master to latest
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
@@ -54,6 +51,10 @@ jobs:
         if: ${{ github.ref != 'refs/heads/master' }}
         run: |
           echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Set TAG as job output variable
+        id: set_tag_output
+        run: echo "::set-output name=TAG::${TAG}"
 
       - name: Count features
         if: ${{ env.TAG == 'latest'}}
@@ -91,6 +92,15 @@ jobs:
         if: ${{ env.TAG == 'latest' && env.FEATURE_COUNT == '0' }}
         run: echo "RELEASE_KIND=patch" >> $GITHUB_ENV
 
+      - name: Run installation
+        run: npm ci
+
+      - name: Test
+        run: npm test
+        env:
+          FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
+
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
         run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
@@ -115,6 +125,10 @@ jobs:
       - name: Set VERSION
         run: |
           echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+
+      - name: Set VERSION as job output variable
+        id: set_version_output
+        run: echo "::set-output name=VERSION::${VERSION}"
 
       - name: Commit all staged changes
         run: |
@@ -146,49 +160,31 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # publish to docker and github packages
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: |
-            trufflesuite/ganache
-            ghcr.io/${{ github.repository}}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@0522dcd2bf084920c411162fde334a308be75015
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@91cb32d715c128e5f0ede915cd7e196ab7799b83
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: .
-          file: ./src/packages/ganache/Dockerfile
-          push: true
-          tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', env.TAG, env.VERSION) }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/arm64/v8,linux/amd64
-          build-args: |
-            INFURA_KEY=${{ secrets.INFURA_KEY }}
-
       - name: Merge changes back into develop for latest release (master)
         if: ${{ env.TAG == 'latest' }}
         run: |
           git checkout develop
           git merge origin/master
           git push origin develop
+
+  publish-docker:
+    needs: release
+    runs-on: ubuntu-20.04
+    steps:
+      # because the docker publish action is an action we made, we have to
+      # check out the repo
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Ganache's docker publish action
+        # we are running our local action, so point directly to a folder
+        # containing an `action.yml` file
+        uses: ./.github/actions/docker-publish
+        with:
+          VERSION: ${{ needs.release.outputs.VERSION }}
+          TAG: ${{ needs.release.outputs.TAG }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

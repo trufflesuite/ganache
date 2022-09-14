@@ -353,6 +353,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountNonce(address: DATA, nonce: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
@@ -391,6 +392,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountBalance(address: DATA, balance: QUANTITY) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
     const blockchain = this.#blockchain;
     const stateManager = blockchain.vm.stateManager;
@@ -429,6 +431,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountCode(address: DATA, code: DATA) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
@@ -477,6 +480,7 @@ export default class EthereumApi implements Api {
   async evm_setAccountStorageAt(address: DATA, slot: DATA, value: DATA) {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
+    // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);
@@ -866,7 +870,6 @@ export default class EthereumApi implements Api {
 
   //#region eth
 
-  // TODO: example doesn't return correct value
   /**
    * Generates and returns an estimate of how much gas is necessary to allow the
    * transaction to complete. The transaction will not be added to the
@@ -1044,6 +1047,102 @@ export default class EthereumApi implements Api {
       .catch<Block>(_ => null);
     // @ts-ignore
     return block ? block.toJSON<IncludeTransactions>(transactions) : null;
+  }
+
+  /**
+   * Returns the details for the account at the specified address and block
+   * number, the account's Merkle proof, and the storage values for the
+   * specified storage keys with their Merkle-proofs.
+   *
+   * @param address - Address of the account
+   * @param storageKeys - Array of storage keys to be proofed.
+   * @param blockNumber - A block number, or the string "earliest", "latest", or
+   * "pending".
+   * @returns An object containing the details for the account at the specified
+   * address and block number, the account's Merkle proof, and the
+   * storage-values for the specified storage keys with their Merkle-proofs:
+   * * `balance`: `QUANTITY` - the balance of the account.
+   * * `codeHash`: `DATA` - 32 Bytes - hash of the account. A simple account
+   *   without code will return
+   *   `"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"`
+   * * `nonce`: `QUANTITY` - the nonce of the account.
+   * * `storageHash`: `DATA` - 32 Bytes - SHA3 of the StorageRoot. All storage
+   *   will deliver a MerkleProof starting with this rootHash.
+   * * `accountProof`: `Array` - Array of rlp-serialized MerkleTree-Nodes,
+   *   starting with the stateRoot-NODE, following the path of the SHA3
+   *   (address) as key.
+   * * `storageProof`: `Array` - Array of storage entries as requested. Each
+   *   entry is an object with the following properties:
+   *   * `key`: `DATA` - the requested storage key.
+   *   * `value`: `QUANTITY` - the storage value.
+   *   * `proof`: `Array` - Array of rlp-serialized MerkleTree-Nodes, starting
+   *     with the storageHash-Node, following the path of the SHA3 (key) as
+   *     path.
+   * @example
+   * ```javascript
+   * // Simple.sol
+   * // // SPDX-License-Identifier: MIT
+   * //  pragma solidity ^0.7.4;
+   * //
+   * //  contract Simple {
+   * //      uint256 public value;
+   * //      constructor() payable {
+   * //          value = 5;
+   * //      }
+   * //  }
+   * const simpleSol = "0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033";
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
+   * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
+   * await provider.once("message"); // Note: `await provider.once` is non-standard
+   * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
+   * const proof = await provider.request({ method: "eth_getProof", params: [txReceipt.contractAddress, ["0x0", "0x1"], "latest"] });
+   * console.log(proof);
+   * ```
+   */
+  @assertArgLength(2, 3)
+  async eth_getProof(
+    address: DATA,
+    storageKeys: DATA[],
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
+  ): Promise<Ethereum.AccountProof<"private">> {
+    const blockchain = this.#blockchain;
+
+    if (blockchain.fallback) {
+      throw new Error(
+        "eth_getProof is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3234 for details."
+      );
+    }
+    const targetBlock = await blockchain.blocks.get(blockNumber);
+
+    const ganacheAddress = Address.from(address);
+    const bufferAddress = ganacheAddress.toBuffer();
+    const ethereumJsAddress = { buf: bufferAddress } as any;
+    const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
+
+    const stateManagerCopy = blockchain.vm.stateManager.copy();
+    await stateManagerCopy.setStateRoot(
+      targetBlock.header.stateRoot.toBuffer()
+    );
+
+    const proof = await stateManagerCopy.getProof(
+      ethereumJsAddress,
+      slotBuffers
+    );
+
+    return {
+      address: ganacheAddress,
+      balance: Quantity.from(proof.balance),
+      codeHash: Data.from(proof.codeHash),
+      nonce: Quantity.from(proof.nonce),
+      storageHash: Data.from(proof.storageHash),
+      accountProof: proof.accountProof.map(p => Data.from(p)),
+      storageProof: proof.storageProof.map(storageProof => ({
+        key: Data.from(storageProof.key),
+        proof: storageProof.proof.map(p => Data.from(p)),
+        value: Quantity.from(storageProof.value)
+      }))
+    };
   }
 
   /**
@@ -1402,15 +1501,14 @@ export default class EthereumApi implements Api {
    * 2: `DATA`, 32 Bytes - the seed hash used for the DAG.
    * 3: `DATA`, 32 Bytes - the boundary condition ("target"), 2^256 / difficulty.
    *
-   * @param filterId - A filter id.
    * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
    * @example
    * ```javascript
-   * console.log(await provider.send("eth_getWork", ["0x0"] ));
+   * console.log(await provider.send("eth_getWork", [] ));
    * ```
    */
-  @assertArgLength(1)
-  async eth_getWork(filterId: QUANTITY) {
+  @assertArgLength(0)
+  async eth_getWork() {
     return [] as [string, string, string] | [];
   }
 
@@ -1686,7 +1784,7 @@ export default class EthereumApi implements Api {
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
     trie.setContext(addressStateRoot, addressBuf, blockNum);
     const value = await trie.get(paddedPosBuff);
-    return Data.from(decode(value));
+    return Data.from(decode(value), 32);
   }
 
   /**
@@ -2844,6 +2942,7 @@ export default class EthereumApi implements Api {
   }
 
   // TODO: example doesn't return correct value
+  // Issue: https://github.com/trufflesuite/ganache/issues/3203
   /**
    * Attempts to replay the transaction as it was executed on the network and
    * return storage data given a starting key and max number of entries to return.
@@ -2919,7 +3018,6 @@ export default class EthereumApi implements Api {
     return this.#wallet.addresses;
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Generates a new account with private key. Returns the address of the new
    * account.
@@ -2998,7 +3096,6 @@ export default class EthereumApi implements Api {
     return this.#wallet.lockAccount(address.toLowerCase());
   }
 
-  // TODO: example doesn't return correct value
   /**
    * Unlocks the account for use.
    *

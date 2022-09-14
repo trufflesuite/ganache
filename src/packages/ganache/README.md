@@ -258,9 +258,8 @@ Chain:
 
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
-                                               [string] [choices: "constantinople", "byzantium", "petersburg",
-                                                 "istanbul", "muirGlacier", "berlin", "london","arrowGlacier"]
-                                                                                             [default: london]
+          [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
+                                                london", "arrowGlacier", "grayGlacier"] [default: london
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]
@@ -276,7 +275,7 @@ Logging:
   -q, --logging.quiet                   Set to true to disable logging.
                                         deprecated aliases: --quiet                 [boolean] [default: false]
 
-  -v, --logging.verbose                 Set to true to log all RPC requests and responses.
+  -v, --logging.verbose                 Set to true to log detailed RPC requests.
                                         deprecated aliases: --verbose               [boolean] [default: false]
 
 
@@ -301,7 +300,7 @@ Miner:
 
   --miner.callGasLimit                  Sets the transaction gas limit in WEI for eth_call and eth_estimateGas
                                         calls.
-                                                                          [string] [default: 0x1fffffffffffff]
+                                                                                 [string] [default: 0x2faf080]
   --miner.instamine                     Set the instamine mode to either "eager" (default) or "strict". In
                                         "eager" mode a transaction will be included in a block before its hash
                                         is returned to the caller. In "strict" mode a transaction's hash is
@@ -382,8 +381,8 @@ Fork:
 
                                         Use the shorthand command ganache --fork to automatically fork from
                                         Mainnet at the latest block.
-                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli"]
-
+                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli",
+                                                                                                    "sepolia"]
   --fork.blockNumber                    Block number the provider should fork from.
                                                                                 [default: Latest block number]
 
@@ -586,8 +585,9 @@ See [CONTRIBUTING.md](https://github.com/trufflesuite/ganache/blob/develop/CONTR
 
 ## Related
 
-- [Truffle](https://www.github.com/trufflesuite/truffle)
-- [Drizzle](https://www.github.com/trufflesuite/drizzle)
+- [Truffle GitHub](https://www.github.com/trufflesuite/truffle)
+- [Drizzle GitHub](https://www.github.com/trufflesuite/drizzle)
+- [Truffle Suite Website](https://www.trufflesuite.com/)
 
 <br/>
 

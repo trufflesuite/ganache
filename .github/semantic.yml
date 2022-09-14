@@ -1,0 +1,5 @@
+# validates that the PR title has a semantic commit message; ignores commits
+titleOnly: true
+# custom URL for the "Details" link (which appears next to the success/failure
+# message from the app) to be specified
+targetUrl: "https://github.com/trufflesuite/ganache/blob/develop/CONTRIBUTING.md#pull-requests"

@@ -47,7 +47,7 @@ describe("json-rpc-data", () => {
         "hex"
       )}`, () => {
         const result = new Data(<Buffer>input).toString();
-        assert.equal(result, expected);
+        assert.strictEqual(result, expected);
       });
     });
 
@@ -55,25 +55,25 @@ describe("json-rpc-data", () => {
       const result = new Data(
         Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
       ).toString(1);
-      assert.equal(result, "0x01");
+      assert.strictEqual(result, "0x01");
     });
 
     it("should pad to a longer byteLength", () => {
       const result = new Data(Buffer.from([0x01])).toString(10);
-      assert.equal(result, "0x00000000000000000001");
+      assert.strictEqual(result, "0x00000000000000000001");
     });
   });
 
   describe("toBuffer()", () => {
     it("should return an empty buffer for an empty buffer input", () => {
       const result = new Data(Buffer.alloc(0)).toBuffer();
-      assert.deepEqual(result, Buffer.alloc(0));
+      assert.deepStrictEqual(result, Buffer.alloc(0));
     });
 
     it("should return an empty buffer for null-like inputs", () => {
       [null, undefined].forEach(input => {
         const result = new Data(input).toBuffer();
-        assert.deepEqual(result, Buffer.alloc(0));
+        assert.deepStrictEqual(result, Buffer.alloc(0));
       });
     });
 
@@ -81,7 +81,7 @@ describe("json-rpc-data", () => {
       const result = new Data(
         Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
       ).toBuffer(1);
-      assert.deepEqual(result, Buffer.from([0x01]));
+      assert.deepStrictEqual(result, Buffer.from([0x01]));
     });
 
     it("should pad to a longer byteLength", () => {
@@ -89,7 +89,7 @@ describe("json-rpc-data", () => {
       const expected = Buffer.from([
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
       ]);
-      assert.deepEqual(result, expected);
+      assert.deepStrictEqual(result, expected);
     });
 
     testData.forEach(([input, _, expected]) => {
@@ -97,7 +97,7 @@ describe("json-rpc-data", () => {
         input
       )).toString("hex")}`, () => {
         const result = new Data(<Buffer>input).toBuffer();
-        assert.deepEqual(result, expected);
+        assert.deepStrictEqual(result, expected);
       });
     });
   });
@@ -113,7 +113,7 @@ describe("json-rpc-data", () => {
     it("should return false for any non-empty buffer", () => {
       [Buffer.allocUnsafe(1), Buffer.allocUnsafe(2)].forEach(input => {
         const data = new Data(input);
-        assert.equal(data.isNull(), false);
+        assert.strictEqual(data.isNull(), false);
       });
     });
   });

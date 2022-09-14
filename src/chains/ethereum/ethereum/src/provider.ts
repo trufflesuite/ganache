@@ -35,7 +35,6 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { ConsoleLogs } from "@ganache/console.log";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -141,8 +140,8 @@ export class EthereumProvider
 {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
-  #executor: Executor;
   #wallet: Wallet;
+  readonly #executor: Executor;
   readonly #blockchain: Blockchain;
 
   constructor(
@@ -419,10 +418,19 @@ export class EthereumProvider
     }
   };
 
+  /**
+   * Disconnect the provider instance. This will cause the underlying blockchain to be stopped, and any pending
+   * tasks to be rejected. Emits a `disconnect` event once successfully disconnected.
+   * @returns Fullfills with `undefined` once the provider has been disconnected.
+   */
   public disconnect = async () => {
+    // executor.stop() will stop accepting new tasks, but will not wait for inflight tasks. These may reject with
+    // (unhelpful) internal errors. See https://github.com/trufflesuite/ganache/issues/3499
+    this.#executor.stop();
     await this.#blockchain.stop();
+
+    this.#executor.end();
     this.emit("disconnect");
-    return;
   };
 
   //#region legacy
