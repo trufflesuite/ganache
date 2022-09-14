@@ -59,17 +59,11 @@ export default class Database extends Emittery {
   }
 
   initialize = async () => {
-    const levelOptions = {
-      keyEncoding: "buffer" as const,
-      valueEncoding: "buffer" as const,
-      // specify an empty `prefix` for browser-based leveldown (level-js)
-      prefix: "" as const
-    };
     const store = this.#options.db;
     let db: GanacheLevel;
     if (store) {
       if (typeof store === "string") {
-        db = <GanacheLevel>new Level(store, levelOptions);
+        db = <GanacheLevel>new Level(store, LEVEL_OPTIONS);
       } else {
         db = <GanacheLevel>store;
       }
@@ -85,7 +79,7 @@ export default class Database extends Emittery {
       }
       this.directory = directory;
 
-      const store = <GanacheLevel>new Level(directory, levelOptions);
+      const store = <GanacheLevel>new Level(directory, LEVEL_OPTIONS);
       this.#rootStore = store;
       db = store;
     }
@@ -94,7 +88,7 @@ export default class Database extends Emittery {
     if (this.#closed) return this.#cleanup();
 
     const open = db.open();
-    this.trie = <GanacheSublevel>db.sublevel("T", levelOptions);
+    this.trie = <GanacheSublevel>db.sublevel("T", LEVEL_OPTIONS);
 
     this.db = db;
     await open;
@@ -102,12 +96,12 @@ export default class Database extends Emittery {
     // don't continue if we closed while we were waiting for it to open
     if (this.#closed) return this.#cleanup();
 
-    this.blocks = <GanacheSublevel>db.sublevel("b", levelOptions);
-    this.blockIndexes = <GanacheSublevel>db.sublevel("i", levelOptions);
-    this.blockLogs = <GanacheSublevel>db.sublevel("l", levelOptions);
-    this.transactions = <GanacheSublevel>db.sublevel("t", levelOptions);
-    this.transactionReceipts = <GanacheSublevel>db.sublevel("r", levelOptions);
-    this.storageKeys = <GanacheSublevel>db.sublevel("s", levelOptions);
+    this.blocks = <GanacheSublevel>db.sublevel("b", LEVEL_OPTIONS);
+    this.blockIndexes = <GanacheSublevel>db.sublevel("i", LEVEL_OPTIONS);
+    this.blockLogs = <GanacheSublevel>db.sublevel("l", LEVEL_OPTIONS);
+    this.transactions = <GanacheSublevel>db.sublevel("t", LEVEL_OPTIONS);
+    this.transactionReceipts = <GanacheSublevel>db.sublevel("r", LEVEL_OPTIONS);
+    this.storageKeys = <GanacheSublevel>db.sublevel("s", LEVEL_OPTIONS);
     return this.emit("ready");
   };
 
