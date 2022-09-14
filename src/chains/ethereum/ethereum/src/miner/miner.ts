@@ -311,8 +311,9 @@ export default class Miner extends Emittery<{
         await vm.stateManager.checkpoint();
 
         // Set the internal trie's block number (for forking)
-        // (vm.stateManager as DefaultStateManager)._trie.blockNumber =
-        //   Quantity.from(runtimeBlock.header.number);
+        (vm.stateManager as any)._trie.blockNumber = Quantity.from(
+          runtimeBlock.header.number
+        );
 
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
