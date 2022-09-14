@@ -103,9 +103,9 @@ export class ForkTrie extends GanacheTrie {
     });
     //@ts-ignore
     const batch = db.batch();
-    //@ts-ignore
-    for await (const key of stream) batch.del(key);
-    //@ts-ignore
+    for await (const [key] of stream) {
+      batch.del(key);
+    }
     await batch.write();
   }
 
@@ -140,13 +140,10 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): this is just going to be slow once we get lots of keys
     // because it just checks every single key we've ever deleted (before this
     // one).
-    const stream = this.createReadStream();
-    // @ts-ignore TODO: why is this necessary? seems like a bug on ejs' end
-    stream.on("data", (data: [Buffer, Buffer]) => {
-      const [encodedKey, value] = data;
-      //if (!value || !value.equals(DELETED_VALUE)) continue;
+    for await (const [encodedKey, value] of stream) {
+      if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
-    });
+    }
 
     // we didn't find proof of deletion so we return `false`
     return false;
