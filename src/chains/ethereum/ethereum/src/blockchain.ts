@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database, { GanacheSublevel } from "./database";
+import Database, { DBType } from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -73,6 +73,7 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
+import { UpgradedLevelDown } from "./leveldown-to-level";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -138,23 +139,27 @@ function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
   (stateManager as DefaultStateManager)._storageTries = {};
 }
 
-function makeTrie(
-  blockchain: Blockchain,
-  db: GanacheSublevel | null,
-  root: Data
-) {
+function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
   if (blockchain.fallback) {
     return new ForkTrie(
-      new LevelDB(db as any),
+      new LevelDB(db.trie as any),
+      root ? root.toBuffer() : null,
+      blockchain
+    );
+  } else if (db.type === DBType.Level) {
+    return new GanacheTrie(
+      new LevelDB(db.trie as any),
+      root ? root.toBuffer() : null,
+      blockchain
+    );
+  } else if (db.type === DBType.LevelDown) {
+    return new GanacheTrie(
+      new UpgradedLevelDown(db.trie as any),
       root ? root.toBuffer() : null,
       blockchain
     );
   } else {
-    return new GanacheTrie(
-      new LevelDB(db as any),
-      root ? root.toBuffer() : null,
-      blockchain
-    );
+    throw new Error("wtf");
   }
 }
 
@@ -292,7 +297,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           stateRoot = null;
         }
-        this.trie = makeTrie(this, database.trie, stateRoot);
+        this.trie = makeTrie(this, database, stateRoot);
       }
 
       // create VM and listen to step events
@@ -1562,11 +1567,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(
-      this,
-      this.#database.trie,
-      parentBlock.header.stateRoot
-    );
+    const trie = makeTrie(this, this.#database, parentBlock.header.stateRoot);
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
