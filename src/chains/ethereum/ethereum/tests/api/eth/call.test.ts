@@ -913,8 +913,8 @@ describe("api", () => {
           const dbData: [Buffer, Buffer][] = [];
           const stream = trie.createReadStream();
           // @ts-ignore TODO: why is this necessary? seems like a bug on ejs' end
-          stream.on("data", (data: [Buffer, Buffer]) => {
-            dbData.push(data);
+          stream.on("data", ({ key, value }) => {
+            dbData.push([key, value]);
           });
 
           return dbData;
