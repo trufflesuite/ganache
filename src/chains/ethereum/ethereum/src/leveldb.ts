@@ -5,20 +5,15 @@ import type { AbstractLevel } from "abstract-level";
 
 const ENCODING_OPTS = { keyEncoding: "buffer", valueEncoding: "buffer" };
 
+export type EJSLevel = AbstractLevel<
+  string | Buffer | Uint8Array,
+  string | Buffer,
+  string | Buffer
+>;
 export class LevelDB implements DB {
-  readonly _leveldb: AbstractLevel<
-    string | Buffer | Uint8Array,
-    string | Buffer,
-    string | Buffer
-  >;
+  readonly _leveldb: EJSLevel;
 
-  constructor(
-    leveldb?: AbstractLevel<
-      string | Buffer | Uint8Array,
-      string | Buffer,
-      string | Buffer
-    > | null
-  ) {
+  constructor(leveldb?: EJSLevel | null) {
     this._leveldb = leveldb ?? new MemoryLevel(ENCODING_OPTS);
   }
 
