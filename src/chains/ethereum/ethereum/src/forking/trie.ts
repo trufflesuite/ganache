@@ -10,6 +10,7 @@ import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheSublevel } from "../database";
+import { AbstractSublevel } from "abstract-level";
 import { EJSLevel, LevelDB } from "../leveldb";
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
@@ -18,7 +19,10 @@ const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap<GanacheSublevel, GanacheSublevel>();
+const MetadataSingletons = new WeakMap<
+  GanacheSublevel,
+  AbstractSublevel<GanacheSublevel, Buffer, string, string>
+>();
 
 const LEVELDOWN_OPTIONS = {
   keyEncoding: "buffer",
@@ -52,7 +56,7 @@ export class ForkTrie extends GanacheTrie {
       ? MetadataSingletons.get(leveldb)
       : MetadataSingletons.set(
           leveldb,
-          leveldb.sublevel("f", LEVELDOWN_OPTIONS) as unknown as GanacheSublevel
+          leveldb.sublevel("f", LEVELDOWN_OPTIONS)
         ).get(leveldb);
 
     this.metadata = new CheckpointDB(new LevelDB(metadataDb as EJSLevel));
