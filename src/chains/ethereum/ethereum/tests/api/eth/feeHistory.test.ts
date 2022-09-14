@@ -165,384 +165,399 @@ describe("api", () => {
             assert.strictEqual(feeHistory.oldestBlock, oldestBlock);
           });
         });
-      });
-      describe("gasUsedRatio", () => {
-        it("returns 0 gasUsed for empty blocks", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "0x2";
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
+        describe("gasUsedRatio", () => {
+          it("returns 0 gasUsed for empty blocks", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "0x2";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          assert.strictEqual(feeHistory.gasUsedRatio[0], 0);
-        });
-        it("returns gasUsed / maxGas", async () => {
-          await sendTransaction({ provider, to, from });
-
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-
-          const blockCount = "0x1";
-          const newestBlock = block.number;
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
-
-          assert.strictEqual(feeHistory.gasUsedRatio.length, 1);
-          assert.strictEqual(
-            feeHistory.gasUsedRatio[0],
-            Number(block.gasUsed) / Number(block.gasLimit)
-          );
-        });
-        it("returns one entry for each block", async () => {
-          await mineNBlocks({ provider, blocks: 1 });
-          await sendTransaction({ provider, to, from });
-          await mineNBlocks({ provider, blocks: 1 });
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-
-          const blockCount = "0x2";
-          const newestBlock = block.number;
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
-
-          assert.strictEqual(feeHistory.gasUsedRatio.length, 2);
-          assert.strictEqual(feeHistory.gasUsedRatio[0], 0);
-          assert.strictEqual(
-            feeHistory.gasUsedRatio[1],
-            Number(block.gasUsed) / Number(block.gasLimit)
-          );
-        });
-      });
-      describe("baseFeePerGas", () => {
-        it("returns blockCount + 1 baseFeePerGas", async () => {
-          const blockCount = "0x5";
-          const blocks = 5;
-          const newestBlock = "latest";
-          await mineNBlocks({ provider, blocks });
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
-
-          assert.strictEqual(feeHistory.baseFeePerGas.length, blocks + 1);
-        });
-        it("baseFeePerGas matches block baseFeePerGas", async () => {
-          const blockCount = "0x5";
-          const blocks = 5;
-          const newestBlock = "latest";
-          await mineNBlocks({ provider, blocks });
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
-
-          const block = await provider.send("eth_getBlockByNumber", [
-            newestBlock
-          ]);
-
-          assert.strictEqual(feeHistory.baseFeePerGas.length, blocks + 1);
-          assert.strictEqual(
-            feeHistory.baseFeePerGas[blocks - 1],
-            block.baseFeePerGas
-          );
-        });
-        it("calculates the last baseFeePerGas based on the latest block", async () => {
-          const blockCount = "0x5";
-          const blocks = 5;
-          const newestBlock = "latest";
-          await mineNBlocks({ provider, blocks });
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
-
-          const latestBlockFeePerGas = Number(
-            feeHistory.baseFeePerGas[blocks - 1]
-          );
-          const pendingBlockFeePerGas = Number(
-            feeHistory.baseFeePerGas[blocks]
-          );
-          const emptyBlockDelta = 0.875; // empty blocks will adjust down by 12.5%
-
-          assert.strictEqual(
-            latestBlockFeePerGas * emptyBlockDelta,
-            pendingBlockFeePerGas
-          );
-        });
-      });
-      describe("reward", () => {
-        it("returns undefined if no reward is specified", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "latest";
-
-          await mineNBlocks({ provider, blocks: 5 });
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            []
-          ]);
-
-          assert.strictEqual(feeHistory.reward, undefined);
-        });
-        it("returns 0x0 for empty blocks at each percentile", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "latest";
-
-          await mineNBlocks({ provider, blocks: 5 });
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            [10, 50, 80]
-          ]);
-
-          assert.deepEqual(feeHistory.reward, [["0x0", "0x0", "0x0"]]);
-        });
-        it("transaction with maxPriorityFeePerGas > effectiveGasReward", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "latest";
-          const txHash = await sendTransaction({
-            provider,
-            to,
-            from
+            assert.strictEqual(feeHistory.gasUsedRatio[0], 0);
           });
+          it("returns gasUsed / maxGas", async () => {
+            await sendTransaction({ provider, to, from });
 
-          await mineNBlocks({ provider, blocks: 1 });
+            const block = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
 
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-          const tx = (await provider.send("eth_getTransactionByHash", [
-            txHash
-          ])) as Ethereum.Block.Transaction.EIP1559;
-          const reward =
-            Quantity.from(tx.maxFeePerGas).toBigInt() -
-            Quantity.from(block.baseFeePerGas).toBigInt();
+            const blockCount = "0x1";
+            const newestBlock = block.number;
 
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            [10, 50, 80] // for one transaction, it will be the same for all
-          ]);
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
+            assert.strictEqual(feeHistory.gasUsedRatio.length, 1);
+            assert.strictEqual(
+              feeHistory.gasUsedRatio[0],
+              Number(block.gasUsed) / Number(block.gasLimit)
+            );
+          });
+          it("returns one entry for each block", async () => {
+            await mineNBlocks({ provider, blocks: 1 });
+            await sendTransaction({ provider, to, from });
+            await mineNBlocks({ provider, blocks: 1 });
+            const block = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+
+            const blockCount = "0x2";
+            const newestBlock = block.number;
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.strictEqual(feeHistory.gasUsedRatio.length, 2);
+            assert.strictEqual(feeHistory.gasUsedRatio[0], 0);
+            assert.strictEqual(
+              feeHistory.gasUsedRatio[1],
+              Number(block.gasUsed) / Number(block.gasLimit)
+            );
+          });
         });
-        it("transaction with maxPriorityFeePerGas < effectiveGasReward", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "latest";
-          const maxPrioFeePerGas = "0x989680";
-          const txHash = await sendTransaction({
-            provider,
-            to,
-            from,
-            maxPriorityFeePerGas: maxPrioFeePerGas
+        describe("baseFeePerGas", () => {
+          it("returns blockCount + 1 baseFeePerGas", async () => {
+            const blockCount = "0x5";
+            const blocks = 5;
+            const newestBlock = "latest";
+            await mineNBlocks({ provider, blocks });
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.strictEqual(feeHistory.baseFeePerGas.length, blocks + 1);
           });
+          it("baseFeePerGas matches block baseFeePerGas", async () => {
+            const blockCount = "0x5";
+            const blocks = 5;
+            const newestBlock = "latest";
+            await mineNBlocks({ provider, blocks });
 
-          await mineNBlocks({ provider, blocks: 1 });
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          const tx = (await provider.send("eth_getTransactionByHash", [
-            txHash
-          ])) as Ethereum.Block.Transaction.EIP1559;
+            const block = await provider.send("eth_getBlockByNumber", [
+              newestBlock
+            ]);
 
-          const reward = tx.maxPriorityFeePerGas;
+            assert.strictEqual(feeHistory.baseFeePerGas.length, blocks + 1);
+            assert.strictEqual(
+              feeHistory.baseFeePerGas[blocks - 1],
+              block.baseFeePerGas
+            );
+          });
+          it("calculates the last baseFeePerGas based on the latest block", async () => {
+            const blockCount = "0x5";
+            const blocks = 5;
+            const newestBlock = "latest";
+            await mineNBlocks({ provider, blocks });
 
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            [10, 50, 80] // for one transaction, it will be the same for all
-          ]);
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
 
-          assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
+            const latestBlockFeePerGas = Number(
+              feeHistory.baseFeePerGas[blocks - 1]
+            );
+            const pendingBlockFeePerGas = Number(
+              feeHistory.baseFeePerGas[blocks]
+            );
+            const emptyBlockDelta = 0.875; // empty blocks will adjust down by 12.5%
+
+            assert.strictEqual(
+              latestBlockFeePerGas * emptyBlockDelta,
+              pendingBlockFeePerGas
+            );
+          });
         });
-        it("transactions without maxPriorityFeePerGas (Legacy tx)", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "latest";
+        describe("reward", () => {
+          it("returns undefined if no reward is specified", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
 
-          const txHash = await sendLegacyTransaction({
-            provider,
-            gasPrice: oneGwei,
-            to,
-            from
+            await mineNBlocks({ provider, blocks: 5 });
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.strictEqual(feeHistory.reward, undefined);
           });
+          it("returns 0x0 for empty blocks at each percentile", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
 
-          await mineNBlocks({ provider, blocks: 1 });
+            await mineNBlocks({ provider, blocks: 5 });
 
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
-          const tx = await provider.send("eth_getTransactionByHash", [txHash]);
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              [10, 50, 80]
+            ]);
 
-          const reward =
-            Quantity.from(tx.gasPrice).toBigInt() -
-            Quantity.from(block.baseFeePerGas).toBigInt();
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            [10, 50, 80] // for one transaction, it will be the same for all
-          ]);
-
-          assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
-        });
-        it("blocks with many transactions", async () => {
-          const blockCount = "0x1";
-          const newestBlock = "latest";
-
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: oneGwei,
-            to,
-            from
+            assert.deepEqual(feeHistory.reward, [["0x0", "0x0", "0x0"]]);
           });
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: twoGwei,
-            to,
-            from
+          it("transaction with maxPriorityFeePerGas > effectiveGasReward", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
+            const txHash = await sendTransaction({
+              provider,
+              to,
+              from
+            });
+
+            await mineNBlocks({ provider, blocks: 1 });
+
+            const block = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+            const tx = (await provider.send("eth_getTransactionByHash", [
+              txHash
+            ])) as Ethereum.Block.Transaction.EIP1559;
+            const reward =
+              Quantity.from(tx.maxFeePerGas).toBigInt() -
+              Quantity.from(block.baseFeePerGas).toBigInt();
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              [10, 50, 80] // for one transaction, it will be the same for all
+            ]);
+
+            assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
           });
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: threeGwei,
-            to,
-            from
+          it("transaction with maxPriorityFeePerGas < effectiveGasReward", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
+            const maxPrioFeePerGas = "0x989680";
+            const txHash = await sendTransaction({
+              provider,
+              to,
+              from,
+              maxPriorityFeePerGas: maxPrioFeePerGas
+            });
+
+            await mineNBlocks({ provider, blocks: 1 });
+
+            const tx = (await provider.send("eth_getTransactionByHash", [
+              txHash
+            ])) as Ethereum.Block.Transaction.EIP1559;
+
+            const reward = tx.maxPriorityFeePerGas;
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              [10, 50, 80] // for one transaction, it will be the same for all
+            ]);
+
+            assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
           });
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: fourGwei,
-            to,
-            from
+          it("transactions without maxPriorityFeePerGas (Legacy tx)", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
+
+            const txHash = await sendLegacyTransaction({
+              provider,
+              gasPrice: oneGwei,
+              to,
+              from
+            });
+
+            await mineNBlocks({ provider, blocks: 1 });
+
+            const block = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+            const tx = await provider.send("eth_getTransactionByHash", [
+              txHash
+            ]);
+
+            const reward =
+              Quantity.from(tx.gasPrice).toBigInt() -
+              Quantity.from(block.baseFeePerGas).toBigInt();
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              [10, 50, 80] // for one transaction, it will be the same for all
+            ]);
+
+            assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
           });
+          it("blocks with many transactions", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
 
-          await mineNBlocks({ provider, blocks: 1 });
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: oneGwei,
+              to,
+              from
+            });
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: twoGwei,
+              to,
+              from
+            });
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: threeGwei,
+              to,
+              from
+            });
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: fourGwei,
+              to,
+              from
+            });
 
-          // This block has 4 standard txs, gas usage will be 84,000
-          // Each tx burns 21,000 gas in the block, making reward percentiles four equal quartiles
-          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+            await mineNBlocks({ provider, blocks: 1 });
 
-          // reward = gasPrice - block.baseFeePerGas
-          const first25Reward =
-            oneGwei.toBigInt() - Quantity.from(block.baseFeePerGas).toBigInt(); // reward for first 25% of block gas
-          const second25Reward =
-            twoGwei.toBigInt() - Quantity.from(block.baseFeePerGas).toBigInt(); // reward for next 25% of block gas
-          const third25Reward =
-            threeGwei.toBigInt() -
-            Quantity.from(block.baseFeePerGas).toBigInt(); // etc
-          const last25Reward =
-            fourGwei.toBigInt() - Quantity.from(block.baseFeePerGas).toBigInt(); // last 25%
+            // This block has 4 standard txs, gas usage will be 84,000
+            // Each tx burns 21,000 gas in the block, making reward percentiles four equal quartiles
+            const block = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
 
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100, 200] // 200 is more target gas than was used, will fallback to largest reward
-          ]);
+            // reward = gasPrice - block.baseFeePerGas
+            const first25Reward =
+              oneGwei.toBigInt() -
+              Quantity.from(block.baseFeePerGas).toBigInt(); // reward for first 25% of block gas
+            const second25Reward =
+              twoGwei.toBigInt() -
+              Quantity.from(block.baseFeePerGas).toBigInt(); // reward for next 25% of block gas
+            const third25Reward =
+              threeGwei.toBigInt() -
+              Quantity.from(block.baseFeePerGas).toBigInt(); // etc
+            const last25Reward =
+              fourGwei.toBigInt() -
+              Quantity.from(block.baseFeePerGas).toBigInt(); // last 25%
 
-          assert.deepEqual(feeHistory.reward, [
-            [
-              first25Reward,
-              first25Reward,
-              second25Reward,
-              second25Reward,
-              second25Reward,
-              third25Reward,
-              third25Reward,
-              third25Reward,
-              last25Reward,
-              last25Reward,
-              last25Reward
-            ]
-          ]);
-        });
-        it("multiple blocks with many transactions", async () => {
-          const blockCount = "0x2";
-          const newestBlock = "latest";
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100, 200] // 200 is more target gas than was used, will fallback to largest reward
+            ]);
 
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: oneGwei,
-            to,
-            from
+            assert.deepEqual(feeHistory.reward, [
+              [
+                first25Reward,
+                first25Reward,
+                second25Reward,
+                second25Reward,
+                second25Reward,
+                third25Reward,
+                third25Reward,
+                third25Reward,
+                last25Reward,
+                last25Reward,
+                last25Reward
+              ]
+            ]);
           });
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: oneGwei,
-            to,
-            from
+          it("multiple blocks with many transactions", async () => {
+            const blockCount = "0x2";
+            const newestBlock = "latest";
+
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: oneGwei,
+              to,
+              from
+            });
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: oneGwei,
+              to,
+              from
+            });
+
+            await mineNBlocks({ provider, blocks: 1 });
+            const firstBlock = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+
+            const firstBlockReward = Quantity.from(
+              oneGwei.toBigInt() -
+                Quantity.from(firstBlock.baseFeePerGas).toBigInt()
+            ).toString();
+
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: fourGwei,
+              to,
+              from
+            });
+
+            await sendLegacyTransaction({
+              provider,
+              gasPrice: threeGwei,
+              to,
+              from
+            });
+
+            await mineNBlocks({ provider, blocks: 1 });
+            const secondBlock = await provider.send("eth_getBlockByNumber", [
+              "latest"
+            ]);
+
+            const secondBlockFirstHalf = Quantity.from(
+              threeGwei.toBigInt() -
+                Quantity.from(secondBlock.baseFeePerGas).toBigInt()
+            ).toString();
+            const secondBlockSecondHalf = Quantity.from(
+              fourGwei.toBigInt() -
+                Quantity.from(secondBlock.baseFeePerGas).toBigInt()
+            ).toString();
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              [0, 49, 50, 51, 100]
+            ]);
+
+            const blockOneRewards = [
+              firstBlockReward,
+              firstBlockReward,
+              firstBlockReward,
+              firstBlockReward,
+              firstBlockReward
+            ];
+            const blockTwoRewards = [
+              secondBlockFirstHalf,
+              secondBlockFirstHalf,
+              secondBlockFirstHalf,
+              secondBlockSecondHalf,
+              secondBlockSecondHalf
+            ];
+
+            assert.deepEqual(feeHistory.reward, [
+              blockOneRewards,
+              blockTwoRewards
+            ]);
           });
-
-          await mineNBlocks({ provider, blocks: 1 });
-          const firstBlock = await provider.send("eth_getBlockByNumber", [
-            "latest"
-          ]);
-
-          const firstBlockReward = Quantity.from(
-            oneGwei.toBigInt() -
-              Quantity.from(firstBlock.baseFeePerGas).toBigInt()
-          ).toString();
-
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: fourGwei,
-            to,
-            from
-          });
-
-          await sendLegacyTransaction({
-            provider,
-            gasPrice: threeGwei,
-            to,
-            from
-          });
-
-          await mineNBlocks({ provider, blocks: 1 });
-          const secondBlock = await provider.send("eth_getBlockByNumber", [
-            "latest"
-          ]);
-
-          const secondBlockFirstHalf = Quantity.from(
-            threeGwei.toBigInt() -
-              Quantity.from(secondBlock.baseFeePerGas).toBigInt()
-          ).toString();
-          const secondBlockSecondHalf = Quantity.from(
-            fourGwei.toBigInt() -
-              Quantity.from(secondBlock.baseFeePerGas).toBigInt()
-          ).toString();
-
-          const feeHistory = await provider.send("eth_feeHistory", [
-            blockCount,
-            newestBlock,
-            [0, 49, 50, 51, 100]
-          ]);
-
-          const blockOneRewards = [
-            firstBlockReward,
-            firstBlockReward,
-            firstBlockReward,
-            firstBlockReward,
-            firstBlockReward
-          ];
-          const blockTwoRewards = [
-            secondBlockFirstHalf,
-            secondBlockFirstHalf,
-            secondBlockFirstHalf,
-            secondBlockSecondHalf,
-            secondBlockSecondHalf
-          ];
-
-          assert.deepEqual(feeHistory.reward, [
-            blockOneRewards,
-            blockTwoRewards
-          ]);
         });
       });
     });
