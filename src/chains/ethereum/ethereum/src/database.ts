@@ -44,7 +44,7 @@ export default class Database extends Emittery {
   public storageKeys: GanacheSublevel;
   public trie: GanacheSublevel;
   public readonly initialized: boolean;
-  public type: DBType;
+  public type: DBType = DBType.Level;
 
   /**
    * The Database handles the creation of the database, and all access to it.
@@ -70,13 +70,11 @@ export default class Database extends Emittery {
     if (store) {
       if (typeof store === "string") {
         db = <GanacheLevel>new Level(store, LEVEL_OPTIONS);
-        this.type = DBType.Level;
       } else {
         db = new UpgradedLevelDown(store as any) as unknown as GanacheLevel;
         this.type = DBType.LevelDown;
       }
     } else {
-      this.type = DBType.Level;
       let directory = this.#options.dbPath;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
