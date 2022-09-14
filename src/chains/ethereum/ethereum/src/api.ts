@@ -2882,9 +2882,10 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Returns base fee per gas and transaction effective priority fee per gas history for the requested block range if available.
+   * Returns a collection of historical block gas data and, optional, effective fee spent per unit of gas for a given percentile of block gas usage.
+   * Added in [EIP-1559](https://www.alchemy.com//blog/eip-1559)
    *
-   * @param blockCount - Requested range of blocks. Will return less than the requested range if not all blocks are available.
+   * @param blockCount - Range of blocks between 1 and 1024. Will return less than the requested range if not all blocks are available.
    * @param newestBlock - Highest block of the requested range.
    * @param rewardPercentiles - (Optional) A monotonically increasing list of percentile values. For each block in the requested range,
    * the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile
@@ -2895,7 +2896,7 @@ export default class EthereumApi implements Api {
    * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,
    * because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
    * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.
-   * * `reward`:  - (optional) An array of effective priority fee per gas data points from a single block. All zeroes are returned if the
+   * * `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the
    * block is empty.
    *
    * @example
@@ -2911,9 +2912,16 @@ export default class EthereumApi implements Api {
     rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistory<"private">> {
     const blockchain = this.#blockchain;
+    const MIN_BLOCKS = 1;
+    const MAX_BLOCKS = 1024;
     const PAD_PRECISION = 16;
     const PRECISION_FLOAT = 1e14;
     const PRECISION_BIG_INT = BigInt(1e16);
+
+    blockCount = Math.min(
+      Math.max(Quantity.toNumber(blockCount), MIN_BLOCKS),
+      MAX_BLOCKS
+    );
 
     const newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
@@ -2925,18 +2933,8 @@ export default class EthereumApi implements Api {
       newestBlockNumber + 1
     );
 
-    // Cut out early if no range is given.
-    if (totalBlocks === 0) {
-      return {
-        oldestBlock: Quantity.from(newestBlockNumber),
-        baseFeePerGas: undefined,
-        gasUsedRatio: null,
-        reward: undefined
-      };
-    }
-
-    const baseFeePerGas = new Array(totalBlocks);
-    const gasUsedRatio = new Array(totalBlocks);
+    const baseFeePerGas: string[] = new Array(totalBlocks);
+    const gasUsedRatio: number[] = new Array(totalBlocks);
     let reward;
     if (rewardPercentiles.length > 0) {
       reward = new Array(totalBlocks);
@@ -2961,10 +2959,7 @@ export default class EthereumApi implements Api {
         gasUsedRatio[currentPosition] = 1;
       } else {
         gasUsedRatio[currentPosition] = Number(
-          `0.${(
-            (currentBlock.header.gasUsed.toBigInt() * PRECISION_BIG_INT) /
-            currentBlock.header.gasLimit.toBigInt()
-          )
+          `0.${((gasUsed.toBigInt() * PRECISION_BIG_INT) / gasLimit.toBigInt())
             .toString()
             .padStart(PAD_PRECISION, "0")}`
         );
