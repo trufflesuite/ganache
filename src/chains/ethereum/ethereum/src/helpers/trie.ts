@@ -1,11 +1,17 @@
 import { Quantity } from "@ganache/utils";
 import { DB, Trie } from "@ethereumjs/trie";
 import Blockchain from "../blockchain";
+import { LevelDB } from "../leveldb";
+import { UpgradedLevelDown } from "../leveldown-to-level";
 
 export class GanacheTrie extends Trie {
   public readonly blockchain: Blockchain;
 
-  constructor(db: DB | null, root: Buffer, blockchain: Blockchain) {
+  constructor(
+    db: LevelDB | UpgradedLevelDown | DB,
+    root: Buffer,
+    blockchain: Blockchain
+  ) {
     super({ db, root, useRootPersistence: true, useKeyHashing: true });
     this.blockchain = blockchain;
   }
