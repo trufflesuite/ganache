@@ -3,7 +3,7 @@ import { MemoryLevel } from "memory-level";
 import type { BatchDBOp, DB } from "@ethereumjs/trie";
 import type { AbstractLevel } from "abstract-level";
 
-const ENCODING_OPTS = { keyEncoding: "buffer", valueEncoding: "buffer" };
+const ENCODING_OPTS = { keyEncoding: "binary", valueEncoding: "binary" };
 
 export type EJSLevel = AbstractLevel<
   string | Buffer | Uint8Array,
