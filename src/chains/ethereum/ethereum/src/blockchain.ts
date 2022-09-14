@@ -1636,11 +1636,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
         };
 
-        const rs = storageTrie.createReadStream() as any;
-        (rs as any)
-          .on("data", handleData)
-          .on("error", reject)
-          .on("end", handleEnd);
+        const rs = storageTrie.createReadStream();
+        // @ts-ignore
+        rs.on("data", handleData).on("error", reject).on("end", handleEnd);
       });
     };
     const { keys, nextKey } = await getStorageKeys();
