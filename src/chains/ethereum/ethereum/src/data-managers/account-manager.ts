@@ -105,14 +105,6 @@ export default class AccountManager {
 
     const [, , , codeHash] = decode<EthereumRawAccount>(data);
     if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
-    else
-      try {
-        return this.#blockchain.trie.database().get(codeHash).then(Data.from);
-      } catch {
-        // TODO: remove this workaround when we ship v8.0
-        // This fallback is here for backward compatibility with databases created before
-        // we switched to @ethereumjs/vm@v6
-        return this.#blockchain.trie.database().get(codeHash).then(Data.from);
-      }
+    else return this.#blockchain.trie.database().get(codeHash).then(Data.from);
   }
 }
