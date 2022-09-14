@@ -29,7 +29,7 @@ describe("@ganache/ethereum-transaction", async () => {
       comment: "Local test network",
       bootstrapNodes: []
     },
-    "grayGlacier"
+    "london"
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
@@ -61,7 +61,7 @@ describe("@ganache/ethereum-transaction", async () => {
     type: "0x0",
     gasPrice: "0xffff"
   };
-  
+
   const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 
   const rawLegacyStrTx =
