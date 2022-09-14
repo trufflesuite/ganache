@@ -1,0 +1,13 @@
+diff --git a/node_modules/@ethereumjs/util/dist/bytes.js b/node_modules/@ethereumjs/util/dist/bytes.js
+index f169c9e..6b8d015 100644
+--- a/node_modules/@ethereumjs/util/dist/bytes.js
++++ b/node_modules/@ethereumjs/util/dist/bytes.js
+@@ -326,7 +326,7 @@ function arrToBufArr(arr) {
+ exports.arrToBufArr = arrToBufArr;
+ function bufArrToArr(arr) {
+     if (!Array.isArray(arr)) {
+-        return Uint8Array.from(arr ?? []);
++        return Uint8Array.from(arr == null ? [] : arr);
+     }
+     return arr.map((a) => bufArrToArr(a));
+ }
