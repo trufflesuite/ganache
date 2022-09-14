@@ -44,7 +44,6 @@ export default class Database extends Emittery {
   public storageKeys: GanacheSublevel;
   public trie: GanacheSublevel;
   public readonly initialized: boolean;
-  #rootStore: GanacheLevel;
   public type: DBType;
 
   /**
@@ -76,7 +75,6 @@ export default class Database extends Emittery {
         db = new UpgradedLevelDown(store as any) as unknown as GanacheLevel;
         this.type = DBType.LevelDown;
       }
-      this.#rootStore = db;
     } else {
       this.type = DBType.Level;
       let directory = this.#options.dbPath;
@@ -91,7 +89,6 @@ export default class Database extends Emittery {
       this.directory = directory;
 
       const store = <GanacheLevel>new Level(directory, LEVEL_OPTIONS);
-      this.#rootStore = store;
       db = store;
     }
 
@@ -128,8 +125,8 @@ export default class Database extends Emittery {
    * of the provided function.
    */
   public batch<T>(fn: () => T) {
-    const rootDb = this.#rootStore;
-    const batch = this.db.batch();
+    const rootDb = this.db;
+    const batch = rootDb.batch();
 
     const originalPut = rootDb.put;
     const originalDel = rootDb.del;
