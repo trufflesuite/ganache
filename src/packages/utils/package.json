@@ -27,8 +27,7 @@
   "scripts": {
     "tsc": "tsc --build",
     "test": "npm run mocha",
-    "mocha": "cross-env TS_NODE_FILES=true mocha -s 0 -t 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
-    "postinstall": "patch-package"
+    "mocha": "cross-env TS_NODE_FILES=true mocha -s 0 -t 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
