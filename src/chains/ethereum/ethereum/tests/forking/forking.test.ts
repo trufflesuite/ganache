@@ -1232,6 +1232,14 @@ describe("forking", function () {
 
     KNOWN_NETWORKS.forEach(network => {
       describe(network, () => {
+        // TODO: possibly reinstate if this
+        // https://github.com/ethereumjs/ethereumjs-monorepo/issues/2286
+        // gets resolved
+        before("skip kovan", function () {
+          if (network === "kovan") {
+            this.skip();
+          }
+        });
         beforeEach("set up network provider", async () => {
           const provider = await startLocalChain(PORT, {
             network,
