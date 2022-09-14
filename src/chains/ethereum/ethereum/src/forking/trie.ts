@@ -70,7 +70,7 @@ export class ForkTrie extends GanacheTrie {
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
-    (this as any)._root = stateRoot;
+    this._root = stateRoot;
     this.address = address;
     this.blockNumber = blockNumber;
     this.isPreForkBlock = blockNumber.toBigInt() < this.forkBlockNumber;
