@@ -3,15 +3,14 @@ import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
 import { GanacheTrie } from "../helpers/trie";
-import { CheckpointDB, DB } from "@ethereumjs/trie";
+import { CheckpointDB } from "@ethereumjs/trie";
 
 import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheSublevel } from "../database";
-import { LevelDB } from "../leveldb";
-type KVP = { key: Buffer; value: Buffer };
+import { EJSLevel, LevelDB } from "../leveldb";
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";
@@ -39,27 +38,24 @@ export class ForkTrie extends GanacheTrie {
   private forkBlockNumber: bigint;
   public blockNumber: Quantity;
   private metadata: CheckpointDB;
+  private db: LevelDB;
 
-  constructor(db: DB | null, root: Buffer, blockchain: Blockchain) {
+  constructor(db: LevelDB | null, root: Buffer, blockchain: Blockchain) {
     super(db, root, blockchain);
-
+    this.db = db;
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
     this.forkBlockNumber = this.blockNumber.toBigInt();
 
-    if (MetadataSingletons.has((db as any)._leveldb)) {
-      this.metadata = new CheckpointDB(
-        new LevelDB(MetadataSingletons.get((db as any)._leveldb) as any)
-      );
-    } else {
-      const metadataDb = (db as any)._leveldb.sublevel(
-        "f",
-        LEVELDOWN_OPTIONS
-        // Level types don't properly pass generics all the way through.
-      ) as unknown as GanacheSublevel;
-      MetadataSingletons.set((db as any)._leveldb, metadataDb);
-      this.metadata = new CheckpointDB(new LevelDB(metadataDb as any));
-    }
+    const leveldb = db._leveldb as GanacheSublevel;
+    const metadataDb = MetadataSingletons.has(leveldb)
+      ? MetadataSingletons.get(leveldb)
+      : MetadataSingletons.set(
+          leveldb,
+          leveldb.sublevel("f", LEVELDOWN_OPTIONS) as unknown as GanacheSublevel
+        ).get(leveldb);
+
+    this.metadata = new CheckpointDB(new LevelDB(metadataDb as EJSLevel));
   }
 
   checkpoint() {
@@ -93,15 +89,14 @@ export class ForkTrie extends GanacheTrie {
     startBlockNumber: Quantity,
     endBlockNumber: Quantity
   ) {
-    const db = this.metadata.db;
     //@ts-ignore
-    const stream = db.createKeyStream({
+    const db = this.metadata.db._leveldb;
+    const stream = db.iterator({
       gte: lexico.encode([startBlockNumber.toBuffer()]),
       lt: lexico.encode([
         Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
       ])
     });
-    //@ts-ignore
     const batch = db.batch();
     for await (const [key] of stream) {
       batch.del(key);
@@ -140,6 +135,12 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): this is just going to be slow once we get lots of keys
     // because it just checks every single key we've ever deleted (before this
     // one).
+    // @ts-ignore
+    const db = this.metadata.db._leveldb;
+    const stream = db.iterator({
+      lte: this.createDelKey(key),
+      reverse: true
+    });
     for await (const [encodedKey, value] of stream) {
       if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
@@ -162,15 +163,20 @@ export class ForkTrie extends GanacheTrie {
 
       const hash = keccak(key);
       const { node, stack } = await this.findPath(hash);
-      if (node) await this._deleteNode(hash, stack);
+      if (node) {
+        await this._deleteNode(hash, stack);
+        await this.persistRoot();
+      }
 
       await metaDataPutPromise;
     } else {
       const hash = keccak(key);
       const { node, stack } = await this.findPath(hash);
-      if (node) await this._deleteNode(hash, stack);
+      if (node) {
+        await this._deleteNode(hash, stack);
+        await this.persistRoot();
+      }
     }
-
     this._lock.release();
   }
 
@@ -282,7 +288,7 @@ export class ForkTrie extends GanacheTrie {
    */
   copy(includeCheckpoints: boolean = true) {
     const secureTrie = new ForkTrie(
-      this._db.copy().db,
+      this.db.copy(),
       this.root(),
       this.blockchain
     );
