@@ -151,15 +151,18 @@ describe("api", () => {
             assert.strictEqual(feeHistory.oldestBlock, newestBlock);
           });
           it("oldestBlock = newestBlock - blockCount +1", async () => {
-            const blockCount = "0x1";
-            const newestBlock = "0x2";
+            const blockCount = "0x3";
+            const newestBlock = "0xa";
+            const oldestBlock = Quantity.from(
+              parseInt(newestBlock, 16) - parseInt(blockCount, 16) + 1
+            ).toString();
             const feeHistory = await provider.send("eth_feeHistory", [
               blockCount,
               newestBlock,
               []
             ]);
 
-            assert.strictEqual(feeHistory.oldestBlock, newestBlock);
+            assert.strictEqual(feeHistory.oldestBlock, oldestBlock);
           });
         });
       });
