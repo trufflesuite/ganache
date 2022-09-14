@@ -1,5 +1,5 @@
 import type { RangeOf, Remainders } from "./types";
-import { uintToBuffer } from "@ganache/utils";
+import { BUFFER_EMPTY, uintToBuffer } from "@ganache/utils";
 
 export declare type Input = Buffer | Buffer[] | List;
 export interface List extends Array<Input> {}
@@ -143,6 +143,9 @@ function safeSlice(input: Buffer, start: number, end: number) {
 export function decode<T extends Buffer | NestedBuffer = Buffer | NestedBuffer>(
   input: Buffer
 ): T {
+  if (!input || input.length === 0) {
+    return BUFFER_EMPTY as T;
+  }
   const decoded = _decode<T>(input);
 
   if (decoded.remainder.length !== 0) {
