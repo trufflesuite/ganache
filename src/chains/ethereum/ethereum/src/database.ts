@@ -1,9 +1,10 @@
-import { AbstractLevel, AbstractSublevel } from "abstract-level";
+import { AbstractSublevel } from "abstract-level";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Level } from "level";
+import { UpgradedLevelDown } from "./leveldown-to-level";
 
 export type GanacheLevel = Level<Buffer, Buffer>;
 export type GanacheSublevel = AbstractSublevel<
@@ -16,6 +17,11 @@ export type GanacheSublevel = AbstractSublevel<
 setGracefulCleanup();
 const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
 const noop = () => Promise.resolve();
+
+export enum DBType {
+  Level = 0,
+  LevelDown = 1
+}
 
 export const LEVEL_OPTIONS = {
   keyEncoding: "binary" as const,
@@ -39,6 +45,7 @@ export default class Database extends Emittery {
   public trie: GanacheSublevel;
   public readonly initialized: boolean;
   #rootStore: GanacheLevel;
+  public type: DBType;
 
   /**
    * The Database handles the creation of the database, and all access to it.
@@ -64,10 +71,14 @@ export default class Database extends Emittery {
     if (store) {
       if (typeof store === "string") {
         db = <GanacheLevel>new Level(store, LEVEL_OPTIONS);
+        this.type = DBType.Level;
       } else {
-        db = <GanacheLevel>store;
+        db = new UpgradedLevelDown(store as any) as unknown as GanacheLevel;
+        this.type = DBType.LevelDown;
       }
+      this.#rootStore = db;
     } else {
+      this.type = DBType.Level;
       let directory = this.#options.dbPath;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
