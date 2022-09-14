@@ -696,6 +696,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           })
         : new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
     }) as VM;
+    // @ts-ignore
+    vm.evm._allowUnlimitedContractSize = allowUnlimitedContractSize;
     if (activatePrecompile) {
       await activatePrecompiles(vm.eei as EEI);
 
