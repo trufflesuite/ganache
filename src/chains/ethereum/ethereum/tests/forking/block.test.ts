@@ -40,7 +40,8 @@ describe("forking", function () {
       assert.deepStrictEqual(block.parentHash, remoteBlock.hash);
     });
 
-    it("should get a block from the original chain", async () => {
+    //todo: reinstate this test after https://github.com/trufflesuite/ganache/issues/3616 is fixed
+    it.skip("should get a block from the original chain", async () => {
       const res = await request.post(URL).send({
         jsonrpc: "2.0",
         id: "1",
