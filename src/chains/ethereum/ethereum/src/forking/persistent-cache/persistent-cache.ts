@@ -65,9 +65,8 @@ export class PersistentCache {
       const tree: Tree = {};
       const collection = {};
       for await (const data of rs) {
-        const { key, value } = data as any as { key: Buffer; value: Buffer };
-
-        const node = Tree.deserialize(key, value);
+        const [key, value] = data as [key: Buffer, value: Uint8Array];
+        const node = Tree.deserialize(key, Buffer.from(value));
         (node as any).height = node.decodeKey().height.toNumber();
         const keyHex = key.toString("hex");
         const parentKeyHex = node.closestKnownAncestor.toString("hex");
@@ -327,7 +326,7 @@ export class PersistentCache {
     });
 
     for await (const data of readStream) {
-      const { key: k, value } = data as any as { key: Buffer; value: Buffer };
+      const [k, value] = data as [key: Buffer, value: Uint8Array];
       const [_height, _key, blockHash] = lexico.decode(k);
       // if our key no longer matches make sure we don't keep searching
       if (!_key.equals(bufKey)) return;
@@ -335,7 +334,7 @@ export class PersistentCache {
         this.hashBuffer.equals(blockHash) ||
         (await this.ancestry.has(blockHash))
       ) {
-        return value;
+        return Buffer.from(value);
       }
     }
   }

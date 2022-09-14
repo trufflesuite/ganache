@@ -103,9 +103,9 @@ export class ForkTrie extends GanacheTrie {
     });
     //@ts-ignore
     const batch = db.batch();
-    //@ts-ignore
-    for await (const key of stream) batch.del(key);
-    //@ts-ignore
+    for await (const [key] of stream) {
+      batch.del(key);
+    }
     await batch.write();
   }
 
@@ -147,12 +147,10 @@ export class ForkTrie extends GanacheTrie {
       lte: this.createDelKey(key),
       reverse: true
     });
-    // @ts-ignore
-    stream.on("data", (data: [Buffer, Buffer]) => {
-      const [encodedKey, value] = data;
+    for await (const [encodedKey, value] of stream) {
       if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
-    });
+    }
 
     // we didn't find proof of deletion so we return `false`
     return false;
