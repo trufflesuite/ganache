@@ -17,6 +17,12 @@ setGracefulCleanup();
 const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
 const noop = () => Promise.resolve();
 
+export const LEVEL_OPTIONS = {
+  keyEncoding: "binary" as const,
+  valueEncoding: "binary" as const,
+  // specify an empty `prefix` for browser-based leveldown (level-js)
+  prefix: "" as const
+};
 export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
   readonly #options: EthereumInternalOptions["database"];
