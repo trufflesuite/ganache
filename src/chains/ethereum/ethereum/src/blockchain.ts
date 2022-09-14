@@ -1101,7 +1101,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
-      vm.stateManager.checkpoint();
+      await vm.eei.checkpoint();
 
       vm.evm.events.on("step", (event: InterpreterStep) => {
         const logs = maybeGetLogs(event);
@@ -1135,7 +1135,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
-      const fromAccount = await vm.stateManager.getAccount({
+      const fromAccount = await vm.eei.getAccount({
         buf: caller
       } as any);
       fromAccount.nonce += 1n;
@@ -1143,7 +1143,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
       fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
-      await vm.stateManager.putAccount({ buf: caller } as any, fromAccount);
+      await vm.eei.putAccount({ buf: caller } as any, fromAccount);
 
       // finally, run the call
       // @ts-ignore types are dumbs
