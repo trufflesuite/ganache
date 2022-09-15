@@ -159,7 +159,8 @@ function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
       blockchain
     );
   } else {
-    throw new Error("wtf");
+    // this really shouldn't happen
+    throw new Error("Database type not supported.");
   }
 }
 
