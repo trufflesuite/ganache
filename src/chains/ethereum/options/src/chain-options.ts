@@ -110,7 +110,7 @@ export type ChainConfig = {
 
     /**
      * Set the hardfork rules for the EVM.
-     * @defaultValue "grayGlacier"
+     * @defaultValue "london"
      */
     readonly hardfork: {
       type: Hardfork;
@@ -196,7 +196,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   hardfork: {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
-    default: () => "grayGlacier",
+    default: () => "london",
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
