@@ -1,10 +1,10 @@
 import { RuntimeBlock } from "@ganache/ethereum-block";
-import { Quantity, Data, hasOwn, keccak, BUFFER_EMPTY } from "@ganache/utils";
+import { Quantity, Data, hasOwn, keccak } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import { Message } from "@ethereumjs/evm";
 import { VM } from "@ethereumjs/vm";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheTrie } from "./trie";
+import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 
 export type SimulationTransaction = {
   /**
@@ -66,11 +66,11 @@ export function runCall(
   transaction: SimulationTransaction,
   gasLeft: bigint
 ) {
-  const caller = { buf: transaction.from.toBuffer() } as any;
+  const caller = { buf: transaction.from.toBuffer() } as EthereumJsAddress;
   const to =
     transaction.to == null
       ? undefined
-      : ({ buf: transaction.to.toBuffer() } as any);
+      : ({ buf: transaction.to.toBuffer() } as EthereumJsAddress);
   const value = transaction.value == null ? 0n : transaction.value.toBigInt();
 
   vm.evm.runCall({
@@ -126,7 +126,9 @@ export async function applySimulationOverrides(
     if (!hasOwn(overrides, address)) continue;
     const { balance, nonce, code, state, stateDiff } = overrides[address];
 
-    const vmAddr = { buf: Address.from(address).toBuffer() } as any;
+    const vmAddr = {
+      buf: Address.from(address).toBuffer()
+    } as EthereumJsAddress;
     // group together overrides that update the account
     if (nonce != null || balance != null || code != null) {
       const account = await eei.getAccount(vmAddr);
