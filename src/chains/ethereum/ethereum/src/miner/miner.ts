@@ -1,4 +1,4 @@
-import type { InterpreterStep, EVM } from "@ethereumjs/evm";
+import type { InterpreterStep } from "@ethereumjs/evm";
 import {
   RuntimeError,
   RETURN_TYPES,
@@ -282,7 +282,7 @@ export default class Miner extends Emittery<{
         }
       };
 
-      vm.evm.events.on("step" as any, stepListener);
+      vm.evm.events.on("step", stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
