@@ -47,8 +47,7 @@ describe("api", () => {
         let blockNumber: Quantity;
         let contract: ReturnType<typeof compile>;
 
-        before(async function () {
-          this.timeout(0);
+        before(async () => {
           contract = compile(join(__dirname, "./contracts/GetCode.sol"), {
             contractName: "GetCode",
             imports: [join(__dirname, "./contracts/NoOp.sol")]
