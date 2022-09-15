@@ -140,27 +140,22 @@ function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
 }
 
 function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
+  let trieDb: LevelDB | UpgradedLevelDown;
+  switch (db.type) {
+    case DBType.Level:
+      trieDb = new LevelDB(db.trie as any);
+      break;
+    case DBType.LevelDown:
+      trieDb = db.db as unknown as UpgradedLevelDown;
+      break;
+    default:
+      // this really shouldn't happen
+      throw new Error("Database type not supported.");
+  }
   if (blockchain.fallback) {
-    return new ForkTrie(
-      new LevelDB(db.trie as any),
-      root ? root.toBuffer() : null,
-      blockchain
-    );
-  } else if (db.type === DBType.Level) {
-    return new GanacheTrie(
-      new LevelDB(db.trie as any),
-      root ? root.toBuffer() : null,
-      blockchain
-    );
-  } else if (db.type === DBType.LevelDown) {
-    return new GanacheTrie(
-      new UpgradedLevelDown(db.trie as any),
-      root ? root.toBuffer() : null,
-      blockchain
-    );
+    return new ForkTrie(trieDb, root ? root.toBuffer() : null, blockchain);
   } else {
-    // this really shouldn't happen
-    throw new Error("Database type not supported.");
+    return new GanacheTrie(trieDb, root ? root.toBuffer() : null, blockchain);
   }
 }
 

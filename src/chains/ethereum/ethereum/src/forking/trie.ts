@@ -12,6 +12,7 @@ import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheSublevel } from "../database";
 import { AbstractSublevel } from "abstract-level";
 import { EJSLevel, LevelDB } from "../leveldb";
+import { GanacheLevelDown, UpgradedLevelDown } from "../leveldown-to-level";
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";
@@ -20,7 +21,7 @@ const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
 const MetadataSingletons = new WeakMap<
-  GanacheSublevel,
+  GanacheSublevel | GanacheLevelDown,
   AbstractSublevel<GanacheSublevel, Buffer, string, string>
 >();
 
@@ -42,16 +43,25 @@ export class ForkTrie extends GanacheTrie {
   private forkBlockNumber: bigint;
   public blockNumber: Quantity;
   private metadata: CheckpointDB;
-  private db: LevelDB;
+  private db: LevelDB | UpgradedLevelDown;
 
-  constructor(db: LevelDB | null, root: Buffer, blockchain: Blockchain) {
+  constructor(
+    db: LevelDB | UpgradedLevelDown | null,
+    root: Buffer,
+    blockchain: Blockchain
+  ) {
     super(db, root, blockchain);
     this.db = db;
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
     this.forkBlockNumber = this.blockNumber.toBigInt();
-
-    const leveldb = db._leveldb as GanacheSublevel;
+    // a LevelDB has a _leveldb property, otherwise this is an upgraded
+    // leveldown instance
+    const leveldb =
+      "_leveldb" in db
+        ? (db._leveldb as GanacheSublevel)
+        : // @ts-ignore
+          (db as GanacheSublevel);
     const metadataDb = MetadataSingletons.has(leveldb)
       ? MetadataSingletons.get(leveldb)
       : MetadataSingletons.set(
