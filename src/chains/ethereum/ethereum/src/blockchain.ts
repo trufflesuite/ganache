@@ -1238,8 +1238,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const vm = await VM.create({
       activatePrecompiles: false,
       common,
-      //@ts-ignore they moved a public propery to private
-      allowUnlimitedContractSize: this.vm.evm._allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
         ? new ForkStateManager({
@@ -1248,6 +1246,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           })
         : new DefaultStateManager({ trie: trie, prefixCodeHashes: false })
     });
+    //@ts-ignore
+    vm._allowUnlimitedContractSize = this.vm.evm._allowUnlimitedContractSize;
 
     const storage: StorageRecords = {};
 
