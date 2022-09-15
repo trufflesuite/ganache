@@ -15,11 +15,6 @@ export class UpgradedLevelDown {
     this.db = levelup(store, LEVEL_OPTIONS);
   }
 
-  get location() {
-    console.log("LOCATION RETRIEVED");
-    return "";
-  }
-
   async open(): Promise<void> {
     await this.db.open();
   }
