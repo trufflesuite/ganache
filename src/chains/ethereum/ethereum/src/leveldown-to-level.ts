@@ -57,10 +57,10 @@ export class UpgradedLevelDown {
   }
 
   sublevel(prefix: string) {
-    const thing = sub(this.db, prefix, LEVEL_OPTIONS);
+    const sublevel = sub(this.db, prefix, LEVEL_OPTIONS);
     // @ts-ignore
-    thing.values = thing.iterator;
-    return thing;
+    sublevel.values = sublevel.iterator;
+    return sublevel;
   }
 
   async close() {
