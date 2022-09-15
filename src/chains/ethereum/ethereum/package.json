@@ -74,7 +74,6 @@
     "env-paths": "2.2.1",
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",
-    "keccak": "3.0.2",
     "level": "8.0.0",
     "lodash.clonedeep": "4.5.0",
     "lru-cache": "6.0.0",
