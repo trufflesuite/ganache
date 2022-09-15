@@ -48,10 +48,6 @@ export class UpgradedLevelDown {
     else return this.db.batch() as any;
   }
 
-  values(options: any) {
-    return this.db.createValueStream(options);
-  }
-
   copy(): UpgradedLevelDown {
     return new UpgradedLevelDown(this.#rootStore);
   }
