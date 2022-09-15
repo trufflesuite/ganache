@@ -38,10 +38,11 @@ describe("miner", async () => {
         miner: {
           blockGasLimit: "0x5208" // 21000, or sending one empty tx
         },
-        chain: { chainId: 1337 }
+        chain: { chainId: 1337 },
+        logging: { logger: console }
       };
       const options = EthereumOptionsConfig.normalize(optionsJson);
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       [from1, from2, from3, to] = wallet.addresses;
       const fromAddress = new Address(from1);
 

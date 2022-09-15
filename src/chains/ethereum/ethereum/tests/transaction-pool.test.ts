@@ -42,7 +42,7 @@ describe("transaction pool", async () => {
   const options = EthereumOptionsConfig.normalize(optionsJson);
   let futureNonceRpc, executableRpc: Transaction;
   before(function () {
-    const wallet = new Wallet(options.wallet);
+    const wallet = new Wallet(options.wallet, options.logging);
     [from] = wallet.addresses;
     secretKey = wallet.unlockedAccounts.get(from);
     rpcTx = {
