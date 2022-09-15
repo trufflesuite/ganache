@@ -5,7 +5,7 @@ import type { LevelUp } from "levelup";
 import { LEVEL_OPTIONS } from "./database";
 const levelup = require("levelup");
 
-type GanacheLevelDown = AbstractLevelDOWN<Buffer, Buffer>;
+export type GanacheLevelDown = AbstractLevelDOWN<Buffer, Buffer>;
 export class UpgradedLevelDown {
   public db: LevelUp<GanacheLevelDown> = null;
   #rootStore: GanacheLevelDown;
@@ -23,6 +23,7 @@ export class UpgradedLevelDown {
   async open(): Promise<void> {
     await this.db.open();
   }
+
   async get(key: Buffer): Promise<Buffer | null> {
     let val = null;
     try {
