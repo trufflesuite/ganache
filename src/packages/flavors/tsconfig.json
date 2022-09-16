@@ -15,10 +15,6 @@
       "path": "../../chains/ethereum/ethereum"
     },
     {
-      "name": "@ganache/tezos",
-      "path": "../../chains/tezos/tezos"
-    },
-    {
       "name": "@ganache/utils",
       "path": "../utils"
     },
