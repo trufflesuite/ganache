@@ -5,7 +5,6 @@
  * @license MIT
  */
 
-import { FilecoinDefaults, FilecoinOptionsConfig } from "./src";
 export {
   FilecoinInternalOptions,
   FilecoinOptionsConfig,
@@ -13,7 +12,3 @@ export {
   FilecoinDefaults,
   FilecoinLegacyProviderOptions
 } from "./src";
-export default {
-  FilecoinDefaults,
-  FilecoinOptionsConfig
-};

@@ -1,5 +1,6 @@
-import { DefaultFlavor, FlavorName } from "@ganache/flavors";
-import { ServerOptions } from "@ganache/core";
+import type { Flavor } from "@ganache/flavor";
+import type { ServerOptions } from "@ganache/core";
+import type EthereumFlavor from "@ganache/ethereum";
 
 type CliServerOptions = {
   host: string;
@@ -12,17 +13,22 @@ type AbstractArgs<TAction = Action> = {
   action: TAction;
 };
 
-export type StartArgs<TFlavorName extends FlavorName> =
-  ServerOptions<TFlavorName> & {
-    _: [TFlavorName];
-    server: CliServerOptions;
-  } & AbstractArgs<"start" | "start-detached">;
+export type StartArgs<
+  TFlavorName extends "ethereum" | string,
+  F extends Flavor = TFlavorName extends "ethereum" ? EthereumFlavor : Flavor<TFlavorName>
+> = ServerOptions<F> & {
+  _: [TFlavorName];
+  server: CliServerOptions;
+  flavor: TFlavorName
+} & AbstractArgs<"start" | "start-detached">;
 
 export type GanacheArgs =
   | (AbstractArgs<"stop"> & { name: string })
   | AbstractArgs<"list">
-  | StartArgs<FlavorName>;
+  | StartArgs<"ethereum" | string>;
 
 export type CliSettings = CliServerOptions;
 
-export type FlavorCommand = FlavorName | ["$0", typeof DefaultFlavor];
+export type Argv<F extends Flavor> = ServerOptions<F> & {
+  _: [F["flavor"]];
+};

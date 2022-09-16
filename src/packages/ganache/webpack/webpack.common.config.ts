@@ -8,10 +8,6 @@ const CORE_VERSION = require(join(
   __dirname,
   "../../core/package.json"
 )).version;
-const GANACHE_FILECOIN_VERSION = require(join(
-  __dirname,
-  "../../../chains/filecoin/filecoin/package.json"
-)).version;
 
 let INFURA_KEY = process.env.INFURA_KEY;
 // if we don't have an INFURA_KEY at build time we should bail!
@@ -92,8 +88,7 @@ const base: webpack.Configuration = {
       // set ganache version
       VERSION,
       CLI_VERSION,
-      CORE_VERSION,
-      GANACHE_FILECOIN_VERSION
+      CORE_VERSION
     }),
     new webpack.DefinePlugin({
       // replace process.env.INFURA_KEY in our code

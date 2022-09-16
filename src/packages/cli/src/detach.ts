@@ -6,7 +6,6 @@ import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
 const { readFile, mkdir, readdir, rmdir, writeFile, unlink } = fsPromises;
 import path from "path";
-import { FlavorName } from "@ganache/flavors";
 
 export type DetachedInstance = {
   name: string;
@@ -14,7 +13,7 @@ export type DetachedInstance = {
   startTime: number;
   host: string;
   port: number;
-  flavor: FlavorName;
+  flavor: "ethereum" | string;
   cmd: string;
   version: string;
 };
@@ -91,7 +90,7 @@ export async function stopDetachedInstance(
 export async function startDetachedInstance(
   argv: string[],
   instanceInfo: {
-    flavor?: FlavorName;
+    flavor?: "ethereum" | string;
     server: { host: string; port: number };
   },
   version: string

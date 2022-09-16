@@ -53,6 +53,14 @@
     {
       "name": "@ganache/console.log",
       "path": "../console.log"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../../../packages/flavor"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../../../packages/colors"
     }
   ]
 }

@@ -7,19 +7,17 @@ import { ForkConfig, ForkOptions } from "./fork-options";
 import {
   Base,
   Defaults,
-  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
   LegacyOptions,
   OptionName,
   OptionRawType,
-  Options,
   OptionsConfig
 } from "@ganache/options";
 import { UnionToIntersection } from "./helper-types";
 
-type EthereumConfig = {
+export type EthereumConfig = {
   chain: ChainConfig;
   database: DatabaseConfig;
   logging: LoggingConfig;
@@ -45,17 +43,16 @@ export type EthereumLegacyProviderOptions = Partial<
     MakeLegacyOptions<ForkConfig>
 >;
 
-export type EthereumProviderOptions = Partial<
-  {
-    [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
-  }
->;
+export type EthereumProviderOptions = Partial<{
+  [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
+}>;
 
 export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
 
-export const EthereumDefaults: Defaults<EthereumConfig> = {
+export type EthereumDefaults = Defaults<EthereumConfig>;
+export const EthereumDefaults: EthereumDefaults = {
   chain: ChainOptions,
   database: DatabaseOptions,
   logging: LoggingOptions,
@@ -64,6 +61,7 @@ export const EthereumDefaults: Defaults<EthereumConfig> = {
   fork: ForkOptions
 };
 
+export type EthereumOptionsConfig = OptionsConfig<EthereumConfig>;
 export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
 
 export * from "./chain-options";

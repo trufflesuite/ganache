@@ -1,5 +1,5 @@
 import assert from "assert";
-import args, { expandArgs } from "../src/args";
+import { parseArgs, expandArgs } from "../src/args";
 
 describe("args", () => {
   describe("expandArgs()", () => {
@@ -56,7 +56,6 @@ describe("args", () => {
   describe("parse args", () => {
     describe("detach", () => {
       const versionString = "Version string";
-      const isDocker = false;
 
       const detachModeArgs = [
         "--detach",
@@ -77,7 +76,7 @@ describe("args", () => {
 
       it("defaults to false when no arg provided", () => {
         const rawArgs = [];
-        const options = args(versionString, isDocker, rawArgs);
+        const options = parseArgs(versionString, rawArgs);
 
         assert.strictEqual(
           options.action,
@@ -89,7 +88,7 @@ describe("args", () => {
       detachModeArgs.forEach(arg => {
         it(`is true with ${arg}`, () => {
           const rawArgs = [arg];
-          const options = args(versionString, false, rawArgs);
+          const options = parseArgs(versionString, rawArgs);
 
           assert.strictEqual(
             options.action,
@@ -102,7 +101,7 @@ describe("args", () => {
       notDetachModeArgs.forEach(arg => {
         it(`is false with ${arg}`, () => {
           const rawArgs = [arg];
-          const options = args(versionString, false, rawArgs);
+          const options = parseArgs(versionString, rawArgs);
 
           assert.strictEqual(
             options.action,
@@ -115,7 +114,7 @@ describe("args", () => {
       it("is false, when proceeded with --no-detach", () => {
         // see startDetachedInstance() in detach.ts
         const rawArgs = ["--detach", "-D", "--😈", "--no-detach"];
-        const options = args(versionString, false, rawArgs);
+        const options = parseArgs(versionString, rawArgs);
 
         assert.strictEqual(options.action, "start");
       });

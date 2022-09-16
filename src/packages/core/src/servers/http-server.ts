@@ -6,8 +6,8 @@ import {
 } from "@trufflesuite/uws-js-unofficial";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
-import { Connector } from "@ganache/flavors";
-import { InternalOptions } from "../options";
+import { Connector } from "@ganache/flavor";
+import { InternalServerOptions } from "../types";
 import { types } from "util";
 import { getFragmentGenerator } from "./utils/fragment-generator";
 
@@ -137,20 +137,16 @@ function sendChunkedResponse(
 }
 
 export type HttpServerOptions = Pick<
-  InternalOptions["server"],
+  InternalServerOptions["server"],
   "rpcEndpoint" | "chunkSize"
 >;
 
-export default class HttpServer {
-  #connector: Connector;
+export default class HttpServer<C extends Connector<any, any, any>> {
+  #connector: C;
   #options: HttpServerOptions;
   #isClosing = false;
 
-  constructor(
-    app: TemplatedApp,
-    connector: Connector,
-    options: HttpServerOptions
-  ) {
+  constructor(app: TemplatedApp, connector: C, options: HttpServerOptions) {
     this.#connector = connector;
     this.#options = options;
 
@@ -214,7 +210,7 @@ export default class HttpServer {
         // on the Connector interface must match up appropriately
         const connector = this.#connector as any;
 
-        let payload: ReturnType<Connector["parse"]>;
+        let payload: ReturnType<C["parse"]>;
         try {
           const message = buffer
             ? Buffer.concat([buffer, chunk], buffer.length + chunk.length)

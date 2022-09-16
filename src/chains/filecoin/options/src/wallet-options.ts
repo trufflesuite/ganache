@@ -1,7 +1,10 @@
 import { normalize } from "./helpers";
 import Seedrandom from "seedrandom";
 
-import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
+import { Definitions } from "@ganache/options";
+
+// Don't change! We need maintain original determinism since the beginning
+const DeterministicSeedPhrase = "TestRPC is awesome!";
 
 const unseededRng = Seedrandom();
 
@@ -90,6 +93,7 @@ export const WalletOptions: Definitions<WalletConfig> = {
       config.deterministic === true
         ? DeterministicSeedPhrase
         : randomAlphaNumericString(10, unseededRng),
+    defaultDescription: "Random value, unless wallet.deterministic is specified",
     cliAliases: ["s"],
     cliType: "string",
     conflicts: ["deterministic"]

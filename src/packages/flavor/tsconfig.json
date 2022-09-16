@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declarationDir": "typings",
+    "composite": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "name": "@ganache/utils",
+      "path": "../utils"
+    },
+    {
+      "name": "@ganache/options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
+    }
+  ]
+}

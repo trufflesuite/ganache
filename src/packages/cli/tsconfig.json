@@ -15,10 +15,6 @@
       "path": "../core"
     },
     {
-      "name": "@ganache/flavors",
-      "path": "../flavors"
-    },
-    {
       "name": "@ganache/options",
       "path": "../options"
     },
@@ -33,6 +29,10 @@
     {
       "name": "@ganache/colors",
       "path": "../colors"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../flavor"
     },
     {
       "name": "@ganache/filecoin",

@@ -6,11 +6,9 @@ import { hasOwn } from "@ganache/utils";
 
 export type NamespacedOptions = { [key: string]: Base.Config };
 
-export type ProviderOptions<O extends NamespacedOptions> = Partial<
-  {
-    [K in keyof O]: ExternalConfig<O[K]>;
-  }
->;
+export type ProviderOptions<O extends NamespacedOptions> = Partial<{
+  [K in keyof O]: ExternalConfig<O[K]>;
+}>;
 
 export type InternalOptions<O extends NamespacedOptions> = {
   [K in keyof O]: InternalConfig<O[K]>;
@@ -41,7 +39,6 @@ const checkForConflicts = (
 function fill(defaults: any, options: any, target: any, namespace: any) {
   const def = defaults[namespace];
   const config = (target[namespace] = target[namespace] || {});
-  const flavor = options.flavor;
 
   const suppliedOptions = new Set<string>();
   const keys = Object.keys(def);
@@ -80,7 +77,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
             suppliedOptions.add(key);
           }
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default(config, flavor);
+          config[key] = propDefinition.default(config);
         }
       }
     }
@@ -104,23 +101,23 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
           suppliedOptions.add(key);
         }
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default(config, flavor);
+        config[key] = propDefinition.default(config);
       }
     }
   }
 }
 
 export class OptionsConfig<O extends NamespacedOptions> {
-  #defaults: Defaults<O>;
+  public readonly defaults: Defaults<O>;
   #namespaces: UnionToTuple<keyof Defaults<O>>;
 
   constructor(defaults: Defaults<O>) {
-    this.#defaults = defaults;
+    this.defaults = defaults;
     this.#namespaces = Object.keys(defaults) as UnionToTuple<keyof Defaults<O>>;
   }
 
   normalize(options: ProviderOptions<O>) {
-    const defaults = this.#defaults;
+    const defaults = this.defaults;
 
     const out = {} as InternalOptions<O>;
     this.#namespaces.forEach(namespace => {

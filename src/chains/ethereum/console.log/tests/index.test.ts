@@ -49,7 +49,7 @@ describe("@ganache/console.log", () => {
 
   after("shut down the provider", async () => {
     provider && (await provider.disconnect());
-    provider = null;
+    provider = null!;
   });
 
   beforeEach("snapshot", async () => {
@@ -65,7 +65,7 @@ describe("@ganache/console.log", () => {
         method: "evm_revert",
         params: [snapshotId]
       }));
-    snapshotId = null;
+    snapshotId = null!;
   });
 
   /**
@@ -369,7 +369,7 @@ describe("@ganache/console.log", () => {
       });
 
       describe(`${name}(${params.join(", ")})`, () => {
-        const possibleValues = params.map(param => staticValues.get(param));
+        const possibleValues = params.map(param => staticValues.get(param)!);
 
         const method = get4ByteForSignature(
           `${functionName}(${params.map(toAbiType)})`
@@ -388,7 +388,7 @@ describe("@ganache/console.log", () => {
     describe("miscellaneous", () => {
       const func = functions.find(
         f => f.params.length === 1 && f.params[0].type === "string memory"
-      );
+      )!;
       const method = get4ByteForSignature(`${func.functionName}(string)`);
       const params = [{ type: func.params[0].type, value: "Hello, World!" }];
 
@@ -415,7 +415,7 @@ describe("@ganache/console.log", () => {
       });
 
       it("does NOT log when `console.log` is called within an `eth_estimateGas`", async () => {
-        const allLogs = [];
+        const allLogs: any[] = [];
         logger.log = (...logs: any[]) => {
           if (logs[0] === "eth_estimateGas") return;
 
@@ -509,7 +509,7 @@ contract ${CONTRACT_NAME} {
           assert.strictEqual(receipt.status, "0x1");
           assert.strictEqual(receipt.transactionIndex, "0x1");
 
-          const allLogs = [];
+          const allLogs: any[] = [];
           logger.log = (...logs: any[]) => {
             if (logs[0] === "debug_storageRangeAt") return;
             allLogs.push(logs);

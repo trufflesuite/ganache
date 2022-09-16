@@ -3,7 +3,7 @@
 // and point to `main` which uses `lib/index.js`
 // instead of `index.ts` causing TS errors during
 // construction due to missing private fields
-import Ganache, { Server } from "../index";
+import Ganache, { Server, ServerOptions } from "../index";
 
 import assert from "assert";
 import request from "superagent";
@@ -19,7 +19,6 @@ import http from "http";
 import intoStream = require("into-stream");
 import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
-import { ServerOptions } from "../src/options";
 import { Connector, EthereumProvider } from "@ganache/ethereum";
 import {
   NetworkInterfaceInfo,
@@ -61,7 +60,7 @@ describe("server", () => {
     // because it tries to compare the built declaration file to
     // the TS file, causing missing #<var> private variables
     s = Ganache.server(options);
-    await s.listen(port, host);
+    await s.listen(port, host!);
     return s;
   }
 
@@ -166,7 +165,7 @@ describe("server", () => {
         assert(Object.keys(interfaces).length > 0);
 
         for (const interfaceName of Object.keys(interfaces)) {
-          const interfaceInfo = interfaces[interfaceName];
+          const interfaceInfo = interfaces[interfaceName]!;
           assert(interfaceInfo.length > 0);
 
           for (const info of interfaceInfo) {
@@ -199,7 +198,7 @@ describe("server", () => {
       assert(Object.keys(interfaces).length > 0);
 
       for (const interfaceName of Object.keys(interfaces)) {
-        const interfaceInfo = interfaces[interfaceName];
+        const interfaceInfo = interfaces[interfaceName]!;
         assert(interfaceInfo.length > 0);
 
         for (const info of interfaceInfo) {
@@ -207,7 +206,7 @@ describe("server", () => {
           const server = await setup(defaultOptions, serverHost);
           try {
             for (const interfaceName of Object.keys(interfaces)) {
-              const interfaceInfo = interfaces[interfaceName];
+              const interfaceInfo = interfaces[interfaceName]!;
               assert(interfaceInfo.length > 0);
 
               for (const info of interfaceInfo) {

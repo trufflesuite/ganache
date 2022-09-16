@@ -1,0 +1,36 @@
+{
+  "name": "my-chain",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.6.0",
+  "description": "Ganache flavor plugin for the fictional chain \"My Chain\"",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "source": "src/index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "typings"
+  ],
+  "scripts": {
+    "pre-publish": "tsc",
+    "test": "ts-mocha"
+  },
+  "keywords": [
+    "ganache-flavor"
+  ],
+  "dependencies": {
+    "@ganache/flavor": "../",
+    "emittery": "0.10.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.0",
+    "mocha": "10.1.0",
+    "ts-mocha": "10.0.0",
+    "typescript": "4.8.4"
+  }
+}

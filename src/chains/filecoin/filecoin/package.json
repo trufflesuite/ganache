@@ -12,8 +12,9 @@
     "node": ">=12.17.0 <14.0.0 || >=14.0.1 <17.0.0",
     "npm": ">=6.14.4"
   },
-  "main": "lib/index.js",
+  "main": "dist/node/ganache-filecoin.min.js",
   "typings": "typings",
+  "source": "index.ts",
   "directories": {
     "lib": "lib",
     "test": "tests"
@@ -47,9 +48,11 @@
     "tooling"
   ],
   "dependencies": {
+    "@ganache/options": "0.6.0",
     "ipfs": "0.52.3",
     "ipfs-http-server": "0.1.4",
     "ipld-dag-cbor": "0.17.0",
+    "keccak": "3.0.2",
     "leveldown": "6.1.0",
     "secp256k1": "4.0.3"
   },
@@ -58,6 +61,7 @@
     "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
     "@ganache/filecoin-options": "0.8.0",
+    "@ganache/flavor": "0.9.0",
     "@ganache/utils": "0.8.0",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
     "@types/abstract-leveldown": "7.2.0",

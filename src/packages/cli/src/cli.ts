@@ -2,12 +2,8 @@
 
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
-import args from "./args";
-import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
-import initializeEthereum from "./initialize/ethereum";
-import initializeFilecoin from "./initialize/filecoin";
-import type { FilecoinProvider } from "@ganache/filecoin";
-import type { EthereumProvider } from "@ganache/ethereum";
+import { parseArgs } from "./args";
+import { CliOptionsConfig, Flavor, load } from "@ganache/flavor";
 import {
   notifyDetachedInstanceReady,
   stopDetachedInstance,
@@ -46,17 +42,30 @@ const coreVersion = process.env.CORE_VERSION || "DEV";
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 
-const isDocker =
-  "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
+const argv = parseArgs(detailedVersion);
 
-const argv = args(detailedVersion, isDocker);
 if (argv.action === "start") {
-  const flavor = argv.flavor;
-  const cliSettings = argv.server;
+  const flavorName = argv.flavor;
+
+  let { server: cliSettings } = CliOptionsConfig.normalize(argv);
+
+  let flavor: Flavor;
+  if (flavorName === "ethereum") {
+    flavor = require("@ganache/ethereum").default;
+  } else {
+    flavor = load(flavorName);
+
+    // if the flavor handler has a cli section, merge it with our cli settings
+    // as it might have a section for overriding the port and the host
+    if (flavor.options.cli) {
+      Object.assign(cliSettings, flavor.options.cli.normalize(argv));
+    }
+  }
 
   console.log(detailedVersion);
 
   let server: ReturnType<typeof Ganache.server>;
+
   try {
     server = Ganache.server(argv);
   } catch (error: any) {
@@ -138,27 +147,14 @@ if (argv.action === "start") {
       return;
     }
     started = true;
-    const { address: host, port } = server.address();
-    switch (flavor) {
-      case FilecoinFlavorName: {
-        await initializeFilecoin(server.provider as FilecoinProvider, {
-          host,
-          port
-        });
-        break;
-      }
-      case EthereumFlavorName:
-      default: {
-        initializeEthereum(server.provider as EthereumProvider, { host, port });
-        break;
-      }
-    }
+
+    await flavor.initialize(server.provider, cliSettings);
 
     // if process.send is defined, this is a child_process (we assume a detached
     // instance), so we need to notify that we are ready.
     const isDetachedInstance = process.send !== undefined;
     if (isDetachedInstance) {
-      notifyDetachedInstanceReady(port);
+      notifyDetachedInstanceReady(cliSettings.port);
     }
   });
 } else if (argv.action === "stop") {
