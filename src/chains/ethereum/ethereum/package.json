@@ -68,6 +68,7 @@
     "@ganache/secp256k1": "0.4.1",
     "@ganache/utils": "0.5.2",
     "abort-controller": "3.0.0",
+    "abstract-leveldown": "7.2.0",
     "bip39": "3.0.4",
     "emittery": "0.10.0",
     "encoding-down": "7.1.0",
