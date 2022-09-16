@@ -68,13 +68,16 @@
     "@ganache/rlp",
     "@ganache/ethereum-transaction",
     "@ganache/ethereum-block",
+    "@ganache/console.log",
     "@ethereumjs/vm",
-    "ethereumjs-util",
+    "@ethereumjs/statemanager",
+    "@ethereumjs/evm",
+    "@ethereumjs/util",
     "@ethereumjs/tx",
     "@ethereumjs/common",
     "@ethereumjs/block",
     "@ethereumjs/blockchain",
-    "merkle-patricia-tree",
+    "@ethereumjs/trie",
     "@ethereumjs/ethash",
     "semaphore-async-await",
     "eth-sig-util",
@@ -84,7 +87,8 @@
     "level",
     "ipfs",
     "level-errors",
-    "abstract-leveldown"
+    "abstract-leveldown",
+    "async-eventemitter"
   ],
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.

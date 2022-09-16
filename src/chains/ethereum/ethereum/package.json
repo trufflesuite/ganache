@@ -68,7 +68,6 @@
     "@ganache/secp256k1": "0.4.1",
     "@ganache/utils": "0.5.2",
     "abort-controller": "3.0.0",
-    "abstract-leveldown": "7.2.0",
     "bip39": "3.0.4",
     "emittery": "0.10.0",
     "encoding-down": "7.1.0",
@@ -108,9 +107,9 @@
     "nyc": "15.1.0",
     "solc": "0.8.11",
     "superagent": "6.1.0",
-    "ts-node": "10.4.0",
+    "ts-node": "10.9.1",
     "typedoc": "0.22.10",
-    "typescript": "4.6.4",
+    "typescript": "4.7.4",
     "web3": "1.7.0"
   },
   "optionalDependencies": {
