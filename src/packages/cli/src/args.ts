@@ -12,7 +12,7 @@ import {
   Definitions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
-import { FlavorCommand, StartArgs, GeneralArgs } from "./types";
+import { FlavorCommand, StartArgs, GanacheArgs } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
@@ -155,12 +155,13 @@ export default function (
   isDocker: boolean,
   rawArgs = process.argv.slice(2)
 ) {
-  let finalArgs: GeneralArgs;
+  let finalArgs: GanacheArgs;
 
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
-  const args = yargs
+
+  yargs
     // disable dot-notation because yargs just can't coerce args properly...
     // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
     .parserConfiguration({ "dot-notation": false })
@@ -195,7 +196,7 @@ export default function (
         defaultPort = 8545;
     }
 
-    args.command(
+    yargs.command(
       command,
       chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
@@ -241,12 +242,12 @@ export default function (
           });
       },
       parsedArgs => {
-        parsedArgs.action = parsedArgs.detach ? "detach" : "start";
+        parsedArgs.action = parsedArgs.detach ? "start-detach" : "start";
       }
     );
   }
 
-  args
+  yargs
     .command(
       "instances",
       highlight(
@@ -282,7 +283,7 @@ export default function (
     .wrap(wrapWidth)
     .version(version);
 
-  const parsedArgs = args.parse(rawArgs);
+  const parsedArgs = yargs.parse(rawArgs);
 
   if (parsedArgs.action === "stop") {
     finalArgs = {
@@ -291,34 +292,57 @@ export default function (
     };
   } else if (parsedArgs.action === "list") {
     finalArgs = { action: "list" };
-  } else {
-    const action = parsedArgs.detach ? "start-detached" : "start";
-    const selectedFlavor =
-      parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor;
+  } else if (
+    parsedArgs.action === "start" ||
+    parsedArgs.action === "start-detached"
+  ) {
+    const action = parsedArgs.action;
+    const flavor = (parsedArgs._.length > 0
+      ? parsedArgs._[0]
+      : DefaultFlavor) as any as FlavorName;
+
     finalArgs = {
-      flavor: selectedFlavor,
-      action
-    } as StartArgs<FlavorName>;
-    for (const key in parsedArgs) {
-      // split on the first "."
-      const [group, option] = key.split(/\.(.+)/);
-      // only copy namespaced/group keys
-      if (option) {
-        if (!finalArgs[group]) {
-          finalArgs[group] = {};
-        }
-        finalArgs[group][option] = parsedArgs[key];
-      }
-    }
+      flavor,
+      action,
+      ...(expandArgs(parsedArgs) as Omit<
+        StartArgs<FlavorName>,
+        "flavor" | "action"
+      >)
+    };
+  } else {
+    throw new Error(`Unknown action: ${parsedArgs.action}`);
   }
 
   return finalArgs;
 }
 
 /**
- * Takes the parsed, and namespaced args, and flattens them into an array
- * of arguments to be passed to a child process. This handles "special"
- * arguments, such as "action", "flavor" and "--detach".
+ * Expands the arguments into an object including only namespaced keys from the
+ * `args` argument.
+ * @param  {object} args to be expanded
+ * @returns {object} with the expanded arguments
+ */
+export function expandArgs(args: object): object {
+  const namespacedArgs = {};
+
+  for (const key in args) {
+    // split on the first "."
+    const [group, option] = key.split(/\.(.+)/);
+    // only copy namespaced/group keys
+    if (option) {
+      if (!namespacedArgs[group]) {
+        namespacedArgs[group] = {};
+      }
+      namespacedArgs[group][option] = args[key];
+    }
+  }
+  return namespacedArgs;
+}
+
+/**
+ * Flattens parsed, and namespaced args into an array of arguments to be passed
+ * to a child process. This handles "special" arguments, such as "action",
+ * "flavor" and "--detach".
  * @param  {object} args to be flattened
  * @returns string[] of flattened arguments
  */

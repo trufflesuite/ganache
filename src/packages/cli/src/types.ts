@@ -18,7 +18,7 @@ export type StartArgs<TFlavorName extends FlavorName> =
     server: CliServerOptions;
   } & AbstractArgs<"start" | "start-detached">;
 
-export type GeneralArgs =
+export type GanacheArgs =
   | (AbstractArgs<"stop"> & { name: string })
   | AbstractArgs<"list">
   | StartArgs<FlavorName>;
