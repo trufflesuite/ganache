@@ -294,6 +294,9 @@ export default class EthereumApi implements Api {
   async evm_mine(options: Ethereum.MineOptions): Promise<"0x0">;
   @assertArgLength(0, 1)
   async evm_mine(arg?: number | Ethereum.MineOptions): Promise<"0x0"> {
+    // `MINE_ONLY_ONE_BLOCK` refers to the number of blocks mined per call to `blockchain.mine()`
+    const MINE_ONLY_ONE_BLOCK = true;
+
     const blockchain = this.#blockchain;
     const options = this.#options;
     const vmErrorsOnRPCResponse = options.chain.vmErrorsOnRPCResponse;
@@ -310,8 +313,8 @@ export default class EthereumApi implements Api {
       for (let i = 0; i < blocks; i++) {
         const { transactions } = await blockchain.mine(
           Capacity.FillBlock,
-          timestamp,
-          true
+          MINE_ONLY_ONE_BLOCK,
+          timestamp
         );
 
         if (vmErrorsOnRPCResponse) {
@@ -319,10 +322,11 @@ export default class EthereumApi implements Api {
         }
       }
     } else {
+      const timestamp = arg as number | null;
       const { transactions } = await blockchain.mine(
         Capacity.FillBlock,
-        arg as number | null,
-        true
+        MINE_ONLY_ONE_BLOCK,
+        timestamp
       );
       if (vmErrorsOnRPCResponse) {
         assertExceptionalTransactions(transactions);
@@ -1784,7 +1788,7 @@ export default class EthereumApi implements Api {
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
     trie.setContext(addressStateRoot, addressBuf, blockNum);
     const value = await trie.get(paddedPosBuff);
-    return Data.from(decode(value));
+    return Data.from(decode(value), 32);
   }
 
   /**
