@@ -112,7 +112,12 @@ describe("blockchain", async () => {
       // assert that second block's timestamp is at least `blockTime` greater
       // than the first block's. meaning, these blocks weren't mined one after
       // the other
-      assert(timestamps[1] >= timestamps[0] + blockTime);
+      assert(
+        timestamps[1] >= timestamps[0] + blockTime,
+        `Unexpected timestamp - expected >= ${timestamps[0] + blockTime}, got ${
+          timestamps[1]
+        }`
+      );
     });
   });
 });
