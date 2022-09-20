@@ -1,7 +1,5 @@
-import { FlavorName } from "@ganache/flavors/typings";
 import assert from "assert";
 import args, { createFlatChildArgs } from "../src/args";
-import { StartArgs } from "../src/types";
 
 describe.only("args", () => {
   describe.only("createFlatChildArgs", () => {
@@ -9,7 +7,7 @@ describe.only("args", () => {
       const input = {
         a: "value-a",
         b: "value-b"
-      } as any as StartArgs<FlavorName>;
+      };
 
       const result = createFlatChildArgs(input);
 
@@ -24,7 +22,7 @@ describe.only("args", () => {
         b: {
           bb: "value-bb"
         }
-      } as any as StartArgs<FlavorName>;
+      };
 
       const result = createFlatChildArgs(input);
       assert.deepStrictEqual(result, ["--a.aa=value-aa", "--b.bb=value-bb"]);

@@ -1,11 +1,15 @@
-export default function createFriendlyName() {
-  const name = [...Array(3)].map((_, i) => {
-    const partSource = nameParts[i];
-    const partIndex = Math.floor(Math.random() * partSource.length);
-    return partSource[partIndex];
-  });
-
-  return name.join("-");
+function pick(source: string[]) {
+  const partIndex = Math.floor(Math.random() * source.length);
+  return source[partIndex];
+}
+/**
+ * Generates a random name to assign to an instance of Ganache. The name is
+ * generated from an adjective, a flavor and a type of desert, in the form of
+ * `<adjective>_<flavor>_<type>`, eg., `salted_caramel_ganache`.
+ */
+export default function createInstanceName() {
+  const name = [adjectives, flavors, kinds].map(pick).join("_");
+  return name;
 }
 
 const adjectives = [
@@ -20,7 +24,7 @@ const adjectives = [
   "spiced",
   "sticky"
 ];
-const flavours = [
+const flavors = [
   "almond",
   "apple",
   "banana",
@@ -79,5 +83,3 @@ const kinds = [
   "truffle",
   "waffle"
 ];
-
-const nameParts = [adjectives, flavours, kinds];

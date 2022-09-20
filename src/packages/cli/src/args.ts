@@ -231,7 +231,11 @@ export default function (
             return true;
           })
           .option("detach", {
-            description: "Run Ganache in detached (daemon) mode",
+            description: highlight(
+              "Run Ganache in detached (daemon) mode." +
+                EOL +
+                "See `ganache instances --help` for more information"
+            ),
             type: "boolean",
             alias: ["D", "😈"]
           });
@@ -245,7 +249,11 @@ export default function (
   args
     .command(
       "instances",
-      "Manage instances of Ganache running in detached mode",
+      highlight(
+        "Manage instances of Ganache running in detached mode." +
+          EOL +
+          "See `ganache --detach` for more information."
+      ),
       _yargs => {
         _yargs
           .command(
@@ -311,10 +319,10 @@ export default function (
  * Takes the parsed, and namespaced args, and flattens them into an array
  * of arguments to be passed to a child process. This handles "special"
  * arguments, such as "action", "flavor" and "--detach".
- * @param  {StartArgs<FlavorName>} args to be flattened
+ * @param  {object} args to be flattened
  * @returns string[] of flattened arguments
  */
-export function createFlatChildArgs(args: StartArgs<FlavorName>): string[] {
+export function createFlatChildArgs(args: object): string[] {
   const flattenedArgs = [];
 
   function flatten(namespace: string, args: object) {

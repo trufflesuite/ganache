@@ -1,5 +1,5 @@
 import { fork } from "child_process";
-import createProcessName from "./process-name";
+import createInstanceName from "./process-name";
 import envPaths from "env-paths";
 import {
   existsSync,
@@ -16,7 +16,7 @@ import { FlavorName } from "@ganache/flavors";
 import { createFlatChildArgs } from "./args";
 
 export type DetachedInstance = {
-  friendlyName: string;
+  instanceName: string;
   pid: number;
   startTime: number;
   host: string;
@@ -28,6 +28,8 @@ const dataPath = envPaths(`ganache`).data;
 if (!existsSync(dataPath)) mkdirSync(dataPath);
 
 const READY_MESSAGE = "ready";
+
+const START_ERROR = "An error ocurred spawning a detached instance of Ganache:";
 
 /**
  * Notify that the detached instance has started and is ready to receive requests.
@@ -101,12 +103,12 @@ export async function startDetachedInstance(
   child.stderr.pipe(process.stderr);
 
   const instances = await getDetachedInstances();
-  const instanceNames = instances.map(instance => instance.friendlyName);
+  const instanceNames = instances.map(instance => instance.instanceName);
 
-  let friendlyName: string;
+  let instanceName: string;
   do {
-    friendlyName = createProcessName();
-  } while (instanceNames.indexOf(friendlyName) !== -1);
+    instanceName = createInstanceName();
+  } while (instanceNames.indexOf(instanceName) !== -1);
 
   await new Promise<void>((resolve, reject) => {
     child.on("message", message => {
@@ -116,18 +118,21 @@ export async function startDetachedInstance(
     });
 
     child.on("error", err => {
-      // This only happens if there's an error starting the child process, not if
-      // the application throws within the child process.
-      console.error(err);
+      // This only happens if there's an error starting the child process, not
+      // if Ganache throws within the child process.
+      console.error(`${START_ERROR}\n${err.message}`);
       process.exitCode = 1;
       reject(err);
     });
 
     child.on("exit", (code: number) => {
-      // This shouldn't happen, so only surface the child's exit code if it's
-      // not 0
+      // This shouldn't happen, so ensure that we surface a non-zero exit code.
       process.exitCode = code === 0 ? 1 : code;
-      reject(new Error(`The child process exited with code ${code}`));
+      reject(
+        new Error(
+          `${START_ERROR}\nThe detached instance exited with error code: ${code}`
+        )
+      );
     });
   });
 
@@ -140,7 +145,7 @@ export async function startDetachedInstance(
   const instance: DetachedInstance = {
     startTime: Date.now(),
     pid: child.pid,
-    friendlyName,
+    instanceName,
     host: args.server.host,
     port: args.server.port,
     flavor
@@ -181,12 +186,12 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
 }
 
 async function findDetachedInstanceByName(
-  friendlyName: string
+  instanceName: string
 ): Promise<DetachedInstance | undefined> {
   const instances = await getDetachedInstances();
 
   for (let i = 0; i < instances.length; i++) {
-    if (instances[i].friendlyName === friendlyName) {
+    if (instances[i].instanceName === instanceName) {
       return instances[i];
     }
   }

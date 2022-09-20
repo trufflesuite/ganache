@@ -198,9 +198,9 @@ if (argv.action === "start") {
   startDetachedInstance(module, argv)
     .then(instance => {
       const highlightedName = chalk.hex(TruffleColors.porsche)(
-        instance.friendlyName
+        instance.instanceName
       );
-      // output only the friendly name to allow users to capture stdout and use to
+      // output only the instance name to allow users to capture stdout and use to
       // programmatically stop the instance
       console.log(highlightedName);
     })
@@ -229,7 +229,7 @@ if (argv.action === "start") {
       const uptime = now - instance.startTime;
       rows.push([
         instance.pid.toString(),
-        chalk.hex(TruffleColors.porsche)(instance.friendlyName),
+        chalk.hex(TruffleColors.porsche)(instance.instanceName),
         instance.flavor,
         instance.host,
         instance.port.toString(),
