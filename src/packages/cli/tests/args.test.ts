@@ -1,15 +1,17 @@
+import { FlavorName } from "@ganache/flavors/typings";
 import assert from "assert";
-import args, { flatten } from "../src/args";
+import args, { createFlatChildArgs } from "../src/args";
+import { StartArgs } from "../src/types";
 
 describe.only("args", () => {
-  describe.only("flatten", () => {
+  describe.only("createFlatChildArgs", () => {
     it("should flatten a simple object", () => {
       const input = {
         a: "value-a",
         b: "value-b"
-      };
+      } as any as StartArgs<FlavorName>;
 
-      const result = flatten(input);
+      const result = createFlatChildArgs(input);
 
       assert.deepStrictEqual(result, ["--a=value-a", "--b=value-b"]);
     });
@@ -22,9 +24,9 @@ describe.only("args", () => {
         b: {
           bb: "value-bb"
         }
-      };
+      } as any as StartArgs<FlavorName>;
 
-      const result = flatten(input);
+      const result = createFlatChildArgs(input);
       assert.deepStrictEqual(result, ["--a.aa=value-aa", "--b.bb=value-bb"]);
     });
   });
