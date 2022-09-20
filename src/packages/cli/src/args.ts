@@ -242,7 +242,7 @@ export default function (
           });
       },
       parsedArgs => {
-        parsedArgs.action = parsedArgs.detach ? "start-detach" : "start";
+        parsedArgs.action = parsedArgs.detach ? "start-detached" : "start";
       }
     );
   }
