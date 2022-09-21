@@ -3031,7 +3031,7 @@ export default class EthereumApi implements Api {
               PRECISION_BIG_INT;
 
             for (const values of effectiveRewardAndGasUsed) {
-              gasUsed = gasUsed + values.gasUsed;
+              gasUsed = gasUsed + values.gasUsed.toBigInt();
 
               if (targetGas <= gasUsed) {
                 return Quantity.from(values.effectiveGasReward);
