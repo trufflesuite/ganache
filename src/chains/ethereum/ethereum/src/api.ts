@@ -2922,29 +2922,29 @@ export default class EthereumApi implements Api {
     const PRECISION_FLOAT = 1e14;
     const PRECISION_BIG_INT = BigInt(1e16);
 
-    blockCount = Math.min(
-      Math.max(Quantity.toNumber(blockCount), MIN_BLOCKS),
-      MAX_BLOCKS
-    );
-
     const newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
-      .toNumber();
+      .toBigInt();
 
     // blockCount > newestBlock is technically valid but we cannot go past the Genesis Block.
     const totalBlocks = Math.min(
-      Quantity.toNumber(blockCount),
-      newestBlockNumber + 1
+      Math.min(
+        Math.max(Quantity.toNumber(blockCount), MIN_BLOCKS),
+        Quantity.toNumber(newestBlockNumber + 1n)
+      ),
+      MAX_BLOCKS
     );
 
-    const baseFeePerGas: string[] = new Array(totalBlocks);
+    const baseFeePerGas: Quantity[] = new Array(totalBlocks);
     const gasUsedRatio: number[] = new Array(totalBlocks);
-    let reward;
+    let reward: Array<Quantity[]>;
     if (rewardPercentiles.length > 0) {
       reward = new Array(totalBlocks);
     }
     // blockCount is inclusive of newestBlock
-    const oldestBlockNumber = newestBlockNumber - (totalBlocks - 1);
+    const oldestBlockNumber =
+      newestBlockNumber - Quantity.from(totalBlocks - 1).toBigInt();
+
     let currentBlockNumber = oldestBlockNumber;
     let currentBlock: Block;
 
@@ -2953,13 +2953,15 @@ export default class EthereumApi implements Api {
         Quantity.toBuffer(currentBlockNumber)
       );
 
-      const currentPosition = currentBlockNumber - oldestBlockNumber;
+      const currentPosition = Quantity.toNumber(
+        currentBlockNumber - oldestBlockNumber
+      );
 
       baseFeePerGas[currentPosition] =
         currentBlock.header.baseFeePerGas || Quantity.Zero;
 
       const { gasUsed, gasLimit } = currentBlock.header;
-      if (gasUsed === gasLimit) {
+      if (gasUsed.toBigInt() === gasLimit.toBigInt()) {
         gasUsedRatio[currentPosition] = 1;
       } else {
         gasUsedRatio[currentPosition] = Number(
@@ -3055,7 +3057,7 @@ export default class EthereumApi implements Api {
     return {
       oldestBlock: Quantity.from(oldestBlockNumber),
       baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
-      gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : null,
+      gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : [],
       reward: rewardPercentiles.length > 0 ? reward : undefined
     };
   }

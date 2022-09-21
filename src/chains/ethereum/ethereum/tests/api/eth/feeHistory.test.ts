@@ -82,9 +82,10 @@ describe("api", () => {
             assert.strictEqual(feeHistory.gasUsedRatio.length, 3);
           });
 
-          it("returns empty result for blockCount === 0 && newestBlock = 0x0", async () => {
+          it("blockCount min = 1", async () => {
             const blockCount = "0x0";
             const newestBlock = "0x0";
+
             const feeHistory = await provider.send("eth_feeHistory", [
               blockCount,
               newestBlock,
@@ -92,9 +93,22 @@ describe("api", () => {
             ]);
 
             assert.strictEqual(feeHistory.oldestBlock, "0x0");
-            assert.strictEqual(feeHistory.baseFeePerGas, undefined);
-            assert.strictEqual(feeHistory.gasUsedRatio, null);
-            assert.strictEqual(feeHistory.reward, undefined);
+            assert.strictEqual(feeHistory.gasUsedRatio.length, 1);
+          });
+          it("blockCount max = 1024", async () => {
+            const blockCount = "0x401";
+            const newestBlock = "0x3ff";
+
+            await mineNBlocks({ provider, blocks: 1024 });
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.strictEqual(feeHistory.oldestBlock, "0x0");
+            assert.strictEqual(feeHistory.gasUsedRatio.length, 1024);
           });
           describe("newestBlock", () => {
             it("throws if header is not found", async () => {
