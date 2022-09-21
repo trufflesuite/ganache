@@ -88,7 +88,9 @@
     "ipfs",
     "level-errors",
     "abstract-leveldown",
-    "async-eventemitter"
+    "async-eventemitter",
+    "levelup",
+    "ethereum-cryptography"
   ],
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.
