@@ -28,7 +28,8 @@
   },
   "scripts": {
     "build": "npm run tsc && npx shx rm -rf ./dist && webpack && npm run types",
-    "types": "api-extractor run",
+    "types": "api-extractor run && npm run hack-types",
+    "hack-types": "npx cpy-cli@4.2.0 './extra-types/**/*.d.ts' ./dist",
     "tsc": "tsc --build",
     "test": "nyc npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
