@@ -57,6 +57,7 @@
     "truffle"
   ],
   "devDependencies": {
+    "@ethereumjs/vm": "6.0.0",
     "@ganache/cli": "0.5.3",
     "@ganache/core": "0.5.3",
     "@ganache/flavors": "0.5.3",
@@ -97,9 +98,11 @@
     "@types/lru-cache": "5.1.1",
     "@types/seedrandom": "3.0.1",
     "abstract-leveldown": "7.2.0",
+    "async-eventemitter": "0.2.4",
     "emittery": "0.10.0",
     "keccak": "3.0.2",
     "level": "8.0.0",
+    "levelup": "5.1.1",
     "secp256k1": "4.0.3"
   },
   "optionalDependencies": {

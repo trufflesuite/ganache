@@ -19,6 +19,254 @@
 			"integrity": "sha512-ws57AidsDvREKrZKYffXddNkyaF14iHNHm8VQnZH6t99E8gczjNN0GpvcGny0imC80yQ0tHz1xVUKk/KFQSUyA==",
 			"dev": true
 		},
+		"@ethereumjs/block": {
+			"version": "4.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/block/-/block-4.0.0.tgz",
+			"integrity": "sha512-OewaOEzcplspEeoDWyEKX7ENuXYUQMUsO18payHrPBC7kTGDcWr+qx+F6gMMC/pyJvS9l9LpLmMOS6ENIK62kA==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/common": "^3.0.0",
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/trie": "^5.0.0",
+				"@ethereumjs/tx": "^4.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"ethereum-cryptography": "^1.1.2"
+			}
+		},
+		"@ethereumjs/blockchain": {
+			"version": "6.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/blockchain/-/blockchain-6.0.0.tgz",
+			"integrity": "sha512-JdgY2jD4ymzcCbAcX4XVX1dTLoVqEIyaBVPVljYlPzJEdIoFa5JYpZheNlZGtP11d1OKhhyTqfqLuYThxI32Tw==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/block": "^4.0.0",
+				"@ethereumjs/common": "^3.0.0",
+				"@ethereumjs/ethash": "^2.0.0",
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/trie": "^5.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"abstract-level": "^1.0.3",
+				"debug": "^4.3.3",
+				"ethereum-cryptography": "^1.1.2",
+				"level": "^8.0.0",
+				"lru-cache": "^5.1.1",
+				"memory-level": "^1.0.0"
+			},
+			"dependencies": {
+				"debug": {
+					"version": "4.3.4",
+					"resolved": "https://registry.npmjs.org/debug/-/debug-4.3.4.tgz",
+					"integrity": "sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==",
+					"dev": true,
+					"requires": {
+						"ms": "2.1.2"
+					}
+				},
+				"lru-cache": {
+					"version": "5.1.1",
+					"resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-5.1.1.tgz",
+					"integrity": "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==",
+					"dev": true,
+					"requires": {
+						"yallist": "^3.0.2"
+					}
+				},
+				"ms": {
+					"version": "2.1.2",
+					"resolved": "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz",
+					"integrity": "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==",
+					"dev": true
+				},
+				"yallist": {
+					"version": "3.1.1",
+					"resolved": "https://registry.npmjs.org/yallist/-/yallist-3.1.1.tgz",
+					"integrity": "sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==",
+					"dev": true
+				}
+			}
+		},
+		"@ethereumjs/common": {
+			"version": "3.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/common/-/common-3.0.0.tgz",
+			"integrity": "sha512-yHgMom5HFlAJIu8fmA1n0UvBnanhULfuNQAD+tT6ZR6sndLUz2Mc4eegF3Rby579lqJMAc/rpsToP7wA/i4R/w==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/util": "^8.0.0",
+				"crc-32": "^1.2.0"
+			}
+		},
+		"@ethereumjs/ethash": {
+			"version": "2.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/ethash/-/ethash-2.0.0.tgz",
+			"integrity": "sha512-U4+G1UYDCeqGW59h9FtjxVPZcQc/+nptpAMjQfGIN2nA1ZXoxtZiyVBgW0ocyofIbpySnSNMQRcUq2iqJ/7qug==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/block": "^4.0.0",
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"abstract-level": "^1.0.3",
+				"bigint-crypto-utils": "^3.0.23",
+				"ethereum-cryptography": "^1.1.2"
+			}
+		},
+		"@ethereumjs/evm": {
+			"version": "1.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/evm/-/evm-1.0.0.tgz",
+			"integrity": "sha512-jLUPnpYxMDYnmRuD8xKQWuTXcAiHtvWLJ99L7nNiVU31yShQuWckyQShxE7CGuNm5nm6X6yptSSzb1inb1Bd8w==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/common": "^3.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"@types/async-eventemitter": "^0.2.1",
+				"async-eventemitter": "^0.2.4",
+				"debug": "^4.3.3",
+				"ethereum-cryptography": "^1.1.2",
+				"mcl-wasm": "^0.7.1",
+				"rustbn.js": "~0.2.0"
+			},
+			"dependencies": {
+				"debug": {
+					"version": "4.3.4",
+					"resolved": "https://registry.npmjs.org/debug/-/debug-4.3.4.tgz",
+					"integrity": "sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==",
+					"dev": true,
+					"requires": {
+						"ms": "2.1.2"
+					}
+				},
+				"mcl-wasm": {
+					"version": "0.7.9",
+					"resolved": "https://registry.npmjs.org/mcl-wasm/-/mcl-wasm-0.7.9.tgz",
+					"integrity": "sha512-iJIUcQWA88IJB/5L15GnJVnSQJmf/YaxxV6zRavv83HILHaJQb6y0iFyDMdDO0gN8X37tdxmAOrH/P8B6RB8sQ==",
+					"dev": true
+				},
+				"ms": {
+					"version": "2.1.2",
+					"resolved": "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz",
+					"integrity": "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==",
+					"dev": true
+				}
+			}
+		},
+		"@ethereumjs/rlp": {
+			"version": "4.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/rlp/-/rlp-4.0.0.tgz",
+			"integrity": "sha512-LM4jS5n33bJN60fM5EC8VeyhUgga6/DjCPBV2vWjnfVtobqtOiNC4SQ1MRFqyBSmJGGdB533JZWewyvlcdJtkQ==",
+			"dev": true
+		},
+		"@ethereumjs/statemanager": {
+			"version": "1.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/statemanager/-/statemanager-1.0.0.tgz",
+			"integrity": "sha512-mOGXsq1LH4vKCfO+c2wPQQD67/Tm2bA4uuH4QadmPwVBm8z/21uvAITZJg3UGSEvnMWY873J4GumeADe/xAeEg==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/common": "^3.0.0",
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/trie": "^5.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"debug": "^4.3.3",
+				"ethereum-cryptography": "^1.1.2",
+				"functional-red-black-tree": "^1.0.1"
+			},
+			"dependencies": {
+				"debug": {
+					"version": "4.3.4",
+					"resolved": "https://registry.npmjs.org/debug/-/debug-4.3.4.tgz",
+					"integrity": "sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==",
+					"dev": true,
+					"requires": {
+						"ms": "2.1.2"
+					}
+				},
+				"ms": {
+					"version": "2.1.2",
+					"resolved": "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz",
+					"integrity": "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==",
+					"dev": true
+				}
+			}
+		},
+		"@ethereumjs/trie": {
+			"version": "5.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/trie/-/trie-5.0.0.tgz",
+			"integrity": "sha512-BiFv9hQZighlp4445kfG65X+tc8eEfpP32RMKzCELmSvChpwmtuL8Xuxy+aTYWQEMjY6s4gAVLX/J48SW7gwQg==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"ethereum-cryptography": "^1.1.2",
+				"readable-stream": "^3.6.0"
+			}
+		},
+		"@ethereumjs/tx": {
+			"version": "4.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/tx/-/tx-4.0.0.tgz",
+			"integrity": "sha512-W3Fc61kAA3D6vJad2vsfh9ygdaMeScYpf49ephoo/0y+CP9IN+MMrqA6mx1X0Fr/jf52IuW4hDHE/rmgadBV6g==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/common": "^3.0.0",
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"ethereum-cryptography": "^1.1.2"
+			}
+		},
+		"@ethereumjs/util": {
+			"version": "8.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/util/-/util-8.0.0.tgz",
+			"integrity": "sha512-Zz/Ovar0VU/CaYHLvigBTjG5PmkG0OzjvRjjoXRJbJcdWJoTCN2N4BYgoCBOZomKjaAT4ABpQ7wer6ZFOglvjg==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/rlp": "^4.0.0-beta.2",
+				"ethereum-cryptography": "^1.1.2"
+			}
+		},
+		"@ethereumjs/vm": {
+			"version": "6.0.0",
+			"resolved": "https://registry.npmjs.org/@ethereumjs/vm/-/vm-6.0.0.tgz",
+			"integrity": "sha512-bFt9RSe+HKT+lgpL4+pHEWjn6l3N4f82cfFkSHaF4RTgSHeyGq/K4lbyXOFGE+r7QAwXM5SrRR1+g7kLhp0h7w==",
+			"dev": true,
+			"requires": {
+				"@ethereumjs/block": "^4.0.0",
+				"@ethereumjs/blockchain": "^6.0.0",
+				"@ethereumjs/common": "^3.0.0",
+				"@ethereumjs/evm": "^1.0.0",
+				"@ethereumjs/rlp": "^4.0.0",
+				"@ethereumjs/statemanager": "^1.0.0",
+				"@ethereumjs/trie": "^5.0.0",
+				"@ethereumjs/tx": "^4.0.0",
+				"@ethereumjs/util": "^8.0.0",
+				"@types/async-eventemitter": "^0.2.1",
+				"async-eventemitter": "^0.2.4",
+				"debug": "^4.3.3",
+				"ethereum-cryptography": "^1.1.2",
+				"functional-red-black-tree": "^1.0.1",
+				"mcl-wasm": "^0.7.1",
+				"rustbn.js": "~0.2.0"
+			},
+			"dependencies": {
+				"debug": {
+					"version": "4.3.4",
+					"resolved": "https://registry.npmjs.org/debug/-/debug-4.3.4.tgz",
+					"integrity": "sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==",
+					"dev": true,
+					"requires": {
+						"ms": "2.1.2"
+					}
+				},
+				"mcl-wasm": {
+					"version": "0.7.9",
+					"resolved": "https://registry.npmjs.org/mcl-wasm/-/mcl-wasm-0.7.9.tgz",
+					"integrity": "sha512-iJIUcQWA88IJB/5L15GnJVnSQJmf/YaxxV6zRavv83HILHaJQb6y0iFyDMdDO0gN8X37tdxmAOrH/P8B6RB8sQ==",
+					"dev": true
+				},
+				"ms": {
+					"version": "2.1.2",
+					"resolved": "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz",
+					"integrity": "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==",
+					"dev": true
+				}
+			}
+		},
 		"@jridgewell/resolve-uri": {
 			"version": "3.1.0",
 			"resolved": "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz",
@@ -69,12 +317,6 @@
 					"requires": {
 						"path-parse": "^1.0.6"
 					}
-				},
-				"typescript": {
-					"version": "4.7.4",
-					"resolved": "https://registry.npmjs.org/typescript/-/typescript-4.7.4.tgz",
-					"integrity": "sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==",
-					"dev": true
 				}
 			}
 		},
@@ -124,6 +366,18 @@
 					}
 				}
 			}
+		},
+		"@noble/hashes": {
+			"version": "1.1.2",
+			"resolved": "https://registry.npmjs.org/@noble/hashes/-/hashes-1.1.2.tgz",
+			"integrity": "sha512-KYRCASVTv6aeUi1tsF8/vpyR7zpfs3FUzy2Jqm+MU+LmUKhQ0y2FpfwqkCcxSg2ua4GALJd8k2R76WxwZGbQpA==",
+			"dev": true
+		},
+		"@noble/secp256k1": {
+			"version": "1.6.3",
+			"resolved": "https://registry.npmjs.org/@noble/secp256k1/-/secp256k1-1.6.3.tgz",
+			"integrity": "sha512-T04e4iTurVy7I8Sw4+c5OSN9/RkPlo1uKxAomtxQNLq8j1uPAqnsqG1bqvY3Jv7c13gyr6dui0zmh/I3+f/JaQ==",
+			"dev": true
 		},
 		"@rushstack/node-core-library": {
 			"version": "3.51.2",
@@ -202,6 +456,33 @@
 				}
 			}
 		},
+		"@scure/base": {
+			"version": "1.1.1",
+			"resolved": "https://registry.npmjs.org/@scure/base/-/base-1.1.1.tgz",
+			"integrity": "sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==",
+			"dev": true
+		},
+		"@scure/bip32": {
+			"version": "1.1.0",
+			"resolved": "https://registry.npmjs.org/@scure/bip32/-/bip32-1.1.0.tgz",
+			"integrity": "sha512-ftTW3kKX54YXLCxH6BB7oEEoJfoE2pIgw7MINKAs5PsS6nqKPuKk1haTF/EuHmYqG330t5GSrdmtRuHaY1a62Q==",
+			"dev": true,
+			"requires": {
+				"@noble/hashes": "~1.1.1",
+				"@noble/secp256k1": "~1.6.0",
+				"@scure/base": "~1.1.0"
+			}
+		},
+		"@scure/bip39": {
+			"version": "1.1.0",
+			"resolved": "https://registry.npmjs.org/@scure/bip39/-/bip39-1.1.0.tgz",
+			"integrity": "sha512-pwrPOS16VeTKg98dYXQyIjJEcWfz7/1YJIwxUEPFfQPtc86Ym/1sVgQ2RLoD43AazMk2l/unK4ITySSpW2+82w==",
+			"dev": true,
+			"requires": {
+				"@noble/hashes": "~1.1.1",
+				"@scure/base": "~1.1.0"
+			}
+		},
 		"@trufflesuite/bigint-buffer": {
 			"version": "1.1.10",
 			"resolved": "https://registry.npmjs.org/@trufflesuite/bigint-buffer/-/bigint-buffer-1.1.10.tgz",
@@ -251,6 +532,12 @@
 			"version": "1.0.38",
 			"resolved": "https://registry.npmjs.org/@types/argparse/-/argparse-1.0.38.tgz",
 			"integrity": "sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==",
+			"dev": true
+		},
+		"@types/async-eventemitter": {
+			"version": "0.2.1",
+			"resolved": "https://registry.npmjs.org/@types/async-eventemitter/-/async-eventemitter-0.2.1.tgz",
+			"integrity": "sha512-M2P4Ng26QbAeITiH7w1d7OxtldgfAe0wobpyJzVK/XOb0cUGKU2R4pfAhqcJBXAe2ife5ZOhSv4wk7p+ffURtg==",
 			"dev": true
 		},
 		"@types/bn.js": {
@@ -644,6 +931,22 @@
 				"util": "^0.12.0"
 			}
 		},
+		"async": {
+			"version": "2.6.4",
+			"resolved": "https://registry.npmjs.org/async/-/async-2.6.4.tgz",
+			"integrity": "sha512-mzo5dfJYwAn29PeiJ0zvwTo04zj8HDJj0Mn8TD7sno7q12prdbnasKJHhkm2c1LgrhlJ0teaea8860oxi51mGA==",
+			"requires": {
+				"lodash": "^4.17.14"
+			}
+		},
+		"async-eventemitter": {
+			"version": "0.2.4",
+			"resolved": "https://registry.npmjs.org/async-eventemitter/-/async-eventemitter-0.2.4.tgz",
+			"integrity": "sha512-pd20BwL7Yt1zwDFy+8MX8F1+WCT8aQeKj0kQnTrH9WaeRETlRamVhD0JtRPmrV4GfOJ2F9CvdQkZeZhnh2TuHw==",
+			"requires": {
+				"async": "^2.4.0"
+			}
+		},
 		"available-typed-arrays": {
 			"version": "1.0.5",
 			"resolved": "https://registry.npmjs.org/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz",
@@ -665,6 +968,21 @@
 			"version": "5.2.2",
 			"resolved": "https://registry.npmjs.org/big.js/-/big.js-5.2.2.tgz",
 			"integrity": "sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==",
+			"dev": true
+		},
+		"bigint-crypto-utils": {
+			"version": "3.1.6",
+			"resolved": "https://registry.npmjs.org/bigint-crypto-utils/-/bigint-crypto-utils-3.1.6.tgz",
+			"integrity": "sha512-k5ljSLHx94jQTW3+18KEfxLJR8/XFBHqhfhEGF48qT8p/jL6EdiG7oNOiiIRGMFh2wEP8kaCXZbVd+5dYkngUg==",
+			"dev": true,
+			"requires": {
+				"bigint-mod-arith": "^3.1.0"
+			}
+		},
+		"bigint-mod-arith": {
+			"version": "3.1.1",
+			"resolved": "https://registry.npmjs.org/bigint-mod-arith/-/bigint-mod-arith-3.1.1.tgz",
+			"integrity": "sha512-SzFqdncZKXq5uh3oLFZXmzaZEMDsA7ml9l53xKaVGO6/+y26xNwAaTQEg2R+D+d07YduLbKi0dni3YPsR51UDQ==",
 			"dev": true
 		},
 		"binary-extensions": {
@@ -1006,6 +1324,12 @@
 			"integrity": "sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=",
 			"dev": true
 		},
+		"crc-32": {
+			"version": "1.2.2",
+			"resolved": "https://registry.npmjs.org/crc-32/-/crc-32-1.2.2.tgz",
+			"integrity": "sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==",
+			"dev": true
+		},
 		"create-ecdh": {
 			"version": "4.0.4",
 			"resolved": "https://registry.npmjs.org/create-ecdh/-/create-ecdh-4.0.4.tgz",
@@ -1118,6 +1442,15 @@
 			"resolved": "https://registry.npmjs.org/decamelize/-/decamelize-4.0.0.tgz",
 			"integrity": "sha512-9iE1PgSik9HeIIw2JO94IidnE3eBoQrFJ3w7sFuzSX4DpmZ3v5sZpUiV5Swcf6mQEF+Y0ru8Neo+p+nyh2J+hQ==",
 			"dev": true
+		},
+		"deferred-leveldown": {
+			"version": "7.0.0",
+			"resolved": "https://registry.npmjs.org/deferred-leveldown/-/deferred-leveldown-7.0.0.tgz",
+			"integrity": "sha512-QKN8NtuS3BC6m0B8vAnBls44tX1WXAFATUsJlruyAYbZpysWV3siH6o/i3g9DCHauzodksO60bdj5NazNbjCmg==",
+			"requires": {
+				"abstract-leveldown": "^7.2.0",
+				"inherits": "^2.0.3"
+			}
 		},
 		"define-properties": {
 			"version": "1.1.3",
@@ -1319,6 +1652,18 @@
 			"integrity": "sha512-39nnKffWz8xN1BU/2c79n9nB9HDzo0niYUqx6xyqUnyoAnQyyWpOTdZEeiCch8BBu515t4wp9ZmgVfVhn9EBpw==",
 			"dev": true
 		},
+		"ethereum-cryptography": {
+			"version": "1.1.2",
+			"resolved": "https://registry.npmjs.org/ethereum-cryptography/-/ethereum-cryptography-1.1.2.tgz",
+			"integrity": "sha512-XDSJlg4BD+hq9N2FjvotwUET9Tfxpxc3kWGE2AqUG5vcbeunnbImVk3cj6e/xT3phdW21mE8R5IugU4fspQDcQ==",
+			"dev": true,
+			"requires": {
+				"@noble/hashes": "1.1.2",
+				"@noble/secp256k1": "1.6.3",
+				"@scure/bip32": "1.1.0",
+				"@scure/bip39": "1.1.0"
+			}
+		},
 		"events": {
 			"version": "3.3.0",
 			"resolved": "https://registry.npmjs.org/events/-/events-3.3.0.tgz",
@@ -1429,6 +1774,12 @@
 			"version": "1.1.1",
 			"resolved": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.1.tgz",
 			"integrity": "sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==",
+			"dev": true
+		},
+		"functional-red-black-tree": {
+			"version": "1.0.1",
+			"resolved": "https://registry.npmjs.org/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz",
+			"integrity": "sha512-dsKNQNdj6xA3T+QlADDA7mOSlX0qiMINjn0cgr+eGHGsbSHzTabcIogz2+p/iqP1Xs6EP/sS2SbqH+brGTbq0g==",
 			"dev": true
 		},
 		"get-caller-file": {
@@ -1954,6 +2305,20 @@
 				"catering": "^2.1.0"
 			}
 		},
+		"level-errors": {
+			"version": "3.0.1",
+			"resolved": "https://registry.npmjs.org/level-errors/-/level-errors-3.0.1.tgz",
+			"integrity": "sha512-tqTL2DxzPDzpwl0iV5+rBCv65HWbHp6eutluHNcVIftKZlQN//b6GEnZDM2CvGZvzGYMwyPtYppYnydBQd2SMQ=="
+		},
+		"level-iterator-stream": {
+			"version": "5.0.0",
+			"resolved": "https://registry.npmjs.org/level-iterator-stream/-/level-iterator-stream-5.0.0.tgz",
+			"integrity": "sha512-wnb1+o+CVFUDdiSMR/ZymE2prPs3cjVLlXuDeSq9Zb8o032XrabGEXcTCsBxprAtseO3qvFeGzh6406z9sOTRA==",
+			"requires": {
+				"inherits": "^2.0.4",
+				"readable-stream": "^3.4.0"
+			}
+		},
 		"level-supports": {
 			"version": "2.1.0",
 			"resolved": "https://registry.npmjs.org/level-supports/-/level-supports-2.1.0.tgz",
@@ -1966,6 +2331,19 @@
 			"requires": {
 				"buffer": "^6.0.3",
 				"module-error": "^1.0.1"
+			}
+		},
+		"levelup": {
+			"version": "5.1.1",
+			"resolved": "https://registry.npmjs.org/levelup/-/levelup-5.1.1.tgz",
+			"integrity": "sha512-0mFCcHcEebOwsQuk00WJwjLI6oCjbBuEYdh/RaRqhjnyVlzqf41T1NnDtCedumZ56qyIh8euLFDqV1KfzTAVhg==",
+			"requires": {
+				"catering": "^2.0.0",
+				"deferred-leveldown": "^7.0.0",
+				"level-errors": "^3.0.1",
+				"level-iterator-stream": "^5.0.0",
+				"level-supports": "^2.0.1",
+				"queue-microtask": "^1.2.3"
 			}
 		},
 		"loader-runner": {
@@ -1997,8 +2375,7 @@
 		"lodash": {
 			"version": "4.17.21",
 			"resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
-			"integrity": "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==",
-			"dev": true
+			"integrity": "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg=="
 		},
 		"lodash.get": {
 			"version": "4.4.2",
@@ -2052,6 +2429,17 @@
 				"hash-base": "^3.0.0",
 				"inherits": "^2.0.1",
 				"safe-buffer": "^5.1.2"
+			}
+		},
+		"memory-level": {
+			"version": "1.0.0",
+			"resolved": "https://registry.npmjs.org/memory-level/-/memory-level-1.0.0.tgz",
+			"integrity": "sha512-UXzwewuWeHBz5krr7EvehKcmLFNoXxGcvuYhC41tRnkrTbJohtS7kVn9akmgirtRygg+f7Yjsfi8Uu5SGSQ4Og==",
+			"dev": true,
+			"requires": {
+				"abstract-level": "^1.0.0",
+				"functional-red-black-tree": "^1.0.1",
+				"module-error": "^1.0.1"
 			}
 		},
 		"merge-stream": {
@@ -2605,6 +2993,12 @@
 			"requires": {
 				"queue-microtask": "^1.2.2"
 			}
+		},
+		"rustbn.js": {
+			"version": "0.2.0",
+			"resolved": "https://registry.npmjs.org/rustbn.js/-/rustbn.js-0.2.0.tgz",
+			"integrity": "sha512-4VlvkRUuCJvr2J6Y0ImW7NvTCriMi7ErOAqWk1y69vAdoNIzCF3yPmgeNzx+RQTLEDFq5sHfscn1MwHxP9hNfA==",
+			"dev": true
 		},
 		"safe-buffer": {
 			"version": "5.2.1",
