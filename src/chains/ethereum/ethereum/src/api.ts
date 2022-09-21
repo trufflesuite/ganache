@@ -3009,7 +3009,7 @@ export default class EthereumApi implements Api {
                 ).toJSON(currentBlock, tx, blockchain.common);
                 return {
                   effectiveGasReward: effectiveGasReward,
-                  gasUsed: receipt.gasUsed ? receipt.gasUsed.toBigInt() : 0n
+                  gasUsed: receipt.gasUsed
                 };
               })
             )
