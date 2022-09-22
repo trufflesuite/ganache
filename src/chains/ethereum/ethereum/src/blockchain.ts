@@ -136,10 +136,13 @@ export type BlockchainOptions = {
  * @param stateManager -
  * @param stateRoot -
  */
-function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
-  (stateManager as DefaultStateManager)._trie.root(stateRoot);
-  (stateManager as DefaultStateManager)._cache.clear();
-  (stateManager as DefaultStateManager)._storageTries = {};
+function setStateRootSync(
+  stateManager: DefaultStateManager,
+  stateRoot: Buffer
+) {
+  stateManager._trie.root(stateRoot);
+  stateManager._cache.clear();
+  stateManager._storageTries = {};
 }
 
 function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
@@ -1017,7 +1020,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await this.#deleteBlockData(blockData, snapshotHeader.number.toBuffer());
 
       setStateRootSync(
-        this.vm.stateManager,
+        this.vm.stateManager as DefaultStateManager,
         snapshotHeader.stateRoot.toBuffer()
       );
       blocks.latest = snapshotBlock;
