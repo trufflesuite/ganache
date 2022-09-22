@@ -55,13 +55,16 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
       return null;
   }
 }
-
+/**
+ *   Sets the version if the DB was just created, or errors if we already have a
+ *   version, but it isn't what we expected.
+ * @param db
+ * @param version
+ */
 export async function setDbVersion(db: GanacheLevel, version: Buffer) {
-  // set the version if the DB was just created, or error if we already have
-  // a version, but it isn't what we expected
-  const VERSION = Buffer.from("version", "utf-8");
+  const VERSION_KEY = Buffer.from("version", "utf-8");
   try {
-    const recordedVersion = await db.get(VERSION);
+    const recordedVersion = await db.get(VERSION_KEY);
     if (!version.equals(recordedVersion)) {
       // in the future this is where database migrations would go
       throw new Error(
@@ -72,7 +75,7 @@ export async function setDbVersion(db: GanacheLevel, version: Buffer) {
     if (!e.notFound) throw e;
 
     // if we didn't have a `version` key we need to set one
-    await db.put(VERSION, version);
+    await db.put(VERSION_KEY, version);
   }
 }
 
