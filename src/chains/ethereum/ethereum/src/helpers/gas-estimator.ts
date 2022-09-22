@@ -2,7 +2,6 @@ import BN from "bn.js";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
 import { Quantity } from "@ganache/utils";
 import { RunTxOpts, RunTxResult, VM } from "@ethereumjs/vm";
-import { EVM } from "@ethereumjs/evm";
 import type { InterpreterStep } from "@ethereumjs/evm/";
 import { RuntimeBlock } from "@ganache/ethereum-block";
 
