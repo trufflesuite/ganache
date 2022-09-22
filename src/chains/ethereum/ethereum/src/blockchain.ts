@@ -710,7 +710,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // @ts-ignore
     vm.evm._allowUnlimitedContractSize = allowUnlimitedContractSize;
     if (activatePrecompile) {
-      await activatePrecompiles(vm.eei as EEI);
+      await activatePrecompiles(vm.eei);
 
       if (common.isActivatedEIP(2537)) {
         // BLS12-381 curve, not yet included in any supported hardforks
@@ -1153,7 +1153,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const caller = transaction.from.toBuffer();
 
       if (common.isActivatedEIP(2929)) {
-        const eei = vm.eei as EEI;
+        const eei = vm.eei;
         // handle Berlin hardfork warm storage reads
         warmPrecompiles(eei);
         eei.addWarmedAddress(caller);

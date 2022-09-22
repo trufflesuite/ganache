@@ -1,5 +1,5 @@
 import { Account, Address } from "@ethereumjs/util";
-import { EEI } from "@ethereumjs/vm";
+import { EEIInterface } from "@ethereumjs/evm";
 
 const NUM_PRECOMPILES = 18;
 /**
@@ -30,7 +30,7 @@ const makeAccount = (i: number): Address => {
  * Puts the precompile accounts into the state tree
  * @param eei -
  */
-export const activatePrecompiles = async (eei: EEI) => {
+export const activatePrecompiles = async (eei: EEIInterface) => {
   await eei.checkpoint();
   const cache = (eei as any)._stateManager._cache;
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
@@ -45,7 +45,7 @@ export const activatePrecompiles = async (eei: EEI) => {
  * Puts the precompile accounts into the warmed addresses
  * @param eei -
  */
-export const warmPrecompiles = async (eei: EEI) => {
+export const warmPrecompiles = async (eei: EEIInterface) => {
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
     const account = makeAccount(i);
     eei.addWarmedAddress(account.buf);
