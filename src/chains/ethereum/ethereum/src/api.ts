@@ -922,7 +922,14 @@ export default class EthereumApi implements Api {
     const options = this.#options;
 
     const generateVM = async () => {
-      return await blockchain.vm.copy();
+      // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
+      // /shrug
+      const vm = await blockchain.createVmFromStateTrie(
+        blockchain.trie.copy(false),
+        options.chain.allowUnlimitedContractSize,
+        false
+      );
+      return vm;
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
