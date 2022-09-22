@@ -1,8 +1,8 @@
 import assert from "assert";
 import args, { createFlatChildArgs } from "../src/args";
 
-describe.only("args", () => {
-  describe.only("createFlatChildArgs", () => {
+describe("args", () => {
+  describe("createFlatChildArgs", () => {
     it("should flatten a simple object", () => {
       const input = {
         a: "value-a",
@@ -29,61 +29,63 @@ describe.only("args", () => {
     });
   });
 
-  describe("detach", () => {
-    const versionString = "Version string";
-    const isDocker = false;
+  describe("parse args", () => {
+    describe("detach", () => {
+      const versionString = "Version string";
+      const isDocker = false;
 
-    const detachModeArgs = [
-      "--detach",
-      "--D",
-      "--😈",
-      "--detach=true",
-      "--D=true",
-      "--😈=true"
-    ];
-    const notDetachModeArgs = [
-      "--no-detach",
-      "--no-D",
-      "--no-😈",
-      "--detach=false",
-      "--D=false",
-      "--😈=false"
-    ];
+      const detachModeArgs = [
+        "--detach",
+        "--D",
+        "--😈",
+        "--detach=true",
+        "--D=true",
+        "--😈=true"
+      ];
+      const notDetachModeArgs = [
+        "--no-detach",
+        "--no-D",
+        "--no-😈",
+        "--detach=false",
+        "--D=false",
+        "--😈=false"
+      ];
 
-    it("defaults to false when no arg provided", () => {
-      const rawArgs = [];
-      const options = args(versionString, isDocker, rawArgs);
-
-      assert.strictEqual(
-        options.action,
-        "start",
-        `Expected "options.detach" to be false when no argument is provided`
-      );
-    });
-
-    detachModeArgs.forEach(arg => {
-      it(`is true with ${arg}`, () => {
-        const rawArgs = [arg];
-        const options = args(versionString, false, rawArgs);
-
-        assert.strictEqual(
-          options.action,
-          "start-detached",
-          `Expected "options.detach" to be true with arg ${arg}`
-        );
-      });
-    });
-
-    notDetachModeArgs.forEach(arg => {
-      it(`is false with ${arg}`, () => {
-        const rawArgs = [arg];
-        const options = args(versionString, false, rawArgs);
+      it("defaults to false when no arg provided", () => {
+        const rawArgs = [];
+        const options = args(versionString, isDocker, rawArgs);
 
         assert.strictEqual(
           options.action,
           "start",
-          `Expected "options.detach" to be false with arg ${arg}`
+          `Expected "options.detach" to be false when no argument is provided`
         );
+      });
+
+      detachModeArgs.forEach(arg => {
+        it(`is true with ${arg}`, () => {
+          const rawArgs = [arg];
+          const options = args(versionString, false, rawArgs);
+
+          assert.strictEqual(
+            options.action,
+            "start-detached",
+            `Expected "options.detach" to be true with arg ${arg}`
+          );
+        });
+      });
+
+      notDetachModeArgs.forEach(arg => {
+        it(`is false with ${arg}`, () => {
+          const rawArgs = [arg];
+          const options = args(versionString, false, rawArgs);
+
+          assert.strictEqual(
+            options.action,
+            "start",
+            `Expected "options.detach" to be false with arg ${arg}`
+          );
+        });
       });
     });
   });

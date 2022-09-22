@@ -235,7 +235,7 @@ export default function (
             description: highlight(
               "Run Ganache in detached (daemon) mode." +
                 EOL +
-                "See `ganache instances --help` for more information"
+                "See `ganache instances --help` for information omn managing detached instances."
             ),
             type: "boolean",
             alias: ["D", "😈"]
@@ -253,7 +253,7 @@ export default function (
       highlight(
         "Manage instances of Ganache running in detached mode." +
           EOL +
-          "See `ganache --detach` for more information."
+          "(Ganache can be run in detached mode by providing the `--detach` flag)"
       ),
       _yargs => {
         _yargs

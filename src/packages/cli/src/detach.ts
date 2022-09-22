@@ -10,7 +10,6 @@ import {
   readFileSync
 } from "fs";
 import path from "path";
-import psList from "ps-list";
 import { StartArgs } from "./types";
 import { FlavorName } from "@ganache/flavors";
 import { createFlatChildArgs } from "./args";
@@ -24,7 +23,7 @@ export type DetachedInstance = {
   flavor: FlavorName;
 };
 
-const dataPath = envPaths(`ganache`).data;
+const dataPath = envPaths(`Ganache/instances`).data;
 if (!existsSync(dataPath)) mkdirSync(dataPath);
 
 const READY_MESSAGE = "ready";
@@ -167,19 +166,35 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   const files = readdirSync(dataPath);
   const instances: DetachedInstance[] = [];
 
-  const pids = (await psList()).map(process => process.pid);
-
   for (let i = 0; i < files.length; i++) {
-    const pid = files[i];
+    const filename = files[i];
+    const pid = parseInt(filename);
 
-    if (pids.some(p => p === parseInt(pid))) {
-      const filepath = path.join(dataPath, pid);
-      const content = readFileSync(filepath).toString("utf8");
-      const instance = JSON.parse(content) as DetachedInstance;
-      instances.push(instance);
-    } else {
-      removeDetachedInstanceFile(parseInt(pid));
+    let processExists: boolean;
+    try {
+      process.kill(pid, 0);
+      processExists = true;
+    } catch (_) {
+      processExists = false;
     }
+
+    let shouldRemoveFile = false;
+    if (processExists) {
+      const filepath = path.join(dataPath, filename);
+      try {
+        const content = readFileSync(filepath, { encoding: "utf8" });
+        const instance = JSON.parse(content) as DetachedInstance;
+        instances.push(instance);
+      } catch (_) {
+        try {
+          process.kill(pid, "SIGTERM");
+        } catch (_) {}
+        shouldRemoveFile = true;
+      }
+    } else {
+      shouldRemoveFile = true;
+    }
+    if (shouldRemoveFile) removeDetachedInstanceFile(pid);
   }
 
   return instances;
