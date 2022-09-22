@@ -134,10 +134,10 @@ export async function applySimulationOverrides(
       const account = await eei.getAccount(vmAddr);
 
       if (nonce != null) {
-        account.nonce = Quantity.toBigInt(nonce === "" ? "0x0" : nonce);
+        account.nonce = nonce === "" ? 0n : Quantity.toBigInt(nonce);
       }
       if (balance != null) {
-        account.balance = Quantity.toBigInt(balance === "" ? "0x0" : balance);
+        account.balance = balance === "" ? 0n : Quantity.toBigInt(balance);
       }
       if (code != null) {
         // geth treats empty strings as "0x" code for overrides
