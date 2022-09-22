@@ -13,6 +13,11 @@ export interface DefaultStateManagerOpts {
    * An [`@ethereumjs/trie`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
    */
   trie: ForkTrie;
+  /**
+   * Enables code hash prefixing, which is used by `ethereumjs/statemanager` to
+   * [distinguish between a contract deployed with code `0x80` and
+   * `RLP([])`](https://github.com/ethereumjs/ethereumjs-monorepo/blob/master/packages/statemanager/src/stateManager.ts#L40)
+   */
   prefixCodeHashes?: boolean;
 }
 
