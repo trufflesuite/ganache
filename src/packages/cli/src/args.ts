@@ -326,16 +326,20 @@ export function expandArgs(args: object): object {
   const namespacedArgs = {};
 
   for (const key in args) {
-    // split on the first "."
-    const [group, option] = key.split(/\.(.+)/);
-    // only copy namespaced/group keys
-    if (option) {
-      if (!namespacedArgs[group]) {
-        namespacedArgs[group] = {};
+    // ignore keys that are kebab-cased - they will be duplicated as camelCase
+    if (key.indexOf("-") === -1) {
+      // split on the first "."
+      const [namespace, option] = key.split(/\.(.+)/);
+      // only copy namespaced/group keys, and ignore keys with kebab cases
+      if (option) {
+        if (!namespacedArgs[namespace]) {
+          namespacedArgs[namespace] = {};
+        }
+        namespacedArgs[namespace][option] = args[key];
       }
-      namespacedArgs[group][option] = args[key];
     }
   }
+
   return namespacedArgs;
 }
 

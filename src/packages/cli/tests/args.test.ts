@@ -1,8 +1,8 @@
 import assert from "assert";
-import args, { createFlatChildArgs } from "../src/args";
+import args, { createFlatChildArgs, expandArgs } from "../src/args";
 
 describe("args", () => {
-  describe("createFlatChildArgs", () => {
+  describe("createFlatChildArgs()", () => {
     it("should flatten a simple object", () => {
       const input = {
         a: "value-a",
@@ -26,6 +26,57 @@ describe("args", () => {
 
       const result = createFlatChildArgs(input);
       assert.deepStrictEqual(result, ["--a.aa=value-aa", "--b.bb=value-bb"]);
+    });
+  });
+
+  describe("expandArgs()", () => {
+    it("should expand arguments with namespaces", () => {
+      const input = {
+        "namespace.name": "value",
+        "namespace.name2": "value2",
+        "namespace2.name": "namespace2"
+      };
+
+      const result = expandArgs(input);
+
+      assert.deepStrictEqual(result, {
+        namespace: {
+          name: "value",
+          name2: "value2"
+        },
+        namespace2: {
+          name: "namespace2"
+        }
+      });
+    });
+
+    it("should remove arguments without namespaces", () => {
+      const input = {
+        "namespace.name": "value",
+        name: "no namespace"
+      };
+
+      const result = expandArgs(input);
+
+      assert.deepStrictEqual(result, {
+        namespace: {
+          name: "value"
+        }
+      });
+    });
+
+    it("should remove arguments who are kebab-cased", () => {
+      const input = {
+        "namespace.name": "value",
+        "namespace.kebab-case": "value",
+        "kebab-namespace.name": "value"
+      };
+
+      const result = expandArgs(input);
+
+      assert.deepStrictEqual(result, {
+        namespace: { name: "value" }
+      });
     });
   });
 
