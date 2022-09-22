@@ -163,6 +163,8 @@ export class ForkTrie extends GanacheTrie {
     return false;
   }
 
+  // note: this function is a slightly modified version of
+  // https://github.com/ethereumjs/ethereumjs-monorepo/blob/34f3dcdf37d2fbeffeb41dc3de693f59b91c46bc/packages/trie/src/trie/trie.ts#L218
   async del(key: Buffer) {
     await this._lock.acquire();
 
