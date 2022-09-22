@@ -697,11 +697,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       allowUnlimitedContractSize,
       blockchain,
       stateManager: this.fallback
-        ? new ForkStateManager({
+        ? // TODO: prefixCodeHashes should eventually be conditional
+          // https://github.com/trufflesuite/ganache/issues/3701
+          new ForkStateManager({
             trie: stateTrie as ForkTrie,
             prefixCodeHashes: false
           })
-        : new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
+        : // TODO: prefixCodeHashes should eventually be conditional
+          // https://github.com/trufflesuite/ganache/issues/3701
+          new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
     }) as VM;
     // @ts-ignore
     vm.evm._allowUnlimitedContractSize = allowUnlimitedContractSize;
@@ -1241,11 +1245,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       common,
       blockchain,
       stateManager: this.fallback
-        ? new ForkStateManager({
+        ? // TODO: prefixCodeHashes should eventually be conditional
+          // https://github.com/trufflesuite/ganache/issues/3701
+          new ForkStateManager({
             trie: trie as ForkTrie,
             prefixCodeHashes: false
           })
-        : new DefaultStateManager({ trie: trie, prefixCodeHashes: false })
+        : // TODO: prefixCodeHashes should eventually be conditional
+          // https://github.com/trufflesuite/ganache/issues/3701
+          new DefaultStateManager({ trie: trie, prefixCodeHashes: false })
     });
     //@ts-ignore
     vm._allowUnlimitedContractSize = this.vm.evm._allowUnlimitedContractSize;
