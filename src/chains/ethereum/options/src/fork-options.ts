@@ -14,7 +14,6 @@ type ForkUrl = URL & { _blockNumber?: number | typeof Tag.latest };
 type KnownNetworks =
   | "mainnet"
   | "ropsten"
-  | "kovan"
   | "rinkeby"
   | "goerli"
   | "görli"
@@ -22,7 +21,6 @@ type KnownNetworks =
 export const KNOWN_NETWORKS = [
   "mainnet",
   "ropsten",
-  "kovan",
   "rinkeby",
   "goerli",
   "görli",
