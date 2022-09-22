@@ -20,13 +20,16 @@ import {
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
 import type { Address as EthereumJsAddress } from "@ethereumjs/util";
-import type { InterpreterStep } from "@ethereumjs/evm/";
+import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
 import { EEI, VM } from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/evm";
-import { EvmError as VmError, EvmErrorMessage as ERROR } from "@ethereumjs/evm";
+import {
+  EvmError as VmError,
+  EvmErrorMessage as ERROR,
+  EVMResult
+} from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
   Quantity,
