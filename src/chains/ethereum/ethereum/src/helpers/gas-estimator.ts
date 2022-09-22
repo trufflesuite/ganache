@@ -62,10 +62,7 @@ const stepTracker = () => {
         preCompileCheck = false;
       }
       if (isCall(info.opcode.name)) {
-        // this might not be necessary. previously this was a BN that we were
-        // cloning, I'm guessing to get the values and not have refs. I didn't
-        // know of a good way to do this with bigints, or if it's needed at all
-        info.stack = info.stack.map(val => Quantity.toBigInt(val));
+        info.stack = [...info.stack];
         preCompileCheck = true;
         precompileCallDepth = info.depth;
         sysOps.push({
