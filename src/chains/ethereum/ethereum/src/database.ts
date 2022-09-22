@@ -70,7 +70,7 @@ export default class Database extends Emittery {
     let db: GanacheLevel;
     if (store) {
       if (typeof store === "string") {
-        db = <GanacheLevel>new Level(store, LEVEL_OPTIONS);
+        db = new Level(store, LEVEL_OPTIONS) as GanacheLevel;
       } else {
         db = new UpgradedLevelDown(store as any) as unknown as GanacheLevel;
         this.type = DBType.LevelDown;
@@ -87,7 +87,7 @@ export default class Database extends Emittery {
       }
       this.directory = directory;
 
-      const store = <GanacheLevel>new Level(directory, LEVEL_OPTIONS);
+      const store = new Level(directory, LEVEL_OPTIONS) as GanacheLevel;
       db = store;
     }
 
@@ -95,7 +95,7 @@ export default class Database extends Emittery {
     if (this.#closed) return this.#cleanup();
 
     const open = db.open();
-    this.trie = <GanacheSublevel>db.sublevel("T", LEVEL_OPTIONS);
+    this.trie = db.sublevel("T", LEVEL_OPTIONS) as GanacheSublevel;
 
     this.db = db;
     await open;
@@ -103,12 +103,15 @@ export default class Database extends Emittery {
     // don't continue if we closed while we were waiting for it to open
     if (this.#closed) return this.#cleanup();
 
-    this.blocks = <GanacheSublevel>db.sublevel("b", LEVEL_OPTIONS);
-    this.blockIndexes = <GanacheSublevel>db.sublevel("i", LEVEL_OPTIONS);
-    this.blockLogs = <GanacheSublevel>db.sublevel("l", LEVEL_OPTIONS);
-    this.transactions = <GanacheSublevel>db.sublevel("t", LEVEL_OPTIONS);
-    this.transactionReceipts = <GanacheSublevel>db.sublevel("r", LEVEL_OPTIONS);
-    this.storageKeys = <GanacheSublevel>db.sublevel("s", LEVEL_OPTIONS);
+    this.blocks = db.sublevel("b", LEVEL_OPTIONS) as GanacheSublevel;
+    this.blockIndexes = db.sublevel("i", LEVEL_OPTIONS) as GanacheSublevel;
+    this.blockLogs = db.sublevel("l", LEVEL_OPTIONS) as GanacheSublevel;
+    this.transactions = db.sublevel("t", LEVEL_OPTIONS) as GanacheSublevel;
+    this.transactionReceipts = db.sublevel(
+      "r",
+      LEVEL_OPTIONS
+    ) as GanacheSublevel;
+    this.storageKeys = db.sublevel("s", LEVEL_OPTIONS) as GanacheSublevel;
     return this.emit("ready");
   };
 
