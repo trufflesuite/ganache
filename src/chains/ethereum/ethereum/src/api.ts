@@ -2919,6 +2919,7 @@ export default class EthereumApi implements Api {
     const MIN_BLOCKS: number = 1;
     const MAX_BLOCKS: number = 1024;
     const PRECISION_FLOAT: number = 1e14;
+    const PAD_PRECISION = 16;
     const PRECISION_BIG_INT: bigint = BigInt(1e16);
 
     const newestBlockNumber = blockchain.blocks
@@ -2961,9 +2962,15 @@ export default class EthereumApi implements Api {
 
       const { gasUsed, gasLimit } = currentBlock.header;
 
-      gasUsedRatio[currentPosition] =
-        Number((gasUsed.toBigInt() * PRECISION_BIG_INT) / gasLimit.toBigInt()) /
-        1e16;
+      if (gasUsed.toBigInt() === gasLimit.toBigInt()) {
+        gasUsedRatio[currentPosition] = 1;
+      } else {
+        gasUsedRatio[currentPosition] = Number(
+          `0.${((gasUsed.toBigInt() * PRECISION_BIG_INT) / gasLimit.toBigInt())
+            .toString()
+            .padStart(PAD_PRECISION, "0")}`
+        );
+      }
 
       if (reward) {
         const transactions = currentBlock.getTransactions();
