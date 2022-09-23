@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "table": "6.8.0",
+    "ps-list": "7.2.0",
     "@ganache/colors": "0.3.0",
     "@ganache/core": "0.5.3",
     "@ganache/flavors": "0.5.3",

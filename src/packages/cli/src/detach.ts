@@ -1,6 +1,7 @@
 import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
+import psList from "ps-list";
 import {
   existsSync,
   mkdirSync,
@@ -21,6 +22,7 @@ export type DetachedInstance = {
   host: string;
   port: number;
   flavor: FlavorName;
+  cmd: string;
 };
 
 const dataPath = envPaths(`Ganache/instances`).data;
@@ -96,6 +98,7 @@ export async function startDetachedInstance(
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
   });
+  const cmd = (await psList()).find(p => p.pid === child.pid).cmd;
 
   // Any messages output to stderr by the child process (before the `ready`
   // event is emitted) will be streamed to stderr on the parent.
@@ -147,7 +150,8 @@ export async function startDetachedInstance(
     instanceName,
     host: args.server.host,
     port: args.server.port,
-    flavor
+    flavor,
+    cmd
   };
 
   const instanceFilename = `${dataPath}/${instance.pid}`;
@@ -170,25 +174,23 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
     const filename = files[i];
     const pid = parseInt(filename);
 
-    let processExists: boolean;
-    try {
-      process.kill(pid, 0);
-      processExists = true;
-    } catch (_) {
-      processExists = false;
-    }
+    const processes = await psList();
+    const foundProcess = processes.find(p => p.pid === pid);
 
     let shouldRemoveFile = false;
-    if (processExists) {
+
+    if (foundProcess !== undefined) {
       const filepath = path.join(dataPath, filename);
       try {
         const content = readFileSync(filepath, { encoding: "utf8" });
         const instance = JSON.parse(content) as DetachedInstance;
-        instances.push(instance);
-      } catch (_) {
-        try {
-          process.kill(pid, "SIGTERM");
-        } catch (_) {}
+        if (foundProcess.cmd !== instance.cmd) {
+          shouldRemoveFile = true;
+        } else {
+          instances.push(instance);
+        }
+      } catch (err) {
+        process.kill(pid, "SIGTERM");
         shouldRemoveFile = true;
       }
     } else {
