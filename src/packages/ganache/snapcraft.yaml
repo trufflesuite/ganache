@@ -1,0 +1,17 @@
+name: ganach3
+version: "1.0.0"
+summary: Ganache
+description: Something more verbose later.
+confinement: strict
+base: core20
+
+apps:
+  ganacho:
+    command: bin/ganache
+    plugs: [network]
+
+parts:
+  ganacho:
+    plugin: npm
+    npm-node-version: 14.16.1
+    source: .
