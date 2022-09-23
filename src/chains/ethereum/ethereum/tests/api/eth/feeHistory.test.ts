@@ -4,10 +4,7 @@ import getProvider from "../../helpers/getProvider";
 import { Quantity } from "@ganache/utils";
 import {
   EIP1559FeeMarketRpcTransaction,
-  EIP1559FeeMarketTransaction,
-  Transaction,
-  LegacyRpcTransaction,
-  EIP1559FeeMarketTransactionJSON
+  LegacyRpcTransaction
 } from "@ganache/ethereum-transaction";
 import { Ethereum } from "../../../src/api-types";
 
