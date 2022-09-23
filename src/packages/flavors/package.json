@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.5.3",
+  "version": "0.5.4-alpha.0",
   "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/flavors#readme",
@@ -46,14 +46,14 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/colors": "0.3.0",
-    "@ganache/ethereum": "0.5.3",
-    "@ganache/ethereum-options": "0.5.3",
-    "@ganache/filecoin": "0.5.2",
-    "@ganache/filecoin-options": "0.5.2",
-    "@ganache/options": "0.5.2",
-    "@ganache/tezos": "0.5.2",
-    "@ganache/utils": "0.5.2",
+    "@ganache/colors": "0.3.1-alpha.0",
+    "@ganache/ethereum": "0.5.4-alpha.0",
+    "@ganache/ethereum-options": "0.5.4-alpha.0",
+    "@ganache/filecoin": "0.5.3-alpha.0",
+    "@ganache/filecoin-options": "0.5.3-alpha.0",
+    "@ganache/options": "0.5.3-alpha.0",
+    "@ganache/tezos": "0.5.3-alpha.0",
+    "@ganache/utils": "0.5.3-alpha.0",
     "chalk": "4.1.0"
   },
   "devDependencies": {
