@@ -22,7 +22,7 @@ import {
   ecsign,
   hashPersonalMessage,
   KECCAK256_NULL
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
 import { signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
@@ -40,7 +40,10 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
 import Emittery from "emittery";
-import estimateGas from "./helpers/gas-estimator";
+import estimateGas, {
+  EstimateGasResult,
+  EstimateGasRunArgs
+} from "./helpers/gas-estimator";
 import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
@@ -361,15 +364,16 @@ export default class EthereumApi implements Api {
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
+    const ejsAddress = { buf: buffer } as any;
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
-    const account = await stateManager.getAccount({ buf: buffer } as any);
+    const eei = blockchain.vm.eei;
+    const account = await eei.getAccount(ejsAddress);
 
-    account.nonce = {
-      toArrayLike: () => Quantity.toBuffer(nonce)
-    } as any;
+    account.nonce = Quantity.toBigInt(nonce);
 
-    await stateManager.putAccount({ buf: buffer } as any, account);
+    await eei.checkpoint();
+    await eei.putAccount(ejsAddress, account);
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -400,19 +404,21 @@ export default class EthereumApi implements Api {
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const buffer = Address.from(address).toBuffer();
+    const ejsAddress = { buf: buffer } as any;
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
-    const account = await stateManager.getAccount({ buf: buffer } as any);
+    const eei = blockchain.vm.eei;
+    const account = await eei.getAccount(ejsAddress);
 
-    account.balance = {
-      toArrayLike: () => Quantity.toBuffer(balance)
-    } as any;
+    account.balance = Quantity.toBigInt(balance);
 
-    await stateManager.putAccount({ buf: buffer } as any, account);
+    await eei.checkpoint();
+    await eei.putAccount(ejsAddress, account);
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
     await blockchain.mine(Capacity.Empty);
+
     return true;
   }
 
@@ -439,23 +445,23 @@ export default class EthereumApi implements Api {
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const addressBuffer = Address.from(address).toBuffer();
+    const ejsAddress = { buf: addressBuffer } as any;
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
+    const eei = blockchain.vm.eei;
     // The ethereumjs-vm StateManager does not allow to set empty code,
     // therefore we will manually set the code hash when "clearing" the contract code
+    await eei.checkpoint();
     if (codeBuffer.length > 0) {
-      await stateManager.putContractCode(
-        { buf: addressBuffer } as any,
-        codeBuffer
-      );
+      await eei.putContractCode(ejsAddress, codeBuffer);
     } else {
-      const account = await stateManager.getAccount({
+      const account = await eei.getAccount({
         buf: addressBuffer
       } as any);
       account.codeHash = KECCAK256_NULL;
-      await stateManager.putAccount({ buf: addressBuffer } as any, account);
+      await eei.putAccount(ejsAddress, account);
     }
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -491,12 +497,14 @@ export default class EthereumApi implements Api {
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
-    await stateManager.putContractStorage(
+    const eei = blockchain.vm.eei;
+    await eei.checkpoint();
+    await eei.putContractStorage(
       { buf: addressBuffer } as any,
       slotBuffer,
       valueBuffer
     );
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -915,8 +923,15 @@ export default class EthereumApi implements Api {
     const parentHeader = parentBlock.header;
     const options = this.#options;
 
-    const generateVM = () => {
-      return blockchain.vm.copy();
+    const generateVM = async () => {
+      // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
+      // /shrug
+      const vm = await blockchain.createVmFromStateTrie(
+        blockchain.trie.copy(false),
+        options.chain.allowUnlimitedContractSize,
+        false
+      );
+      return vm;
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
@@ -943,16 +958,20 @@ export default class EthereumApi implements Api {
         parentHeader.totalDifficulty,
         0n // no baseFeePerGas for estimates
       );
-      const runArgs = {
+      const runArgs: EstimateGasRunArgs = {
         tx: tx.toVmTransaction(),
         block,
         skipBalance: true,
         skipNonce: true
       };
-      estimateGas(generateVM, runArgs, (err: Error, result: any) => {
-        if (err) return reject(err);
-        resolve(Quantity.from(result.gasEstimate.toArrayLike(Buffer)));
-      });
+      estimateGas(
+        generateVM,
+        runArgs,
+        (err: Error, result: EstimateGasResult) => {
+          if (err) reject(err);
+          resolve(Quantity.from(result.gasEstimate));
+        }
+      );
     });
   }
 
@@ -1790,7 +1809,7 @@ export default class EthereumApi implements Api {
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
     trie.setContext(addressStateRoot, addressBuf, blockNum);
     const value = await trie.get(paddedPosBuff);
-    return Data.from(decode(value), 32);
+    return Data.from(decode<Buffer>(value), 32);
   }
 
   /**

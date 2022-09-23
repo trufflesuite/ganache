@@ -1,16 +1,16 @@
 import { BUFFER_EMPTY } from "@ganache/utils";
-import { LevelUp } from "levelup";
+import { GanacheSublevel } from "../../database";
 import { Tree } from "./tree";
 
 export class Ancestry {
-  private db: LevelUp;
+  private db: GanacheSublevel;
   private next: Buffer;
   private knownAncestors: Set<string>;
   /**
    * Prevents fetching the same key from the database simultaneously.
    */
   private cacheLock: Map<string, Promise<void>> = new Map();
-  constructor(db: LevelUp, parent: Tree) {
+  constructor(db: GanacheSublevel, parent: Tree) {
     this.db = db;
     if (parent == null) {
       this.next = null;

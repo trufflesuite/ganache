@@ -1,6 +1,6 @@
 import { Address } from "@ganache/ethereum-address";
 import { Data, Quantity } from "@ganache/utils";
-import { KECCAK256_RLP, KECCAK256_NULL } from "ethereumjs-util";
+import { KECCAK256_RLP, KECCAK256_NULL } from "@ethereumjs/util";
 import { encode, decode } from "@ganache/rlp";
 
 export type EthereumRawAccount = [
@@ -15,7 +15,7 @@ export class Account {
   public balance: Quantity;
   public privateKey: Data;
   public nonce: Quantity;
-  public stateRoot: Buffer = KECCAK256_RLP;
+  public storageRoot: Buffer = KECCAK256_RLP;
   public codeHash: Buffer = KECCAK256_NULL;
 
   constructor(address: Address) {
@@ -29,7 +29,7 @@ export class Account {
     const raw = decode<EthereumRawAccount>(buffer);
     account.nonce = Quantity.from(raw[0]);
     account.balance = Quantity.from(raw[1]);
-    account.stateRoot = raw[2];
+    account.storageRoot = raw[2];
     account.codeHash = raw[3];
     return account;
   }
@@ -38,7 +38,7 @@ export class Account {
     return encode([
       this.nonce.toBuffer(),
       this.balance.toBuffer(),
-      this.stateRoot,
+      this.storageRoot,
       this.codeHash
     ]);
   }
