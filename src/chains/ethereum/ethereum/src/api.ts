@@ -2985,17 +2985,14 @@ export default class EthereumApi implements Api {
         } else {
           // For all transactions, effectiveGasReward = normalized fee per unit of gas
           // earned by the miner regardless of transaction type
-          const baseFeePerGas = currentBlock.header.baseFeePerGas
-            ? currentBlock.header.baseFeePerGas.toBigInt()
-            : 0n;
+          const baseFee = baseFeePerGas[currentPosition].toBigInt();
 
           const effectiveRewardAndGasUsed = (
             await Promise.all(
               transactions.map(async tx => {
                 let effectiveGasReward: bigint;
                 if ("maxPriorityFeePerGas" in tx) {
-                  effectiveGasReward =
-                    tx.maxFeePerGas.toBigInt() - baseFeePerGas;
+                  effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFee;
 
                   const maxPriorityFeePerGas =
                     tx.maxPriorityFeePerGas.toBigInt();
@@ -3004,15 +3001,18 @@ export default class EthereumApi implements Api {
                     effectiveGasReward = maxPriorityFeePerGas;
                   }
                 } else {
-                  effectiveGasReward = tx.gasPrice.toBigInt() - baseFeePerGas;
+                  effectiveGasReward = tx.gasPrice.toBigInt() - baseFee;
                 }
 
-                const receipt = (
-                  await blockchain.transactionReceipts.get(tx.hash.toBuffer())
-                ).toJSON(currentBlock, tx, blockchain.common);
                 return {
                   effectiveGasReward: effectiveGasReward,
-                  gasUsed: receipt.gasUsed
+                  gasUsed: Quantity.from(
+                    (
+                      await blockchain.transactionReceipts.get(
+                        tx.hash.toBuffer()
+                      )
+                    ).gasUsed
+                  ).toBigInt()
                 };
               })
             )
@@ -3034,7 +3034,7 @@ export default class EthereumApi implements Api {
               PRECISION_BIG_INT;
 
             for (const values of effectiveRewardAndGasUsed) {
-              gasUsed = gasUsed + values.gasUsed.toBigInt();
+              gasUsed = gasUsed + values.gasUsed;
 
               if (targetGas <= gasUsed) {
                 return Quantity.from(values.effectiveGasReward);
