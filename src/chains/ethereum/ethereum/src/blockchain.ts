@@ -357,10 +357,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         //#region automatic mining
         const nullResolved = Promise.resolve(null);
-        const mineAll = (maxTransactions: Capacity, onlyOneBlock = false) =>
+        const mineAll = (maxTransactions: Capacity, onlyOneBlock?: boolean) =>
           this.#isPaused()
             ? nullResolved
-            : this.mine(maxTransactions, null, onlyOneBlock);
+            : this.mine(maxTransactions, onlyOneBlock);
         if (instamine) {
           // insta mining
           // whenever the transaction pool is drained mine the txs into blocks
@@ -592,22 +592,29 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
   mine = async (
     maxTransactions: number | Capacity,
-    timestamp?: number,
-    onlyOneBlock: boolean = false
+    onlyOneBlock: boolean = false,
+    timestamp?: number
   ) => {
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
 
-    // if block time is incremental, adjustments should only apply once, 
-    // otherwise they accumulate with each block.
-    if (this.#options.miner.timestampIncrement !== "clock") {
-      this.#timeAdjustment = 0;
-    }
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,
       onlyOneBlock
     );
     await this.#blockBeingSavedPromise;
+
+    if (this.#options.miner.timestampIncrement !== "clock") {
+      // if block time is incremental, adjustments should only apply once,
+      // otherwise they accumulate with each block.
+      this.#timeAdjustment = 0;
+    } else if (timestamp !== undefined) {
+      // when miner.timestampIncrement is a number, the previous block timestamp
+      // is used as a reference for the next block, so this call is not
+      // required.
+      this.setTimeDiff(timestamp * 1000);
+    }
+
     return {
       transactions,
       blockNumber: nextBlock.header.number.toArrayLike(Buffer)
@@ -839,7 +846,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   /**
-   * @param newTime - the number of milliseconds to adjust the time by. Can be negative.
+   * Adjusts the internal time adjustment such that the provided time is considered the "current" time.
+   * @param newTime - the time (in milliseconds) that will be considered the "current" time
    * @returns the total time offset *in milliseconds*
    */
   public setTimeDiff(newTime: number) {
