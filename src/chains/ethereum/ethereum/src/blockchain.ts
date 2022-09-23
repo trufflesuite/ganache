@@ -38,7 +38,8 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   findInsertPosition,
-  KNOWN_CHAINIDS
+  KNOWN_CHAINIDS,
+  keccak
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -264,6 +265,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.hardfork
         );
       }
+
+      this.isPostMerge = this.common.gteHardfork("merge");
 
       const blocks = (this.blocks = await BlockManager.initialize(
         this,
@@ -596,11 +599,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       minerOptions.blockGasLimit.toBuffer(),
       BUFFER_ZERO,
       Quantity.from(timestamp),
-      minerOptions.difficulty,
+      this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
       previousHeader.totalDifficulty,
+      this.getMixHash(previousBlock.hash().toBuffer()),
       Block.calcNextBaseFee(previousBlock)
     );
   };
+
+  getMixHash(data: Buffer) {
+    // mixHash is used as an RNG post merge hardfork
+    return this.isPostMerge ? keccak(data) : BUFFER_32_ZERO;
+  }
 
   isStarted = () => {
     return this.#state === Status.started;
@@ -767,8 +776,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         blockGasLimit.toBuffer(),
         BUFFER_ZERO,
         Quantity.from(timestamp),
-        minerOptions.difficulty,
+        this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
         fallbackBlock.header.totalDifficulty,
+        this.getMixHash(fallbackBlock.hash().toBuffer()),
         baseFeePerGas
       );
 
@@ -806,6 +816,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const baseFeePerGas = this.common.isActivatedEIP(1559)
       ? Block.INITIAL_BASE_FEE_PER_GAS
       : undefined;
+
     const genesis = new RuntimeBlock(
       rawBlockNumber,
       Data.from(BUFFER_32_ZERO),
@@ -813,8 +824,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       blockGasLimit.toBuffer(),
       BUFFER_ZERO,
       Quantity.from(timestamp),
-      this.#options.miner.difficulty,
+      this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
       Quantity.Zero, // we start the totalDifficulty at 0
+      // we use the initial trie root as the genesis block's mixHash as it
+      // is deterministic based on initial wallet conditions
+      this.isPostMerge ? keccak(this.trie.root()) : BUFFER_32_ZERO,
       baseFeePerGas
     );
 
@@ -1447,6 +1461,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
   };
 
+  isPostMerge: boolean;
+
   #prepareNextBlock = (
     targetBlock: Block,
     parentBlock: Block,
@@ -1464,8 +1480,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       BUFFER_ZERO,
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
-      this.#options.miner.difficulty,
+      this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
+      this.getMixHash(parentBlock.hash().toBuffer()),
       Block.calcNextBaseFee(parentBlock)
     ) as RuntimeBlock & {
       uncleHeaders: [];

@@ -956,6 +956,7 @@ export default class EthereumApi implements Api {
         parentHeader.timestamp,
         options.miner.difficulty,
         parentHeader.totalDifficulty,
+        blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
         0n // no baseFeePerGas for estimates
       );
       const runArgs: EstimateGasRunArgs = {
@@ -2881,6 +2882,7 @@ export default class EthereumApi implements Api {
       parentHeader.timestamp,
       options.miner.difficulty,
       parentHeader.totalDifficulty,
+      blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
       baseFeePerGasBigInt
     );
 

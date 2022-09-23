@@ -149,6 +149,8 @@ export default class BlockManager extends Manager<Block> {
   getBlockByTag(tag: Tag) {
     switch (tag) {
       case "latest":
+      case "finalized":
+      case "safe":
         return this.latest;
       case "pending":
         // TODO: build a real pending block!
