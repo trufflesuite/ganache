@@ -13,7 +13,6 @@ import {
 import path from "path";
 import { StartArgs } from "./types";
 import { FlavorName } from "@ganache/flavors";
-import { createFlatChildArgs } from "./args";
 
 export type DetachedInstance = {
   instanceName: string;
@@ -23,6 +22,7 @@ export type DetachedInstance = {
   port: number;
   flavor: FlavorName;
   cmd: string;
+  version: string;
 };
 
 const dataPath = envPaths(`Ganache/instances`).data;
@@ -90,7 +90,8 @@ export async function stopDetachedInstance(
  */
 export async function startDetachedInstance(
   module: string,
-  args: StartArgs<FlavorName>
+  args: StartArgs<FlavorName>,
+  version: string
 ): Promise<DetachedInstance> {
   const flavor = args.flavor;
   const childArgs = createFlatChildArgs(args);
@@ -151,7 +152,8 @@ export async function startDetachedInstance(
     host: args.server.host,
     port: args.server.port,
     flavor,
-    cmd
+    cmd,
+    version
   };
 
   const instanceFilename = `${dataPath}/${instance.pid}`;
@@ -184,12 +186,17 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       try {
         const content = readFileSync(filepath, { encoding: "utf8" });
         const instance = JSON.parse(content) as DetachedInstance;
+        // if the cmd does not match the instance, the process has been killed,
+        // and another application has taken the pid
         if (foundProcess.cmd !== instance.cmd) {
           shouldRemoveFile = true;
         } else {
           instances.push(instance);
         }
       } catch (err) {
+        console.error(
+          `Instance data corrupted. Process has been killed (PID ${pid})`
+        );
         process.kill(pid, "SIGTERM");
         shouldRemoveFile = true;
       }
@@ -212,4 +219,38 @@ async function findDetachedInstanceByName(
       return instances[i];
     }
   }
+}
+
+/**
+ * Flattens parsed, and namespaced args into an array of arguments to be passed
+ * to a child process. This handles "special" arguments, such as "action",
+ * "flavor" and "--detach".
+ * @param  {object} args to be flattened
+ * @returns string[] of flattened arguments
+ */
+export function createFlatChildArgs(args: object): string[] {
+  const flattenedArgs = [];
+
+  function flatten(namespace: string, args: object) {
+    const prefix = namespace === null ? "" : `${namespace}.`;
+    for (const key in args) {
+      const value = args[key];
+      if (key === "flavor") {
+        // flavor is input as a command, e.g. `ganache filecoin`, so we just
+        // unshift it to the start of the array
+        flattenedArgs.unshift(value);
+        // action doesn't need to be specified in the returned arguments array
+      } else if (key !== "action") {
+        if (typeof value === "object") {
+          flatten(`${prefix}${key}`, value);
+        } else {
+          flattenedArgs.push(`--${prefix}${key}=${value}`);
+        }
+      }
+    }
+  }
+
+  flatten(null, args);
+
+  return flattenedArgs;
 }

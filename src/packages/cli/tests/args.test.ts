@@ -1,34 +1,7 @@
 import assert from "assert";
-import args, { createFlatChildArgs, expandArgs } from "../src/args";
+import args, { expandArgs } from "../src/args";
 
 describe("args", () => {
-  describe("createFlatChildArgs()", () => {
-    it("should flatten a simple object", () => {
-      const input = {
-        a: "value-a",
-        b: "value-b"
-      };
-
-      const result = createFlatChildArgs(input);
-
-      assert.deepStrictEqual(result, ["--a=value-a", "--b=value-b"]);
-    });
-
-    it("should flatten a namespaced object", () => {
-      const input = {
-        a: {
-          aa: "value-aa"
-        },
-        b: {
-          bb: "value-bb"
-        }
-      };
-
-      const result = createFlatChildArgs(input);
-      assert.deepStrictEqual(result, ["--a.aa=value-aa", "--b.bb=value-bb"]);
-    });
-  });
-
   describe("expandArgs()", () => {
     it("should expand arguments with namespaces", () => {
       const input = {

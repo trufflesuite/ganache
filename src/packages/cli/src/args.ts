@@ -155,15 +155,13 @@ export default function (
   isDocker: boolean,
   rawArgs = process.argv.slice(2)
 ) {
-  let finalArgs: GanacheArgs;
-
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
 
+  // disable dot-notation because yargs just can't coerce args properly...
+  // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
   yargs
-    // disable dot-notation because yargs just can't coerce args properly...
-    // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
     .parserConfiguration({ "dot-notation": false })
     .strict()
     .usage(versionUsageOutputText)
@@ -285,6 +283,7 @@ export default function (
 
   const parsedArgs = yargs.parse(rawArgs);
 
+  let finalArgs: GanacheArgs;
   if (parsedArgs.action === "stop") {
     finalArgs = {
       action: "stop",
@@ -341,38 +340,4 @@ export function expandArgs(args: object): object {
   }
 
   return namespacedArgs;
-}
-
-/**
- * Flattens parsed, and namespaced args into an array of arguments to be passed
- * to a child process. This handles "special" arguments, such as "action",
- * "flavor" and "--detach".
- * @param  {object} args to be flattened
- * @returns string[] of flattened arguments
- */
-export function createFlatChildArgs(args: object): string[] {
-  const flattenedArgs = [];
-
-  function flatten(namespace: string, args: object) {
-    const prefix = namespace === null ? "" : `${namespace}.`;
-    for (const key in args) {
-      const value = args[key];
-      if (key === "flavor") {
-        // flavor is input as a command, e.g. `ganache filecoin`, so we just
-        // unshift it to the start of the array
-        flattenedArgs.unshift(value);
-        // action doesn't need to be specified in the returned arguments array
-      } else if (key !== "action") {
-        if (typeof value === "object") {
-          flatten(`${prefix}${key}`, value);
-        } else {
-          flattenedArgs.push(`--${prefix}${key}=${value}`);
-        }
-      }
-    }
-  }
-
-  flatten(null, args);
-
-  return flattenedArgs;
 }

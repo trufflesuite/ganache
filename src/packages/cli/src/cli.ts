@@ -195,7 +195,7 @@ if (argv.action === "start") {
 } else if (argv.action === "start-detached") {
   const module = process.argv[1];
 
-  startDetachedInstance(module, argv)
+  startDetachedInstance(module, argv, version)
     .then(instance => {
       const highlightedName = chalk.hex(TruffleColors.porsche)(
         instance.instanceName
@@ -217,6 +217,7 @@ if (argv.action === "start") {
         chalk.bold("PID"),
         chalk.bold("Name"),
         chalk.bold("Flavor"),
+        chalk.bold("Version"),
         chalk.bold("Host"),
         chalk.bold("Port"),
         chalk.bold("Uptime")
@@ -231,6 +232,7 @@ if (argv.action === "start") {
         instance.pid.toString(),
         chalk.hex(TruffleColors.porsche)(instance.instanceName),
         instance.flavor,
+        instance.version,
         instance.host,
         instance.port.toString(),
         formatDuration(uptime)
