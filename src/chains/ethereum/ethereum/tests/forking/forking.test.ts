@@ -1202,11 +1202,6 @@ describe("forking", function () {
         balance: "0x6cdf802b72c2a000",
         block: "0xae42fd"
       },
-      kovan: {
-        address: "0x596e8221A30bFe6e7eFF67Fee664A01C73BA3C56",
-        balance: "0x19b2bed356f3da980e2e3",
-        block: "0x1a36e09"
-      },
       rinkeby: {
         address: "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D",
         balance: "0x11cde6445010582e1ae",

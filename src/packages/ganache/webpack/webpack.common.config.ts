@@ -66,6 +66,9 @@ const base: webpack.Configuration = {
     mangleExports: "size",
     // make module ids tiny
     moduleIds: "size",
+    // TODO: remove note under
+    // https://github.com/trufflesuite/ganache/issues/3693 note: currently our
+    // code WILL NOT WORK without minification. plugins section for why
     minimize: true,
     minimizer: [
       new TerserPlugin({
@@ -89,9 +92,6 @@ const base: webpack.Configuration = {
   },
   plugins: [
     new webpack.EnvironmentPlugin({
-      // replace process.env.DEBUG in our code, because we don't use it but
-      // ethereumjs packages do, but we don't implement everything required
-      DEBUG: false,
       // set ganache version
       VERSION,
       CLI_VERSION,
@@ -100,7 +100,17 @@ const base: webpack.Configuration = {
     }),
     new webpack.DefinePlugin({
       // replace process.env.INFURA_KEY in our code
-      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY)
+      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY),
+      // TODO: remove hacks https://github.com/trufflesuite/ganache/issues/3693
+      // ethereumjs sets the debug flag to true process.env.DEBUG _exists_, even
+      // if it is set to false
+      "process.env.DEBUG": "undefined",
+      // ethereumjs also caches `process.env.DEBUG` as `this.DEBUG`. We want to
+      // remove all codepaths where `this.DEBUG` is true, bug if we replace it
+      // with false, we have `false = false;` that is generated. With this,
+      // however, we have `undefined = false;` which is stripped away by the
+      // minifier. Hence, our build will not work without being minified.
+      "this.DEBUG": "undefined"
     })
   ]
 };

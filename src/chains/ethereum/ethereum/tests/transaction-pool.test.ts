@@ -1,5 +1,5 @@
 import assert from "assert";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   EIP1559FeeMarketRpcTransaction,
   TransactionFactory,
@@ -68,15 +68,15 @@ describe("transaction pool", async () => {
       gasLimit: "0xffff",
       nonce: "0x2"
     };
-    common = Common.forCustomChain(
-      "mainnet",
+    common = Common.custom(
       {
         name: "ganache",
         chainId: 1337,
         comment: "Local test network",
-        bootstrapNodes: []
+        bootstrapNodes: [],
+        defaultHardfork: "grayGlacier"
       },
-      "london"
+      { baseChain: "mainnet" }
     );
     // we're spoofing a minimal fake blockchain for the tx pool that just
     // returns an account's nonce

@@ -1,6 +1,6 @@
 import assert from "assert";
 import { Address } from "@ganache/ethereum-address";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   TransactionFactory,
   Transaction,
@@ -21,15 +21,15 @@ describe("miner", async () => {
 
     before(async function () {
       this.timeout(5000);
-      common = Common.forCustomChain(
-        "mainnet",
+      common = Common.custom(
         {
           name: "ganache",
           chainId: 1337,
           comment: "Local test network",
-          bootstrapNodes: []
+          bootstrapNodes: [],
+          defaultHardfork: "grayGlacier"
         },
-        "london"
+        { baseChain: "mainnet" }
       );
       const optionsJson = {
         wallet: {

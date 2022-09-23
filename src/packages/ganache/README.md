@@ -47,7 +47,7 @@ Ganache can be used from the [command line](#command-line-use), [programmaticall
 
 ### Command line use
 
-You must first install [Node.js](https://nodejs.org/) >= v12.0.0 and npm >= 6.12.0.
+You must first install [Node.js](https://nodejs.org/) >= v14.0.0 and npm >= 6.12.0.
 
 To install Ganache globally, run:
 
@@ -259,7 +259,7 @@ Chain:
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
           [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
-                                                london", "arrowGlacier", "grayGlacier"] [default: london
+                                         "london", "arrowGlacier", "grayGlacier", "merge"] [default: "london"]
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]
@@ -381,7 +381,7 @@ Fork:
 
                                         Use the shorthand command ganache --fork to automatically fork from
                                         Mainnet at the latest block.
-                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli",
+                                                 [choices: "mainnet", "ropsten", "rinkeby", "goerli", "görli",
                                                                                                     "sepolia"]
   --fork.blockNumber                    Block number the provider should fork from.
                                                                                 [default: Latest block number]

@@ -5,13 +5,13 @@ import {
 } from "@ganache/ethereum-utils";
 import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
   TypedDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
-import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
+import type { RunTxResult } from "@ethereumjs/vm";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { InternalTransactionReceipt } from "./transaction-receipt";
@@ -151,7 +151,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       Quantity.toBuffer(cumulativeGasUsed),
       result.bloom.bitvector,
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
-      result.gasUsed.toArrayLike(Buffer),
+      Quantity.toBuffer(result.totalGasSpent),
       result.createdAddress ? result.createdAddress.buf : null,
       this.type
     ));
@@ -253,7 +253,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   protected abstract computeIntrinsics(
     v: Quantity,
     raw: TypedDatabaseTransaction,
-    chainId: number
+    chainId: bigint
   );
 
   protected abstract toVmTransaction();
