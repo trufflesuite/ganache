@@ -7,8 +7,7 @@ import {
   JsonRpcErrorCode
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
+import type { Common } from "@ethereumjs/common";
 import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -79,9 +78,9 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
         // TODO(hack): we use the presence of `extra` to determine if this data
         // come from the "database" or not. Transactions that come from the
         // database must not be validated since they may come from a fork.
-        if (common.chainId() !== this.chainId.toNumber()) {
+        if (common.chainId() !== this.chainId.toBigInt()) {
           throw new CodedError(
-            `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
+            `Invalid chain id (${this.chainId.toBigInt()}) for chain with id ${common.chainId()}.`,
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
@@ -97,14 +96,14 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     } else {
       if (data.chainId) {
         this.chainId = Quantity.from(data.chainId);
-        if (this.common.chainId() !== this.chainId.toNumber()) {
+        if (this.common.chainId() !== this.chainId.toBigInt()) {
           throw new CodedError(
             `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
       } else {
-        this.chainId = Quantity.from(common.chainIdBN().toArrayLike(Buffer));
+        this.chainId = Quantity.from(common.chainId());
       }
 
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
@@ -156,14 +155,14 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      gasPrice: new BN(this.gasPrice.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
+      nonce: this.nonce.toBigInt(),
+      gasPrice: this.gasPrice.toBigInt(),
+      gasLimit: this.gas.toBigInt(),
       to:
         to.length === 0
           ? null
           : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
+      value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
       getSenderAddress: () => ({
@@ -178,12 +177,11 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.toBuffer(fee + this.accessListDataFee));
+        return fee + this.accessListDataFee;
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.toBuffer(c));
+        return gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);

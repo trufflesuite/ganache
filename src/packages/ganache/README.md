@@ -259,7 +259,7 @@ Chain:
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
           [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
-                                                london", "arrowGlacier", "grayGlacier"] [default: london
+                                                london", "arrowGlacier", "grayGlacier"] [default: london]
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]
@@ -381,7 +381,7 @@ Fork:
 
                                         Use the shorthand command ganache --fork to automatically fork from
                                         Mainnet at the latest block.
-                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli",
+                                                 [choices: "mainnet", "ropsten", "rinkeby", "goerli", "görli",
                                                                                                     "sepolia"]
   --fork.blockNumber                    Block number the provider should fork from.
                                                                                 [default: Latest block number]

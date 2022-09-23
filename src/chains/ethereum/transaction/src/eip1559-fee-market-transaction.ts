@@ -7,8 +7,7 @@ import {
   JsonRpcErrorCode
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
+import type { Common } from "@ethereumjs/common";
 import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -26,6 +25,8 @@ import {
 } from "./transaction-types";
 import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
+
+const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
 
 function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
   const object = { signature: new Uint8Array(64), recid: null };
@@ -81,7 +82,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
         // TODO(hack): we use the presence of `extra` to determine if this data
         // come from the "database" or not. Transactions that come from the
         // database must not be validated since they may come from a fork.
-        if (common.chainId() !== this.chainId.toNumber()) {
+        if (common.chainId() !== this.chainId.toBigInt()) {
           throw new CodedError(
             `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
             JsonRpcErrorCode.INVALID_INPUT
@@ -101,7 +102,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       if (data.chainId) {
         this.chainId = Quantity.from(data.chainId);
       } else {
-        this.chainId = Quantity.from(common.chainIdBN().toArrayLike(Buffer));
+        this.chainId = Quantity.from(common.chainId());
       }
 
       this.maxPriorityFeePerGas = Quantity.from(data.maxPriorityFeePerGas);
@@ -157,15 +158,15 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      maxPriorityFeePerGas: new BN(this.maxPriorityFeePerGas.toBuffer()),
-      maxFeePerGas: new BN(this.maxFeePerGas.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
+      nonce: this.nonce.toBigInt(),
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas.toBigInt(),
+      maxFeePerGas: this.maxFeePerGas.toBigInt(),
+      gasLimit: this.gas.toBigInt(),
       to:
         to.length === 0
           ? null
           : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
+      value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
       getSenderAddress: () => ({
@@ -180,22 +181,22 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.toBuffer(fee + this.accessListDataFee));
+        return fee + this.accessListDataFee;
       },
-      getUpfrontCost: (baseFee: BN = new BN(0)) => {
+      getUpfrontCost: (baseFee: bigint = 0n) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;
-        const maxPriorityFeePerGasBN = new BN(maxPriorityFeePerGas.toBuffer());
-        const maxFeePerGasBN = new BN(maxFeePerGas.toBuffer());
-        const gasLimitBN = new BN(gas.toBuffer());
-        const valueBN = new BN(value.toBuffer());
+        const maxPriorityFeePerGasBI = maxPriorityFeePerGas.toBigInt();
+        const maxFeePerGasBI = maxFeePerGas.toBigInt();
+        const gasLimitBI = gas.toBigInt();
+        const valueBI = value.toBigInt();
 
-        const inclusionFeePerGas = BN.min(
-          maxPriorityFeePerGasBN,
-          maxFeePerGasBN.sub(baseFee)
+        const inclusionFeePerGas = bigIntMin(
+          maxPriorityFeePerGasBI,
+          maxFeePerGasBI - baseFee
         );
-        const gasPrice = inclusionFeePerGas.add(baseFee);
+        const gasPrice = inclusionFeePerGas + baseFee;
 
-        return gasLimitBN.mul(gasPrice).add(valueBN);
+        return gasLimitBI * gasPrice + valueBI;
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);

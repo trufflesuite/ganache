@@ -6,7 +6,7 @@ import path from "path";
 import { Quantity, Data } from "@ganache/utils";
 
 import { Account, TraceStorageMap } from "@ganache/ethereum-utils";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { Address } from "@ganache/ethereum-address";
 import {
@@ -196,7 +196,10 @@ describe("api", () => {
 
       // The following will set up a vm, deploy the debugging contract,
       // then run the transaction against that contract that we want to trace.
-      const common = Common.forCustomChain("mainnet", { chainId: 1337 });
+      const common = Common.custom(
+        { chainId: 1337, defaultHardfork: "berlin" },
+        { baseChain: "mainnet" }
+      );
 
       const blockchain = new Blockchain(
         // using berlin here because we need this test to cost 0 gas

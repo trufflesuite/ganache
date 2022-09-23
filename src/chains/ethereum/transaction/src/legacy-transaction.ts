@@ -6,10 +6,9 @@ import {
   BUFFER_32_ZERO
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
-import { ECDSASignature, ECDSASignatureBuffer, ecsign } from "ethereumjs-util";
+import type { Common } from "@ethereumjs/common";
+import { ECDSASignature, ecsign } from "@ethereumjs/util";
 import { encodeRange, digest, EncodedPart } from "@ganache/rlp";
-import { BN } from "ethereumjs-util";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { Transaction } from "./rpc-transaction";
 import {
@@ -119,14 +118,14 @@ export class LegacyTransaction extends RuntimeTransaction {
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      gasPrice: new BN(this.gasPrice.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
+      nonce: this.nonce.toBigInt(),
+      gasPrice: this.gasPrice.toBigInt(),
+      gasLimit: this.gas.toBigInt(),
       to:
         to.length === 0
           ? null
           : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
+      value: this.value.toBigInt(),
       data,
       getSenderAddress: () => ({
         buf: sender,
@@ -139,13 +138,11 @@ export class LegacyTransaction extends RuntimeTransaction {
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
-        const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.toBuffer(fee));
+        return this.calculateIntrinsicGas();
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.toBuffer(c));
+        return gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
       },
       supports: (capability: Capability) => {
         return false;
@@ -172,9 +169,9 @@ export class LegacyTransaction extends RuntimeTransaction {
     let raw: LegacyDatabasePayload;
     let data: EncodedPart;
     let dataLength: number;
-    let sig: ECDSASignature | ECDSASignatureBuffer;
+    let sig: ECDSASignature;
     if (eip155IsActive) {
-      chainId = this.common.chainIdBN().toArrayLike(Buffer);
+      chainId = Quantity.toBuffer(this.common.chainId());
       raw = this.toEthRawTransaction(chainId, BUFFER_EMPTY, BUFFER_EMPTY);
       data = encodeRange(raw, 0, 6);
       dataLength = data.length;
@@ -183,7 +180,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       const msgHash = keccak(
         digest([data.output, ending.output], dataLength + ending.length)
       );
-      sig = ecsign(msgHash, privateKey, chainId);
+      sig = ecsign(msgHash, privateKey, this.common.chainId());
     } else {
       raw = this.toEthRawTransaction(BUFFER_EMPTY, BUFFER_EMPTY, BUFFER_EMPTY);
       data = encodeRange(raw, 0, 6);
@@ -231,7 +228,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   public computeIntrinsics(
     v: Quantity,
     raw: TypedDatabaseTransaction,
-    chainId: number
+    chainId: bigint
   ) {
     return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
