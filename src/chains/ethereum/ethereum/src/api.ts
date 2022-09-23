@@ -2916,11 +2916,10 @@ export default class EthereumApi implements Api {
     rewardPercentiles: number[]
   ): Promise<Ethereum.FeeHistory<"private">> {
     const blockchain = this.#blockchain;
-    const MIN_BLOCKS = 1;
-    const MAX_BLOCKS = 1024;
-    const PAD_PRECISION = 16;
-    const PRECISION_FLOAT = 1e14;
-    const PRECISION_BIG_INT = BigInt(1e16);
+    const MIN_BLOCKS: number = 1;
+    const MAX_BLOCKS: number = 1024;
+    const PRECISION_FLOAT: number = 1e14;
+    const PRECISION_BIG_INT: bigint = BigInt(1e16);
 
     const newestBlockNumber = blockchain.blocks
       .getEffectiveNumber(newestBlock)
@@ -2961,15 +2960,10 @@ export default class EthereumApi implements Api {
         currentBlock.header.baseFeePerGas || Quantity.Zero;
 
       const { gasUsed, gasLimit } = currentBlock.header;
-      if (gasUsed.toBigInt() === gasLimit.toBigInt()) {
-        gasUsedRatio[currentPosition] = 1;
-      } else {
-        gasUsedRatio[currentPosition] = Number(
-          `0.${((gasUsed.toBigInt() * PRECISION_BIG_INT) / gasLimit.toBigInt())
-            .toString()
-            .padStart(PAD_PRECISION, "0")}`
-        );
-      }
+
+      gasUsedRatio[currentPosition] =
+        Number((gasUsed.toBigInt() * PRECISION_BIG_INT) / gasLimit.toBigInt()) /
+        1e16;
 
       if (reward) {
         const transactions = currentBlock.getTransactions();
