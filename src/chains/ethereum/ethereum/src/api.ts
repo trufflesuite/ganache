@@ -2905,7 +2905,9 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * const feeHistory = await provider.request({ method: "eth_feeHistory", params: ["0x5", "0xE5A51D", [10, 50, 80]] });
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_sendTransaction", params: [{ from, to }] });
+   * const feeHistory = await provider.request({ method: "eth_feeHistory", params: ["0x1", "0x1", [10, 100]] });
    * console.log(feeHistory);
    * ```
    */
