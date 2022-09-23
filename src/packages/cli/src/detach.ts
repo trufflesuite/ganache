@@ -26,7 +26,7 @@ export type DetachedInstance = {
 };
 
 const dataPath = envPaths(`Ganache/instances`).data;
-if (!existsSync(dataPath)) mkdirSync(dataPath);
+if (!existsSync(dataPath)) mkdirSync(dataPath, { recursive: true });
 
 const READY_MESSAGE = "ready";
 
