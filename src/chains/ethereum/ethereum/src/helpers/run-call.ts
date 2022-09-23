@@ -4,6 +4,7 @@ import { Address } from "@ganache/ethereum-address";
 import { VM } from "@ethereumjs/vm";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheTrie } from "./trie";
+import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 
 export type SimulationTransaction = {
   /**

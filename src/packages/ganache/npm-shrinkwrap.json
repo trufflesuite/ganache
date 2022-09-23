@@ -942,6 +942,12 @@
 			"integrity": "sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==",
 			"dev": true
 		},
+		"@types/async-eventemitter": {
+			"version": "0.2.1",
+			"resolved": "https://registry.npmjs.org/@types/async-eventemitter/-/async-eventemitter-0.2.1.tgz",
+			"integrity": "sha512-M2P4Ng26QbAeITiH7w1d7OxtldgfAe0wobpyJzVK/XOb0cUGKU2R4pfAhqcJBXAe2ife5ZOhSv4wk7p+ffURtg==",
+			"dev": true
+		},
 		"@types/bn.js": {
 			"version": "5.1.0",
 			"resolved": "https://registry.npmjs.org/@types/bn.js/-/bn.js-5.1.0.tgz",
@@ -3487,7 +3493,6 @@
 			"version": "1.1.0",
 			"resolved": "https://registry.npmjs.org/run-parallel-limit/-/run-parallel-limit-1.1.0.tgz",
 			"integrity": "sha512-jJA7irRNM91jaKc3Hcl1npHsFLOXOoTkPCUL1JEa1R82O2miplXXRaGdjW/KM/98YQWDhJLiSs793CnXfblJUw==",
-			"dev": true,
 			"requires": {
 				"queue-microtask": "^1.2.2"
 			}

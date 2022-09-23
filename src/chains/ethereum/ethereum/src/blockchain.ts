@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database from "./database";
+import Database, { DBType } from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -289,7 +289,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           stateRoot = null;
         }
-        this.trie = makeTrie(this, database.trie, stateRoot);
+        this.trie = makeTrie(this, database, stateRoot);
       }
 
       // create VM and listen to step events
@@ -1190,6 +1190,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
+      // @ts-ignore types are dumbs
       throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
@@ -1250,6 +1251,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       stateManager,
       evm
     });
+    //@ts-ignore
+    vm._allowUnlimitedContractSize = this.vm.evm._allowUnlimitedContractSize;
 
     const storage: StorageRecords = {};
 
@@ -1591,11 +1594,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(
-      this,
-      this.#database.trie,
-      parentBlock.header.stateRoot
-    );
+    const trie = makeTrie(this, this.#database, parentBlock.header.stateRoot);
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
@@ -1649,6 +1648,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         const rs = storageTrie.createReadStream();
+        // @ts-ignore
         rs.on("data", handleData).on("error", reject).on("end", handleEnd);
       });
     };

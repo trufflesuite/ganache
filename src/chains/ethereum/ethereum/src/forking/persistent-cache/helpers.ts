@@ -152,15 +152,15 @@ export async function* findRelated(
   request: Request,
   options: FindOptions
 ) {
-  const readStream = db.createReadStream({
+  const readStream = db.iterator({
     keys: true,
     values: true,
     ...options
   });
 
   for await (const pair of readStream) {
-    const { key, value } = pair as unknown as { key: Buffer; value: Buffer };
-    const node = Tree.deserialize(key, value);
+    const [key, value] = pair as [key: Buffer, value: Uint8Array];
+    const node = Tree.deserialize(key, Buffer.from(value));
     const { height: candidateHeight } = node.decodeKey();
     const block = await getBlockByNumber(request, candidateHeight);
     // if the chain has a block at this height, and the hash of the

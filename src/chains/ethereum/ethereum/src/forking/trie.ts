@@ -21,8 +21,8 @@ const GET_STORAGE_AT = "eth_getStorageAt";
 const MetadataSingletons = new WeakMap<TrieDB, GanacheLevelUp>();
 
 const LEVELDOWN_OPTIONS = {
-  keyEncoding: "binary",
-  valueEncoding: "binary"
+  keyEncoding: "buffer",
+  valueEncoding: "buffer"
 };
 
 function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
@@ -95,6 +95,7 @@ export class ForkTrie extends GanacheTrie {
         Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
       ])
     });
+    //@ts-ignore
     const batch = db.batch();
     for await (const [key] of stream) {
       batch.del(key);
@@ -225,7 +226,7 @@ export class ForkTrie extends GanacheTrie {
         account.codeHash = keccak(code);
         if (!account.codeHash.equals(KECCAK256_NULL)) {
           // insert the code directly into the database with a key of `codeHash`
-          promises[2] = this.db.put(account.codeHash, code);
+          promises[2] = this._db.put(account.codeHash, code);
         }
       }
     } catch (e) {

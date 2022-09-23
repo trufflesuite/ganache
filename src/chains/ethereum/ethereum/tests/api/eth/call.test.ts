@@ -1,4 +1,5 @@
 import assert from "assert";
+import { Level } from "level";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
@@ -241,7 +242,7 @@ describe("api", () => {
           ]);
         }
 
-        it("allows override of account nonce", async () => {
+        it.only("allows override of account nonce", async () => {
           // this is a kind of separate test case from the rest, since we can't easily
           // access an account's nonce in solidity. instead, we'll use the override to
           // set the account's nonce high and send a contract creating transaction. the

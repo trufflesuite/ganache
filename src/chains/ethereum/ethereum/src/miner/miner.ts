@@ -485,6 +485,7 @@ export default class Miner extends Emittery<{
           returnValue: BUFFER_EMPTY
         }
       } as EVMResult;
+      //@ts-ignore
       const error = new RuntimeError(tx.hash, e, RETURN_TYPES.TRANSACTION_HASH);
       tx.finalize("rejected", error);
       return null;
