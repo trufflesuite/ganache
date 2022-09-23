@@ -27,7 +27,8 @@ export const Params = {
     | "berlin"
     | "london"
     | "arrowGlacier"
-    | "grayGlacier",
+    | "grayGlacier"
+    | "merge",
     bigint
   >([
     ["chainstart", 68n],
@@ -43,7 +44,8 @@ export const Params = {
     ["berlin", 16n],
     ["london", 16n],
     ["arrowGlacier", 16n],
-    ["grayGlacier", 16n]
+    ["grayGlacier", 16n],
+    ["merge", 16n]
   ]),
 
   /**
