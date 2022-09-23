@@ -357,6 +357,85 @@ describe("api", () => {
           assert(largeKey.pk < SECP256K1_N);
         });
       });
+
+      describe("unlock all accounts", async () => {
+        const ZERO_ADDRESS = "0x" + "0".repeat(40);
+        const PROVIDER_OPTIONS : EthereumProviderOptions = {
+          miner: {
+            defaultGasPrice: 0
+          },
+          chain: {
+            // use berlin here because we just want to test if we can use the
+            // "zero" address, and we do this by transferring value while
+            // setting the gasPrice to `0`. This isn't possible after the
+            // `london` hardfork currently, as we don't provide an option to
+            // allow for a 0 `maxFeePerGas` value.
+            // TODO: remove once we have a configurable `maxFeePerGas`
+            hardfork: "berlin"
+          }
+        }
+        
+        it("can send transactions from an unlocked 0x0 address when unlock all is true", async () => {
+          PROVIDER_OPTIONS.wallet = {
+            unlockAll: true
+          }
+        const provider = await getProvider(
+          PROVIDER_OPTIONS
+        );
+          const [from] = await provider.send("eth_accounts");
+        
+          await provider.send("eth_subscribe", ["newHeads"]);
+          const initialZeroBalance = "0x1234";
+          await provider.send("eth_sendTransaction", [
+            { from: from, to: ZERO_ADDRESS, value: initialZeroBalance }
+          ]);
+          await provider.once("message");
+          const initialBalance = await provider.send("eth_getBalance", [
+            ZERO_ADDRESS
+          ]);
+          assert.strictEqual(
+            initialBalance,
+            initialZeroBalance,
+            "Zero address's balance isn't correct"
+          );
+          console.log(initialBalance)
+          const removeValueFromZeroAmount = "0x123";
+          await provider.send("eth_sendTransaction", [
+            { from: ZERO_ADDRESS, to: from, value: removeValueFromZeroAmount }
+          ]);
+          await provider.once("message");
+          const afterSendBalance = BigInt(
+            await provider.send("eth_getBalance", [ZERO_ADDRESS])
+          );
+          assert.strictEqual(
+            BigInt(initialZeroBalance) - BigInt(removeValueFromZeroAmount),
+            afterSendBalance,
+            "Zero address's balance isn't correct"
+          );
+        });
+
+        it("cannot send transactions from an unlocked 0x0 address when unlock all is false", async () => {
+          PROVIDER_OPTIONS.wallet = {
+            unlockAll: false
+          }
+        const provider = await getProvider(
+          PROVIDER_OPTIONS
+        );
+          const [from] = await provider.send("eth_accounts");
+          await provider.send("eth_subscribe", ["newHeads"]);
+          const removeValueFromZeroAmount = "0x123";
+
+          const badSend = async () => {
+            return provider.send("eth_sendTransaction", [
+              { from: ZERO_ADDRESS, to: from, value: removeValueFromZeroAmount }
+            ]);
+          };
+          await assert.rejects(
+            badSend,
+            "Error: sender account not recognized"
+          );
+        });
+      });
     });
   });
 });
