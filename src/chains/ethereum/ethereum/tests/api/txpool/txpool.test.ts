@@ -120,4 +120,52 @@ describe("txpool", () => {
       assert.deepStrictEqual(queued, {});
     });
   });
+
+  describe("status", () => {
+    let provider: EthereumProvider;
+    let accounts: string[];
+    beforeEach(async () => {
+      provider = await getProvider({
+        miner: { blockTime: 1000 }
+      });
+      accounts = await provider.send("eth_accounts");
+    });
+
+    it("handles pending and queued transactions", async () => {
+      const pendingTransactions = await Promise.all([
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2]
+          }
+        ]),
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[2],
+            to: accounts[3]
+          }
+        ]),
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2]
+          }
+        ])
+      ]);
+
+      const queuedTransactions = await Promise.all([
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2],
+            nonce: "0x123",
+          }
+        ])
+      ]);
+
+      const { pending, queued } = await provider.send("txpool_status");
+      assert.strictEqual(pending, pendingTransactions.length);
+      assert.strictEqual(queued, queuedTransactions.length);
+    });
+  });
 });

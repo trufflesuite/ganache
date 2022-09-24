@@ -3430,12 +3430,49 @@ export default class EthereumApi implements Api {
     const {
       transactionPool: { executables, origins, processMap }
     } = transactions;
-    
+
     return {
       pending: processMap(executables.pending),
       queued: processMap(origins)
     };
   }
+
+  /**
+   * Returns the number of transactions currently pending for inclusion in the next block(s), as well as the ones that are being scheduled for future execution only.
+   *
+   * @returns The count of transactions currently pending or queued in the transaction pool.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_status");
+   * console.log(pool);
+   * ```
+   */
+   @assertArgLength(0)
+   async txpool_status(): Promise<{pending: number, queued: number}> {
+     const { transactions } = this.#blockchain;
+     const {
+       transactionPool: { executables, origins }
+     } = transactions;
+     
+     let pending = 0;
+     let queued = 0;
+
+     for (const [_, transactions] of executables.pending) {
+      pending += transactions?.array.length || 0;
+     }
+
+     for (const [_, transactions] of origins) {
+      queued += transactions?.array.length || 0;
+     }
+
+     return {
+       pending,
+       queued
+     };
+   }
 
   //#endregion
 }
