@@ -3426,34 +3426,11 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0)
   async txpool_content(): Promise<Ethereum.Pool.Content<"private">> {
-    const { transactions, common } = this.#blockchain;
+    const { transactions } = this.#blockchain;
     const {
-      transactionPool: { executables, origins }
+      transactionPool: { executables, origins, processMap }
     } = transactions;
-
-    const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
-      let res: Record<
-        string,
-        Record<string, Ethereum.Pool.Transaction<"private">>
-      > = {};
-      for (let [_, { array, length }] of map) {
-        for (let i = 0; i < length; ++i) {
-          const transaction = array[i];
-          const from = transaction.from.toString();
-          if (res[from] === undefined) {
-            res[from] = {};
-          }
-          // The nonce keys are actual decimal numbers (as strings) and not
-          // hex literals (based on what geth returns).
-          const nonce = transaction.nonce.toBigInt().toString();
-          res[from][nonce] = transaction.toJSON(
-            common
-          ) as Ethereum.Pool.Transaction<"private">;
-        }
-      }
-      return res;
-    };
-
+    
     return {
       pending: processMap(executables.pending),
       queued: processMap(origins)
