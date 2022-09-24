@@ -299,6 +299,35 @@ describe("api", () => {
           });
         });
         describe("reward", () => {
+          it("throws if percentile is < 0", async () => {
+            const blockCount = "0x0";
+            const newestBlock = "latest";
+            const percentile = -10;
+            const message = `Error: invalid reward percentile: ${percentile}`;
+
+            assert.rejects(async () => {
+              await provider.send("eth_feeHistory", [
+                blockCount,
+                newestBlock,
+                [percentile]
+              ]);
+            }, message);
+          });
+          it("throws if percentile is > 100", async () => {
+            const blockCount = "0x0";
+            const newestBlock = "latest";
+            const percentile = 110;
+            const message = `Error: invalid reward percentile: ${percentile}`;
+
+            assert.rejects(async () => {
+              await provider.send("eth_feeHistory", [
+                blockCount,
+                newestBlock,
+                [percentile]
+              ]);
+            }, message);
+          });
+          it("throws if a percentile is not monotonic", async () => {});
           it("returns undefined if no reward is specified", async () => {
             const blockCount = "0x1";
             const newestBlock = "latest";
@@ -469,7 +498,7 @@ describe("api", () => {
             const feeHistory = await provider.send("eth_feeHistory", [
               blockCount,
               newestBlock,
-              [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100, 200] // 200 is more target gas than was used, will fallback to largest reward
+              [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100] // 200 is more target gas than was used, will fallback to largest reward
             ]);
 
             assert.deepEqual(feeHistory.reward, [
@@ -482,7 +511,6 @@ describe("api", () => {
                 third25Reward,
                 third25Reward,
                 third25Reward,
-                last25Reward,
                 last25Reward,
                 last25Reward
               ]
