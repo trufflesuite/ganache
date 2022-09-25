@@ -3437,6 +3437,36 @@ export default class EthereumApi implements Api {
     };
   }
 
+
+  /**
+   * Returns the number of transactions created by specified address currently pending for inclusion in the next block(s), as well as the ones that are being scheduled for future execution only.
+   * 
+   * @param address - The account address
+   * @returns The transactions currently pending or queued in the transaction pool by address.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_contentFrom", [from]);
+   * console.log(pool);
+   * ```
+   */
+   @assertArgLength(1)
+   async txpool_contentFrom(address: DATA): Promise<Ethereum.Pool.Content<"private">> {
+    const { transactions } = this.#blockchain;
+    const {
+      transactionPool: { executables, origins, processMap }
+    } = transactions;
+
+    const fromAddress = Address.from(address);
+
+    return {
+      pending: processMap(executables.pending, fromAddress),
+      queued: processMap(origins, fromAddress)
+    };
+   }
+
   /**
    * Returns the number of transactions currently pending for inclusion in the next block(s), as well as the ones that are being scheduled for future execution only.
    *

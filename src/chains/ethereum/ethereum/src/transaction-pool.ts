@@ -15,6 +15,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
 import { Ethereum } from "./api-types";
+import { Address } from "@ganache/ethereum-address";
 
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -454,7 +455,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     return null;
   }
 
-  public processMap(map: Map<string, Heap<TypedTransaction>>) {
+  public processMap(map: Map<string, Heap<TypedTransaction>>, address?: Address) {
     let res: Record<
       string,
       Record<string, Ethereum.Pool.Transaction<"private">>
@@ -463,6 +464,11 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     for (let [_, { array, length }] of map) {
       for (let i = 0; i < length; ++i) {
         const transaction = array[i];
+
+        if(address && transaction.from.toString() != address.toString()) {
+          continue;
+        }
+        
         const from = transaction.from.toString();
         if (res[from] === undefined) {
           res[from] = {};
