@@ -2929,6 +2929,7 @@ export default class EthereumApi implements Api {
       .toBigInt();
 
     // blockCount > newestBlock is technically valid but we cannot go past the Genesis Block.
+    // blockCount must be between 1 and 1000
     const totalBlocks = Math.min(
       Math.min(
         Math.max(Quantity.toNumber(blockCount), MIN_BLOCKS),
@@ -2977,8 +2978,7 @@ export default class EthereumApi implements Api {
         currentBlockNumber - oldestBlockNumber
       );
 
-      baseFeePerGas[currentPosition] =
-        currentBlock.header.baseFeePerGas || Quantity.Zero;
+      baseFeePerGas[currentPosition] = currentBlock.header.baseFeePerGas;
 
       const { gasUsed, gasLimit } = currentBlock.header;
 
@@ -2992,6 +2992,7 @@ export default class EthereumApi implements Api {
         );
       }
 
+      // For each percentile, find the cost of the unit of gas at that percentage
       if (reward) {
         const transactions = currentBlock.getTransactions();
 
@@ -3005,40 +3006,37 @@ export default class EthereumApi implements Api {
           // earned by the miner regardless of transaction type
           const baseFee = baseFeePerGas[currentPosition].toBigInt();
 
-          const effectiveRewardAndGasUsed = (
-            await Promise.all(
-              transactions.map(async tx => {
-                let effectiveGasReward: bigint;
-                if ("maxPriorityFeePerGas" in tx) {
-                  effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFee;
+          const receipts = await Promise.all(
+            transactions.map(async tx => {
+              return blockchain.transactionReceipts.get(tx.hash.toBuffer());
+            })
+          );
 
-                  const maxPriorityFeePerGas =
-                    tx.maxPriorityFeePerGas.toBigInt();
+          const effectiveRewardAndGasUsed = transactions
+            .map((tx, idx) => {
+              let effectiveGasReward: bigint;
+              if ("maxPriorityFeePerGas" in tx) {
+                effectiveGasReward = tx.maxFeePerGas.toBigInt() - baseFee;
 
-                  if (maxPriorityFeePerGas < effectiveGasReward) {
-                    effectiveGasReward = maxPriorityFeePerGas;
-                  }
-                } else {
-                  effectiveGasReward = tx.gasPrice.toBigInt() - baseFee;
+                const maxPriorityFeePerGas = tx.maxPriorityFeePerGas.toBigInt();
+
+                if (maxPriorityFeePerGas < effectiveGasReward) {
+                  effectiveGasReward = maxPriorityFeePerGas;
                 }
+              } else {
+                effectiveGasReward = tx.gasPrice.toBigInt() - baseFee;
+              }
 
-                return {
-                  effectiveGasReward: effectiveGasReward,
-                  gasUsed: Quantity.from(
-                    (
-                      await blockchain.transactionReceipts.get(
-                        tx.hash.toBuffer()
-                      )
-                    ).gasUsed
-                  ).toBigInt()
-                };
-              })
-            )
-          ).sort((a, b) => {
-            if (a.effectiveGasReward > b.effectiveGasReward) return 1;
-            if (a.effectiveGasReward < b.effectiveGasReward) return -1;
-            return 0;
-          });
+              return {
+                effectiveGasReward: effectiveGasReward,
+                gasUsed: Quantity.from(receipts[idx].gasUsed).toBigInt()
+              };
+            })
+            .sort((a, b) => {
+              if (a.effectiveGasReward > b.effectiveGasReward) return 1;
+              if (a.effectiveGasReward < b.effectiveGasReward) return -1;
+              return 0;
+            });
 
           // All of the block transactions are ordered, ascending, from least to greatest by
           // the fee the tx paid per unit of gas. For each percentile of block gas consumed,
@@ -3058,11 +3056,6 @@ export default class EthereumApi implements Api {
                 return Quantity.from(values.effectiveGasReward);
               }
             }
-
-            return Quantity.from(
-              effectiveRewardAndGasUsed[effectiveRewardAndGasUsed.length - 1]
-                .effectiveGasReward
-            );
           });
         }
       }
