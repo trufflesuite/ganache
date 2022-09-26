@@ -234,6 +234,32 @@ describe("api", () => {
               Number(block.gasUsed) / Number(block.gasLimit)
             );
           });
+          it("handles gasUsedRatio === 1", async () => {
+            const blockCount = "0x1";
+            const newestBlock = "latest";
+            provider = await getProvider({
+              miner: {
+                defaultTransactionGasLimit: 21000,
+                blockGasLimit: 21000
+              }
+            });
+
+            [to, from] = await provider.send("eth_accounts");
+
+            await sendTransaction({
+              provider,
+              to,
+              from
+            });
+
+            const feeHistory = await provider.send("eth_feeHistory", [
+              blockCount,
+              newestBlock,
+              []
+            ]);
+
+            assert.strictEqual(feeHistory.gasUsedRatio[0], 1);
+          });
         });
         describe("baseFeePerGas", () => {
           it("returns blockCount + 1 baseFeePerGas", async () => {
@@ -299,17 +325,25 @@ describe("api", () => {
           });
         });
         describe("reward", () => {
-          it("throws if percentile is < 0", async () => {
+          it("throws if a percentile is < 0", async () => {
             const blockCount = "0x0";
             const newestBlock = "latest";
-            const percentile = -10;
+            const percentile = [-10];
+
             const message = `Error: invalid reward percentile: ${percentile}`;
 
             assert.rejects(async () => {
               await provider.send("eth_feeHistory", [
                 blockCount,
                 newestBlock,
-                [percentile]
+                percentile
+              ]);
+            }, message);
+            assert.rejects(async () => {
+              await provider.send("eth_feeHistory", [
+                blockCount,
+                newestBlock,
+                percentile
               ]);
             }, message);
           });
@@ -327,7 +361,20 @@ describe("api", () => {
               ]);
             }, message);
           });
-          it("throws if a percentile is not monotonic", async () => {});
+          it("throws if a percentile is not monotonic", async () => {
+            const blockCount = "0x0";
+            const newestBlock = "latest";
+            const percentiles = [0, 10, 50, 10];
+            const message = `Error: invalid reward percentile: 50 10`;
+
+            assert.rejects(async () => {
+              await provider.send("eth_feeHistory", [
+                blockCount,
+                newestBlock,
+                percentiles
+              ]);
+            }, message);
+          });
           it("returns undefined if no reward is specified", async () => {
             const blockCount = "0x1";
             const newestBlock = "latest";
@@ -356,7 +403,7 @@ describe("api", () => {
 
             assert.deepEqual(feeHistory.reward, [["0x0", "0x0", "0x0"]]);
           });
-          it("transaction with maxPriorityFeePerGas > effectiveGasReward", async () => {
+          it("handles transactions with maxPriorityFeePerGas > effectiveGasReward", async () => {
             const blockCount = "0x1";
             const newestBlock = "latest";
             const txHash = await sendTransaction({
@@ -385,7 +432,7 @@ describe("api", () => {
 
             assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
           });
-          it("transaction with maxPriorityFeePerGas < effectiveGasReward", async () => {
+          it("handles transactions with maxPriorityFeePerGas < effectiveGasReward", async () => {
             const blockCount = "0x1";
             const newestBlock = "latest";
             const maxPrioFeePerGas = "0x989680";
@@ -412,7 +459,7 @@ describe("api", () => {
 
             assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
           });
-          it("transactions without maxPriorityFeePerGas (Legacy tx)", async () => {
+          it("handles transactions without maxPriorityFeePerGas (Legacy tx)", async () => {
             const blockCount = "0x1";
             const newestBlock = "latest";
 
@@ -444,7 +491,7 @@ describe("api", () => {
 
             assert.deepEqual(feeHistory.reward, [[reward, reward, reward]]);
           });
-          it("blocks with many transactions", async () => {
+          it("handles blocks with many transactions", async () => {
             const blockCount = "0x1";
             const newestBlock = "latest";
 
@@ -516,7 +563,7 @@ describe("api", () => {
               ]
             ]);
           });
-          it("multiple blocks with many transactions", async () => {
+          it("handles multiple blocks with many transactions", async () => {
             const blockCount = "0x2";
             const newestBlock = "latest";
 

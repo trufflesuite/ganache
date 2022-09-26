@@ -2948,9 +2948,6 @@ export default class EthereumApi implements Api {
         throw new Error(`invalid reward percentile: ${rewardPercentiles[0]}`);
 
       for (let i = 1; i < rewardPercentiles.length; i++) {
-        if (rewardPercentiles[i] < 0 || rewardPercentiles[i] > 100)
-          throw new Error(`invalid reward percentile: ${rewardPercentiles[i]}`);
-
         if (rewardPercentiles[i] < rewardPercentiles[i - 1]) {
           throw new Error(
             `invalid reward percentile: ${rewardPercentiles[i]} ${
