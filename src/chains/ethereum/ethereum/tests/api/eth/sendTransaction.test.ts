@@ -11,6 +11,8 @@ import Wallet from "../../../src/wallet";
 import { SECP256K1_N } from "@ganache/secp256k1";
 import { Data, Quantity } from "@ganache/utils";
 
+const ZERO_ADDRESS = "0x" + "0".repeat(40);
+
 describe("api", () => {
   describe("eth", () => {
     describe("sendTransaction", () => {
@@ -223,7 +225,6 @@ describe("api", () => {
 
       describe("unlocked accounts", () => {
         it("can send transactions from an unlocked 0x0 address", async () => {
-          const ZERO_ADDRESS = "0x" + "0".repeat(40);
           const provider = await getProvider({
             miner: {
               defaultGasPrice: 0
@@ -359,8 +360,7 @@ describe("api", () => {
       });
 
       describe("unlock all accounts", async () => {
-        const ZERO_ADDRESS = "0x" + "0".repeat(40);
-        const PROVIDER_OPTIONS : EthereumProviderOptions = {
+        const providerOptions : EthereumProviderOptions = {
           miner: {
             defaultGasPrice: 0
           },
@@ -376,14 +376,14 @@ describe("api", () => {
         }
         
         it("can send transactions from an unlocked 0x0 address when unlock all is true", async () => {
-          PROVIDER_OPTIONS.wallet = {
+          providerOptions.wallet = {
             unlockAll: true
           }
-        const provider = await getProvider(
-          PROVIDER_OPTIONS
-        );
+          const provider = await getProvider(
+            providerOptions
+          );
           const [from] = await provider.send("eth_accounts");
-        
+
           await provider.send("eth_subscribe", ["newHeads"]);
           const initialZeroBalance = "0x1234";
           await provider.send("eth_sendTransaction", [
@@ -398,7 +398,6 @@ describe("api", () => {
             initialZeroBalance,
             "Zero address's balance isn't correct"
           );
-          console.log(initialBalance)
           const removeValueFromZeroAmount = "0x123";
           await provider.send("eth_sendTransaction", [
             { from: ZERO_ADDRESS, to: from, value: removeValueFromZeroAmount }
@@ -415,21 +414,21 @@ describe("api", () => {
         });
 
         it("cannot send transactions from an unlocked 0x0 address when unlock all is false", async () => {
-          PROVIDER_OPTIONS.wallet = {
+          providerOptions.wallet = {
             unlockAll: false
           }
-        const provider = await getProvider(
-          PROVIDER_OPTIONS
-        );
+          const provider = await getProvider(
+            providerOptions
+          );
           const [from] = await provider.send("eth_accounts");
+
           await provider.send("eth_subscribe", ["newHeads"]);
           const removeValueFromZeroAmount = "0x123";
-
           const badSend = async () => {
             return provider.send("eth_sendTransaction", [
               { from: ZERO_ADDRESS, to: from, value: removeValueFromZeroAmount }
             ]);
-          };
+          };  
           await assert.rejects(
             badSend,
             "Error: sender account not recognized"
