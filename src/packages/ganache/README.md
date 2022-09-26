@@ -60,7 +60,12 @@ In case you're upgrading from a previous version of Ganache, we've also written 
 Once installed globally, you can start ganache right from your command line:
 
 ```console
-$ ganache
+ganache
+```
+
+Your output should look something like this:
+
+```
 Ganache CLI v6.12.1 (ganache-core: 2.13.1)
 
 Available Accounts
@@ -109,7 +114,9 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install Ganache into an npm project, run:
+### NPM project use
+
+If you want to install Ganache into an npm project, run:
 
 ```console
 $ npm install ganache
