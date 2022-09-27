@@ -9,7 +9,6 @@ import initializeFilecoin from "./initialize/filecoin";
 import type { FilecoinProvider } from "@ganache/filecoin";
 import type { EthereumProvider } from "@ganache/ethereum";
 import {
-  removeDetachedInstanceFile,
   notifyDetachedInstanceReady,
   stopDetachedInstance,
   startDetachedInstance,
@@ -18,18 +17,6 @@ import {
 import { TruffleColors } from "@ganache/colors";
 import { table } from "table";
 import chalk from "chalk";
-
-// if process.send is defined, this is a child_process (we assume a detached
-// instance), so we need to notify that we are ready.
-const isDetachedInstance = process.send !== undefined;
-
-if (isDetachedInstance) {
-  // we want to attach this listener as early as possible, to avoid leaving a
-  // dangling instance file
-  process.on("exit", () => {
-    removeDetachedInstanceFile(process.pid);
-  });
-}
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -176,6 +163,9 @@ if (argv.action === "start") {
       }
     }
 
+    // if process.send is defined, this is a child_process (we assume a detached
+    // instance), so we need to notify that we are ready.
+    const isDetachedInstance = process.send !== undefined;
     if (isDetachedInstance) {
       notifyDetachedInstanceReady();
     }
@@ -223,7 +213,6 @@ if (argv.action === "start") {
         chalk.bold("Uptime")
       ]
     ];
-
     for (let i = 0; i < instances.length; i++) {
       const instance = instances[i];
 

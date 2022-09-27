@@ -74,8 +74,9 @@ export async function stopDetachedInstance(
       process.kill(instance.pid, "SIGTERM");
     } catch (err) {
       // process.kill throws if the process was not found (or was a group process in Windows)
-      removeDetachedInstanceFile(instance.pid);
       return false;
+    } finally {
+      removeDetachedInstanceFile(instance.pid);
     }
     return true;
   }
@@ -166,17 +167,17 @@ export async function startDetachedInstance(
 /**
  * Fetch all instance of Ganache running in detached mode. Cleans up any
  * instance files for processes that are no longer running.
- * @returns Promise<DetachedInstance[]> resolves with an array of instances
+ * @returns {Promise<DetachedInstance[]>} resolves with an array of instances
  */
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   const files = readdirSync(dataPath);
   const instances: DetachedInstance[] = [];
+  const processes = await psList();
 
   for (let i = 0; i < files.length; i++) {
     const filename = files[i];
     const pid = parseInt(filename);
 
-    const processes = await psList();
     const foundProcess = processes.find(p => p.pid === pid);
 
     let shouldRemoveFile = false;
@@ -206,6 +207,8 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
     if (shouldRemoveFile) removeDetachedInstanceFile(pid);
   }
 
+  instances.sort((a, b) => b.startTime - a.startTime);
+
   return instances;
 }
 
@@ -222,7 +225,7 @@ async function findDetachedInstanceByName(
 }
 
 /**
- * Flattens parsed, and namespaced args into an array of arguments to be passed
+ * Flattens parsed and namespaced args into an array of arguments to be passed
  * to a child process. This handles "special" arguments, such as "action",
  * "flavor" and "--detach".
  * @param  {object} args to be flattened

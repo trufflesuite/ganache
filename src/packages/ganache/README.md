@@ -470,7 +470,43 @@ Server:
   -p, --server.port, --port             Port to listen on.
                                         deprecated aliases: --port
                                                                                       [number] [default: 8545]
+```
 
+### Detached Instances
+
+Ganache can be started as a background instance via the CLI by providing the following argument (along with any combination
+of the Ganache startup arguments above):
+
+```
+  -D, --detach, --😈                     Run Ganache in detached (daemon) mode.                       [boolean]
+```
+
+This will start Ganache as a background process, and return to the console as soon as Ganache has started and ready to
+receive requests. A friendly name will be returned to STDOUT which can then be used to interact with the instance via
+the `ganache instances` command with the following arguments:
+
+```
+Commands:
+  cli.ts instances list         List instances running in detached mode
+  cli.ts instances stop <name>  Stop the instance specified by <name>
+```
+
+E.g., start Ganache on port 8544, with a block time of 10 seconds, and then stop the instance.
+
+```
+$ ganache --port=8544 --miner.blockTime=10 --detach
+salted_caramel_ganache
+
+$ ganache instances list
+╔═══════╤════════════════════════╤══════════╤═════════╤═══════════╤══════╤════════════╗
+║ PID   │ Name                   │ Flavor   │ Version │ Host      │ Port │ Uptime     ║
+╟───────┼────────────────────────┼──────────┼─────────┼───────────┼──────┼────────────╢
+║ 56004 │ salted_caramel_ganache │ ethereum │ 7.4.3   │ 127.0.0.1 │ 8544 │ 48 seconds ║
+╚═══════╧════════════════════════╧══════════╧═════════╧═══════════╧══════╧════════════╝
+
+
+$ ganache instances stop salted_caramel_ganache
+Process stopped
 ```
 
 ### Ganache Provider Events

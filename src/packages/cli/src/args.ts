@@ -1,5 +1,4 @@
 import { TruffleColors } from "@ganache/colors";
-
 import yargs, { Options } from "yargs";
 import {
   DefaultFlavor,
@@ -233,7 +232,7 @@ export default function (
             description: highlight(
               "Run Ganache in detached (daemon) mode." +
                 EOL +
-                "See `ganache instances --help` for information omn managing detached instances."
+                "See `ganache instances --help` for information on managing detached instances."
             ),
             type: "boolean",
             alias: ["D", "😈"]
