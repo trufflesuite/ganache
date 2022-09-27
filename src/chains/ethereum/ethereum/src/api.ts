@@ -2929,7 +2929,7 @@ export default class EthereumApi implements Api {
       .toBigInt();
 
     // blockCount > newestBlock is technically valid but we cannot go past the Genesis Block.
-    // blockCount must be between 1 and 1000
+    // blockCount must be between 1 and 1024
     const totalBlocks = Math.min(
       Math.min(
         Math.max(Quantity.toNumber(blockCount), MIN_BLOCKS),
@@ -2942,9 +2942,12 @@ export default class EthereumApi implements Api {
     const gasUsedRatio: number[] = new Array(totalBlocks);
     let reward: Array<Quantity[]>;
 
+    // percentiles must be unique and in ascending order between 0 and 100
     if (rewardPercentiles.length > 0) {
-      // percentiles must be unique and in ascending order
-      if (rewardPercentiles[0] < 0 || rewardPercentiles[0] > 100)
+      if (
+        rewardPercentiles[0] < 0 ||
+        rewardPercentiles[rewardPercentiles.length - 1] > 100
+      )
         throw new Error(`invalid reward percentile: ${rewardPercentiles[0]}`);
 
       for (let i = 1; i < rewardPercentiles.length; i++) {
@@ -3009,6 +3012,7 @@ export default class EthereumApi implements Api {
             })
           );
 
+          // Effective Reward is the amount paid per unit of gas
           const effectiveRewardAndGasUsed = transactions
             .map((tx, idx) => {
               let effectiveGasReward: bigint;
@@ -3067,9 +3071,9 @@ export default class EthereumApi implements Api {
 
     return {
       oldestBlock: Quantity.from(oldestBlockNumber),
-      baseFeePerGas: baseFeePerGas.length > 0 ? baseFeePerGas : undefined,
-      gasUsedRatio: gasUsedRatio.length > 0 ? gasUsedRatio : [],
-      reward: rewardPercentiles.length > 0 ? reward : undefined
+      baseFeePerGas,
+      gasUsedRatio,
+      reward
     };
   }
   //#endregion
