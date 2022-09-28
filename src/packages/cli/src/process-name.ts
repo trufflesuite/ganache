@@ -1,20 +1,23 @@
-function pick(source: string[]) {
-  const partIndex = Math.floor(Math.random() * source.length);
+function pick(source: string[], random: () => number) {
+  const partIndex = Math.floor(random() * source.length);
   return source[partIndex];
 }
 /**
  * Generates a random name to assign to an instance of Ganache. The name is
  * generated from an adjective, a flavor and a type of desert, in the form of
- * `<adjective>_<flavor>_<type>`, eg., `salted_caramel_ganache`.
+ * `<adjective>_<flavor>_<kind>`, eg., `salted_caramel_ganache`.
  */
-export default function createInstanceName() {
-  const name = `${pick(adjectives)}_${pick(flavors)}_${pick(kinds)}`;
-  return name;
+export default function createInstanceName(random: () => number = Math.random) {
+  return `${pick(adjectives, random)}_${pick(flavors, random)}_${pick(
+    kinds,
+    random
+  )}`;
 }
 
 const adjectives = [
   "baked",
   "candied",
+  "creamy",
   "deepfried",
   "frozen",
   "hot",

@@ -6,7 +6,7 @@ type CliServerOptions = {
   port: number;
 };
 
-type Action = "start" | "start-detached" | "list" | "stop";
+type Action = "start" | "start-detached" | "list" | "stop" | "none";
 
 type AbstractArgs<TAction = Action> = {
   action: TAction;
@@ -21,6 +21,7 @@ export type StartArgs<TFlavorName extends FlavorName> =
 export type GanacheArgs =
   | (AbstractArgs<"stop"> & { name: string })
   | AbstractArgs<"list">
+  | AbstractArgs<"none">
   | StartArgs<FlavorName>;
 
 export type CliSettings = CliServerOptions;
