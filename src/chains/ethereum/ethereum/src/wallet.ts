@@ -127,7 +127,7 @@ export default class Wallet {
     // checkForConflicts in @ganache/options will prevent
     if (opts.totalAccounts > MAX_ACCOUNTS) {
       logging.logger.log(
-        `options.totalAccounts exceeds MAX_ACCOUNTS (${MAX_ACCOUNTS}) and may affect performance.`
+        `wallet.totalAccounts exceeds MAX_ACCOUNTS (${MAX_ACCOUNTS}) and may affect performance.`
       );
     }
     // create a RNG from our initial starting conditions (opts.mnemonic)
