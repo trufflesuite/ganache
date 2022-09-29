@@ -2928,12 +2928,19 @@ export default class EthereumApi implements Api {
       .getEffectiveNumber(newestBlock)
       .toBigInt();
 
-    // blockCount > newestBlock is technically valid but we cannot go past the Genesis Block.
-    // blockCount must be between 1 and 1024
+    // blockCount > newestBlock is technically valid per the spec but we cannot go past
+    // the Genesis Block. blockCount must be within MIN_BLOCKS and MAX_BLOCKS. Values
+    // above MAX_BLOCKS are technically within spec, however we cap totalBlocks because
+    // of the resource needs and potential abuse of a very large blockCount.
     const totalBlocks = Math.min(
-      Math.min(
-        Math.max(Quantity.toNumber(blockCount), MIN_BLOCKS),
-        Quantity.toNumber(newestBlockNumber + 1n)
+      Math.max(
+        Quantity.toBigInt(blockCount) >= MAX_BLOCKS
+          ? MAX_BLOCKS
+          : Quantity.toNumber(blockCount),
+        MIN_BLOCKS
+      ),
+      Quantity.toNumber(
+        newestBlockNumber >= MAX_BLOCKS ? MAX_BLOCKS : newestBlockNumber + 1n
       ),
       MAX_BLOCKS
     );
