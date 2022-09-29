@@ -2949,7 +2949,11 @@ export default class EthereumApi implements Api {
       if (rewardPercentiles[0] < 0)
         throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[0]}`);
       if (rewardPercentiles[rewardPercentiles.length - 1] > 100)
-        throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[-1]}`);
+        throw new Error(
+          `${ERR_INVALID_PERCENTILE} ${
+            rewardPercentiles[rewardPercentiles.length - 1]
+          }`
+        );
 
       for (let i = 1; i < rewardPercentiles.length; i++) {
         if (rewardPercentiles[i] <= rewardPercentiles[i - 1]) {
@@ -2981,13 +2985,14 @@ export default class EthereumApi implements Api {
 
       baseFeePerGas[currentPosition] = currentBlock.header.baseFeePerGas;
 
-      const { gasUsed, gasLimit } = currentBlock.header;
+      const gasUsed = currentBlock.header.gasUsed.toBigInt();
+      const gasLimit = currentBlock.header.gasLimit.toBigInt();
 
-      if (gasUsed.toBigInt() === gasLimit.toBigInt()) {
+      if (gasUsed === gasLimit) {
         gasUsedRatio[currentPosition] = 1;
       } else {
         gasUsedRatio[currentPosition] = Number(
-          `0.${((gasUsed.toBigInt() * PRECISION_BIG_INT) / gasLimit.toBigInt())
+          `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
             .toString()
             .padStart(PAD_PRECISION, "0")}`
         );
@@ -3047,7 +3052,7 @@ export default class EthereumApi implements Api {
             let totalGasUsed = 0n;
 
             const targetGas =
-              (gasUsed.toBigInt() * BigInt(percentile * PRECISION_FLOAT)) /
+              (gasUsed * BigInt(percentile * PRECISION_FLOAT)) /
               PRECISION_BIG_INT;
 
             for (const values of effectiveRewardAndGasUsed) {
