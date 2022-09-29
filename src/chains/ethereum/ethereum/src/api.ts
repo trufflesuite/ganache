@@ -1274,14 +1274,12 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
     const { blocks } = this.#blockchain;
-    const blockNum = await blocks.getNumberFromHash(hash);
-    if (!blockNum) return null;
-
-    const rawBlock = await blocks.getRawByBlockNumber(Quantity.from(blockNum));
-    if (!rawBlock) return null;
-
-    const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
-    return Quantity.from(rawTransactions.length);
+    const block = await blocks
+      .getByHash(hash)
+      .catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return Quantity.from(transactions.length);
   }
 
   /**
