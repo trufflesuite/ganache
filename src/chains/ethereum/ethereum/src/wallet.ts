@@ -133,7 +133,7 @@ export default class Wallet {
     // create a RNG from our initial starting conditions (opts.mnemonic)
     this.#randomRng = alea("ganache " + opts.mnemonic);
 
-    const initialAccounts = this.#initializeAccounts(opts, logging);
+    const initialAccounts = this.#initializeAccounts(opts);
     this.initialAccounts = Array.from(initialAccounts.values());
     this.addresses = Array.from(initialAccounts.keys());
     const l = this.initialAccounts.length;
