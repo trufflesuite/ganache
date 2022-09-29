@@ -3044,16 +3044,16 @@ export default class EthereumApi implements Api {
           // the fee the tx paid per unit of gas. For each percentile of block gas consumed,
           // what was the fee paid for the unit of gas at that percentile.
           reward[currentPosition] = rewardPercentiles.map(percentile => {
-            let gasUsed = 0n;
+            let totalGasUsed = 0n;
 
             const targetGas =
-              (gasUsed * BigInt(percentile * PRECISION_FLOAT)) /
+              (gasUsed.toBigInt() * BigInt(percentile * PRECISION_FLOAT)) /
               PRECISION_BIG_INT;
 
             for (const values of effectiveRewardAndGasUsed) {
-              gasUsed = gasUsed + values.gasUsed;
+              totalGasUsed = totalGasUsed + values.gasUsed;
 
-              if (targetGas <= gasUsed) {
+              if (targetGas <= totalGasUsed) {
                 return Quantity.from(values.effectiveGasReward);
               }
             }
