@@ -2944,16 +2944,17 @@ export default class EthereumApi implements Api {
 
     // percentiles must be unique and in ascending order between 0 and 100
     if (rewardPercentiles.length > 0) {
-      if (
-        rewardPercentiles[0] < 0 ||
-        rewardPercentiles[rewardPercentiles.length - 1] > 100
-      )
-        throw new Error(`invalid reward percentile: ${rewardPercentiles[0]}`);
+      const ERR_INVALID_PERCENTILE =
+        "invalid reward percentile: percentiles must be unique and in ascending order";
+      if (rewardPercentiles[0] < 0)
+        throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[0]}`);
+      if (rewardPercentiles[rewardPercentiles.length - 1] > 100)
+        throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[-1]}`);
 
       for (let i = 1; i < rewardPercentiles.length; i++) {
         if (rewardPercentiles[i] < rewardPercentiles[i - 1]) {
           throw new Error(
-            `invalid reward percentile: ${rewardPercentiles[i]} ${
+            `${ERR_INVALID_PERCENTILE} ${rewardPercentiles[i]} ${
               rewardPercentiles[i - 1]
             }`
           );
