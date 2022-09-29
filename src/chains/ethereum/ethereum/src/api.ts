@@ -3047,8 +3047,7 @@ export default class EthereumApi implements Api {
             let gasUsed = 0n;
 
             const targetGas =
-              (currentBlock.header.gasUsed.toBigInt() *
-                BigInt(percentile * PRECISION_FLOAT)) /
+              (gasUsed * BigInt(percentile * PRECISION_FLOAT)) /
               PRECISION_BIG_INT;
 
             for (const values of effectiveRewardAndGasUsed) {
