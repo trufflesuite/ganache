@@ -2967,7 +2967,7 @@ export default class EthereumApi implements Api {
 
       reward = new Array(totalBlocks);
     }
-    // blockCount is inclusive of newestBlock
+    // totalBlocks is inclusive of newestBlock
     const oldestBlockNumber =
       newestBlockNumber - Quantity.from(totalBlocks - 1).toBigInt();
 
