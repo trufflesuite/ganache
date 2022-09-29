@@ -559,7 +559,7 @@ describe("api", () => {
             const feeHistory = await provider.send("eth_feeHistory", [
               blockCount,
               newestBlock,
-              [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100] // 200 is more target gas than was used, will fallback to largest reward
+              [0, 25, 26, 49.99999, 50, 50.5, 51, 75, 76, 100]
             ]);
 
             assert.deepEqual(feeHistory.reward, [
