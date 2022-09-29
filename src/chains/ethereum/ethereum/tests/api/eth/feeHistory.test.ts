@@ -47,7 +47,7 @@ async function mineNBlocks(params) {
 describe("api", () => {
   describe("eth", () => {
     describe("feeHistory", () => {
-      let to, from;
+      let to: string, from: string;
       const genesisBlock = "0x0";
       const headerNotFoundBlock = "0x999999";
       const ERROR_HEADER_NOT_FOUND = "header not found";
