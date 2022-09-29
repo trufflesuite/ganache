@@ -357,15 +357,29 @@ describe("api", () => {
               await provider.send("eth_feeHistory", [
                 blockCount,
                 newestBlock,
-                [percentile]
+                [5, 10, percentile]
               ]);
             }, message);
           });
-          it("throws if a percentile is not monotonic", async () => {
+          it("throws if a percentile is not ascending", async () => {
             const blockCount = "0x0";
             const newestBlock = "latest";
             const percentiles = [0, 10, 50, 10];
             const message = `Error: invalid reward percentile: 50 10`;
+
+            assert.rejects(async () => {
+              await provider.send("eth_feeHistory", [
+                blockCount,
+                newestBlock,
+                percentiles
+              ]);
+            }, message);
+          });
+          it("throws if a percentile is not unique", async () => {
+            const blockCount = "0x0";
+            const newestBlock = "latest";
+            const percentiles = [0, 10, 10, 50];
+            const message = `Error: invalid reward percentile: 10 10`;
 
             assert.rejects(async () => {
               await provider.send("eth_feeHistory", [

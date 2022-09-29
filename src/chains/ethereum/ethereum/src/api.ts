@@ -2952,7 +2952,7 @@ export default class EthereumApi implements Api {
         throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[-1]}`);
 
       for (let i = 1; i < rewardPercentiles.length; i++) {
-        if (rewardPercentiles[i] < rewardPercentiles[i - 1]) {
+        if (rewardPercentiles[i] <= rewardPercentiles[i - 1]) {
           throw new Error(
             `${ERR_INVALID_PERCENTILE} ${rewardPercentiles[i]} ${
               rewardPercentiles[i - 1]
