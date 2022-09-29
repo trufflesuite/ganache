@@ -241,8 +241,7 @@ export default class Wallet {
   };
 
   #initializeAccounts = (
-    options: EthereumInternalOptions["wallet"],
-    logging: EthereumInternalOptions["logging"]
+    options: EthereumInternalOptions["wallet"]
   ): Map<string, Account> => {
     const makeAccountAtIndex = createAccountGeneratorFromSeedAndPath(
       mnemonicToSeedSync(options.mnemonic, null),

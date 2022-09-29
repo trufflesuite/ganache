@@ -38,8 +38,7 @@ describe("miner", async () => {
         miner: {
           blockGasLimit: "0x5208" // 21000, or sending one empty tx
         },
-        chain: { chainId: 1337 },
-        logging: { logger: console }
+        chain: { chainId: 1337 }
       };
       const options = EthereumOptionsConfig.normalize(optionsJson);
       const wallet = new Wallet(options.wallet, options.logging);
