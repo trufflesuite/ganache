@@ -2891,7 +2891,7 @@ export default class EthereumApi implements Api {
    *
    * @param blockCount - Range of blocks between 1 and 1024. Will return less than the requested range if not all blocks are available.
    * @param newestBlock - Highest block of the requested range.
-   * @param rewardPercentiles - (Optional) A monotonically increasing list of percentile values. For each block in the requested range,
+   * @param rewardPercentiles - A monotonically increasing list of percentile values. For each block in the requested range,
    * the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile
    * will be determined, accounting for gas consumed.
    * @returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range
