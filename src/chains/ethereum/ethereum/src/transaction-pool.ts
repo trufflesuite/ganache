@@ -12,7 +12,8 @@ import {
   INSUFFICIENT_FUNDS
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Executables } from "./miner/executables";
+import { Executables, InProgressData } from "./miner/executables";
+import Semaphore from "semaphore";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
 
 /**
@@ -39,7 +40,7 @@ function shouldReplace(
   }
 
   // if the transaction being replaced is in the middle of being mined, we can't
-  // replpace it so let's back out early
+  // replace it so let's back out early
   if (replacee.locked) {
     throw new CodedError(
       TRANSACTION_LOCKED,
@@ -74,6 +75,20 @@ function shouldReplace(
     throw new CodedError(UNDERPRICED, JsonRpcErrorCode.TRANSACTION_REJECTED);
   } else {
     return true;
+  }
+}
+
+/**
+ * Throws insufficient funds error if `balance` < `cost`.
+ * @param cost The transaction cost.
+ * @param balance The account's balance.
+ */
+function validateSufficientFunds(cost: bigint, balance: bigint) {
+  if (balance < cost) {
+    throw new CodedError(
+      INSUFFICIENT_FUNDS,
+      JsonRpcErrorCode.TRANSACTION_REJECTED
+    );
   }
 }
 
@@ -118,6 +133,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
   #priceBump: bigint;
 
   #blockchain: Blockchain;
+  #originsQueue: Map<string, Semaphore> = new Map();
   constructor(
     options: EthereumInternalOptions["miner"],
     blockchain: Blockchain,
@@ -130,14 +146,45 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     this.#priceBump = options.priceBump;
   }
   public readonly executables: Executables = {
-    inProgress: new Set(),
+    inProgress: new Map(),
     pending: new Map()
   };
   public readonly origins: Map<string, Heap<TypedTransaction>>;
-  readonly #accountPromises = new Map<
-    string,
-    Promise<{ balance: Quantity; nonce: Quantity }>
-  >();
+
+  /**
+   * Queues transactions to be inserted into the pool via `_prepareTransaction`
+   * such that unique-origin transactions are added to the pool concurrently and
+   * same-origin transactions are queued in series.
+   * @param transaction The transaction to be added to the transaction pool.
+   * @param secretKey The optional key to sign and hash the transaction.
+   * @returns Data that can be used to drain the queue.
+   */
+  public async prepareTransaction(
+    transaction: TypedTransaction,
+    secretKey?: Data
+  ) {
+    const origin = transaction.from.toString();
+    const originsQueue = this.#originsQueue;
+    let queueForOrigin: Semaphore;
+    // each unique origin gets its own semaphore rather than them all sharing
+    // one because we only need transactions from the same origin to be added in
+    // series
+    if (!(queueForOrigin = originsQueue.get(origin))) {
+      queueForOrigin = Semaphore(1);
+      originsQueue.set(origin, queueForOrigin);
+    }
+    // the semaphore will hold on `take` until previous uses have resolved
+    await new Promise(resolve => queueForOrigin.take(resolve));
+    try {
+      // check if transaction is in origins, if not add it
+      // if so, use semaphore to call prepareTransaction
+      // if not, just call prepare transaction
+      return await this._prepareTransaction(transaction, secretKey);
+    } finally {
+      // free up the semaphore once we finish
+      queueForOrigin.leave();
+    }
+  }
 
   /**
    * Inserts a transaction into the pending queue, if executable, or future pool
@@ -147,7 +194,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
    * @param secretKey -
    * @returns data that can be used to drain the queue
    */
-  public async prepareTransaction(
+  public async _prepareTransaction(
     transaction: TypedTransaction,
     secretKey?: Data
   ) {
@@ -166,18 +213,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
     const origin = from.toString();
 
-    // We await the `transactorNoncePromise` async request to ensure we process
-    // transactions in FIFO order *by account*. We look up accounts because
-    // ganache fills in missing nonces automatically, and we need to do it in
-    // order.
-    // The trick here is that we might actually get the next nonce from the
-    // account's pending executable transactions, not the account...
-    // But another transaction might currently be getting the nonce from the
-    // account, if it is, we need to wait for it to be done doing that. Hence:
-    let transactorPromise = this.#accountPromises.get(origin);
-    if (transactorPromise) {
-      await transactorPromise;
-    }
     // if the user called sendTransaction or sendRawTransaction, effectiveGasPrice
     // hasn't been set yet on the tx. calculating the effectiveGasPrice requires
     // the block context, so we need to set it outside of the transaction. this
@@ -192,47 +227,16 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       transaction.updateEffectiveGasPrice(baseFeePerGas);
     }
 
-    // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
-    // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous
-    // highest nonce... but what if that previous highest nonce was also invalidated?! we have to go back to the... you
-    // get the picture.
-    // So... we currently do things sub-optimally:
-    // if we currently have txs in `executableOriginTransactions`, we iterate over them to find the highest nonce
-    // and use that. Otherwise, we just fetch it from the database.
-    // Beware! There might still be race conditions here:
-    //  * if the highest tx executes, which causes it to be removed from the `executableOriginTransactions` heap,
-    // then a new tx comes in _before_ the block is persisted to the database, the nonce might be of the second
-    // tx would be too low.
-    //  * rough idea for a fix: transactions have a `finalize` method that is called _after_ the tx is saved. Maybe
-    // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the
-    // `executableOriginTransactions` map, always taking the highest of the two.
-    let highestNonce = 0n;
-
-    if (!transactorPromise) {
-      transactorPromise = this.#blockchain.accounts.getNonceAndBalance(from);
-      this.#accountPromises.set(origin, transactorPromise);
-      transactorPromise.then(() => {
-        this.#accountPromises.delete(origin);
-      });
-    }
-    const transactor = await transactorPromise;
-
-    const cost =
+    const transactionCost =
       transaction.gas.toBigInt() * transaction.maxGasPrice().toBigInt() +
       transaction.value.toBigInt();
-    if (transactor.balance.toBigInt() < cost) {
-      throw new CodedError(
-        INSUFFICIENT_FUNDS,
-        JsonRpcErrorCode.TRANSACTION_REJECTED
-      );
-    }
 
     const origins = this.origins;
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
-    const executables = this.executables.pending;
-    let executableOriginTransactions = executables.get(origin);
+    const { pending } = this.executables;
+    let executableOriginTransactions = pending.get(origin);
 
     const priceBump = this.#priceBump;
     let length: number;
@@ -243,6 +247,15 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       // check if a transaction with the same nonce is in the origin's
       // executables queue already. Replace the matching transaction or throw this
       // new transaction away as necessary.
+
+      // we should _probably_ cache `highestNonce`, but it's actually a really hard thing to cache as the current highest
+      // nonce might be invalidated (like if the sender doesn't have enough funds), so we'd have to go back to the previous
+      // highest nonce... but what if that previous highest nonce was also invalidated?! we have to go back to the... you
+      // get the picture.
+      // rough idea for a fix: transactions have a `finalize` method that is called _after_ the tx is saved. Maybe
+      // when tx's are executed their nonce is moved to a `highNonceByOrigin` map? We'd check this map in addition to the
+      // `executableOriginTransactions` map, always taking the highest of the two.
+      let highestNonce = 0n;
       const pendingArray = executableOriginTransactions.array;
       // Notice: we're iterating over the raw heap array, which isn't
       // necessarily sorted
@@ -280,23 +293,51 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         // origin's heap we are executable.
         transactionPlacement = TriageOption.Executable;
       }
+      // we've gotten the account's nonce the synchronous way (by looking at
+      // the pending queue), but we still need to look up the account's balance
+      const { balance } = await this.#blockchain.accounts.getNonceAndBalance(
+        from
+      );
+      validateSufficientFunds(transactionCost, balance.toBigInt());
     } else {
-      // since we don't have any executable transactions at the moment, we need
-      // to find our nonce from the account itself...
-      const transactorNonce = transactor.nonce.toBigInt();
+      // we don't have any pending executable transactions, but we could have
+      // some inProgress executable transactions
+      const {
+        transaction: latestInProgressTransaction,
+        originBalance: balanceAfterLatestInProgressTransaction
+      } = this.#getLatestInProgressFromOrigin(origin);
+
+      const hasInProgressFromOrigin = latestInProgressTransaction !== null;
+
+      let balance: bigint;
+      let effectiveNonce: bigint;
+      if (hasInProgressFromOrigin) {
+        const highestInProgressNonce = latestInProgressTransaction.nonce;
+        effectiveNonce = highestInProgressNonce.toBigInt() + 1n;
+        balance = balanceAfterLatestInProgressTransaction.toBigInt();
+      } else {
+        // if we don't have in progress transactions either, we'll need to find
+        // our nonce from the account itself
+        const transactor = await this.#blockchain.accounts.getNonceAndBalance(
+          from
+        );
+        effectiveNonce = transactor.nonce.toBigInt();
+        balance = transactor.balance.toBigInt();
+      }
+
+      validateSufficientFunds(transactionCost, balance);
+
       if (txNonce === void 0) {
-        // if we don't have a transactionNonce, just use the account's next
-        // nonce and mark as executable
-        txNonce = transactorNonce ? transactorNonce : 0n;
+        txNonce = effectiveNonce;
         transaction.nonce = Quantity.from(txNonce);
         transactionPlacement = TriageOption.Executable;
-      } else if (txNonce < transactorNonce) {
+      } else if (txNonce < effectiveNonce) {
         // it's an error if the transaction's nonce is <= the persisted nonce
         throw new CodedError(
-          `the tx doesn't have the correct nonce. account has nonce of: ${transactorNonce} tx has nonce of: ${txNonce}`,
+          `the tx doesn't have the correct nonce. account has nonce of: ${effectiveNonce} tx has nonce of: ${txNonce}`,
           JsonRpcErrorCode.INVALID_INPUT
         );
-      } else if (txNonce === transactorNonce) {
+      } else if (txNonce === effectiveNonce) {
         transactionPlacement = TriageOption.Executable;
       }
     }
@@ -352,7 +393,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         } else {
           // if we don't yet have an executables queue for this origin make one now
           executableOriginTransactions = Heap.from(transaction, byNonce);
-          executables.set(origin, executableOriginTransactions);
+          pending.set(origin, executableOriginTransactions);
         }
 
         // Now we need to drain any queued transactions that were previously
@@ -405,7 +446,6 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
   public clear() {
     this.origins.clear();
-    this.#accountPromises.clear();
     this.executables.pending.clear();
   }
 
@@ -445,11 +485,14 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     // and finally transactions that have just been processed, but not yet saved
-    for (let tx of inProgress) {
-      if (tx.hash.toBuffer().equals(transactionHash)) {
-        return tx;
+    for (const [_, originData] of inProgress)
+      if (originData) {
+        for (let { transaction } of originData) {
+          if (transaction.hash.toBuffer().equals(transactionHash)) {
+            return transaction;
+          }
+        }
       }
-    }
     return null;
   }
 
@@ -475,5 +518,35 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     return null;
+  };
+
+  /**
+   * Searches all in progress transactions from the specified origin for the
+   * transaction with the highest nonce.
+   * @param origin The origin to search.
+   * @returns The in progress transaction with the highest nonce from the
+   * specified origin, along with the account's balance after running that
+   * transaction.
+   */
+  readonly #getLatestInProgressFromOrigin = (origin: string) => {
+    let highestNonceData: InProgressData = {
+      transaction: null,
+      originBalance: null
+    };
+    let highestNonce: bigint = null;
+    const originData = this.executables.inProgress.get(origin);
+    if (originData) {
+      for (const inProgressData of originData) {
+        const { transaction } = inProgressData;
+        if (
+          transaction.from.toString() === origin &&
+          (highestNonce === null || transaction.nonce.toBigInt() > highestNonce)
+        ) {
+          highestNonce = transaction.nonce.toBigInt();
+          highestNonceData = inProgressData;
+        }
+      }
+    }
+    return highestNonceData;
   };
 }

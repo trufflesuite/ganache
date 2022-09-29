@@ -1,7 +1,12 @@
 import { TypedTransaction } from "@ganache/ethereum-transaction";
-import { Heap } from "@ganache/utils";
+import { Heap, Quantity } from "@ganache/utils";
+
+export type InProgressData = {
+  transaction: TypedTransaction;
+  originBalance: Quantity;
+};
 
 export type Executables = {
-  inProgress: Set<TypedTransaction>;
+  inProgress: Map<string, Set<InProgressData>>;
   pending: Map<string, Heap<TypedTransaction>>;
 };

@@ -21,7 +21,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
-import { Executables } from "./executables";
+import { Executables, InProgressData } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   makeStepEvent,
@@ -343,11 +343,30 @@ export default class Miner extends Emittery<{
             numTransactions++;
 
             const pendingOrigin = pending.get(origin);
-            inProgress.add(best);
+            const inProgressOrigin = inProgress.get(origin);
+            // we cache the account balance with the inProgress transaction for
+            // an optimization in the transaction pool, so fetch it here
+            const { balance } = await vm.stateManager.getAccount({
+              buf: Quantity.toBuffer(origin)
+            } as any);
+            const inProgressData: InProgressData = {
+              transaction: best,
+              originBalance: Quantity.from(balance.toBuffer())
+            };
+
+            if (inProgressOrigin) {
+              inProgressOrigin.add(inProgressData);
+            } else {
+              inProgress.set(origin, new Set([inProgressData]));
+            }
             best.once("finalized").then(() => {
               // it is in the database (or thrown out) so delete it from the
               // `inProgress` Set
-              inProgress.delete(best);
+              const inProgressOrigin = inProgress.get(origin);
+              inProgressOrigin.delete(inProgressData);
+              if (inProgressOrigin.size === 0) {
+                inProgress.delete(origin);
+              }
             });
 
             // since this transaction was successful, remove it from the "pending"
