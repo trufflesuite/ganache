@@ -2971,16 +2971,12 @@ export default class EthereumApi implements Api {
     const oldestBlockNumber =
       newestBlockNumber - Quantity.from(totalBlocks - 1).toBigInt();
 
-    let currentBlockNumber = oldestBlockNumber;
     let currentBlock: Block;
+    let currentPosition = 0;
 
-    while (currentBlockNumber <= newestBlockNumber) {
+    while (currentPosition < totalBlocks) {
       currentBlock = await blockchain.blocks.get(
-        Quantity.toBuffer(currentBlockNumber)
-      );
-
-      const currentPosition = Quantity.toNumber(
-        currentBlockNumber - oldestBlockNumber
+        Quantity.toBuffer(oldestBlockNumber + BigInt(currentPosition))
       );
 
       baseFeePerGas[currentPosition] = currentBlock.header.baseFeePerGas;
@@ -3066,7 +3062,7 @@ export default class EthereumApi implements Api {
         }
       }
 
-      currentBlockNumber++;
+      currentPosition++;
     }
 
     // baseFeePerGas is calculated based on the header of the previous block, include the block after newestBlock.
