@@ -3039,7 +3039,7 @@ export default class EthereumApi implements Api {
 
               return {
                 effectiveGasReward: effectiveGasReward,
-                gasUsed: Quantity.from(receipts[idx].gasUsed).toBigInt()
+                gasUsed: Quantity.toBigInt(receipts[idx].gasUsed)
               };
             })
             .sort((a, b) => {
