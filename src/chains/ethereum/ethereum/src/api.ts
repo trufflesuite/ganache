@@ -2886,7 +2886,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Returns a collection of historical block gas data and, optional, effective fee spent per unit of gas for a given percentile of block gas usage.
+   * Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.
    * Added in [EIP-1559](https://www.alchemy.com//blog/eip-1559)
    *
    * @param blockCount - Range of blocks between 1 and 1024. Will return less than the requested range if not all blocks are available.
