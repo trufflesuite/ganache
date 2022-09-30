@@ -2886,7 +2886,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Returns a collection of historical block gas data and, optional, effective fee spent per unit of gas for a given percentile of block gas usage.
+   * Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.
    * Added in [EIP-1559](https://www.alchemy.com//blog/eip-1559)
    *
    * @param blockCount - Range of blocks between 1 and 1024. Will return less than the requested range if not all blocks are available.
@@ -2976,7 +2976,7 @@ export default class EthereumApi implements Api {
     }
     // totalBlocks is inclusive of newestBlock
     const oldestBlockNumber =
-      newestBlockNumber - Quantity.from(totalBlocks - 1).toBigInt();
+      newestBlockNumber - BigInt(totalBlocks - 1);
 
     let currentBlock: Block;
     let currentPosition = 0;
@@ -3039,7 +3039,7 @@ export default class EthereumApi implements Api {
 
               return {
                 effectiveGasReward: effectiveGasReward,
-                gasUsed: Quantity.from(receipts[idx].gasUsed).toBigInt()
+                gasUsed: Quantity.toBigInt(receipts[idx].gasUsed)
               };
             })
             .sort((a, b) => {
