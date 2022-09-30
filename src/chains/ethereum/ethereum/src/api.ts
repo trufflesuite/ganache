@@ -2976,7 +2976,7 @@ export default class EthereumApi implements Api {
     }
     // totalBlocks is inclusive of newestBlock
     const oldestBlockNumber =
-      newestBlockNumber - Quantity.from(totalBlocks - 1).toBigInt();
+      newestBlockNumber - BigInt(totalBlocks - 1);
 
     let currentBlock: Block;
     let currentPosition = 0;
