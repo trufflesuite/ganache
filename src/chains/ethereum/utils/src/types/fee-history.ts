@@ -1,7 +1,7 @@
-import { Data, Quantity } from "@ganache/utils";
+import { Quantity } from "@ganache/utils";
 
 export type FeeHistory = {
-  oldestBlock: Data;
+  oldestBlock: Quantity;
   baseFeePerGas: Quantity[];
   gasUsedRatio: number[];
   reward?: Array<Quantity[]>;
