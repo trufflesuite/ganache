@@ -274,17 +274,34 @@ export default class BlockManager extends Manager<Block> {
     await this.#blockIndexes.put(LATEST_INDEX_KEY, number);
   }
 
+  async getEarliest() {
+    const fallback = this.#blockchain.fallback;
+    if (fallback) {
+      const json = await fallback.request<any>(
+        "eth_getBlockByNumber",
+        [Tag.earliest, true],
+        { disableCache: true }
+      );
+      if (json) {
+        const common = fallback.getCommonForBlockNumber(
+          this.#common,
+          BigInt(json.number)
+        );
+        return new Block(BlockManager.rawFromJSON(json, common), common);
+      }
+    }
+    for await (const data of this.base.createValueStream({ limit: 1 })) {
+      return new Block(data as Buffer, this.#common);
+    }
+  }
+
   /**
    * Updates the this.latest and this.earliest properties with data
    * from the database.
    */
   async updateTaggedBlocks() {
     const [earliest, latestBlockNumber] = await Promise.all([
-      (async () => {
-        for await (const data of this.base.createValueStream({ limit: 1 })) {
-          return new Block(data as Buffer, this.#common);
-        }
-      })(),
+      this.getEarliest(),
       this.#blockIndexes.get(LATEST_INDEX_KEY).catch(e => null)
     ]);
 

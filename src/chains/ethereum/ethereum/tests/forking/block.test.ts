@@ -3,7 +3,7 @@ import getProvider from "../helpers/getProvider";
 import { EthereumProvider } from "../../src/provider";
 import request from "superagent";
 
-describe("forking", function () {
+describe("forking", function() {
   this.timeout(10000);
 
   describe("blocks", () => {
@@ -11,7 +11,7 @@ describe("forking", function () {
     const blockNumHex = `0x${blockNumber.toString(16)}`;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
-    before(async function () {
+    before(async function() {
       if (!process.env.INFURA_KEY) {
         this.skip();
       }
@@ -38,6 +38,22 @@ describe("forking", function () {
       ]);
       assert.deepStrictEqual(parseInt(block.number), blockNumber + 1);
       assert.deepStrictEqual(block.parentHash, remoteBlock.hash);
+    });
+
+    it("after initialization our earliest block should be the fork earliest block, parentHash should match", async () => {
+      const res = await request.post(URL).send({
+        jsonrpc: "2.0",
+        id: "1",
+        method: "eth_getBlockByNumber",
+        params: ["earliest", true]
+      });
+      const remoteBlock = JSON.parse(res.text).result;
+      const block = await provider.send("eth_getBlockByNumber", [
+        "earliest",
+        true
+      ]);
+      assert.deepStrictEqual(parseInt(block.number), parseInt(remoteBlock.number));
+      assert.deepStrictEqual(block.hash, remoteBlock.hash);
     });
 
     //todo: reinstate this test after https://github.com/trufflesuite/ganache/issues/3616 is fixed
