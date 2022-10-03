@@ -13,6 +13,7 @@ import {
 } from "@ganache/ethereum-utils";
 import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
+  AccessLists,
   Transaction,
   TransactionFactory,
   TypedTransaction
@@ -46,7 +47,6 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
-import { AccessLists } from "@ganache/ethereum-transaction/src/access-lists";
 import Common from "@ethereumjs/common";
 import { SimulationTransaction } from "./helpers/simulations";
 

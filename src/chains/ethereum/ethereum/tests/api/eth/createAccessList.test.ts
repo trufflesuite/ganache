@@ -5,7 +5,7 @@ import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
 import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { Ethereum } from "../../../src/api-types";
-import { AccessList } from "@ganache/ethereum-transaction/src/access-lists";
+import { AccessList } from "@ganache/ethereum-transaction";
 import { Address } from "@ganache/ethereum-address";
 import { CallError } from "@ganache/ethereum-utils";
 import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";

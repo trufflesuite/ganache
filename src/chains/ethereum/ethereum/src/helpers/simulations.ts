@@ -3,7 +3,11 @@ import VM from "@ethereumjs/vm";
 import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { DefaultStateManager } from "@ethereumjs/vm/dist/state/index";
 import { Address } from "@ganache/ethereum-address";
-import { calculateIntrinsicGas } from "@ganache/ethereum-transaction";
+import {
+  AccessList,
+  AccessLists,
+  calculateIntrinsicGas
+} from "@ganache/ethereum-transaction";
 import { CallError } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, hasOwn, keccak, Quantity } from "@ganache/utils";
 import { makeStepEvent } from "../provider-events";
@@ -16,10 +20,6 @@ import { GanacheTrie } from "./trie";
 import Blockchain from "../blockchain";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import {
-  AccessList,
-  AccessLists
-} from "@ganache/ethereum-transaction/src/access-lists";
 import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
 import { warmPrecompiles } from "./precompiles";
 import { maybeGetLogs } from "@ganache/console.log";
