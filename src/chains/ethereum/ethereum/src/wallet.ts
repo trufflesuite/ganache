@@ -124,7 +124,6 @@ export default class Wallet {
     opts: EthereumInternalOptions["wallet"],
     logging: EthereumInternalOptions["logging"]
   ) {
-    // checkForConflicts in @ganache/options will prevent
     if (opts.totalAccounts > MAX_ACCOUNTS) {
       logging.logger.log(
         `wallet.totalAccounts exceeds MAX_ACCOUNTS (${MAX_ACCOUNTS}) and may affect performance.`
