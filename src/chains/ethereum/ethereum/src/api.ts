@@ -2860,7 +2860,7 @@ export default class EthereumApi implements Api {
    *  or "pending".
    *
    * @returns An array of addresses and storage keys used by the transaction, plus an estimate
-   * of the gas consumed by the running the transaction _with_ the generated access list included.
+   * of the gas consumed by running the transaction _with_ the generated access list included.
    * @example
    * ```javascript
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
