@@ -38,10 +38,10 @@ describe("api", () => {
     describe("createAccessList", () => {
       let contract: CompileOutput;
       let provider: EthereumProvider;
-      let from, to, addr, encodedTo, encodedAddr: string;
+      let from: string, to: string, addr: string, encodedTo: string;
       let contractAddress: string;
       let contractMethods: { [methodName: string]: string };
-      let slot, hexSlot: string;
+      let slot: string, hexSlot: string;
 
       before("compile", () => {
         contract = compile(join(__dirname, "./contracts/Inspector.sol"), {
@@ -60,7 +60,6 @@ describe("api", () => {
         slot = `000000000000000000000000000000000000000000000000000000000000000${random}`;
         hexSlot = `0x${slot}`;
         encodedTo = encodeValue(to);
-        encodedAddr = encodeValue(addr);
       });
 
       after(async () => {
