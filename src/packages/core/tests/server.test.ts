@@ -1607,6 +1607,7 @@ describe("server", () => {
     });
 
     // TODO: actually handle backpressure!
+    // Issue: https://github.com/trufflesuite/ganache/issues/2790
     it.skip("can handle backpressure", async () => {
       {
         // create tons of data to force websocket backpressure
