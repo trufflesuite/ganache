@@ -16,7 +16,7 @@ const encodeValue = (val: string) => {
 };
 
 async function deployContract(provider, from, code) {
-  await provider.send("eth_subscribe", ["newHeads"]);
+  const subId = await provider.send("eth_subscribe", ["newHeads"]);
   const transactionHash = await provider.send("eth_sendTransaction", [
     {
       from,
@@ -25,6 +25,7 @@ async function deployContract(provider, from, code) {
     }
   ]);
   await provider.once("message");
+  await provider.send("eth_unsubscribe", [subId]);
 
   const receipt = await provider.send("eth_getTransactionReceipt", [
     transactionHash
