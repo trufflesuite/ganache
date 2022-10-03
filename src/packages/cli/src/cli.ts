@@ -76,7 +76,7 @@ const handleSignal = async (signal: NodeJS.Signals) => {
 };
 const closeHandler = async () => {
   try {
-    if (versionCheck) versionCheck.destroy();
+    versionCheck.destroy();
     // graceful shutdown
     switch (server.status) {
       case ServerStatus.opening:
