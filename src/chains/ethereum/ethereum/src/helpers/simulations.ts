@@ -21,7 +21,7 @@ import Blockchain from "../blockchain";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
-import { warmPrecompiles } from "./precompiles";
+import { getPrecompiles } from "./precompiles";
 import { maybeGetLogs } from "@ganache/console.log";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 
@@ -152,27 +152,6 @@ const toLightEJSAddress = (address?: Address): EthereumJsAddress => {
   } else {
     return null;
   }
-};
-
-/**
- * Calls the StateManager's `addWarmedAddress` function for the transaction
- * caller, all precompiles, and the to address, if applicable.
- * @param stateManager
- * @param caller
- * @param to
- * @returns An array of precompile addresses
- */
-const warmDefaults = (
-  stateManager: DefaultStateManager,
-  caller: EthereumJsAddress,
-  to?: EthereumJsAddress
-) => {
-  // handle Berlin hardfork warm storage reads
-  const precompiles: EthereumJsAddress[] = warmPrecompiles(stateManager);
-  stateManager.addWarmedAddress(caller.buf);
-  if (to) stateManager.addWarmedAddress(to.buf);
-
-  return precompiles;
 };
 
 const warmAccessList = (
@@ -371,12 +350,15 @@ const runCallSetup = async ({
   const addressesOnlyStorage: EthereumJsAddress[] = [];
   if (gasLeft >= 0n) {
     if (common.isActivatedEIP(2929)) {
-      const precompiles = warmDefaults(stateManager, caller, to);
+      for (const precompile of getPrecompiles()) {
+        stateManager.addWarmedAddress(precompile.buf);
+        accessListExclusions.push(precompile);
+      }
       accessListExclusions.push(caller);
       if (to) {
+        stateManager.addWarmedAddress(to.buf);
         addressesOnlyStorage.push(to);
       }
-      accessListExclusions.push(...precompiles);
     }
     // If there are any overrides requested for eth_call, apply
     // them now before running the simulation.

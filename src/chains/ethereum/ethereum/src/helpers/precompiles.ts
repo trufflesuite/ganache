@@ -1,7 +1,4 @@
-import type {
-  DefaultStateManager,
-  StateManager
-} from "@ethereumjs/vm/dist/state";
+import type { StateManager } from "@ethereumjs/vm/dist/state";
 import { Account, Address } from "ethereumjs-util";
 
 const NUM_PRECOMPILES = 18;
@@ -19,10 +16,9 @@ const PRECOMPILED_ACCOUNT: Account = {
   serialize: () => SERIALIZED_PRECOMPILE
 } as any;
 
-const accountCache: Address[] = [];
-const makeAccount = (i: number): Address => {
-  const idx = i - 1;
-  if (accountCache[idx]) return accountCache[idx];
+const accountCache: Map<number, Address> = new Map();
+const getOrCreateAccount = (i: number): Address => {
+  if (accountCache.has(i)) return accountCache.get(i);
 
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
@@ -31,7 +27,8 @@ const makeAccount = (i: number): Address => {
     buf,
     equals: (a: { buf: Buffer }) => buf.equals(a.buf)
   } as any;
-  return (accountCache[idx] = address);
+  accountCache.set(i, address);
+  return address;
 };
 
 /**
@@ -41,22 +38,13 @@ const makeAccount = (i: number): Address => {
 export const activatePrecompiles = async (stateManager: StateManager) => {
   await stateManager.checkpoint();
   const cache = (stateManager as any)._cache;
-  for (let i = 1; i <= NUM_PRECOMPILES; i++) {
-    const account = makeAccount(i);
+  for (const account of getPrecompiles()) {
     cache.put(account, PRECOMPILED_ACCOUNT);
     stateManager.touchAccount(account as any);
   }
   await stateManager.commit();
 };
 
-/**
- * Puts the precompile accounts into the warmed addresses
- * @param stateManager -
- */
-export const warmPrecompiles = (stateManager: DefaultStateManager) => {
-  for (let i = 1; i <= NUM_PRECOMPILES; i++) {
-    const account = makeAccount(i);
-    stateManager.addWarmedAddress(account.buf);
-  }
-  return accountCache;
-};
+export function* getPrecompiles() {
+  for (let i = 1; i <= NUM_PRECOMPILES; i++) yield getOrCreateAccount(i);
+}
