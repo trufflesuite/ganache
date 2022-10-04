@@ -365,9 +365,6 @@ const runCallSetup = async ({
     if (overrides) {
       await applySimulationOverrides(overrides, stateTrie, stateManager);
     }
-    if (common.isActivatedEIP(2930) && transaction.accessList) {
-      warmAccessList(stateManager, transaction.accessList);
-    }
 
     // we need to update the balance and nonce of the sender _before_
     // we run this transaction so that things that rely on these values
@@ -491,6 +488,15 @@ export const runCall = async ({
     transaction,
     overrides
   });
+
+  // we want to warm the access list provided by the user for a run call but
+  // _not_ for creating an access list. warming the addresses ahead of time will
+  // make it so that the contents of the user-provided access list are _always_
+  // in the generated access list, but we want the generated access list to be
+  // the "best". so we do this here rather than in the common setup functions
+  if (common.isActivatedEIP(2930) && transaction.accessList) {
+    warmAccessList(stateManager, transaction.accessList);
+  }
 
   const callResult = await _runCall({
     blockchain,
