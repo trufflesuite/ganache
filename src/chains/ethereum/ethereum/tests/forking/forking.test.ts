@@ -1197,16 +1197,6 @@ describe("forking", function () {
         balance: "0x6d3c9dd798891c3455045",
         block: "0xcfd6e0"
       },
-      ropsten: {
-        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
-        balance: "0x6cdf802b72c2a000",
-        block: "0xae42fd"
-      },
-      rinkeby: {
-        address: "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D",
-        balance: "0x11cde6445010582e1ae",
-        block: "0x92c444"
-      },
       goerli: {
         address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
         balance: "0x81744abdb769a3b6dc08b",
