@@ -11,7 +11,7 @@ In Github, go to Releases => Draft a New Release and paste in the generated mark
 
 ### Create merge PR
 
-In Github, go to Pull Requests => New Pull Request. Set the base branch to the release branch and set the compare branch to `develop`. Click Create Pull Request, and name the PR as `Release vX.x.x` for a stable release or `Release vX.x.x-tag.x` for rc, beta, or alpha releases.
+In Github, go to Pull Requests => New Pull Request. Set the base branch to the release branch and set the compare branch to `develop`. Click Create Pull Request, and name the PR as `chore(release): publish vX.x.x` for a stable release or `chore(release): publish vX.x.x-tag.x` for rc, beta, or alpha releases.
 
 Once the PR is made, your next to-do's are:
 
