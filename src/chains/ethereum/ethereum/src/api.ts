@@ -161,17 +161,11 @@ function createSimulatedTransaction(
     }
   }
 
-  // if EIP 2930 is activated and they provided an invalid access list,
-  // don't use it
-  // TODO: https://github.com/trufflesuite/ganache/issues/3377 will add better
-  // validation so we can either normalize/fix the access list or throw
-  // depending on the mode ganache is running in
-  const accessList =
-    common.isActivatedEIP(2930) &&
-    transaction.accessList &&
-    !AccessLists.isValidAccessList(transaction.accessList)
-      ? []
-      : transaction.accessList;
+  // if EIP 2930 is activated, validate the access list. otherwise skip
+  // validation to save time
+  const accessList = common.isActivatedEIP(2930)
+    ? AccessLists.tryGetValidatedAccessList(transaction.accessList)
+    : [];
 
   const block = new RuntimeBlock(
     simulationBlockHeader.number,

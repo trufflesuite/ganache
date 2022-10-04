@@ -15,6 +15,7 @@ import { Address } from "@ganache/ethereum-address";
 import { Params } from "./params";
 
 const STORAGE_KEY_LENGTH = 32;
+const ADDRESS_LENGTH = 20;
 
 /*
   As per https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2930.md
@@ -81,34 +82,46 @@ export class AccessLists {
     };
   }
 
-  public static isValidAccessList(accessList: AccessList): boolean {
+  /**
+   * Creates a valid access list from a potentially invalid access list. Throws
+   * for invalid JSON-RPC data for any of the `address` values or entries of the
+   * `storageKeys` array.
+   * @param accessList
+   * @returns a valid access list that
+   *  1. Is an array
+   *  2. Each array element contains an object with the keys `address` and
+   *     `storageKeys`.
+   *  3. A value for the `address` key is not omitted.
+   *  4. The value for the `address` key is a 20-byte, hex-encoded string.
+   *  5. The `storageKeys` entry is an array.
+   *  6. Each entry of the `storageKeys` array is a 32-byte, hex-encoded string.
+   */
+  public static tryGetValidatedAccessList(accessList: AccessList): AccessList {
+    const validAccessList: AccessList = [];
     if (!Array.isArray(accessList)) {
-      // an access list must be an array
-      return false;
+      return validAccessList;
     }
     for (const accessListItem of accessList) {
       const { address, storageKeys } = accessListItem;
-      if (!address || address.length !== 42) {
-        // each address must be 20 bytes (plus "0x" in string version)
-        return false;
-      }
-      // storageKeys must be an array
-      if (!Array.isArray(storageKeys)) return false;
-      for (
-        let storageSlot = 0;
-        storageSlot < storageKeys.length;
-        storageSlot++
-      ) {
-        const key = storageKeys[storageSlot];
-        if (!key || key.length !== 66) {
-          // each storageKey must be 32 byes (plus "0x" in string version)
-          return false;
-        }
+      if (!address) continue;
+
+      const validStorageKeys: string[] = [];
+      const validAccessListItem: AccessListItem = {
+        address: Data.from(address, ADDRESS_LENGTH).toString(),
+        storageKeys: validStorageKeys
+      };
+      validAccessList.push(validAccessListItem);
+      if (!Array.isArray(storageKeys)) continue;
+      for (let i = 0; i < storageKeys.length; i++) {
+        const storageKey = storageKeys[i];
+        if (!storageKey) continue;
+        validStorageKeys.push(
+          Data.from(storageKey, STORAGE_KEY_LENGTH).toString()
+        );
       }
     }
-    return true;
+    return validAccessList;
   }
-
   /**
    * Compares two access lists to check if they are the same, both in content
    * and the order of the content.
