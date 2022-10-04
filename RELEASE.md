@@ -3,11 +3,11 @@
 ### Generate release notes
 
 Check out the branch `release-notes-automation`
-Run `npm run make-release-notes --releaseVersion vX.x.x --branch master --highlights true` inside of the root directory of `ganache`, filling in the flags as appropriate. This will generate MD release notes. Write the preamble and highlights, and fill in any extra necessary details.
+Run* `npm run make-release-notes --releaseVersion vX.x.x --branch master --highlights true` inside of the root directory of `ganache`, filling in the flags as appropriate. This will generate MD release notes. Write the preamble and highlights, and fill in any extra necessary details.
 
 In Github, go to Releases => Draft a New Release and paste in the generated markdown. Click Save Draft, copy the link to the draft, and share it on the Ganash slack channel for the team's input. Note that Github is silly and makes a new link to the draft every time it's edited. If you have review comments and make a fix, you'll need to reshare the link so others can access it.
 
-NOTE: With the current state of the automated release notes, `gh` will need to be installed by the user running the project. Use `npm i gh` or `npm i gh -g`.
+*NOTE: With the current state of the automated release notes, `gh` will need to be installed by the user running the project. To install, see https://github.com/cli/cli/releases/tag/v2.16.1
 
 ### Create merge PR
 
