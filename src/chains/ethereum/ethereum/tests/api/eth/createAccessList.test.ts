@@ -352,7 +352,7 @@ describe("api", () => {
         // and pass it some nonsense access list to start with
         const data = `0x${contractMethods["getStorageAt(uint256)"]}${slot}`;
         const initialAccessList: AccessList = [
-          { address: addr, storageKeys: [] }
+          { address: addr, storageKeys: [hexSlot] }
         ];
         const transaction = {
           from,
