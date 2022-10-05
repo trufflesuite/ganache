@@ -310,7 +310,7 @@ const cloneVm = async ({
 
   const vm = await blockchain.createVmFromStateTrie(
     stateTrie,
-    false, // precompiles have already been initialized in the stateTrie
+    false, // we'll activate precompiles manually later so we can track data
     common
   );
   const stateManager = vm.stateManager as DefaultStateManager;
