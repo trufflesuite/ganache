@@ -275,7 +275,6 @@ describe("api", () => {
           data
         };
         // get the accessList for this transaction on the latest block
-        await provider.send("eth_call", [transaction, "latest"]);
         const { accessList, gasUsed } = await provider.send(
           "eth_createAccessList",
           [transaction, "latest"]
