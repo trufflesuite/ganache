@@ -569,7 +569,8 @@ export const createAccessList = async ({
       const { dataFeeEIP2930 } = AccessLists.getAccessListData(accessList);
       const baseFeeBigInt = intrinsicGas + dataFeeEIP2930;
       const gasUsedBigInt =
-        Quantity.toBigInt(callResult.gasUsed.toBuffer()) + baseFeeBigInt;
+        Quantity.toBigInt(callResult.gasUsed.toArrayLike(Buffer)) +
+        baseFeeBigInt;
       const gasUsed = Quantity.from(gasUsedBigInt);
       return { accessList, gasUsed };
     } else {
