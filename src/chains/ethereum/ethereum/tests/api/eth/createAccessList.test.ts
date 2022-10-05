@@ -416,7 +416,7 @@ describe("api", () => {
         assert.strictEqual(beforeCall.number, afterCall.number);
       });
 
-      it("returns and empty access list if EIP-2930 isn't activated", async () => {
+      it("returns an empty access list if EIP-2930 isn't activated", async () => {
         // make a transaction that would generate and access list if eip was activated
         const data = `0x${contractMethods["getStorageAt(uint256)"]}${slot}`;
         const transaction = {
