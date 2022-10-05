@@ -293,7 +293,7 @@ const applySimulationOverrides = async (
 
 /**
  * Clones the VM at the specified block.
- * @param `CloneVmOptions`
+ * @param CloneVmOptions
  * @returns The cloned VM, state manager, and state trie.
  */
 const cloneVm = async ({
@@ -324,7 +324,7 @@ const cloneVm = async ({
  * Sets up the state trie and state manager to run the VM's `runCall` function
  * by warming addresses, applying simulation overrides, and updating from
  * account balances.
- * @param `RunCallSetupOptions`
+ * @param RunCallSetupOptions
  * @returns The run call options needed by the VM, the intrinsic gas used by the
  * transaction, and the `accessListExclusions`/`addressesOnlyStorage` variables
  * used by the state manager to generate access lists.
@@ -463,7 +463,7 @@ const _runCall = async ({
 /**
  * Clones the VM and simulates a transaction, returning the execution result
  * from the VM.
- * @param `RunCallOptions`
+ * @param RunCallOptions
  * @returns `Data` - the return value of the `EVMResult`'s execution result.
  */
 export const runCall = async ({
