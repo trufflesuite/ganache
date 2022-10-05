@@ -1,7 +1,7 @@
 import assert from "assert";
 import { AccessList, AccessListItem, AccessLists } from "../";
 describe("@ganache/ethereum-transaction", async () => {
-  describe.only("access lists", () => {
+  describe("access lists", () => {
     const address = "0x0000000000000000000000000000000000000001";
     const storageKey =
       "0x0000000000000000000000000000000000000000000000000000000000000001";
