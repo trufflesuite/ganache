@@ -279,7 +279,7 @@ describe("api", () => {
           "eth_createAccessList",
           [transaction, "latest"]
         );
-        await provider.send("eth_subscribe", ["newHeads"]);
+        const subId = await provider.send("eth_subscribe", ["newHeads"]);
         // snapshot so we can revert later and be sure we're sending the transaction
         // under the same conditions, with the only difference being that we send
         // an access list
@@ -306,6 +306,7 @@ describe("api", () => {
           params: [accessListTransaction]
         });
         await provider.once("message");
+        await provider.send("eth_unsubscribe", [subId]);
         const accessListReceipt = await provider.request({
           method: "eth_getTransactionReceipt",
           params: [accessListHash]
