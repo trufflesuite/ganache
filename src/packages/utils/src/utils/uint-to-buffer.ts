@@ -30,14 +30,14 @@ function uint32ToBuf(num: number) {
    * work, only the least significant byte of each value gets used. */
   const lsb = num;
 
-  // shift the first 8 least signficant bits off current num, if it's non-zero
+  // shift the first 8 least significant bits off current num, if it's non-zero
   // our value contains at least 2 bytes!
   if ((num >>>= 8)) {
     /** `second` now holds the second most least significant byte in its
      * "first" (right most) 8 bits */
     const second = num;
 
-    // shift the next 8 least signficant bits off current num, if it's non-zero
+    // shift the next 8 least significant bits off current num, if it's non-zero
     // our value contains at least 3 bytes!
     if ((num >>>= 8)) {
       /** `third` now holds the third most least significant byte in its
