@@ -280,6 +280,8 @@ export default class BlockManager extends Manager<Block> {
       const json = await fallback.request<any>(
         "eth_getBlockByNumber",
         [Tag.earliest, true],
+        // TODO: re-enable cache once this is fixed
+        // https://github.com/trufflesuite/ganache/issues/3773
         { disableCache: true }
       );
       if (json) {
