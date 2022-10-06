@@ -14,7 +14,6 @@ import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
 import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
 import { BlockParams } from "./block-params";
-import { GanacheTrie } from "@ganache/ethereum-utils";
 
 export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;
@@ -34,16 +33,6 @@ export class Block {
   protected _serialized: Buffer;
 
   public header: BlockHeader;
-
-  /**
-   * Used to override the `stateRoot` value of the return value of the `toJSON`
-   * function.
-   */
-  #toJSONStateRootOverride: Data;
-  /**
-   * Optional field to store the trie that was used when mining the block.
-   */
-  #trie: GanacheTrie;
 
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
@@ -114,7 +103,7 @@ export class Block {
     return {
       hash,
       ...header,
-      stateRoot: this.#toJSONStateRootOverride || header.stateRoot,
+      stateRoot: header.stateRoot,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
@@ -142,22 +131,6 @@ export class Block {
         this._rawTransactionMetaData
       ]).serialized)
     );
-  }
-
-  /**
-   * @param stateRoot The state root to set for the `#toJSONStateRootOverride`
-   * field.
-   */
-  setToJSONStateRootOverride(stateRoot: Data) {
-    this.#toJSONStateRootOverride = stateRoot;
-  }
-
-  setTrie(trie: GanacheTrie) {
-    this.#trie = trie;
-  }
-
-  getTrie(): GanacheTrie | undefined {
-    return this.#trie;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {

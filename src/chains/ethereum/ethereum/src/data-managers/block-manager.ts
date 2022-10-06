@@ -7,6 +7,7 @@ import Blockchain from "../blockchain";
 import {
   Block,
   EthereumRawBlockHeader,
+  PendingBlock,
   serialize
 } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
@@ -22,7 +23,9 @@ const NOTFOUND = 404;
 
 const EMPTY_BUFFER = Buffer.from([]);
 
-type RawOrBlock<GetRaw extends boolean> = GetRaw extends true ? Buffer : Block;
+type RawOrBlock<GetRaw extends boolean> = GetRaw extends true
+  ? Buffer
+  : Block | PendingBlock;
 
 export default class BlockManager extends Manager<Block> {
   /**
@@ -143,7 +146,7 @@ export default class BlockManager extends Manager<Block> {
     }
   };
 
-  async getBlockByTag(tag: Tag) {
+  async getBlockByTag(tag: Tag): Promise<Block | PendingBlock> {
     switch (tag) {
       case Tag.latest:
         return this.latest;

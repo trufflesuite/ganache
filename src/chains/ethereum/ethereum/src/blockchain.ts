@@ -50,7 +50,12 @@ import {
   VmTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
-import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
+import {
+  Block,
+  PendingBlock,
+  RuntimeBlock,
+  Snapshots
+} from "@ganache/ethereum-block";
 import {
   SimulationTransaction,
   applySimulationOverrides,
@@ -629,12 +634,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     miner.mine(nextBlock, maxTransactions, true);
 
     const { block } = await miner.once("block");
-    block.hash = () => {
-      return Quantity.Empty;
-    };
-    block.setToJSONStateRootOverride(Data.from("0x", 32));
-    block.setTrie(trie);
-    return block;
+    return new PendingBlock(block.toRaw(), this.common, trie);
   };
 
   isStarted = () => {

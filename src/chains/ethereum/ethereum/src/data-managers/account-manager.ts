@@ -9,6 +9,7 @@ import { Quantity, Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
 import Blockchain from "../blockchain";
+import { PendingBlock } from "@ganache/ethereum-block";
 export default class AccountManager {
   #blockchain: Blockchain;
 
@@ -27,10 +28,10 @@ export default class AccountManager {
     const { trie, blocks } = this.#blockchain;
 
     const block = await blocks.get(blockNumber);
-    const blockTrie = block.getTrie();
-    // if the block has its own trie stored, use that. otherwise copy from the
-    // chain's trie
-    const trieCopy = blockTrie || trie.copy(false);
+    // a pending block has a copy of the trie at the time the block was made.
+    // for a regular block we can use the current trie
+    const trieCopy =
+      block instanceof PendingBlock ? block.getTrie() : trie.copy(false);
     const { stateRoot, number } = block.header;
     trieCopy.setContext(stateRoot.toBuffer(), null, number);
     return { trie: trieCopy };
