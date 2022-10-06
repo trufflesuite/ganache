@@ -205,6 +205,22 @@ describe("api", () => {
             data: revertString
           });
         });
+
+        it("runs the transaction against the pending block if 'pending' tag is passed ", async () => {
+          const latestNum = Quantity.from(
+            await provider.send("eth_blockNumber", [])
+          ).toBigInt();
+          const pendingNum = latestNum + 1n;
+          const tx = {
+            from,
+            to: contractAddress,
+            data: `0x${contract.contract.evm.methodIdentifiers["getBlockNumber()"]}`
+          };
+          const result1 = await provider.send("eth_call", [tx, "latest"]);
+          const result2 = await provider.send("eth_call", [tx, "pending"]);
+          assert.strictEqual(BigInt(result1), latestNum);
+          assert.strictEqual(BigInt(result2), pendingNum);
+        });
       });
 
       describe("vm state overrides", () => {

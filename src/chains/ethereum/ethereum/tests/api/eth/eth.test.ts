@@ -242,6 +242,24 @@ describe("api", () => {
         ]);
         assert.strictEqual(txCount9, txCount4);
       });
+
+      it("should get the transaction count of the pending block", async () => {
+        const tx = {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        };
+
+        // send one tx and don't mine, then check the count
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [{ ...tx }]);
+
+        const txCount = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          "pending"
+        ]);
+        assert.strictEqual(txCount, "0x1");
+      });
     });
 
     describe("eth_blockNumber", () => {
