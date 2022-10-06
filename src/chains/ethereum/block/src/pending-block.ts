@@ -15,7 +15,7 @@ export class PendingBlock extends Block {
    */
   #toJSONHashOverride = Quantity.Empty;
   /**
-   * Optional field to store the trie that was used when mining the block.
+   * Used to store the trie that was used when mining the block.
    */
   #trie: GanacheTrie;
 
