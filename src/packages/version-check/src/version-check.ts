@@ -16,7 +16,7 @@ export type VersionCheckConfig = {
   disableInCI?: boolean;
 };
 
-export type ConfigManager = {
+export type ConfigFileManager = {
   get: Function;
   set: Function;
   path: string;
@@ -30,7 +30,7 @@ type BannerMessageOptions = {
 };
 
 export class VersionCheck {
-  private ConfigManager: ConfigManager;
+  private ConfigFileManager: ConfigFileManager;
   private _config: VersionCheckConfig;
   private _logger: Logger;
   private _currentVersion: string;
@@ -44,15 +44,16 @@ export class VersionCheck {
     config?: VersionCheckConfig,
     logger?: Logger
   ) {
-    this.ConfigManager = new Conf({
+    this.ConfigFileManager = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME
         : "config" // config is the package default
     });
 
+    //
     this._config = {
       ...VersionCheck.DEFAULTS,
-      ...this.ConfigManager.get(),
+      ...this.ConfigFileManager.get(),
       ...config
     };
 
@@ -60,7 +61,7 @@ export class VersionCheck {
 
     if (this._config.disableInCI) {
       if (detectCI()) {
-        this.setEnabled(false);
+        this.disable();
       }
     }
 
@@ -69,7 +70,7 @@ export class VersionCheck {
     if (version) {
       this._currentVersion = version;
     } else {
-      this.setEnabled(false);
+      this.disable();
     }
 
     this._logger = logger || console;
@@ -93,44 +94,21 @@ export class VersionCheck {
     this._session = null;
   }
 
-  setEnabled(enabled: boolean) {
-    this.set("enabled", enabled);
-  }
-
-  setLatestVersion(latestVersion: string) {
-    this.set("latestVersion", latestVersion);
-  }
-
-  setLatestVersionLogged(latestVersionLogged: string) {
-    this.set("latestVersionLogged", latestVersionLogged);
-  }
-
-  setPackageName(packageName: string) {
-    this.set("packageName", packageName);
-  }
-
-  setTTL(ttl: number) {
-    this.set("ttl", ttl);
-  }
-
-  setUrl(url: string) {
-    this.set("url", url);
-  }
-
-  setLastNotification(time: number) {
-    this.set("lastNotification", time);
-  }
-
-  private set(key: string, value: string | number | boolean) {
-    this._config[key] = value;
-    this.saveConfig();
+  private disable() {
+    this.setConfig({ enabled: false });
   }
 
   private saveConfig() {
-    this.ConfigManager.set(this._config);
+    this.ConfigFileManager.set(this._config);
+  }
+  getConfig() {
+    return this._config;
+  }
+  configFileLocation() {
+    return this.ConfigFileManager.path;
   }
 
-  setConfig(config) {
+  setConfig(config: VersionCheckConfig) {
     const {
       packageName,
       enabled,
@@ -140,10 +118,9 @@ export class VersionCheck {
       latestVersionLogged,
       lastNotification,
       disableInCI
-    } = config;
+    } = { ...this._config, ...config };
 
     this._config = {
-      ...this._config,
       packageName,
       enabled,
       url,
@@ -153,10 +130,7 @@ export class VersionCheck {
       lastNotification,
       disableInCI
     };
-  }
-
-  configFileLocation() {
-    return this.ConfigManager.path;
+    this.saveConfig();
   }
 
   alreadyLoggedVersion() {
@@ -188,8 +162,10 @@ export class VersionCheck {
   async getLatestVersion() {
     if (!this._config.enabled) return false;
     try {
-      this.setLatestVersion(await this.fetchLatest());
-      this.setLastNotification(new Date().getTime());
+      this.setConfig({
+        latestVersion: await this.fetchLatest(),
+        lastNotification: new Date().getTime()
+      });
     } catch {}
   }
 
@@ -243,7 +219,7 @@ export class VersionCheck {
       currentVersion,
       latestVersion
     });
-    this.setLatestVersionLogged(latestVersion);
+    this.setConfig({ latestVersionLogged: latestVersion });
     return true;
   }
 
