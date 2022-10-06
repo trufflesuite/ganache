@@ -47,7 +47,7 @@ export class VersionCheck {
     this.ConfigFileManager = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME
-        : "config" // config is the package default
+        : "config" // config is the Conf package default
     });
 
     //

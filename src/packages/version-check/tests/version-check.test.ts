@@ -133,7 +133,7 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("ConfigManager", () => {
+  describe("ConfigFileManager", () => {
     it("persists config changes to disk", () => {
       const vc2 = new VersionCheck(testVersion, testConfig);
       vc2.setConfig({ enabled: false });
@@ -143,7 +143,7 @@ describe("@ganache/version-check", () => {
       assert.deepStrictEqual(
         vc2.getConfig(),
         vc3.getConfig(),
-        "ConfigManager improperly saves config to disk"
+        "ConfigFileManager improperly saves config to disk"
       );
     });
     it("persists the config across multiple instantiation types (no clobber)", () => {
