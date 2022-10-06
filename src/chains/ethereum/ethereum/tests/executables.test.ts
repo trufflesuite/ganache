@@ -77,7 +77,7 @@ describe("executables", async () => {
         } else {
           // the rest will go in the pending queue
           if (i === 7) {
-            // but on will be "locked" (starting to be mined)
+            // but one will be "locked" (starting to be mined)
             transaction.locked = true;
           }
           heapForFrom.push(transaction);
