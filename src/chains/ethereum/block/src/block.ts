@@ -119,6 +119,16 @@ export class Block {
     }
   }
 
+  getParts() {
+    return {
+      rawHeader: this._raw,
+      txs: this._rawTransactions,
+      header: this.header,
+      extraTxs: this._rawTransactionMetaData,
+      size: this._size
+    };
+  }
+
   toRaw() {
     return (
       this._serialized ||

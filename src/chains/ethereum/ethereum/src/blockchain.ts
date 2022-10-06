@@ -634,7 +634,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     miner.mine(nextBlock, maxTransactions, true);
 
     const { block } = await miner.once("block");
-    return new PendingBlock(block.toRaw(), this.common, trie);
+    return PendingBlock.fromBlock(block, this.common, trie);
   };
 
   isStarted = () => {

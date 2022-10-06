@@ -19,8 +19,8 @@ export class PendingBlock extends Block {
    */
   #trie: GanacheTrie;
 
-  constructor(serialized: Buffer, common: Common, trie: GanacheTrie) {
-    super(serialized, common);
+  constructor(common: Common, trie: GanacheTrie) {
+    super(null, common);
     this.#trie = trie;
   }
 
@@ -45,5 +45,16 @@ export class PendingBlock extends Block {
    */
   getTrie(): GanacheTrie {
     return this.#trie;
+  }
+
+  static fromBlock(block: Block, common: Common, trie: GanacheTrie) {
+    const pendingBlock = new PendingBlock(common, trie);
+    const { rawHeader, txs, header, extraTxs, size } = block.getParts();
+    pendingBlock._raw = rawHeader;
+    pendingBlock._rawTransactions = txs;
+    pendingBlock.header = header;
+    pendingBlock._rawTransactionMetaData = extraTxs;
+    pendingBlock._size = size;
+    return pendingBlock;
   }
 }
