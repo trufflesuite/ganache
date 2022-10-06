@@ -571,7 +571,6 @@ describe("@ganache/version-check", () => {
     it("will not getLatestVersion if version check is disabled", async () => {
       vc.setConfig({ enabled: false });
 
-      //apiResponse
       await vc.getLatestVersion();
 
       const { latestVersion } = vc.getConfig();
