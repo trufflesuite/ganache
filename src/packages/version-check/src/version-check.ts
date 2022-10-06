@@ -6,14 +6,14 @@ import { isValidSemver, semverUpgradeType } from "./semver";
 import { detectCI } from "./ci";
 
 export type VersionCheckConfig = {
-  packageName: string;
-  enabled: boolean;
-  url: string;
-  ttl: number;
-  latestVersion: string;
-  latestVersionLogged: string;
-  lastNotification: number;
-  disableInCI: boolean;
+  packageName?: string;
+  enabled?: boolean;
+  url?: string;
+  ttl?: number;
+  latestVersion?: string;
+  latestVersionLogged?: string;
+  lastNotification?: number;
+  disableInCI?: boolean;
 };
 
 export type ConfigManager = {
@@ -128,6 +128,31 @@ export class VersionCheck {
 
   private saveConfig() {
     this.ConfigManager.set(this._config);
+  }
+
+  setConfig(config) {
+    const {
+      packageName,
+      enabled,
+      url,
+      ttl,
+      latestVersion,
+      latestVersionLogged,
+      lastNotification,
+      disableInCI
+    } = config;
+
+    this._config = {
+      ...this._config,
+      packageName,
+      enabled,
+      url,
+      ttl,
+      latestVersion,
+      latestVersionLogged,
+      lastNotification,
+      disableInCI
+    };
   }
 
   configFileLocation() {

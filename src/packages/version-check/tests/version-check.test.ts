@@ -179,7 +179,7 @@ describe("@ganache/version-check", () => {
     });
     it("setPackageName", () => {
       const packageName = "new name";
-      vc.setPackageName(packageName);
+      vc.setConfig(packageName);
       assert.equal(
         packageName,
         vc._config.packageName,
