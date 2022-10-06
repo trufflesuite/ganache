@@ -11,7 +11,7 @@ describe("forking", function() {
     const blockNumHex = `0x${blockNumber.toString(16)}`;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
-    before(async function() {
+    before(async function () {
       if (!process.env.INFURA_KEY) {
         this.skip();
       }
