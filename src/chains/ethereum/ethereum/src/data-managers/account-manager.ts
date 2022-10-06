@@ -37,7 +37,7 @@ export default class AccountManager {
     return { trie: trieCopy };
   }
 
-  public async getRaw(
+  public async getRawAccountAndTrie(
     address: Address,
     blockNumber: string | Buffer | Tag = Tag.latest
   ): Promise<{ raw: Buffer | null; trie: GanacheTrie }> {
@@ -70,7 +70,7 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
-    const { raw } = await this.getRaw(address, blockNumber);
+    const { raw } = await this.getRawAccountAndTrie(address, blockNumber);
 
     if (raw == null) return Quantity.Zero;
 
@@ -82,7 +82,7 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
-    const { raw } = await this.getRaw(address, blockNumber);
+    const { raw } = await this.getRawAccountAndTrie(address, blockNumber);
 
     if (raw == null) return Quantity.Zero;
 
@@ -94,7 +94,7 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ) {
-    const { raw } = await this.getRaw(address, blockNumber);
+    const { raw } = await this.getRawAccountAndTrie(address, blockNumber);
 
     if (raw == null) return { nonce: Quantity.Zero, balance: Quantity.Zero };
 
@@ -109,7 +109,7 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Data> {
-    const { raw, trie } = await this.getRaw(address, blockNumber);
+    const { raw, trie } = await this.getRawAccountAndTrie(address, blockNumber);
 
     if (raw == null) return Data.Empty;
 
