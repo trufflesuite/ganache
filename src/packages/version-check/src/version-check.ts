@@ -74,11 +74,7 @@ export class VersionCheck {
     }
 
     this._logger = logger || console;
-  }
-
-  init() {
     this.getLatestVersion();
-    return this;
   }
 
   destroy() {
@@ -160,13 +156,14 @@ export class VersionCheck {
   }
 
   async getLatestVersion() {
-    if (!this._config.enabled) return false;
-    try {
-      this.setConfig({
-        latestVersion: await this.fetchLatest(),
-        lastNotification: new Date().getTime()
-      });
-    } catch {}
+    if (this._config.enabled) {
+      try {
+        this.setConfig({
+          latestVersion: await this.fetchLatest(),
+          lastNotification: new Date().getTime()
+        });
+      } catch {}
+    }
   }
 
   private fetchLatest() {
@@ -206,21 +203,20 @@ export class VersionCheck {
   }
 
   log() {
-    if (!this.canNotifyUser()) return false;
+    if (this.canNotifyUser()) {
+      const currentVersion = this._currentVersion;
+      const { packageName, latestVersion } = this._config;
 
-    const currentVersion = this._currentVersion;
-    const { packageName, latestVersion } = this._config;
+      const upgradeType = semverUpgradeType(currentVersion, latestVersion);
 
-    const upgradeType = semverUpgradeType(currentVersion, latestVersion);
-
-    this.logBannerMessage({
-      upgradeType,
-      packageName,
-      currentVersion,
-      latestVersion
-    });
-    this.setConfig({ latestVersionLogged: latestVersion });
-    return true;
+      this.logBannerMessage({
+        upgradeType,
+        packageName,
+        currentVersion,
+        latestVersion
+      });
+      this.setConfig({ latestVersionLogged: latestVersion });
+    }
   }
 
   private logBannerMessage(options: BannerMessageOptions) {
@@ -281,7 +277,6 @@ export class VersionCheck {
     );
     message.push("");
     this._logger.log(message.join("\n"));
-    return true;
   }
 
   // This is called with --version and is displayed each time
