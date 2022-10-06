@@ -6,6 +6,11 @@ export class Executables {
   public inProgress: Set<TypedTransaction> = new Set();
   public pending: Map<string, Heap<TypedTransaction>> = new Map();
 
+  /**
+   * Deep clones the executables, moving all `inProgress` transactions to the
+   * pending queue and unlocking all transactions.
+   * @returns Cloned and reset executables.
+   */
   public cloneAndReset() {
     const executables = new Executables();
     const { inProgress, pending } = this;
