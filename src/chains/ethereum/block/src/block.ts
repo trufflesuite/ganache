@@ -103,7 +103,6 @@ export class Block {
     return {
       hash,
       ...header,
-      stateRoot: header.stateRoot,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
       uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
