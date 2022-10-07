@@ -1181,7 +1181,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await vm.eei.putAccount(callerAddress, fromAccount);
 
       // finally, run the call
-      // @ts-ignore types are dumbs
       result = await vm.evm.runCall({
         caller: callerAddress,
         data: transaction.data && transaction.data.toBuffer(),
@@ -1204,7 +1203,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      // @ts-ignore types are dumbs
       throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
