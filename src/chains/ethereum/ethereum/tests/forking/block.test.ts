@@ -3,7 +3,7 @@ import getProvider from "../helpers/getProvider";
 import { EthereumProvider } from "../../src/provider";
 import request from "superagent";
 
-describe("forking", function() {
+describe("forking", function () {
   this.timeout(10000);
 
   describe("blocks", () => {
