@@ -109,7 +109,6 @@ export class ForkTrie extends GanacheTrie {
         Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
       ])
     });
-    //@ts-ignore
     const batch = db.batch();
     for await (const [key] of stream) {
       batch.del(key);
