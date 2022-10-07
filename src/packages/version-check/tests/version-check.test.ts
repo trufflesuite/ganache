@@ -2,6 +2,7 @@ process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
 
 import { VersionCheck } from "../src/version-check";
 import { semverUpgradeType } from "../src/semver";
+import { ConfigFileManager } from "../src/config-file-manager";
 import http2 from "http2";
 import assert from "assert";
 import * as fs from "fs";
@@ -55,7 +56,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("instantiates with the default config", () => {
-      const config = VersionCheck.DEFAULTS;
+      const config = ConfigFileManager.DEFAULTS;
 
       assert.deepStrictEqual(
         vc._config,
@@ -64,7 +65,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("is set to opt out by default", () => {
-      const config = VersionCheck.DEFAULTS;
+      const config = ConfigFileManager.DEFAULTS;
 
       assert.equal(
         config.enabled,
@@ -83,7 +84,7 @@ describe("@ganache/version-check", () => {
     });
     it("sets an optional sparse config", () => {
       const expectedConfig = {
-        ...VersionCheck.DEFAULTS,
+        ...ConfigFileManager.DEFAULTS,
         ...sparseConfig
       };
 
@@ -149,7 +150,7 @@ describe("@ganache/version-check", () => {
     it("persists the config across multiple instantiation types (no clobber)", () => {
       let vc = new VersionCheck(testVersion);
       const initialConfig = vc.getConfig();
-      assert.deepStrictEqual(initialConfig, VersionCheck.DEFAULTS);
+      assert.deepStrictEqual(initialConfig, ConfigFileManager.DEFAULTS);
 
       vc = new VersionCheck(testVersion);
       assert.deepStrictEqual(initialConfig, vc.getConfig());
