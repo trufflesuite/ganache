@@ -114,7 +114,7 @@ Starting RPC server
 
                         ╔══════════════════════════════════════════════════════════════════════╗
                         ║                                                                      ║
-                        ║        New major version of ganache available! 1.2.3 ⇢ 7.0.5         ║
+                        ║        New major version of ganache available! 1.2.3 -> 7.0.5        ║
                         ║  Changelog: https://github.com/trufflesuite/ganache/releases/v7.0.5  ║
                         ║             Run npm install -g ganache@7.0.5 to update!              ║
                         ║                                                                      ║
