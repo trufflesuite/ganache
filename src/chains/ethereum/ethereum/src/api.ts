@@ -671,7 +671,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_addAccount(address: DATA, passphrase: string) {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.addUnknownAccount(addy, passphrase);
   }
 
@@ -694,7 +694,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_removeAccount(address: DATA, passphrase: string) {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
@@ -948,7 +948,7 @@ export default class EthereumApi implements Api {
       const block = new RuntimeBlock(
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
-        parentHeader.miner,
+        Address.from(parentHeader.miner.toString()),
         tx.gas.toBuffer(),
         parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
@@ -3150,7 +3150,7 @@ export default class EthereumApi implements Api {
     passphrase: string,
     duration: number = 300
   ): Promise<boolean> {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
 

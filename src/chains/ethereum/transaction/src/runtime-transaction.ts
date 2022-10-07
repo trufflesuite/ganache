@@ -85,7 +85,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
       this.to =
-        data.to == null ? Quantity.Empty : toValidLengthAddress(data.to, "to");
+        data.to == null ? Address.Empty : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =
         data.data == null
