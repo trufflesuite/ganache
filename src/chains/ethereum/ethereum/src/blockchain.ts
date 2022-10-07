@@ -27,7 +27,8 @@ import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult
+  EVMResult,
+  EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
@@ -697,26 +698,27 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
 
     common = common || this.common;
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: stateTrie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
-    // @ts-ignore
-    const vm = new VM({
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const vm = await VM.create({
       activatePrecompiles: false,
       common,
-      allowUnlimitedContractSize,
       blockchain,
-      stateManager: this.fallback
-        ? // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new ForkStateManager({
-            trie: stateTrie as ForkTrie,
-            prefixCodeHashes: false
-          })
-        : // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
-    }) as VM;
-    // @ts-ignore
-    vm.evm._allowUnlimitedContractSize = allowUnlimitedContractSize;
+      stateManager,
+      evm
+    });
+
     if (activatePrecompile) {
       await activatePrecompiles(vm.eei);
 
