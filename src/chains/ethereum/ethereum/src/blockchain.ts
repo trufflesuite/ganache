@@ -19,7 +19,6 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
@@ -1103,16 +1102,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
-    let to: EthereumJsAddress = null;
-    if (hasToAddress) {
-      const toBuf = transaction.to.toBuffer();
-      to = {
-        equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
-        buf: toBuf
-      } as any;
-    } else {
-      to = null;
-    }
+    const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
+    const test: Address = Address.from(transaction.to.toString());
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
@@ -1475,7 +1466,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
-      parentBlock.header.miner,
+      Address.from(parentBlock.header.miner.toString()),
       parentBlock.header.gasLimit.toBuffer(),
       BUFFER_ZERO,
       // make sure we use the same timestamp as the target block
