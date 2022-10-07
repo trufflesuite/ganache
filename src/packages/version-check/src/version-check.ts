@@ -141,17 +141,12 @@ export class VersionCheck {
   }
 
   canNotifyUser() {
-    if (!this._currentVersion) {
-      return false;
-    } else if (!this._config.enabled) {
-      return false;
-    } else if (this.alreadyLoggedThisVersion()) {
-      return false;
-    } else if (!this.notificationIntervalHasPassed()) {
-      return false;
-    }
-
-    return true;
+    return (
+      !!this._currentVersion &&
+      this._config.enabled &&
+      !this.alreadyLoggedThisVersion() &&
+      this.notificationIntervalHasPassed()
+    );
   }
 
   async getLatestVersion() {
