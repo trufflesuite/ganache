@@ -5,6 +5,8 @@ import { Logger } from "@ganache/ethereum-options";
 import { semverIsValid, semverUpgradeType, semverClean } from "./semver";
 import { detectCI } from "./ci";
 
+const ONE_DAY = 86400;
+
 export type VersionCheckConfig = {
   packageName?: string;
   enabled?: boolean;
@@ -37,7 +39,7 @@ export class VersionCheck {
 
   private _session: http2.ClientHttp2Session;
   private _request: http2.ClientHttp2Stream;
-  private _notificationInterval: number = 86400;
+  private _notificationInterval: number = ONE_DAY;
 
   constructor(
     currentVersion: string,
