@@ -136,7 +136,7 @@ describe("@ganache/version-check", () => {
   describe("ConfigFileManager", () => {
     it("persists config changes to disk", () => {
       const vc2 = new VersionCheck(testVersion, testConfig);
-      vc2.setConfig({ enabled: false });
+      vc2.disable();
 
       const vc3 = new VersionCheck(testVersion);
 
@@ -159,20 +159,6 @@ describe("@ganache/version-check", () => {
         { ...initialConfig, ...testConfig },
         vc.getConfig()
       );
-    });
-  });
-
-  describe("config setters", () => {
-    it("setConfig - full config", () => {
-      vc.setConfig(testConfig);
-
-      assert.deepStrictEqual(vc.getConfig(), testConfig);
-    });
-    it("setConfig - sparse config", () => {
-      const expectedConfig = { ...vc.getConfig(), ...sparseConfig };
-      vc.setConfig(sparseConfig);
-
-      assert.deepStrictEqual(vc.getConfig(), expectedConfig);
     });
   });
 
@@ -334,14 +320,25 @@ describe("@ganache/version-check", () => {
     });
 
     it("will not log if semver is the same between currentVersion and latestVersion", () => {
-      vc.setConfig({ latestVersion: options.currentVersion });
+      vc = new VersionCheck(
+        options.currentVersion,
+        {
+          latestVersion: options.currentVersion
+        },
+        testLogger
+      );
+
       const didLog = !!vc.getVersionMessage();
 
       assert.equal(didLog, false);
     });
 
     it("logs a single line with the currentVersion and latestVersion", () => {
-      vc.setConfig({ latestVersion: options.latestVersion });
+      vc = new VersionCheck(
+        options.currentVersion,
+        { latestVersion: options.latestVersion },
+        testLogger
+      );
       const message = vc.getVersionMessage();
 
       assert.equal(message.indexOf(options.currentVersion) >= 0, true);
@@ -349,7 +346,7 @@ describe("@ganache/version-check", () => {
     });
 
     it("logs regardless of whether VersionCheck is enabled", () => {
-      vc.setConfig({ enabled: false });
+      vc.disable();
 
       const didLog = !!vc.getVersionMessage();
 
@@ -359,7 +356,7 @@ describe("@ganache/version-check", () => {
 
   describe("log", () => {
     it("will not log if disabled", () => {
-      vc.setConfig({ enabled: false });
+      vc.disable();
 
       assert.strictEqual(message, "", "Version Check will log if disabled.");
     });
@@ -557,11 +554,14 @@ describe("@ganache/version-check", () => {
       });
 
       api.listen(apiSettings.port);
-
-      vc.setConfig({
-        enabled: true,
-        url: "http://localhost:" + apiSettings.port
-      });
+      vc = new VersionCheck(
+        testVersion,
+        {
+          enabled: true,
+          url: "http://localhost:" + apiSettings.port
+        },
+        testLogger
+      );
     });
 
     afterEach(() => {
@@ -569,7 +569,7 @@ describe("@ganache/version-check", () => {
     });
 
     it("will not getLatestVersion if version check is disabled", async () => {
-      vc.setConfig({ enabled: false });
+      vc.disable();
 
       await vc.getLatestVersion();
 
@@ -628,7 +628,8 @@ describe("@ganache/version-check", () => {
     });
     it("returns false", () => {
       const lastNotification = new Date().getTime();
-      vc.setConfig({ lastNotification });
+
+      vc = new VersionCheck(testVersion, { lastNotification }, testLogger);
 
       const hasPassed = vc.notificationIntervalHasPassed();
       assert.equal(hasPassed, false);

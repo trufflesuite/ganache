@@ -4,6 +4,7 @@ import Conf from "conf";
 import { Logger } from "@ganache/ethereum-options";
 import { semverIsValid, semverUpgradeType, semverClean } from "./semver";
 import { detectCI } from "./ci";
+import { ConfigFileManager } from "./config-file-manager";
 
 const ONE_DAY = 86400;
 
@@ -16,12 +17,6 @@ export type VersionCheckConfig = {
   latestVersionLogged?: string;
   lastNotification?: number;
   disableInCI?: boolean;
-};
-
-export type ConfigFileManager = {
-  get: Function;
-  set: Function;
-  path: string;
 };
 
 type BannerMessageOptions = {
@@ -46,19 +41,9 @@ export class VersionCheck {
     config?: VersionCheckConfig,
     logger?: Logger
   ) {
-    this.ConfigFileManager = new Conf({
-      configName: process.env.VERSION_CHECK_CONFIG_NAME
-        ? process.env.VERSION_CHECK_CONFIG_NAME
-        : "config" // config is the Conf package default
-    });
+    this.ConfigFileManager = new ConfigFileManager(config);
 
-    this._config = {
-      ...VersionCheck.DEFAULTS,
-      ...this.ConfigFileManager.get(),
-      ...config
-    };
-
-    if (config) this.saveConfig();
+    this._config = this.ConfigFileManager.getConfig();
 
     if (this._config.disableInCI && detectCI()) {
       this.disable();
@@ -74,6 +59,14 @@ export class VersionCheck {
     this.getLatestVersion();
   }
 
+  getConfig() {
+    return this.ConfigFileManager.getConfig();
+  }
+
+  configFileLocation() {
+    return this.ConfigFileManager.configFileLocation();
+  }
+
   destroy() {
     if (this._request) {
       this._request.close();
@@ -87,45 +80,17 @@ export class VersionCheck {
     this._session = null;
   }
 
-  private disable() {
-    this.setConfig({ enabled: false });
+  disable() {
+    this._config = this.ConfigFileManager.setConfig({ enabled: false });
   }
 
-  private saveConfig() {
-    this.ConfigFileManager.set(this._config);
-  }
-
-  getConfig() {
-    return this._config;
-  }
-
-  configFileLocation() {
-    return this.ConfigFileManager.path;
-  }
-
-  setConfig(config: VersionCheckConfig) {
-    const {
-      packageName,
-      enabled,
-      url,
-      ttl,
-      latestVersion,
-      latestVersionLogged,
-      lastNotification,
-      disableInCI
-    } = { ...this._config, ...config };
-
-    this._config = {
-      packageName,
-      enabled,
-      url,
-      ttl,
-      latestVersion,
-      latestVersionLogged,
-      lastNotification,
-      disableInCI
-    };
-    this.saveConfig();
+  canNotifyUser() {
+    return (
+      !!this._currentVersion &&
+      this._config.enabled &&
+      !this.alreadyLoggedThisVersion() &&
+      this.notificationIntervalHasPassed()
+    );
   }
 
   alreadyLoggedThisVersion() {
@@ -140,19 +105,10 @@ export class VersionCheck {
     return timePassed > this._notificationInterval;
   }
 
-  canNotifyUser() {
-    return (
-      !!this._currentVersion &&
-      this._config.enabled &&
-      !this.alreadyLoggedThisVersion() &&
-      this.notificationIntervalHasPassed()
-    );
-  }
-
   async getLatestVersion() {
     if (this._config.enabled) {
       try {
-        this.setConfig({
+        this._config = this.ConfigFileManager.setConfig({
           latestVersion: await this.fetchLatest(),
           lastNotification: new Date().getTime()
         });
@@ -209,7 +165,9 @@ export class VersionCheck {
         currentVersion,
         latestVersion
       });
-      this.setConfig({ latestVersionLogged: latestVersion });
+      this._config = this.ConfigFileManager.setConfig({
+        latestVersionLogged: latestVersion
+      });
     }
   }
 
