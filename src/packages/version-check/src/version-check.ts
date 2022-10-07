@@ -1,30 +1,12 @@
-import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
-import Conf from "conf";
 import { Logger } from "@ganache/ethereum-options";
 import { semverIsValid, semverUpgradeType, semverClean } from "./semver";
 import { detectCI } from "./ci";
 import { ConfigFileManager } from "./config-file-manager";
+import { bannerMessage } from "./banner-message";
+import type { VersionCheckConfig } from "./config-file-manager";
 
 const ONE_DAY = 86400;
-
-export type VersionCheckConfig = {
-  packageName?: string;
-  enabled?: boolean;
-  url?: string;
-  ttl?: number;
-  latestVersion?: string;
-  latestVersionLogged?: string;
-  lastNotification?: number;
-  disableInCI?: boolean;
-};
-
-type BannerMessageOptions = {
-  upgradeType: string;
-  packageName: string;
-  currentVersion: string;
-  latestVersion: string;
-};
 
 export class VersionCheck {
   private ConfigFileManager: ConfigFileManager;
@@ -67,6 +49,10 @@ export class VersionCheck {
     return this.ConfigFileManager.configFileLocation();
   }
 
+  disable() {
+    this._setConfig({ enabled: false });
+  }
+
   destroy() {
     if (this._request) {
       this._request.close();
@@ -78,10 +64,6 @@ export class VersionCheck {
 
     this._request = null;
     this._session = null;
-  }
-
-  disable() {
-    this._setConfig({ enabled: false });
   }
 
   canNotifyUser() {
@@ -159,76 +141,19 @@ export class VersionCheck {
 
       const upgradeType = semverUpgradeType(currentVersion, latestVersion);
 
-      this.logBannerMessage({
-        upgradeType,
-        packageName,
-        currentVersion,
-        latestVersion
-      });
+      this._logger.log(
+        bannerMessage({
+          upgradeType,
+          packageName,
+          currentVersion,
+          latestVersion
+        })
+      );
+
       this._setConfig({
         latestVersionLogged: latestVersion
       });
     }
-  }
-
-  private logBannerMessage(options: BannerMessageOptions) {
-    const { upgradeType, packageName, currentVersion, latestVersion } = options;
-
-    const chalk = require("chalk");
-
-    const reAnsiEscapes =
-      /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
-    const WRAP_WIDTH = Math.min(120, process.stdout.columns || 0);
-    const center = (str: string, width: number) => {
-      const mid = (width - visibleCharacterLength(str)) / 2;
-      if (mid < 0) return str;
-
-      const left = Math.floor(mid);
-      const right = Math.ceil(mid);
-      return " ".repeat(left) + str + " ".repeat(right);
-    };
-    const visibleCharacterLength = (str: string) => {
-      // if the string contains unicode characters we need to count them,
-      // destructuring the string to get the characters as codePoints
-      return [...str.replace(reAnsiEscapes, "")].length;
-    };
-
-    const line1 = chalk`New {hex("${TruffleColors.porsche}") ${upgradeType}} version of ${packageName} available! {hex("${TruffleColors.watermelon}") ${currentVersion}} ⇢ {hex("${TruffleColors.green}") ${latestVersion}} `;
-    const line2 = chalk`{hex("${TruffleColors.porsche}") Changelog:} {hex("${TruffleColors.turquoise}") https://github.com/trufflesuite/${packageName}/releases/v${latestVersion}}`;
-    const line3 = chalk`Run {hex("${TruffleColors.green}") npm install -g ${packageName}@${latestVersion}} to update!`;
-    const width =
-      Math.max(
-        visibleCharacterLength(line1),
-        visibleCharacterLength(line2),
-        visibleCharacterLength(line3)
-      ) + 4;
-    const wrapWidth = Math.max(width, WRAP_WIDTH);
-    const vPipe = chalk`{hex("${TruffleColors.yellow}") ║}`;
-    const hLines = "═".repeat(width);
-    const emptyLine = center(
-      vPipe + " ".repeat(width) + vPipe,
-      Math.max(width, wrapWidth)
-    );
-    const message = [""];
-    message.push(
-      chalk`{hex("${TruffleColors.yellow}") ${center(
-        "╔" + hLines + "╗",
-        wrapWidth
-      )}}`
-    );
-    message.push(emptyLine);
-    message.push(center(vPipe + center(line1, width) + vPipe, wrapWidth));
-    message.push(center(vPipe + center(line2, width) + vPipe, wrapWidth));
-    message.push(center(vPipe + center(line3, width) + vPipe, wrapWidth));
-    message.push(emptyLine);
-    message.push(
-      chalk`{hex("${TruffleColors.yellow}") ${center(
-        "╚" + hLines + "╝",
-        wrapWidth
-      )}}`
-    );
-    message.push("");
-    this._logger.log(message.join("\n"));
   }
 
   // This is called with --version and is displayed each time
