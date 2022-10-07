@@ -52,6 +52,12 @@ export class UpgradedLevelDown {
   }
 
   sublevel(prefix: string) {
+    // if we were to go all-out on this function, we'd have it return a
+    // GanacheSublevel. However, that would require another file similar to this
+    // one "sub-to-sublevel", which just doesn't seem quite worth it since
+    // the only different function we actually use is `values`. so this will
+    // suffice for now. Eventually we'll break Ganache to use `level` only and
+    // we can remove this whole file.
     const sublevel = sub(this.db, prefix, LEVEL_OPTIONS);
     // @ts-ignore
     sublevel.values = (options: AbstractIteratorOptions) => {
