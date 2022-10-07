@@ -911,7 +911,7 @@ describe("api", () => {
         const getDbData = async (trie: GanacheTrie) => {
           const dbData: [Buffer, Buffer][] = [];
           const stream = trie.createReadStream();
-          // @ts-ignore TODO: why is this necessary? seems like a bug on ejs' end
+          // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
           stream.on("data", ({ key, value }) => {
             dbData.push([key, value]);
           });
