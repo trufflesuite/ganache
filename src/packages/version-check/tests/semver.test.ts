@@ -1,6 +1,6 @@
 // @ts-nocheck
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
-import { isValidSemver, semverUpgradeType } from "../src/semver";
+import { semverIsValid, semverUpgradeType } from "../src/semver";
 import assert from "assert";
 
 describe("semverUpgradeType", () => {
@@ -574,12 +574,12 @@ describe("semverUpgradeType", () => {
       assert.equal(semverUpgradeType("v0.0.2", "v0.0.2-alpha"), null);
     });
   });
-  describe("isValidSemver", () => {
+  describe("semverIsValid", () => {
     it("returns semver if valid", () => {
-      assert.equal(isValidSemver(testVersion), testVersion);
+      assert.equal(semverIsValid(testVersion), testVersion);
     });
     it("returns null if invalid semver", () => {
-      assert.equal(isValidSemver(invalidVersion), null);
+      assert.equal(semverIsValid(invalidVersion), null);
     });
   });
 });

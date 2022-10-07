@@ -2,7 +2,9 @@ import { default as semverDiff } from "semver/functions/diff";
 import { default as semverValid } from "semver/functions/valid";
 import { default as semverGte } from "semver/functions/gte";
 
-export function isValidSemver(semver: string) {
+export { default as semverClean } from "semver/functions/clean";
+
+export function semverIsValid(semver: string) {
   return semverValid(semver);
 }
 

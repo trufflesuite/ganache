@@ -2,7 +2,7 @@ import { TruffleColors } from "@ganache/colors";
 import http2 from "http2";
 import Conf from "conf";
 import { Logger } from "@ganache/ethereum-options";
-import { isValidSemver, semverUpgradeType } from "./semver";
+import { semverIsValid, semverUpgradeType, semverClean } from "./semver";
 import { detectCI } from "./ci";
 
 export type VersionCheckConfig = {
@@ -59,16 +59,12 @@ export class VersionCheck {
 
     if (config) this.saveConfig();
 
-    if (this._config.disableInCI) {
-      if (detectCI()) {
-        this.disable();
-      }
+    if (this._config.disableInCI && detectCI()) {
+      this.disable();
     }
 
-    const version = isValidSemver(currentVersion);
-
-    if (version) {
-      this._currentVersion = version;
+    if (semverIsValid(currentVersion)) {
+      this._currentVersion = semverClean(currentVersion);
     } else {
       this.disable();
     }
