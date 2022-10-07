@@ -1,4 +1,7 @@
-import type { AbstractLevelDOWN } from "abstract-leveldown";
+import type {
+  AbstractLevelDOWN,
+  AbstractIteratorOptions
+} from "abstract-leveldown";
 import type { BatchDBOp } from "@ethereumjs/trie";
 import sub from "subleveldown";
 import type { LevelUp } from "levelup";
@@ -51,7 +54,9 @@ export class UpgradedLevelDown {
   sublevel(prefix: string) {
     const sublevel = sub(this.db, prefix, LEVEL_OPTIONS);
     // @ts-ignore
-    sublevel.values = sublevel.iterator;
+    sublevel.values = (options: AbstractIteratorOptions) => {
+      return sublevel.iterator({ ...options, values: true });
+    };
     return sublevel;
   }
 
