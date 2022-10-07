@@ -1649,7 +1649,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         const rs = storageTrie.createReadStream();
-        // @ts-ignore
+        // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
         rs.on("data", handleData).on("error", reject).on("end", handleEnd);
       });
     };
