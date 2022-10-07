@@ -81,7 +81,7 @@ export class VersionCheck {
   }
 
   disable() {
-    this._config = this.ConfigFileManager.setConfig({ enabled: false });
+    this._setConfig({ enabled: false });
   }
 
   canNotifyUser() {
@@ -108,7 +108,7 @@ export class VersionCheck {
   async getLatestVersion() {
     if (this._config.enabled) {
       try {
-        this._config = this.ConfigFileManager.setConfig({
+        this._setConfig({
           latestVersion: await this.fetchLatest(),
           lastNotification: new Date().getTime()
         });
@@ -165,7 +165,7 @@ export class VersionCheck {
         currentVersion,
         latestVersion
       });
-      this._config = this.ConfigFileManager.setConfig({
+      this._setConfig({
         latestVersionLogged: latestVersion
       });
     }
@@ -239,5 +239,9 @@ export class VersionCheck {
       return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
     }
     return "";
+  }
+
+  private _setConfig(config) {
+    this._config = this.ConfigFileManager.setConfig(config);
   }
 }
