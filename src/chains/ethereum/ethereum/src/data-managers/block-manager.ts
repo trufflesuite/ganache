@@ -15,6 +15,7 @@ import {
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
+import { Ethereum } from "../api-types";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -277,7 +278,7 @@ export default class BlockManager extends Manager<Block> {
   async getEarliest() {
     const fallback = this.#blockchain.fallback;
     if (fallback) {
-      const json = await fallback.request<any>(
+      const json = await fallback.request<Ethereum.Block<true, "public">>(
         "eth_getBlockByNumber",
         [Tag.earliest, true],
         // TODO: re-enable cache once this is fixed
