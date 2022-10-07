@@ -62,7 +62,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.nonce = Quantity.from(data[1]);
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data[2]);
       this.gas = Quantity.from(data[3]);
-      this.to = data[4].length == 0 ? Quantity.Empty : Address.from(data[4]);
+      this.to = data[4].length == 0 ? Address.Empty : Address.from(data[4]);
       this.value = Quantity.from(data[5]);
       this.data = Data.from(data[6]);
       const accessListData = AccessLists.getAccessListData(data[7]);
