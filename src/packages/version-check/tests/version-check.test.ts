@@ -218,14 +218,14 @@ describe("@ganache/version-check", () => {
       );
     });
     it("false if latestVersionLogged === latestVersion", () => {
-      vc.alreadyLoggedVersion = () => true;
+      vc.alreadyLoggedThisVersion = () => true;
 
       const canNotifyUser = vc.canNotifyUser();
 
       assert.equal(
         canNotifyUser,
         false,
-        "Version Check will notify if alreadyLoggedVersion is true"
+        "Version Check will notify if alreadyLoggedThisVersion is true"
       );
     });
     it("false if notification Interval has not passed", async () => {
@@ -236,7 +236,7 @@ describe("@ganache/version-check", () => {
         disableInCI: false
       };
       vc = new VersionCheck(currentVersion, config);
-      vc.alreadyLoggedVersion = () => false;
+      vc.alreadyLoggedThisVersion = () => false;
 
       let canNotifyUser = vc.canNotifyUser();
 
@@ -256,7 +256,7 @@ describe("@ganache/version-check", () => {
         disableInCI: false
       };
       vc = new VersionCheck(currentVersion, config);
-      vc.alreadyLoggedVersion = () => false;
+      vc.alreadyLoggedThisVersion = () => false;
 
       const canNotifyUser = vc.canNotifyUser();
 
@@ -268,7 +268,7 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("alreadyLoggedVersion", () => {
+  describe("alreadyLoggedThisVersion", () => {
     it("true if config.latestVersionLogged < latestVersion", () => {
       const config = {
         latestVersionLogged: "0.0.0",
@@ -278,9 +278,9 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedVersion(),
+        vc.alreadyLoggedThisVersion(),
         false,
-        "alreadyLoggedVersion is true when latestVersionLogged < latestVersion"
+        "alreadyLoggedThisVersion is true when latestVersionLogged < latestVersion"
       );
     });
     it("false if config.latestVersionLogged = latestVersion", () => {
@@ -292,9 +292,9 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedVersion(),
+        vc.alreadyLoggedThisVersion(),
         true,
-        "alreadyLoggedVersion is false when latestVersionLogged = latestVersion"
+        "alreadyLoggedThisVersion is false when latestVersionLogged = latestVersion"
       );
     });
     it("false if config.latestVersionLogged > latestVersion", () => {
@@ -306,9 +306,9 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedVersion(),
+        vc.alreadyLoggedThisVersion(),
         true,
-        "alreadyLoggedVersion is false when latestVersionLogged > latestVersion"
+        "alreadyLoggedThisVersion is false when latestVersionLogged > latestVersion"
       );
     });
   });

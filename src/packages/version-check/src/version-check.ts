@@ -52,7 +52,6 @@ export class VersionCheck {
         : "config" // config is the Conf package default
     });
 
-    //
     this._config = {
       ...VersionCheck.DEFAULTS,
       ...this.ConfigFileManager.get(),
@@ -95,9 +94,11 @@ export class VersionCheck {
   private saveConfig() {
     this.ConfigFileManager.set(this._config);
   }
+
   getConfig() {
     return this._config;
   }
+
   configFileLocation() {
     return this.ConfigFileManager.path;
   }
@@ -127,7 +128,7 @@ export class VersionCheck {
     this.saveConfig();
   }
 
-  alreadyLoggedVersion() {
+  alreadyLoggedThisVersion() {
     return !semverUpgradeType(
       this._config.latestVersionLogged,
       this._config.latestVersion
@@ -144,7 +145,7 @@ export class VersionCheck {
       return false;
     } else if (!this._config.enabled) {
       return false;
-    } else if (this.alreadyLoggedVersion()) {
+    } else if (this.alreadyLoggedThisVersion()) {
       return false;
     } else if (!this.notificationIntervalHasPassed()) {
       return false;
