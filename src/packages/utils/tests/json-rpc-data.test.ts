@@ -16,20 +16,38 @@ const testData = [
 
 describe("json-rpc-data", () => {
   describe("constructor", () => {
-    it("should create a Data", () => {
+    it("should create a Data instance", () => {
       const input = Buffer.alloc(0);
       const data = new Data(input);
 
       assert(data instanceof Data);
     });
+
+    it("should create a Data instance with the specified `byteLength`", () => {
+      const byteLength = 10;
+      const input = "0x1234";
+      const data = new Data(input, byteLength);
+
+      // we can't directly access the instances length
+      assert.strictEqual(data.toBuffer().length, byteLength);
+    });
   });
 
   describe("from()", () => {
-    it("should create a Data", () => {
+    it("should create a Data instance", () => {
       const input = Buffer.alloc(0);
       const data = Data.from(input);
 
       assert(data instanceof Data);
+    });
+
+    it("should create a Data instance with the specified `byteLength`", () => {
+      const byteLength = 10;
+      const input = "0x1234";
+      const data = Data.from(input, byteLength);
+
+      // we can't directly access the instances length
+      assert.strictEqual(data.toBuffer().length, byteLength);
     });
   });
 
