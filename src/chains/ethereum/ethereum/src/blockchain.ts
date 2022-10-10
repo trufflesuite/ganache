@@ -1424,7 +1424,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
-      parentBlock.header.miner,
+      targetBlock.header.miner,
       parentBlock.header.gasLimit.toBuffer(),
       BUFFER_ZERO,
       // make sure we use the same timestamp as the target block
