@@ -862,7 +862,7 @@ describe("api", () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { quiet: true }
           });
-          wallet = new Wallet(options.wallet);
+          wallet = new Wallet(options.wallet, options.logging);
           [from, to] = wallet.addresses;
           blockchain = new Blockchain(
             options,
