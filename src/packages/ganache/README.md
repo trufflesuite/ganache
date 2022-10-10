@@ -487,8 +487,8 @@ the `ganache instances` command with the following arguments:
 
 ```
 Commands:
-  cli.ts instances list         List instances running in detached mode
-  cli.ts instances stop <name>  Stop the instance specified by <name>
+  ganache instances list         List instances running in detached mode
+  ganache instances stop <name>  Stop the instance specified by <name>
 ```
 
 E.g., start Ganache on port 8544, with a block time of 10 seconds, and then stop the instance.
