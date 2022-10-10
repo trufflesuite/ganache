@@ -80,6 +80,14 @@ describe("json-rpc-data", () => {
       const result = new Data(Buffer.from([0x01])).toString(10);
       assert.strictEqual(result, "0x00000000000000000001");
     });
+
+    it("should prefer the specified byteLength, over the value provided to the constructor", () => {
+      const byteLength = 10;
+      const data = new Data("0x01", 2);
+
+      const result = data.toString(byteLength);
+      assert.strictEqual(result, "0x00000000000000000001");
+    });
   });
 
   describe("toBuffer()", () => {
@@ -107,6 +115,18 @@ describe("json-rpc-data", () => {
       const expected = Buffer.from([
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
       ]);
+      assert.deepStrictEqual(result, expected);
+    });
+
+    it("should prefer the specified byteLength, over the value provided to the constructor", () => {
+      const byteLength = 10;
+      const data = new Data("0x01", 2);
+
+      const result = data.toBuffer(byteLength);
+      const expected = Buffer.from([
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
+      ]);
+
       assert.deepStrictEqual(result, expected);
     });
 
