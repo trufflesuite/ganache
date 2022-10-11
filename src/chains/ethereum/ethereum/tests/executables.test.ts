@@ -122,7 +122,9 @@ describe("executables", async () => {
           return transaction.hash === originalTransaction.hash;
         });
         // there is a transaction with the same hash
-        assert(clonedTransaction);
+        assert(clonedTransaction !== undefined);
+        // but is not a reference to the same instance
+        assert.notStrictEqual(clonedTransaction, originalTransaction);
       }
     });
 
