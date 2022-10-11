@@ -221,7 +221,7 @@ export default class Miner extends Emittery<{
     let block: Block;
     const vm = this.#vm;
 
-    const { pending, inProgress } = this.#executables;
+    const { pendingByOrigin, inProgress } = this.#executables;
     const options = this.#options;
 
     let keepMining = true;
@@ -314,7 +314,12 @@ export default class Miner extends Emittery<{
           runtimeBlock.header.number.toArrayLike(Buffer)
         );
 
-        const result = await this.#runTx(best, runtimeBlock, origin, pending);
+        const result = await this.#runTx(
+          best,
+          runtimeBlock,
+          origin,
+          pendingByOrigin
+        );
         if (result !== null) {
           const gasUsed = Quantity.from(
             result.gasUsed.toArrayLike(Buffer)
@@ -342,7 +347,7 @@ export default class Miner extends Emittery<{
 
             numTransactions++;
 
-            const pendingOrigin = pending.get(origin);
+            const pendingOrigin = pendingByOrigin.get(origin);
             inProgress.add(best);
             best.once("finalized").then(() => {
               // it is in the database (or thrown out) so delete it from the
@@ -527,11 +532,11 @@ export default class Miner extends Emittery<{
    * sorts each tx by gasPrice (high to low)
    */
   #setPricedHeap = () => {
-    const { pending } = this.#executables;
+    const { pendingByOrigin } = this.#executables;
     const origins = this.#origins;
     const priced = this.#priced;
 
-    for (let mapping of pending) {
+    for (let mapping of pendingByOrigin) {
       const heap = mapping[1];
       const next: TypedTransaction = heap.peek();
       if (next && !next.locked) {
@@ -549,7 +554,7 @@ export default class Miner extends Emittery<{
    * contain.
    */
   #updatePricedHeap = () => {
-    const { pending } = this.#executables;
+    const { pendingByOrigin } = this.#executables;
     const origins = this.#origins;
     const priced = this.#priced;
     // Note: the `pending` Map passed here is "live", meaning it is constantly
@@ -557,7 +562,7 @@ export default class Miner extends Emittery<{
     // processing a block with the _current_ pending transactions, and while
     // that is processing, to receive new transactions, updating our `priced`
     // heap with these new pending transactions.
-    for (let mapping of pending) {
+    for (let mapping of pendingByOrigin) {
       const heap = mapping[1];
       const next = heap.peek();
       if (next && !next.locked) {

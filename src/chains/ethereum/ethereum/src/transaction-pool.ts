@@ -227,7 +227,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
-    const executables = this.executables.pending;
+    const executables = this.executables.pendingByOrigin;
     let executableOriginTransactions = executables.get(origin);
 
     const priceBump = this.#priceBump;
@@ -402,7 +402,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
   public clear() {
     this.origins.clear();
     this.#accountPromises.clear();
-    this.executables.pending.clear();
+    this.executables.pendingByOrigin.clear();
   }
 
   /**
@@ -415,7 +415,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
    * @param transactionHash -
    */
   public find(transactionHash: Buffer) {
-    const { pending, inProgress } = this.executables;
+    const { pendingByOrigin, inProgress } = this.executables;
 
     // first search pending transactions
     for (let [_, transactions] of this.origins) {
@@ -430,7 +430,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     // then transactions eligible for execution
-    for (let [_, transactions] of pending) {
+    for (let [_, transactions] of pendingByOrigin) {
       const arr = transactions.array;
       for (let i = 0; i < transactions.length; i++) {
         const tx = arr[i];

@@ -4,7 +4,7 @@ import { byNonce } from "../transaction-pool";
 
 export class Executables {
   public inProgress: Set<TypedTransaction> = new Set();
-  public pending: Map<string, Heap<TypedTransaction>> = new Map();
+  public pendingByOrigin: Map<string, Heap<TypedTransaction>> = new Map();
 
   /**
    * Deep clones the executables, moving all `inProgress` transactions to the
@@ -13,26 +13,26 @@ export class Executables {
    */
   public cloneAndReset() {
     const executables = new Executables();
-    const { inProgress, pending } = this;
+    const { inProgress, pendingByOrigin: pending } = this;
 
     inProgress.forEach(transaction => {
       const copy = transaction.copy();
       copy.locked = false;
       const origin = copy.from.toString();
-      const txsFromOrigin = executables.pending.get(origin);
+      const txsFromOrigin = executables.pendingByOrigin.get(origin);
       if (txsFromOrigin) {
         txsFromOrigin.push(copy);
       } else {
-        executables.pending.set(origin, Heap.from(copy, byNonce));
+        executables.pendingByOrigin.set(origin, Heap.from(copy, byNonce));
       }
     });
 
     pending.forEach((transactionHeap, from) => {
       const { array: transactions, length } = transactionHeap;
-      let newOrigin = executables.pending.get(from);
+      let newOrigin = executables.pendingByOrigin.get(from);
       if (!newOrigin) {
         newOrigin = new Heap(byNonce);
-        executables.pending.set(from, newOrigin);
+        executables.pendingByOrigin.set(from, newOrigin);
       }
       for (let i = 0; i < length; i++) {
         const copy = transactions[i].copy();

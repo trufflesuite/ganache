@@ -3445,7 +3445,7 @@ export default class EthereumApi implements Api {
     };
 
     return {
-      pending: processMap(executables.pending),
+      pending: processMap(executables.pendingByOrigin),
       queued: processMap(origins)
     };
   }
