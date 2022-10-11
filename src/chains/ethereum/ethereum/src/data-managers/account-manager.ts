@@ -75,7 +75,7 @@ export default class AccountManager {
     if (raw == null) return Quantity.Zero;
 
     const [nonce] = decode<EthereumRawAccount>(raw);
-    return nonce.length === 0 ? Quantity.Zero : Quantity.from(nonce);
+    return Quantity.from(nonce);
   }
 
   public async getBalance(
@@ -87,7 +87,7 @@ export default class AccountManager {
     if (raw == null) return Quantity.Zero;
 
     const [, balance] = decode<EthereumRawAccount>(raw);
-    return balance.length === 0 ? Quantity.Zero : Quantity.from(balance);
+    return Quantity.from(balance);
   }
 
   public async getNonceAndBalance(
@@ -100,8 +100,8 @@ export default class AccountManager {
 
     const [nonce, balance] = decode<EthereumRawAccount>(raw);
     return {
-      nonce: nonce.length === 0 ? Quantity.Zero : Quantity.from(nonce),
-      balance: balance.length === 0 ? Quantity.Zero : Quantity.from(balance)
+      nonce: Quantity.from(nonce),
+      balance: Quantity.from(balance)
     };
   }
 
