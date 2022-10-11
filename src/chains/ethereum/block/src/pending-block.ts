@@ -8,12 +8,12 @@ export class PendingBlock extends Block {
    * Used to override the `stateRoot` value of the return value of the `toJSON`
    * function.
    */
-  #toJSONStateRootOverride = Data.from("0x", 32);
+  static toJSONStateRootOverride = Data.from("0x", 32);
   /**
    * Used to override the `hash` value of the return value of the `toJSON`
    * function.
    */
-  #toJSONHashOverride = Quantity.Empty;
+  static toJSONHashOverride = Quantity.Empty;
   /**
    * Used to store the trie that was used when mining the block.
    */
@@ -35,8 +35,8 @@ export class PendingBlock extends Block {
     includeFullTransactions: IncludeTransactions
   ) {
     const json = super.toJSON(includeFullTransactions);
-    json.stateRoot = this.#toJSONStateRootOverride;
-    json.hash = this.#toJSONHashOverride;
+    json.stateRoot = PendingBlock.toJSONStateRootOverride;
+    json.hash = PendingBlock.toJSONHashOverride;
 
     return json;
   }
