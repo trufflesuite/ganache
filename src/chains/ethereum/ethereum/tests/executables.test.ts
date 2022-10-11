@@ -9,14 +9,14 @@ import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { Heap, Quantity } from "@ganache/utils";
 import Wallet from "../src/wallet";
 import { byNonce } from "../src/transaction-pool";
-import { Executables } from "../src/miner/executables";
+import { ExecutableTransactionContainer } from "../src/miner/executables";
 
 describe("executables", async () => {
   describe("cloneAndReset", async () => {
-    const executables = new Executables();
+    const executables = new ExecutableTransactionContainer();
     let originalTransactions: TypedTransaction[];
     let clonedTransactions: TypedTransaction[];
-    let clone: Executables;
+    let clone: ExecutableTransactionContainer;
 
     const getAllTransactionsFromPending = (
       pending: Map<string, Heap<TypedTransaction, any>>
@@ -35,7 +35,7 @@ describe("executables", async () => {
       const options = EthereumOptionsConfig.normalize({
         wallet: { deterministic: true }
       });
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       const common = Common.forCustomChain(
         "mainnet",
         {
@@ -58,10 +58,10 @@ describe("executables", async () => {
         gasLimit: "0xffff"
       };
 
-      const { inProgress, pending } = executables;
+      const { inProgress, pendingByOrigin } = executables;
       // set up the heap to store all pending transactions for the from address
       const heapForFrom = new Heap(byNonce);
-      pending.set(from, heapForFrom);
+      pendingByOrigin.set(from, heapForFrom);
       // we'll add 10 transactions to executables
       for (let i = 0; i < 10; i++) {
         const transaction = TransactionFactory.fromRpc(
@@ -85,7 +85,7 @@ describe("executables", async () => {
       }
       // we'll also set up another heap for our second origin
       const heapForFrom2 = new Heap(byNonce);
-      pending.set(from2, heapForFrom2);
+      pendingByOrigin.set(from2, heapForFrom2);
       const transaction = TransactionFactory.fromRpc(
         { ...rpcTransaction, nonce: "0x0", from: from2 },
         common
@@ -96,11 +96,11 @@ describe("executables", async () => {
       // finally, clone and reset
       clone = executables.cloneAndReset();
       // and make some data easier to compare in tests
-      const { pending: clonedPending } = clone;
+      const { pendingByOrigin: clonedPending } = clone;
       clonedTransactions = getAllTransactionsFromPending(clonedPending);
       originalTransactions = [
         ...Array.from(inProgress),
-        ...getAllTransactionsFromPending(pending)
+        ...getAllTransactionsFromPending(pendingByOrigin)
       ];
     });
 

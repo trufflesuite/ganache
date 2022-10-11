@@ -140,7 +140,7 @@ describe("blockchain", async () => {
       });
 
       // set up wallet/blockchain
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       const initialAccounts = wallet.initialAccounts;
       blockchain = new Blockchain(options, initialAccounts[0].address);
       await blockchain.initialize(wallet.initialAccounts);
