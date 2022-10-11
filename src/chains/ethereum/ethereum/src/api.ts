@@ -1268,9 +1268,7 @@ export default class EthereumApi implements Api {
     const blockNum = await blocks.getNumberFromHash(hash);
     if (!blockNum) return null;
 
-    const rawBlock = await blocks.getRawByBlockNumberOrTag(
-      Quantity.from(blockNum)
-    );
+    const rawBlock = await blocks.getRawByBlockNumberOrTag(blockNum);
     if (!rawBlock) return null;
 
     const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
