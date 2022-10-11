@@ -32,8 +32,8 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
 const version = process.env.VERSION || "DEV";
 const cliVersion = process.env.CLI_VERSION || "DEV";
 const coreVersion = process.env.CORE_VERSION || "DEV";
-let versionCheck = new VersionCheck(version);
-const versionMessage = versionCheck.getVersionMessage();
+const versionCheck = new VersionCheck(version);
+const versionMessage = versionCheck.cliMessage();
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 

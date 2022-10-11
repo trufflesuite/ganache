@@ -300,7 +300,7 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("getVersionMessage", () => {
+  describe("cliMessage", () => {
     let options;
 
     beforeEach(() => {
@@ -329,7 +329,7 @@ describe("@ganache/version-check", () => {
         testLogger
       );
 
-      const didLog = !!vc.getVersionMessage();
+      const didLog = !!vc.cliMessage();
 
       assert.equal(didLog, false);
     });
@@ -340,7 +340,7 @@ describe("@ganache/version-check", () => {
         { latestVersion: options.latestVersion },
         testLogger
       );
-      const message = vc.getVersionMessage();
+      const message = vc.cliMessage();
 
       assert.equal(message.indexOf(options.currentVersion) >= 0, true);
       assert.equal(message.indexOf(options.latestVersion) >= 0, true);
@@ -349,7 +349,7 @@ describe("@ganache/version-check", () => {
     it("logs regardless of whether VersionCheck is enabled", () => {
       vc.disable();
 
-      const didLog = !!vc.getVersionMessage();
+      const didLog = !!vc.cliMessage();
 
       assert.equal(didLog, true);
     });

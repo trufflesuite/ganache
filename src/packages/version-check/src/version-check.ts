@@ -41,6 +41,10 @@ export class VersionCheck {
     this.getLatestVersion();
   }
 
+  private _setConfig(config) {
+    this._config = this.ConfigFileManager.setConfig(config);
+  }
+
   getConfig() {
     return this.ConfigFileManager.getConfig();
   }
@@ -157,16 +161,12 @@ export class VersionCheck {
   }
 
   // This is called with --version and is displayed each time
-  getVersionMessage() {
+  cliMessage() {
     const currentVersion = this._currentVersion;
     const { latestVersion } = this._config;
     if (semverUpgradeType(currentVersion, latestVersion)) {
       return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
     }
     return "";
-  }
-
-  private _setConfig(config) {
-    this._config = this.ConfigFileManager.setConfig(config);
   }
 }
