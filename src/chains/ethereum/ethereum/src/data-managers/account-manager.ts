@@ -34,7 +34,7 @@ export default class AccountManager {
       block instanceof PendingBlock ? block.trie : trie.copy(false);
     const { stateRoot, number } = block.header;
     trieCopy.setContext(stateRoot.toBuffer(), null, number);
-    return { trie: trieCopy };
+    return trie;
   }
 
   public async getRawAccountAndTrie(
@@ -42,7 +42,7 @@ export default class AccountManager {
     blockNumber: string | Buffer | Tag = Tag.latest
   ): Promise<{ rawAccount: Buffer | null; trie: GanacheTrie }> {
     // get the block, its state root, and the trie at that state root
-    const { trie } = await this.getTrieAt(blockNumber);
+    const trie = await this.getTrieAt(blockNumber);
 
     // get the account from the trie
     const rawAccount = await trie.get(address.toBuffer());
@@ -55,7 +55,7 @@ export default class AccountManager {
     blockNumber: string | Buffer | Tag = Tag.latest
   ) {
     // get the block, its state root, and the trie at that state root
-    const { trie } = await this.getTrieAt(blockNumber);
+    const trie = await this.getTrieAt(blockNumber);
     const number = this.#blockchain.blocks.getEffectiveNumber(blockNumber);
     const addressBuf = address.toBuffer();
     const addressData = await trie.get(addressBuf);
