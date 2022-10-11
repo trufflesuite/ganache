@@ -252,7 +252,7 @@ describe("api", () => {
 
         // send one tx and don't mine, then check the count
         await provider.send("miner_stop");
-        await provider.send("eth_sendTransaction", [{ ...tx }]);
+        await provider.send("eth_sendTransaction", [tx]);
 
         const txCount = await provider.send("eth_getTransactionCount", [
           accounts[0],
