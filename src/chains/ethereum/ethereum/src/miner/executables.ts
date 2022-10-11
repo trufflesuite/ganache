@@ -24,14 +24,15 @@ export class Executables {
       else executables.pending.set(origin, Heap.from(copy, byNonce));
     });
 
-    pending.forEach(({ array, length }, from) => {
+    pending.forEach((transactionHeap, from) => {
+      const { array: transactions, length } = transactionHeap;
       let newOrigin = executables.pending.get(from);
       if (!newOrigin) {
         newOrigin = new Heap(byNonce);
         executables.pending.set(from, newOrigin);
       }
       for (let i = 0; i < length; i++) {
-        const copy = array[i].copy();
+        const copy = transactions[i].copy();
         copy.locked = false;
         newOrigin.push(copy);
       }
