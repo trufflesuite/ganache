@@ -11,19 +11,9 @@ const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 type HeaderRecord = { name: string; value: string };
 type ForkUrl = URL & { _blockNumber?: number | typeof Tag.latest };
 
-type KnownNetworks =
-  | "mainnet"
-  | "ropsten"
-  | "kovan"
-  | "rinkeby"
-  | "goerli"
-  | "görli"
-  | "sepolia";
+type KnownNetworks = "mainnet" | "goerli" | "görli" | "sepolia";
 export const KNOWN_NETWORKS = [
   "mainnet",
-  "ropsten",
-  "kovan",
-  "rinkeby",
   "goerli",
   "görli",
   "sepolia"
@@ -393,7 +383,7 @@ Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet 
   },
   username: {
     normalize,
-    cliDescription: `* Username to use for Basic Authentication. Does not require setting \`fork.password\`.
+    cliDescription: `Username to use for Basic Authentication. Does not require setting \`fork.password\`.
     
 When combined with \`fork.password\`, is shorthand for \`fork: { headers: { "Authorization": "Basic {ENCODED-BASIC-HEADER}" } }\`
 

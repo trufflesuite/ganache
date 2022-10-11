@@ -14,7 +14,7 @@ if (pkg.engines && pkg.engines.node) {
     process.exit(1);
   } else {
     console.log(
-      `Skipping following command as the Node.js version is "${process.version}"", and it requires "${pkg.engines.node}"" to continue.`
+      `Skipping following command as the Node.js version is "${process.version}", and it requires "${pkg.engines.node}" to continue.`
     );
     process.exit(0);
   }
