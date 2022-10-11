@@ -17,11 +17,11 @@ export class PendingBlock extends Block {
   /**
    * Used to store the trie that was used when mining the block.
    */
-  #trie: GanacheTrie;
+  public readonly trie: GanacheTrie;
 
   constructor(common: Common, trie: GanacheTrie) {
     super(null, common);
-    this.#trie = trie;
+    this.trie = trie;
   }
 
   /**
@@ -39,12 +39,6 @@ export class PendingBlock extends Block {
     json.hash = this.#toJSONHashOverride;
 
     return json;
-  }
-  /**
-   * @returns The trie at the time the pending block was made.
-   */
-  getTrie(): GanacheTrie {
-    return this.#trie;
   }
 
   static fromBlock(block: Block, common: Common, trie: GanacheTrie) {

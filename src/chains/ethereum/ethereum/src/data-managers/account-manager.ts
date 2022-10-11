@@ -31,7 +31,7 @@ export default class AccountManager {
     // a pending block has a copy of the trie at the time the block was made.
     // for a regular block we can use the current trie
     const trieCopy =
-      block instanceof PendingBlock ? block.getTrie() : trie.copy(false);
+      block instanceof PendingBlock ? block.trie : trie.copy(false);
     const { stateRoot, number } = block.header;
     trieCopy.setContext(stateRoot.toBuffer(), null, number);
     return { trie: trieCopy };
