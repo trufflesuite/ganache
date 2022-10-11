@@ -7,8 +7,9 @@ export class Executables {
   public pendingByOrigin: Map<string, Heap<TypedTransaction>> = new Map();
 
   /**
-   * Deep clones the executables, moving all `inProgress` transactions to the
-   * pending queue and unlocking all transactions.
+   * Deep clones the executables and all transactions within the executables,
+   * moving all `inProgress` transactions to the `pendingByOrigin` queue and
+   * unlocking all transactions.
    * @returns Cloned and reset executables.
    */
   public cloneAndReset() {
