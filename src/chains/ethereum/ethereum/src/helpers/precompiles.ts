@@ -18,7 +18,8 @@ const PRECOMPILED_ACCOUNT: Account = {
 
 const accountCache: Map<number, Address> = new Map();
 const getOrCreateAccount = (i: number): Address => {
-  if (accountCache.has(i)) return accountCache.get(i);
+  const cachedAddress = accountCache.get(i);
+  if (cachedAddress) return cachedAddress;
 
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
