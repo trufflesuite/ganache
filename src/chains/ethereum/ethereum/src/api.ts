@@ -3002,7 +3002,7 @@ export default class EthereumApi implements Api {
       }
 
       // For each percentile, find the cost of the unit of gas at that percentage
-      if (reward) {
+      if (reward !== undefined) {
         const transactions = currentBlock.getTransactions();
 
         // If there are no transactions, all reward percentiles are 0.
