@@ -266,7 +266,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
 
   public updateEffectiveGasPrice() {}
 
-  public copy() {
+  public clone() {
     const copy = Object.create(this) as EIP2930AccessListTransaction;
     copy.gasPrice = this.gasPrice;
     copy.chainId = this.chainId;

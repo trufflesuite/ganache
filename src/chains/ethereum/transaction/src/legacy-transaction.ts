@@ -237,7 +237,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
   public updateEffectiveGasPrice() {}
 
-  public copy() {
+  public clone() {
     const copy = Object.create(this) as LegacyTransaction;
     copy.gasPrice = this.gasPrice;
     super.copyOnto(copy);

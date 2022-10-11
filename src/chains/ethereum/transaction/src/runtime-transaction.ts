@@ -273,5 +273,5 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    * _before_ the transaction is mined onto the block. (Note: block and receipt
    * data is not added to the copy.)
    */
-  protected abstract copy();
+  protected abstract clone();
 }

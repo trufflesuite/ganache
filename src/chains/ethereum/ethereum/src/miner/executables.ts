@@ -17,7 +17,7 @@ export class ExecutableTransactionContainer {
     const { inProgress, pendingByOrigin: pending } = this;
 
     inProgress.forEach(transaction => {
-      const copy = transaction.copy();
+      const copy = transaction.clone();
       copy.locked = false;
       const origin = copy.from.toString();
       const txsFromOrigin = executables.pendingByOrigin.get(origin);
@@ -36,7 +36,7 @@ export class ExecutableTransactionContainer {
         executables.pendingByOrigin.set(from, newOrigin);
       }
       for (let i = 0; i < length; i++) {
-        const copy = transactions[i].copy();
+        const copy = transactions[i].clone();
         copy.locked = false;
         newOrigin.push(copy);
       }
