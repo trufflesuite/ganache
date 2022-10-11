@@ -3007,9 +3007,7 @@ export default class EthereumApi implements Api {
 
         // If there are no transactions, all reward percentiles are 0.
         if (transactions.length === 0) {
-          reward[currentPosition] = rewardPercentiles.map(() => {
-            return Quantity.Zero;
-          });
+          reward[currentPosition] = rewardPercentiles.map(() => Quantity.Zero);
         } else {
           // For all transactions, effectiveGasReward = normalized fee per unit of gas
           // earned by the miner regardless of transaction type
