@@ -40,13 +40,13 @@ export default class AccountManager {
   public async getRawAccountAndTrie(
     address: Address,
     blockNumber: string | Buffer | Tag = Tag.latest
-  ): Promise<{ raw: Buffer | null; trie: GanacheTrie }> {
+  ): Promise<{ rawAccount: Buffer | null; trie: GanacheTrie }> {
     // get the block, its state root, and the trie at that state root
     const { trie } = await this.getTrieAt(blockNumber);
 
     // get the account from the trie
-    const raw = await trie.get(address.toBuffer());
-    return { raw, trie };
+    const rawAccount = await trie.get(address.toBuffer());
+    return { rawAccount: rawAccount, trie };
   }
 
   public async getStorageAt(
@@ -70,11 +70,14 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
-    const { raw } = await this.getRawAccountAndTrie(address, blockNumber);
+    const { rawAccount } = await this.getRawAccountAndTrie(
+      address,
+      blockNumber
+    );
 
-    if (raw == null) return Quantity.Zero;
+    if (rawAccount == null) return Quantity.Zero;
 
-    const [nonce] = decode<EthereumRawAccount>(raw);
+    const [nonce] = decode<EthereumRawAccount>(rawAccount);
     return Quantity.from(nonce);
   }
 
@@ -82,11 +85,14 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Quantity> {
-    const { raw } = await this.getRawAccountAndTrie(address, blockNumber);
+    const { rawAccount } = await this.getRawAccountAndTrie(
+      address,
+      blockNumber
+    );
 
-    if (raw == null) return Quantity.Zero;
+    if (rawAccount == null) return Quantity.Zero;
 
-    const [, balance] = decode<EthereumRawAccount>(raw);
+    const [, balance] = decode<EthereumRawAccount>(rawAccount);
     return Quantity.from(balance);
   }
 
@@ -94,11 +100,15 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ) {
-    const { raw } = await this.getRawAccountAndTrie(address, blockNumber);
+    const { rawAccount } = await this.getRawAccountAndTrie(
+      address,
+      blockNumber
+    );
 
-    if (raw == null) return { nonce: Quantity.Zero, balance: Quantity.Zero };
+    if (rawAccount == null)
+      return { nonce: Quantity.Zero, balance: Quantity.Zero };
 
-    const [nonce, balance] = decode<EthereumRawAccount>(raw);
+    const [nonce, balance] = decode<EthereumRawAccount>(rawAccount);
     return {
       nonce: Quantity.from(nonce),
       balance: Quantity.from(balance)
@@ -109,11 +119,14 @@ export default class AccountManager {
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest
   ): Promise<Data> {
-    const { raw, trie } = await this.getRawAccountAndTrie(address, blockNumber);
+    const { rawAccount, trie } = await this.getRawAccountAndTrie(
+      address,
+      blockNumber
+    );
 
-    if (raw == null) return Data.Empty;
+    if (rawAccount == null) return Data.Empty;
 
-    const [, , , codeHash] = decode<EthereumRawAccount>(raw);
+    const [, , , codeHash] = decode<EthereumRawAccount>(rawAccount);
     if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
     else return trie.db.get(codeHash).then(Data.from);
   }
