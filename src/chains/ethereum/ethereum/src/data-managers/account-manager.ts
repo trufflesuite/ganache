@@ -37,7 +37,7 @@ export default class AccountManager {
       block instanceof PendingBlock ? block.trie : trie.copy(false);
     const { stateRoot, number } = block.header;
     trieCopy.setContext(stateRoot.toBuffer(), null, number);
-    return trie;
+    return trieCopy;
   }
 
   public async getRawAccountAndTrie(
