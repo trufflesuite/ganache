@@ -31,7 +31,9 @@ import {
   PromiEvent,
   Api,
   keccak,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  min,
+  max
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -2932,17 +2934,12 @@ export default class EthereumApi implements Api {
     // technically valid per the spec but we cannot go past the Genesis Block. Values
     // above MAX_BLOCKS are technically within spec, however we cap totalBlocks because
     // of the resource needs and potential abuse of a very large blockCount.
-    const totalBlocks = Math.min(
-      Math.max(
-        Quantity.toBigInt(blockCount) >= MAX_BLOCKS
-          ? MAX_BLOCKS
-          : Quantity.toNumber(blockCount),
-        MIN_BLOCKS
-      ),
-      Quantity.toNumber(
-        newestBlockNumber >= MAX_BLOCKS ? MAX_BLOCKS : newestBlockNumber + 1n
-      ),
-      MAX_BLOCKS
+    const totalBlocks = Quantity.toNumber(
+      min(
+        max(Quantity.toBigInt(blockCount), MIN_BLOCKS),
+        newestBlockNumber + 1n,
+        MAX_BLOCKS
+      )
     );
 
     const baseFeePerGas: Quantity[] = new Array(totalBlocks);
@@ -2975,8 +2972,7 @@ export default class EthereumApi implements Api {
       reward = new Array(totalBlocks);
     }
     // totalBlocks is inclusive of newestBlock
-    const oldestBlockNumber =
-      newestBlockNumber - BigInt(totalBlocks - 1);
+    const oldestBlockNumber = newestBlockNumber - BigInt(totalBlocks - 1);
 
     let currentBlock: Block;
     let currentPosition = 0;
@@ -3014,9 +3010,9 @@ export default class EthereumApi implements Api {
           const baseFee = baseFeePerGas[currentPosition].toBigInt();
 
           const receipts = await Promise.all(
-            transactions.map(async tx => {
-              return blockchain.transactionReceipts.get(tx.hash.toBuffer());
-            })
+            transactions.map(async tx =>
+              blockchain.transactionReceipts.get(tx.hash.toBuffer())
+            )
           );
 
           // Effective Reward is the amount paid per unit of gas
