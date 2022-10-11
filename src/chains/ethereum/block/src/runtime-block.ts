@@ -206,6 +206,7 @@ export class RuntimeBlock {
     (block as any).serializeBaseFeePerGas = rawHeader[15] === undefined;
     (block as any)._rawTransactionMetaData = extraTxs;
     (block as any)._size = size;
+    (block as any).serialized = serialized;
 
     return {
       block,
