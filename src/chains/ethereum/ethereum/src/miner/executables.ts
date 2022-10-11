@@ -20,8 +20,11 @@ export class Executables {
       copy.locked = false;
       const origin = copy.from.toString();
       const txsFromOrigin = executables.pending.get(origin);
-      if (txsFromOrigin) txsFromOrigin.push(copy);
-      else executables.pending.set(origin, Heap.from(copy, byNonce));
+      if (txsFromOrigin) {
+        txsFromOrigin.push(copy);
+      } else {
+        executables.pending.set(origin, Heap.from(copy, byNonce));
+      }
     });
 
     pending.forEach((transactionHeap, from) => {
