@@ -415,6 +415,7 @@ describe("api", () => {
       );
       assert.strictEqual(count, "0x1");
     });
+
     it("eth_getBlockTransactionCountByNumber for pending tag", async () => {
       await provider.send("eth_subscribe", ["newHeads"]);
       await provider.send("eth_sendTransaction", [
