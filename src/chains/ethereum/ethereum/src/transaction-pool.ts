@@ -12,7 +12,7 @@ import {
   INSUFFICIENT_FUNDS
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Executables } from "./miner/executables";
+import { ExecutableTransactionContainer } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -128,7 +128,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     this.origins = origins;
     this.#priceBump = options.priceBump;
   }
-  public readonly executables = new Executables();
+  public readonly executables = new ExecutableTransactionContainer();
   public readonly origins: Map<string, Heap<TypedTransaction>>;
   readonly #accountPromises = new Map<
     string,

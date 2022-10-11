@@ -2,7 +2,7 @@ import { TypedTransaction } from "@ganache/ethereum-transaction";
 import { Heap } from "@ganache/utils";
 import { byNonce } from "../transaction-pool";
 
-export class Executables {
+export class ExecutableTransactionContainer {
   public inProgress: Set<TypedTransaction> = new Set();
   public pendingByOrigin: Map<string, Heap<TypedTransaction>> = new Map();
 
@@ -13,7 +13,7 @@ export class Executables {
    * @returns Cloned and reset executables.
    */
   public cloneAndReset() {
-    const executables = new Executables();
+    const executables = new ExecutableTransactionContainer();
     const { inProgress, pendingByOrigin: pending } = this;
 
     inProgress.forEach(transaction => {

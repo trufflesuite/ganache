@@ -21,7 +21,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
-import { Executables } from "./executables";
+import { ExecutableTransactionContainer } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   makeStepEvent,
@@ -100,7 +100,7 @@ export default class Miner extends Emittery<{
    * it conditionally.
    */
   #emitStepEvent: boolean = false;
-  readonly #executables: Executables;
+  readonly #executables: ExecutableTransactionContainer;
   readonly #options: EthereumInternalOptions["miner"];
   readonly #vm: VM;
   readonly #createBlock: (previousBlock: Block) => RuntimeBlock;
@@ -137,7 +137,7 @@ export default class Miner extends Emittery<{
    */
   constructor(
     options: EthereumInternalOptions["miner"],
-    executables: Executables,
+    executables: ExecutableTransactionContainer,
     vm: VM,
     createBlock: (previousBlock: Block) => RuntimeBlock
   ) {
