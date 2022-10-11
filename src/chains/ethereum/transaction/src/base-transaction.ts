@@ -133,7 +133,6 @@ export class BaseTransaction {
     transaction.v = this.v;
     transaction.r = this.r;
     transaction.s = this.s;
-    transaction.effectiveGasPrice = this.effectiveGasPrice;
     transaction.from = this.from;
   }
 }
