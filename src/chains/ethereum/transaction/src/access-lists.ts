@@ -15,7 +15,6 @@ import { Address } from "@ganache/ethereum-address";
 import { Params } from "./params";
 
 const STORAGE_KEY_LENGTH = 32;
-const ADDRESS_LENGTH = 20;
 
 /*
   As per https://github.com/ethereum/EIPs/blob/master/EIPS/eip-2930.md
@@ -107,7 +106,7 @@ export class AccessLists {
 
       const validStorageKeys: string[] = [];
       const validAccessListItem: AccessListItem = {
-        address: Data.from(address, ADDRESS_LENGTH).toString(),
+        address: Address.from(address).toString(),
         storageKeys: validStorageKeys
       };
       validAccessList.push(validAccessListItem);
