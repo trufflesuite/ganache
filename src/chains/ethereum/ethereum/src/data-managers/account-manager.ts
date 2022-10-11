@@ -18,9 +18,12 @@ export default class AccountManager {
   }
 
   /**
-   * Creates a copy of the trie that was used to mine the specified
-   * `blockNumber`. Sets the context of the trie to the state root and number
-   * of `blockNumber`.
+   * Creates a copy of the trie at the time in which the block represented by
+   * `blockNumber` was mined. For most blocks, the overall blockchain's `trie`
+   * property will be used. However, a pending block's data is never saved to
+   * the blockchain's `trie`, so the trie will be retrieved from the block
+   * itself. Sets the context of the trie to the state root and number of
+   * `blockNumber`.
    * @param blockNumber
    * @returns
    */
