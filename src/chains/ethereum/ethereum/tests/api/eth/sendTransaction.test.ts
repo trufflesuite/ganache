@@ -330,7 +330,7 @@ describe("api", () => {
           // https://eips.ethereum.org/EIPS/eip-2
 
           const options = EthereumOptionsConfig.normalize({});
-          const wallet = new Wallet(options.wallet);
+          const wallet = new Wallet(options.wallet, options.logging);
 
           function makeKeys(address: string) {
             const addressBuf = Data.toBuffer(address);

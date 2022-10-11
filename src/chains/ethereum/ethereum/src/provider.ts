@@ -155,7 +155,10 @@ export class EthereumProvider
       options as EthereumProviderOptions
     ));
 
-    const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
+    const wallet = (this.#wallet = new Wallet(
+      providerOptions.wallet,
+      providerOptions.logging
+    ));
     const accounts = wallet.initialAccounts;
     const fork =
       providerOptions.fork.url ||

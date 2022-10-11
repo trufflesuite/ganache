@@ -32,6 +32,7 @@ const SCRYPT_PARAMS = {
   r: 1
 } as const;
 const CIPHER = "aes-128-ctr";
+const MAX_ACCOUNTS = 100000;
 //#endregion
 
 type OmitLastType<T extends [unknown, ...Array<unknown>]> = T extends [
@@ -119,7 +120,15 @@ export default class Wallet {
   readonly unlockedAccounts = new Map<string, Data>();
   readonly lockTimers = new Map<string, NodeJS.Timeout>();
 
-  constructor(opts: EthereumInternalOptions["wallet"]) {
+  constructor(
+    opts: EthereumInternalOptions["wallet"],
+    logging: EthereumInternalOptions["logging"]
+  ) {
+    if (opts.totalAccounts > MAX_ACCOUNTS) {
+      logging.logger.log(
+        `wallet.totalAccounts exceeds MAX_ACCOUNTS (${MAX_ACCOUNTS}) and may affect performance.`
+      );
+    }
     // create a RNG from our initial starting conditions (opts.mnemonic)
     this.#randomRng = alea("ganache " + opts.mnemonic);
 
@@ -271,6 +280,7 @@ export default class Wallet {
       }
     } else {
       const numberOfAccounts = options.totalAccounts;
+
       if (numberOfAccounts != null) {
         for (let i = 0; i < numberOfAccounts; i++) {
           const acct = makeAccountAtIndex(i);
