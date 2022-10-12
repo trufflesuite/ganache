@@ -41,9 +41,12 @@ describe("@ganache/ethereum-transaction", async () => {
         { secretKey: `0x${"46".repeat(31)}47`, balance: 100n },
         { secretKey: `0x${"46".repeat(31)}48`, balance: 100n }
       ]
+    },
+    logging: {
+      logger: console
     }
   });
-  const wallet = new Wallet(options.wallet);
+  const wallet = new Wallet(options.wallet, options.logging);
   const [from, to, accessListAcc] = wallet.addresses;
 
   // #endregion configure accounts and private keys in wallet
