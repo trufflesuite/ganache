@@ -3021,7 +3021,12 @@ export default class EthereumApi implements Api {
               let effectiveGasReward: bigint;
               if ("maxPriorityFeePerGas" in tx) {
                 const maxPriorityFeePerGas = tx.maxPriorityFeePerGas.toBigInt();
-                effectiveGasReward = min(tx.maxFeePerGas.toBigInt() - baseFee, maxPriorityFeePerGas);
+                effectiveGasReward = BigInt(
+                  min(
+                    tx.maxFeePerGas.toBigInt() - baseFee,
+                    maxPriorityFeePerGas
+                  )
+                );
               } else {
                 effectiveGasReward = tx.gasPrice.toBigInt() - baseFee;
               }
