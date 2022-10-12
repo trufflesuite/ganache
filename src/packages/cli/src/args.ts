@@ -1,13 +1,11 @@
 import { TruffleColors } from "@ganache/colors";
 import yargs, { Options } from "yargs";
-import {
-  DefaultFlavor,
-  FilecoinFlavorName,
-  DefaultOptionsByName
-} from "@ganache/flavors";
+import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
 import {
   Base,
+  Defaults,
   Definitions,
+  NamespacedOptions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
 import { Command, Argv } from "./types";
@@ -86,9 +84,11 @@ function processOption(
     // the types held within each array
     const { cliType } = optionObj;
     const array = cliType && cliType.startsWith("array:"); // e.g. array:string or array:number
-    const type = (array
-      ? cliType.slice(6) // remove the "array:" part
-      : cliType) as YargsPrimitiveCliTypeStrings;
+    const type = (
+      array
+        ? cliType.slice(6) // remove the "array:" part
+        : cliType
+    ) as YargsPrimitiveCliTypeStrings;
 
     const options: Options = {
       group,
@@ -115,21 +115,19 @@ function processOption(
   }
 }
 
-function applyDefaults(
-  flavorDefaults:
-    | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
-    | typeof _DefaultServerOptions,
+function applyDefaults<D extends Defaults<NamespacedOptions>>(
+  flavorDefaults: D,
   flavorArgs: yargs.Argv<{}>,
-  flavor: keyof typeof DefaultOptionsByName
+  flavor: typeof DefaultFlavor | string
 ) {
   for (const category in flavorDefaults) {
     type GroupType = `${Capitalize<typeof category>}:`;
     const group = `${category[0].toUpperCase()}${category.slice(
       1
     )}:` as GroupType;
-    const categoryObj = (flavorDefaults[
+    const categoryObj = flavorDefaults[
       category
-    ] as unknown) as Definitions<Base.Config>;
+    ] as unknown as Definitions<Base.Config>;
     const state = {};
     for (const option in categoryObj) {
       const optionObj = categoryObj[option];
@@ -146,7 +144,7 @@ function applyDefaults(
   }
 }
 
-export default function (version: string, isDocker: boolean) {
+export const parseArgs = (version: string, isDocker: boolean) => {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
@@ -165,64 +163,68 @@ export default function (version: string, isDocker: boolean) {
         chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
     );
 
-  let flavor: keyof typeof DefaultOptionsByName;
-  for (flavor in DefaultOptionsByName) {
-    const flavorDefaults = DefaultOptionsByName[flavor];
-    let command: Command;
-    let defaultPort: number;
-    switch (flavor) {
-      // since "ethereum" is the DefaultFlavor we don't need a `case` for it
-      case FilecoinFlavorName:
-        command = flavor;
-        defaultPort = 7777;
-        break;
-      case DefaultFlavor:
-        command = ["$0", flavor];
-        defaultPort = 8545;
-        break;
-      default:
-        command = flavor;
-        defaultPort = 8545;
-    }
-
-    args = args.command(
-      command,
-      chalk`Use the {bold ${flavor}} flavor of Ganache`,
-      flavorArgs => {
-        applyDefaults(flavorDefaults, flavorArgs, flavor);
-
-        applyDefaults(_DefaultServerOptions, flavorArgs, flavor);
-
-        flavorArgs = flavorArgs
-          .option("server.host", {
-            group: "Server:",
-            description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
-            alias: ["h", "host", "hostname"],
-            type: "string",
-            default: isDocker ? "0.0.0.0" : "127.0.0.1"
-          })
-          .option("server.port", {
-            group: "Server:",
-            description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
-            alias: ["p", "port"],
-            type: "number",
-            default: defaultPort
-          })
-          .check(argv => {
-            const { "server.port": port, "server.host": host } = argv;
-            if (port < 1 || port > 65535) {
-              throw new Error(`Invalid port number '${port}'`);
-            }
-
-            if (host.trim() === "") {
-              throw new Error("Cannot leave host blank; please provide a host");
-            }
-
-            return true;
-          });
+  let flavor: string;
+  let flavorDefaults: any;
+  let command: Command;
+  let defaultPort: number;
+  const flavorArgIndex = process.argv.indexOf("--flavor", 2) + 1;
+  if (flavorArgIndex > 2) {
+    let flavor = process.argv[flavorArgIndex];
+    if (flavor !== "ethereum") {
+      if (flavor === "filecoin") {
+        flavor = "@ganache/filecoin";
       }
-    );
+      // load flavor plugin:
+      const flavorInterface = eval("require")(flavor);
+      ({ command, defaultPort } = flavorInterface.defaults);
+    } else {
+      flavorDefaults = DefaultOptionsByName["ethereum"];
+      command = ["$0", "ethereum"];
+      defaultPort = 8545;
+    }
+  } else {
+    flavorDefaults = DefaultOptionsByName["ethereum"];
+    command = ["$0", "ethereum"];
+    defaultPort = 8545;
   }
+
+  args = args.command(
+    command,
+    chalk`Use the {bold ${flavor}} flavor of Ganache`,
+    flavorArgs => {
+      applyDefaults(flavorDefaults, flavorArgs, flavor);
+
+      applyDefaults(_DefaultServerOptions as any, flavorArgs, flavor);
+
+      flavorArgs = flavorArgs
+        .option("server.host", {
+          group: "Server:",
+          description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
+          alias: ["h", "host", "hostname"],
+          type: "string",
+          default: isDocker ? "0.0.0.0" : "127.0.0.1"
+        })
+        .option("server.port", {
+          group: "Server:",
+          description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
+          alias: ["p", "port"],
+          type: "number",
+          default: defaultPort
+        })
+        .check(argv => {
+          const { "server.port": port, "server.host": host } = argv;
+          if (port < 1 || port > 65535) {
+            throw new Error(`Invalid port number '${port}'`);
+          }
+
+          if (host.trim() === "") {
+            throw new Error("Cannot leave host blank; please provide a host");
+          }
+
+          return true;
+        });
+    }
+  );
 
   args = args
     .showHelpOnFail(false, "Specify -? or --help for available options")
@@ -233,7 +235,7 @@ export default function (version: string, isDocker: boolean) {
   const parsedArgs = args.argv;
   const finalArgs = {
     flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
-  } as Argv;
+  } as Argv<any>;
   for (let key in parsedArgs) {
     // split on the first "."
     const [group, option] = key.split(/\.(.+)/);
@@ -247,4 +249,4 @@ export default function (version: string, isDocker: boolean) {
   }
 
   return finalArgs;
-}
+};

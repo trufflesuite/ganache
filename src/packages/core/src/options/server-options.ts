@@ -1,4 +1,3 @@
-import { DefaultFlavor, FilecoinFlavorName } from "@ganache/flavors";
 import { Definitions } from "@ganache/options";
 import { kMaxLength } from "buffer";
 
@@ -77,16 +76,8 @@ export const ServerOptions: Definitions<ServerConfig> = {
     normalize,
     cliDescription:
       "Defines the endpoint route the HTTP and WebSocket servers will listen on.",
-    default: (config, flavor) => {
-      switch (flavor) {
-        case FilecoinFlavorName:
-          return "/rpc/v0";
-        case DefaultFlavor:
-        default:
-          return "/";
-      }
-    },
-    defaultDescription: '"/" (Ethereum), "/rpc/v0" (Filecoin)'
+    default: () => "/",
+    defaultDescription: '"/"'
   },
   chunkSize: {
     normalize: number => {

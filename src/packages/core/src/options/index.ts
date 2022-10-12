@@ -1,4 +1,4 @@
-import { DefaultFlavor, FlavorName, FlavorOptions } from "@ganache/flavors";
+import { Flavor, FlavorOptions } from "@ganache/flavors";
 import { ServerConfig, ServerOptions } from "./server-options";
 import {
   Defaults,
@@ -7,12 +7,12 @@ import {
   InternalConfig,
   OptionsConfig
 } from "@ganache/options";
+import { EthereumFlavor } from "../..";
 
 /**
  * @public
  */
-export type ProviderOptions<T extends FlavorName = typeof DefaultFlavor> =
-  FlavorOptions<T>;
+export type ProviderOptions<F extends Flavor> = FlavorOptions<F>;
 
 export type Options = {
   server: ServerConfig;
@@ -21,11 +21,10 @@ export type Options = {
 /**
  * @public
  */
-export type ServerOptions<T extends FlavorName = typeof DefaultFlavor> =
-  Partial<{
-    [K in keyof Options]: ExternalConfig<Options[K]>;
-  }> &
-    ProviderOptions<T>;
+export type ServerOptions<F extends Flavor = EthereumFlavor> = Partial<{
+  [K in keyof Options]: ExternalConfig<Options[K]>;
+}> &
+  ProviderOptions<F>;
 
 export type InternalOptions = {
   [K in keyof Options]: InternalConfig<Options[K]>;

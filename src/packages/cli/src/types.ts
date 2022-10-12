@@ -1,15 +1,11 @@
-import { DefaultFlavor, FlavorName } from "@ganache/flavors";
+import { DefaultFlavor, Flavor } from "@ganache/flavors";
 import { ServerOptions } from "@ganache/core";
 
-type CliOptions = {
-  host: string;
-  port: number;
-};
-export type Argv = ServerOptions<FlavorName> & {
-  _: [FlavorName];
-  server: CliOptions;
+export type Argv<F extends Flavor> = ServerOptions<F> & {
+  _: [F["flavor"]];
+  server: CliSettings;
 };
 
 export type CliSettings = { host: string; port: number };
 
-export type Command = FlavorName | ["$0", typeof DefaultFlavor];
+export type Command = string | ["$0", typeof DefaultFlavor];

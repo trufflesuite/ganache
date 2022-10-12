@@ -1,14 +1,15 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
-import { DefaultFlavor, FlavorName } from "@ganache/flavors";
+import { DefaultFlavor, Flavor } from "@ganache/flavors";
 import { GetConnector, FlavorOptions } from "@ganache/flavors";
+import { EthereumFlavor } from "..";
 
-const initialize = <T extends FlavorName = typeof DefaultFlavor>(
-  options: FlavorOptions<T> = {
+const initialize = <F extends Flavor = EthereumFlavor>(
+  options: FlavorOptions<F> = {
     flavor: DefaultFlavor,
     chain: { asyncRequestProcessing: true }
-  } as FlavorOptions<T>
+  } as FlavorOptions<F>
 ) => {
-  const flavor = (options.flavor || DefaultFlavor) as T;
+  const flavor = (options.flavor || DefaultFlavor) as F["flavor"];
 
   // Set up our request coordinator to either use FIFO or or async request
   // processing. The RequestCoordinator _can_ be used to coordinate the number
@@ -16,10 +17,10 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
   // of "all" (0) or just 1 as we are doing here:
   let asyncRequestProcessing: boolean;
 
-  if ("chain" in options && "asyncRequestProcessing" in options["chain"]) {
+  if ("chain" in options && "asyncRequestProcessing" in options.chain) {
     asyncRequestProcessing = options.chain.asyncRequestProcessing;
   } else if ("asyncRequestProcessing" in options) {
-    asyncRequestProcessing = options.asyncRequestProcessing;
+    asyncRequestProcessing = options["asyncRequestProcessing"];
   } else {
     asyncRequestProcessing = true;
   }

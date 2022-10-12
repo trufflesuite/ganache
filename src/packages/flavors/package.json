@@ -49,10 +49,7 @@
     "@ganache/colors": "0.3.0",
     "@ganache/ethereum": "0.5.3",
     "@ganache/ethereum-options": "0.5.3",
-    "@ganache/filecoin": "0.5.2",
-    "@ganache/filecoin-options": "0.5.2",
     "@ganache/options": "0.5.2",
-    "@ganache/tezos": "0.5.2",
     "@ganache/utils": "0.5.2",
     "chalk": "4.1.0"
   },

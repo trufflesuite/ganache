@@ -2,11 +2,9 @@
 
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
-import args from "./args";
-import { EthereumFlavorName, FilecoinFlavorName } from "@ganache/flavors";
+import { parseArgs } from "./args";
+import { EthereumFlavorName } from "@ganache/flavors";
 import initializeEthereum from "./initialize/ethereum";
-import initializeFilecoin from "./initialize/filecoin";
-import type { FilecoinProvider } from "@ganache/filecoin";
 import type { EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
@@ -37,7 +35,7 @@ const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @gana
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
-const argv = args(detailedVersion, isDocker);
+const argv = parseArgs(detailedVersion, isDocker);
 
 const flavor = argv.flavor;
 
@@ -127,19 +125,10 @@ async function startGanache(err: Error) {
   }
   started = true;
 
-  switch (flavor) {
-    case FilecoinFlavorName: {
-      await initializeFilecoin(
-        server.provider as FilecoinProvider,
-        cliSettings
-      );
-      break;
-    }
-    case EthereumFlavorName:
-    default: {
-      initializeEthereum(server.provider as EthereumProvider, cliSettings);
-      break;
-    }
+  if (flavor === EthereumFlavorName) {
+    initializeEthereum(server.provider as EthereumProvider, cliSettings);
+  } else {
+    await require(flavor).defaults.initialize(server.provider, cliSettings);
   }
 }
 console.log("Starting RPC server");

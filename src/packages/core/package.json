@@ -51,7 +51,6 @@
     "@ganache/ethereum": "0.5.3",
     "@ganache/flavors": "0.5.3",
     "@ganache/options": "0.5.2",
-    "@ganache/tezos": "0.5.2",
     "@ganache/utils": "0.5.2",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
     "aggregate-error": "3.1.0",

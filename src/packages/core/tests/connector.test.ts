@@ -77,7 +77,7 @@ describe("connector", () => {
 
   it("rejects invalid rpc methods", async () => {
     const p = Ganache.provider({
-      logger: { log: () => {} }
+      logging: { logger: { log: () => {} } }
     });
 
     const illegalMethodNames = [

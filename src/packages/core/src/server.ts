@@ -33,17 +33,17 @@ setUwsGlobalConfig &&
 
 import {
   Connector,
-  ConnectorsByName,
   DefaultFlavor,
-  FlavorName,
+  Flavor,
   FlavorOptions
 } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
+import { EthereumFlavor } from "..";
 
-export type Provider = Connector["provider"];
+export type Provider = Connector<any, any, any>["provider"];
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -107,21 +107,22 @@ export const _DefaultServerOptions = serverDefaults;
 /**
  * @public
  */
-export class Server<
-  Flavor extends FlavorName = typeof DefaultFlavor
-> extends Emittery<{ open: undefined; close: undefined }> {
+export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
+  open: undefined;
+  close: undefined;
+}> {
   #options: InternalOptions;
-  #providerOptions: FlavorOptions<Flavor>;
+  #providerOptions: FlavorOptions<F>;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
-  #httpServer: HttpServer | null = null;
+  #httpServer: HttpServer<F["connector"]> | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: ConnectorsByName[Flavor];
+  #connector: F["connector"];
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<[void, void]>;
 
-  public get provider(): ConnectorsByName[Flavor]["provider"] {
+  public get provider(): F["provider"] {
     return this.#connector.provider;
   }
 
@@ -130,9 +131,9 @@ export class Server<
   }
 
   constructor(
-    providerAndServerOptions: ServerOptions<Flavor> = {
+    providerAndServerOptions: ServerOptions<F> = {
       flavor: DefaultFlavor
-    } as ServerOptions<Flavor>
+    } as ServerOptions<F>
   ) {
     super();
     this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
@@ -145,7 +146,7 @@ export class Server<
     //   const provider = server.provider;
     //   await server.listen(8545)
     const loader = ConnectorLoader.initialize(this.#providerOptions);
-    const connector = (this.#connector = loader.connector);
+    const connector = (this.#connector = loader.connector as F["connector"]);
 
     // Since the ConnectorLoader starts an async promise that we intentionally
     // don't await yet we keep the promise around for something else to handle
@@ -156,7 +157,7 @@ export class Server<
     ]);
   }
 
-  private async initialize(connector: Connector) {
+  private async initialize(connector: F["connector"]) {
     const _app = (this.#app = App());
 
     if (this.#options.server.ws) {

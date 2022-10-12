@@ -1,16 +1,27 @@
-import { ConnectorsByName, DefaultFlavor, FlavorName } from "@ganache/flavors";
+import { EthereumConnector, Flavor } from "@ganache/flavors";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import ConnectorLoader from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
 import Server from "./src/server";
 export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
-
+import type {
+  EthereumProvider,
+  EthereumProviderOptions
+} from "@ganache/flavors";
 export type {
   Provider,
   Ethereum,
   EthereumProvider,
-  FilecoinProvider
+  EthereumProviderOptions
 } from "@ganache/flavors";
+
+export interface EthereumFlavor {
+  flavor: "ethereum";
+  provider: EthereumProvider;
+  ProviderOptions: EthereumProviderOptions;
+  connector: EthereumConnector;
+}
+
 export type { ProviderOptions, ServerOptions } from "./src/options";
 export type _ExperimentalInfo = Readonly<{
   version: string;
@@ -43,9 +54,9 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  server: <T extends FlavorName = typeof DefaultFlavor>(
-    options?: ServerOptions<T>
-  ) => new Server(options),
+  server: <F extends Flavor = EthereumFlavor>(
+    options?: ServerOptions<F>
+  ): Server<F> => new Server<F>(options),
 
   /**
    * Initializes a Web3 provider for a Ganache instance.
@@ -61,10 +72,10 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  provider: <Flavor extends FlavorName = typeof DefaultFlavor>(
-    options?: ProviderOptions<Flavor>
-  ): ConnectorsByName[Flavor]["provider"] => {
-    const loader = ConnectorLoader.initialize<Flavor>(options);
+  provider: <F extends Flavor = EthereumFlavor>(
+    options?: ProviderOptions<F>
+  ): F["provider"] => {
+    const loader = ConnectorLoader.initialize<F>(options);
     return loader.connector.provider;
   },
   /**
