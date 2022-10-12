@@ -25,7 +25,7 @@ export default class AccountManager {
    * itself. Sets the context of the trie to the state root and number of
    * `blockNumber`.
    * @param blockNumber
-   * @returns
+   * @returns {GanacheTrie}
    */
   public async getTrieAt(blockNumber: string | Buffer | Tag = Tag.latest) {
     const { trie, blocks } = this.#blockchain;
