@@ -547,6 +547,7 @@ export const createAccessList = async ({
     // checkpoint so we can get back to this vm state after every time we
     // run this loop
     await stateManager.checkpoint();
+    warmAccessList(stateManager, previousAccessList);
     const callResult = await _runCall({
       blockchain,
       runCallOpts,
@@ -572,6 +573,7 @@ export const createAccessList = async ({
     } else {
       // we are going to run this loop again so revert our changes
       await stateManager.revert();
+      stateManager.clearWarmedAccounts();
       previousAccessList = accessList;
     }
     iterations++;
