@@ -449,7 +449,7 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.s, tx.s);
     });
     it("has a copy function which makes identical transactions", () => {
-      const copy = tx.copy();
+      const copy = tx.clone();
       for (const prop in tx) {
         if (!hasOwn(tx, prop) || TRANSACTION_COPY_EXCLUSIONS.includes(prop))
           continue;
@@ -532,7 +532,7 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.s, tx.s);
     });
     it("has a copy function which makes identical transactions", () => {
-      const copy = tx.copy();
+      const copy = tx.clone();
       for (const prop in tx) {
         if (!hasOwn(tx, prop) || TRANSACTION_COPY_EXCLUSIONS.includes(prop))
           continue;
@@ -621,7 +621,7 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.s, tx.s);
     });
     it("has a copy function which makes identical transactions", () => {
-      const copy = tx.copy();
+      const copy = tx.clone();
       for (const prop in tx) {
         if (!hasOwn(tx, prop) || TRANSACTION_COPY_EXCLUSIONS.includes(prop))
           continue;
