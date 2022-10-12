@@ -489,11 +489,7 @@ export const runCall = async ({
     overrides
   });
 
-  // we want to warm the access list provided by the user for a run call but
-  // _not_ for creating an access list. warming the addresses ahead of time will
-  // make it so that the contents of the user-provided access list are _always_
-  // in the generated access list, but we want the generated access list to be
-  // the "best". so we do this here rather than in the common setup functions
+  // we want to warm the access list provided by the user
   if (common.isActivatedEIP(2930) && transaction.accessList) {
     warmAccessList(stateManager, transaction.accessList);
   }
