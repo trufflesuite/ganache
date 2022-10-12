@@ -4,7 +4,7 @@ import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
 import { EthereumFlavorName } from "@ganache/flavors";
-import initializeEthereum from "./initialize/ethereum";
+import { initialize as initializeEthereum } from "@ganache/ethereum";
 import type { EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {

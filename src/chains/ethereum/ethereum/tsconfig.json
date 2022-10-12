@@ -53,6 +53,10 @@
     {
       "name": "@ganache/console.log",
       "path": "../console.log"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../../../packages/colors"
     }
   ]
 }
