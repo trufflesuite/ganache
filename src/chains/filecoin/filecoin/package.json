@@ -12,7 +12,7 @@
     "node": ">=12.17.0 <17.0.0",
     "npm": ">=6.14.4"
   },
-  "main": "lib/index.js",
+  "main": "dist/node/ganache-filecoin.min.js",
   "typings": "typings",
   "directories": {
     "lib": "lib",
@@ -51,7 +51,8 @@
     "ipfs-http-server": "0.1.4",
     "ipld-dag-cbor": "0.17.0",
     "leveldown": "6.1.0",
-    "secp256k1": "4.0.3"
+    "secp256k1": "4.0.3",
+    "keccak": "3.0.2"
   },
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",
