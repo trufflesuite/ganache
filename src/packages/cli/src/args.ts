@@ -176,7 +176,12 @@ export const parseArgs = (version: string, isDocker: boolean) => {
       }
       // load flavor plugin:
       const flavorInterface = eval("require")(flavor);
-      ({ command, defaultPort } = flavorInterface.defaults);
+      command = ["$0"] as any;
+      args = args.option("flavor", {
+        type: "string",
+        choices: [flavor]
+      });
+      ({ port: defaultPort } = flavorInterface.defaults);
     } else {
       flavorDefaults = DefaultOptionsByName["ethereum"];
       command = ["$0", "ethereum"];
@@ -234,7 +239,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
 
   const parsedArgs = args.argv;
   const finalArgs = {
-    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
+    flavor: parsedArgs.flavor ? parsedArgs.flavor : DefaultFlavor
   } as Argv<any>;
   for (let key in parsedArgs) {
     // split on the first "."

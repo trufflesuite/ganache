@@ -6,28 +6,18 @@
  */
 
 import { FilecoinProviderOptions } from "@ganache/filecoin-options";
-import {
-  Connector as FilecoinConnector,
-  FilecoinProvider,
+import { Connector, FilecoinProvider } from "./src/connector";
+export {
+  Connector,
+  FilecoinProvider as Provider,
   StorageDealStatus
 } from "./src/connector";
-export type {
-  Connector as FilecoinConnector,
-  FilecoinProvider,
-  StorageDealStatus
-} from "./src/connector";
-
-export default {
-  Connector: FilecoinConnector,
-  FilecoinProvider,
-  StorageDealStatus
-};
 
 export interface FilecoinFlavor {
   flavor: "@ganache/filecoin" | "filecoin";
   provider: FilecoinProvider;
   ProviderOptions: FilecoinProviderOptions;
-  connector: FilecoinConnector;
+  connector: Connector;
 }
 
 export const initialize = async function (
@@ -72,4 +62,8 @@ export const initialize = async function (
   console.log(
     `IPFS  RPC listening on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`
   );
+};
+
+export const defaults = {
+  port: 7777
 };

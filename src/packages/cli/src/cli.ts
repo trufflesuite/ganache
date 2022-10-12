@@ -128,7 +128,7 @@ async function startGanache(err: Error) {
   if (flavor === EthereumFlavorName) {
     initializeEthereum(server.provider as EthereumProvider, cliSettings);
   } else {
-    await require(flavor).defaults.initialize(server.provider, cliSettings);
+    await require(flavor).initialize(server.provider, cliSettings);
   }
 }
 console.log("Starting RPC server");
