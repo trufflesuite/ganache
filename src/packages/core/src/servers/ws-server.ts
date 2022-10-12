@@ -138,10 +138,11 @@ export default class WebsocketServer {
 
           // if the result is an emitter listen to its `"message"` event
           // We check if `on` is a function rather than check if
-          // `resultEmitter instanceof PromiEvent` because `@ganache/filecoin`
+          // `resultEmitter instanceof PromiEvent` because flavor plugins
           // and `ganache` webpack `@ganache/utils` separately. This causes
-          // instanceof to fail here. Since we know `resultEmitter` is MergePromiseT
-          // we can safely assume that if `on` is a function, then we have a PromiEvent
+          // `instanceof` to fail here. Since we know `resultEmitter` is
+          // MergePromiseT we can safely assume that if `on` is a function, then
+          // we have a PromiEvent
           if (typeof resultEmitter["on"] === "function") {
             const resultEmitterPromiEvent = resultEmitter as PromiEvent<any>;
             resultEmitterPromiEvent.on("message", (result: any) => {
