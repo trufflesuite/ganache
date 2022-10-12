@@ -5,7 +5,10 @@
  * @license MIT
  */
 
-import { FilecoinProviderOptions } from "@ganache/filecoin-options";
+import {
+  FilecoinDefaults,
+  FilecoinProviderOptions
+} from "@ganache/filecoin-options";
 import { Connector, FilecoinProvider } from "./src/connector";
 export {
   Connector,
@@ -64,6 +67,17 @@ export const initialize = async function (
   );
 };
 
-export const defaults = {
-  port: 7777
+export const defaults: typeof FilecoinDefaults & {
+  server: {
+    rpcEndpoint: { default: () => "/rpc/v0" };
+    port: { default: () => 7777 };
+  };
+} = {
+  server: {
+    rpcEndpoint: { default: () => "/rpc/v0" },
+    port: {
+      default: () => 7777
+    }
+  },
+  ...FilecoinDefaults
 };

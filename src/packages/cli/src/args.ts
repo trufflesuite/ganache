@@ -181,7 +181,12 @@ export const parseArgs = (version: string, isDocker: boolean) => {
         type: "string",
         choices: [flavor]
       });
-      ({ port: defaultPort } = flavorInterface.defaults);
+      flavorDefaults = flavorInterface.defaults;
+      if (flavorDefaults.server) {
+        if (flavorDefaults.server.port) {
+          defaultPort = flavorDefaults.server.port.default();
+        }
+      }
     } else {
       flavorDefaults = DefaultOptionsByName["ethereum"];
       command = ["$0", "ethereum"];
@@ -197,9 +202,10 @@ export const parseArgs = (version: string, isDocker: boolean) => {
     command,
     chalk`Use the {bold ${flavor}} flavor of Ganache`,
     flavorArgs => {
-      applyDefaults(flavorDefaults, flavorArgs, flavor);
-
       applyDefaults(_DefaultServerOptions as any, flavorArgs, flavor);
+      // flavorDefaults are applied after the default server options so that
+      // the flavor defaults can override the default server options
+      applyDefaults(flavorDefaults, flavorArgs, flavor);
 
       flavorArgs = flavorArgs
         .option("server.host", {
