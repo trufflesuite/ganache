@@ -2934,7 +2934,7 @@ export default class EthereumApi implements Api {
     // technically valid per the spec but we cannot go past the Genesis Block. Values
     // above MAX_BLOCKS are technically within spec, however we cap totalBlocks because
     // of the resource needs and potential abuse of a very large blockCount.
-    const totalBlocks = Quantity.toNumber(
+    const totalBlocks = Number(
       min(
         max(Quantity.toBigInt(blockCount), MIN_BLOCKS),
         newestBlockNumber + 1n,
