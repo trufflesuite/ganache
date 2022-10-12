@@ -87,7 +87,7 @@ describe("api", () => {
         );
         assert.strictEqual(
           pendingStorage1,
-          "0x01",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
           "Unexpected storage value for key 1 in pending block."
         );
       });
