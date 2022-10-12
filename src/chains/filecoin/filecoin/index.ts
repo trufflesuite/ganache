@@ -63,7 +63,7 @@ export const initialize = async function (
     `Lotus RPC listening on ${serverSettings.host}:${serverSettings.port}`
   );
   console.log(
-    `IPFS  RPC listening on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`
+    `IPFS RPC listening on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`
   );
 };
 
