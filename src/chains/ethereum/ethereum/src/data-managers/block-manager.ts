@@ -15,6 +15,7 @@ import {
   TransactionFactory,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
+import { Ethereum } from "../api-types";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -130,10 +131,10 @@ export default class BlockManager extends Manager<Block> {
       blockNumber = tagOrBlockNumber.toString();
     }
 
-    const json = await fallback.request<any>("eth_getBlockByNumber", [
-      blockNumber,
-      true
-    ]);
+    const json = await fallback.request<Ethereum.Block<true, "public">>(
+      "eth_getBlockByNumber",
+      [blockNumber, true]
+    );
     if (json == null) {
       return null;
     } else {
