@@ -178,8 +178,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
       const flavorInterface = eval("require")(flavor);
       command = ["$0"] as any;
       args = args.option("flavor", {
-        type: "string",
-        choices: [flavor]
+        type: "string"
       });
       flavorDefaults = flavorInterface.defaults;
       if (flavorDefaults.server) {

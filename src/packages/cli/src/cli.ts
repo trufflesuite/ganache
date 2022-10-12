@@ -37,7 +37,7 @@ const isDocker =
 
 const argv = parseArgs(detailedVersion, isDocker);
 
-const flavor = argv.flavor;
+let flavor = argv.flavor;
 
 const cliSettings = argv.server;
 
@@ -128,7 +128,8 @@ async function startGanache(err: Error) {
   if (flavor === EthereumFlavorName) {
     initializeEthereum(server.provider as EthereumProvider, cliSettings);
   } else {
-    await require(flavor).initialize(server.provider, cliSettings);
+    if (flavor === "filecoin") flavor = "@ganache/filecoin";
+    await eval("require")(flavor).initialize(server.provider, cliSettings);
   }
 }
 console.log("Starting RPC server");
