@@ -30,14 +30,12 @@ export class Block {
   protected _common: Common;
   protected _rawTransactions: TypedDatabaseTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
-  protected _serialized: Buffer;
 
   public header: BlockHeader;
 
   constructor(serialized: Buffer, common: Common) {
     this._common = common;
     if (serialized) {
-      this._serialized = serialized;
       const deserialized = decode<GanacheRawBlock>(serialized);
       this._raw = deserialized[0];
       this._rawTransactions = deserialized[1] || [];
@@ -130,16 +128,13 @@ export class Block {
   }
 
   toRaw() {
-    return (
-      this._serialized ||
-      (this._serialized = serialize([
-        this._raw,
-        this._rawTransactions,
-        [],
-        this.header.totalDifficulty.toBuffer(),
-        this._rawTransactionMetaData
-      ]).serialized)
-    );
+    return serialize([
+      this._raw,
+      this._rawTransactions,
+      [],
+      this.header.totalDifficulty.toBuffer(),
+      this._rawTransactionMetaData
+    ]).serialized;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {
