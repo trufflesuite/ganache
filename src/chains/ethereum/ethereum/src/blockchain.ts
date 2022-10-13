@@ -1343,7 +1343,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           case "SLOAD": {
             const key = stack[stack.length - 1];
             const result = await vm.stateManager.getContractStorage(
-              event.address as any,
+              event.address,
               key.toBuffer()
             );
             const value = TraceData.from(result);
