@@ -93,7 +93,7 @@ export default class BlockManager extends Manager<Block> {
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach((tx, index) => {
       const blockExtra = [
-        Quantity.toBuffer(tx.from),
+        Address.toBuffer(tx.from),
         Quantity.toBuffer(tx.hash)
       ] as any;
       const txExtra = [
