@@ -578,7 +578,7 @@ export const createAccessList = async ({
     }
     iterations++;
   } while (iterations < MAX_ITERATIONS);
-  // we've tried too many times, but so return our latest attempt
+  // we've tried too many times, so return our latest attempt
   const gasUsed = _getAccessListGasUsed(
     previousAccessList,
     intrinsicGas,
@@ -588,7 +588,7 @@ export const createAccessList = async ({
 };
 
 /**
- * @returns {Quantity} The gas used by the transaction with the EIPP2930 data
+ * @returns {Quantity} The gas used by the transaction with the EIP2930 data
  * fee.
  */
 const _getAccessListGasUsed = (
