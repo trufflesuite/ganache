@@ -75,7 +75,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       blockNumber: this.blockNumber ? this.blockNumber : null,
       transactionIndex: this.index ? this.index : null,
       from: this.from,
-      to: this.to.isNull() ? null : this.to,
+      to: this.to ? this.to : null,
       value: this.value,
       gas: this.gas,
       gasPrice: this.gasPrice,
