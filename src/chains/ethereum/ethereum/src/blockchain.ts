@@ -739,10 +739,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit accounts, but for forking.
       const stateManager = <DefaultStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
-      initialAccounts.forEach(acc => {
-        const a = { buf: acc.address.toBuffer() } as any;
-        (stateManager as DefaultStateManager)._cache.put(a, acc as any);
-        (this.vm.eei as any).touchAccount(a);
+      initialAccounts.forEach(account => {
+        this.vm.eei.putAccount(account.address, account as any);
       });
       await stateManager.commit();
 
