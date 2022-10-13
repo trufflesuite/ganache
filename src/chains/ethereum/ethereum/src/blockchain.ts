@@ -1103,7 +1103,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
     const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
-    const test: Address = Address.from(transaction.to.toString());
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
