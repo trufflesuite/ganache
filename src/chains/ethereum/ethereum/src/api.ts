@@ -2853,8 +2853,7 @@ export default class EthereumApi implements Api {
    * @param blockNumber - Integer block number, or the string "latest", "earliest"
    *  or "pending".
    *
-   * @returns An array of addresses and storage keys used by the transaction, plus an estimate
-   * of the gas consumed by running the transaction _with_ the generated access list included.
+   * @returns An array of addresses and storage keys used by the transaction, together with the input transaction's `accessList`, if supplied, plus an estimate of the gas consumed by running the transaction _with_ the generated access list included.
    * @example
    * ```javascript
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });

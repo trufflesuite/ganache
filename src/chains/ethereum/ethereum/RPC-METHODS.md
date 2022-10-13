@@ -199,7 +199,7 @@ Creates an `accessList` based of the given transaction.
 
 ##### Returns
 
-`Promise<{accessList: AccessList, gasUsed: bigint}>` : An array of addresses and storage keys used by the transaction, plus an estimate of the gas consumed by running the transaction _with_ the generated access list included.
+`Promise<{accessList: AccessList, gasUsed: bigint}>` : An array of addresses and storage keys used by the transaction, together with the input transaction's `accessList`, if supplied, plus an estimate of the gas consumed by running the transaction _with_ the generated access list included.
 
 ---
 
