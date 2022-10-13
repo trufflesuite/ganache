@@ -1,8 +1,7 @@
-import { Address as EJSAddress, isValidAddress } from "@ethereumjs/util";
-import { BUFFER_EMPTY, JsonRpcDataInputArg, Quantity } from "@ganache/utils";
+import { Address as EJSAddress } from "@ethereumjs/util";
+import { JsonRpcDataInputArg, Data } from "@ganache/utils";
 
 export class Address extends EJSAddress {
-  public static Empty = Address.from(BUFFER_EMPTY);
   static ByteLength = 20;
 
   constructor(value: Buffer) {
@@ -14,13 +13,7 @@ export class Address extends EJSAddress {
   }
 
   public static from<T extends string | Buffer = string | Buffer>(value: T) {
-    if (typeof value === "string") {
-      if (!isValidAddress(value)) {
-        throw new Error("Invalid address");
-      }
-      return new Address(Quantity.toBuffer(value));
-    }
-    return new Address(value);
+    return new Address(Data.toBuffer(value, Address.ByteLength));
   }
 
   static toBuffer(value: JsonRpcDataInputArg): Buffer {
