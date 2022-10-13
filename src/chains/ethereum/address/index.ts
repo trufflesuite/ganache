@@ -8,10 +8,6 @@ export class Address extends EJSAddress {
     super(value);
   }
 
-  public isNull() {
-    return this.buf == null;
-  }
-
   public static from<T extends string | Buffer = string | Buffer>(value: T) {
     return new Address(Data.toBuffer(value, Address.ByteLength));
   }
