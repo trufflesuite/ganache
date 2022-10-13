@@ -2839,7 +2839,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * Creates an `accessList` based of the given transaction.
+   * Creates an `accessList` based off the given transaction.
    *
    * Transaction call object:
    * * `from`: `DATA`, 20 bytes (optional) - The address the transaction is sent from.
