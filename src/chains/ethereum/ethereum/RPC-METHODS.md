@@ -194,7 +194,7 @@ Creates an `accessList` based of the given transaction.
 
 ##### Arguments
 
-- `transaction: any` : The transaction call object as seen in source.
+- `transaction: Ethereum.Transaction` : The transaction call object as seen in source.
 - `blockNumber: QUANTITY | TAG` : Integer block number, or the string "latest", "earliest" or "pending".
 
 ##### Returns
