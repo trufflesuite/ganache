@@ -1,3 +1,5 @@
+import { Address } from "@ethereumjs/util";
+
 export type VmTransaction =
   | {
       nonce: bigint;
@@ -5,10 +7,10 @@ export type VmTransaction =
       gasLimit: bigint;
       maxPriorityFeePerGas?: never;
       maxFeePerGas?: never;
-      to: { buf: Buffer };
+      to: Address;
       value: bigint;
       data: Buffer;
-      getSenderAddress: () => { buf: Buffer };
+      getSenderAddress: () => Address;
       getBaseFee: () => bigint;
       getUpfrontCost: () => bigint;
     }
@@ -18,10 +20,10 @@ export type VmTransaction =
       gasLimit: bigint;
       maxPriorityFeePerGas?: bigint;
       maxFeePerGas?: bigint;
-      to: { buf: Buffer };
+      to: Address;
       value: bigint;
       data: Buffer;
-      getSenderAddress: () => { buf: Buffer };
+      getSenderAddress: () => Address;
       getBaseFee: () => bigint;
       getUpfrontCost: () => bigint;
     };

@@ -4,7 +4,8 @@ import {
   keccak,
   BUFFER_32_ZERO,
   BUFFER_ZERO,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  BUFFER_EMPTY
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
@@ -66,7 +67,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas = Quantity.from(data[2]);
       this.maxFeePerGas = Quantity.from(data[3]);
       this.gas = Quantity.from(data[4]);
-      this.to = data[5].length == 0 ? Address.Empty : Address.from(data[5]);
+      this.to = data[5].length == 0 ? null : Address.from(data[5]);
       this.value = Quantity.from(data[6]);
       this.data = Data.from(data[7]);
       const accessListData = AccessLists.getAccessListData(data[8]);
@@ -152,9 +153,6 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
-    const from = this.from;
-    const sender = from.toBuffer();
-    const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
@@ -162,20 +160,11 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       maxPriorityFeePerGas: this.maxPriorityFeePerGas.toBigInt(),
       maxFeePerGas: this.maxFeePerGas.toBigInt(),
       gasLimit: this.gas.toBigInt(),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
+      to: this.to,
       value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
-        toString() {
-          return from.toString();
-        }
-      }),
+      getSenderAddress: () => this.from,
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
@@ -264,7 +253,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas.toBuffer(),
       this.maxFeePerGas.toBuffer(),
       this.gas.toBuffer(),
-      this.to.toBuffer(),
+      this.to ? this.to.toBuffer() : BUFFER_EMPTY,
       this.value.toBuffer(),
       this.data.toBuffer(),
       this.accessList,

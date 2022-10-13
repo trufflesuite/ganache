@@ -4,7 +4,8 @@ import {
   keccak,
   BUFFER_ZERO,
   BUFFER_32_ZERO,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  BUFFER_EMPTY
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
@@ -62,7 +63,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.nonce = Quantity.from(data[1]);
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data[2]);
       this.gas = Quantity.from(data[3]);
-      this.to = data[4].length == 0 ? Address.Empty : Address.from(data[4]);
+      this.to = data[4].length == 0 ? null : Address.from(data[4]);
       this.value = Quantity.from(data[5]);
       this.data = Data.from(data[6]);
       const accessListData = AccessLists.getAccessListData(data[7]);
@@ -149,29 +150,17 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
-    const from = this.from;
-    const sender = this.from.toBuffer();
-    const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
       nonce: this.nonce.toBigInt(),
       gasPrice: this.gasPrice.toBigInt(),
       gasLimit: this.gas.toBigInt(),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
+      to: this.to,
       value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
-        toString() {
-          return from.toString();
-        }
-      }),
+      getSenderAddress: () => this.from,
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
@@ -248,7 +237,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
       this.gas.toBuffer(),
-      this.to.toBuffer(),
+      this.to ? this.to.toBuffer() : BUFFER_EMPTY,
       this.value.toBuffer(),
       this.data.toBuffer(),
       this.accessList,
