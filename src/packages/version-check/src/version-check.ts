@@ -6,7 +6,7 @@ import { ConfigFileManager } from "./config-file-manager";
 import { bannerMessage } from "./banner-message";
 import type { VersionCheckConfig } from "./config-file-manager";
 
-const ONE_DAY = 86400;
+const ONE_DAY: number = 86400;
 
 export class VersionCheck {
   private ConfigFileManager: ConfigFileManager;
@@ -41,15 +41,15 @@ export class VersionCheck {
     this.getLatestVersion();
   }
 
-  private _setConfig(config) {
+  private _setConfig(config: VersionCheckConfig) {
     this._config = this.ConfigFileManager.setConfig(config);
   }
 
-  getConfig() {
+  getConfig(): VersionCheckConfig {
     return this.ConfigFileManager.getConfig();
   }
 
-  configFileLocation() {
+  configFileLocation(): string {
     return this.ConfigFileManager.configFileLocation();
   }
 
@@ -70,7 +70,7 @@ export class VersionCheck {
     this._session = null;
   }
 
-  canNotifyUser() {
+  canNotifyUser(): boolean {
     return (
       !!this._currentVersion &&
       this._config.enabled &&
@@ -79,14 +79,14 @@ export class VersionCheck {
     );
   }
 
-  alreadyLoggedThisVersion() {
+  alreadyLoggedThisVersion(): boolean {
     return !semverUpgradeType(
       this._config.latestVersionLogged,
       this._config.latestVersion
     );
   }
 
-  notificationIntervalHasPassed() {
+  notificationIntervalHasPassed(): boolean {
     const timePassed = new Date().getTime() - this._config.lastNotification;
     return timePassed > this._notificationInterval;
   }
@@ -102,7 +102,7 @@ export class VersionCheck {
     }
   }
 
-  private fetchLatest() {
+  private fetchLatest(): Promise<string> {
     this.destroy();
     const { packageName, url, ttl } = this._config;
 
@@ -119,7 +119,7 @@ export class VersionCheck {
       req
         .on("error", reject)
         .on("response", (headers, flags) => {
-          let data = "";
+          let data: string = "";
           req
             .on("data", chunk => {
               data += chunk;

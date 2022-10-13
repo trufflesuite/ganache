@@ -28,20 +28,17 @@ VC relies on the `semver` package to perform `diff` and validation of semver.
 
 #### Usage
 
-VC is flexible in how it may be implemented
+The constructor requires a `currentVersionSemVer` and accepts an optional config and logger function.
 
 ```javascript
 const vc = new VersionCheck(currentVersionSemVer, [config], [logger]);
 ```
 
-The constructor requires a `currentVersionSemVer` and accepts an optional config and logger function.
-
 ```javascript
 vc.init().log();
 ```
 
-`init` will initialize a request to fetch the version in the background and then update the `latestVersion` on disk, if it has changed.
-`log` will perform the required notification checks and, if they pass, log the banner message to the user based on the current `latestVersion` on disk.
+`log` will log the banner message to the user if the current is older than the `latestVersion` found on [npmjs.org](https://www.npmjs.com/package/ganache).
 
 `init` will not await the fetch, it fires the request and does not concern itself with the outcome or results. If the desired behavior is to wait for a response before logging to the user (forgoing the eventual consistency spec), VC can be used as such:
 
