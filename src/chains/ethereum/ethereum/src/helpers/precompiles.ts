@@ -32,11 +32,11 @@ const makeAccount = (i: number): Address => {
  */
 export const activatePrecompiles = async (eei: EEIInterface) => {
   await eei.checkpoint();
-  const cache = (eei as any)._stateManager._cache;
+  const cache = (eei as any)._stateManager._cache; // TODO: EJS
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
     const account = makeAccount(i);
     cache.put(account, PRECOMPILED_ACCOUNT);
-    (eei as any).touchAccount(account);
+    (eei as any).touchAccount(account); // TODO: EJS
   }
   await eei.commit();
 };

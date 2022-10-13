@@ -72,7 +72,7 @@ export function runCall(
 
   vm.evm.runCall({
     origin: caller,
-    block: transaction.block as any,
+    block: transaction.block as any, // TODO: EJS
     gasPrice: transaction.gasPrice.toBigInt(),
     caller,
     gasLimit: gasLeft,
