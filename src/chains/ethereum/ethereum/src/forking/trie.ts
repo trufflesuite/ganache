@@ -102,7 +102,7 @@ export class ForkTrie extends GanacheTrie {
     startBlockNumber: Quantity,
     endBlockNumber: Quantity
   ) {
-    const db = (this.metadata.db as any)._leveldb;
+    const db = (this.metadata.db as any)._leveldb; // TODO: EJS
     const stream = db.iterator({
       gte: lexico.encode([startBlockNumber.toBuffer()]),
       lt: lexico.encode([
@@ -149,7 +149,7 @@ export class ForkTrie extends GanacheTrie {
     // because it just checks every single key we've ever deleted (before this
     // one).
     // Issue: https://github.com/trufflesuite/ganache/issues/3484
-    const db = (this.metadata.db as any)._leveldb;
+    const db = (this.metadata.db as any)._leveldb; // TODO: EJS
     const stream = db.iterator({
       lte: this.createDelKey(key),
       reverse: true
