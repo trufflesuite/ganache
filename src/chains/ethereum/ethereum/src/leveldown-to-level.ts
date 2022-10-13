@@ -43,8 +43,9 @@ export class UpgradedLevelDown {
   }
 
   batch(opStack: BatchDBOp[]) {
+    // TODO: EJS
     if (opStack) return this.db.batch(opStack) as any;
-    else return this.db.batch() as any;
+    else return this.db.batch() as any; // TODO: EJS
   }
 
   copy(): UpgradedLevelDown {

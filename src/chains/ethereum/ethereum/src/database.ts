@@ -72,7 +72,7 @@ export default class Database extends Emittery {
       if (typeof store === "string") {
         db = new Level(store, LEVEL_OPTIONS) as GanacheLevel;
       } else {
-        db = new UpgradedLevelDown(store as any) as unknown as GanacheLevel;
+        db = new UpgradedLevelDown(store as any) as unknown as GanacheLevel; // TODO: EJS
         this.type = DBType.LevelDown;
       }
     } else {
@@ -133,8 +133,8 @@ export default class Database extends Emittery {
     const originalPut = rootDb.put;
     const originalDel = rootDb.del;
 
-    rootDb.put = batch.put.bind(batch) as any;
-    rootDb.del = batch.del.bind(batch) as any;
+    rootDb.put = batch.put.bind(batch) as any; // TODO: EJS
+    rootDb.del = batch.del.bind(batch) as any; // TODO: EJS
     let prom: Promise<T>;
     try {
       const ret = fn();

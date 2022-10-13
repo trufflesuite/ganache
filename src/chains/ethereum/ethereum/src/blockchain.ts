@@ -150,7 +150,7 @@ function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
   let trieDb: LevelDB | UpgradedLevelDown;
   switch (db.type) {
     case DBType.Level:
-      trieDb = new LevelDB(db.trie as any);
+      trieDb = new LevelDB(db.trie as any); // TODO: EJS
       break;
     case DBType.LevelDown:
       trieDb = db.db as unknown as UpgradedLevelDown;
