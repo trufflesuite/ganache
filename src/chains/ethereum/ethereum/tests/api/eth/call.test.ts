@@ -9,7 +9,6 @@ import { CallError } from "@ganache/ethereum-utils";
 import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
 import { Address } from "@ganache/ethereum-address";
-import { Address as EthereumJsAddress } from "@ethereumjs/util";
 import { SimulationTransaction } from "../../../src/helpers/run-call";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
@@ -854,8 +853,7 @@ describe("api", () => {
         let simTx: SimulationTransaction;
         let parentBlock: Block;
         let gas: Quantity;
-        let ethereumJsFromAddress: EthereumJsAddress,
-          ethereumJsToAddress: EthereumJsAddress;
+        let vmFromAddress: Address, vmToAddress: Address;
         let transaction: LegacyRpcTransaction;
         let privateKey: Data;
 
@@ -867,7 +865,7 @@ describe("api", () => {
           [from, to] = wallet.addresses;
           blockchain = new Blockchain(
             options,
-            new Address(wallet.addresses[0])
+            Address.from(wallet.addresses[0])
           );
           await blockchain.initialize(wallet.initialAccounts);
 
@@ -887,17 +885,17 @@ describe("api", () => {
             BUFFER_32_ZERO,
             parentHeader.baseFeePerGas.toBigInt()
           );
+          vmFromAddress = Address.from(from);
+          vmToAddress = Address.from(to);
           simTx = {
-            from: new Address(from),
-            to: new Address(to),
+            from: vmFromAddress,
+            to: vmToAddress,
             gas,
             gasPrice: Quantity.from("0xfffffffffff"),
             value: Quantity.from("0xffff"),
             data: Data.from("0xabcdef1234"),
             block: block
           };
-          ethereumJsFromAddress = new EthereumJsAddress(Address.toBuffer(from));
-          ethereumJsToAddress = new EthereumJsAddress(Address.toBuffer(to));
           // set up a real transaction
           transaction = {
             from,
@@ -930,10 +928,8 @@ describe("api", () => {
             false,
             blockchain.common
           );
-          const fromState = await vm.stateManager.getAccount(
-            ethereumJsFromAddress
-          );
-          const toState = await vm.stateManager.getAccount(ethereumJsToAddress);
+          const fromState = await vm.stateManager.getAccount(vmFromAddress);
+          const toState = await vm.stateManager.getAccount(vmToAddress);
           return { root: trie.root, db: trieDbData, fromState, toState };
         };
 
