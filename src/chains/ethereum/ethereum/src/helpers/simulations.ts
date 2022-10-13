@@ -513,10 +513,18 @@ export const runCall = async ({
  * Clones the VM and iteratively simulates the transaction, generating an access
  * list after for each run. The function returns once the generated access list
  * is the same as that of the previous run or as the `initialAccessList`.
+ *
+ * NOTE: The process for generating an access list is additive, so any access
+ * list provided by the user will be included in the resultant access list,
+ * regardless of if the provided access list is relevant or not. In other words,
+ * if the user provides (or the first run of `_runCall` generates) an access
+ * list with addresses [a,b,c], and _that_ access list is run to generate an
+ * access list [a,b,d], the final access list will be [a,b,c,d].
  * @param initialAccessList An access list to compare against the generated
  * access list.
  * @returns The final access list generated, plus an estimate of the gas
- * consumed by running the transaction _with_ the generated access list included.
+ * consumed by running the transaction _with_ the generated access list
+ * included.
  */
 export const createAccessList = async ({
   blockchain,
