@@ -191,7 +191,7 @@ describe("api", () => {
         .toString()
         .replace("0x", "");
 
-      const address = new Address(from);
+      const address = Address.from(from);
       const initialAccounts = [new Account(address)];
 
       // The following will set up a vm, deploy the debugging contract,
