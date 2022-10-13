@@ -1143,6 +1143,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       });
 
       const caller = transaction.from.toBuffer();
+      const callerAddress = new Address(caller);
 
       if (common.isActivatedEIP(2929)) {
         const eei = vm.eei;
@@ -1159,23 +1160,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
-      const fromAccount = await vm.eei.getAccount({
-        buf: caller
-      } as any);
+      const fromAccount = await vm.eei.getAccount(callerAddress);
       fromAccount.nonce += 1n;
       const txCost = gasLimit * transaction.gasPrice.toBigInt();
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
       fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
-      await vm.eei.putAccount({ buf: caller } as any, fromAccount);
+      await vm.eei.putAccount(callerAddress, fromAccount);
 
       // finally, run the call
       // @ts-ignore types are dumbs
       result = await vm.evm.runCall({
-        caller: {
-          buf: caller,
-          equals: (a: { buf: Buffer }) => caller.equals(a.buf)
-        } as any,
+        caller: callerAddress,
         data: transaction.data && transaction.data.toBuffer(),
         gasPrice: transaction.gasPrice.toBigInt(),
         gasLimit: gasLeft,
@@ -1392,14 +1388,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         if (tx === transaction) {
           if (keys && contractAddress) {
             const database = this.#database;
-            const ejsContractAddress = { buf: contractAddress } as any;
             await Promise.all(
               keys.map(async key => {
                 // get the raw key using the hashed key
                 const rawKey = await database.storageKeys.get(key);
 
                 const result = await vm.stateManager.getContractStorage(
-                  ejsContractAddress,
+                  new Address(contractAddress),
                   rawKey
                 );
 
