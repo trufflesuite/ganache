@@ -23,4 +23,8 @@ export class Address extends EJSAddress {
   static toString(value: JsonRpcDataInputArg): string {
     return Address.from(value).toString();
   }
+
+  toJSON() {
+    return this.toString();
+  }
 }
