@@ -1130,9 +1130,7 @@ export default class EthereumApi implements Api {
     }
     const targetBlock = await blockchain.blocks.get(blockNumber);
 
-    const ganacheAddress = Address.from(address);
-    const bufferAddress = ganacheAddress.toBuffer();
-    const ethereumJsAddress = { buf: bufferAddress } as any;
+    const vmAddress = Address.from(address);
     const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
 
     const stateManagerCopy = blockchain.vm.stateManager.copy();
@@ -1140,13 +1138,10 @@ export default class EthereumApi implements Api {
       targetBlock.header.stateRoot.toBuffer()
     );
 
-    const proof = await stateManagerCopy.getProof(
-      ethereumJsAddress,
-      slotBuffers
-    );
+    const proof = await stateManagerCopy.getProof(vmAddress, slotBuffers);
 
     return {
-      address: ganacheAddress,
+      address: vmAddress,
       balance: Quantity.from(proof.balance),
       codeHash: Data.from(proof.codeHash),
       nonce: Quantity.from(proof.nonce),
