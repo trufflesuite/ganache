@@ -3,11 +3,11 @@ import {
   Quantity,
   keccak,
   BUFFER_EMPTY,
-  BUFFER_32_ZERO
+  BUFFER_32_ZERO,
+  ecsignLegacy
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
-import { ECDSASignature, ecsign } from "@ethereumjs/util";
 import { encodeRange, digest, EncodedPart } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { Transaction } from "./rpc-transaction";
@@ -169,7 +169,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     let raw: LegacyDatabasePayload;
     let data: EncodedPart;
     let dataLength: number;
-    let sig: ECDSASignature;
+    let sig: { v: bigint; r: Buffer; s: Buffer };
     if (eip155IsActive) {
       chainId = Quantity.toBuffer(this.common.chainId());
       raw = this.toEthRawTransaction(chainId, BUFFER_EMPTY, BUFFER_EMPTY);
@@ -180,13 +180,13 @@ export class LegacyTransaction extends RuntimeTransaction {
       const msgHash = keccak(
         digest([data.output, ending.output], dataLength + ending.length)
       );
-      sig = ecsign(msgHash, privateKey, this.common.chainId());
+      sig = ecsignLegacy(msgHash, privateKey, this.common.chainId());
     } else {
       raw = this.toEthRawTransaction(BUFFER_EMPTY, BUFFER_EMPTY, BUFFER_EMPTY);
       data = encodeRange(raw, 0, 6);
       dataLength = data.length;
       const msgHash = keccak(digest([data.output], dataLength));
-      sig = ecsign(msgHash, privateKey);
+      sig = ecsignLegacy(msgHash, privateKey);
     }
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);

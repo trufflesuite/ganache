@@ -4,7 +4,8 @@ import {
   keccak,
   BUFFER_ZERO,
   BUFFER_32_ZERO,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  ecsign
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
@@ -23,23 +24,7 @@ import {
   Capability,
   EIP2930AccessListTransactionJSON
 } from "./transaction-types";
-import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
-
-function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
-  const object = { signature: new Uint8Array(64), recid: null };
-  const status = secp256k1.ecdsaSign(object, msgHash, privateKey);
-  if (status === 0) {
-    const buffer = object.signature.buffer;
-    const r = Buffer.from(buffer, 0, 32);
-    const s = Buffer.from(buffer, 32, 32);
-    return { r, s, v: object.recid };
-  } else {
-    throw new Error(
-      "The nonce generation function failed, or the private key was invalid"
-    );
-  }
-}
 
 const CAPABILITIES = [2718, 2930];
 
