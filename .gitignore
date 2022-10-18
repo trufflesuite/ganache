@@ -1,6 +1,4 @@
 node_modules
-# TODO: remove hack https://github.com/trufflesuite/ganache/issues/3693
-!src/packages/ganache/extra-types/node_modules
 .DS_Store
 .vscode
 .nyc_output
