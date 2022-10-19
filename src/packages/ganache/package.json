@@ -57,7 +57,7 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ethereumjs/vm": "6.0.0",
+    "@ethereumjs/vm": "6.1.0",
     "@ganache/cli": "0.5.3",
     "@ganache/core": "0.5.3",
     "@ganache/flavors": "0.5.3",
