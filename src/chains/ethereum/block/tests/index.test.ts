@@ -32,7 +32,7 @@ describe("@ganache/ethereum-block", async () => {
       });
       const wallet = new Wallet(options.wallet);
       const [from, to] = wallet.addresses;
-      const fromAddress = new Address(from);
+      const fromAddress = Address.from(from);
       const tx: Transaction = {
         type: "0x2",
         from: from,
