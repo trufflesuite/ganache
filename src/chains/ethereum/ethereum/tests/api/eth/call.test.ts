@@ -859,7 +859,7 @@ describe("api", () => {
         let transaction: LegacyRpcTransaction;
         let privateKey: Data;
 
-        before(async () => {
+        beforeEach(async () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { quiet: true },
             wallet: { deterministic: true },
