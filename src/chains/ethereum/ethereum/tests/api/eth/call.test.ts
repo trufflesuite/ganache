@@ -961,7 +961,7 @@ describe("api", () => {
           assert.notDeepStrictEqual(before, afterTx);
         }).timeout(0);
 
-        it("does not persist changes to vm or state trie when overrides are set", async () => {
+        it.skip("does not persist changes to vm or state trie when overrides are set", async () => {
           // copy the trie, its database, the vm, and the accounts
           const before = await getBlockchainState();
 
