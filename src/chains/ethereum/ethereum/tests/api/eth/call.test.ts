@@ -43,7 +43,7 @@ async function deployContract(provider, from, code) {
 
 describe("api", () => {
   describe("eth", () => {
-    describe("call", () => {
+    describe.only("call", () => {
       describe("normal operation", () => {
         let contract: CompileOutput;
         let provider: EthereumProvider;
@@ -959,7 +959,7 @@ describe("api", () => {
 
           // simulating a transaction does change the trie root, db and VM accounts
           assert.notDeepStrictEqual(before, afterTx);
-        });
+        }).timeout(0);
 
         it("does not persist changes to vm or state trie when overrides are set", async () => {
           // copy the trie, its database, the vm, and the accounts
