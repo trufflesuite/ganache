@@ -959,9 +959,9 @@ describe("api", () => {
 
           // simulating a transaction does change the trie root, db and VM accounts
           assert.notDeepStrictEqual(before, afterTx);
-        }).timeout(0);
+        });
 
-        it.skip("does not persist changes to vm or state trie when overrides are set", async () => {
+        it("does not persist changes to vm or state trie when overrides are set", async () => {
           // copy the trie, its database, the vm, and the accounts
           const before = await getBlockchainState();
 
