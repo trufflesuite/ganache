@@ -3011,7 +3011,7 @@ export default class EthereumApi implements Api {
           const baseFee = baseFeePerGas[currentPosition].toBigInt();
 
           const receipts = await Promise.all(
-            transactions.map(async tx =>
+            transactions.map(tx =>
               blockchain.transactionReceipts.get(tx.hash.toBuffer())
             )
           );
