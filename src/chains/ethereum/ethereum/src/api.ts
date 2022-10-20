@@ -2771,7 +2771,7 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
    * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005"
-   * const overrides = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
+   * const overrides = { [from]: { balance: "0x3e8", nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0x00000000000000000000000000000000000000000000000000000000baddad42"}}};
    * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", overrides] });
    * console.log(result);
    * ```
