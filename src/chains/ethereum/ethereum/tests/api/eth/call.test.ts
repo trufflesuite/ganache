@@ -43,7 +43,7 @@ async function deployContract(provider, from, code) {
 
 describe("api", () => {
   describe("eth", () => {
-    describe.only("call", () => {
+    describe("call", () => {
       describe("normal operation", () => {
         let contract: CompileOutput;
         let provider: EthereumProvider;
