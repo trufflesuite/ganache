@@ -2905,6 +2905,7 @@ export default class EthereumApi implements Api {
    * * `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the
    * block is empty.
    *
+   * @EIP [1559 - Fee market change](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)
    * @example
    * ```javascript
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
