@@ -859,7 +859,7 @@ describe("api", () => {
 
         before(async () => {
           const options = EthereumOptionsConfig.normalize({
-            logging: { quiet: false }
+            logging: { quiet: false, verbose: true, debug: true }
           });
           wallet = new Wallet(options.wallet);
           [from, to] = wallet.addresses;
