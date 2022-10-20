@@ -857,9 +857,9 @@ describe("api", () => {
         let transaction: LegacyRpcTransaction;
         let privateKey: Data;
 
-        beforeEach(async () => {
+        before(async () => {
           const options = EthereumOptionsConfig.normalize({
-            logging: { quiet: true }
+            logging: { quiet: false }
           });
           wallet = new Wallet(options.wallet);
           [from, to] = wallet.addresses;
