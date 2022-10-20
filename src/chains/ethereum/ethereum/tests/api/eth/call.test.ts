@@ -911,12 +911,17 @@ describe("api", () => {
         const getDbData = async (trie: GanacheTrie) => {
           const dbData: [Buffer, Buffer][] = [];
           const stream = trie.createReadStream();
-          // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
-          stream.on("data", ({ key, value }) => {
-            dbData.push([key, value]);
-          });
 
-          return dbData;
+          return new Promise(resolve => {
+            // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
+            stream.on("data", ({ key, value }) => {
+              dbData.push([key, value]);
+            });
+            // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
+            stream.on("end", () => {
+              resolve(dbData);
+            });
+          });
         };
 
         const getBlockchainState = async () => {
