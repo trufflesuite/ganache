@@ -47,12 +47,13 @@
     "tooling"
   ],
   "dependencies": {
+    "@ganache/flavors": "^0.5.4",
     "ipfs": "0.52.3",
     "ipfs-http-server": "0.1.4",
     "ipld-dag-cbor": "0.17.0",
+    "keccak": "3.0.2",
     "leveldown": "6.1.0",
-    "secp256k1": "4.0.3",
-    "keccak": "3.0.2"
+    "secp256k1": "4.0.3"
   },
   "devDependencies": {
     "@filecoin-shipyard/lotus-client-provider-browser": "0.0.14",

@@ -1,24 +1,16 @@
-import {
-  RecognizedString,
-  TemplatedApp,
-  WebSocket
-} from "@trufflesuite/uws-js-unofficial";
+import { TemplatedApp } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
 import { InternalOptions } from "../options";
-import * as Flavors from "@ganache/flavors";
 import { PromiEvent } from "@ganache/utils";
 import { types } from "util";
 import { getFragmentGenerator } from "./utils/fragment-generator";
+import type {
+  WebsocketConnector,
+  RecognizedString,
+  WebSocket
+} from "@ganache/flavors";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
-
-type HandlesWebSocketSignature = (payload: any, connection: WebSocket) => any;
-
-type WebSocketCapableFlavorMap = {
-  [k in keyof Flavors.ConnectorsByName]: Flavors.ConnectorsByName[k]["handle"] extends HandlesWebSocketSignature
-    ? Flavors.ConnectorsByName[k]
-    : never;
-};
 
 export function sendFragmented(
   ws: WebSocket,
@@ -63,10 +55,6 @@ export function sendFragmented(
   });
 }
 
-export type WebSocketCapableFlavor = {
-  [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
-}[keyof WebSocketCapableFlavorMap];
-
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
@@ -81,7 +69,7 @@ export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
   constructor(
     app: TemplatedApp,
-    connector: WebSocketCapableFlavor,
+    connector: WebsocketConnector<any, any>,
     options: WebsocketServerOptions
   ) {
     const connections = this.#connections;

@@ -51,6 +51,7 @@
     "@ganache/ethereum-options": "0.5.4",
     "@ganache/options": "0.5.3",
     "@ganache/utils": "0.5.3",
+    "@trufflesuite/uws-js-unofficial": "^20.10.0-unofficial.1",
     "chalk": "4.1.0"
   },
   "devDependencies": {

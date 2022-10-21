@@ -3,20 +3,20 @@ import FilecoinApi from "./api";
 import {
   Executor,
   Connector as IConnector,
+  RecognizedString,
+  HttpRequest,
+  WebSocket
+} from "@ganache/flavors";
+import {
   JsonRpcRequest,
   JsonRpcResponse,
   makeResponse,
   makeError,
   KnownKeys
 } from "@ganache/utils";
+import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 import { FilecoinProvider } from "./provider";
 export { FilecoinProvider } from "./provider";
-import {
-  RecognizedString,
-  HttpRequest,
-  WebSocket
-} from "@trufflesuite/uws-js-unofficial";
-import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export { StorageDealStatus } from "./types/storage-deal-status";
 
 /**

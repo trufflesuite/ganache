@@ -36,10 +36,11 @@ import {
   ConstructorReturn,
   DefaultFlavor,
   Flavor,
-  FlavorOptions
+  FlavorOptions,
+  WebsocketConnector
 } from "@ganache/flavors";
 import ConnectorLoader from "./connector-loader";
-import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
+import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
 import { EthereumFlavor } from "..";
@@ -166,7 +167,7 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     if (this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
-        connector as WebSocketCapableFlavor,
+        connector as WebsocketConnector<any, any>,
         this.#options.server
       );
     }

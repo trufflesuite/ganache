@@ -8,6 +8,8 @@ import { KnownKeys } from "../types";
 import Emittery from "emittery";
 import { Executor } from "../utils";
 
+export type { HttpRequest } from "@trufflesuite/uws-js-unofficial";
+
 export interface ConnectorConstructor<RequestFormat, ResponseFormat> {
   new (
     providerOptions: Partial<
@@ -78,4 +80,12 @@ export interface Connector<RequestFormat, ResponseFormat>
   formatError(error: Error, payload: RequestFormat): RecognizedString;
 
   close(): void;
+}
+
+export interface WebsocketConnector<RequestFormat, ResponseFormat>
+  extends Connector<RequestFormat, ResponseFormat> {
+  handle(
+    payload: RequestFormat,
+    connection: WebSocket
+  ): Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>;
 }

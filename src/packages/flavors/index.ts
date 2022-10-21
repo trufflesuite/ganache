@@ -3,10 +3,6 @@ import {
   EthereumProvider
 } from "@ganache/ethereum";
 import { ConnectorConstructor } from "@ganache/utils";
-export { Connector as EthereumConnector } from "@ganache/ethereum";
-export type { Connector, ConnectorConstructor } from "@ganache/utils";
-export type { EthereumProviderOptions } from "@ganache/ethereum-options";
-export type { EthereumProvider, Ethereum } from "@ganache/ethereum";
 import {
   EthereumDefaults,
   EthereumProviderOptions
@@ -17,6 +13,17 @@ import chalk from "chalk";
 // we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
 import "@ganache/options";
 import { Executor } from "@ganache/utils";
+export type {
+  RecognizedString,
+  HttpRequest,
+  WebSocket
+} from "@trufflesuite/uws-js-unofficial";
+export type {
+  WebsocketConnector,
+  Connector,
+  ConnectorConstructor,
+  Executor
+} from "@ganache/utils";
 
 const NEED_HELP = "Need help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.io/support";
