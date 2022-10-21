@@ -862,10 +862,7 @@ describe("api", () => {
 
         beforeEach(async () => {
           const options = EthereumOptionsConfig.normalize({
-            logging: { quiet: true },
-            wallet: { deterministic: true },
-            chain: { time: new Date(0) },
-            miner: { timestampIncrement: 1 }
+            logging: { quiet: true }
           });
           wallet = new Wallet(options.wallet);
           [from, to] = wallet.addresses;
