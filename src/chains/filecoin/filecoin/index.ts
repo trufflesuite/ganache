@@ -18,10 +18,13 @@ export {
 
 export interface FilecoinFlavor {
   flavor: "@ganache/filecoin" | "filecoin";
-  provider: FilecoinProvider;
   ProviderOptions: FilecoinProviderOptions;
   connector: Connector;
 }
+export const FilecoinFlavor = {
+  flavor: "@ganache/filecoin",
+  connector: Connector
+};
 
 export const initialize = async function (
   provider: FilecoinProvider,

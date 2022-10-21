@@ -17,10 +17,13 @@ const initialize = <F extends Flavor = EthereumFlavor>(
   // of "all" (0) or just 1 as we are doing here:
   let asyncRequestProcessing: boolean;
 
-  if ("chain" in options && "asyncRequestProcessing" in options.chain) {
-    asyncRequestProcessing = options.chain.asyncRequestProcessing;
+  if (
+    "chain" in options &&
+    "asyncRequestProcessing" in (options.chain as any)
+  ) {
+    asyncRequestProcessing = options.chain["asyncRequestProcessing"];
   } else if ("asyncRequestProcessing" in options) {
-    asyncRequestProcessing = options["asyncRequestProcessing"];
+    asyncRequestProcessing = options["asyncRequestProcessing"] as boolean;
   } else {
     asyncRequestProcessing = true;
   }

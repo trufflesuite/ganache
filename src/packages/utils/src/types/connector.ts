@@ -1,4 +1,3 @@
-import { Provider } from "./provider";
 import {
   RecognizedString,
   WebSocket,
@@ -7,16 +6,23 @@ import {
 import { Api } from "./api";
 import { KnownKeys } from "../types";
 import Emittery from "emittery";
+import { Executor } from "../utils";
+
+export interface ConnectorConstructor<RequestFormat, ResponseFormat> {
+  new (
+    providerOptions: Partial<
+      Record<string, unknown | Partial<Record<string, unknown>>>
+    > | null,
+    executor: Executor
+  ): Connector<RequestFormat, ResponseFormat>;
+}
 
 /**
  * Connects an arbitrary public chain provider to ganache
  */
-export interface Connector<
-  ApiImplementation extends Api,
-  RequestFormat,
-  ResponseFormat
-> extends Emittery<{ ready: undefined; close: undefined }> {
-  provider: Provider<ApiImplementation>;
+export interface Connector<RequestFormat, ResponseFormat>
+  extends Emittery<{ ready: undefined; close: undefined }> {
+  provider: unknown;
 
   /**
    * Instructs the connector to initialize its internal components. Must return

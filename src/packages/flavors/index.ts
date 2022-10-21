@@ -2,9 +2,9 @@ import {
   Connector as EthereumConnector,
   EthereumProvider
 } from "@ganache/ethereum";
-import { Connector } from "@ganache/utils";
-export type { Connector as EthereumConnector } from "@ganache/ethereum";
-export type { Connector } from "@ganache/utils";
+import { ConnectorConstructor } from "@ganache/utils";
+export { Connector as EthereumConnector } from "@ganache/ethereum";
+export type { Connector, ConnectorConstructor } from "@ganache/utils";
 export type { EthereumProviderOptions } from "@ganache/ethereum-options";
 export type { EthereumProvider, Ethereum } from "@ganache/ethereum";
 import {
@@ -37,13 +37,19 @@ export type OptionsByName = {
   [EthereumFlavorName]: EthereumProviderOptions;
 };
 
+export type ConstructorReturn<T extends abstract new (...args: any) => any> =
+  T extends abstract new (...args: any) => infer I ? I : never;
+
 export function GetConnector<F extends Flavor>(
   flavor: F["flavor"],
-  providerOptions: F["ProviderOptions"],
+  providerOptions: ConstructorParameters<F["connector"]>[0],
   executor: Executor
-): F["connector"] {
+): ConstructorReturn<F["connector"]> {
   if (flavor === DefaultFlavor) {
-    return new EthereumConnector(providerOptions, executor);
+    return new EthereumConnector(
+      providerOptions,
+      executor
+    ) as ConstructorReturn<F["connector"]>;
   }
   try {
     if (flavor === "filecoin") {
@@ -52,9 +58,12 @@ export function GetConnector<F extends Flavor>(
     const f = eval("require")(flavor);
     // TODO: remove the `typeof f.default != "undefined" ? ` check once the
     // published filecoin plugin is updated
-    const Connector =
-      typeof f.default != "undefined" ? f.default.Connector : f.Connector;
-    return new Connector(providerOptions, executor);
+    const Connector = (
+      typeof f.default != "undefined" ? f.default.Connector : f.Connector
+    ) as F["connector"];
+    return new Connector(providerOptions, executor) as ConstructorReturn<
+      F["connector"]
+    >;
   } catch (e: any) {
     if (e.message.includes(`Cannot find module '${flavor}'`)) {
       // we print and exit rather than throw to prevent webpack output from being
@@ -85,12 +94,8 @@ export type FlavorOptions<F extends Flavor> = F["flavor"] extends "ethereum"
   ? EthereumProviderOptions & {
       flavor?: "ethereum";
     }
-  : F["ProviderOptions"] & {
-      flavor: F["flavor"];
-    };
+  : ConstructorParameters<F["connector"]>[0];
 export type Flavor = {
   flavor: string;
-  ProviderOptions: {};
-  provider: unknown;
-  connector: Connector<any, any, any>;
+  connector: ConnectorConstructor<any, any>;
 };

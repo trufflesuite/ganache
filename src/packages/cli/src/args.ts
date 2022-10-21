@@ -245,7 +245,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
   const parsedArgs = args.argv;
   const finalArgs = {
     flavor: parsedArgs.flavor ? parsedArgs.flavor : DefaultFlavor
-  } as Argv<any>;
+  } as Argv<any> & { flavor: string | "ethereum" };
   for (let key in parsedArgs) {
     // split on the first "."
     const [group, option] = key.split(/\.(.+)/);

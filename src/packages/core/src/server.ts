@@ -33,6 +33,7 @@ setUwsGlobalConfig &&
 
 import {
   Connector,
+  ConstructorReturn,
   DefaultFlavor,
   Flavor,
   FlavorOptions
@@ -43,7 +44,7 @@ import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
 import { EthereumFlavor } from "..";
 
-export type Provider = Connector<any, any, any>["provider"];
+export type Provider = Connector<any, any>["provider"];
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -115,14 +116,14 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
   #providerOptions: FlavorOptions<F>;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
-  #httpServer: HttpServer<F["connector"]> | null = null;
+  #httpServer: HttpServer<ConstructorReturn<F["connector"]>> | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: F["connector"];
+  #connector: ConstructorReturn<F["connector"]>;
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<[void, void]>;
 
-  public get provider(): F["provider"] {
+  public get provider(): ConstructorReturn<F["connector"]>["provider"] {
     return this.#connector.provider;
   }
 
@@ -146,7 +147,9 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     //   const provider = server.provider;
     //   await server.listen(8545)
     const loader = ConnectorLoader.initialize(this.#providerOptions);
-    const connector = (this.#connector = loader.connector as F["connector"]);
+    const connector = (this.#connector = loader.connector as ConstructorReturn<
+      F["connector"]
+    >);
 
     // Since the ConnectorLoader starts an async promise that we intentionally
     // don't await yet we keep the promise around for something else to handle
@@ -157,7 +160,7 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     ]);
   }
 
-  private async initialize(connector: F["connector"]) {
+  private async initialize(connector: ConstructorReturn<F["connector"]>) {
     const _app = (this.#app = App());
 
     if (this.#options.server.ws) {

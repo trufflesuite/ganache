@@ -1,13 +1,9 @@
-import { EthereumConnector, Flavor } from "@ganache/flavors";
+import { ConstructorReturn, EthereumConnector, Flavor } from "@ganache/flavors";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import ConnectorLoader from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
 import Server from "./src/server";
 export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
-import type {
-  EthereumProvider,
-  EthereumProviderOptions
-} from "@ganache/flavors";
 export type {
   Provider,
   Ethereum,
@@ -15,12 +11,15 @@ export type {
   EthereumProviderOptions
 } from "@ganache/flavors";
 
-export interface EthereumFlavor {
+export interface EthereumFlavor extends Flavor {
   flavor: "ethereum";
-  provider: EthereumProvider;
-  ProviderOptions: EthereumProviderOptions;
-  connector: EthereumConnector;
+  connector: typeof EthereumConnector;
 }
+
+export const EthereumFlavor: EthereumFlavor = {
+  flavor: "ethereum",
+  connector: EthereumConnector
+};
 
 export type { ProviderOptions, ServerOptions } from "./src/options";
 export type _ExperimentalInfo = Readonly<{
@@ -74,7 +73,7 @@ const Ganache = {
    */
   provider: <F extends Flavor = EthereumFlavor>(
     options?: ProviderOptions<F>
-  ): F["provider"] => {
+  ): ConstructorReturn<F["connector"]>["provider"] => {
     const loader = ConnectorLoader.initialize<F>(options);
     return loader.connector.provider;
   },
