@@ -19,6 +19,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { GanacheLevel } from "../../../src/database";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -913,20 +914,22 @@ describe("api", () => {
           privateKey = wallet.unlockedAccounts.get(from);
         });
 
-        const getDbData = async (trie: GanacheTrie) => {
+        const getDbData = async (
+          trie: GanacheTrie
+        ): Promise<[Buffer, Buffer][]> => {
           const dbData: [Buffer, Buffer][] = [];
-          const stream = trie.createReadStream();
-
-          return new Promise(resolve => {
-            // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
-            stream.on("data", ({ key, value }) => {
-              dbData.push([key, value]);
-            });
-            // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
-            stream.on("end", () => {
-              resolve(dbData);
-            });
+          // TODO: EJS (open a PR on @ethereumjs/trie to make DB type more generic)
+          const db = (trie.database().db as any)
+            ._leveldb as unknown as GanacheLevel;
+          const readStream = db.iterator({
+            keys: true,
+            values: true
           });
+
+          for await (const pair of readStream) {
+            dbData.push(pair);
+          }
+          return dbData;
         };
 
         const getBlockchainState = async () => {
