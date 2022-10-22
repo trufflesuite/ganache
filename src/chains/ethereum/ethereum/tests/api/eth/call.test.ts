@@ -19,6 +19,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { GanacheLevel } from "../../../src/database";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -859,7 +860,7 @@ describe("api", () => {
         let transaction: LegacyRpcTransaction;
         let privateKey: Data;
 
-        before(async () => {
+        beforeEach(async () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { quiet: true }
           });
@@ -910,14 +911,21 @@ describe("api", () => {
           privateKey = wallet.unlockedAccounts.get(from);
         });
 
-        const getDbData = async (trie: GanacheTrie) => {
+        const getDbData = async (
+          trie: GanacheTrie
+        ): Promise<[Buffer, Buffer][]> => {
           const dbData: [Buffer, Buffer][] = [];
-          const stream = trie.createReadStream();
-          // @ts-ignore TODO: why is this necessary? seems like a bug on ejs' end
-          stream.on("data", ({ key, value }) => {
-            dbData.push([key, value]);
+          // TODO: EJS (open a PR on @ethereumjs/trie to make DB type more generic)
+          const db = (trie.database().db as any)
+            ._leveldb as unknown as GanacheLevel;
+          const readStream = db.iterator({
+            keys: true,
+            values: true
           });
 
+          for await (const pair of readStream) {
+            dbData.push(pair);
+          }
           return dbData;
         };
 
