@@ -57,7 +57,7 @@ jobs:
       - name: Add msbuild to PATH
         # we need msbuild tools for the `bigint-buffer` module
         if: startsWith(matrix.os, 'windows-')
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: install node tools
         # we don't need to install the windows-build-tools package, as we
