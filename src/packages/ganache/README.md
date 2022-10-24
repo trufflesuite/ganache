@@ -235,7 +235,7 @@ const provider = ganache.provider(options);
 
 for programmatic use.
 
-The following options are listed for command line use, but can also be used when running Ganache programatically in your project.
+The following options are listed for command line use, but can also be used when running Ganache programmatically in your project.
 
 ```console
 Chain:
@@ -381,8 +381,7 @@ Fork:
 
                                         Use the shorthand command ganache --fork to automatically fork from
                                         Mainnet at the latest block.
-                                        [choices: "mainnet", "ropsten", "kovan", "rinkeby", "goerli", "görli",
-                                                                                                    "sepolia"]
+                                                            [choices: "mainnet", "goerli", "görli", "sepolia"]
   --fork.blockNumber                    Block number the provider should fork from.
                                                                                 [default: Latest block number]
 
