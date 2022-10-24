@@ -19,6 +19,8 @@ export class WsHandler extends BaseHandler implements Handler {
       raw: string | Buffer;
     }>
   >();
+  private keepAlive: any;
+  private keepAliveInterval: 10000; // 10 seconds
 
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
     super(options, abortSignal);
@@ -56,6 +58,14 @@ export class WsHandler extends BaseHandler implements Handler {
       this.connection.close(1000);
     });
     this.connection.onmessage = this.onMessage.bind(this);
+
+    // Pings Infura on interval to keep the connection from going idle
+    // and being remotely disconnected.
+    this.keepAlive = setInterval(() => {
+      this.request("eth_getBlockByNumber", ["0x0", false], {
+        disableCache: true
+      });
+    }, this.keepAliveInterval);
   }
 
   public async request<T>(
@@ -128,5 +138,7 @@ export class WsHandler extends BaseHandler implements Handler {
   public async close() {
     await super.close();
     this.connection.close();
+    console.log("clearing interval");
+    clearInterval(this.keepAlive);
   }
 }
