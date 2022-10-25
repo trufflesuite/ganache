@@ -745,7 +745,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3187,
+							"line": 3186,
 							"character": 8
 						}
 					],
@@ -860,7 +860,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3136,
+							"line": 3135,
 							"character": 8
 						}
 					],
@@ -1080,7 +1080,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst txObj = { from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol };\nconst slot = \"0x0000000000000000000000000000000000000000000000000000000000000005\"\nconst overrides = { [from]: { balance: \"0x3e8\", \"nonce: \"0x5\", code: \"0xbaddad42\", stateDiff: { [slot]: \"0xbaddad42\"}}}\nconst result = await provider.request({ method: \"eth_call\", params: [txObj, \"latest\", overrides] });\nconsole.log(result);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst txObj = { from, gas: \"0x5b8d80\", gasPrice: \"0x1dfd14000\", value:\"0x0\", data: simpleSol };\nconst slot = \"0x0000000000000000000000000000000000000000000000000000000000000005\"\nconst overrides = { [from]: { balance: \"0x3e8\", nonce: \"0x5\", code: \"0xbaddad42\", stateDiff: { [slot]: \"0x00000000000000000000000000000000000000000000000000000000baddad42\"}}};\nconst result = await provider.request({ method: \"eth_call\", params: [txObj, \"latest\", overrides] });\nconsole.log(result);\n```\n"
 									}
 								]
 							},
@@ -1366,7 +1366,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2918,
+							"line": 2917,
 							"character": 8
 						}
 					],
@@ -1378,7 +1378,7 @@
 							"kindString": "Call signature",
 							"flags": {},
 							"comment": {
-								"shortText": "Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.\nAdded in [EIP-1559](https://www.alchemy.com//blog/eip-1559)",
+								"shortText": "Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.",
 								"returns": "transaction base fee per gas and effective priority fee per gas for the requested/supported block range\n\n* `oldestBlock`:  - Lowest number block of the returned range.\n* `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,\nbecause this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.\n* `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.\n* `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the\nblock is empty.\n",
 								"tags": [
 									{
@@ -7350,7 +7350,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3264,
+							"line": 3263,
 							"character": 8
 						}
 					],
@@ -7435,7 +7435,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3216,
+							"line": 3215,
 							"character": 8
 						}
 					],
@@ -7493,7 +7493,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3294,
+							"line": 3293,
 							"character": 8
 						}
 					],
@@ -7564,7 +7564,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3233,
+							"line": 3232,
 							"character": 8
 						}
 					],
@@ -7635,7 +7635,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3363,
+							"line": 3362,
 							"character": 8
 						}
 					],
@@ -7718,7 +7718,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3422,
+							"line": 3421,
 							"character": 8
 						}
 					],
@@ -7802,7 +7802,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3322,
+							"line": 3321,
 							"character": 8
 						}
 					],
@@ -7903,7 +7903,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3453,
+							"line": 3452,
 							"character": 8
 						}
 					],
@@ -8052,7 +8052,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3510,
+							"line": 3509,
 							"character": 8
 						}
 					],
@@ -8123,7 +8123,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3558,
+							"line": 3557,
 							"character": 8
 						}
 					],
@@ -8193,7 +8193,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3573,
+							"line": 3572,
 							"character": 8
 						}
 					],
@@ -8264,7 +8264,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3485,
+							"line": 3484,
 							"character": 8
 						}
 					],
@@ -8335,7 +8335,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3527,
+							"line": 3526,
 							"character": 8
 						}
 					],
@@ -8423,7 +8423,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3495,
+							"line": 3494,
 							"character": 8
 						}
 					],
@@ -8472,7 +8472,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3470,
+							"line": 3469,
 							"character": 8
 						}
 					],
@@ -8527,7 +8527,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3588,
+							"line": 3587,
 							"character": 8
 						}
 					],
@@ -8598,7 +8598,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3543,
+							"line": 3542,
 							"character": 8
 						}
 					],
@@ -8669,7 +8669,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3602,
+							"line": 3601,
 							"character": 8
 						}
 					],
@@ -8724,7 +8724,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3623,
+							"line": 3622,
 							"character": 8
 						}
 					],
