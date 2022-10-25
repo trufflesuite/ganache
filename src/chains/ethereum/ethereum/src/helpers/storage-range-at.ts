@@ -64,6 +64,8 @@ async function getHashedKeysWithValues(
 
         // ignore if the value couldn't possibly be relevant (array is full, and
         // this element sorts after the last element we already have)
+        // note we _want_ to collect 1 more key than `maxKeys` so we can return
+        // `nextKey` if necessary
         if (position > maxKeys) return;
 
         keys.splice(position, 0, key);
