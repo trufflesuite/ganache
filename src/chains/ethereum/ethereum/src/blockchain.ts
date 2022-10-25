@@ -1407,6 +1407,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
   };
 
+  /**
+   * Creates a block based on the given `targetBlock` that contains only the
+   * transactions from `targetBlock` up to and including the transaction at
+   * `transactionIndex`.
+   *
+   * @param targetBlock
+   * @param parentBlock
+   * @param transactionIndex
+   * @returns
+   */
   #prepareNextBlock = (
     targetBlock: Block,
     parentBlock: Block,
@@ -1415,6 +1425,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     uncleHeaders: [];
     transactions: VmTransaction[];
   } => {
+    targetBlock.header.parentHash;
     // Prepare the "next" block with necessary transactions
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
