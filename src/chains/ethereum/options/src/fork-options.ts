@@ -383,7 +383,7 @@ Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet 
   },
   username: {
     normalize,
-    cliDescription: `* Username to use for Basic Authentication. Does not require setting \`fork.password\`.
+    cliDescription: `Username to use for Basic Authentication. Does not require setting \`fork.password\`.
     
 When combined with \`fork.password\`, is shorthand for \`fork: { headers: { "Authorization": "Basic {ENCODED-BASIC-HEADER}" } }\`
 

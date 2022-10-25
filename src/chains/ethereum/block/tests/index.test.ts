@@ -30,7 +30,7 @@ describe("@ganache/ethereum-block", async () => {
         chain: { chainId: 1337 },
         logging: { logger: { log: (_message: string) => {} } } // ignore logging
       });
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       const [from, to] = wallet.addresses;
       const fromAddress = new Address(from);
       const tx: Transaction = {
