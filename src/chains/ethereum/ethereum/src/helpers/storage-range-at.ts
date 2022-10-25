@@ -15,7 +15,17 @@ type HashedKeysWithValues = {
   keys: Buffer[];
   nextKey: Data | null;
 };
-
+/**
+ * Compares `a` with `b` and returns a boolean indicating whether `a` comes
+ * before `b` in sort order. Comparison is based on the actual sequence of bytes
+ * in each `Buffer`.
+ *
+ * * `true` is returned if `a` comes before `b`
+ * * `false` is returned if `a` is equal to, or comes after `b`
+ *
+ * @param a A `Buffer` with which to compare `b`.
+ * @param b A `Buffer` with which to compare `a`.
+ */
 const compare = (a: Buffer, b: Buffer) => a.compare(b) < 0;
 
 /**
