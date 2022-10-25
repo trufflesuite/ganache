@@ -1178,7 +1178,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
   }
 
-  #fastForwardVM = async (
+  /**
+   * Creates a new VM with it's internal state set to that of the given `block`,
+   * up to, but _not_ including, the transaction at the given
+   * `transactionIndex`.
+   *
+   * Note: the VM is returned in a "checkpointed" state.
+   *
+   * @param transactionIndex
+   * @param trie
+   * @param block
+   */
+  #createFastForwardVm = async (
     transactionIndex: number,
     trie: GanacheTrie,
     block: RuntimeBlock & { transactions: VmTransaction[] }
@@ -1244,7 +1255,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     newBlock: RuntimeBlock & { transactions: VmTransaction[] },
     options: TraceTransactionOptions
   ): Promise<TraceTransactionResult> => {
-    const vm = await this.#fastForwardVM(transactionIndex, trie, newBlock);
+    const vm = await this.#createFastForwardVm(
+      transactionIndex,
+      trie,
+      newBlock
+    );
 
     let currentDepth = -1;
     const storageStack: TraceStorageMap[] = [];
@@ -1549,12 +1564,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       );
 
       // run every transaction in that block prior to the requested transaction
-      const vm = await this.#fastForwardVM(txIndex, trie, newBlock);
+      const vm = await this.#createFastForwardVm(txIndex, trie, newBlock);
 
-      // ethereumjs-vm has a dumpStorage(account) method, but we need to honor
-      // `startKey` and `maxResult`, and we do that by not loading every key and
-      // value into memory, which `dumpStorage` would do. So we hack it like
-      // this:
       storageTrie = await vm.stateManager.getStorageTrie(contractAddressBuffer);
     }
 
