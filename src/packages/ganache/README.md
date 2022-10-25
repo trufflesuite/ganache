@@ -235,7 +235,7 @@ const provider = ganache.provider(options);
 
 for programmatic use.
 
-The following options are listed for command line use, but can also be used when running Ganache programatically in your project.
+The following options are listed for command line use, but can also be used when running Ganache programmatically in your project.
 
 ```console
 Chain:
