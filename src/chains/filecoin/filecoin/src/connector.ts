@@ -38,7 +38,7 @@ export class Connector<
   }
 
   constructor(
-    providerOptions: FilecoinProviderOptions = {},
+    providerOptions: FilecoinProviderOptions | null = {},
     executor: Executor
   ) {
     super();

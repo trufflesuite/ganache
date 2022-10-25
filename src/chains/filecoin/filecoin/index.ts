@@ -5,10 +5,8 @@
  * @license MIT
  */
 
-import {
-  FilecoinDefaults,
-  FilecoinProviderOptions
-} from "@ganache/filecoin-options";
+import { FilecoinDefaults } from "@ganache/filecoin-options";
+import { Flavor } from "@ganache/flavors";
 import { Connector, FilecoinProvider } from "./src/connector";
 export {
   Connector,
@@ -16,12 +14,11 @@ export {
   StorageDealStatus
 } from "./src/connector";
 
-export interface FilecoinFlavor {
+export interface FilecoinFlavor extends Flavor {
   flavor: "@ganache/filecoin" | "filecoin";
-  ProviderOptions: FilecoinProviderOptions;
-  connector: Connector;
+  connector: typeof Connector;
 }
-export const FilecoinFlavor = {
+export const FilecoinFlavor: FilecoinFlavor = {
   flavor: "@ganache/filecoin",
   connector: Connector
 };
