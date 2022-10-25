@@ -122,6 +122,16 @@ export async function getStorage(
   return storage;
 }
 
+/**
+ * `ethereumjs-vm` has a `dumpStorage(account)` method, but we need to honor
+ * `startKey` and `maxKeys`, and we do that by not loading every key and
+ * value into memory, which `dumpStorage` would do.
+ * @param startKey
+ * @param maxKeys
+ * @param storageTrie
+ * @param database
+ * @returns
+ */
 export async function dumpTrieStorageDetails(
   startKey: Buffer,
   maxKeys: number,
