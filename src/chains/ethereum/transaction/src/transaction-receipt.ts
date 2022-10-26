@@ -53,7 +53,7 @@ export interface TransactionReceipt {
 
 export class InternalTransactionReceipt {
   public contractAddress: Buffer;
-  #gasUsed: Buffer;
+  public gasUsed: Buffer;
   raw: EthereumRawReceipt;
   encoded: { length: number; output: Buffer[] };
   txType: Quantity;
@@ -82,7 +82,7 @@ export class InternalTransactionReceipt {
   ) => {
     this.raw = [status, cumulativeGasUsed, logsBloom, logs];
     this.contractAddress = contractAddress;
-    this.#gasUsed = gasUsed;
+    this.gasUsed = gasUsed;
     this.txType = type;
   };
 
@@ -116,7 +116,7 @@ export class InternalTransactionReceipt {
     if (all) {
       // the database format includes gasUsed and the contractAddress:
       const extras: GanacheExtrasRawReceipt = [
-        this.#gasUsed,
+        this.gasUsed,
         this.contractAddress
       ];
       const epilogue = encodeRange(extras, 0, 2);
@@ -165,7 +165,7 @@ export class InternalTransactionReceipt {
       from: transaction.from,
       to: contractAddress ? null : transaction.to,
       cumulativeGasUsed: Quantity.from(raw[1]),
-      gasUsed: Quantity.from(this.#gasUsed),
+      gasUsed: Quantity.from(this.gasUsed),
       contractAddress,
       logs,
       logsBloom: Data.from(raw[2], 256),
