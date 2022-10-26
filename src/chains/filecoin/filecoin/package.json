@@ -47,7 +47,6 @@
     "tooling"
   ],
   "dependencies": {
-    "@ganache/flavors": "^0.5.4",
     "ipfs": "0.52.3",
     "ipfs-http-server": "0.1.4",
     "ipld-dag-cbor": "0.17.0",
@@ -60,6 +59,7 @@
     "@filecoin-shipyard/lotus-client-rpc": "0.2.0",
     "@filecoin-shipyard/lotus-client-schema": "2.0.0",
     "@ganache/filecoin-options": "0.6.0",
+    "@ganache/flavors": "0.6.0",
     "@ganache/utils": "0.6.0",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
     "@types/abstract-leveldown": "7.2.0",

@@ -2,7 +2,7 @@ import {
   Connector as EthereumConnector,
   EthereumProvider
 } from "@ganache/ethereum";
-import { ConnectorConstructor } from "@ganache/utils";
+import { Executor, ConnectorConstructor } from "@ganache/utils";
 import {
   EthereumDefaults,
   EthereumProviderOptions
@@ -12,7 +12,6 @@ import chalk from "chalk";
 
 // we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
 import "@ganache/options";
-import { Executor } from "@ganache/utils";
 export type {
   RecognizedString,
   HttpRequest,
