@@ -151,6 +151,8 @@ export default function (version: string, isDocker: boolean) {
     TruffleColors.porsche
   }").bold ${center(version)}}`;
   let args = yargs
+    .config()
+    .pkgConf("ganache")
     // disable dot-notation because yargs just can't coerce args properly...
     // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
     .parserConfiguration({ "dot-notation": false })
