@@ -11,7 +11,7 @@ const MAX_BLOCK_NUMBER = Math.floor(Number.MAX_SAFE_INTEGER / 2);
 type HeaderRecord = { name: string; value: string };
 type ForkUrl = URL & { _blockNumber?: number | typeof Tag.latest };
 
-type KnownNetworks = "mainnet" | "goerli" | "görli" | "sepolia";
+export type KnownNetworks = "mainnet" | "goerli" | "görli" | "sepolia";
 export const KNOWN_NETWORKS = [
   "mainnet",
   "goerli",

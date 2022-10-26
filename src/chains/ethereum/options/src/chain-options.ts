@@ -1,6 +1,8 @@
-import { normalize } from "./helpers";
+import { getDefaultForkByNetwork, normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { ArrayToTuple, Writeable } from "./helper-types";
+import yargs from "yargs";
+import { KnownNetworks } from "./fork-options";
 
 const HARDFORKS = [
   "constantinople",
@@ -196,7 +198,12 @@ export const ChainOptions: Definitions<ChainConfig> = {
   hardfork: {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
-    default: () => "london",
+    default: () => {
+      const forkArg = yargs.parse(process.argv)['fork'].toString()
+      // If fork argument is blank, default value is mainnet
+      const fork = forkArg == "true" ? "mainnet" : forkArg
+      return getDefaultForkByNetwork(fork as KnownNetworks)
+    },
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
