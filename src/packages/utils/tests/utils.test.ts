@@ -53,7 +53,7 @@ describe("@ganache/utils", () => {
 
     const totalNumbersToTest = 1000;
     const numbersToTest = Array.from({ length: totalNumbersToTest }).map(_ =>
-      Math.round(Math.random() * 10000)
+      Math.round(Math.random() * 100)
     );
 
     function stockSortAndFilter(startingNumber: number, maxResult: number) {
@@ -99,7 +99,7 @@ describe("@ganache/utils", () => {
         // ignore if the value couldn't possibly be relevant
         if (position > maxResult) return;
         // This is the only line that changes
-        if (keys.length === maxResult && number > keys[maxResult - 1]) return;
+        if (keys.length === maxResult && number >= keys[maxResult - 1]) return;
         keys.splice(position, 0, number);
       });
       return keys;
@@ -124,7 +124,7 @@ describe("@ganache/utils", () => {
       );
     });
     it("stockRangeAt range test", () => {
-      const min = 5000;
+      const min = 50;
       const max = 5;
 
       const stockStorage = stockRangeAt(min, max);
