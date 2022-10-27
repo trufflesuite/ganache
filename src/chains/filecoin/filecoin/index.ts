@@ -6,7 +6,7 @@
  */
 
 import { FilecoinDefaults } from "@ganache/filecoin-options";
-import { Flavor } from "@ganache/flavors";
+import { Flavor as IFlavor } from "@ganache/flavors";
 import { Connector, FilecoinProvider } from "./src/connector";
 export {
   Connector,
@@ -14,16 +14,38 @@ export {
   StorageDealStatus
 } from "./src/connector";
 
-export interface FilecoinFlavor extends Flavor {
-  flavor: "@ganache/filecoin" | "filecoin";
-  connector: typeof Connector;
-}
-export const FilecoinFlavor: FilecoinFlavor = {
-  flavor: "@ganache/filecoin",
-  connector: Connector
+type Defaults = typeof FilecoinDefaults & {
+  server: {
+    rpcEndpoint: { default: () => "/rpc/v0" };
+    port: { default: () => 7777 };
+  };
 };
 
-export const initialize = async function (
+const defaults: Defaults = {
+  server: {
+    rpcEndpoint: { default: () => "/rpc/v0" },
+    port: {
+      default: () => 7777
+    }
+  },
+  ...FilecoinDefaults
+};
+
+export interface Flavor extends IFlavor<FilecoinProvider, Defaults> {
+  flavor: "@ganache/filecoin" | "filecoin";
+  Connector: typeof Connector;
+  initialize: typeof initialize;
+  defaults: Defaults;
+}
+
+export const Flavor: Flavor = {
+  flavor: "@ganache/filecoin",
+  Connector: Connector,
+  initialize: initialize,
+  defaults: defaults
+};
+
+async function initialize(
   provider: FilecoinProvider,
   serverSettings: { host: string; port: number }
 ) {
@@ -65,19 +87,4 @@ export const initialize = async function (
   console.log(
     `IPFS RPC listening on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`
   );
-};
-
-export const defaults: typeof FilecoinDefaults & {
-  server: {
-    rpcEndpoint: { default: () => "/rpc/v0" };
-    port: { default: () => 7777 };
-  };
-} = {
-  server: {
-    rpcEndpoint: { default: () => "/rpc/v0" },
-    port: {
-      default: () => 7777
-    }
-  },
-  ...FilecoinDefaults
-};
+}

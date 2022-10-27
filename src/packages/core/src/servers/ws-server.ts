@@ -69,7 +69,7 @@ export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
   constructor(
     app: TemplatedApp,
-    connector: WebsocketConnector<any, any>,
+    connector: WebsocketConnector<any, any, any>,
     options: WebsocketServerOptions
   ) {
     const connections = this.#connections;

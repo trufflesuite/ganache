@@ -10,21 +10,21 @@ import { Executor } from "../utils";
 
 export type { HttpRequest } from "@trufflesuite/uws-js-unofficial";
 
-export interface ConnectorConstructor<RequestFormat, ResponseFormat> {
+export interface ConnectorConstructor<Provider, RequestFormat, ResponseFormat> {
   new (
     providerOptions: Partial<
       Record<string, unknown | Partial<Record<string, unknown>>>
     > | null,
     executor: Executor
-  ): Connector<RequestFormat, ResponseFormat>;
+  ): Connector<Provider, RequestFormat, ResponseFormat>;
 }
 
 /**
  * Connects an arbitrary public chain provider to ganache
  */
-export interface Connector<RequestFormat, ResponseFormat>
+export interface Connector<Provider, RequestFormat, ResponseFormat>
   extends Emittery<{ ready: undefined; close: undefined }> {
-  provider: unknown;
+  provider: Provider;
 
   /**
    * Instructs the connector to initialize its internal components. Must return
@@ -82,8 +82,8 @@ export interface Connector<RequestFormat, ResponseFormat>
   close(): void;
 }
 
-export interface WebsocketConnector<RequestFormat, ResponseFormat>
-  extends Connector<RequestFormat, ResponseFormat> {
+export interface WebsocketConnector<Provider, RequestFormat, ResponseFormat>
+  extends Connector<Provider, RequestFormat, ResponseFormat> {
   handle(
     payload: RequestFormat,
     connection: WebSocket

@@ -3,8 +3,7 @@
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
-import { EthereumFlavorName } from "@ganache/flavors";
-import { initialize as initializeEthereum } from "@ganache/ethereum";
+import { Flavor } from "@ganache/ethereum";
 import type { EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
@@ -125,11 +124,14 @@ async function startGanache(err: Error) {
   }
   started = true;
 
-  if (flavor === EthereumFlavorName) {
-    initializeEthereum(server.provider as EthereumProvider, cliSettings);
+  if (flavor === Flavor.flavor) {
+    Flavor.initialize(server.provider as EthereumProvider, cliSettings);
   } else {
     if (flavor === "filecoin") flavor = "@ganache/filecoin";
-    await eval("require")(flavor).initialize(server.provider, cliSettings);
+    await eval("require")(flavor).Flavor.initialize(
+      server.provider,
+      cliSettings
+    );
   }
 }
 console.log("Starting RPC server");

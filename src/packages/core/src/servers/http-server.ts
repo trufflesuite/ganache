@@ -141,7 +141,7 @@ export type HttpServerOptions = Pick<
   "rpcEndpoint" | "chunkSize"
 >;
 
-export default class HttpServer<C extends Connector<any, any>> {
+export default class HttpServer<C extends Connector<any, any, any>> {
   #connector: C;
   #options: HttpServerOptions;
   #isClosing = false;

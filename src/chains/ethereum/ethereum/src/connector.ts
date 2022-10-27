@@ -42,13 +42,13 @@ export class Connector<
     > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<R | R[], JsonRpcResponse>
+  implements IConnector<EthereumProvider, R | R[], JsonRpcResponse>
 {
   #provider: EthereumProvider;
 
   static BUFFERIFY_THRESHOLD: number = 100000;
 
-  get provider() {
+  get provider(): EthereumProvider {
     return this.#provider;
   }
 

@@ -29,11 +29,11 @@ export class Connector<
     > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
   >
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<R, JsonRpcResponse>
+  implements IConnector<FilecoinProvider, R, JsonRpcResponse>
 {
   #provider: FilecoinProvider;
 
-  get provider() {
+  get provider(): FilecoinProvider {
     return this.#provider;
   }
 

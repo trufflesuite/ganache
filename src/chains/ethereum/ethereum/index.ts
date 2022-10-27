@@ -1,15 +1,18 @@
-import chalk from "chalk";
-import { TruffleColors } from "@ganache/colors";
-import { WEI } from "@ganache/utils";
-import { toChecksumAddress } from "ethereumjs-util";
-import { EthereumProvider } from "./src/provider";
-
 /*!
  * @ganache/ethereum
  *
  * @author David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)
  * @license MIT
  */
+
+import chalk from "chalk";
+import { TruffleColors } from "@ganache/colors";
+import { WEI } from "@ganache/utils";
+import { toChecksumAddress } from "ethereumjs-util";
+import { EthereumProvider } from "./src/provider";
+import { Connector } from "./src/connector";
+import { EthereumDefaults } from "@ganache/ethereum-options";
+import type { Flavor as IFlavor } from "@ganache/flavors";
 
 export * from "./src/connector";
 export * from "./src/api-types";
@@ -21,7 +24,21 @@ function color(str: string) {
   return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
 
-export function initialize(
+export interface Flavor extends IFlavor {
+  flavor: "ethereum";
+  Connector: typeof Connector;
+  defaults: EthereumDefaults;
+  initialize: typeof initialize;
+}
+
+export const Flavor: Flavor = {
+  flavor: "ethereum",
+  Connector: Connector,
+  defaults: EthereumDefaults,
+  initialize: initialize
+};
+
+function initialize(
   provider: EthereumProvider,
   cliSettings: { host: string; port: number }
 ) {

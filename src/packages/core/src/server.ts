@@ -32,20 +32,17 @@ setUwsGlobalConfig &&
   setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
 
 import {
-  Connector,
   ConstructorReturn,
   DefaultFlavor,
   Flavor,
   FlavorOptions,
   WebsocketConnector
 } from "@ganache/flavors";
-import ConnectorLoader from "./connector-loader";
+import { loadConnector } from "./connector-loader";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
-import { EthereumFlavor } from "..";
-
-export type Provider = Connector<any, any>["provider"];
+import { Flavor as EthereumFlavor } from "@ganache/ethereum";
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -117,14 +114,14 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
   #providerOptions: FlavorOptions<F>;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
-  #httpServer: HttpServer<ConstructorReturn<F["connector"]>> | null = null;
+  #httpServer: HttpServer<ConstructorReturn<F["Connector"]>> | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #connector: ConstructorReturn<F["connector"]>;
+  #connector: ConstructorReturn<F["Connector"]>;
   #websocketServer: WebsocketServer | null = null;
 
   #initializer: Promise<[void, void]>;
 
-  public get provider(): ConstructorReturn<F["connector"]>["provider"] {
+  public get provider(): ConstructorReturn<F["Connector"]>["provider"] {
     return this.#connector.provider;
   }
 
@@ -147,9 +144,9 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     //   const server = Ganache.server();
     //   const provider = server.provider;
     //   await server.listen(8545)
-    const loader = ConnectorLoader.initialize(this.#providerOptions);
+    const loader = loadConnector(this.#providerOptions);
     const connector = (this.#connector = loader.connector as ConstructorReturn<
-      F["connector"]
+      F["Connector"]
     >);
 
     // Since the ConnectorLoader starts an async promise that we intentionally
@@ -161,13 +158,13 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     ]);
   }
 
-  private async initialize(connector: ConstructorReturn<F["connector"]>) {
+  private async initialize(connector: ConstructorReturn<F["Connector"]>) {
     const _app = (this.#app = App());
 
     if (this.#options.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
-        connector as WebsocketConnector<any, any>,
+        connector as WebsocketConnector<any, any, any>,
         this.#options.server
       );
     }

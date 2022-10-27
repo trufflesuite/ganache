@@ -1,9 +1,65 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
-import { DefaultFlavor, Flavor } from "@ganache/flavors";
-import { GetConnector, FlavorOptions } from "@ganache/flavors";
-import { EthereumFlavor } from "..";
+import { ConstructorReturn, DefaultFlavor, Flavor } from "@ganache/flavors";
+import { FlavorOptions } from "@ganache/flavors";
+import { TruffleColors } from "@ganache/colors";
+import chalk from "chalk";
+import { Flavor as EthereumFlavor } from "@ganache/ethereum";
 
-const initialize = <F extends Flavor = EthereumFlavor>(
+const NEED_HELP = "Need help? Reach out to the Truffle community at";
+const COMMUNITY_LINK = "https://trfl.io/support";
+
+function getConnector<F extends Flavor>(
+  flavor: F["flavor"],
+  providerOptions: ConstructorParameters<F["Connector"]>[0],
+  executor: Executor
+): ConstructorReturn<F["Connector"]> {
+  if (flavor === DefaultFlavor) {
+    return new EthereumFlavor.Connector(
+      providerOptions,
+      executor
+    ) as ConstructorReturn<F["Connector"]>;
+  }
+  try {
+    if (flavor === "filecoin") {
+      flavor = "@ganache/filecoin";
+    }
+    const f = eval("require")(flavor);
+    // TODO: remove the `typeof f.default != "undefined" ? ` check once the
+    // published filecoin plugin is updated
+    const Connector = (
+      typeof f.default != "undefined" ? f.default.Connector : f.Connector
+    ) as F["Connector"];
+    return new Connector(providerOptions, executor) as ConstructorReturn<
+      F["Connector"]
+    >;
+  } catch (e: any) {
+    if (e.message.includes(`Cannot find module '${flavor}'`)) {
+      // we print and exit rather than throw to prevent webpack output from being
+      // spat out for the line number
+      console.warn(
+        chalk`\n\n{red.bold ERROR:} Could not find Ganache flavor "{bold ${flavor}}"; ` +
+          `it probably\nneeds to be installed.\n` +
+          ` ▸ if you're using Ganache as a library run: \n` +
+          chalk`   {blue.bold $ npm install ${flavor}}\n` +
+          ` ▸ if you're using Ganache as a CLI run: \n` +
+          chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
+          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
+          chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
+      );
+      process.exit(1);
+    } else {
+      throw e;
+    }
+  }
+}
+
+/**
+ * Loads the connector specified by the given `options.flavor` with the given
+ * options, or the `ethereum` flavor is `options.flavor` is not specified.
+ * @param options
+ * @returns
+ */
+export const loadConnector = <F extends Flavor = EthereumFlavor>(
   options: FlavorOptions<F> = {
     flavor: DefaultFlavor,
     chain: { asyncRequestProcessing: true }
@@ -36,7 +92,7 @@ const initialize = <F extends Flavor = EthereumFlavor>(
   //  execution before passing it to a RequestCoordinator.
   const executor = new Executor(requestCoordinator);
 
-  const connector = GetConnector(flavor, options, executor);
+  const connector = getConnector(flavor, options, executor);
 
   // Purposely not awaiting on this to prevent a breaking change
   // to the `Ganache.provider()` method
@@ -58,11 +114,4 @@ const initialize = <F extends Flavor = EthereumFlavor>(
     connector,
     promise: connectPromise.then(() => requestCoordinator.resume())
   };
-};
-
-/**
- * Loads the connector specified by the given `flavor`
- */
-export default {
-  initialize
 };

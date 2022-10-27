@@ -1,6 +1,6 @@
 import { TruffleColors } from "@ganache/colors";
 import yargs, { Options } from "yargs";
-import { DefaultFlavor, DefaultOptionsByName } from "@ganache/flavors";
+import { DefaultFlavor } from "@ganache/flavors";
 import {
   Base,
   Defaults,
@@ -14,6 +14,7 @@ import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
 import { _DefaultServerOptions } from "@ganache/core";
+import { Flavor } from "@ganache/ethereum";
 
 marked.setOptions({
   renderer: new TerminalRenderer({
@@ -175,7 +176,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
         flavor = "@ganache/filecoin";
       }
       // load flavor plugin:
-      const flavorInterface = eval("require")(flavor);
+      const flavorInterface = eval("require")(flavor).Flavor;
       command = ["$0"] as any;
       args = args.option("flavor", {
         type: "string"
@@ -187,12 +188,15 @@ export const parseArgs = (version: string, isDocker: boolean) => {
         }
       }
     } else {
-      flavorDefaults = DefaultOptionsByName["ethereum"];
-      command = ["$0", "ethereum"];
+      flavorDefaults = Flavor.defaults;
+      command = ["$0"] as any;
+      args = args.option("flavor", {
+        type: "string"
+      });
       defaultPort = 8545;
     }
   } else {
-    flavorDefaults = DefaultOptionsByName["ethereum"];
+    flavorDefaults = Flavor.defaults;
     command = ["$0", "ethereum"];
     defaultPort = 8545;
   }
