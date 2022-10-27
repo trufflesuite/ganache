@@ -49,15 +49,15 @@
   ],
   "dependencies": {
     "@ethereumjs/common": "3.0.1",
-    "@ethereumjs/evm": "1.1.0",
+    "@ethereumjs/evm": "1.2.0",
     "@ethereumjs/tx": "4.0.1",
-    "@ethereumjs/vm": "6.1.0",
+    "@ethereumjs/vm": "6.2.0",
     "@ganache/ethereum-address": "0.5.2",
     "@ganache/rlp": "0.5.2",
     "@ganache/utils": "0.5.2",
     "emittery": "0.10.0",
     "ethereumjs-abi": "0.6.8",
-    "@ethereumjs/util": "8.0.0"
+    "@ethereumjs/util": "8.0.2"
   },
   "devDependencies": {
     "@types/mocha": "9.0.0",
