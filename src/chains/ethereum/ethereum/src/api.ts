@@ -31,7 +31,9 @@ import {
   PromiEvent,
   Api,
   keccak,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  min,
+  max
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -2778,7 +2780,7 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
    * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005"
-   * const overrides = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
+   * const overrides = { [from]: { balance: "0x3e8", nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0x00000000000000000000000000000000000000000000000000000000baddad42"}}};
    * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", overrides] });
    * console.log(result);
    * ```
@@ -2892,6 +2894,198 @@ export default class EthereumApi implements Api {
       parentBlock,
       overrides
     );
+  }
+
+  /**
+   * Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.
+   *
+   * @param blockCount - Range of blocks between 1 and 1024. Will return less than the requested range if not all blocks are available.
+   * @param newestBlock - Highest block of the requested range.
+   * @param rewardPercentiles - A monotonically increasing list of percentile values. For each block in the requested range,
+   * the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile
+   * will be determined, accounting for gas consumed.
+   * @returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range
+   *
+   * * `oldestBlock`:  - Lowest number block of the returned range.
+   * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,
+   * because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+   * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.
+   * * `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the
+   * block is empty.
+   *
+   * @EIP [1559 - Fee market change](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_sendTransaction", params: [{ from, to }] });
+   * const feeHistory = await provider.request({ method: "eth_feeHistory", params: ["0x1", "0x1", [10, 100]] });
+   * console.log(feeHistory);
+   * ```
+   */
+  @assertArgLength(3)
+  async eth_feeHistory(
+    blockCount: QUANTITY,
+    newestBlock: QUANTITY | Ethereum.Tag,
+    rewardPercentiles: number[]
+  ): Promise<Ethereum.FeeHistory<"private">> {
+    const blockchain = this.#blockchain;
+    const MIN_BLOCKS: number = 1;
+    const MAX_BLOCKS: number = 1024;
+    const PRECISION_FLOAT: number = 1e14;
+    const PAD_PRECISION = 16;
+    const PRECISION_BIG_INT: bigint = BigInt(1e16);
+
+    const newestBlockNumber = blockchain.blocks
+      .getEffectiveNumber(newestBlock)
+      .toBigInt();
+
+    // blockCount must be within MIN_BLOCKS and MAX_BLOCKS. blockCount > newestBlock is
+    // technically valid per the spec but we cannot go past the Genesis Block. Values
+    // above MAX_BLOCKS are technically within spec, however we cap totalBlocks because
+    // of the resource needs and potential abuse of a very large blockCount.
+    const totalBlocks = Number(
+      min(
+        max(Quantity.toBigInt(blockCount), MIN_BLOCKS),
+        newestBlockNumber + 1n,
+        MAX_BLOCKS
+      )
+    );
+
+    const baseFeePerGas: Quantity[] = new Array(totalBlocks);
+    const gasUsedRatio: number[] = new Array(totalBlocks);
+    let reward: Array<Quantity[]>;
+
+    // percentiles must be unique and in ascending order between 0 and 100
+    if (rewardPercentiles.length > 0) {
+      const ERR_INVALID_PERCENTILE =
+        "invalid reward percentile: percentiles must be unique and in ascending order";
+      if (rewardPercentiles[0] < 0)
+        throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[0]}`);
+      if (rewardPercentiles[rewardPercentiles.length - 1] > 100)
+        throw new Error(
+          `${ERR_INVALID_PERCENTILE} ${
+            rewardPercentiles[rewardPercentiles.length - 1]
+          }`
+        );
+
+      for (let i = 1; i < rewardPercentiles.length; i++) {
+        if (rewardPercentiles[i] <= rewardPercentiles[i - 1]) {
+          throw new Error(
+            `${ERR_INVALID_PERCENTILE} ${rewardPercentiles[i]} ${
+              rewardPercentiles[i - 1]
+            }`
+          );
+        }
+      }
+
+      reward = new Array(totalBlocks);
+    }
+    // totalBlocks is inclusive of newestBlock
+    const oldestBlockNumber = newestBlockNumber - BigInt(totalBlocks - 1);
+
+    let currentBlock: Block;
+    let currentPosition = 0;
+
+    while (currentPosition < totalBlocks) {
+      currentBlock = await blockchain.blocks.get(
+        Quantity.toBuffer(oldestBlockNumber + BigInt(currentPosition))
+      );
+
+      baseFeePerGas[currentPosition] = currentBlock.header.baseFeePerGas;
+
+      const gasUsed = currentBlock.header.gasUsed.toBigInt();
+      const gasLimit = currentBlock.header.gasLimit.toBigInt();
+
+      if (gasUsed === gasLimit) {
+        gasUsedRatio[currentPosition] = 1;
+      } else {
+        gasUsedRatio[currentPosition] = Number(
+          `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
+            .toString()
+            .padStart(PAD_PRECISION, "0")}`
+        );
+      }
+
+      // For each percentile, find the cost of the unit of gas at that percentage
+      if (reward !== undefined) {
+        const transactions = currentBlock.getTransactions();
+
+        // If there are no transactions, all reward percentiles are 0.
+        if (transactions.length === 0) {
+          reward[currentPosition] = rewardPercentiles.map(() => Quantity.Zero);
+        } else {
+          // For all transactions, effectiveGasReward = normalized fee per unit of gas
+          // earned by the miner regardless of transaction type
+          const baseFee = baseFeePerGas[currentPosition].toBigInt();
+
+          const receipts = await Promise.all(
+            transactions.map(tx =>
+              blockchain.transactionReceipts.get(tx.hash.toBuffer())
+            )
+          );
+
+          // Effective Reward is the amount paid per unit of gas
+          const effectiveRewardAndGasUsed = transactions
+            .map((tx, idx) => {
+              let effectiveGasReward: bigint;
+              if ("maxPriorityFeePerGas" in tx) {
+                const maxPriorityFeePerGas = tx.maxPriorityFeePerGas.toBigInt();
+                effectiveGasReward = BigInt(
+                  min(
+                    tx.maxFeePerGas.toBigInt() - baseFee,
+                    maxPriorityFeePerGas
+                  )
+                );
+              } else {
+                effectiveGasReward = tx.gasPrice.toBigInt() - baseFee;
+              }
+
+              return {
+                effectiveGasReward: effectiveGasReward,
+                gasUsed: Quantity.toBigInt(receipts[idx].gasUsed)
+              };
+            })
+            .sort((a, b) => {
+              if (a.effectiveGasReward > b.effectiveGasReward) return 1;
+              if (a.effectiveGasReward < b.effectiveGasReward) return -1;
+              return 0;
+            });
+
+          // All of the block transactions are ordered, ascending, from least to greatest by
+          // the fee the tx paid per unit of gas. For each percentile of block gas consumed,
+          // what was the fee paid for the unit of gas at that percentile.
+          reward[currentPosition] = rewardPercentiles.map(percentile => {
+            let totalGasUsed = 0n;
+
+            const targetGas =
+              (gasUsed * BigInt(percentile * PRECISION_FLOAT)) /
+              PRECISION_BIG_INT;
+
+            for (const values of effectiveRewardAndGasUsed) {
+              totalGasUsed = totalGasUsed + values.gasUsed;
+
+              if (targetGas <= totalGasUsed) {
+                return Quantity.from(values.effectiveGasReward);
+              }
+            }
+          });
+        }
+      }
+
+      currentPosition++;
+    }
+
+    // baseFeePerGas is calculated based on the header of the previous block, including the block after newestBlock.
+    baseFeePerGas[totalBlocks] = Quantity.from(
+      Block.calcNextBaseFee(currentBlock)
+    );
+
+    return {
+      oldestBlock: Quantity.from(oldestBlockNumber),
+      baseFeePerGas,
+      gasUsedRatio,
+      reward
+    };
   }
   //#endregion
 

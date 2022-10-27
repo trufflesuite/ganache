@@ -16,12 +16,12 @@ jobs:
       TAG: ${{ steps.set_tag_output.outputs.TAG }}
       VERSION: ${{ steps.set_version_output.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # we need all commit history so we can merge master into develop
           fetch-depth: 0
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
           # use node 14 until we can evaluate using npm 7+ and lock file version 2
           # this should match the node version used by the "check bundle size"
@@ -174,7 +174,7 @@ jobs:
       # because the docker publish action is an action we made, we have to
       # check out the repo
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Ganache's docker publish action
