@@ -63,6 +63,6 @@
     "@ganache/rlp": "0.5.2",
     "@ganache/utils": "0.5.2",
     "emittery": "0.10.0",
-    "@ethereumjs/util": "8.0.0"
+    "@ethereumjs/util": "8.0.2"
   }
 }
