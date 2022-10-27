@@ -6,7 +6,7 @@ import {
   RecognizedString,
   HttpRequest,
   WebSocket
-} from "@ganache/flavors";
+} from "@ganache/flavor";
 import {
   JsonRpcRequest,
   JsonRpcResponse,

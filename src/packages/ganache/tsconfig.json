@@ -13,7 +13,7 @@
       "path": "../cli"
     },
     {
-      "name": "@ganache/flavors",
+      "name": "@ganache/flavor",
       "path": "../flavors"
     },
     {

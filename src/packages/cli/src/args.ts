@@ -1,6 +1,5 @@
 import { TruffleColors } from "@ganache/colors";
 import yargs, { Options } from "yargs";
-import { DefaultFlavor } from "@ganache/flavors";
 import {
   Base,
   Defaults,
@@ -14,7 +13,7 @@ import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
 import { _DefaultServerOptions } from "@ganache/core";
-import { Flavor } from "@ganache/ethereum";
+import { Flavor as EthereumFlavor } from "@ganache/ethereum";
 
 marked.setOptions({
   renderer: new TerminalRenderer({
@@ -119,7 +118,7 @@ function processOption(
 function applyDefaults<D extends Defaults<NamespacedOptions>>(
   flavorDefaults: D,
   flavorArgs: yargs.Argv<{}>,
-  flavor: typeof DefaultFlavor | string
+  flavor: EthereumFlavor["flavor"] | string
 ) {
   for (const category in flavorDefaults) {
     type GroupType = `${Capitalize<typeof category>}:`;
@@ -177,7 +176,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
       }
       // load flavor plugin:
       const flavorInterface = eval("require")(flavor).Flavor;
-      command = ["$0"] as any;
+      command = ["$0"];
       args = args.option("flavor", {
         type: "string"
       });
@@ -188,15 +187,15 @@ export const parseArgs = (version: string, isDocker: boolean) => {
         }
       }
     } else {
-      flavorDefaults = Flavor.defaults;
-      command = ["$0"] as any;
+      flavorDefaults = EthereumFlavor.defaults;
+      command = ["$0"];
       args = args.option("flavor", {
         type: "string"
       });
       defaultPort = 8545;
     }
   } else {
-    flavorDefaults = Flavor.defaults;
+    flavorDefaults = EthereumFlavor.defaults;
     command = ["$0", "ethereum"];
     defaultPort = 8545;
   }
@@ -248,7 +247,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
 
   const parsedArgs = args.argv;
   const finalArgs = {
-    flavor: parsedArgs.flavor ? parsedArgs.flavor : DefaultFlavor
+    flavor: parsedArgs.flavor ? parsedArgs.flavor : EthereumFlavor.flavor
   } as Argv<any> & { flavor: string | "ethereum" };
   for (let key in parsedArgs) {
     // split on the first "."

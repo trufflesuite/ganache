@@ -1,4 +1,4 @@
-import { Flavor, FlavorOptions } from "@ganache/flavors";
+import { Flavor, FlavorOptions } from "@ganache/flavor";
 import { ServerConfig, ServerOptions } from "./server-options";
 import {
   Defaults,

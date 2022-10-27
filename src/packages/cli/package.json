@@ -63,7 +63,7 @@
   "dependencies": {
     "@ganache/colors": "0.3.0",
     "@ganache/core": "0.6.0",
-    "@ganache/flavors": "0.6.0",
+    "@ganache/flavor": "0.6.0",
     "@ganache/options": "0.6.0",
     "@ganache/utils": "0.6.0",
     "@types/node": "17.0.0",

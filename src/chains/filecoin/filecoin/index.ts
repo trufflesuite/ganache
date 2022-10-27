@@ -6,7 +6,7 @@
  */
 
 import { FilecoinDefaults } from "@ganache/filecoin-options";
-import { Flavor as IFlavor } from "@ganache/flavors";
+import { Flavor as IFlavor } from "@ganache/flavor";
 import { Connector, FilecoinProvider } from "./src/connector";
 export {
   Connector,

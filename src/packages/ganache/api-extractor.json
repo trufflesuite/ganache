@@ -60,7 +60,7 @@
     "@ganache/utils",
     "@ganache/core",
     "@ganache/options",
-    "@ganache/flavors",
+    "@ganache/flavor",
     "@ganache/ethereum",
     "@ganache/ethereum-options",
     "@ganache/ethereum-utils",

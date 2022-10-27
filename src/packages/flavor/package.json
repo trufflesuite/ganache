@@ -1,12 +1,12 @@
 {
-  "name": "@ganache/flavors",
+  "name": "@ganache/flavor",
   "publishConfig": {
     "access": "public"
   },
   "version": "0.6.0",
-  "description": "Ganache's flavors enumeration and TypeScript types",
+  "description": "Ganache's flavor types and helpers",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/flavors#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/flavor#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",

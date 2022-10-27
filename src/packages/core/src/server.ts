@@ -33,11 +33,10 @@ setUwsGlobalConfig &&
 
 import {
   ConstructorReturn,
-  DefaultFlavor,
   Flavor,
   FlavorOptions,
   WebsocketConnector
-} from "@ganache/flavors";
+} from "@ganache/flavor";
 import { loadConnector } from "./connector-loader";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
@@ -131,7 +130,7 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
 
   constructor(
     providerAndServerOptions: ServerOptions<F> = {
-      flavor: DefaultFlavor
+      flavor: EthereumFlavor.flavor
     } as ServerOptions<F>
   ) {
     super();

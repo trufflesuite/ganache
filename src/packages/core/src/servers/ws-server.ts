@@ -8,7 +8,7 @@ import type {
   WebsocketConnector,
   RecognizedString,
   WebSocket
-} from "@ganache/flavors";
+} from "@ganache/flavor";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 

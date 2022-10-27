@@ -1,10 +1,6 @@
-import type { EthereumProvider } from "@ganache/ethereum";
 import type { ConnectorConstructor } from "@ganache/utils";
 import type { EthereumProviderOptions } from "@ganache/ethereum-options";
-
-// we need "@ganache/options" in order for TS to properly infer types for `DefaultOptionsByName`
-import "@ganache/options";
-import { Defaults, NamespacedOptions } from "@ganache/options";
+import type { Defaults } from "@ganache/options";
 export type {
   RecognizedString,
   HttpRequest,
@@ -17,15 +13,8 @@ export type {
   Executor
 } from "@ganache/utils";
 
-export const DefaultFlavor = "ethereum";
-
 export type ConstructorReturn<T extends abstract new (...args: any) => any> =
   T extends abstract new (...args: any) => infer I ? I : never;
-
-/**
- * @public
- */
-export type Provider = EthereumProvider;
 
 export type FlavorOptions<F extends Flavor> = F["flavor"] extends "ethereum"
   ? EthereumProviderOptions & {

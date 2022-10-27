@@ -12,7 +12,7 @@ import { toChecksumAddress } from "ethereumjs-util";
 import { EthereumProvider } from "./src/provider";
 import { Connector } from "./src/connector";
 import { EthereumDefaults } from "@ganache/ethereum-options";
-import type { Flavor as IFlavor } from "@ganache/flavors";
+import type { Flavor as IFlavor } from "@ganache/flavor";
 
 export * from "./src/connector";
 export * from "./src/api-types";

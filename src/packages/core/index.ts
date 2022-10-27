@@ -1,12 +1,15 @@
-import { ConstructorReturn, Flavor } from "@ganache/flavors";
+import { ConstructorReturn, Flavor } from "@ganache/flavor";
 import { Flavor as EthereumFlavor } from "@ganache/ethereum";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import { loadConnector } from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
 import Server from "./src/server";
 export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
-export type { Provider } from "@ganache/flavors";
-export type { EthereumProvider, Ethereum } from "@ganache/ethereum";
+export type {
+  EthereumProvider as Provider,
+  EthereumProvider,
+  Ethereum
+} from "@ganache/ethereum";
 
 export type { ProviderOptions, ServerOptions } from "./src/options";
 export type _ExperimentalInfo = Readonly<{

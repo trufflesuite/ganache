@@ -50,7 +50,7 @@
   "dependencies": {
     "@ganache/colors": "0.3.0",
     "@ganache/ethereum": "0.6.0",
-    "@ganache/flavors": "0.6.0",
+    "@ganache/flavor": "0.6.0",
     "@ganache/options": "0.6.0",
     "@ganache/utils": "0.6.0",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",

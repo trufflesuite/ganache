@@ -1,5 +1,6 @@
-import { DefaultFlavor, Flavor } from "@ganache/flavors";
-import { ServerOptions } from "@ganache/core";
+import type { Flavor } from "@ganache/flavor";
+import type { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import type { ServerOptions } from "@ganache/core";
 
 export type Argv<F extends Flavor> = ServerOptions<F> & {
   _: [F["flavor"]];
@@ -8,4 +9,4 @@ export type Argv<F extends Flavor> = ServerOptions<F> & {
 
 export type CliSettings = { host: string; port: number };
 
-export type Command = string | ["$0", typeof DefaultFlavor];
+export type Command = ["$0"] | ["$0", EthereumFlavor["flavor"]];

@@ -12,7 +12,7 @@
       "path": "../../chains/ethereum/ethereum"
     },
     {
-      "name": "@ganache/flavors",
+      "name": "@ganache/flavor",
       "path": "../flavors"
     },
     {
