@@ -13,7 +13,7 @@ import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
 import { _DefaultServerOptions } from "@ganache/core";
-import { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import EthereumFlavor from "@ganache/ethereum";
 
 marked.setOptions({
   renderer: new TerminalRenderer({
@@ -175,28 +175,27 @@ export const parseArgs = (version: string, isDocker: boolean) => {
         flavor = "@ganache/filecoin";
       }
       // load flavor plugin:
-      const flavorInterface = eval("require")(flavor).Flavor;
+      const { default: flavorInterface } = eval("require")(flavor);
       command = ["$0"];
       args = args.option("flavor", {
         type: "string"
       });
       flavorDefaults = flavorInterface.defaults;
-      if (flavorDefaults.server) {
-        if (flavorDefaults.server.port) {
-          defaultPort = flavorDefaults.server.port.default();
-        }
-      }
     } else {
       flavorDefaults = EthereumFlavor.defaults;
       command = ["$0"];
       args = args.option("flavor", {
         type: "string"
       });
-      defaultPort = 8545;
     }
   } else {
     flavorDefaults = EthereumFlavor.defaults;
     command = ["$0", "ethereum"];
+  }
+
+  if (flavorDefaults.server && flavorDefaults.server.port) {
+    defaultPort = flavorDefaults.server.port.default();
+  } else {
     defaultPort = 8545;
   }
 

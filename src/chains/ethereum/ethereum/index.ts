@@ -12,7 +12,7 @@ import { toChecksumAddress } from "ethereumjs-util";
 import { EthereumProvider } from "./src/provider";
 import { Connector } from "./src/connector";
 import { EthereumDefaults } from "@ganache/ethereum-options";
-import type { Flavor as IFlavor } from "@ganache/flavor";
+import type { Flavor } from "@ganache/flavor";
 
 export * from "./src/connector";
 export * from "./src/api-types";
@@ -24,19 +24,21 @@ function color(str: string) {
   return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
 
-export interface Flavor extends IFlavor {
+interface EthereumFlavor extends Flavor {
   flavor: "ethereum";
   Connector: typeof Connector;
   defaults: EthereumDefaults;
   initialize: typeof initialize;
 }
 
-export const Flavor: Flavor = {
+const EthereumFlavor: EthereumFlavor = {
   flavor: "ethereum",
-  Connector: Connector,
+  Connector,
   defaults: EthereumDefaults,
   initialize: initialize
 };
+
+export default EthereumFlavor;
 
 function initialize(
   provider: EthereumProvider,

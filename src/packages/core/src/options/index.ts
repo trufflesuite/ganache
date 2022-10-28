@@ -7,7 +7,7 @@ import {
   InternalConfig,
   OptionsConfig
 } from "@ganache/options";
-import { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import EthereumFlavor from "@ganache/ethereum";
 
 /**
  * @public

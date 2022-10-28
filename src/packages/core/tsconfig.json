@@ -5,15 +5,14 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
   "references": [
     {
       "name": "@ganache/ethereum",
       "path": "../../chains/ethereum/ethereum"
-    },
-    {
-      "name": "@ganache/flavor",
-      "path": "../flavors"
     },
     {
       "name": "@ganache/options",
@@ -22,6 +21,14 @@
     {
       "name": "@ganache/utils",
       "path": "../utils"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../flavor"
     }
   ]
 }

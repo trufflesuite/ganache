@@ -3,9 +3,15 @@
   "compilerOptions": {
     "outDir": "lib"
   },
-  "include": ["index.ts", "src/**/*", "src/cli.ts"],
+  "include": [
+    "index.ts",
+    "src/**/*",
+    "src/cli.ts"
+  ],
   "paths": {
-    "@ganache/cli/src/cli": ["../cli/src/cli"]
+    "@ganache/cli/src/cli": [
+      "../cli/src/cli"
+    ]
   },
   "references": [
     {
@@ -13,12 +19,12 @@
       "path": "../cli"
     },
     {
-      "name": "@ganache/flavor",
-      "path": "../flavors"
-    },
-    {
       "name": "@ganache/core",
       "path": "../core"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../flavor"
     }
   ]
 }

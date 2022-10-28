@@ -1,5 +1,5 @@
 import type { Flavor } from "@ganache/flavor";
-import type { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import type EthereumFlavor from "@ganache/ethereum";
 import type { ServerOptions } from "@ganache/core";
 
 export type Argv<F extends Flavor> = ServerOptions<F> & {

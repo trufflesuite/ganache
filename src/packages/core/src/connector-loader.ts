@@ -3,7 +3,7 @@ import { ConstructorReturn, Flavor } from "@ganache/flavor";
 import { FlavorOptions } from "@ganache/flavor";
 import { TruffleColors } from "@ganache/colors";
 import chalk from "chalk";
-import { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import EthereumFlavor from "@ganache/ethereum";
 
 const NEED_HELP = "Need help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.io/support";
@@ -23,7 +23,7 @@ function getConnector<F extends Flavor>(
     if (flavor === "filecoin") {
       flavor = "@ganache/filecoin";
     }
-    const f = eval("require")(flavor);
+    const { default: f } = eval("require")(flavor);
     // TODO: remove the `typeof f.default != "undefined" ? ` check once the
     // published filecoin plugin is updated
     const Connector = (

@@ -3,7 +3,7 @@
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
-import { Flavor } from "@ganache/ethereum";
+import EthereumFlavor from "@ganache/ethereum";
 import type { EthereumProvider } from "@ganache/ethereum";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
@@ -124,11 +124,11 @@ async function startGanache(err: Error) {
   }
   started = true;
 
-  if (flavor === Flavor.flavor) {
-    Flavor.initialize(server.provider as EthereumProvider, cliSettings);
+  if (flavor === EthereumFlavor.flavor) {
+    EthereumFlavor.initialize(server.provider as EthereumProvider, cliSettings);
   } else {
     if (flavor === "filecoin") flavor = "@ganache/filecoin";
-    await eval("require")(flavor).Flavor.initialize(
+    await eval("require")(flavor).default.initialize(
       server.provider,
       cliSettings
     );

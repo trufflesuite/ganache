@@ -41,7 +41,7 @@ import { loadConnector } from "./connector-loader";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
-import { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import EthereumFlavor from "@ganache/ethereum";
 
 const DEFAULT_HOST = "127.0.0.1";
 

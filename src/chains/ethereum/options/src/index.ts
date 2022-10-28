@@ -4,17 +4,16 @@ import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
 import { ForkConfig, ForkOptions } from "./fork-options";
+import { ServerConfig, ServerOptions } from "./server-options";
 import {
   Base,
   Defaults,
-  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
   LegacyOptions,
   OptionName,
   OptionRawType,
-  Options,
   OptionsConfig
 } from "@ganache/options";
 import { UnionToIntersection } from "./helper-types";
@@ -52,14 +51,20 @@ export type EthereumProviderOptions = Partial<{
 export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
-export type EthereumDefaults = Defaults<EthereumConfig>;
+
+type EthereumServerConfig = {
+  server: ServerConfig;
+};
+
+export type EthereumDefaults = Defaults<EthereumConfig & EthereumServerConfig>;
 export const EthereumDefaults: EthereumDefaults = {
   chain: ChainOptions,
   database: DatabaseOptions,
   logging: LoggingOptions,
   miner: MinerOptions,
   wallet: WalletOptions,
-  fork: ForkOptions
+  fork: ForkOptions,
+  server: ServerOptions
 };
 
 export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);

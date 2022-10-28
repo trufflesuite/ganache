@@ -5,15 +5,14 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": ["index.ts", "src/**/*.ts"],
+  "include": [
+    "index.ts",
+    "src/**/*.ts"
+  ],
   "references": [
     {
       "name": "@ganache/core",
       "path": "../core"
-    },
-    {
-      "name": "@ganache/flavor",
-      "path": "../flavors"
     },
     {
       "name": "@ganache/options",
@@ -30,6 +29,10 @@
     {
       "name": "@ganache/colors",
       "path": "../colors"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../flavor"
     }
   ]
 }

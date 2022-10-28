@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/packages/flavors"
+    "directory": "src/packages/flavor"
   },
   "scripts": {
     "tsc": "tsc --build",
@@ -33,6 +33,7 @@
   },
   "keywords": [
     "ganache",
+    "ganache-flavor",
     "ganache-flavors",
     "ethereum",
     "evm",
@@ -47,8 +48,6 @@
   ],
   "dependencies": {
     "@ganache/colors": "0.3.0",
-    "@ganache/ethereum": "0.6.0",
-    "@ganache/ethereum-options": "0.6.0",
     "@ganache/options": "0.6.0",
     "@ganache/utils": "0.6.0",
     "@trufflesuite/uws-js-unofficial": "^20.10.0-unofficial.1",

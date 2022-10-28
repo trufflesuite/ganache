@@ -1,5 +1,5 @@
 import { ConstructorReturn, Flavor } from "@ganache/flavor";
-import { Flavor as EthereumFlavor } from "@ganache/ethereum";
+import EthereumFlavor from "@ganache/ethereum";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import { loadConnector } from "./src/connector-loader";
 import { ProviderOptions, ServerOptions } from "./src/options";
