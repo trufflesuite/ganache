@@ -5,7 +5,12 @@ type ECDSASignOutput = {
   recid: number;
 };
 
-export function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
+export type ECSignResult = { v: bigint; r: Buffer; s: Buffer };
+
+export function ecsign(
+  msgHash: Uint8Array,
+  privateKey: Uint8Array
+): ECSignResult {
   const output: ECDSASignOutput = {
     signature: new Uint8Array(64),
     recid: null
@@ -28,7 +33,7 @@ export function ecsignLegacy(
   msgHash: Uint8Array,
   privateKey: Uint8Array,
   chainId?: bigint
-) {
+): ECSignResult {
   const { v, r, s } = ecsign(msgHash, privateKey);
 
   const legacyV =

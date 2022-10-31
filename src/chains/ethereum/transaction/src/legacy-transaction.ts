@@ -4,7 +4,8 @@ import {
   keccak,
   BUFFER_EMPTY,
   BUFFER_32_ZERO,
-  ecsignLegacy
+  ecsignLegacy,
+  ECSignResult
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
@@ -169,7 +170,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     let raw: LegacyDatabasePayload;
     let data: EncodedPart;
     let dataLength: number;
-    let sig: { v: bigint; r: Buffer; s: Buffer };
+    let sig: ECSignResult;
     if (eip155IsActive) {
       chainId = Quantity.toBuffer(this.common.chainId());
       raw = this.toEthRawTransaction(chainId, BUFFER_EMPTY, BUFFER_EMPTY);
