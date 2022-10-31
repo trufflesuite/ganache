@@ -55,7 +55,6 @@
     "@ganache/secp256k1": "0.4.1",
     "@ethereumjs/tx": "4.0.0",
     "@ganache/utils": "0.5.2",
-    "@ethereumjs/util": "8.0.0",
     "node-gyp-build": "4.5.0"
   },
   "devDependencies": {
