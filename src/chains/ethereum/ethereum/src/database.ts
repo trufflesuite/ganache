@@ -3,8 +3,7 @@ import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Level } from "level";
-import { UpgradedLevelDown } from "./leveldown-to-level";
+import { UpgradedLevelDown } from "./upgraded-level-down";
 
 export type GanacheLevel = Level<Buffer, Buffer>;
 export type GanacheSublevel = AbstractSublevel<

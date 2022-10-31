@@ -11,8 +11,7 @@ import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheSublevel } from "../database";
 import { AbstractSublevel } from "abstract-level";
-import { EJSLevel, LevelDB } from "../leveldb";
-import { GanacheLevelDown, UpgradedLevelDown } from "../leveldown-to-level";
+import { GanacheLevelDown, UpgradedLevelDown } from "../upgraded-level-down";
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";

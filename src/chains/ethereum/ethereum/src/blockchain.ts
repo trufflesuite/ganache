@@ -77,7 +77,7 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
-import { UpgradedLevelDown } from "./leveldown-to-level";
+import { UpgradedLevelDown } from "./upgraded-level-down";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
