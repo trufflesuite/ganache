@@ -170,23 +170,17 @@ export const parseArgs = (version: string, isDocker: boolean) => {
   const flavorArgIndex = process.argv.indexOf("--flavor", 2) + 1;
   if (flavorArgIndex > 2) {
     let flavor = process.argv[flavorArgIndex];
+    command = ["$0"];
+    args = args.option("flavor", {
+      type: "string"
+    });
     if (flavor !== "ethereum") {
-      if (flavor === "filecoin") {
-        flavor = "@ganache/filecoin";
-      }
+      if (flavor === "filecoin") flavor = "@ganache/filecoin";
       // load flavor plugin:
-      const { default: flavorInterface } = eval("require")(flavor);
-      command = ["$0"];
-      args = args.option("flavor", {
-        type: "string"
-      });
-      flavorDefaults = flavorInterface.defaults;
+      const { default: FlavorInterface } = eval("require")(flavor);
+      flavorDefaults = FlavorInterface.defaults;
     } else {
       flavorDefaults = EthereumFlavor.defaults;
-      command = ["$0"];
-      args = args.option("flavor", {
-        type: "string"
-      });
     }
   } else {
     flavorDefaults = EthereumFlavor.defaults;
