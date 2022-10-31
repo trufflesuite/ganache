@@ -19,13 +19,13 @@ import {
 } from "@ganache/ethereum-transaction";
 import {
   toRpcSig,
-  ecsign,
   hashPersonalMessage,
   KECCAK256_NULL
 } from "@ethereumjs/util";
 import { signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
+  ecsign,
   Heap,
   Quantity,
   PromiEvent,

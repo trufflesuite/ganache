@@ -1,8 +1,12 @@
-import { Quantity } from "@ganache/utils";
+import { keccak, Quantity } from "@ganache/utils";
 import { DB, Trie } from "@ethereumjs/trie";
 import Blockchain from "../blockchain";
 import { LevelDB } from "../leveldb";
 import { UpgradedLevelDown } from "../leveldown-to-level";
+
+const keyHashingFunction = (msg: Uint8Array) => {
+  return keccak(Buffer.from(msg.buffer, msg.byteOffset, msg.length));
+};
 
 export class GanacheTrie extends Trie {
   public readonly blockchain: Blockchain;
@@ -12,7 +16,13 @@ export class GanacheTrie extends Trie {
     root: Buffer,
     blockchain: Blockchain
   ) {
-    super({ db, root, useRootPersistence: true, useKeyHashing: true });
+    super({
+      db,
+      root,
+      useRootPersistence: true,
+      useKeyHashing: true,
+      useKeyHashingFunction: keyHashingFunction
+    });
     this.blockchain = blockchain;
   }
 
