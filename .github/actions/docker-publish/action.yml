@@ -25,7 +25,7 @@ runs:
   using: "composite"
   steps:
     - name: Use npm 14
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: 14
 
