@@ -1,11 +1,12 @@
-import { FilecoinFlavor } from "../../";
+import FilecoinFlavor from "../../";
 import Server from "../../../../../packages/core/src/server";
 
 const getServer = async (port: number) => {
   const server = new Server<FilecoinFlavor>({
-    // `any` since @ganache/filecoin isn't _installed_ in this package
-    // since it _is_ this package.
-    flavor: "./filecoin" as any,
+    // `"./filecoin" as unknown as "filecoin""` since @ganache/filecoin isn't
+    // _installed_ in this package since it _is_ this package; we can't use the
+    // package name itself here.
+    flavor: "./filecoin" as unknown as "filecoin",
     server: {
       ws: true
     },

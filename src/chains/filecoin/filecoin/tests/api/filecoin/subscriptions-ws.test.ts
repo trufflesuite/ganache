@@ -3,7 +3,7 @@ import { SubscriptionMethod } from "../../../src/types/subscriptions";
 import getServer from "../../helpers/getServer";
 import WebSocket from "ws";
 import Server from "../../../../../../packages/core/src/server";
-import type { FilecoinFlavor } from "../../../";
+import type FilecoinFlavor from "../../../";
 
 describe("api", () => {
   describe("filecoin", () => {

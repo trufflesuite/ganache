@@ -129,7 +129,7 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
   }
 
   constructor(
-    providerAndServerOptions: ServerOptions<F> = {
+    providerAndServerOptions: ServerOptions<F> & { flavor?: F["flavor"] } = {
       flavor: EthereumFlavor.flavor
     } as ServerOptions<F>
   ) {
