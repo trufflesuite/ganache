@@ -78,5 +78,18 @@ describe("EthereumOptionsConfig", () => {
         });
       });
     });
+
+    describe("set hardfork default value depending on network", () => {
+      it("when network is mainnet then hardfork defualt should be grayGlacier", () => {
+        process.argv.push("--fork", "mainnet");
+        const options = EthereumOptionsConfig.normalize({} as Object);
+        assert.strictEqual(options.chain.hardfork, "grayGlacier");
+      });
+      it("when network is not mainnet then hardfork defualt should be london", () => {
+        process.argv.push("--fork", "sepolia");
+        const options = EthereumOptionsConfig.normalize({} as Object);
+        assert.strictEqual(options.chain.hardfork, "london");
+      });
+    });
   });
 });

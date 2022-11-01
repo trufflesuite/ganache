@@ -199,10 +199,11 @@ export const ChainOptions: Definitions<ChainConfig> = {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
     default: () => {
-      const forkArg = yargs.parse(process.argv)['fork']
+      const forkArg = yargs.parse(process.argv)["fork"];
       // If fork argument is blank, default value is mainnet
-      const fork = !forkArg || forkArg.toString() == "true" ? "mainnet" : forkArg
-      return getDefaultForkByNetwork(fork as KnownNetworks)
+      const fork =
+        !forkArg || forkArg.toString() == "true" ? "mainnet" : forkArg;
+      return getDefaultForkByNetwork(fork as KnownNetworks);
     },
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
