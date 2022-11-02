@@ -4,7 +4,6 @@ import { LoggingConfig, LoggingOptions } from "./logging-options";
 import { MinerConfig, MinerOptions } from "./miner-options";
 import { WalletConfig, WalletOptions } from "./wallet-options";
 import { ForkConfig, ForkOptions } from "./fork-options";
-import { ServerConfig, ServerOptions } from "./server-options";
 import {
   Base,
   Defaults,
@@ -52,21 +51,17 @@ export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
 
-type EthereumServerConfig = {
-  server: ServerConfig;
-};
-
-export type EthereumDefaults = Defaults<EthereumConfig & EthereumServerConfig>;
+export type EthereumDefaults = Defaults<EthereumConfig>;
 export const EthereumDefaults: EthereumDefaults = {
   chain: ChainOptions,
   database: DatabaseOptions,
   logging: LoggingOptions,
   miner: MinerOptions,
   wallet: WalletOptions,
-  fork: ForkOptions,
-  server: ServerOptions
+  fork: ForkOptions
 };
 
+export type EthereumOptionsConfig = OptionsConfig<EthereumConfig>;
 export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
 
 export * from "./chain-options";

@@ -7,7 +7,7 @@ import {
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
 import { Connector } from "@ganache/utils";
-import { InternalOptions } from "../options";
+import { InternalServerOptions } from "../types";
 import { types } from "util";
 import { getFragmentGenerator } from "./utils/fragment-generator";
 
@@ -137,7 +137,7 @@ function sendChunkedResponse(
 }
 
 export type HttpServerOptions = Pick<
-  InternalOptions["server"],
+  InternalServerOptions["server"],
   "rpcEndpoint" | "chunkSize"
 >;
 

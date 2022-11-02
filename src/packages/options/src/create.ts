@@ -80,7 +80,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
             suppliedOptions.add(key);
           }
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default(config, flavor);
+          config[key] = propDefinition.default(config);
         }
       }
     }
@@ -104,7 +104,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
           suppliedOptions.add(key);
         }
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default(config, flavor);
+        config[key] = propDefinition.default(config);
       }
     }
   }

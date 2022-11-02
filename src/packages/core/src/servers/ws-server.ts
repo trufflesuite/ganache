@@ -1,6 +1,6 @@
 import { TemplatedApp } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { InternalOptions } from "../options";
+import { InternalServerOptions } from "../types";
 import { PromiEvent } from "@ganache/utils";
 import { types } from "util";
 import { getFragmentGenerator } from "./utils/fragment-generator";
@@ -58,7 +58,7 @@ export function sendFragmented(
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
-  InternalOptions["server"],
+  InternalServerOptions["server"],
   "wsBinary" | "rpcEndpoint" | "chunkSize"
 >;
 

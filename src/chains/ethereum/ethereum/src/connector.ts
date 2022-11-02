@@ -12,11 +12,7 @@ import {
 } from "@ganache/utils";
 export type { EthereumProvider } from "./provider";
 import { EthereumProvider } from "./provider";
-import {
-  RecognizedString,
-  WebSocket,
-  HttpRequest
-} from "@trufflesuite/uws-js-unofficial";
+import { RecognizedString, WebSocket, HttpRequest } from "@ganache/flavor";
 import { CodedError } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,

@@ -13,7 +13,6 @@ import {
   LegacyOptions,
   OptionName,
   OptionRawType,
-  Options,
   OptionsConfig
 } from "@ganache/options";
 
@@ -25,6 +24,7 @@ type FilecoinConfig = {
   wallet: WalletConfig;
 };
 
+export type FilecoinDefaults = Defaults<FilecoinConfig>;
 export const FilecoinDefaults: Defaults<FilecoinConfig> = {
   chain: ChainOptions,
   database: DatabaseOptions,
@@ -54,14 +54,13 @@ export type FilecoinLegacyProviderOptions = Partial<
     MakeLegacyOptions<WalletConfig>
 >;
 
-export type FilecoinProviderOptions = Partial<
-  {
-    [K in keyof FilecoinConfig]: ExternalConfig<FilecoinConfig[K]>;
-  }
->;
+export type FilecoinProviderOptions = Partial<{
+  [K in keyof FilecoinConfig]: ExternalConfig<FilecoinConfig[K]>;
+}>;
 
 export type FilecoinInternalOptions = {
   [K in keyof FilecoinConfig]: InternalConfig<FilecoinConfig[K]>;
 };
 
+export type FilecoinOptionsConfig = OptionsConfig<FilecoinConfig>;
 export const FilecoinOptionsConfig = new OptionsConfig(FilecoinDefaults);

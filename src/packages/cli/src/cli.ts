@@ -5,6 +5,7 @@ import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
 import EthereumFlavor from "@ganache/ethereum";
 import type { EthereumProvider } from "@ganache/ethereum";
+import { load } from "@ganache/flavor";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -124,14 +125,10 @@ async function startGanache(err: Error) {
   }
   started = true;
 
-  if (flavor === EthereumFlavor.flavor) {
+  if (flavor === "ethereum") {
     EthereumFlavor.initialize(server.provider as EthereumProvider, cliSettings);
   } else {
-    if (flavor === "filecoin") flavor = "@ganache/filecoin";
-    await eval("require")(flavor).default.initialize(
-      server.provider,
-      cliSettings
-    );
+    await load(flavor).initialize(server.provider, cliSettings);
   }
 }
 console.log("Starting RPC server");

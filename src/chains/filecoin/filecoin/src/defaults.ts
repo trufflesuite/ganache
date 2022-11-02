@@ -1,17 +1,24 @@
-import { FilecoinDefaults } from "@ganache/filecoin-options";
-export type FilecoinDefaults = typeof FilecoinDefaults & {
-  server: {
-    rpcEndpoint: { default: () => "/rpc/v0" };
-    port: { default: () => 7777 };
-  };
-};
+import {
+  OptionsConfig,
+  Defaults,
+  ServerConfig,
+  ServerOptions
+} from "@ganache/flavor";
 
-export const defaults: FilecoinDefaults = {
+export type ServerDefaults = Defaults<{
+  server: ServerConfig;
+}>;
+export const ServerDefaults: ServerDefaults = {
   server: {
-    rpcEndpoint: { default: () => "/rpc/v0" },
-    port: {
-      default: () => 7777
-    }
-  },
-  ...FilecoinDefaults
+    ...ServerOptions
+  }
 };
+//@ts-ignore
+ServerDefaults.server.rpcEndpoint.default = () => "/rpc/v0";
+//@ts-ignore
+ServerDefaults.server.port.default = () => 7777;
+
+export type ServerOptionsConfig = OptionsConfig<{ server: ServerConfig }>;
+export const ServerOptionsConfig: ServerOptionsConfig = new OptionsConfig(
+  ServerDefaults
+);

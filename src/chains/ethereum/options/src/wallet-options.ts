@@ -1,7 +1,10 @@
 import { normalize } from "./helpers";
 import seedrandom from "seedrandom";
 import { entropyToMnemonic } from "bip39";
-import { Definitions, DeterministicSeedPhrase } from "@ganache/options";
+import { Definitions } from "@ganache/options";
+
+// Don't change! We need maintain original determinism since the beginning
+const DeterministicSeedPhrase = "TestRPC is awesome!";
 
 const unseededRng = seedrandom();
 

@@ -4,7 +4,6 @@ import {
   Base,
   Defaults,
   Definitions,
-  NamespacedOptions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
 import { Command, Argv } from "./types";
@@ -12,7 +11,7 @@ import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
-import { _DefaultServerOptions } from "@ganache/core";
+import { serverDefaults } from "@ganache/flavor";
 import EthereumFlavor from "@ganache/ethereum";
 
 marked.setOptions({
@@ -72,7 +71,7 @@ function processOption(
     const generateDefaultDescription = () => {
       // default sometimes requires a config, so we supply one
       return (state[option] = optionObj.default
-        ? optionObj.default(state, flavor).toString()
+        ? optionObj.default(state).toString()
         : undefined);
     };
     const defaultDescription =
@@ -115,7 +114,7 @@ function processOption(
   }
 }
 
-function applyDefaults<D extends Defaults<NamespacedOptions>>(
+function applyDefaults<D extends Defaults<any>>(
   flavorDefaults: D,
   flavorArgs: yargs.Argv<{}>,
   flavor: EthereumFlavor["flavor"] | string
@@ -197,7 +196,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
     command,
     chalk`Use the {bold ${flavor}} flavor of Ganache`,
     flavorArgs => {
-      applyDefaults(_DefaultServerOptions as any, flavorArgs, flavor);
+      applyDefaults(serverDefaults, flavorArgs, flavor);
       // flavorDefaults are applied after the default server options so that
       // the flavor defaults can override the default server options
       applyDefaults(flavorDefaults, flavorArgs, flavor);
@@ -240,7 +239,7 @@ export const parseArgs = (version: string, isDocker: boolean) => {
 
   const parsedArgs = args.argv;
   const finalArgs = {
-    flavor: parsedArgs.flavor ? parsedArgs.flavor : EthereumFlavor.flavor
+    flavor: parsedArgs.flavor ? parsedArgs.flavor : "ethereum"
   } as Argv<any> & { flavor: string | "ethereum" };
   for (let key in parsedArgs) {
     // split on the first "."

@@ -1,5 +1,5 @@
 import { normalize } from "./helpers";
-import { Definitions } from "@ganache/options";
+import { Definitions } from "@ganache/flavor";
 
 export type MinerConfig = {
   options: {

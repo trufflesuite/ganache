@@ -1,10 +1,3 @@
-import {
-  InternalOptions,
-  serverDefaults,
-  ServerOptions,
-  serverOptionsConfig
-} from "./options";
-
 import allSettled from "promise.allsettled";
 
 // This `shim()` is necessary for `Promise.allSettled` to be shimmed
@@ -35,6 +28,7 @@ import {
   ConstructorReturn,
   Flavor,
   FlavorOptions,
+  load,
   WebsocketConnector
 } from "@ganache/flavor";
 import { loadConnector } from "./connector-loader";
@@ -42,6 +36,7 @@ import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
 import EthereumFlavor from "@ganache/ethereum";
+import { InternalServerOptions, ServerOptions } from "./types";
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -95,21 +90,13 @@ export enum ServerStatus {
 }
 
 /**
- * For private use. May change in the future.
- * I don't don't think these options should be held in this `core` package.
- * @ignore
- * @internal
- */
-export const _DefaultServerOptions = serverDefaults;
-
-/**
  * @public
  */
 export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
   open: undefined;
   close: undefined;
 }> {
-  #options: InternalOptions;
+  #options: InternalServerOptions;
   #providerOptions: FlavorOptions<F>;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
@@ -134,7 +121,16 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     } as ServerOptions<F>
   ) {
     super();
-    this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
+    let flavor: F;
+    if (
+      !providerAndServerOptions.flavor ||
+      providerAndServerOptions.flavor === "ethereum"
+    ) {
+      flavor = EthereumFlavor as unknown as F;
+    } else {
+      flavor = load<F>(providerAndServerOptions.flavor);
+    }
+    this.#options = flavor.serverOptions.normalize(providerAndServerOptions);
     this.#providerOptions = providerAndServerOptions;
     this.#status = ServerStatus.ready;
 

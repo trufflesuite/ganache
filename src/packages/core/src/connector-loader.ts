@@ -1,56 +1,22 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
-import { ConstructorReturn, Flavor } from "@ganache/flavor";
+import { ConstructorReturn, Flavor, load } from "@ganache/flavor";
 import { FlavorOptions } from "@ganache/flavor";
-import { TruffleColors } from "@ganache/colors";
-import chalk from "chalk";
 import EthereumFlavor from "@ganache/ethereum";
 
-const NEED_HELP = "Need help? Reach out to the Truffle community at";
-const COMMUNITY_LINK = "https://trfl.io/support";
-
-function getConnector<F extends Flavor>(
+function getConnector<F extends Flavor<any, any>>(
   flavor: F["flavor"],
   providerOptions: ConstructorParameters<F["Connector"]>[0],
   executor: Executor
 ): ConstructorReturn<F["Connector"]> {
   if (flavor === EthereumFlavor.flavor) {
-    return new EthereumFlavor.Connector(
-      providerOptions,
-      executor
-    ) as ConstructorReturn<F["Connector"]>;
+    return <ConstructorReturn<F["Connector"]>>(
+      new EthereumFlavor.Connector(providerOptions, executor)
+    );
   }
-  try {
-    if (flavor === "filecoin") {
-      flavor = "@ganache/filecoin";
-    }
-    const { default: f } = eval("require")(flavor);
-    // TODO: remove the `typeof f.default != "undefined" ? ` check once the
-    // published filecoin plugin is updated
-    const Connector = (
-      typeof f.default != "undefined" ? f.default.Connector : f.Connector
-    ) as F["Connector"];
-    return new Connector(providerOptions, executor) as ConstructorReturn<
-      F["Connector"]
-    >;
-  } catch (e: any) {
-    if (e.message.includes(`Cannot find module '${flavor}'`)) {
-      // we print and exit rather than throw to prevent webpack output from being
-      // spat out for the line number
-      console.warn(
-        chalk`\n\n{red.bold ERROR:} Could not find Ganache flavor "{bold ${flavor}}"; ` +
-          `it probably\nneeds to be installed.\n` +
-          ` ▸ if you're using Ganache as a library run: \n` +
-          chalk`   {blue.bold $ npm install ${flavor}}\n` +
-          ` ▸ if you're using Ganache as a CLI run: \n` +
-          chalk`   {blue.bold $ npm install --global ${flavor}}\n\n` +
-          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}}\n` +
-          chalk`{hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}\n\n`
-      );
-      process.exit(1);
-    } else {
-      throw e;
-    }
-  }
+  const { Connector } = load<F>(flavor);
+  return <ConstructorReturn<F["Connector"]>>(
+    new Connector(providerOptions, executor)
+  );
 }
 
 /**
