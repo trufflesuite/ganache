@@ -203,6 +203,31 @@ Generates and returns an estimate of how much gas is necessary to allow the tran
 
 ---
 
+#### eth_feeHistory
+
+Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.
+
+##### Arguments
+
+- `blockCount: string`
+- `newestBlock: string`
+- `rewardPercentiles: number[]`
+
+##### Returns
+
+`Promise<FeeHistory>` : transaction base fee per gas and effective priority fee per gas for the requested/supported block range
+
+- `oldestBlock`: - Lowest number block of the returned range.
+- `baseFeePerGas`: - An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+- `gasUsedRatio`: - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.
+- `reward`: - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the block is empty.
+
+##### Eip
+
+[1559 - Fee market change](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)
+
+---
+
 #### eth_gasPrice
 
 Returns the current price per gas in wei.
