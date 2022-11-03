@@ -120,4 +120,16 @@ describe("blockchain", async () => {
       );
     });
   });
+  describe("custom genesis.json", () => {
+    const options = EthereumOptionsConfig.normalize({});
+
+    // set up wallet/blockchain
+    const wallet = new Wallet(options.wallet);
+    const initialAccounts = wallet.initialAccounts;
+    const blockchain = new Blockchain(options, initialAccounts[0].address);
+
+    it.only("Test me", async () => {
+      await blockchain.initialize(wallet.initialAccounts);
+    });
+  });
 });

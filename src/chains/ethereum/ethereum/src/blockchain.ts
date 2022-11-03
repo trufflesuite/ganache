@@ -23,7 +23,11 @@ import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
-import { Common } from "@ethereumjs/common";
+import {
+  Common,
+  parseGethGenesis,
+  Hardfork as ejsHardfork
+} from "@ethereumjs/common";
 import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
@@ -104,6 +108,36 @@ type BlockchainTypedEvents = {
   "ganache:vm:tx:console.log": VmConsoleLogEvent;
   ready: undefined;
   stop: undefined;
+};
+
+const json = {
+  config: {
+    chainId: 19763,
+    homesteadBlock: 0,
+    eip150Block: 0,
+    eip155Block: 0,
+    eip158Block: 0,
+    byzantiumBlock: 0,
+    londonBlock: 0,
+    ethash: {}
+  },
+  nonce: "0xdeadbeefdeadbeef",
+  timestamp: "0x0",
+  extraData:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  gasLimit: "0x80000000",
+  difficulty: "0x20000",
+  mixHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+  coinbase: "0x0000000000000000000000000000000000000000",
+  alloc: {
+    "71562b71999873db5b286df957af199ec94617f7": {
+      balance: "0xffffffffffffffffffffffffff"
+    }
+  },
+  number: "0x0",
+  gasUsed: "0x0",
+  parentHash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000"
 };
 
 interface Logger {
@@ -190,6 +224,28 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
   return common;
 }
 
+function createCommonFromGethGenesis(
+  path: string,
+  chainId: number,
+  networkId: number,
+  defaultHardfork: Hardfork
+) {
+  console.log("Using geth genesis");
+  //const json = require(path);
+
+  // .fromGethGenesis treats 'chain' the same as .custom treats 'name'.
+  //const common = Common.fromGethGenesis(json, {
+  //  chain: "ganache"
+  //});
+
+  const common = Common.fromGethGenesis(json, { chain: "ganache" });
+
+  // as in createCommon, we do not support changing hardforks, remove hardfork listeners.
+  (common.on as any) = () => {};
+
+  return common;
+}
+
 export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #state: Status = Status.starting;
   #miner: Miner;
@@ -259,13 +315,25 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         options.chain.chainId = Number(common.chainId());
       } else {
         await database.initialize();
-        common = this.common = createCommon(
-          options.chain.chainId,
-          options.chain.networkId,
-          options.chain.hardfork
-        );
-      }
 
+        // options.chain.genesis // yet undecided
+        if (true) {
+          // Check if genesis.json is set in options
+          common = this.common = createCommonFromGethGenesis(
+            "./genesis.json",
+            options.chain.chainId,
+            options.chain.networkId,
+            options.chain.hardfork
+          );
+        } else {
+          common = this.common = createCommon(
+            options.chain.chainId,
+            options.chain.networkId,
+            options.chain.hardfork
+          );
+        }
+      }
+      console.log(common);
       this.isPostMerge = this.common.gteHardfork("merge");
 
       const blocks = (this.blocks = await BlockManager.initialize(
