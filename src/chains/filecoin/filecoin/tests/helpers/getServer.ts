@@ -7,7 +7,7 @@ const getServer = async (port: number) => {
     // `join(__dirname, "..", "..") as unknown as "filecoin""` since @ganache/filecoin isn't
     // _installed_ in this package since it _is_ this package; we can't use the
     // package name itself here.
-    flavor: join(__dirname, "..", "..") as unknown as "filecoin",
+    flavor: join(__dirname, "..", "../lib/index.js") as unknown as "filecoin",
     server: {
       ws: true
     },
