@@ -15,6 +15,10 @@
     {
       "name": "@ganache/options",
       "path": "../../../packages/options"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../../../packages/flavor"
     }
   ]
 }
