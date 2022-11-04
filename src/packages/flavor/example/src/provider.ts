@@ -75,7 +75,7 @@ export class Provider {
       throw new Error("insufficient funds");
     }
 
-    const tAccount = { balance: latest.get(from)?.balance || 0n };
+    const tAccount = { balance: latest.get(to)?.balance || 0n };
 
     fAccount.balance -= amount;
     tAccount.balance += amount;
