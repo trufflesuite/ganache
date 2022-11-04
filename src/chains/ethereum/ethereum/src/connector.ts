@@ -1,7 +1,5 @@
-import Emittery from "emittery";
 import EthereumApi from "./api";
 import {
-  Connector as IConnector,
   Executor,
   makeError,
   makeResponse,
@@ -12,7 +10,12 @@ import {
 } from "@ganache/utils";
 export type { EthereumProvider } from "./provider";
 import { EthereumProvider } from "./provider";
-import { RecognizedString, WebSocket, HttpRequest } from "@ganache/flavor";
+import {
+  RecognizedString,
+  WebSocket,
+  HttpRequest,
+  Connector as IConnector
+} from "@ganache/flavor";
 import { CodedError } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
@@ -32,13 +35,11 @@ function isHttp(
 }
 
 export class Connector<
-    R extends JsonRpcRequest<
-      EthereumApi,
-      KnownKeys<EthereumApi>
-    > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
-  >
-  extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<EthereumProvider, R | R[], JsonRpcResponse>
+  R extends JsonRpcRequest<
+    EthereumApi,
+    KnownKeys<EthereumApi>
+  > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
+> implements IConnector<EthereumProvider, R | R[], JsonRpcResponse>
 {
   #provider: EthereumProvider;
 
@@ -49,8 +50,6 @@ export class Connector<
   }
 
   constructor(providerOptions: ProviderOptions = null, executor: Executor) {
-    super();
-
     this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
@@ -58,9 +57,6 @@ export class Connector<
 
   async connect() {
     await this.#provider.initialize();
-    // no need to wait for #provider.once("connect") as the initialize()
-    // promise has already accounted for that after the promise is resolved
-    await this.emit("ready");
   }
 
   parse(message: Buffer) {

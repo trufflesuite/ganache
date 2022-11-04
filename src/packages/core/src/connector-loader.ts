@@ -62,12 +62,7 @@ export const loadConnector = <F extends Flavor = EthereumFlavor>(
 
   // Purposely not awaiting on this to prevent a breaking change
   // to the `Ganache.provider()` method
-  // TODO: remove the `connector.connect ? ` check and just use
-  // `connector.connect()` after publishing the `@ganache/filecoin` with the
-  // connector.connect interface
-  const connectPromise = connector.connect
-    ? connector.connect()
-    : ((connector as any).initialize() as Promise<void>);
+  const connectPromise = connector.connect();
 
   // The request coordinator is initialized in a "paused" state; when the
   // provider is ready we unpause.. This lets us accept queue requests before

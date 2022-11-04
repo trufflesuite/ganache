@@ -11,7 +11,7 @@ import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
-import { serverDefaults } from "@ganache/flavor";
+import { cliDefaults, serverDefaults } from "@ganache/flavor";
 import EthereumFlavor from "@ganache/ethereum";
 
 marked.setOptions({
@@ -44,14 +44,13 @@ const addAliases = (args: yargs.Argv<{}>, aliases: string[], key: string) => {
   return aliases.reduce((args, a) => args.option(a, options), args);
 };
 
-function processOption(
+function addOption(
   state: any,
   category: string,
   group: string,
   option: string,
   optionObj: Definitions<Base.Config>[string],
-  argv: yargs.Argv,
-  flavor: string
+  argv: yargs.Argv
 ) {
   if (optionObj.disableInCLI !== true) {
     const shortHand = [];
@@ -115,35 +114,26 @@ function processOption(
 }
 
 function applyDefaults<D extends Defaults<any>>(
-  flavorDefaults: D,
-  flavorArgs: yargs.Argv<{}>,
-  flavor: EthereumFlavor["flavor"] | string
+  defaults: D,
+  args: yargs.Argv<{}>
 ) {
-  for (const category in flavorDefaults) {
+  for (const category in defaults) {
     type GroupType = `${Capitalize<typeof category>}:`;
     const group = `${category[0].toUpperCase()}${category.slice(
       1
     )}:` as GroupType;
-    const categoryObj = flavorDefaults[
+    const categoryObj = defaults[
       category
     ] as unknown as Definitions<Base.Config>;
     const state = {};
     for (const option in categoryObj) {
       const optionObj = categoryObj[option];
-      processOption(
-        state,
-        category,
-        group,
-        option,
-        optionObj,
-        flavorArgs,
-        flavor
-      );
+      addOption(state, category, group, option, optionObj, args);
     }
   }
 }
 
-export const parseArgs = (version: string, isDocker: boolean) => {
+export const parseArgs = (version: string) => {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
@@ -186,48 +176,25 @@ export const parseArgs = (version: string, isDocker: boolean) => {
     command = ["$0", "ethereum"];
   }
 
-  if (flavorDefaults.server && flavorDefaults.server.port) {
-    defaultPort = flavorDefaults.server.port.default();
-  } else {
-    defaultPort = 8545;
-  }
+  // if (flavorDefaults.server && flavorDefaults.server.port) {
+  //   defaultPort = flavorDefaults.server.port.default();
+  // } else {
+  //   defaultPort = 8545;
+  // }
 
   args = args.command(
     command,
     chalk`Use the {bold ${flavor}} flavor of Ganache`,
     flavorArgs => {
-      applyDefaults(serverDefaults, flavorArgs, flavor);
-      // flavorDefaults are applied after the default server options so that
-      // the flavor defaults can override the default server options
-      applyDefaults(flavorDefaults, flavorArgs, flavor);
+      applyDefaults(cliDefaults, flavorArgs);
 
-      flavorArgs = flavorArgs
-        .option("server.host", {
-          group: "Server:",
-          description: chalk`Hostname to listen on.${EOL}{dim deprecated aliases: --host, --hostname}${EOL}`,
-          alias: ["h", "host", "hostname"],
-          type: "string",
-          default: isDocker ? "0.0.0.0" : "127.0.0.1"
-        })
-        .option("server.port", {
-          group: "Server:",
-          description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
-          alias: ["p", "port"],
-          type: "number",
-          default: defaultPort
-        })
-        .check(argv => {
-          const { "server.port": port, "server.host": host } = argv;
-          if (port < 1 || port > 65535) {
-            throw new Error(`Invalid port number '${port}'`);
-          }
+      applyDefaults(serverDefaults, flavorArgs);
 
-          if (host.trim() === "") {
-            throw new Error("Cannot leave host blank; please provide a host");
-          }
-
-          return true;
-        });
+      // flavorDefaults are applied after the default cli and server options
+      // so that the flavor defaults can override them.
+      if (flavorDefaults) {
+        applyDefaults(flavorDefaults, flavorArgs);
+      }
     }
   );
 

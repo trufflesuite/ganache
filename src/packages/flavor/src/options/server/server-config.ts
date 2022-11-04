@@ -1,22 +1,6 @@
 export type ServerConfig = {
   options: {
     /**
-     * Port for the server to listen on
-     *
-     * @defaultValue true
-     */
-    readonly port: {
-      type: number;
-      hasDefault: true;
-      legacy: {
-        /**
-         * @deprecated Use server.ws instead.
-         */
-        port: boolean;
-      };
-    };
-
-    /**
      * Enable a websocket server.
      *
      * @defaultValue true

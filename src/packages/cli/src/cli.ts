@@ -5,7 +5,7 @@ import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
 import EthereumFlavor from "@ganache/ethereum";
 import type { EthereumProvider } from "@ganache/ethereum";
-import { load } from "@ganache/flavor";
+import { CliOptionsConfig, load } from "@ganache/flavor";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -32,14 +32,11 @@ const coreVersion = process.env.CORE_VERSION || "DEV";
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 
-const isDocker =
-  "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
-
-const argv = parseArgs(detailedVersion, isDocker);
+const argv = parseArgs(detailedVersion);
 
 let flavor = argv.flavor;
 
-const cliSettings = argv.server;
+const { server: cliSettings } = CliOptionsConfig.normalize(argv);
 
 console.log(detailedVersion);
 

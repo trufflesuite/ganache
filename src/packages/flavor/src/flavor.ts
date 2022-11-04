@@ -1,5 +1,9 @@
-import type { ConnectorConstructor } from "@ganache/utils";
-import type { Defaults } from "@ganache/options";
+import type {
+  Defaults,
+  NamespacedOptions,
+  OptionsConfig
+} from "@ganache/options";
+import { ConnectorConstructor } from "./connector";
 import { ServerOptionsConfig } from "./options/server/server-options-config";
 
 export type ConstructorReturn<T extends abstract new (...args: any) => any> =
@@ -18,7 +22,7 @@ export type CliSettings = Partial<{
 
 export type Flavor<
   Provider = any,
-  ServerOptions extends ServerOptionsConfig = any,
+  O extends OptionsConfig<any> = any,
   D extends Defaults<any> = any
 > = {
   flavor: string;
@@ -27,6 +31,6 @@ export type Flavor<
     provider: Provider,
     settings: CliSettings
   ) => void | Promise<void>;
-  serverOptions?: ServerOptions;
-  defaults: D;
+  optionsConfig?: O;
+  defaults?: D;
 };

@@ -7,7 +7,6 @@
   "description": "Ganache flavor plugin for the fictional chain \"My Chain\"",
   "license": "MIT",
   "main": "lib/index.js",
-  "typings": "typings",
   "source": "src/index.ts",
   "directories": {
     "lib": "lib",
@@ -25,7 +24,8 @@
     "ganache-flavor"
   ],
   "dependencies": {
-    "@ganache/flavor": "0.6.0"
+    "@ganache/flavor": "../",
+    "emittery": "0.10.0"
   },
   "devDependencies": {
     "@types/mocha": "10.0.0",

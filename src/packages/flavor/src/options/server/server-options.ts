@@ -6,13 +6,6 @@ const normalize = <T>(rawInput: T) => rawInput;
 
 export type ServerOptions = Definitions<ServerConfig>;
 export const ServerOptions: ServerOptions = {
-  port: {
-    normalize,
-    cliDescription: "The port to listen on.",
-    default: () => 8545,
-    legacyName: "port",
-    cliType: "number"
-  },
   ws: {
     normalize,
     cliDescription: "Enable a websocket server.",

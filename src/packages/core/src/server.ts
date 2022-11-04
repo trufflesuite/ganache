@@ -29,6 +29,7 @@ import {
   Flavor,
   FlavorOptions,
   load,
+  ServerOptionsConfig,
   WebsocketConnector
 } from "@ganache/flavor";
 import { loadConnector } from "./connector-loader";
@@ -105,7 +106,7 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
   #connector: ConstructorReturn<F["Connector"]>;
   #websocketServer: WebsocketServer | null = null;
 
-  #initializer: Promise<[void, void]>;
+  #initializer: Promise<void>;
 
   public get provider(): ConstructorReturn<F["Connector"]>["provider"] {
     return this.#connector.provider;
@@ -130,7 +131,10 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     } else {
       flavor = load<F>(providerAndServerOptions.flavor);
     }
-    this.#options = flavor.serverOptions.normalize(providerAndServerOptions);
+    // TODO: merge the two options configs:
+    this.#options = (flavor.optionsConfig || ServerOptionsConfig).normalize(
+      providerAndServerOptions
+    );
     this.#providerOptions = providerAndServerOptions;
     this.#status = ServerStatus.ready;
 
@@ -144,16 +148,6 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
       F["Connector"]
     >);
 
-    // Since the ConnectorLoader starts an async promise that we intentionally
-    // don't await yet we keep the promise around for something else to handle
-    // later.
-    this.#initializer = Promise.all([
-      loader.promise,
-      this.initialize(connector)
-    ]);
-  }
-
-  private async initialize(connector: ConstructorReturn<F["Connector"]>) {
     const _app = (this.#app = App());
 
     if (this.#options.server.ws) {
@@ -165,7 +159,10 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     }
     this.#httpServer = new HttpServer(_app, connector, this.#options.server);
 
-    await (connector as any).once("ready");
+    // Since the ConnectorLoader starts an async promise that we intentionally
+    // don't await yet we keep the promise around for something else to handle
+    // later.
+    this.#initializer = loader.promise;
   }
 
   listen(port: number): Promise<void>;
@@ -221,9 +218,14 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     }
 
     this.#status = ServerStatus.opening;
+    const initializer = this.#initializer;
+
+    // don't keep old promises around as they could be holding onto
+    // references to things that could otherwise be collected.
+    this.#initializer = null;
 
     const promise = Promise.allSettled([
-      this.#initializer,
+      initializer,
       new Promise(
         (resolve: (listenSocket: false | us_listen_socket) => void) => {
           // Make sure we have *exclusive* use of this port.

@@ -1,4 +1,3 @@
-import Emittery from "emittery";
 import FilecoinApi from "./api";
 import {
   Executor,
@@ -23,13 +22,11 @@ export { StorageDealStatus } from "./types/storage-deal-status";
  * @internal
  */
 export class Connector<
-    R extends JsonRpcRequest<
-      FilecoinApi,
-      KnownKeys<FilecoinApi>
-    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
-  >
-  extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<FilecoinProvider, R, JsonRpcResponse>
+  R extends JsonRpcRequest<
+    FilecoinApi,
+    KnownKeys<FilecoinApi>
+  > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+> implements IConnector<FilecoinProvider, R, JsonRpcResponse>
 {
   #provider: FilecoinProvider;
 
@@ -41,16 +38,11 @@ export class Connector<
     providerOptions: FilecoinProviderOptions | null = {},
     executor: Executor
   ) {
-    super();
-
     this.#provider = new FilecoinProvider(providerOptions, executor);
   }
 
   async connect() {
     await this.#provider.initialize();
-    // no need to wait for #provider.once("connect") as the initialize()
-    // promise has already accounted for that after the promise is resolved
-    await this.emit("ready");
   }
 
   parse(message: Buffer) {

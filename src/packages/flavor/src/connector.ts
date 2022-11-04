@@ -1,14 +1,11 @@
+import { Api, Executor, KnownKeys } from "@ganache/utils";
 import {
   RecognizedString,
   WebSocket,
   HttpRequest
 } from "@trufflesuite/uws-js-unofficial";
-import { Api } from "./api";
-import { KnownKeys } from "../types";
-import Emittery from "emittery";
-import { Executor } from "../utils";
 
-export type { HttpRequest } from "@trufflesuite/uws-js-unofficial";
+export type { WebSocket, HttpRequest } from "@trufflesuite/uws-js-unofficial";
 
 export interface ConnectorConstructor<Provider, RequestFormat, ResponseFormat> {
   new (
@@ -22,8 +19,7 @@ export interface ConnectorConstructor<Provider, RequestFormat, ResponseFormat> {
 /**
  * Connects an arbitrary public chain provider to ganache
  */
-export interface Connector<Provider, RequestFormat, ResponseFormat>
-  extends Emittery<{ ready: undefined; close: undefined }> {
+export interface Connector<Provider, RequestFormat, ResponseFormat> {
   provider: Provider;
 
   /**
