@@ -1,10 +1,6 @@
 import { Flavor } from "../";
 import { MyChainConnector } from "./connector";
-import {
-  MyChainDefaults,
-  MyChainOptionsConfig,
-  MyChainProviderOptions
-} from "./options";
+import { MyChainDefaults, MyChainOptionsConfig } from "./options";
 import { Provider } from "./provider";
 
 function initialize(_provider: Provider, cliArgs: any) {
