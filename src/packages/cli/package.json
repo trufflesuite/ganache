@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "table": "6.8.0",
-    "ps-list": "7.2.0",
+    "@trufflesuite/ps-list": "0.0.1",
     "@ganache/colors": "0.3.0",
     "@ganache/core": "0.5.4",
     "@ganache/flavors": "0.5.4",

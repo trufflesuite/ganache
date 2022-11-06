@@ -1,7 +1,7 @@
 import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
-import psList from "ps-list";
+import psList from "@trufflesuite/ps-list";
 import {
   existsSync,
   mkdirSync,
