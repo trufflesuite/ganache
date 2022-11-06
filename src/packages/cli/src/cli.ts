@@ -18,6 +18,8 @@ import { TruffleColors } from "@ganache/colors";
 import { table } from "table";
 import chalk from "chalk";
 
+const porscheColor = chalk.hex(TruffleColors.porsche);
+
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
   // writes to process.stdout in Node.js are sometimes asynchronous and may occur over
@@ -187,9 +189,7 @@ if (argv.action === "start") {
 
   startDetachedInstance(module, argv, version)
     .then(instance => {
-      const highlightedName = chalk.hex(TruffleColors.porsche)(
-        instance.instanceName
-      );
+      const highlightedName = porscheColor(instance.instanceName);
       // output only the instance name to allow users to capture stdout and use to
       // programmatically stop the instance
       console.log(highlightedName);
@@ -200,34 +200,41 @@ if (argv.action === "start") {
     });
 } else if (argv.action === "list") {
   getDetachedInstances().then(instances => {
-    const now = Date.now();
+    if (instances.length === 0) {
+      console.log(
+        `No detached instances found - try ${porscheColor(
+          "ganache --detach"
+        )} to start a detached instance`
+      );
+    } else {
+      const now = Date.now();
 
-    const rows = [
-      [
-        chalk.bold("PID"),
-        chalk.bold("Name"),
-        chalk.bold("Flavor"),
-        chalk.bold("Version"),
-        chalk.bold("Host"),
-        chalk.bold("Port"),
-        chalk.bold("Uptime")
-      ]
-    ];
-    for (let i = 0; i < instances.length; i++) {
-      const instance = instances[i];
+      const rows = [
+        [
+          chalk.bold("PID"),
+          chalk.bold("Name"),
+          chalk.bold("Flavor"),
+          chalk.bold("Version"),
+          chalk.bold("Host"),
+          chalk.bold("Port"),
+          chalk.bold("Uptime")
+        ]
+      ];
+      for (let i = 0; i < instances.length; i++) {
+        const instance = instances[i];
 
-      const uptime = now - instance.startTime;
-      rows.push([
-        instance.pid.toString(),
-        chalk.hex(TruffleColors.porsche)(instance.instanceName),
-        instance.flavor,
-        instance.version,
-        instance.host,
-        instance.port.toString(),
-        formatDuration(uptime)
-      ]);
+        const uptime = now - instance.startTime;
+        rows.push([
+          instance.pid.toString(),
+          porscheColor(instance.instanceName),
+          instance.flavor,
+          instance.version,
+          instance.host,
+          instance.port.toString(),
+          formatDuration(uptime)
+        ]);
+      }
+      console.log(table(rows));
     }
-
-    console.log(table(rows, {}));
   });
 }
