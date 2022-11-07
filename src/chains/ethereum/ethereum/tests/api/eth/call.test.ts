@@ -1,5 +1,4 @@
 import assert from "assert";
-import { Level } from "level";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
