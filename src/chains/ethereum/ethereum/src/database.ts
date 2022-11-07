@@ -29,7 +29,6 @@ export const LEVEL_OPTIONS = {
 export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
   readonly #options: EthereumInternalOptions["database"];
-  // TODO: implement cleanup https://github.com/trufflesuite/ganache/issues/3662
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
