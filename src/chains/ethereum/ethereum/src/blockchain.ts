@@ -76,6 +76,7 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
+import { TrieDB } from "./trie-db";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -144,11 +145,11 @@ function setStateRootSync(
   stateManager._storageTries = {};
 }
 
-function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
+function makeTrie(blockchain: Blockchain, trieDB: TrieDB, root: Data) {
   if (blockchain.fallback) {
-    return new ForkTrie(db.trie, root ? root.toBuffer() : null, blockchain);
+    return new ForkTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(db.trie, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   }
 }
 
@@ -288,7 +289,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           stateRoot = null;
         }
-        this.trie = makeTrie(this, database, stateRoot);
+        this.trie = makeTrie(this, database.trie, stateRoot);
       }
 
       // create VM and listen to step events
@@ -1599,7 +1600,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(this, this.#database, parentBlock.header.stateRoot);
+    const trie = makeTrie(
+      this,
+      this.#database.trie,
+      parentBlock.header.stateRoot
+    );
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
