@@ -123,6 +123,12 @@ export type ChainConfig = {
         hardfork: Hardfork;
       };
     };
+    /**
+     * Specify a relative filepath for a genesis.json to configure the @ethereumjs/vm
+     */
+    readonly genesisPath: {
+      type: string;
+    };
 
     /**
      * Whether to report runtime errors from EVM code as RPC errors.
@@ -140,6 +146,7 @@ export type ChainConfig = {
       };
     };
   };
+  exclusiveGroups: [["chainId", "networkId", "genesisPath", "hardfork"]];
 };
 
 export const ChainOptions: Definitions<ChainConfig> = {
@@ -164,7 +171,8 @@ export const ChainOptions: Definitions<ChainConfig> = {
     cliDescription: "The currently configured chain id.",
     default: () => 1337,
     legacyName: "chainId",
-    cliType: "number"
+    cliType: "number",
+    conflicts: ["genesisPath"]
   },
   networkId: {
     normalize,
@@ -175,7 +183,8 @@ export const ChainOptions: Definitions<ChainConfig> = {
       "System time at process start or Network ID of forked blockchain if configured.",
     legacyName: "network_id",
     cliAliases: ["i", "networkId"],
-    cliType: "number"
+    cliType: "number",
+    conflicts: ["genesisPath"]
   },
   time: {
     normalize: rawInput => (rawInput !== undefined ? new Date(rawInput) : null),
@@ -201,7 +210,15 @@ export const ChainOptions: Definitions<ChainConfig> = {
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
-    cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>
+    cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>,
+    conflicts: ["genesisPath"]
+  },
+  genesisPath: {
+    normalize,
+    cliDescription: "Set a genesis.json file",
+    cliAliases: ["j", "json"],
+    cliType: "string",
+    conflicts: ["networkId", "chainId", "hardfork"]
   },
   vmErrorsOnRPCResponse: {
     normalize,

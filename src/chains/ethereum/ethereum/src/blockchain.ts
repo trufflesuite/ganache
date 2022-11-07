@@ -225,18 +225,12 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
 }
 
 function createCommonFromGethGenesis(path: string) {
-  console.log("Using geth genesis");
   let json;
   try {
     json = require(path);
   } catch (e) {
     console.log("Error: Could not load genesis.json at " + path);
-    console.log(process.cwd());
-    console.log(__dirname);
   }
-  // error handle, for now json is defined as a global above.
-  //const json = require(path);
-
   // .fromGethGenesis treats 'chain' the same as .custom treats 'name'.
   const common = Common.fromGethGenesis(json, { chain: "ganache" });
 
@@ -316,11 +310,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       } else {
         await database.initialize();
 
-        // options.chain.genesis // yet undecided
-        if (true) {
+        if (options.chain.genesisPath) {
           // From here, a valid path to a genesis.json runs -> unsure if/what breaks in ganache
-          // pass path taken from cli/lib options
-
           common = this.common = createCommonFromGethGenesis(
             process.cwd() + "/genesis.json" // todo: add filename from user
           );
@@ -332,7 +323,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           );
         }
       }
-      console.log(common);
+
       this.isPostMerge = this.common.gteHardfork("merge");
 
       const blocks = (this.blocks = await BlockManager.initialize(
