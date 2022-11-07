@@ -8,7 +8,7 @@ const ENCODING_OPTS = { keyEncoding: "binary", valueEncoding: "binary" };
 export class TrieDB implements DB {
   readonly _db: GanacheLevelUp;
 
-  constructor(db?: GanacheLevelUp) {
+  constructor(db: GanacheLevelUp) {
     this._db = db;
   }
 
