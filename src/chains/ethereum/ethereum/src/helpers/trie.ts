@@ -1,8 +1,7 @@
 import { keccak, Quantity } from "@ganache/utils";
-import { DB, Trie } from "@ethereumjs/trie";
+import { Trie } from "@ethereumjs/trie";
 import Blockchain from "../blockchain";
-import { LevelDB } from "../leveldb";
-import { UpgradedLevelDown } from "../leveldown-to-level";
+import { TrieDB } from "../trie-db";
 
 const keyHashingFunction = (msg: Uint8Array) => {
   return keccak(Buffer.from(msg.buffer, msg.byteOffset, msg.length));
@@ -10,12 +9,9 @@ const keyHashingFunction = (msg: Uint8Array) => {
 
 export class GanacheTrie extends Trie {
   public readonly blockchain: Blockchain;
+  public readonly db: TrieDB;
 
-  constructor(
-    db: LevelDB | UpgradedLevelDown | DB,
-    root: Buffer,
-    blockchain: Blockchain
-  ) {
+  constructor(db: TrieDB, root: Buffer, blockchain: Blockchain) {
     super({
       db,
       root,
@@ -24,6 +20,7 @@ export class GanacheTrie extends Trie {
       useKeyHashingFunction: keyHashingFunction
     });
     this.blockchain = blockchain;
+    this.db = db;
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
@@ -36,7 +33,7 @@ export class GanacheTrie extends Trie {
    */
   copy(includeCheckpoints: boolean = true) {
     const secureTrie = new GanacheTrie(
-      this._db.copy().db,
+      this.db.copy(),
       this.root(),
       this.blockchain
     );
