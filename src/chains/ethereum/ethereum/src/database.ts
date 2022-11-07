@@ -6,12 +6,9 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Level } from "level";
 import { UpgradedLevelDown } from "./leveldown-to-level";
 
-export type GanacheLevel = Level<Buffer, Buffer>;
-export type GanacheSublevel = AbstractSublevel<
-  GanacheLevel,
-  Buffer,
-  Buffer,
-  Buffer
+export type GanacheLevelUp = LevelUp<
+  AbstractLevelDOWN<Buffer, Buffer>,
+  AbstractIterator<Buffer, Buffer>
 >;
 
 setGracefulCleanup();

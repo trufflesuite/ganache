@@ -1,26 +1,21 @@
 import { MemoryLevel } from "memory-level";
 
 import type { BatchDBOp, DB } from "@ethereumjs/trie";
-import type { AbstractLevel } from "abstract-level";
+import { GanacheLevelUp } from "./database";
 
 const ENCODING_OPTS = { keyEncoding: "binary", valueEncoding: "binary" };
 
-export type EJSLevel = AbstractLevel<
-  string | Buffer | Uint8Array,
-  string | Buffer,
-  string | Buffer
->;
-export class LevelDB implements DB {
-  readonly _leveldb: EJSLevel;
+export class TrieDB implements DB {
+  readonly _db: GanacheLevelUp;
 
-  constructor(leveldb?: EJSLevel | null) {
-    this._leveldb = leveldb ?? new MemoryLevel(ENCODING_OPTS);
+  constructor(db?: GanacheLevelUp) {
+    this._db = db;
   }
 
   async get(key: Buffer): Promise<Buffer | null> {
     let value = null;
     try {
-      value = await this._leveldb.get(key, ENCODING_OPTS);
+      value = await this._db.get(key, ENCODING_OPTS);
     } catch (error: any) {
       if (error.notFound) {
         // not found, returning null
@@ -32,18 +27,19 @@ export class LevelDB implements DB {
   }
 
   async put(key: Buffer, val: Buffer): Promise<void> {
-    await this._leveldb.put(key, val, ENCODING_OPTS);
+    await this._db.put(key, val, ENCODING_OPTS);
   }
 
   async del(key: Buffer): Promise<void> {
-    await this._leveldb.del(key, ENCODING_OPTS);
+    await this._db.del(key, ENCODING_OPTS);
   }
 
   async batch(opStack: BatchDBOp[]): Promise<void> {
-    await this._leveldb.batch(opStack, ENCODING_OPTS);
+    await this._db.batch(opStack, ENCODING_OPTS);
   }
 
-  copy(): LevelDB {
-    return new LevelDB(this._leveldb);
+  copy(): TrieDB {
+    return new TrieDB(this._db);
+  }
   }
 }
