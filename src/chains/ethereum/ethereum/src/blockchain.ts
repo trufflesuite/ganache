@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database, { DBType } from "./database";
+import Database from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -63,7 +63,6 @@ import { ForkStateManager } from "./forking/state-manager";
 import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import { LevelDB } from "./leveldb";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -77,7 +76,6 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
-import { UpgradedLevelDown } from "./leveldown-to-level";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -147,22 +145,10 @@ function setStateRootSync(
 }
 
 function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
-  let trieDb: LevelDB | UpgradedLevelDown;
-  switch (db.type) {
-    case DBType.Level:
-      trieDb = new LevelDB(db.trie as any);
-      break;
-    case DBType.LevelDown:
-      trieDb = db.db as unknown as UpgradedLevelDown;
-      break;
-    default:
-      // this really shouldn't happen
-      throw new Error("Database type not supported.");
-  }
   if (blockchain.fallback) {
-    return new ForkTrie(trieDb, root ? root.toBuffer() : null, blockchain);
+    return new ForkTrie(db.trie, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(trieDb, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(db.trie, root ? root.toBuffer() : null, blockchain);
   }
 }
 
