@@ -17,27 +17,32 @@ function copyState(latest: Block) {
   return block;
 }
 
-// A Provider can be anything interface to your blockchain you want. Ganache's
-// Ethereum flavor exposes an EIP-1193 provider interface, but you don't have
-// to follow suit. You could expose Ethers.js or Web3.js interfaces, or even
-// a custom interface. The only requirement is that your connector returns a
-// `provider`.
+/**
+ * A Provider can be any interface to your blockchain you want. Ganache's
+ * Ethereum flavor exposes an EIP-1193 provider interface, but you don't have
+ * to do the same. You could expose Ethers.js or Web3.js interfaces, or even
+ * a custom interface. The only requirement is that your connector returns a
+ * `provider`.
+ *
+ * This example provider is ALSO the blockchain itself, if you can even call
+ * it that. It stores "blocks" in memory, but you could store them in a
+ * database like LevelDB, MongoDB, etc. The way state is stored is very
+ * primitive and doesn't make use of Tries; you wouldn't do this in a real
+ * blockchain.
+ */
 export class Provider {
-  /**
-   * This example stores "blocks" in memory, but you could store them in a
-   * database like LevelDB, MongoDB, etc. The way state is stored is very
-   * primitive and doesn't make use of Tries; you wouldn't want to do this
-   * in a real blockchain.
-   */
   #blockchain: Map<bigint, Block> = new Map();
   #latestBlock: bigint;
-  options: MyChainInternalOptions;
+  #options: MyChainInternalOptions;
+
   constructor(options: MyChainProviderOptions) {
-    this.options = MyChainOptionsConfig.normalize(options);
+    this.#options = MyChainOptionsConfig.normalize(options);
 
     const genesisBlock: Map<string, Account> = new Map();
-    this.options.wallet.accounts.forEach(address =>
-      genesisBlock.set(address, { balance: this.options.wallet.defaultBalance })
+    this.#options.wallet.accounts.forEach(address =>
+      genesisBlock.set(address, {
+        balance: this.#options.wallet.defaultBalance
+      })
     );
     this.#blockchain.set(0n, genesisBlock);
     this.#latestBlock = 0n;
@@ -70,21 +75,21 @@ export class Provider {
   }
   #sendFunds(from: string, to: string, amount: bigint) {
     const latest = this.#blockchain.get(this.#latestBlock);
-    const fAccount = { balance: latest.get(from)?.balance || 0n };
-    if (fAccount.balance < amount) {
+    const fromAccount = { balance: latest.get(from)?.balance || 0n };
+    if (fromAccount.balance < amount) {
       throw new Error("insufficient funds");
     }
 
-    const tAccount = { balance: latest.get(to)?.balance || 0n };
+    const toAccount = { balance: latest.get(to)?.balance || 0n };
 
-    fAccount.balance -= amount;
-    tAccount.balance += amount;
+    fromAccount.balance -= amount;
+    toAccount.balance += amount;
 
     const block: Block = copyState(latest);
 
     // Update the state of the block
-    block.set(from, fAccount);
-    block.set(to, tAccount);
+    block.set(from, fromAccount);
+    block.set(to, toAccount);
 
     // update the blockchain
     this.#latestBlock += 1n;
@@ -92,8 +97,8 @@ export class Provider {
 
     // return the state changes
     return {
-      fromBalance: `0x${fAccount.balance.toString(16)}`,
-      toBalance: `0x${tAccount.balance.toString(16)}`
+      fromBalance: `0x${fromAccount.balance.toString(16)}`,
+      toBalance: `0x${toAccount.balance.toString(16)}`
     };
   }
 }

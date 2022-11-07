@@ -26,6 +26,8 @@ export type Flavor<
   D extends Defaults<any> = any
 > = {
   flavor: string;
+  // TODO: why not just make this a function that returns a Connector? Why force
+  // the constructor interface at all :thinking:
   Connector: ConnectorConstructor<Provider, any, any>;
   initialize: (
     provider: Provider,

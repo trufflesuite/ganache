@@ -11,6 +11,7 @@ export type WalletDefinition = {
     accounts: {
       type: string[];
       cliType: string[];
+      hasDefault: true;
     };
     defaultBalance: {
       type: bigint;
@@ -33,7 +34,8 @@ export const WalletOptions: Definitions<WalletDefinition> = {
         .filter(onlyUnique), // remove duplicates
     cliDescription: "The accounts to use when creating the blockchain",
     cliType: "array:string",
-    cliAliases: ["a", "accounts"]
+    cliAliases: ["a", "accounts"],
+    default: () => []
   },
   defaultBalance: {
     normalize: userInput => {

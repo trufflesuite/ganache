@@ -36,6 +36,8 @@ const argv = parseArgs(detailedVersion);
 
 let flavor = argv.flavor;
 
+// TODO: we need a way of applying the default overrides from the _flavor_, if
+// there is one
 const { server: cliSettings } = CliOptionsConfig.normalize(argv);
 
 console.log(detailedVersion);

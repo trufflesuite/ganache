@@ -128,13 +128,20 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
       providerAndServerOptions.flavor === "ethereum"
     ) {
       flavor = EthereumFlavor as unknown as F;
+      this.#options = ServerOptionsConfig.normalize(
+        providerAndServerOptions
+      ) as any;
     } else {
+      // load the flavor!
       flavor = load<F>(providerAndServerOptions.flavor);
+      const flavorOptions = flavor.optionsConfig
+        ? flavor.optionsConfig.normalize(providerAndServerOptions)
+        : {};
+      this.#options = {
+        ...ServerOptionsConfig.normalize(providerAndServerOptions),
+        ...flavorOptions
+      };
     }
-    // TODO: merge the two options configs:
-    this.#options = (flavor.optionsConfig || ServerOptionsConfig).normalize(
-      providerAndServerOptions
-    );
     this.#providerOptions = providerAndServerOptions;
     this.#status = ServerStatus.ready;
 
