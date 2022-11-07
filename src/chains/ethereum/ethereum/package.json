@@ -74,6 +74,7 @@
     "env-paths": "2.2.1",
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",
+    "leveldown": "6.1.0",
     "lodash.clonedeep": "4.5.0",
     "lru-cache": "6.0.0",
     "mcl-wasm": "0.9.0",
