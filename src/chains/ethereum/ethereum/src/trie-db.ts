@@ -1,6 +1,6 @@
-import { MemoryLevel } from "memory-level";
-
 import type { BatchDBOp, DB } from "@ethereumjs/trie";
+import sub from "subleveldown";
+import type { AbstractIteratorOptions } from "abstract-level";
 import { GanacheLevelUp } from "./database";
 
 const ENCODING_OPTS = { keyEncoding: "binary", valueEncoding: "binary" };
@@ -41,5 +41,16 @@ export class TrieDB implements DB {
   copy(): TrieDB {
     return new TrieDB(this._db);
   }
+
+  async close() {
+    await this._db.close();
+  }
+
+  sublevel(prefix: string, options: object): GanacheLevelUp {
+    return sub(this._db, prefix, options);
+  }
+
+  createReadStream(options?: AbstractIteratorOptions<Buffer, Buffer>) {
+    return this._db.createReadStream(options);
   }
 }
