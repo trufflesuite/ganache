@@ -1,7 +1,7 @@
 import { getDefaultForkByNetwork, normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { ArrayToTuple, Writeable } from "./helper-types";
-import yargs from "yargs";
+import yargs, { boolean } from "yargs";
 import { KnownNetworks } from "./fork-options";
 
 const HARDFORKS = [
@@ -200,9 +200,11 @@ export const ChainOptions: Definitions<ChainConfig> = {
     cliDescription: "Set the hardfork rules for the EVM.",
     default: () => {
       const forkArg = yargs.parse(process.argv)["fork"];
-      // If fork argument is blank, default value is mainnet
+      // If fork argument is undefined or blank, default value is mainnet
       const fork =
-        !forkArg || forkArg.toString() == "true" ? "mainnet" : forkArg;
+        forkArg === undefined || typeof forkArg === "boolean"
+          ? "mainnet"
+          : forkArg;
       return getDefaultForkByNetwork(fork as KnownNetworks);
     },
     legacyName: "hardfork",
