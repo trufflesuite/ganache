@@ -56,8 +56,8 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
   }
 }
 
+const VERSION_KEY = Buffer.from("version", "utf-8");
 export async function setDbVersion(db: GanacheLevelUp, version: Buffer) {
-  const VERSION_KEY = Buffer.from("version", "utf-8");
   // set the version if the DB was just created, or error if we already have
   // a version, but it isn't what we expected
   try {
