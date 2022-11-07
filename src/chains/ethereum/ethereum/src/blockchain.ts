@@ -24,7 +24,7 @@ import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
-import { EEI, VM } from "@ethereumjs/vm";
+import { VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
@@ -60,7 +60,7 @@ import {
   CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
-import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import { LevelDB } from "./leveldb";
