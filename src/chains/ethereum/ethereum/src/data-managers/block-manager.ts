@@ -280,11 +280,20 @@ export default class BlockManager extends Manager<Block> {
    */
   async updateTaggedBlocks() {
     const [earliest, latestBlockNumber] = await Promise.all([
-      (async () => {
-        for await (const data of this.base.values({ limit: 1 })) {
-          return new Block(data, this.#common);
-        }
-      })(),
+      new Promise<Block>((resolve, reject) => {
+        let earliest: Block;
+        this.base
+          .createValueStream({ limit: 1 })
+          .on("data", (data: Buffer) => {
+            earliest = new Block(data, this.#common);
+          })
+          .on("error", (err: Error) => {
+            reject(err);
+          })
+          .on("end", () => {
+            resolve(earliest);
+          });
+      }),
       this.#blockIndexes.get(LATEST_INDEX_KEY).catch(e => null)
     ]);
 
@@ -299,19 +308,26 @@ export default class BlockManager extends Manager<Block> {
       // iterates over all data in the data base and finds the block with the
       // highest block number and updates the database with the pointer so we
       // don't have to hit this code again next time.
-      this.latest = await (async () => {
+      const stream = this.base.createValueStream();
+      this.latest = await new Promise<Block>((resolve, reject) => {
         let latest: Block;
-        for await (const data of this.base.values()) {
-          const block = new Block(data, this.#common);
-          if (
-            !latest ||
-            block.header.number.toBigInt() > latest.header.number.toBigInt()
-          ) {
-            latest = block;
-          }
-        }
-        return latest;
-      })();
+        stream
+          .on("data", (data: Buffer) => {
+            const block = new Block(data, this.#common);
+            if (
+              !latest ||
+              block.header.number.toBigInt() > latest.header.number.toBigInt()
+            ) {
+              latest = block;
+            }
+          })
+          .on("error", (err: Error) => {
+            reject(err);
+          })
+          .on("end", () => {
+            resolve(latest);
+          });
+      });
       if (this.latest) {
         // update the LATEST_INDEX_KEY index so we don't have to do this next time
         await this.#blockIndexes
