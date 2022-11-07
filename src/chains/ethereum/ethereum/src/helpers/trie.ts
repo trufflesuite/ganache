@@ -9,6 +9,12 @@ const keyHashingFunction = (msg: Uint8Array) => {
 
 export class GanacheTrie extends Trie {
   public readonly blockchain: Blockchain;
+  /**
+   * The database that's returned from this.database() does not have all of
+   * the types of the original input database because ethereumjs doesn't use
+   * generics for their types in the underlying `CheckpointDB`. So, we store the
+   * original db on our trie so we can access those types.
+   */
   public readonly db: TrieDB;
 
   constructor(db: TrieDB, root: Buffer, blockchain: Blockchain) {
