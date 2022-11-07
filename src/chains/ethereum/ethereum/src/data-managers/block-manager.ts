@@ -1,6 +1,5 @@
 import Manager from "./manager";
 import { Tag, QUANTITY } from "@ganache/ethereum-utils";
-import { GanacheSublevel } from "../database";
 import { Quantity, Data, BUFFER_ZERO } from "@ganache/utils";
 import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
@@ -15,6 +14,7 @@ import {
   TransactionFactory,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
+import { GanacheLevelUp } from "../database";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -40,13 +40,13 @@ export default class BlockManager extends Manager<Block> {
 
   #blockchain: Blockchain;
   #common: Common;
-  #blockIndexes: GanacheSublevel;
+  #blockIndexes: GanacheLevelUp;
 
   static async initialize(
     blockchain: Blockchain,
     common: Common,
-    blockIndexes: GanacheSublevel,
-    base: GanacheSublevel
+    blockIndexes: GanacheLevelUp,
+    base: GanacheLevelUp
   ) {
     const bm = new BlockManager(blockchain, common, blockIndexes, base);
     await bm.updateTaggedBlocks();
@@ -56,8 +56,8 @@ export default class BlockManager extends Manager<Block> {
   constructor(
     blockchain: Blockchain,
     common: Common,
-    blockIndexes: GanacheSublevel,
-    base: GanacheSublevel
+    blockIndexes: GanacheLevelUp,
+    base: GanacheLevelUp
   ) {
     super(base, Block, common);
 
