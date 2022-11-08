@@ -146,7 +146,7 @@ export type ChainConfig = {
       };
     };
   };
-  exclusiveGroups: [["chainId", "networkId", "genesisPath", "hardfork"]];
+  exclusiveGroups: [["chainId", "networkId", "genesisPath"]];
 };
 
 export const ChainOptions: Definitions<ChainConfig> = {
@@ -210,15 +210,14 @@ export const ChainOptions: Definitions<ChainConfig> = {
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
-    cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>,
-    conflicts: ["genesisPath"]
+    cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>
   },
   genesisPath: {
     normalize,
     cliDescription: "Set a genesis.json file",
     cliAliases: ["j", "json"],
     cliType: "string",
-    conflicts: ["networkId", "chainId", "hardfork"]
+    conflicts: ["networkId", "chainId"]
   },
   vmErrorsOnRPCResponse: {
     normalize,
