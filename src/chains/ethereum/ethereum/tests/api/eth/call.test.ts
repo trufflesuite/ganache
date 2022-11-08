@@ -1,5 +1,4 @@
 import assert from "assert";
-import { Level } from "level";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
@@ -19,7 +18,6 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
-import { GanacheLevel } from "../../../src/database";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -914,11 +912,9 @@ describe("api", () => {
         const getDbData = async (
           trie: GanacheTrie
         ): Promise<[Buffer, Buffer][]> => {
-          const dbData: [Buffer, Buffer][] = [];
-          // TODO: EJS (open a PR on @ethereumjs/trie to make DB type more generic)
-          const db = (trie.database().db as any)
-            ._leveldb as unknown as GanacheLevel;
-          const readStream = db.iterator({
+          const dbData = [];
+          const db = trie.db;
+          const readStream = db.createReadStream({
             keys: true,
             values: true
           });

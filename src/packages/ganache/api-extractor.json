@@ -84,7 +84,6 @@
     "@trufflesuite/uws-js-unofficial",
     "@ganache/filecoin",
     "@ganache/filecoin-options",
-    "level",
     "ipfs",
     "level-errors",
     "abstract-leveldown",

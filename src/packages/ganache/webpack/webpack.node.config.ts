@@ -51,7 +51,6 @@ const config: webpack.Configuration = merge({}, base, {
   externals: [
     //#region dependencies that have the potential to compile something at install time
     "@trufflesuite/bigint-buffer",
-    "level",
     "secp256k1",
     "keccak",
     // our µWebSockets.js uses `ws`, as does some other libs. `ws` likes to use

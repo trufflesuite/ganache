@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database, { DBType } from "./database";
+import Database from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -24,7 +24,7 @@ import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
-import { EEI, VM } from "@ethereumjs/vm";
+import { VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
@@ -60,10 +60,9 @@ import {
   CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
-import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import { LevelDB } from "./leveldb";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -77,7 +76,7 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
-import { UpgradedLevelDown } from "./leveldown-to-level";
+import { TrieDB } from "./trie-db";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -146,23 +145,11 @@ function setStateRootSync(
   stateManager._storageTries = {};
 }
 
-function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
-  let trieDb: LevelDB | UpgradedLevelDown;
-  switch (db.type) {
-    case DBType.Level:
-      trieDb = new LevelDB(db.trie as any);
-      break;
-    case DBType.LevelDown:
-      trieDb = db.db as unknown as UpgradedLevelDown;
-      break;
-    default:
-      // this really shouldn't happen
-      throw new Error("Database type not supported.");
-  }
+function makeTrie(blockchain: Blockchain, trieDB: TrieDB, root: Data) {
   if (blockchain.fallback) {
-    return new ForkTrie(trieDb, root ? root.toBuffer() : null, blockchain);
+    return new ForkTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(trieDb, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   }
 }
 
@@ -302,7 +289,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           stateRoot = null;
         }
-        this.trie = makeTrie(this, database, stateRoot);
+        this.trie = makeTrie(this, database.trie, stateRoot);
       }
 
       // create VM and listen to step events
@@ -1613,7 +1600,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(this, this.#database, parentBlock.header.stateRoot);
+    const trie = makeTrie(
+      this,
+      this.#database.trie,
+      parentBlock.header.stateRoot
+    );
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
