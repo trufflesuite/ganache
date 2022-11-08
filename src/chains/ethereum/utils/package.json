@@ -49,7 +49,7 @@
   ],
   "dependencies": {
     "@ethereumjs/common": "3.0.1",
-    "@ethereumjs/evm": "1.2.0",
+    "@ethereumjs/evm": "1.2.2",
     "@ethereumjs/tx": "4.0.1",
     "@ethereumjs/vm": "6.2.0",
     "@ganache/ethereum-address": "0.5.2",
