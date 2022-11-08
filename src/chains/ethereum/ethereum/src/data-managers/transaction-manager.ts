@@ -1,7 +1,6 @@
 import Manager from "./manager";
 import TransactionPool from "../transaction-pool";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { GanacheSublevel } from "../database";
 import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
 import type { Common } from "@ethereumjs/common";
@@ -13,6 +12,7 @@ import {
   Transaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
+import { GanacheLevelUp } from "../database";
 
 // since our Manager needs to receive and Instantiable class with a
 // consistent return type and our transaction factory can return
@@ -34,7 +34,7 @@ export default class TransactionManager extends Manager<NoOp> {
     options: EthereumInternalOptions["miner"],
     common: Common,
     blockchain: Blockchain,
-    base: GanacheSublevel
+    base: GanacheLevelUp
   ) {
     super(base, TransactionFactory, common);
     this.#blockchain = blockchain;

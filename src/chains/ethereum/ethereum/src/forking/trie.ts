@@ -9,10 +9,8 @@ import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
 import { KECCAK256_NULL } from "@ethereumjs/util";
-import { GanacheSublevel } from "../database";
-import { AbstractSublevel } from "abstract-level";
-import { EJSLevel, LevelDB } from "../leveldb";
-import { GanacheLevelDown, UpgradedLevelDown } from "../leveldown-to-level";
+import { TrieDB } from "../trie-db";
+import { GanacheLevelUp } from "../database";
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";
@@ -20,14 +18,11 @@ const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap<
-  GanacheSublevel | GanacheLevelDown,
-  AbstractSublevel<GanacheSublevel, Buffer, string, string>
->();
+const MetadataSingletons = new WeakMap<TrieDB, GanacheLevelUp>();
 
 const LEVELDOWN_OPTIONS = {
-  keyEncoding: "buffer",
-  valueEncoding: "buffer"
+  keyEncoding: "binary",
+  valueEncoding: "binary"
 };
 
 function isEqualKey(encodedKey: Buffer, address: Buffer, key: Buffer) {
@@ -42,44 +37,35 @@ export class ForkTrie extends GanacheTrie {
   private isPreForkBlock = false;
   private forkBlockNumber: bigint;
   public blockNumber: Quantity;
-  private metadata: CheckpointDB;
-  private db: LevelDB | UpgradedLevelDown;
+  private checkpointedMetadata: CheckpointDB;
+  /** The underlying database for `checkpointedMetadata */
+  private metadataDB: GanacheLevelUp;
 
-  constructor(
-    db: LevelDB | UpgradedLevelDown | null,
-    root: Buffer,
-    blockchain: Blockchain
-  ) {
+  constructor(db: TrieDB | null, root: Buffer, blockchain: Blockchain) {
     super(db, root, blockchain);
-    this.db = db;
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
     this.forkBlockNumber = this.blockNumber.toBigInt();
-    // a LevelDB has a _leveldb property, otherwise this is an upgraded
-    // leveldown instance
-    const leveldb =
-      "_leveldb" in db
-        ? (db._leveldb as GanacheSublevel)
-        : (db as unknown as GanacheSublevel);
-    const metadataDb = MetadataSingletons.has(leveldb)
-      ? MetadataSingletons.get(leveldb)
-      : MetadataSingletons.set(
-          leveldb,
-          leveldb.sublevel("f", LEVELDOWN_OPTIONS)
-        ).get(leveldb);
 
-    this.metadata = new CheckpointDB(new LevelDB(metadataDb as EJSLevel));
+    let metadataDB = MetadataSingletons.get(db);
+    if (!metadataDB) {
+      metadataDB = db.sublevel("f", LEVELDOWN_OPTIONS);
+      MetadataSingletons.set(db, metadataDB);
+    }
+    this.metadataDB = metadataDB;
+
+    this.checkpointedMetadata = new CheckpointDB(new TrieDB(this.metadataDB));
   }
 
   checkpoint() {
     super.checkpoint();
-    this.metadata.checkpoint(this.root());
+    this.checkpointedMetadata.checkpoint(this.root());
   }
   async commit() {
-    await Promise.all([super.commit(), this.metadata.commit()]);
+    await Promise.all([super.commit(), this.checkpointedMetadata.commit()]);
   }
   async revert() {
-    await Promise.all([super.revert(), this.metadata.revert()]);
+    await Promise.all([super.revert(), this.checkpointedMetadata.revert()]);
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
@@ -102,14 +88,13 @@ export class ForkTrie extends GanacheTrie {
     startBlockNumber: Quantity,
     endBlockNumber: Quantity
   ) {
-    const db = (this.metadata.db as any)._leveldb;
-    const stream = db.iterator({
+    const db = this.metadataDB;
+    const stream = db.createReadStream({
       gte: lexico.encode([startBlockNumber.toBuffer()]),
       lt: lexico.encode([
         Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
       ])
     });
-    //@ts-ignore
     const batch = db.batch();
     for await (const [key] of stream) {
       batch.del(key);
@@ -133,7 +118,7 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): there is probably a better/faster way of doing this for the
     // common case.
     // Issue: https://github.com/trufflesuite/ganache/issues/3483
-    const checkpoints = this.metadata.checkpoints;
+    const { checkpoints } = this.checkpointedMetadata;
     for (let i = checkpoints.length - 1; i >= 0; i--) {
       for (let [encodedKeyStr, value] of checkpoints[i].keyValueMap.entries()) {
         if (!value || !value.equals(DELETED_VALUE)) continue;
@@ -150,12 +135,16 @@ export class ForkTrie extends GanacheTrie {
     // because it just checks every single key we've ever deleted (before this
     // one).
     // Issue: https://github.com/trufflesuite/ganache/issues/3484
-    const db = (this.metadata.db as any)._leveldb;
-    const stream = db.iterator({
+    const db = this.metadataDB;
+    const stream = db.createReadStream({
       lte: this.createDelKey(key),
       reverse: true
     });
-    for await (const [encodedKey, value] of stream) {
+    for await (const data of stream) {
+      const { key: encodedKey, value } = data as unknown as {
+        key: Buffer;
+        value: Buffer;
+      };
       if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
     }
@@ -175,7 +164,10 @@ export class ForkTrie extends GanacheTrie {
     // This little optimization can cut debug_traceTransaction time _in half_.
     if (!this.isPreForkBlock) {
       const delKey = this.createDelKey(key);
-      const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
+      const metaDataPutPromise = this.checkpointedMetadata.put(
+        delKey,
+        DELETED_VALUE
+      );
 
       const hash = keccak(key);
       const { node, stack } = await this.findPath(hash);
@@ -233,7 +225,7 @@ export class ForkTrie extends GanacheTrie {
         account.codeHash = keccak(code);
         if (!account.codeHash.equals(KECCAK256_NULL)) {
           // insert the code directly into the database with a key of `codeHash`
-          promises[2] = this._db.put(account.codeHash, code);
+          promises[2] = this.db.put(account.codeHash, code);
         }
       }
     } catch (e) {
@@ -314,8 +306,8 @@ export class ForkTrie extends GanacheTrie {
     if (includeCheckpoints && this.hasCheckpoints()) {
       secureTrie._db.checkpoints = [...this._db.checkpoints];
 
-      // Our `metadata.checkpoints` needs to be the same reference to the
-      // parent's metadata.checkpoints so that we can continue to track these
+      // Our metadata checkpoints need to be the same reference to the
+      // parent's metadata checkpoints so that we can continue to track these
       // changes on this copy, otherwise deletions made to a contract's storage
       // may not be tracked.
       // Note: db.checkpoints don't need this same treatment because of the way
@@ -323,7 +315,8 @@ export class ForkTrie extends GanacheTrie {
       // Instead, it saves to its own internal cache, which eventually gets
       // reverted or committed (flushed). Our metadata doesn't utilize a central
       // cache.
-      secureTrie.metadata.checkpoints = this.metadata.checkpoints;
+      secureTrie.checkpointedMetadata.checkpoints =
+        this.checkpointedMetadata.checkpoints;
     }
     return secureTrie;
   }
