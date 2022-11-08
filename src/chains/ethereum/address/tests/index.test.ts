@@ -13,14 +13,6 @@ describe("@ganache/ethereum-address", () => {
       );
     });
 
-    // TODO: Do we need truncation or can we remove?
-    // it("should truncate an address to the specified length", () => {
-    //   const address = Address.from("0x1");
-    //   const stringifiedAddress = address.toString(1);
-
-    //   assert.strictEqual(stringifiedAddress, "0x01");
-    // });
-
     it("should stringify a 20 byte address string", () => {
       const address = Address.from(
         "0x2104859394604359378433865360947116707876"
@@ -52,16 +44,6 @@ describe("@ganache/ethereum-address", () => {
 
       assert.deepStrictEqual(bufferAddress, expected);
     });
-
-    // TODO: Do we need truncation or can we remove?
-    // it("should truncate an address to the specified length", () => {
-    //   const address = Address.from(
-    //     "0x2104859394604359378433865360947116707876"
-    //   );
-    //   const stringifiedAddress = address.toString(1);
-
-    //   assert.strictEqual(stringifiedAddress, "0x21");
-    // });
 
     it("should convert a 20 byte address to a buffer", () => {
       const address = Address.from(
