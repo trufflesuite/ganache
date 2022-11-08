@@ -23,7 +23,7 @@ import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
-import { VM } from "@ethereumjs/vm";
+import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
