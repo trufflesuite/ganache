@@ -12,9 +12,8 @@ import {
   INSUFFICIENT_FUNDS
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { Executables } from "./miner/executables";
+import { ExecutableTransactionContainer } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
-
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
  * in the transaction pool queue. Replacement eligibility requires that
@@ -77,7 +76,7 @@ function shouldReplace(
   }
 }
 
-function byNonce(values: TypedTransaction[], a: number, b: number) {
+export function byNonce(values: TypedTransaction[], a: number, b: number) {
   return (
     (values[b].nonce.toBigInt() || 0n) > (values[a].nonce.toBigInt() || 0n)
   );
@@ -129,10 +128,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     this.origins = origins;
     this.#priceBump = options.priceBump;
   }
-  public readonly executables: Executables = {
-    inProgress: new Set(),
-    pending: new Map()
-  };
+  public readonly executables = new ExecutableTransactionContainer();
   public readonly origins: Map<string, Heap<TypedTransaction>>;
   readonly #accountPromises = new Map<
     string,
@@ -231,7 +227,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     const queuedOriginTransactions = origins.get(origin);
 
     let transactionPlacement = TriageOption.FutureQueue;
-    const executables = this.executables.pending;
+    const executables = this.executables.pendingByOrigin;
     let executableOriginTransactions = executables.get(origin);
 
     const priceBump = this.#priceBump;
@@ -406,7 +402,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
   public clear() {
     this.origins.clear();
     this.#accountPromises.clear();
-    this.executables.pending.clear();
+    this.executables.pendingByOrigin.clear();
   }
 
   /**
@@ -419,7 +415,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
    * @param transactionHash -
    */
   public find(transactionHash: Buffer) {
-    const { pending, inProgress } = this.executables;
+    const { pendingByOrigin, inProgress } = this.executables;
 
     // first search pending transactions
     for (let [_, transactions] of this.origins) {
@@ -434,7 +430,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     // then transactions eligible for execution
-    for (let [_, transactions] of pending) {
+    for (let [_, transactions] of pendingByOrigin) {
       const arr = transactions.array;
       for (let i = 0; i < transactions.length; i++) {
         const tx = arr[i];

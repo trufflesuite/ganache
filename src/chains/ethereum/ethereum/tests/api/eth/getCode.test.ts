@@ -43,17 +43,23 @@ describe("api", () => {
       describe("code checks", () => {
         let provider: EthereumProvider;
         let from: string;
-        let contractAddress: string;
+        // we can preset the contract address because we have the wallet in
+        // deterministic mode. this allows us to get the code at the contract
+        // address for the pending block before the contract is actually
+        // deployed
+        const contractAddress = "0xe78a0f7e598cc8b0bb87894b0f60dd2a88d6a8ab";
         let blockNumber: Quantity;
         let contract: ReturnType<typeof compile>;
+        let pendingCode: string;
 
         before(async () => {
           contract = compile(join(__dirname, "./contracts/GetCode.sol"), {
             contractName: "GetCode",
             imports: [join(__dirname, "./contracts/NoOp.sol")]
           });
-          provider = await getProvider();
+          provider = await getProvider({ wallet: { deterministic: true } });
           [from] = await provider.send("eth_accounts");
+          await provider.send("miner_stop");
           await provider.send("eth_subscribe", ["newHeads"]);
           const transactionHash = await provider.send("eth_sendTransaction", [
             {
@@ -62,15 +68,21 @@ describe("api", () => {
               gas: "0x2fefd8"
             }
           ]);
+          pendingCode = await provider.send("eth_getCode", [
+            contractAddress,
+            "pending"
+          ]);
+
+          await provider.send("miner_start");
           await provider.once("message");
           const transactionReceipt = await provider.send(
             "eth_getTransactionReceipt",
             [transactionHash]
           );
-          contractAddress = transactionReceipt.contractAddress;
-          assert(
-            contractAddress !== null,
-            "Contract wasn't deployed as expected"
+          assert.strictEqual(
+            contractAddress,
+            transactionReceipt.contractAddress,
+            "Contract doesn't have expected address."
           );
 
           blockNumber = Quantity.from(transactionReceipt.blockNumber);
@@ -86,6 +98,14 @@ describe("api", () => {
             context.expectedCode = `0x${contract.contract.evm.deployedBytecode.object}`;
           });
           testContractCode(context);
+
+          it("should return the code at the 'pending' block when 'pending' is equal to the deployed block number", async () => {
+            assert.strictEqual(
+              pendingCode,
+              context.expectedCode,
+              "Expected code at pending block to be equal to deployed code."
+            );
+          });
         });
 
         describe("factory-deployed contract", () => {
@@ -126,6 +146,14 @@ describe("api", () => {
               Quantity.from(blockNumber.toBigInt() - 1n).toString()
             ]);
             assert.strictEqual(code, "0x");
+          });
+
+          it("should return the code at the 'pending' block when 'pending' is after the deployed block number", async () => {
+            const code = await provider.send("eth_getCode", [
+              contractAddress,
+              "pending"
+            ]);
+            assert.strictEqual(code, expectedCode);
           });
 
           it("should return the code at the 'latest' block when `latest` and the deployed block number are the same", async () => {

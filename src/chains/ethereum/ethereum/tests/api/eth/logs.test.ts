@@ -261,6 +261,34 @@ describe("api", () => {
           assert.strictEqual(logs.length, 0);
         });
 
+        it("should filter out other blocks when using `pending`", async () => {
+          await provider.send("eth_subscribe", ["newHeads"]);
+          const numberOfLogs = 4;
+          const data =
+            "0x" +
+            contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
+            numberOfLogs.toString().padStart(64, "0");
+          await provider.send("eth_sendTransaction", [
+            {
+              from: accounts[0],
+              to: contractAddress,
+              gas: "0x2fefd8",
+              data: data
+            }
+          ]);
+          await provider.once("message");
+          await provider.send("evm_mine");
+          await provider.once("message");
+          const logs = await provider.send("eth_getLogs", [
+            {
+              address: contractAddress,
+              toBlock: "pending",
+              fromBlock: "pending"
+            }
+          ]);
+          assert.strictEqual(logs.length, 0);
+        });
+
         it("should filter appropriately when using fromBlock and toBlock", async () => {
           const genesisBlockNumber = "0x0";
           const deployBlockNumber = "0x1";
@@ -303,7 +331,7 @@ describe("api", () => {
             );
           }
 
-          // tests ranges up to latest/blockNumber
+          // tests ranges up to pending/blockNumber
           await testGetLogs("earliest", "earliest", 0);
           await testGetLogs(genesisBlockNumber, genesisBlockNumber, 0);
           await testGetLogs("earliest", emptyBlockNumber, 1);
@@ -316,12 +344,19 @@ describe("api", () => {
           await testGetLogs(deployBlockNumber, blockNumber, numberOfLogs + 1);
           await testGetLogs(emptyBlockNumber, "latest", numberOfLogs);
           await testGetLogs(emptyBlockNumber, blockNumber, numberOfLogs);
+          await testGetLogs(genesisBlockNumber, "pending", numberOfLogs + 1);
+          await testGetLogs(deployBlockNumber, "pending", numberOfLogs + 1);
+          await testGetLogs(emptyBlockNumber, "pending", numberOfLogs);
 
           // tests variations where latest === blockNumber
           await testGetLogs(blockNumber, blockNumber, numberOfLogs);
           await testGetLogs(blockNumber, "latest", numberOfLogs);
           await testGetLogs("latest", blockNumber, numberOfLogs);
           await testGetLogs("latest", "latest", numberOfLogs);
+
+          await testGetLogs(blockNumber, "pending", numberOfLogs);
+          await testGetLogs("pending", blockNumber, 0);
+          await testGetLogs("pending", "pending", 0);
 
           // mine an extra block
           await provider.send("evm_mine"); // 0x3
@@ -356,6 +391,7 @@ describe("api", () => {
           await testGetLogs(emptyBlockNumber, lastBlockNumber, numberOfLogs);
           await testGetLogs(lastBlockNumber, "latest", 0);
           await testGetLogs("latest", lastBlockNumber, 0);
+          await testGetLogs("pending", lastBlockNumber, 0);
         });
 
         it("should filter appropriately when using blockHash", async () => {
@@ -525,16 +561,16 @@ describe("api", () => {
           const tx = { from: accounts[0], to: contractAddress, data };
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let msg = await provider.once("message");
+          await provider.once("message");
           const changes1 = await provider.send("eth_getFilterChanges", [
             filterId
           ]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let msg2 = await provider.once("message");
+          await provider.once("message");
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let hash3 = await provider.once("message");
+          await provider.once("message");
 
           const changes2 = await provider.send("eth_getFilterChanges", [
             filterId
@@ -542,10 +578,8 @@ describe("api", () => {
           assert.strictEqual(changes2.length, 2);
           await assertNoChanges();
         });
-      });
 
-      describe("eth_newFilter", () => {
-        it("returns new logs", async () => {
+        it("returns new logs and filters by block range", async () => {
           await provider.send("eth_subscribe", ["newHeads"]);
           async function assertNoChanges() {
             const noChanges = await provider.send("eth_getFilterChanges", [
@@ -567,16 +601,16 @@ describe("api", () => {
           const tx = { from: accounts[0], to: contractAddress, data };
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let hash = await provider.once("message");
+          await provider.once("message");
           const changes1 = await provider.send("eth_getFilterChanges", [
             filterId
           ]);
           assert.strictEqual(changes1.length, 1);
           await assertNoChanges();
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let hash2 = await provider.once("message");
+          await provider.once("message");
           provider.send("eth_sendTransaction", [{ ...tx }]);
-          let hash3 = await provider.once("message");
+          await provider.once("message");
 
           const changes2 = await provider.send("eth_getFilterChanges", [
             filterId
@@ -588,6 +622,52 @@ describe("api", () => {
             filterId
           ]);
           assert.deepStrictEqual(allChanges, [...changes1, ...changes2]);
+        });
+
+        it("returns new logs and allows block tags as a block filters", async () => {
+          await provider.send("eth_subscribe", ["newHeads"]);
+          async function assertNoChanges(filterId) {
+            const noChanges = await provider.send("eth_getFilterChanges", [
+              filterId
+            ]);
+            assert.strictEqual(noChanges.length, 0);
+          }
+          // the fromBlock and toBlock is recalculated every time for the filter
+          // based off of the tag, so this essentially allows all new blocks
+          const filterId = await provider.send("eth_newFilter", [
+            { fromBlock: "latest", toBlock: "pending" }
+          ]);
+          // switching the order is not allowing any changes
+          const filterId2 = await provider.send("eth_newFilter", [
+            { fromBlock: "pending", toBlock: "latest" }
+          ]);
+          const numberOfLogs = 1;
+          const data =
+            "0x" +
+            contract.contract.evm.methodIdentifiers["logNTimes(uint8)"] +
+            numberOfLogs.toString().padStart(64, "0");
+          const tx = { from: accounts[0], to: contractAddress, data };
+          await assertNoChanges(filterId);
+          await assertNoChanges(filterId2);
+          provider.send("eth_sendTransaction", [{ ...tx }]);
+          await provider.once("message");
+          const changes1 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
+          assert.strictEqual(changes1.length, 1);
+          await assertNoChanges(filterId);
+          await assertNoChanges(filterId2);
+          provider.send("eth_sendTransaction", [{ ...tx }]);
+          await provider.once("message");
+          provider.send("eth_sendTransaction", [{ ...tx }]);
+          await provider.once("message");
+
+          const changes2 = await provider.send("eth_getFilterChanges", [
+            filterId
+          ]);
+          assert.strictEqual(changes2.length, 2);
+          await assertNoChanges(filterId);
+          await assertNoChanges(filterId2);
         });
       });
     });

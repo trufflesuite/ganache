@@ -1231,8 +1231,7 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag
   ) {
     const { blocks } = this.#blockchain;
-    const blockNum = blocks.getEffectiveNumber(blockNumber);
-    const rawBlock = await blocks.getRawByBlockNumber(blockNum);
+    const rawBlock = await blocks.getRawByBlockNumberOrTag(blockNumber);
     if (!rawBlock) return null;
 
     const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
@@ -1271,7 +1270,7 @@ export default class EthereumApi implements Api {
     const blockNum = await blocks.getNumberFromHash(hash);
     if (!blockNum) return null;
 
-    const rawBlock = await blocks.getRawByBlockNumber(Quantity.from(blockNum));
+    const rawBlock = await blocks.getRawByBlockNumberOrTag(blockNum);
     if (!rawBlock) return null;
 
     const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
@@ -1758,15 +1757,7 @@ export default class EthereumApi implements Api {
     position: QUANTITY,
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ) {
-    const blockchain = this.#blockchain;
-    const blockNum = blockchain.blocks.getEffectiveNumber(blockNumber);
-    const block = await blockchain.blocks.getRawByBlockNumber(blockNum);
-
-    if (!block) throw new Error("header not found");
-
-    const [[, , , blockStateRoot]] = decode<GanacheRawBlock>(block);
-    const trie = blockchain.trie.copy(false);
-    trie.setContext(blockStateRoot, null, blockNum);
+    const { accounts } = this.#blockchain;
 
     const posBuff = Quantity.toBuffer(position);
     const length = posBuff.length;
@@ -1784,12 +1775,11 @@ export default class EthereumApi implements Api {
       paddedPosBuff = posBuff.slice(-32);
     }
 
-    const addressBuf = Address.from(address).toBuffer();
-    const addressData = await trie.get(addressBuf);
-    // An address's stateRoot is stored in the 3rd rlp entry
-    const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
-    trie.setContext(addressStateRoot, addressBuf, blockNum);
-    const value = await trie.get(paddedPosBuff);
+    const value = await accounts.getStorageAt(
+      Address.from(address),
+      paddedPosBuff,
+      blockNumber
+    );
     return Data.from(decode(value), 32);
   }
 
@@ -3649,7 +3639,7 @@ export default class EthereumApi implements Api {
     };
 
     return {
-      pending: processMap(executables.pending),
+      pending: processMap(executables.pendingByOrigin),
       queued: processMap(origins)
     };
   }

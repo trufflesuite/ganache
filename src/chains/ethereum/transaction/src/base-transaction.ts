@@ -122,4 +122,17 @@ export class BaseTransaction {
       this.to != null && !this.to.toBuffer().equals(BUFFER_EMPTY);
     return calculateIntrinsicGas(this.data, hasToAddress, this.common);
   }
+  public copyOnto(transaction: BaseTransaction) {
+    transaction.common = this.common;
+    transaction.type = this.type;
+    transaction.nonce = this.nonce;
+    transaction.gas = this.gas;
+    transaction.to = this.to;
+    transaction.value = this.value;
+    transaction.data = this.data;
+    transaction.v = this.v;
+    transaction.r = this.r;
+    transaction.s = this.s;
+    transaction.from = this.from;
+  }
 }

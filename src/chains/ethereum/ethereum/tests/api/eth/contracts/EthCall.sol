@@ -12,6 +12,10 @@ contract EthCall {
     return block.basefee;
   }
 
+  function getBlockNumber() public view virtual returns (uint256) {
+    return block.number;
+  }
+
   function doARevert() public pure {
     revert("you are a failure");
   }

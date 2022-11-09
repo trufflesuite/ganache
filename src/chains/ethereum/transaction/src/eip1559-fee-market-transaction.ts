@@ -285,4 +285,16 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
     this.effectiveGasPrice = Quantity.from(baseFeePerGasBigInt + tip);
   }
+
+  public clone() {
+    const copy = Object.create(this) as EIP1559FeeMarketTransaction;
+    copy.maxPriorityFeePerGas = this.maxPriorityFeePerGas;
+    copy.maxFeePerGas = this.maxFeePerGas;
+    copy.chainId = this.chainId;
+    copy.accessList = this.accessList;
+    copy.accessListJSON = this.accessListJSON;
+    copy.accessListDataFee = this.accessListDataFee;
+    super.copyOnto(copy);
+    return copy;
+  }
 }

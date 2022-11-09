@@ -170,9 +170,9 @@ describe("transaction pool", async () => {
       secretKey
     );
     assert(isExecutable); // our first transaction is executable
-    const { pending } = txPool.executables;
+    const { pendingByOrigin } = txPool.executables;
     // our executable transaction should be found in the pending queue
-    const found = findIn(executableTx.hash.toBuffer(), pending);
+    const found = findIn(executableTx.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(
       found.serialized.toString(),
       executableTx.serialized.toString()
@@ -281,9 +281,9 @@ describe("transaction pool", async () => {
       secretKey
     );
     assert(isExecutable); // our first transaction is executable
-    const { pending } = txPool.executables;
+    const { pendingByOrigin } = txPool.executables;
     // our executable transaction should be found in the pending queue
-    const found = findIn(executableTx.hash.toBuffer(), pending);
+    const found = findIn(executableTx.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(
       found.serialized.toString(),
       executableTx.serialized.toString()
@@ -314,9 +314,9 @@ describe("transaction pool", async () => {
       secretKey
     );
     assert(isExecutable); // our first transaction is executable
-    const { pending } = txPool.executables;
+    const { pendingByOrigin } = txPool.executables;
     // our executable transaction should be found in the pending queue
-    const found = findIn(executableTx.hash.toBuffer(), pending);
+    const found = findIn(executableTx.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(
       found.serialized.toString(),
       executableTx.serialized.toString()
@@ -345,7 +345,10 @@ describe("transaction pool", async () => {
     );
     assert(replacementIsExecutable); // our replacement transaction is executable
     // our replacement transaction should be found in the pending queue
-    const replacementFound = findIn(replacementTx.hash.toBuffer(), pending);
+    const replacementFound = findIn(
+      replacementTx.hash.toBuffer(),
+      pendingByOrigin
+    );
     assert.strictEqual(
       replacementFound.serialized.toString(),
       replacementTx.serialized.toString()
@@ -421,9 +424,9 @@ describe("transaction pool", async () => {
       secretKey
     );
     assert(isExecutable); // our first transaction is executable
-    const { pending } = txPool.executables;
+    const { pendingByOrigin } = txPool.executables;
     // our executable transaction should be found in the pending queue
-    const found = findIn(executableTx.hash.toBuffer(), pending);
+    const found = findIn(executableTx.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(
       found.serialized.toString(),
       executableTx.serialized.toString()
@@ -438,12 +441,15 @@ describe("transaction pool", async () => {
     const txIsExecutable = await txPool.prepareTransaction(tx, secretKey);
     assert(txIsExecutable); // our next transaction is executable
     // our executable transaction should be found in the pending queue
-    const txFound = findIn(tx.hash.toBuffer(), pending);
+    const txFound = findIn(tx.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(txFound.serialized.toString(), tx.serialized.toString());
 
     // now, the tx pool should have automatically marked our previously "future"
     // tx as executable and moved it out of the origins queue.
-    const futureInPending = findIn(futureNonceTx.hash.toBuffer(), pending);
+    const futureInPending = findIn(
+      futureNonceTx.hash.toBuffer(),
+      pendingByOrigin
+    );
     assert.strictEqual(
       futureInPending.serialized.toString(),
       futureNonceTx.serialized.toString()
@@ -468,9 +474,9 @@ describe("transaction pool", async () => {
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     await txPool.prepareTransaction(transaction, secretKey);
-    const { pending } = txPool.executables;
+    const { pendingByOrigin } = txPool.executables;
     // our executable transaction should be found in the pending queue
-    const found = findIn(transaction.hash.toBuffer(), pending);
+    const found = findIn(transaction.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(
       found.serialized.toString(),
       transaction.serialized.toString()
@@ -491,7 +497,7 @@ describe("transaction pool", async () => {
 
     txPool.clear();
     // both queues should be empty
-    assert.strictEqual(pending.values.length, 0);
+    assert.strictEqual(pendingByOrigin.values.length, 0);
     assert.strictEqual(origins.values.length, 0);
   });
 
@@ -504,9 +510,9 @@ describe("transaction pool", async () => {
     txPool.drain();
     await drainPromise;
 
-    const { pending } = txPool.executables;
+    const { pendingByOrigin } = txPool.executables;
     // our executable transaction should be found in the pending queue after the drain event
-    const found = findIn(transaction.hash.toBuffer(), pending);
+    const found = findIn(transaction.hash.toBuffer(), pendingByOrigin);
     assert.strictEqual(
       found.serialized.toString(),
       transaction.serialized.toString()

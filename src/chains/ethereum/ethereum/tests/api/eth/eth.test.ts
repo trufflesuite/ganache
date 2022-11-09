@@ -138,6 +138,31 @@ describe("api", () => {
         ]);
         assert.strictEqual(balance, "0x0");
       });
+
+      it("should allow passing the pending tag", async () => {
+        await provider.send("miner_stop");
+        const value = Quantity.from("0xfffffffffff");
+        await provider.send("eth_sendTransaction", [
+          {
+            from: accounts[0],
+            to: accounts[1],
+            value: value.toString(),
+            gas: "0xfffff"
+          }
+        ]);
+        const pendingBalance = await provider.send("eth_getBalance", [
+          accounts[0],
+          "pending"
+        ]);
+        await provider.send("eth_subscribe", ["newHeads"]);
+        await provider.send("miner_start");
+        await provider.once("message");
+        const balanceAfter = await provider.send("eth_getBalance", [
+          accounts[0],
+          "latest"
+        ]);
+        assert.strictEqual(pendingBalance, balanceAfter);
+      });
     });
 
     describe("eth_getTransactionCount", () => {
@@ -216,6 +241,24 @@ describe("api", () => {
           "latest"
         ]);
         assert.strictEqual(txCount9, txCount4);
+      });
+
+      it("should get the transaction count of the pending block", async () => {
+        const tx = {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        };
+
+        // send one tx and don't mine, then check the count
+        await provider.send("miner_stop");
+        await provider.send("eth_sendTransaction", [tx]);
+
+        const txCount = await provider.send("eth_getTransactionCount", [
+          accounts[0],
+          "pending"
+        ]);
+        assert.strictEqual(txCount, "0x1");
       });
     });
 
@@ -373,6 +416,41 @@ describe("api", () => {
       assert.strictEqual(count, "0x1");
     });
 
+    it("eth_getBlockTransactionCountByNumber for pending tag", async () => {
+      await provider.send("eth_subscribe", ["newHeads"]);
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        }
+      ]);
+      await provider.once("message");
+      // stop the miner so the transaction stays in the pool
+      await provider.send("miner_stop");
+      // queue up two transactions
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        }
+      ]);
+      await provider.send("eth_sendTransaction", [
+        {
+          from: accounts[0],
+          to: accounts[1],
+          value: "0x1"
+        }
+      ]);
+
+      const count = await provider.send(
+        "eth_getBlockTransactionCountByNumber",
+        ["pending"]
+      );
+      assert.strictEqual(count, "0x2");
+    });
+
     it("eth_sendTransaction bad data (tiny gas limit)", async () => {
       await provider
         .send("eth_sendTransaction", [
@@ -525,6 +603,51 @@ describe("api", () => {
         retrievedTx2.hash,
         tx2Hash,
         "eth_getTransactionByBlockHashAndIndex transaction hash doesn't match tx hash"
+      );
+    });
+
+    it("eth_getTransactionByBlockNumberAndIndex for pending tag", async () => {
+      const gasPrice = await provider.send("eth_gasPrice", []);
+
+      await provider.send("miner_stop");
+      const txArgs = {
+        from: accounts[0],
+        to: accounts[1],
+        value: "0x1",
+        gasPrice
+      };
+
+      const tx1Hash = await provider.send("eth_sendTransaction", [txArgs]);
+      const tx2Hash = await provider.send("eth_sendTransaction", [txArgs]);
+
+      const retrievedTx1 = await provider.send(
+        "eth_getTransactionByBlockNumberAndIndex",
+        ["pending", "0x0"]
+      );
+      assert.strictEqual(
+        retrievedTx1.hash,
+        "0xab338178ffd130f1b7724a687ef20afcc75d44020184f82127ab1bc59f17d7e2",
+        "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        retrievedTx1.hash,
+        tx1Hash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
+      );
+
+      const retrievedTx2 = await provider.send(
+        "eth_getTransactionByBlockNumberAndIndex",
+        ["pending", "0x1"]
+      );
+      assert.strictEqual(
+        retrievedTx2.hash,
+        "0x32b957c5669ff38b7baa8bfb9c4f84811f70ae3fb44fb2ad63e70ee959c88471",
+        "Unexpected transaction hash."
+      );
+      assert.strictEqual(
+        retrievedTx2.hash,
+        tx2Hash,
+        "eth_getTransactionByBlockNumberAndIndex transaction hash doesn't match tx hash"
       );
     });
 

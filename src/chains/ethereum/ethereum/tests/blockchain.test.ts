@@ -1,4 +1,5 @@
 import assert from "assert";
+import { Address as EthereumJsAddress } from "ethereumjs-util";
 import {
   EIP1559FeeMarketRpcTransaction,
   TransactionFactory
@@ -7,6 +8,10 @@ import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import Wallet from "../src/wallet";
 import Blockchain from "../src/blockchain";
 import { Block } from "@ganache/ethereum-block";
+import { Data, Quantity } from "@ganache/utils";
+import Common from "@ethereumjs/common";
+import { statesAreDeepStrictEqual } from "./helpers/compare-chain-state";
+import { Address } from "@ganache/ethereum-address";
 
 describe("blockchain", async () => {
   describe("interval mining", () => {
@@ -117,6 +122,65 @@ describe("blockchain", async () => {
         `Unexpected timestamp - expected >= ${timestamps[0] + blockTime}, got ${
           timestamps[1]
         }`
+      );
+    });
+  });
+
+  describe("pending block", () => {
+    let blockchain: Blockchain;
+    let common: Common;
+    let rpcTx: EIP1559FeeMarketRpcTransaction;
+    let secretKey: Data;
+    const emptyTransactionsPerBlock = 2;
+    const blockGasLimit = "0xA410"; // enough gas for 2 empty txs
+    const addresses: EthereumJsAddress[] = [];
+    before(async () => {
+      const options = EthereumOptionsConfig.normalize({
+        miner: { blockGasLimit }
+      });
+
+      // set up wallet/blockchain
+      const wallet = new Wallet(options.wallet, options.logging);
+      const initialAccounts = wallet.initialAccounts;
+      blockchain = new Blockchain(options, initialAccounts[0].address);
+      await blockchain.initialize(wallet.initialAccounts);
+      blockchain.pause();
+      common = blockchain.common;
+
+      // set up two transactions
+      const [from, to] = wallet.addresses;
+      addresses.push(new EthereumJsAddress(Address.toBuffer(from)));
+      addresses.push(new EthereumJsAddress(Address.toBuffer(to)));
+      secretKey = wallet.unlockedAccounts.get(from);
+      rpcTx = {
+        from,
+        to,
+        maxFeePerGas: "0xffffffff",
+        type: "0x2",
+        gas: "0x5208"
+      };
+    });
+
+    it("does not alter chain state", async () => {
+      for (let i = 0; i < emptyTransactionsPerBlock; i++) {
+        const transaction = TransactionFactory.fromRpc(
+          { ...rpcTx, nonce: Quantity.toString(i) },
+          common
+        );
+        await blockchain.queueTransaction(transaction, secretKey);
+      }
+
+      const transaction = TransactionFactory.fromRpc(
+        { ...rpcTx, nonce: "0xff" },
+        common
+      );
+      await blockchain.queueTransaction(transaction, secretKey);
+      const testFunc = async () => {
+        await blockchain.createPendingBlock(blockchain.blocks.latest);
+      };
+      assert(
+        await statesAreDeepStrictEqual(blockchain, addresses, testFunc),
+        "Expected blockchain state to be the same before and after creating a pending block."
       );
     });
   });

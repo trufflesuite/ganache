@@ -17,7 +17,7 @@ import Common from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
-import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
+import { BUFFER_EMPTY, hasOwn, Quantity } from "@ganache/utils";
 import { SECP256K1_N } from "@ganache/secp256k1";
 
 describe("@ganache/ethereum-transaction", async () => {
@@ -31,6 +31,15 @@ describe("@ganache/ethereum-transaction", async () => {
     },
     "london"
   );
+  const TRANSACTION_COPY_EXCLUSIONS = [
+    "common",
+    "blockNumber",
+    "blockHash",
+    "finalizer",
+    "finalized",
+    "logs",
+    "receipt"
+  ];
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
   const privKeyBuf = Quantity.toBuffer(privKey);
@@ -439,6 +448,14 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
     });
+    it("has a copy function which makes identical transactions", () => {
+      const copy = tx.clone();
+      for (const prop in tx) {
+        if (!hasOwn(tx, prop) || TRANSACTION_COPY_EXCLUSIONS.includes(prop))
+          continue;
+        assert.deepStrictEqual(copy[prop], tx[prop]);
+      }
+    });
   });
   describe("EIP2930AccessListTransaction Type", () => {
     const tx = <EIP2930AccessListTransaction>(
@@ -513,6 +530,14 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.v, tx.v);
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
+    });
+    it("has a copy function which makes identical transactions", () => {
+      const copy = tx.clone();
+      for (const prop in tx) {
+        if (!hasOwn(tx, prop) || TRANSACTION_COPY_EXCLUSIONS.includes(prop))
+          continue;
+        assert.deepStrictEqual(copy[prop], tx[prop]);
+      }
     });
   });
 
@@ -594,6 +619,14 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(jsonTx.v, tx.v);
       assert.strictEqual(jsonTx.r, tx.r);
       assert.strictEqual(jsonTx.s, tx.s);
+    });
+    it("has a copy function which makes identical transactions", () => {
+      const copy = tx.clone();
+      for (const prop in tx) {
+        if (!hasOwn(tx, prop) || TRANSACTION_COPY_EXCLUSIONS.includes(prop))
+          continue;
+        assert.deepStrictEqual(copy[prop], tx[prop]);
+      }
     });
   });
 

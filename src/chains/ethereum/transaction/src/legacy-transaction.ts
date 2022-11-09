@@ -236,4 +236,11 @@ export class LegacyTransaction extends RuntimeTransaction {
     return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
   }
   public updateEffectiveGasPrice() {}
+
+  public clone() {
+    const copy = Object.create(this) as LegacyTransaction;
+    copy.gasPrice = this.gasPrice;
+    super.copyOnto(copy);
+    return copy;
+  }
 }

@@ -17,7 +17,8 @@ import {
   StructLog,
   TraceTransactionOptions,
   EthereumRawAccount,
-  TraceTransactionResult
+  TraceTransactionResult,
+  GanacheTrie
 } from "@ganache/ethereum-utils";
 import type { Address as EthereumJsAddress } from "ethereumjs-util";
 import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
@@ -49,7 +50,12 @@ import {
   VmTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
-import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
+import {
+  Block,
+  PendingBlock,
+  RuntimeBlock,
+  Snapshots
+} from "@ganache/ethereum-block";
 import {
   SimulationTransaction,
   applySimulationOverrides,
@@ -60,7 +66,6 @@ import {
   DefaultStateManager,
   StateManager
 } from "@ethereumjs/vm/dist/state/index";
-import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import type { LevelUp } from "levelup";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
@@ -145,7 +150,7 @@ function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
   if (blockchain.fallback) {
     return new ForkTrie(db, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(db, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(db, root ? root.toBuffer() : null);
   }
 }
 
@@ -584,6 +589,52 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       previousHeader.totalDifficulty,
       Block.calcNextBaseFee(previousBlock)
     );
+  };
+
+  createPendingBlock = async (previousBlock: Block) => {
+    const { miner: minerOptions, chain: chainOptions } = this.#options;
+    const nextBlock = this.#readyNextBlock(previousBlock);
+    // If the executables has inProgress transactions, we were already
+    // in the middle of mining a block when the pending block was requested.
+    // The block that is currently being mined is what we want to return as pending,
+    // so we'll reset the executables to be what it was when mining started,
+    // i.e. all inProgress executables are moved to the front of the pending executables.
+    const executables =
+      this.transactions.transactionPool.executables.cloneAndReset();
+
+    // the number of transactions that should be included in this block depends
+    // on a few factors. in "instamine" mode (meaning blockTime = 0), we usually
+    // only mine 1 transaction per block. However, if the miner is currently
+    // paused (from miner_stop being called), whenever they restart the miner
+    // all executable transactions will be mined, so the pending block should
+    // contain all executables that will fit in a block. if we're not in
+    // instamine mode, the miner will always try to fill the block, regardless
+    // of whether the miner is paused or not
+    const instamine = this.#instamine;
+    const paused = this.#isPaused();
+    const maxTransactions =
+      instamine && !paused ? Capacity.Single : Capacity.FillBlock;
+
+    // deep copy so we also create a new copy of the underlying database
+    const trie = await this.trie.deepCopy(false);
+    // we don't want any events from mining to be
+    // caught by `this.vm`, so we need to make a new one.
+    const vm = await this.createVmFromStateTrie(
+      trie,
+      chainOptions.allowUnlimitedContractSize,
+      true
+    );
+
+    const miner = new Miner(
+      minerOptions,
+      executables,
+      vm,
+      this.#readyNextBlock
+    );
+    miner.mine(nextBlock, maxTransactions, true);
+
+    const { block } = await miner.once("block");
+    return PendingBlock.fromBlock(block, this.common, trie);
   };
 
   isStarted = () => {

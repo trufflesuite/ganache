@@ -8,6 +8,7 @@ import {
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
 import type Common from "@ethereumjs/common";
+import { serialize } from "./serialize";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
@@ -116,21 +117,24 @@ export class Block {
     }
   }
 
-  static fromParts(
-    rawHeader: EthereumRawBlockHeader,
-    txs: TypedDatabaseTransaction[],
-    totalDifficulty: Buffer,
-    extraTxs: GanacheRawBlockTransactionMetaData[],
-    size: number,
-    common: Common
-  ): Block {
-    const block = new Block(null, common);
-    block._raw = rawHeader;
-    block._rawTransactions = txs;
-    block.header = makeHeader(rawHeader, totalDifficulty);
-    block._rawTransactionMetaData = extraTxs;
-    block._size = size;
-    return block;
+  getParts() {
+    return {
+      rawHeader: this._raw,
+      txs: this._rawTransactions,
+      header: this.header,
+      extraTxs: this._rawTransactionMetaData,
+      size: this._size
+    };
+  }
+
+  toRaw() {
+    return serialize([
+      this._raw,
+      this._rawTransactions,
+      [],
+      this.header.totalDifficulty.toBuffer(),
+      this._rawTransactionMetaData
+    ]).serialized;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {

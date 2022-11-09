@@ -244,6 +244,16 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     // resolves the `#finalized` promise
     this.finalizer({ status, error });
   }
+
+  public copyOnto(transaction: RuntimeTransaction) {
+    transaction.encodedData = this.encodedData;
+    transaction.encodedSignature = this.encodedSignature;
+    transaction.hash = this.hash;
+    transaction.serialized = this.serialized;
+    transaction.raw = this.raw;
+    super.copyOnto(transaction);
+  }
+
   protected abstract toEthRawTransaction(
     v: Buffer,
     r: Buffer,
@@ -258,4 +268,10 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
   protected abstract toVmTransaction();
   protected abstract updateEffectiveGasPrice(baseFeePerGas?: Quantity);
+  /**
+   * Creates a copy of the transaction and all of the fields that are filled
+   * _before_ the transaction is mined onto the block. (Note: block and receipt
+   * data is not added to the copy.)
+   */
+  protected abstract clone();
 }
