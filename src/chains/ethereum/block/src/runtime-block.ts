@@ -77,7 +77,7 @@ export class RuntimeBlock {
     parentHash: Buffer;
     difficulty: bigint;
     totalDifficulty: Buffer;
-    coinbase: { buf: Buffer; toBuffer: () => Buffer };
+    coinbase: Address;
     number: bigint;
     gasLimit: bigint;
     gasUsed: bigint;
@@ -105,7 +105,7 @@ export class RuntimeBlock {
     const coinbaseBuffer = coinbase.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
-      coinbase: { buf: coinbaseBuffer, toBuffer: () => coinbaseBuffer },
+      coinbase: new Address(coinbaseBuffer),
       number: number.toBigInt(),
       difficulty: difficulty.toBigInt(),
       totalDifficulty: Quantity.toBuffer(

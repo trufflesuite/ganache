@@ -19,7 +19,6 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
@@ -740,10 +739,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit accounts, but for forking.
       const stateManager = <DefaultStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
-      initialAccounts.forEach(acc => {
-        const a = { buf: acc.address.toBuffer() } as any;
-        (stateManager as DefaultStateManager)._cache.put(a, acc as any);
-        (this.vm.eei as any).touchAccount(a);
+      initialAccounts.forEach(account => {
+        this.vm.eei.putAccount(account.address, account as any);
       });
       await stateManager.commit();
 
@@ -1090,16 +1087,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
-    let to: EthereumJsAddress = null;
-    if (hasToAddress) {
-      const toBuf = transaction.to.toBuffer();
-      to = {
-        equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
-        buf: toBuf
-      } as any;
-    } else {
-      to = null;
-    }
+    const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
@@ -1152,6 +1140,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       });
 
       const caller = transaction.from.toBuffer();
+      const callerAddress = new Address(caller);
 
       if (common.isActivatedEIP(2929)) {
         const eei = vm.eei;
@@ -1168,23 +1157,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
-      const fromAccount = await vm.eei.getAccount({
-        buf: caller
-      } as any);
+      const fromAccount = await vm.eei.getAccount(callerAddress);
       fromAccount.nonce += 1n;
       const txCost = gasLimit * transaction.gasPrice.toBigInt();
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
       fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
-      await vm.eei.putAccount({ buf: caller } as any, fromAccount);
+      await vm.eei.putAccount(callerAddress, fromAccount);
 
       // finally, run the call
       // @ts-ignore types are dumbs
       result = await vm.evm.runCall({
-        caller: {
-          buf: caller,
-          equals: (a: { buf: Buffer }) => caller.equals(a.buf)
-        } as any,
+        caller: callerAddress,
         data: transaction.data && transaction.data.toBuffer(),
         gasPrice: transaction.gasPrice.toBigInt(),
         gasLimit: gasLeft,
@@ -1356,7 +1340,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           case "SLOAD": {
             const key = stack[stack.length - 1];
             const result = await vm.stateManager.getContractStorage(
-              event.address as any,
+              event.address,
               key.toBuffer()
             );
             const value = TraceData.from(result);
@@ -1401,14 +1385,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         if (tx === transaction) {
           if (keys && contractAddress) {
             const database = this.#database;
-            const ejsContractAddress = { buf: contractAddress } as any;
             await Promise.all(
               keys.map(async key => {
                 // get the raw key using the hashed key
                 const rawKey = await database.storageKeys.get(key);
 
                 const result = await vm.stateManager.getContractStorage(
-                  ejsContractAddress,
+                  new Address(contractAddress),
                   rawKey
                 );
 
@@ -1462,7 +1445,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
-      parentBlock.header.miner,
+      Address.from(parentBlock.header.miner.toString()),
       parentBlock.header.gasLimit.toBuffer(),
       BUFFER_ZERO,
       // make sure we use the same timestamp as the target block

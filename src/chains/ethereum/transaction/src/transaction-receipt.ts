@@ -27,7 +27,7 @@ export interface TransactionReceipt {
   transactionIndex: Quantity;
   blockNumber: Quantity;
   blockHash: Data;
-  from: Data;
+  from: Address;
   to: Address;
   cumulativeGasUsed: Quantity;
   gasUsed: Quantity;
