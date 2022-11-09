@@ -43,7 +43,7 @@ describe("miner", async () => {
       const options = EthereumOptionsConfig.normalize(optionsJson);
       const wallet = new Wallet(options.wallet);
       [from1, from2, from3, to] = wallet.addresses;
-      const fromAddress = new Address(from1);
+      const fromAddress = Address.from(from1);
 
       lowGasLimitBlockchain = new Blockchain(options, fromAddress);
       await lowGasLimitBlockchain.initialize(wallet.initialAccounts);
