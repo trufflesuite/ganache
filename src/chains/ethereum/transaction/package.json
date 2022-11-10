@@ -48,18 +48,18 @@
     "truffle"
   ],
   "dependencies": {
-    "@ethereumjs/common": "3.0.0",
+    "@ethereumjs/common": "3.0.1",
     "@ganache/ethereum-address": "0.5.2",
     "@ganache/ethereum-utils": "0.5.2",
     "@ganache/rlp": "0.5.2",
     "@ganache/secp256k1": "0.4.1",
-    "@ethereumjs/tx": "4.0.0",
+    "@ethereumjs/tx": "4.0.1",
     "@ganache/utils": "0.5.2",
     "node-gyp-build": "4.5.0"
   },
   "devDependencies": {
-    "@ethereumjs/evm": "1.0.0",
-    "@ethereumjs/vm": "6.0.0",
+    "@ethereumjs/evm": "1.2.2",
+    "@ethereumjs/vm": "6.2.0",
     "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
     "mocha": "9.1.3",
