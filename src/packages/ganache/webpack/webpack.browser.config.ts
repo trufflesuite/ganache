@@ -28,6 +28,8 @@ const config: webpack.Configuration = merge({}, base, {
       "tmp-promise": require.resolve("./polyfills/browser-tmp-promise"),
       "bigint-buffer": require.resolve("./polyfills/browser-bigint-buffer"),
       crypto: require.resolve("./polyfills/browser-crypto"),
+      // replace leveldown with a browser version
+      leveldown: require.resolve("level-js/"),
       // browser version can't start a server, so just remove the websocket server since it can't work anyway
       "@trufflesuite/uws-js-unofficial": false,
       // replace URL with a browser version -- sorta. just look at the polyfill code
