@@ -50,12 +50,12 @@
     "tooling"
   ],
   "dependencies": {
-    "@ethereumjs/block": "4.0.0",
-    "@ethereumjs/common": "3.0.0",
-    "@ethereumjs/trie": "5.0.0",
-    "@ethereumjs/tx": "4.0.0",
-    "@ethereumjs/util": "8.0.0",
-    "@ethereumjs/vm": "6.0.0",
+    "@ethereumjs/block": "4.0.1",
+    "@ethereumjs/common": "3.0.1",
+    "@ethereumjs/trie": "5.0.1",
+    "@ethereumjs/tx": "4.0.1",
+    "@ethereumjs/util": "8.0.2",
+    "@ethereumjs/vm": "6.2.0",
     "@ganache/console.log": "0.2.0",
     "@ganache/ethereum-address": "0.6.0",
     "@ganache/ethereum-block": "0.6.0",
