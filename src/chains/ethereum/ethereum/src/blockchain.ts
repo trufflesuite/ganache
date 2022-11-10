@@ -23,11 +23,12 @@ import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
-import { VM } from "@ethereumjs/vm";
+import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult
+  EVMResult,
+  EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
@@ -684,26 +685,27 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
 
     common = common || this.common;
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: stateTrie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
-    // @ts-ignore
-    const vm = new VM({
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const vm = await VM.create({
       activatePrecompiles: false,
       common,
-      allowUnlimitedContractSize,
       blockchain,
-      stateManager: this.fallback
-        ? // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new ForkStateManager({
-            trie: stateTrie as ForkTrie,
-            prefixCodeHashes: false
-          })
-        : // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
-    }) as VM;
-    // @ts-ignore
-    vm.evm._allowUnlimitedContractSize = allowUnlimitedContractSize;
+      stateManager,
+      evm
+    });
+
     if (activatePrecompile) {
       await activatePrecompiles(vm.eei);
 
@@ -1166,7 +1168,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await vm.eei.putAccount(callerAddress, fromAccount);
 
       // finally, run the call
-      // @ts-ignore types are dumbs
       result = await vm.evm.runCall({
         caller: callerAddress,
         data: transaction.data && transaction.data.toBuffer(),
@@ -1189,7 +1190,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      // @ts-ignore types are dumbs
       throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
@@ -1225,23 +1225,31 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         )
       : this.common;
 
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: trie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie, prefixCodeHashes: false });
+
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({
+      common,
+      allowUnlimitedContractSize:
+        this.#options.chain.allowUnlimitedContractSize,
+      eei
+    });
     const vm = await VM.create({
       activatePrecompiles: false,
       common,
       blockchain,
-      stateManager: this.fallback
-        ? // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new ForkStateManager({
-            trie: trie as ForkTrie,
-            prefixCodeHashes: false
-          })
-        : // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new DefaultStateManager({ trie: trie, prefixCodeHashes: false })
+      stateManager,
+      evm
     });
-    //@ts-ignore
-    vm._allowUnlimitedContractSize = this.vm.evm._allowUnlimitedContractSize;
 
     const storage: StorageRecords = {};
 
@@ -1641,7 +1649,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         const rs = storageTrie.createReadStream();
-        // @ts-ignore
+        // @ts-ignore TODO: remove once https://github.com/ethereumjs/ethereumjs-monorepo/pull/2318 is released
         rs.on("data", handleData).on("error", reject).on("end", handleEnd);
       });
     };
