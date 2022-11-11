@@ -21,7 +21,8 @@ const config: webpack.Configuration = merge({}, base, {
       // in any package.
       debug: require.resolve("./polyfills/debug"),
       // the `setimmediate` package is only used in the browser
-      setimmediate: false
+      setimmediate: false,
+      ethers: false
     }
   },
   plugins: [
