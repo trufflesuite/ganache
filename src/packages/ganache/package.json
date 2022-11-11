@@ -94,7 +94,7 @@
   "dependencies": {
     "@trufflesuite/bigint-buffer": "1.1.10",
     "@ethereumjs/vm": "6.2.0",
-    "@ethereumjs/evm": "1.2.0",
+    "@ethereumjs/evm": "1.2.2",
     "@ethereumjs/trie": "5.0.1",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "5.1.1",
