@@ -63,7 +63,7 @@
     "nyc": "15.1.0"
   },
   "dependencies": {
-    "table": "6.8.0",
+    "cli-table": "^0.3.1",
     "@trufflesuite/ps-list": "0.0.3",
     "@ganache/colors": "0.3.0",
     "@ganache/core": "0.6.0",

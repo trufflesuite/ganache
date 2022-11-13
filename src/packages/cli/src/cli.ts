@@ -15,7 +15,7 @@ import {
   getDetachedInstances
 } from "./detach";
 import { TruffleColors } from "@ganache/colors";
-import { table } from "table";
+import Table from "cli-table";
 import chalk from "chalk";
 
 const porscheColor = chalk.hex(TruffleColors.porsche);
@@ -209,8 +209,8 @@ if (argv.action === "start") {
     } else {
       const now = Date.now();
 
-      const rows = [
-        [
+      const table = new Table({
+        head: [
           chalk.bold("PID"),
           chalk.bold("Name"),
           chalk.bold("Flavor"),
@@ -218,13 +218,17 @@ if (argv.action === "start") {
           chalk.bold("Host"),
           chalk.bold("Port"),
           chalk.bold("Uptime")
-        ]
-      ];
+        ],
+        style: {
+          head: ["white", "white", "white", "white", "white", "white", "white"]
+        }
+      });
+
       for (let i = 0; i < instances.length; i++) {
         const instance = instances[i];
 
         const uptime = now - instance.startTime;
-        rows.push([
+        table.push([
           instance.pid.toString(),
           porscheColor(instance.instanceName),
           instance.flavor,
@@ -234,7 +238,8 @@ if (argv.action === "start") {
           formatDuration(uptime)
         ]);
       }
-      console.log(table(rows));
+
+      console.log(table.toString());
     }
   });
 }
