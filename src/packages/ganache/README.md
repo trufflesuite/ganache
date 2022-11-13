@@ -487,7 +487,7 @@ of the Ganache startup arguments above):
   -D, --detach, --😈                     Run Ganache in detached (daemon) mode.                       [boolean]
 ```
 
-This will start Ganache as a background process, and return to the console as soon as Ganache has started and ready to
+This will start Ganache as a background process, and return to the console as soon as Ganache has started and is ready to
 receive requests. A friendly name will be returned to STDOUT which can then be used to interact with the instance via
 the `ganache instances` command with the following arguments:
 
