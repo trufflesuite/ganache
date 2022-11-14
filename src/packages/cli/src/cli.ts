@@ -5,7 +5,7 @@ import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
 import EthereumFlavor from "@ganache/ethereum";
 import type { EthereumProvider } from "@ganache/ethereum";
-import { CliOptionsConfig, load } from "@ganache/flavor";
+import { CliOptionsConfig, Flavor, load } from "@ganache/flavor";
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
   // https://nodejs.org/api/process.html#process_process_exit_code
@@ -36,9 +36,26 @@ const argv = parseArgs(detailedVersion);
 
 let flavor = argv.flavor;
 
-// TODO: we need a way of applying the default overrides from the _flavor_, if
-// there is one
-const { server: cliSettings } = CliOptionsConfig.normalize(argv);
+let { server: cliSettings } = CliOptionsConfig.normalize(argv);
+
+let flavorHandler: Flavor;
+if (flavor === "ethereum") {
+  flavorHandler = EthereumFlavor;
+} else {
+  flavorHandler = load(flavor);
+
+  // if the flavor handler has a server section, merge it with the cli settings
+  // has it might have a section for overriding the port and the host
+  if (
+    flavorHandler.optionsConfig &&
+    flavorHandler.optionsConfig.defaults.server
+  ) {
+    cliSettings = {
+      ...cliSettings,
+      ...flavorHandler.optionsConfig.normalize().server
+    };
+  }
+}
 
 console.log(detailedVersion);
 
@@ -125,9 +142,9 @@ async function startGanache(err: Error) {
   started = true;
 
   if (flavor === "ethereum") {
-    EthereumFlavor.initialize(server.provider as EthereumProvider, cliSettings);
+    flavorHandler.initialize(server.provider as EthereumProvider, cliSettings);
   } else {
-    await load(flavor).initialize(server.provider, cliSettings);
+    await flavorHandler.initialize(server.provider, cliSettings);
   }
 }
 console.log("Starting RPC server");

@@ -24,8 +24,7 @@ function color(str: string) {
   return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
 
-interface EthereumFlavor
-  extends Flavor<EthereumProvider, ServerOptionsConfig, EthereumDefaults> {
+interface EthereumFlavor extends Flavor<EthereumProvider, ServerOptionsConfig> {
   flavor: "ethereum";
   Connector: typeof Connector;
   serverOptions: ServerOptionsConfig;
@@ -36,7 +35,6 @@ const EthereumFlavor: EthereumFlavor = {
   flavor: "ethereum",
   Connector,
   serverOptions: ServerOptionsConfig,
-  defaults: EthereumDefaults,
   initialize: initialize
 };
 

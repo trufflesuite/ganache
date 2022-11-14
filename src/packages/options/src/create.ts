@@ -108,16 +108,16 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
 }
 
 export class OptionsConfig<O extends NamespacedOptions> {
-  #defaults: Defaults<O>;
+  public readonly defaults: Defaults<O>;
   #namespaces: UnionToTuple<keyof Defaults<O>>;
 
   constructor(defaults: Defaults<O>) {
-    this.#defaults = defaults;
+    this.defaults = defaults;
     this.#namespaces = Object.keys(defaults) as UnionToTuple<keyof Defaults<O>>;
   }
 
   normalize(options: ProviderOptions<O>) {
-    const defaults = this.#defaults;
+    const defaults = this.defaults;
 
     const out = {} as InternalOptions<O>;
     this.#namespaces.forEach(namespace => {

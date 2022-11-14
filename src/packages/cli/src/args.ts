@@ -167,12 +167,12 @@ export const parseArgs = (version: string) => {
       if (flavor === "filecoin") flavor = "@ganache/filecoin";
       // load flavor plugin:
       const { default: FlavorInterface } = eval("require")(flavor);
-      flavorDefaults = FlavorInterface.defaults;
+      flavorDefaults = FlavorInterface.optionsConfig.defaults;
     } else {
-      flavorDefaults = EthereumFlavor.defaults;
+      flavorDefaults = EthereumFlavor.optionsConfig.defaults;
     }
   } else {
-    flavorDefaults = EthereumFlavor.defaults;
+    flavorDefaults = EthereumFlavor.optionsConfig.defaults;
     command = ["$0", "ethereum"];
   }
 

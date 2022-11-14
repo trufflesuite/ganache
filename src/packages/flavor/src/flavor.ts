@@ -1,10 +1,5 @@
-import type {
-  Defaults,
-  NamespacedOptions,
-  OptionsConfig
-} from "@ganache/options";
+import type { OptionsConfig } from "@ganache/options";
 import { ConnectorConstructor } from "./connector";
-import { ServerOptionsConfig } from "./options/server/server-options-config";
 
 export type ConstructorReturn<T extends abstract new (...args: any) => any> =
   T extends abstract new (...args: any) => infer I ? I : never;
@@ -20,11 +15,7 @@ export type CliSettings = Partial<{
   chunkSize: number;
 }> & { host: string; port: number };
 
-export type Flavor<
-  Provider = any,
-  O extends OptionsConfig<any> = any,
-  D extends Defaults<any> = any
-> = {
+export type Flavor<Provider = any, O extends OptionsConfig<any> = any> = {
   flavor: string;
   // TODO: why not just make this a function that returns a Connector? Why force
   // the constructor interface at all :thinking:
@@ -34,5 +25,4 @@ export type Flavor<
     settings: CliSettings
   ) => void | Promise<void>;
   optionsConfig?: O;
-  defaults?: D;
 };

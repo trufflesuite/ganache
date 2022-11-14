@@ -15,19 +15,16 @@ export {
   StorageDealStatus
 } from "./src/connector";
 
-interface FilecoinFlavor
-  extends Flavor<FilecoinProvider, ServerOptionsConfig, ServerDefaults> {
+interface FilecoinFlavor extends Flavor<FilecoinProvider, ServerOptionsConfig> {
   Connector: typeof Connector;
   flavor: "@ganache/filecoin" | "filecoin";
   serverOptions: ServerOptionsConfig;
-  defaults: ServerDefaults;
 }
 
 const FilecoinFlavor: FilecoinFlavor = {
   Connector,
   flavor: "@ganache/filecoin",
   serverOptions: ServerOptionsConfig,
-  defaults: ServerDefaults,
   initialize
 };
 

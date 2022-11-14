@@ -44,7 +44,7 @@ interface MyChainFlavor
 
   /**
    * When Ganache is used via the CLI it will use the options config to override
-   * Ganache's default start options, like the `port` and `host`.
+   * Ganache's default start up options, like the `port` and `host`.
    */
   optionsConfig: MyChainOptionsConfig;
 }
