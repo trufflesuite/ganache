@@ -5,6 +5,12 @@ import { GanacheLevelUp } from "./database";
 
 const ENCODING_OPTS = { keyEncoding: "binary", valueEncoding: "binary" };
 
+/**
+ * `@ethereumjs/trie` requires that any database passed to it implements a `DB`.
+ * The `DB` interface defines the minimum set of database access methods that
+ * ethereumjs needs internally. We implement that interface in `TrieDB`, as well
+ * as a few other methods that we use in Ganache internally.
+ */
 export class TrieDB implements DB {
   readonly _db: GanacheLevelUp;
 
