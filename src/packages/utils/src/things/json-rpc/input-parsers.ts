@@ -34,10 +34,6 @@ export function parseAndValidateNumberInput(input: number): Buffer {
  * @returns {Buffer}
  */
 export function parseAndValidateBigIntInput(input: bigint): Buffer {
-  if (input === 0n) {
-    return BUFFER_EMPTY;
-  }
-
   if (input < 0n) {
     throw new Error("Cannot wrap a negative value as a json-rpc type");
   }

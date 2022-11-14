@@ -14,9 +14,6 @@ import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import secp256k1 from "@ganache/secp256k1";
 
-const _bigintToBuffer = (value: bigint) =>
-  value === 0n ? BUFFER_EMPTY : bigIntToBuffer(value);
-
 /**
  * Copies `length` bytes from `source` to the `target`, filling remaining
  * bytes beyond `length - source.length` with `0`. Fills to the left.
@@ -85,7 +82,7 @@ export const ecdsaRecover = (
   const isEip155 = v === eip155V || v === eip155V + 1n;
 
   if (isEip155) {
-    const chainBuf = _bigintToBuffer(chainId);
+    const chainBuf = bigIntToBuffer(chainId);
     const extras = [chainBuf, BUFFER_EMPTY, BUFFER_EMPTY] as const;
     const epilogue = encodeRange(extras, 0, 3);
     data = digest(
