@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database, { DBType } from "./database";
+import Database from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -289,7 +289,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           stateRoot = null;
         }
-        this.trie = makeTrie(this, database, stateRoot);
+        this.trie = makeTrie(this, database.trie, stateRoot);
       }
 
       // create VM and listen to step events
@@ -1594,7 +1594,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(this, this.#database, parentBlock.header.stateRoot);
+    const trie = makeTrie(
+      this,
+      this.#database.trie,
+      parentBlock.header.stateRoot
+    );
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
