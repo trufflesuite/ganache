@@ -45,7 +45,7 @@ describe("api", () => {
 
         const pub = ecrecover(msgHash, v, r, s);
         const addr = fromSigned(pubToAddress(pub));
-        const strAddr = Data.toString(Quantity.toBuffer(addr), 20);
+        const strAddr = Data.toString(`0x${addr.toString(16)}`, 20);
         assert.strictEqual(strAddr, accounts[0].toLowerCase());
       });
 
