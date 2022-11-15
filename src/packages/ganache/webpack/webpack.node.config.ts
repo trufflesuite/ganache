@@ -66,7 +66,20 @@ const config: webpack.Configuration = merge({}, base, {
     //#endregion
     "@ganache/filecoin",
     // things api-extractor can't handle, so we don't bundle them:
-    "emittery"
+    "emittery",
+    "@ethereumjs/vm",
+    // because we're calling @ethereumjs/vm is already added as an external,
+    // mark all of the packages that we use that _it_ imports as also being external
+    "@ethereumjs/trie",
+    "@ethereumjs/evm",
+    "@ethereumjs/statemanager",
+    "@ethereumjs/util",
+    "@ethereumjs/rlp",
+    "@ethereumjs/common",
+    "@ethereumjs/block",
+    "@ethereumjs/ethash",
+    "@ethereumjs/blockchain",
+    "@ethereumjs/tx"
   ],
   module: {
     rules: [
