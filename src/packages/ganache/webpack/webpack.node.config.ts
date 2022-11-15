@@ -53,6 +53,7 @@ const config: webpack.Configuration = merge({}, base, {
   externals: [
     //#region dependencies that have the potential to compile something at install time
     "@trufflesuite/bigint-buffer",
+    "@trufflesuite/uws-js-unofficial",
     "abstract-leveldown",
     "async-eventemitter",
     "leveldown",

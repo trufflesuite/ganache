@@ -93,6 +93,7 @@
   },
   "dependencies": {
     "@trufflesuite/bigint-buffer": "1.1.10",
+    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
     "@ethereumjs/vm": "6.2.0",
     "@ethereumjs/evm": "1.2.2",
     "@ethereumjs/trie": "5.0.1",
@@ -113,6 +114,7 @@
   },
   "bundledDependencies": [
     "@trufflesuite/bigint-buffer",
+    "@trufflesuite/uws-js-unofficial",
     "@ethereumjs/vm",
     "@ethereumjs/trie",
     "@ethereumjs/evm",
