@@ -69,8 +69,8 @@ const config: webpack.Configuration = merge({}, base, {
     "abstract-leveldown",
     "async-eventemitter",
     "@ethereumjs/vm",
-    // because we're calling @ethereumjs/vm is already added as an external,
-    // mark all of the packages that we use that _it_ imports as also being external
+    // because @ethereumjs/vm is already added as an external, mark all of the
+    // packages that we use that _it_ imports as also being external
     "@ethereumjs/trie",
     "@ethereumjs/evm",
     "@ethereumjs/statemanager",
