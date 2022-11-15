@@ -32,6 +32,10 @@ const READY_MESSAGE = "ready";
 
 const START_ERROR = "An error ocurred spawning a detached instance of Ganache:";
 
+function getInstanceFilePath(instanceName: string): string {
+  return path.join(dataPath, instanceName);
+}
+
 /**
  * Notify that the detached instance has started and is ready to receive requests.
  */
@@ -43,11 +47,11 @@ export function notifyDetachedInstanceReady() {
 
 /**
  * Attempt to find and remove the instance file for a detached instance.
- * @param  {number} pid the pid of the detached instance
+ * @param  {string} instanceName the name of the instance to be removed
  * @returns boolean indicating whether the instance file was cleaned up successfully
  */
-export function removeDetachedInstanceFile(pid: number): boolean {
-  const instanceFilename = `${dataPath}/${pid}`;
+export function removeDetachedInstanceFile(instanceName: string): boolean {
+  const instanceFilename = getInstanceFilePath(instanceName);
   if (existsSync(instanceFilename)) {
     rmSync(instanceFilename);
     return true;
@@ -68,19 +72,20 @@ export function removeDetachedInstanceFile(pid: number): boolean {
 export async function stopDetachedInstance(
   instanceName: string
 ): Promise<boolean> {
-  const instance = await findDetachedInstanceByName(instanceName);
-  if (instance !== undefined) {
-    try {
-      process.kill(instance.pid, "SIGTERM");
-    } catch (err) {
-      // process.kill throws if the process was not found (or was a group process in Windows)
-      return false;
-    } finally {
-      removeDetachedInstanceFile(instance.pid);
-    }
-    return true;
+  try {
+    // getDetachedInstanceByName() throws if the instance file is not found or
+    // cannot be parsed
+    const instance = await getDetachedInstanceByName(instanceName);
+
+    // process.kill() throws if the process was not found (or was a group
+    // process in Windows)
+    process.kill(instance.pid, "SIGTERM");
+  } catch (err) {
+    return false;
+  } finally {
+    removeDetachedInstanceFile(instanceName);
   }
-  return false;
+  return true;
 }
 
 /**
@@ -157,7 +162,7 @@ export async function startDetachedInstance(
     version
   };
 
-  const instanceFilename = `${dataPath}/${instance.pid}`;
+  const instanceFilename = getInstanceFilePath(instanceName);
 
   writeFileSync(instanceFilename, JSON.stringify(instance));
 
@@ -175,51 +180,38 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   const processes = await psList();
 
   for (let i = 0; i < files.length; i++) {
-    const filename = files[i];
-    const pid = parseInt(filename);
-
-    const foundProcess = processes.find(p => p.pid === pid);
-
+    const instanceName = files[i];
     let shouldRemoveFile = false;
 
-    if (foundProcess !== undefined) {
-      const filepath = path.join(dataPath, filename);
-      try {
-        const content = readFileSync(filepath, { encoding: "utf8" });
-        const instance = JSON.parse(content) as DetachedInstance;
-        // if the cmd does not match the instance, the process has been killed,
-        // and another application has taken the pid
-        if (foundProcess.cmd !== instance.cmd) {
-          shouldRemoveFile = true;
-        } else {
-          instances.push(instance);
-        }
-      } catch (err) {
-        console.error(
-          `Instance data corrupted. Process has been killed (PID ${pid})`
-        );
-        process.kill(pid, "SIGTERM");
+    try {
+      // getDetachedInstanceByName() throws if the instance file is not found or
+      // cannot be parsed
+      const instance = getDetachedInstanceByName(instanceName);
+
+      const foundProcess = processes.find(p => p.pid === instance.pid);
+      // if the cmd does not match the instance, the process has been killed,
+      // and another application has taken the pid
+      if (!foundProcess || foundProcess.cmd !== instance.cmd) {
         shouldRemoveFile = true;
+      } else {
+        instances.push(instance);
       }
-    } else {
+    } catch (err) {
       shouldRemoveFile = true;
     }
-    if (shouldRemoveFile) removeDetachedInstanceFile(pid);
+
+    if (shouldRemoveFile) removeDetachedInstanceFile(instanceName);
   }
 
   return instances;
 }
 
-async function findDetachedInstanceByName(
+function getDetachedInstanceByName(
   instanceName: string
-): Promise<DetachedInstance | undefined> {
-  const instances = await getDetachedInstances();
-
-  for (let i = 0; i < instances.length; i++) {
-    if (instances[i].instanceName === instanceName) {
-      return instances[i];
-    }
-  }
+): DetachedInstance | undefined {
+  const filepath = getInstanceFilePath(instanceName);
+  const content = readFileSync(filepath, { encoding: "utf8" });
+  return JSON.parse(content) as DetachedInstance;
 }
 
 /**
