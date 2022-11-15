@@ -113,6 +113,9 @@
   },
   "bundledDependencies": [
     "@trufflesuite/bigint-buffer",
+    "@ethereumjs/vm",
+    "@ethereumjs/trie",
+    "@ethereumjs/evm",
     "abstract-leveldown",
     "async-eventemitter",
     "emittery",
