@@ -211,12 +211,21 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       const foundProcess = processes.find(p => p.pid === instance.pid);
       // if the cmd does not match the instance, the process has been killed,
       // and another application has taken the pid
-      if (!foundProcess || foundProcess.cmd !== instance.cmd) {
+      if (!foundProcess) {
+        console.warn(`Process not found; ${instanceName} has been removed.`);
+        shouldRemoveFile = true;
+      } else if (foundProcess.cmd !== instance.cmd) {
+        console.warn(
+          `Process information doesn't match; ${instanceName} has been removed.`
+        );
         shouldRemoveFile = true;
       } else {
         instances.push(instance);
       }
     } catch (err) {
+      console.warn(
+        `Failed to load instance data; ${instanceName} has been removed.`
+      );
       shouldRemoveFile = true;
     }
 
@@ -225,7 +234,11 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
 
   return instances;
 }
-
+/**
+ * Attempts to load data for the instance specified by instanceName. Throws if
+ * the instance file is not found or cannot be parsed
+ * @param  {string} instanceName
+ */
 async function getDetachedInstanceByName(
   instanceName: string
 ): Promise<DetachedInstance | undefined> {
