@@ -39,6 +39,8 @@ const logAndForceExit = (messages: any[], exitCode = 0) => {
   process.exit(exitCode);
 };
 
+// adapted from https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/formatDuration.md
+// under CC-BY-4.0 License https://creativecommons.org/licenses/by/4.0/
 const formatDuration = (ms: number) => {
   ms = Math.abs(ms);
   const time = {
