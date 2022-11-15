@@ -207,8 +207,6 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
     if (shouldRemoveFile) removeDetachedInstanceFile(pid);
   }
 
-  instances.sort((a, b) => b.startTime - a.startTime);
-
   return instances;
 }
 

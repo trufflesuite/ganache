@@ -224,6 +224,7 @@ if (argv.action === "start") {
         }
       });
 
+      instances.sort((a, b) => b.startTime - a.startTime);
       for (let i = 0; i < instances.length; i++) {
         const instance = instances[i];
 
