@@ -212,11 +212,13 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       // if the cmd does not match the instance, the process has been killed,
       // and another application has taken the pid
       if (!foundProcess) {
-        console.warn(`Process not found; ${instanceName} has been removed.`);
+        console.warn(
+          `Process not found; ${instanceName} has been removed.  (PID: ${instance.pid}).`
+        );
         shouldRemoveFile = true;
       } else if (foundProcess.cmd !== instance.cmd) {
         console.warn(
-          `Process information doesn't match; ${instanceName} has been removed.`
+          `Process information doesn't match; ${instanceName} has been removed. (PID: ${instance.pid}).`
         );
         shouldRemoveFile = true;
       } else {
