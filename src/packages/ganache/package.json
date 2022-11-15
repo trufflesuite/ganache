@@ -117,6 +117,7 @@
     "async-eventemitter",
     "emittery",
     "keccak",
+    "leveldown",
     "secp256k1",
     "@types/bn.js",
     "@types/lru-cache",
