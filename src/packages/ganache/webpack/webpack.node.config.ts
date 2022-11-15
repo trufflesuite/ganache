@@ -54,8 +54,6 @@ const config: webpack.Configuration = merge({}, base, {
     //#region dependencies that have the potential to compile something at install time
     "@trufflesuite/bigint-buffer",
     "@trufflesuite/uws-js-unofficial",
-    "abstract-leveldown",
-    "async-eventemitter",
     "leveldown",
     "levelup",
     "secp256k1",
@@ -68,6 +66,8 @@ const config: webpack.Configuration = merge({}, base, {
     "@ganache/filecoin",
     // things api-extractor can't handle, so we don't bundle them:
     "emittery",
+    "abstract-leveldown",
+    "async-eventemitter",
     "@ethereumjs/vm",
     // because we're calling @ethereumjs/vm is already added as an external,
     // mark all of the packages that we use that _it_ imports as also being external
