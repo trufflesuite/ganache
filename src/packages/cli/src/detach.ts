@@ -159,7 +159,7 @@ export async function startDetachedInstance(
   const { host, port } = instanceInfo.server;
   const cmd =
     process.platform === "win32"
-      ? process.execPath
+      ? path.basename(process.execPath)
       : [process.execPath, ...process.execArgv, module, ...childArgs].join(" ");
 
   const instance: DetachedInstance = {
