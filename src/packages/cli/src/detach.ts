@@ -2,14 +2,7 @@ import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
 import psList from "@trufflesuite/ps-list";
-import {
-  existsSync,
-  mkdirSync,
-  rmSync,
-  writeFileSync,
-  readdirSync,
-  readFileSync
-} from "fs";
+import { readFile, rm, mkdir, readdir, writeFile } from "fs/promises";
 import path from "path";
 import { FlavorName } from "@ganache/flavors";
 
@@ -24,15 +17,28 @@ export type DetachedInstance = {
   version: string;
 };
 
-const dataPath = envPaths(`Ganache/instances`).data;
-if (!existsSync(dataPath)) mkdirSync(dataPath, { recursive: true });
-
 const READY_MESSAGE = "ready";
 
 const START_ERROR = "An error ocurred spawning a detached instance of Ganache:";
 
-function getInstanceFilePath(instanceName: string): string {
-  return path.join(dataPath, instanceName);
+const dataPath = new Promise<string>(async (resolve, reject) => {
+  const path = envPaths(`Ganache/instances`).data;
+  // it seems strange to call mkdir blindly, but this is to avoid a race
+  // condition where the directory is modified between checking it's existence,
+  // and creating it see https://nodejs.org/api/fs.html#fsexistspath-callback
+  try {
+    await mkdir(path, { recursive: true });
+  } catch (err) {
+    if ((err as { code: string }).code === "EEXIST") {
+      resolve(path);
+    }
+    reject(path);
+  }
+  resolve(path);
+});
+
+async function getInstanceFilePath(instanceName: string): Promise<string> {
+  return path.join(await dataPath, instanceName);
 }
 
 /**
@@ -49,12 +55,14 @@ export function notifyDetachedInstanceReady() {
  * @param  {string} instanceName the name of the instance to be removed
  * @returns boolean indicating whether the instance file was cleaned up successfully
  */
-export function removeDetachedInstanceFile(instanceName: string): boolean {
-  const instanceFilename = getInstanceFilePath(instanceName);
-  if (existsSync(instanceFilename)) {
-    rmSync(instanceFilename);
+export async function removeDetachedInstanceFile(
+  instanceName: string
+): Promise<boolean> {
+  const instanceFilename = await getInstanceFilePath(instanceName);
+  try {
+    await rm(instanceFilename);
     return true;
-  }
+  } catch (err) {}
   return false;
 }
 
@@ -101,11 +109,12 @@ export async function startDetachedInstance(
   },
   version: string
 ): Promise<DetachedInstance> {
-  const module = argv[1];
+  const readingInstanceNames = readdir(await dataPath);
 
-  const childArgs = argv
-    .slice(2)
-    .filter(arg => arg !== "--detach" && arg !== "--😈" && arg !== "-D");
+  const [bin, module, ...args] = argv;
+  const childArgs = args.filter(
+    arg => arg !== "--detach" && arg !== "--😈" && arg !== "-D"
+  );
 
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
@@ -116,7 +125,7 @@ export async function startDetachedInstance(
   // event is emitted) will be streamed to stderr on the parent.
   child.stderr.pipe(process.stderr);
 
-  const instanceNames = readdirSync(dataPath);
+  const instanceNames = await readingInstanceNames;
 
   let instanceName: string;
   do {
@@ -173,9 +182,9 @@ export async function startDetachedInstance(
     version
   };
 
-  const instanceFilename = getInstanceFilePath(instanceName);
+  const instanceFilename = await getInstanceFilePath(instanceName);
 
-  writeFileSync(instanceFilename, JSON.stringify(instance));
+  await writeFile(instanceFilename, JSON.stringify(instance));
 
   return instance;
 }
@@ -186,7 +195,7 @@ export async function startDetachedInstance(
  * @returns {Promise<DetachedInstance[]>} resolves with an array of instances
  */
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
-  const files = readdirSync(dataPath);
+  const files = await readdir(await dataPath);
   const instances: DetachedInstance[] = [];
   const processes = await psList();
 
@@ -197,7 +206,7 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
     try {
       // getDetachedInstanceByName() throws if the instance file is not found or
       // cannot be parsed
-      const instance = getDetachedInstanceByName(instanceName);
+      const instance = await getDetachedInstanceByName(instanceName);
 
       const foundProcess = processes.find(p => p.pid === instance.pid);
       // if the cmd does not match the instance, the process has been killed,
@@ -217,44 +226,10 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   return instances;
 }
 
-function getDetachedInstanceByName(
+async function getDetachedInstanceByName(
   instanceName: string
-): DetachedInstance | undefined {
-  const filepath = getInstanceFilePath(instanceName);
-  const content = readFileSync(filepath, { encoding: "utf8" });
+): Promise<DetachedInstance | undefined> {
+  const filepath = await getInstanceFilePath(instanceName);
+  const content = await readFile(filepath, { encoding: "utf8" });
   return JSON.parse(content) as DetachedInstance;
-}
-
-/**
- * Flattens parsed and namespaced args into an array of arguments to be passed
- * to a child process. This handles "special" arguments, such as "action",
- * "flavor" and "--detach".
- * @param  {object} args to be flattened
- * @returns string[] of flattened arguments
- */
-export function createFlatChildArgs(args: object): string[] {
-  const flattenedArgs = [];
-
-  function flatten(namespace: string, args: object) {
-    const prefix = namespace === null ? "" : `${namespace}.`;
-    for (const key in args) {
-      const value = args[key];
-      if (key === "flavor") {
-        // flavor is input as a command, e.g. `ganache filecoin`, so we just
-        // unshift it to the start of the array
-        flattenedArgs.unshift(value);
-        // action doesn't need to be specified in the returned arguments array
-      } else if (key !== "action") {
-        if (typeof value === "object") {
-          flatten(`${prefix}${key}`, value);
-        } else {
-          flattenedArgs.push(`--${prefix}${key}=${value}`);
-        }
-      }
-    }
-  }
-
-  flatten(null, args);
-
-  return flattenedArgs;
 }

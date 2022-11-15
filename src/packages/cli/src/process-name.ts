@@ -8,7 +8,7 @@ function pick(source: string[]) {
  * `<adjective>_<flavor>_<type>`, eg., `salted_caramel_ganache`.
  */
 export default function createInstanceName() {
-  const name = [adjectives, flavors, kinds].map(pick).join("_");
+  const name = `${pick(adjectives)}_${pick(flavors)}_${pick(kinds)}`;
   return name;
 }
 
