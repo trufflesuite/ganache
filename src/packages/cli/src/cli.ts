@@ -185,9 +185,7 @@ if (argv.action === "start") {
     }
   });
 } else if (argv.action === "start-detached") {
-  const module = process.argv[1];
-
-  startDetachedInstance(module, argv, version)
+  startDetachedInstance(process.argv, argv, version)
     .then(instance => {
       const highlightedName = porscheColor(instance.instanceName);
       // output only the instance name to allow users to capture stdout and use to

@@ -11,7 +11,6 @@ import {
   readFileSync
 } from "fs";
 import path from "path";
-import { StartArgs } from "./types";
 import { FlavorName } from "@ganache/flavors";
 
 export type DetachedInstance = {
@@ -95,24 +94,29 @@ export async function stopDetachedInstance(
  * is started and ready to receive requests.
  */
 export async function startDetachedInstance(
-  module: string,
-  args: StartArgs<FlavorName>,
+  argv: string[],
+  instanceInfo: {
+    flavor?: FlavorName;
+    server: { host: string; port: number };
+  },
   version: string
 ): Promise<DetachedInstance> {
-  const flavor = args.flavor;
-  const childArgs = createFlatChildArgs(args);
+  const module = argv[1];
+
+  const childArgs = argv
+    .slice(2)
+    .filter(arg => arg !== "--detach" && arg !== "--😈" && arg !== "-D");
+
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
   });
-  const cmd = (await psList()).find(p => p.pid === child.pid).cmd;
 
   // Any messages output to stderr by the child process (before the `ready`
   // event is emitted) will be streamed to stderr on the parent.
   child.stderr.pipe(process.stderr);
 
-  const instances = await getDetachedInstances();
-  const instanceNames = instances.map(instance => instance.instanceName);
+  const instanceNames = readdirSync(dataPath);
 
   let instanceName: string;
   do {
@@ -151,12 +155,19 @@ export async function startDetachedInstance(
   child.unref();
   child.disconnect();
 
+  const flavor = instanceInfo.flavor;
+  const { host, port } = instanceInfo.server;
+  const cmd =
+    process.platform === "win32"
+      ? process.execPath
+      : [process.execPath, ...process.execArgv, module, ...childArgs].join(" ");
+
   const instance: DetachedInstance = {
     startTime: Date.now(),
     pid: child.pid,
     instanceName,
-    host: args.server.host,
-    port: args.server.port,
+    host,
+    port,
     flavor,
     cmd,
     version
