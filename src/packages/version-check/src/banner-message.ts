@@ -1,10 +1,5 @@
 import { TruffleColors } from "@ganache/colors";
-export type BannerMessageOptions = {
-  upgradeType: string;
-  packageName: string;
-  currentVersion: string;
-  latestVersion: string;
-};
+import { BannerMessageOptions } from "./types";
 
 export function bannerMessage(options: BannerMessageOptions) {
   const { upgradeType, packageName, currentVersion, latestVersion } = options;

@@ -1,21 +1,5 @@
 import Conf from "conf";
-
-type ConfigManager = {
-  get: Function;
-  set: Function;
-  path: string;
-};
-
-export type VersionCheckConfig = {
-  packageName?: string;
-  enabled?: boolean;
-  url?: string;
-  ttl?: number;
-  latestVersion?: string;
-  latestVersionLogged?: string;
-  lastNotification?: number;
-  disableInCI?: boolean;
-};
+import { VersionCheckConfig, ConfigManager } from "./types";
 
 export class ConfigFileManager {
   private _configFile: ConfigManager;
@@ -34,6 +18,8 @@ export class ConfigFileManager {
       ...config
     };
 
+    // If a config was passed, save to disk. Else, already
+    // saved config will be used, or the default config.
     if (config) this.saveConfig();
   }
 
