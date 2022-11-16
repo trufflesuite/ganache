@@ -4,7 +4,7 @@ import type * as UtilTypes from "@ganache/ethereum-utils";
 import type { EthereumProvider, Externalize } from "./provider";
 import { BlockHeader } from "@ganache/ethereum-block";
 import { Data, Quantity } from "@ganache/utils";
-import { CallOverrides } from "./helpers/run-call";
+import * as SimulationTypes from "./helpers/simulations";
 import { Log, InternalTag } from "@ganache/ethereum-utils";
 
 type EthSignedDataParams = Parameters<
@@ -110,7 +110,7 @@ export namespace Ethereum {
       | Ethereum.Call.Transaction.EIP1559
       | Ethereum.Call.Transaction.EIP2930;
 
-    export type Overrides = CallOverrides;
+    export type Overrides = SimulationTypes.CallOverrides;
   }
 
   //#endregion call/estimate
@@ -206,4 +206,11 @@ export namespace Ethereum {
     P extends "public"
       ? Externalize<AccountProof<"private">>
       : UtilTypes.AccountProof;
+  /**
+   * Result returned from `eth_createAccessList`.
+   */
+  export type CreateAccessListResult<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<CreateAccessListResult<"private">>
+      : SimulationTypes.CreateAccessListResult;
 }

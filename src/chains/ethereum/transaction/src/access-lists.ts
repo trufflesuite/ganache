@@ -80,4 +80,77 @@ export class AccessLists {
       dataFeeEIP2930: dataFee
     };
   }
+
+  /**
+   * Creates a valid access list from a potentially invalid access list. Throws
+   * for invalid JSON-RPC data for any of the `address` values or entries of the
+   * `storageKeys` array.
+   * @param accessList
+   * @returns a valid access list that
+   *  1. Is an array
+   *  2. Each array element contains an object with the keys `address` and
+   *     `storageKeys`.
+   *  3. A value for the `address` key is not omitted.
+   *  4. The value for the `address` key is a 20-byte, hex-encoded string.
+   *  5. The `storageKeys` entry is an array.
+   *  6. Each entry of the `storageKeys` array is a 32-byte, hex-encoded string.
+   */
+  public static tryGetValidatedAccessList(accessList: AccessList): AccessList {
+    const validAccessList: AccessList = [];
+    if (!Array.isArray(accessList)) {
+      return validAccessList;
+    }
+    for (const accessListItem of accessList) {
+      const { address, storageKeys } = accessListItem;
+      if (!address) continue;
+
+      const validStorageKeys: string[] = [];
+      const validAccessListItem: AccessListItem = {
+        address: Address.from(address).toString(),
+        storageKeys: validStorageKeys
+      };
+      validAccessList.push(validAccessListItem);
+      if (!Array.isArray(storageKeys)) continue;
+      for (let i = 0; i < storageKeys.length; i++) {
+        const storageKey = storageKeys[i];
+        if (!storageKey) continue;
+        validStorageKeys.push(
+          Data.from(storageKey, STORAGE_KEY_LENGTH).toString()
+        );
+      }
+    }
+    return validAccessList;
+  }
+  /**
+   * Compares two access lists to check if they are the same, both in content
+   * and the order of the content.
+   * @param a An access list to compare.
+   * @param b An access list to compare.
+   * @returns Boolean indicating if the two access lists are the same.
+   */
+  public static areAccessListsSame(a: AccessList, b: AccessList) {
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+      const alItemA = a[i];
+      const alItemB = b[i];
+      if (alItemA.address !== alItemB.address) {
+        return false;
+      }
+
+      const aKeys = alItemA.storageKeys;
+      const bKeys = alItemB.storageKeys;
+      if (aKeys.length !== bKeys.length) {
+        return false;
+      }
+      for (let j = 0; j < aKeys.length; j++) {
+        if (aKeys[j] !== bKeys[j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 }

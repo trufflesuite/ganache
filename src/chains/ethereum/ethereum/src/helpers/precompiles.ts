@@ -1,5 +1,6 @@
-import { Account, Address } from "@ethereumjs/util";
+import { Account } from "@ethereumjs/util";
 import { EEIInterface } from "@ethereumjs/evm";
+import { Address } from "@ganache/ethereum-address";
 
 const NUM_PRECOMPILES = 18;
 /**
@@ -16,14 +17,17 @@ const PRECOMPILED_ACCOUNT: Account = {
   serialize: () => SERIALIZED_PRECOMPILE
 } as any;
 
-const accountCache: Address[] = [];
-const makeAccount = (i: number): Address => {
-  if (accountCache[i]) return accountCache[i];
+const accountCache: Map<number, Address> = new Map();
+const getOrCreateAccount = (i: number): Address => {
+  const cachedAddress = accountCache.get(i);
+  if (cachedAddress) return cachedAddress;
 
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
   buf[19] = i;
-  return (accountCache[i] = { buf } as any);
+  const address = new Address(buf);
+  accountCache.set(i, address);
+  return address;
 };
 
 /**
@@ -32,20 +36,12 @@ const makeAccount = (i: number): Address => {
  */
 export const activatePrecompiles = async (eei: EEIInterface) => {
   await eei.checkpoint();
-  for (let i = 1; i <= NUM_PRECOMPILES; i++) {
-    const account = makeAccount(i);
+  for (const account of getPrecompiles()) {
     eei.putAccount(account, PRECOMPILED_ACCOUNT);
   }
   await eei.commit();
 };
 
-/**
- * Puts the precompile accounts into the warmed addresses
- * @param eei -
- */
-export const warmPrecompiles = async (eei: EEIInterface) => {
-  for (let i = 1; i <= NUM_PRECOMPILES; i++) {
-    const account = makeAccount(i);
-    eei.addWarmedAddress(account.buf);
-  }
-};
+export function* getPrecompiles() {
+  for (let i = 1; i <= NUM_PRECOMPILES; i++) yield getOrCreateAccount(i);
+}

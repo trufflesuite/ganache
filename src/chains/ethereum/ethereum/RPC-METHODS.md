@@ -188,6 +188,21 @@ Returns the client coinbase address.
 
 ---
 
+#### eth_createAccessList
+
+Creates an `accessList` based of the given transaction.
+
+##### Arguments
+
+- `transaction: Ethereum.Transaction` : The transaction call object as seen in source.
+- `blockNumber: QUANTITY | TAG` : Integer block number, or the string "latest", "earliest" or "pending".
+
+##### Returns
+
+`Promise<{accessList: AccessList, gasUsed: bigint}>` : An array of addresses and storage keys used by the transaction, together with the input transaction's `accessList`, if supplied, plus an estimate of the gas consumed by running the transaction _with_ the generated access list included.
+
+---
+
 #### eth_estimateGas
 
 Generates and returns an estimate of how much gas is necessary to allow the transaction to complete. The transaction will not be added to the blockchain. Note that the estimate may be significantly more than the amount of gas actually used by the transaction, for a variety of reasons including EVM mechanics and node performance.

@@ -8,7 +8,6 @@ import { CallError } from "@ganache/ethereum-utils";
 import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
 import { Address } from "@ganache/ethereum-address";
-import { SimulationTransaction } from "../../../src/helpers/run-call";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   LegacyRpcTransaction,
@@ -17,6 +16,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { SimulationTransaction } from "../../../src/helpers/simulations";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -532,11 +532,23 @@ describe("api", () => {
               junks: [
                 {
                   junk: null,
-                  expectedValue: `0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000059d${contract.contract.evm.deployedBytecode.object}000000`
+                  expectedValue: (actual: string) => {
+                    // maybe a bit lazy, but the "actual" will be encoded further,
+                    // but if it includes this byteCode, it's probably safe
+                    return actual.includes(
+                      contract.contract.evm.deployedBytecode.object
+                    );
+                  }
                 },
                 {
                   junk: undefined,
-                  expectedValue: `0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000059d${contract.contract.evm.deployedBytecode.object}000000`
+                  expectedValue: (actual: string) => {
+                    // maybe a bit lazy, but the "actual" will be encoded further,
+                    // but if it includes this byteCode, it's probably safe
+                    return actual.includes(
+                      contract.contract.evm.deployedBytecode.object
+                    );
+                  }
                 },
                 {
                   junk: "",
@@ -834,11 +846,18 @@ describe("api", () => {
                   `Failed junk data validation for "${type}" override type with value "${junk}". Expected error: ${error}`
                 );
               } else {
-                assert.strictEqual(
-                  await prom,
-                  expectedValue,
-                  `Failed junk data validation for "${type}" override type with value "${junk}".`
-                );
+                if (typeof expectedValue === "string") {
+                  assert.strictEqual(
+                    await prom,
+                    expectedValue,
+                    `Failed junk data validation for "${type}" override type with value "${junk}".`
+                  );
+                } else {
+                  assert(
+                    expectedValue(await prom),
+                    `Failed junk data validation for "${type}" override type with value "${junk}".`
+                  );
+                }
               }
             }
           }
@@ -928,7 +947,6 @@ describe("api", () => {
           const trieDbData = await getDbData(trie);
           const vm = await blockchain.createVmFromStateTrie(
             trie,
-            false,
             false,
             blockchain.common
           );
