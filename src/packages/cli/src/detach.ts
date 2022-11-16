@@ -98,9 +98,7 @@ export async function startDetachedInstance(
   version: string
 ): Promise<DetachedInstance> {
   const [bin, module, ...args] = argv;
-  const childArgs = args.filter(
-    arg => arg !== "--detach" && arg !== "--😈" && arg !== "-D"
-  );
+  const childArgs = stripDetachArg(args);
 
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
@@ -262,4 +260,21 @@ async function getDetachedInstanceByName(
   const filepath = getInstanceFilePath(instanceName);
   const content = await readFile(filepath, FILE_ENCODING);
   return JSON.parse(content) as DetachedInstance;
+}
+
+const detachArgRegex = /^-(?:D|-detach|-😈)$|=/;
+export function stripDetachArg(args: string[]): string[] {
+  const strippedArgs = [...args];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (detachArgRegex.test(arg)) {
+      const followingArg = args[i + 1];
+      const hasTrailingValue =
+        followingArg !== undefined && followingArg[0] !== "-";
+
+      strippedArgs.splice(i, hasTrailingValue ? 2 : 1);
+      return strippedArgs;
+    }
+  }
+  return args;
 }
