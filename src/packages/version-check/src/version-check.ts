@@ -1,6 +1,11 @@
 import http2 from "http2";
 import { Logger } from "@ganache/ethereum-options";
-import { semverIsValid, semverUpgradeType, semverClean } from "./semver";
+import {
+  semverIsValid,
+  semverUpgradeType,
+  semverClean,
+  semverGte
+} from "./semver";
 import { detectCI } from "./ci";
 import { ConfigFileManager } from "./config-file-manager";
 import { bannerMessage } from "./banner-message";
@@ -80,7 +85,7 @@ export class VersionCheck {
   }
 
   alreadyLoggedThisVersion(): boolean {
-    return !semverUpgradeType(
+    return semverGte(
       this._config.latestVersionLogged,
       this._config.latestVersion
     );
