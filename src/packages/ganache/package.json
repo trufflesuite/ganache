@@ -105,7 +105,6 @@
     "emittery": "0.10.0",
     "keccak": "3.0.2",
     "leveldown": "6.1.0",
-    "levelup": "5.1.1",
     "secp256k1": "4.0.3"
   },
   "optionalDependencies": {
@@ -123,7 +122,6 @@
     "emittery",
     "keccak",
     "leveldown",
-    "levelup",
     "secp256k1",
     "@types/bn.js",
     "@types/lru-cache",

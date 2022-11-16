@@ -55,7 +55,6 @@ const config: webpack.Configuration = merge({}, base, {
     "@trufflesuite/bigint-buffer",
     "@trufflesuite/uws-js-unofficial",
     "leveldown",
-    "levelup",
     "secp256k1",
     "keccak",
     // our µWebSockets.js uses `ws`, as does some other libs. `ws` likes to use
