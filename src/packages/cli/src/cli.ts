@@ -142,7 +142,8 @@ if (argv.action === "start") {
   process.on("SIGTERM", handleSignal);
   process.on("SIGHUP", handleSignal);
 
-  async function startGanache(err: Error) {
+  console.log("Starting RPC server");
+  server.listen(cliSettings.port, cliSettings.host, async (err: Error) => {
     if (err) {
       console.error(err);
       process.exitCode = 1;
@@ -173,17 +174,15 @@ if (argv.action === "start") {
     if (isDetachedInstance) {
       notifyDetachedInstanceReady();
     }
-  }
-  console.log("Starting RPC server");
-  server.listen(cliSettings.port, cliSettings.host, startGanache);
+  });
 } else if (argv.action === "stop") {
   const instanceName = argv.name;
 
   stopDetachedInstance(instanceName).then(instanceFound => {
     if (instanceFound) {
-      console.log("Process stopped");
+      console.log("Instance stopped");
     } else {
-      console.error("Process not found");
+      console.error("Instance not found");
     }
   });
 } else if (argv.action === "start-detached") {

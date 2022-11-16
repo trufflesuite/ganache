@@ -1,7 +1,7 @@
 import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
-import psList from "@trufflesuite/ps-list";
+import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
 import { readFile, rm, mkdir, readdir, writeFile } from "fs/promises";
 import path from "path";
 import { FlavorName } from "@ganache/flavors";
@@ -17,25 +17,11 @@ export type DetachedInstance = {
   version: string;
 };
 
+type CodedError = Error & { code: string };
+
 const READY_MESSAGE = "ready";
-
 const START_ERROR = "An error ocurred spawning a detached instance of Ganache:";
-
-const dataPath = new Promise<string>(async (resolve, reject) => {
-  const path = envPaths(`Ganache/instances`).data;
-  // it seems strange to call mkdir blindly, but this is to avoid a race
-  // condition where the directory is modified between checking it's existence,
-  // and creating it see https://nodejs.org/api/fs.html#fsexistspath-callback
-  try {
-    await mkdir(path, { recursive: true });
-  } catch (err) {
-    if ((err as { code: string }).code === "EEXIST") {
-      resolve(path);
-    }
-    reject(path);
-  }
-  resolve(path);
-});
+const dataPath = envPaths(`Ganache/instances`).data;
 
 async function getInstanceFilePath(instanceName: string): Promise<string> {
   return path.join(await dataPath, instanceName);
@@ -90,7 +76,7 @@ export async function stopDetachedInstance(
   } catch (err) {
     return false;
   } finally {
-    removeDetachedInstanceFile(instanceName);
+    await removeDetachedInstanceFile(instanceName);
   }
   return true;
 }
@@ -109,8 +95,6 @@ export async function startDetachedInstance(
   },
   version: string
 ): Promise<DetachedInstance> {
-  const readingInstanceNames = readdir(await dataPath);
-
   const [bin, module, ...args] = argv;
   const childArgs = args.filter(
     arg => arg !== "--detach" && arg !== "--😈" && arg !== "-D"
@@ -124,13 +108,6 @@ export async function startDetachedInstance(
   // Any messages output to stderr by the child process (before the `ready`
   // event is emitted) will be streamed to stderr on the parent.
   child.stderr.pipe(process.stderr);
-
-  const instanceNames = await readingInstanceNames;
-
-  let instanceName: string;
-  do {
-    instanceName = createInstanceName();
-  } while (instanceNames.indexOf(instanceName) !== -1);
 
   await new Promise<void>((resolve, reject) => {
     child.on("message", message => {
@@ -171,10 +148,13 @@ export async function startDetachedInstance(
       ? path.basename(process.execPath)
       : [process.execPath, ...process.execArgv, module, ...childArgs].join(" ");
 
+  const pid = child.pid;
+  const startTime = Date.now();
+
   const instance: DetachedInstance = {
-    startTime: Date.now(),
-    pid: child.pid,
-    instanceName,
+    startTime,
+    pid,
+    instanceName: createInstanceName(),
     host,
     port,
     flavor,
@@ -182,9 +162,37 @@ export async function startDetachedInstance(
     version
   };
 
-  const instanceFilename = await getInstanceFilePath(instanceName);
+  // Ensure the directory exists. It seems strange to call mkdir blindly, but
+  // this is to avoid a race condition where the directory is modified between
+  // checking it's existence, and creating it see
+  // https://nodejs.org/api/fs.html#fsexistspath-callback
+  try {
+    await mkdir(dataPath, { recursive: true });
+  } catch (err) {
+    if ((err as CodedError).code !== "EEXIST") {
+      throw err;
+    }
+  }
 
-  await writeFile(instanceFilename, JSON.stringify(instance));
+  while (true) {
+    const instanceFilename = await getInstanceFilePath(instance.instanceName);
+    try {
+      await writeFile(instanceFilename, JSON.stringify(instance), {
+        // wx means "Open file for writing, but fail if the path exists". see
+        // https://nodejs.org/api/fs.html#file-system-flags
+        flag: "wx"
+      });
+      break;
+    } catch (err) {
+      if ((err as CodedError).code !== "EEXIST") {
+        // this can fail when the directory exists when this process _starts_,
+        // but is subsequently removed.
+        throw err;
+      }
+
+      instance.instanceName = createInstanceName();
+    }
+  }
 
   return instance;
 }
@@ -195,9 +203,17 @@ export async function startDetachedInstance(
  * @returns {Promise<DetachedInstance[]>} resolves with an array of instances
  */
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
-  const files = await readdir(await dataPath);
+  let files: string[];
+  let processes: ProcessDescriptor[];
+  try {
+    [files, processes] = await Promise.all([readdir(await dataPath), psList()]);
+  } catch (err) {
+    if ((err as CodedError).code !== "ENOENT") {
+      throw err;
+    }
+    return [];
+  }
   const instances: DetachedInstance[] = [];
-  const processes = await psList();
 
   for (let i = 0; i < files.length; i++) {
     const instanceName = files[i];
@@ -208,15 +224,15 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       // cannot be parsed
       const instance = await getDetachedInstanceByName(instanceName);
 
-      const foundProcess = processes.find(p => p.pid === instance.pid);
+      const matchingProcess = processes.find(p => p.pid === instance.pid);
       // if the cmd does not match the instance, the process has been killed,
       // and another application has taken the pid
-      if (!foundProcess) {
+      if (!matchingProcess) {
         console.warn(
           `Process not found; ${instanceName} has been removed.  (PID: ${instance.pid}).`
         );
         shouldRemoveFile = true;
-      } else if (foundProcess.cmd !== instance.cmd) {
+      } else if (matchingProcess.cmd !== instance.cmd) {
         console.warn(
           `Process information doesn't match; ${instanceName} has been removed. (PID: ${instance.pid}).`
         );
