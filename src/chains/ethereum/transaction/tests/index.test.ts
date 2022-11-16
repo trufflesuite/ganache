@@ -62,7 +62,8 @@ describe("@ganache/ethereum-transaction", async () => {
     from: from,
     to: to,
     type: "0x0",
-    gasPrice: "0xffff"
+    gasPrice: "0xffff",
+    nonce: "0x0"
   };
 
   const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
@@ -90,7 +91,8 @@ describe("@ganache/ethereum-transaction", async () => {
         address: accessListAcc,
         storageKeys: [accessListStorageKey]
       }
-    ]
+    ],
+    nonce: "0x0"
   };
 
   const rawEIP2930StringData =
@@ -116,7 +118,8 @@ describe("@ganache/ethereum-transaction", async () => {
         address: accessListAcc,
         storageKeys: [accessListStorageKey]
       }
-    ]
+    ],
+    nonce: "0x0"
   };
 
   const rawEIP1559StringData =
@@ -384,7 +387,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert("nonce" in vmTx);
+        assert.strictEqual(vmTx.nonce, 0n);
       });
       it("has gasPrice property", () => {
         assert.strictEqual(vmTx.gasPrice.toString(), "65535");
@@ -459,7 +462,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert("nonce" in vmTx);
+        assert.strictEqual(vmTx.nonce, 0n);
       });
       it("has gasPrice property", () => {
         assert.strictEqual(vmTx.gasPrice.toString(), "65535");
@@ -535,7 +538,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert("nonce" in vmTx);
+        assert.strictEqual(vmTx.nonce, 0n);
       });
       it("has maxPriorityFeePerGas property", () => {
         assert.strictEqual(vmTx.maxPriorityFeePerGas.toString(), "255");

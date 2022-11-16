@@ -67,7 +67,7 @@ export function runCall(
 ) {
   const caller = new Address(transaction.from.toBuffer());
   const to =
-    transaction.to == null ? undefined : new Address(transaction.to.toBuffer());
+    transaction.to == null ? null : new Address(transaction.to.toBuffer());
   const value = transaction.value == null ? 0n : transaction.value.toBigInt();
 
   vm.evm.runCall({
