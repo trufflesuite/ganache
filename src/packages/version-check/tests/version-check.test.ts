@@ -404,7 +404,7 @@ describe("@ganache/version-check", () => {
 
       const upgradeType = semverUpgradeType(
         testVersion,
-        testConfig.latestVersion
+        testConfig.latestVersion as string
       );
       vc.log();
 
@@ -595,7 +595,7 @@ describe("@ganache/version-check", () => {
     it("fetches the latest version and sets it in the config file.", async () => {
       const currentVersion = vc._currentVersion;
 
-      assert.equal(currentVersion === testVersion, true);
+      assert.equal(currentVersion, testVersion);
 
       await vc.getLatestVersion();
 
@@ -629,7 +629,7 @@ describe("@ganache/version-check", () => {
       assert.equal(hasPassed, true);
     });
     it("returns false", () => {
-      const lastNotification = new Date().getTime();
+      const lastNotification = Date.now();
 
       vc = new VersionCheck(testVersion, { lastNotification }, testLogger);
 
