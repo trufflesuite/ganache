@@ -27,7 +27,7 @@ describe("blockchain", async () => {
       const options = EthereumOptionsConfig.normalize(optionsJson);
 
       // set up wallet/blockchain
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       const initialAccounts = wallet.initialAccounts;
       const blockchain = new Blockchain(options, initialAccounts[0].address);
       await blockchain.initialize(wallet.initialAccounts);

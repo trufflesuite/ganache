@@ -200,7 +200,7 @@ fix: reduce bundle size and check size in CI (#1234)
 Co-authored-by: TinusLorvalds <lorvalds@finux-loundation.org>
 ```
 
-Notice how the description is in lowercase (except for initialisms/acronyms). The description should be clear and consise. The subject line does _not_ have to be fewer than 50 characters if making it shorter removes useful information.
+Notice how the description is in lowercase (except for initialisms/acronyms). The description should be clear and concise. The subject line does _not_ have to be fewer than 50 characters if making it shorter removes useful information.
 
 Co-authors should be preserved.
 

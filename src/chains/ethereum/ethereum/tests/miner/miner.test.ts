@@ -41,7 +41,7 @@ describe("miner", async () => {
         chain: { chainId: 1337 }
       };
       const options = EthereumOptionsConfig.normalize(optionsJson);
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       [from1, from2, from3, to] = wallet.addresses;
       const fromAddress = new Address(from1);
 
