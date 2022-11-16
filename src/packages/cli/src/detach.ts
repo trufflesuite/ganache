@@ -162,18 +162,6 @@ export async function startDetachedInstance(
     version
   };
 
-  // Ensure the directory exists. It seems strange to call mkdir blindly, but
-  // this is to avoid a race condition where the directory is modified between
-  // checking it's existence, and creating it see
-  // https://nodejs.org/api/fs.html#fsexistspath-callback
-  try {
-    await mkdir(dataPath, { recursive: true });
-  } catch (err) {
-    if ((err as CodedError).code !== "EEXIST") {
-      throw err;
-    }
-  }
-
   while (true) {
     const instanceFilename = await getInstanceFilePath(instance.instanceName);
     try {
@@ -184,10 +172,18 @@ export async function startDetachedInstance(
       });
       break;
     } catch (err) {
-      if ((err as CodedError).code !== "EEXIST") {
-        // this can fail when the directory exists when this process _starts_,
-        // but is subsequently removed.
-        throw err;
+      switch ((err as CodedError).code) {
+        case "EEXIST":
+          instance.instanceName = createInstanceName();
+          break;
+        case "ENOENT":
+          // we don't check whether the folder exists before writing, as that's
+          // a very uncommon case. Catching the exception and subsequently
+          // creating the directory is faster in the majority of cases.
+          await mkdir(dataPath, { recursive: true });
+          break;
+        default:
+          throw err;
       }
 
       instance.instanceName = createInstanceName();
