@@ -92,7 +92,7 @@ export class VersionCheck {
   }
 
   notificationIntervalHasPassed(): boolean {
-    const timePassed = new Date().getTime() - this._config.lastNotification;
+    const timePassed = Date.now() - this._config.lastNotification;
     return timePassed > this._notificationInterval;
   }
 
