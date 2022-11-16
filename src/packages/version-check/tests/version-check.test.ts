@@ -1,5 +1,5 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
-
+import { VersionCheckConfig } from "../src/types";
 import { VersionCheck } from "../src/version-check";
 import { semverUpgradeType } from "../src/semver";
 import { ConfigFileManager } from "../src/config-file-manager";
@@ -13,7 +13,7 @@ describe("@ganache/version-check", () => {
   const versionString = "v1.2.3";
   const version = "1.2.3";
 
-  const testConfig = {
+  const testConfig: VersionCheckConfig = {
     packageName: "test",
     enabled: true,
     lastNotification: 0,
@@ -21,9 +21,10 @@ describe("@ganache/version-check", () => {
     ttl: 100,
     latestVersion: "99.99.99",
     latestVersionLogged: "99.99.90",
-    disableInCI: false
+    disableInCI: false,
+    didInit: true
   };
-  const sparseConfig = {
+  const sparseConfig: VersionCheckConfig = {
     packageName: "test",
     enabled: true,
     url: "test",
@@ -137,7 +138,6 @@ describe("@ganache/version-check", () => {
   describe("ConfigFileManager", () => {
     it("persists config changes to disk", () => {
       const vc2 = new VersionCheck(testVersion, testConfig);
-      vc2.disable();
 
       const vc3 = new VersionCheck(testVersion);
 
