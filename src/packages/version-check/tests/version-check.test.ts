@@ -601,7 +601,7 @@ describe("@ganache/version-check", () => {
 
       const latestVersion = vc._config.latestVersion;
 
-      assert.equal(latestVersion === apiResponse, true);
+      assert.equal(latestVersion, apiResponse);
     });
     it("sets lastNotification in the config", async () => {
       const lastNotification = vc._config.lastNotification;
@@ -609,7 +609,8 @@ describe("@ganache/version-check", () => {
 
       const thisNotification = vc._config.lastNotification;
 
-      assert.equal(thisNotification > lastNotification, true);
+      assert.equal(lastNotification, 0);
+      assert.notEqual(thisNotification, lastNotification);
     });
   });
 
