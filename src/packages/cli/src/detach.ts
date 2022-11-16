@@ -2,7 +2,9 @@ import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
-import { readFile, rm, mkdir, readdir, writeFile } from "fs/promises";
+import { promises as fsPromises } from "fs";
+// this awkward import is required to support node 12
+const { readFile, rm, mkdir, readdir, writeFile } = fsPromises;
 import path from "path";
 import { FlavorName } from "@ganache/flavors";
 
@@ -17,14 +19,14 @@ export type DetachedInstance = {
   version: string;
 };
 
-type CodedError = Error & { code: string };
-
+const FILE_ENCODING = "utf8";
 const READY_MESSAGE = "ready";
-const START_ERROR = "An error ocurred spawning a detached instance of Ganache:";
+const START_ERROR =
+  "An error occurred spawning a detached instance of Ganache:";
 const dataPath = envPaths(`Ganache/instances`).data;
 
-async function getInstanceFilePath(instanceName: string): Promise<string> {
-  return path.join(await dataPath, instanceName);
+function getInstanceFilePath(instanceName: string): string {
+  return path.join(dataPath, instanceName);
 }
 
 /**
@@ -44,11 +46,11 @@ export function notifyDetachedInstanceReady() {
 export async function removeDetachedInstanceFile(
   instanceName: string
 ): Promise<boolean> {
-  const instanceFilename = await getInstanceFilePath(instanceName);
+  const instanceFilename = getInstanceFilePath(instanceName);
   try {
     await rm(instanceFilename);
     return true;
-  } catch (err) {}
+  } catch {}
   return false;
 }
 
@@ -163,16 +165,17 @@ export async function startDetachedInstance(
   };
 
   while (true) {
-    const instanceFilename = await getInstanceFilePath(instance.instanceName);
+    const instanceFilename = getInstanceFilePath(instance.instanceName);
     try {
       await writeFile(instanceFilename, JSON.stringify(instance), {
         // wx means "Open file for writing, but fail if the path exists". see
         // https://nodejs.org/api/fs.html#file-system-flags
-        flag: "wx"
+        flag: "wx",
+        encoding: FILE_ENCODING
       });
       break;
     } catch (err) {
-      switch ((err as CodedError).code) {
+      switch ((err as NodeJS.ErrnoException).code) {
         case "EEXIST":
           // an instance already exists with this name
           instance.instanceName = createInstanceName();
@@ -201,19 +204,17 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   let files: string[];
   let processes: ProcessDescriptor[];
   try {
-    [files, processes] = await Promise.all([readdir(await dataPath), psList()]);
+    [files, processes] = await Promise.all([readdir(dataPath), psList()]);
   } catch (err) {
-    if ((err as CodedError).code !== "ENOENT") {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
       throw err;
     }
     return [];
   }
   const instances: DetachedInstance[] = [];
 
-  for (let i = 0; i < files.length; i++) {
-    const instanceName = files[i];
+  const loadingInstancesInfos = files.map(async instanceName => {
     let shouldRemoveFile = false;
-
     try {
       // getDetachedInstanceByName() throws if the instance file is not found or
       // cannot be parsed
@@ -222,14 +223,14 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       const matchingProcess = processes.find(p => p.pid === instance.pid);
       if (!matchingProcess) {
         console.warn(
-          `Process not found; ${instanceName} has been removed.  (PID: ${instance.pid}).`
+          `Process with PID ${instance.pid} could not be found; removing ${instanceName} from recorded instances.`
         );
         shouldRemoveFile = true;
       } else if (matchingProcess.cmd !== instance.cmd) {
         // if the cmd does not match the instance, the process has been killed,
         // and another application has taken the pid
         console.warn(
-          `Process information doesn't match; ${instanceName} has been removed. (PID: ${instance.pid}).`
+          `Process with PID ${instance.pid} doesn't match ${instanceName}; removing${instanceName} from recorded instances.`
         );
         shouldRemoveFile = true;
       } else {
@@ -242,11 +243,14 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       shouldRemoveFile = true;
     }
 
-    if (shouldRemoveFile) removeDetachedInstanceFile(instanceName);
-  }
+    if (shouldRemoveFile) await removeDetachedInstanceFile(instanceName);
+  });
+
+  await Promise.all(loadingInstancesInfos);
 
   return instances;
 }
+
 /**
  * Attempts to load data for the instance specified by instanceName. Throws if
  * the instance file is not found or cannot be parsed
@@ -254,8 +258,8 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
  */
 async function getDetachedInstanceByName(
   instanceName: string
-): Promise<DetachedInstance | undefined> {
-  const filepath = await getInstanceFilePath(instanceName);
-  const content = await readFile(filepath, { encoding: "utf8" });
+): Promise<DetachedInstance> {
+  const filepath = getInstanceFilePath(instanceName);
+  const content = await readFile(filepath, FILE_ENCODING);
   return JSON.parse(content) as DetachedInstance;
 }

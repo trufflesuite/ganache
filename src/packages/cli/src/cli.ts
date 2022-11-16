@@ -194,7 +194,7 @@ if (argv.action === "start") {
       console.log(highlightedName);
     })
     .catch(err => {
-      // the child process would have output it's error to stdout, so no need to
+      // the child process would have output its error to stdout, so no need to
       // output anything more
     });
 } else if (argv.action === "list") {
