@@ -14,6 +14,7 @@ export type VersionCheckConfig = {
   latestVersionLogged?: string;
   lastNotification?: number;
   disableInCI?: boolean;
+  didInit?: true;
 };
 
 export type ConfigManager = {

@@ -12,15 +12,17 @@ export class ConfigFileManager {
         : "config" // config is the Conf package default
     });
 
+    const existingConfig = this._configFile.get();
+
     this._config = {
       ...ConfigFileManager.DEFAULTS,
-      ...this._configFile.get(),
+      ...existingConfig,
       ...config
     };
 
-    // If a config was passed, save to disk. Else, already
-    // saved config will be used, or the default config.
-    if (config) this.saveConfig();
+    // On first run, save the current config, else
+    // only save when a new config is passed.
+    if (!existingConfig.didInit || config) this.saveConfig();
   }
 
   configFileLocation() {
@@ -70,7 +72,8 @@ export class ConfigFileManager {
       latestVersion: "0.0.0", // Last version fetched from the server
       latestVersionLogged: "0.0.0", // Last version to tell the user about
       lastNotification: 0,
-      disableInCI: true
+      disableInCI: true,
+      didInit: true // this is set once the first time and never changed again
     };
   }
 }

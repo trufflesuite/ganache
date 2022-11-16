@@ -60,7 +60,7 @@ vc.getVersionMessage();
 From a develop environment, start ganache using:
 
 ```bash
-$ export VERSION="1.2.3"; npm run start
+$ npx cross-env VERSION="1.2.3" npm start
 ```
 
 ##### Expected Output
@@ -68,7 +68,7 @@ $ export VERSION="1.2.3"; npm run start
 1.) No banner message is displayed (first run, assumes latest was installed)
 
 ```bash
-$ export VERSION="1.2.3"; npm run start
+$ npx cross-env VERSION="1.2.3" npm start
 
 > root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
@@ -99,7 +99,7 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 1. Banner message displays, `latestVersion` > `latestVersionLogged`
 
 ```javascript
-export VERSION="1.2.3"; npm run start
+$ npx cross-env VERSION="1.2.3" npm start
 
 > root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --
@@ -138,7 +138,7 @@ Restart `ganache` (`export VERSION="1.2.3"; npm run start`)
 1. Banner message does not display; user has already seen this version.
 
 ```sh
-export VERSION="1.2.3"; npm run start
+$ npx cross-env VERSION="1.2.3" npm start
 
 > root@ start /home/user/proj/ganache
 > lerna exec --loglevel=silent --scope ganache -- npm run start --silent --

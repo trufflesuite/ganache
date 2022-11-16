@@ -4,7 +4,7 @@ import { semverIsValid, semverUpgradeType, semverClean } from "./semver";
 import { detectCI } from "./ci";
 import { ConfigFileManager } from "./config-file-manager";
 import { bannerMessage } from "./banner-message";
-import type { VersionCheckConfig } from "./config-file-manager";
+import type { VersionCheckConfig } from "./types";
 
 const ONE_DAY: number = 86400;
 
@@ -25,7 +25,7 @@ export class VersionCheck {
   ) {
     this.ConfigFileManager = new ConfigFileManager(config);
 
-    this._config = this.ConfigFileManager.getConfig();
+    this._config = this.getConfig();
 
     if (this._config.disableInCI && detectCI()) {
       this.disable();
