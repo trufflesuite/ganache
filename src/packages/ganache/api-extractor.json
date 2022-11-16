@@ -344,9 +344,6 @@
         // api-extractor _really_ wants to complain about this one, so much so
         // that setting the `"default"` to "none" (above) has no affect!
         "logLevel": "none"
-      },
-      "ae-wrong-input-file-type": {
-        "logLevel": "none"
       }
       // "ae-extra-release-tag": {
       //   "logLevel": "warning",
