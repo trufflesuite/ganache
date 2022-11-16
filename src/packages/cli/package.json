@@ -59,12 +59,9 @@
     "cross-env": "7.0.3",
     "mocha": "9.1.3",
     "ts-node": "10.4.0",
-    "typescript": "4.6.4",
-    "nyc": "15.1.0"
+    "typescript": "4.6.4"
   },
   "dependencies": {
-    "cli-table": "^0.3.1",
-    "@trufflesuite/ps-list": "0.0.3",
     "@ganache/colors": "0.3.0",
     "@ganache/core": "0.6.0",
     "@ganache/flavors": "0.6.0",
@@ -73,6 +70,8 @@
     "@types/node": "17.0.0",
     "chalk": "4.1.0",
     "ethereumjs-util": "7.1.5",
-    "marked-terminal": "4.1.0"
+    "marked-terminal": "4.1.0",
+    "cli-table": "^0.3.1",
+    "@trufflesuite/ps-list": "0.0.3"
   }
 }
