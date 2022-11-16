@@ -18,11 +18,17 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import { decode } from "@ganache/rlp";
-import { BN, KECCAK256_RLP } from "ethereumjs-util";
-import Common from "@ethereumjs/common";
-import VM from "@ethereumjs/vm";
+import { KECCAK256_RLP } from "ethereumjs-util";
+import type { InterpreterStep } from "@ethereumjs/evm";
+import { Common } from "@ethereumjs/common";
+import { EEI, VM } from "@ethereumjs/vm";
+import {
+  EvmError as VmError,
+  EvmErrorMessage as ERROR,
+  EVMResult,
+  EVM
+} from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
   Quantity,
@@ -30,7 +36,8 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   findInsertPosition,
-  KNOWN_CHAINIDS
+  KNOWN_CHAINIDS,
+  keccak
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -45,13 +52,9 @@ import {
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import { ForkStateManager } from "./forking/state-manager";
-import {
-  DefaultStateManager,
-  StateManager
-} from "@ethereumjs/vm/dist/state/index";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import type { LevelUp } from "levelup";
 import { activatePrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -71,6 +74,7 @@ import {
   runCall,
   SimulationTransaction
 } from "./helpers/simulations";
+import { TrieDB } from "./trie-db";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -130,34 +134,37 @@ export type BlockchainOptions = {
  * @param stateManager -
  * @param stateRoot -
  */
-function setStateRootSync(stateManager: StateManager, stateRoot: Buffer) {
-  (stateManager as any)._trie.root = stateRoot;
-  (stateManager as any)._cache.clear();
-  (stateManager as any)._storageTries = {};
+function setStateRootSync(
+  stateManager: DefaultStateManager,
+  stateRoot: Buffer
+) {
+  stateManager._trie.root(stateRoot);
+  stateManager._cache.clear();
+  stateManager._storageTries = {};
 }
 
-function makeTrie(blockchain: Blockchain, db: LevelUp | null, root: Data) {
+function makeTrie(blockchain: Blockchain, trieDB: TrieDB, root: Data) {
   if (blockchain.fallback) {
-    return new ForkTrie(db, root ? root.toBuffer() : null, blockchain);
+    return new ForkTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(db, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   }
 }
 
 function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
-  const common = Common.forCustomChain(
-    // if we were given a chain id that matches a real chain, use it
-    // NOTE: I don't think Common serves a purpose other than instructing the
-    // VM what hardfork is in use. But just incase things change in the future
-    // its configured "more correctly" here.
-    KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+  const common = Common.custom(
     {
       name: "ganache",
       networkId: networkId,
       chainId: chainId,
-      comment: "Local test network"
+      comment: "Local test network",
+      defaultHardfork: hardfork
     },
-    hardfork
+    // if we were given a chain id that matches a real chain, use it
+    // NOTE: I don't think Common serves a purpose other than instructing the
+    // VM what hardfork is in use. But just incase things change in the future
+    // its configured "more correctly" here.
+    { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
   );
 
   // the VM likes to listen to "hardforkChanged" events from common, but:
@@ -233,8 +240,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         common = this.common = this.fallback.common;
         options.fork.blockNumber = this.fallback.blockNumber.toNumber();
-        options.chain.networkId = common.networkId();
-        options.chain.chainId = common.chainId();
+        options.chain.networkId = Number(common.networkId());
+        options.chain.chainId = Number(common.chainId());
       } else {
         await database.initialize();
         common = this.common = createCommon(
@@ -243,6 +250,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.hardfork
         );
       }
+
+      this.isPostMerge = this.common.gteHardfork("merge");
 
       const blocks = (this.blocks = await BlockManager.initialize(
         this,
@@ -571,11 +580,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       minerOptions.blockGasLimit.toBuffer(),
       BUFFER_ZERO,
       Quantity.from(timestamp),
-      minerOptions.difficulty,
+      this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
       previousHeader.totalDifficulty,
+      this.getMixHash(previousBlock.hash().toBuffer()),
       Block.calcNextBaseFee(previousBlock)
     );
   };
+
+  getMixHash(data: Buffer) {
+    // mixHash is used as an RNG post merge hardfork
+    return this.isPostMerge ? keccak(data) : BUFFER_32_ZERO;
+  }
 
   isStarted = () => {
     return this.#state === Status.started;
@@ -588,6 +603,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   ) => {
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
 
+    // if block time is incremental, adjustments should only apply once,
+    // otherwise they accumulate with each block.
+    if (this.#options.miner.timestampIncrement !== "clock") {
+      this.#timeAdjustment = 0;
+    }
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,
@@ -608,7 +628,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     return {
       transactions,
-      blockNumber: nextBlock.header.number.toArrayLike(Buffer)
+      blockNumber: nextBlock.header.number
     };
   };
 
@@ -647,8 +667,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.#options.chain.allowUnlimitedContractSize;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
-      getBlock: async (number: BN) => {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+      getBlock: async (number: bigint) => {
+        const block = await blocks
+          .get(Quantity.toBuffer(number))
+          .catch(_ => null);
         return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     } as any;
@@ -658,19 +680,29 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
 
     common = common || this.common;
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: stateTrie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
-    const vm = new VM({
-      state: stateTrie,
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const vm = await VM.create({
       activatePrecompiles: false,
       common,
-      allowUnlimitedContractSize,
       blockchain,
-      stateManager: this.fallback
-        ? new ForkStateManager({ common, trie: stateTrie as ForkTrie })
-        : new DefaultStateManager({ common, trie: stateTrie })
+      stateManager,
+      evm
     });
+
     if (activatePrecompile) {
-      await activatePrecompiles(vm.stateManager);
+      await activatePrecompiles(vm.eei);
 
       if (common.isActivatedEIP(2537)) {
         // BLS12-381 curve, not yet included in any supported hardforks
@@ -704,10 +736,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit accounts, but for forking.
       const stateManager = <DefaultStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
-      initialAccounts.forEach(acc => {
-        const a = { buf: acc.address.toBuffer() } as any;
-        (stateManager as any)._cache.put(a, acc);
-        stateManager.touchAccount(a);
+      initialAccounts.forEach(account => {
+        this.vm.eei.putAccount(account.address, account as any);
       });
       await stateManager.commit();
 
@@ -727,8 +757,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         blockGasLimit.toBuffer(),
         BUFFER_ZERO,
         Quantity.from(timestamp),
-        minerOptions.difficulty,
+        this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
         fallbackBlock.header.totalDifficulty,
+        this.getMixHash(fallbackBlock.hash().toBuffer()),
         baseFeePerGas
       );
 
@@ -737,7 +768,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         KECCAK256_RLP,
         KECCAK256_RLP,
         BUFFER_256_ZERO,
-        this.trie.root,
+        this.trie.root(),
         0n,
         minerOptions.extraData,
         [],
@@ -766,6 +797,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const baseFeePerGas = this.common.isActivatedEIP(1559)
       ? Block.INITIAL_BASE_FEE_PER_GAS
       : undefined;
+
     const genesis = new RuntimeBlock(
       rawBlockNumber,
       Data.from(BUFFER_32_ZERO),
@@ -773,8 +805,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       blockGasLimit.toBuffer(),
       BUFFER_ZERO,
       Quantity.from(timestamp),
-      this.#options.miner.difficulty,
+      this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
       Quantity.Zero, // we start the totalDifficulty at 0
+      // we use the initial trie root as the genesis block's mixHash as it
+      // is deterministic based on initial wallet conditions
+      this.isPostMerge ? keccak(this.trie.root()) : BUFFER_32_ZERO,
       baseFeePerGas
     );
 
@@ -783,7 +818,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       KECCAK256_RLP,
       KECCAK256_RLP,
       BUFFER_256_ZERO,
-      this.trie.root,
+      this.trie.root(),
       0n,
       this.#options.miner.extraData,
       [],
@@ -984,7 +1019,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await this.#deleteBlockData(blockData, snapshotHeader.number.toBuffer());
 
       setStateRootSync(
-        this.vm.stateManager,
+        this.vm.stateManager as DefaultStateManager,
         snapshotHeader.stateRoot.toBuffer()
       );
       blocks.latest = snapshotBlock;
@@ -1069,7 +1104,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
-          BigInt(transaction.block.header.number.toString())
+          transaction.block.header.number
         )
       : this.common;
     return await createAccessList({
@@ -1096,8 +1131,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const blocks = this.blocks;
     // ethereumjs vm doesn't use the callback style anymore
     const blockchain = {
-      getBlock: async (number: BN) => {
-        const block = await blocks.get(number.toBuffer()).catch(_ => null);
+      getBlock: async (number: bigint) => {
+        const block = await blocks
+          .get(Quantity.toBuffer(number))
+          .catch(_ => null);
         return block ? { hash: () => block.hash().toBuffer() } : null;
       }
     } as any;
@@ -1109,24 +1146,35 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         )
       : this.common;
 
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: trie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie, prefixCodeHashes: false });
+
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({
+      common,
+      allowUnlimitedContractSize:
+        this.#options.chain.allowUnlimitedContractSize,
+      eei
+    });
     const vm = await VM.create({
-      state: trie,
       activatePrecompiles: false,
       common,
-      allowUnlimitedContractSize: this.vm.allowUnlimitedContractSize,
       blockchain,
-      stateManager: this.fallback
-        ? new ForkStateManager({ common, trie: trie as ForkTrie })
-        : new DefaultStateManager({ common, trie: trie })
+      stateManager,
+      evm
     });
 
     const storage: StorageRecords = {};
 
-    // TODO: gas could go theoretically go over Number.MAX_SAFE_INTEGER.
-    // (Ganache v2 didn't handle this possibility either, so it hasn't been
-    // updated yet)
-    // Issue: https://github.com/trufflesuite/ganache/issues/3473
-    let gas = 0;
+    let gas = 0n;
     const structLogs: Array<StructLog> = [];
     const TraceData = TraceDataFactory();
 
@@ -1145,9 +1193,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         );
       }
 
-      const gasLeft = event.gasLeft.toNumber();
-      const totalGasUsedAfterThisStep =
-        transaction.gasLimit.toNumber() - gasLeft;
+      const gasLeft = event.gasLeft;
+      const totalGasUsedAfterThisStep = transaction.gasLimit - gasLeft;
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
       gas += gasUsedPreviousStep;
 
@@ -1166,14 +1213,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const stack: ITraceData[] = [];
       if (options.disableStack !== true) {
         for (const stackItem of event.stack) {
-          stack.push(TraceData.from(stackItem.toArrayLike(Buffer)));
+          stack.push(TraceData.from(Quantity.toBuffer(stackItem)));
         }
       }
 
       const structLog: StructLog = {
         depth: event.depth + 1,
         error: "",
-        gas: gasLeft,
+        gas: Quantity.from(gasLeft),
         gasCost: 0,
         memory,
         op: event.opcode.name,
@@ -1185,7 +1232,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // The gas difference calculated for each step is indicative of gas consumed in
       // the previous step. Gas consumption in the final step will always be zero.
       if (structLogs.length) {
-        structLogs[structLogs.length - 1].gasCost = gasUsedPreviousStep;
+        structLogs[structLogs.length - 1].gasCost = Number(gasUsedPreviousStep);
       }
 
       if (options.disableStorage === true) {
@@ -1222,7 +1269,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           case "SLOAD": {
             const key = stack[stack.length - 1];
             const result = await vm.stateManager.getContractStorage(
-              event.address as any,
+              event.address,
               key.toBuffer()
             );
             const value = TraceData.from(result);
@@ -1253,7 +1300,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as any)._cache.flush = () => {};
+    (vm.stateManager as DefaultStateManager)._cache.flush = async () => {};
 
     // Process the block without committing the data.
     // The vmerr key on the result appears to be removed.
@@ -1267,14 +1314,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         if (tx === transaction) {
           if (keys && contractAddress) {
             const database = this.#database;
-            const ejsContractAddress = { buf: contractAddress } as any;
             await Promise.all(
               keys.map(async key => {
                 // get the raw key using the hashed key
                 const rawKey = await database.storageKeys.get(key);
 
                 const result = await vm.stateManager.getContractStorage(
-                  ejsContractAddress,
+                  new Address(contractAddress),
                   rawKey
                 );
 
@@ -1286,7 +1332,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             );
             break;
           } else {
-            vm.on("step", stepListener);
+            vm.evm.events.on("step", stepListener);
             // force the loop to break after running this transaction by setting
             // the current iteration past the end
             i = l;
@@ -1300,19 +1346,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           context: transactionEventContext
         });
       }
-      vm.removeListener("step", stepListener);
+      vm.evm.events.removeListener("step", stepListener);
     } finally {
       await vm.stateManager.revert();
     }
 
     // send state results back
     return {
-      gas,
+      gas: Quantity.from(gas),
       structLogs,
       returnValue: "",
       storage
     };
   };
+
+  isPostMerge: boolean;
 
   #prepareNextBlock = (
     targetBlock: Block,
@@ -1326,13 +1374,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
-      parentBlock.header.miner,
+      Address.from(parentBlock.header.miner.toString()),
       parentBlock.header.gasLimit.toBuffer(),
       BUFFER_ZERO,
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
-      this.#options.miner.difficulty,
+      this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
+      this.getMixHash(parentBlock.hash().toBuffer()),
       Block.calcNextBaseFee(parentBlock)
     ) as RuntimeBlock & {
       uncleHeaders: [];
@@ -1580,7 +1629,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     clearTimeout(this.#timer);
 
     // clean up listeners
-    this.vm && this.vm.removeAllListeners();
+    if (this.vm) {
+      this.vm.events.removeAllListeners();
+      this.vm.evm && this.vm.evm.events.removeAllListeners();
+    }
 
     // pause processing new transactions...
     this.transactions && (await this.transactions.pause());

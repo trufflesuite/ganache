@@ -1,5 +1,6 @@
-import type { StateManager } from "@ethereumjs/vm/dist/state";
-import { Account, Address } from "ethereumjs-util";
+import { Account } from "@ethereumjs/util";
+import { EEIInterface } from "@ethereumjs/evm";
+import { Address } from "@ganache/ethereum-address";
 
 const NUM_PRECOMPILES = 18;
 /**
@@ -24,26 +25,21 @@ const getOrCreateAccount = (i: number): Address => {
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
   buf[19] = i;
-  const address = {
-    buf,
-    equals: (a: { buf: Buffer }) => buf.equals(a.buf)
-  } as any;
+  const address = new Address(buf);
   accountCache.set(i, address);
   return address;
 };
 
 /**
  * Puts the precompile accounts into the state tree
- * @param stateManager -
+ * @param eei -
  */
-export const activatePrecompiles = async (stateManager: StateManager) => {
-  await stateManager.checkpoint();
-  const cache = (stateManager as any)._cache;
+export const activatePrecompiles = async (eei: EEIInterface) => {
+  await eei.checkpoint();
   for (const account of getPrecompiles()) {
-    cache.put(account, PRECOMPILED_ACCOUNT);
-    stateManager.touchAccount(account as any);
+    eei.putAccount(account, PRECOMPILED_ACCOUNT);
   }
-  await stateManager.commit();
+  await eei.commit();
 };
 
 export function* getPrecompiles() {

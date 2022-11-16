@@ -69,6 +69,8 @@ export class Executor {
       }
     }
 
-    throw new Error(`The method ${methodName} does not exist/is not available`);
+    throw new Error(
+      `The method ${String(methodName)} does not exist/is not available`
+    );
   }
 }

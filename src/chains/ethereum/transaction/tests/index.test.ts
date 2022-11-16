@@ -13,7 +13,7 @@ import {
   TypedDatabaseTransaction,
   Transaction
 } from "../../transaction";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import { decode } from "@ganache/rlp";
 import { EthereumOptionsConfig } from "../../options";
@@ -21,15 +21,15 @@ import { BUFFER_EMPTY, Quantity } from "@ganache/utils";
 import { SECP256K1_N } from "@ganache/secp256k1";
 
 describe("@ganache/ethereum-transaction", async () => {
-  const common = Common.forCustomChain(
-    "mainnet",
+  const common = Common.custom(
     {
       name: "ganache",
       chainId: 1337,
       comment: "Local test network",
-      bootstrapNodes: []
+      bootstrapNodes: [],
+      defaultHardfork: "grayGlacier"
     },
-    "london"
+    { baseChain: "mainnet" }
   );
   // #region configure accounts and private keys in wallet
   const privKey = `0x${"46".repeat(32)}`;
@@ -41,9 +41,12 @@ describe("@ganache/ethereum-transaction", async () => {
         { secretKey: `0x${"46".repeat(31)}47`, balance: 100n },
         { secretKey: `0x${"46".repeat(31)}48`, balance: 100n }
       ]
+    },
+    logging: {
+      logger: console
     }
   });
-  const wallet = new Wallet(options.wallet);
+  const wallet = new Wallet(options.wallet, options.logging);
   const [from, to, accessListAcc] = wallet.addresses;
 
   // #endregion configure accounts and private keys in wallet
@@ -59,7 +62,8 @@ describe("@ganache/ethereum-transaction", async () => {
     from: from,
     to: to,
     type: "0x0",
-    gasPrice: "0xffff"
+    gasPrice: "0xffff",
+    nonce: "0x0"
   };
 
   const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
@@ -87,7 +91,8 @@ describe("@ganache/ethereum-transaction", async () => {
         address: accessListAcc,
         storageKeys: [accessListStorageKey]
       }
-    ]
+    ],
+    nonce: "0x0"
   };
 
   const rawEIP2930StringData =
@@ -113,7 +118,8 @@ describe("@ganache/ethereum-transaction", async () => {
         address: accessListAcc,
         storageKeys: [accessListStorageKey]
       }
-    ]
+    ],
+    nonce: "0x0"
   };
 
   const rawEIP1559StringData =
@@ -211,18 +217,18 @@ describe("@ganache/ethereum-transaction", async () => {
 
       describe("EIP-2", () => {
         it("rejects transactions with too-high S values only when EIP-2 is active", () => {
-          const genesis = Common.forCustomChain(
-            "mainnet",
+          const genesis = Common.custom(
             {
               name: "ganache",
               chainId: 1,
               comment: "Local test network",
-              bootstrapNodes: []
+              bootstrapNodes: [],
+              // EIP-2 was in homestead, the first hardfork, so we need to create
+              // a common at the genesis (aka chainstart) so we can test at a fork
+              // where it is NOT active:
+              defaultHardfork: "chainstart"
             },
-            // EIP-2 was in homestead, the first hardfork, so we need to create
-            // a common at the genesis (aka chainstart) so we can test at a fork
-            // where it is NOT active:
-            "chainstart"
+            { baseChain: "mainnet" }
           );
 
           const tx = <LegacyTransaction>(
@@ -381,7 +387,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert.strictEqual(vmTx.nonce.toString(), "0");
+        assert.strictEqual(vmTx.nonce, 0n);
       });
       it("has gasPrice property", () => {
         assert.strictEqual(vmTx.gasPrice.toString(), "65535");
@@ -456,7 +462,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert.strictEqual(vmTx.nonce.toString(), "0");
+        assert.strictEqual(vmTx.nonce, 0n);
       });
       it("has gasPrice property", () => {
         assert.strictEqual(vmTx.gasPrice.toString(), "65535");
@@ -532,7 +538,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.notDeepStrictEqual(vmTx.hash().toString(), "");
       });
       it("has nonce property", () => {
-        assert.strictEqual(vmTx.nonce.toString(), "0");
+        assert.strictEqual(vmTx.nonce, 0n);
       });
       it("has maxPriorityFeePerGas property", () => {
         assert.strictEqual(vmTx.maxPriorityFeePerGas.toString(), "255");
@@ -638,15 +644,15 @@ describe("@ganache/ethereum-transaction", async () => {
 
     describe("checks for hardfork's support of transaction types", () => {
       describe("pre-berlin checks", () => {
-        const preBerlin = Common.forCustomChain(
-          "mainnet",
+        const preBerlin = Common.custom(
           {
             name: "ganache",
             chainId: 1337,
             comment: "Local test network",
-            bootstrapNodes: []
+            bootstrapNodes: [],
+            defaultHardfork: "istanbul"
           },
-          "istanbul"
+          { baseChain: "mainnet" }
         );
         it("creates legacy transaction before berlin hardfork", () => {
           const txFromRpc = TransactionFactory.fromRpc(
@@ -683,7 +689,10 @@ describe("@ganache/ethereum-transaction", async () => {
                 rawEIP2930StringData,
                 preBerlin
               ) as any,
-            { message: "Could not decode transaction: invalid remainder" }
+            {
+              message:
+                "Could not decode transaction: invalid RLP: remainder must be zero"
+            }
           );
         });
 
@@ -709,21 +718,24 @@ describe("@ganache/ethereum-transaction", async () => {
           assert.throws(
             () =>
               TransactionFactory.fromString(rawEIP1559StringData, preBerlin),
-            { message: "Could not decode transaction: invalid remainder" }
+            {
+              message:
+                "Could not decode transaction: invalid RLP: remainder must be zero"
+            }
           );
         });
       });
 
       describe("pre-london checks", () => {
-        const preLondon = Common.forCustomChain(
-          "mainnet",
+        const preLondon = Common.custom(
           {
             name: "ganache",
             chainId: 1337,
             comment: "Local test network",
-            bootstrapNodes: []
+            bootstrapNodes: [],
+            defaultHardfork: "berlin"
           },
-          "berlin"
+          { baseChain: "mainnet" }
         );
         it("creates legacy transaction before london hardfork", () => {
           const txFromRpc = TransactionFactory.fromRpc(

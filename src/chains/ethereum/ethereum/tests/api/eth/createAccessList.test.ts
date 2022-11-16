@@ -8,8 +8,11 @@ import { Ethereum } from "../../../src/api-types";
 import { AccessList } from "@ganache/ethereum-transaction";
 import { Address } from "@ganache/ethereum-address";
 import { CallError } from "@ganache/ethereum-utils";
-import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import {
+  EvmError as VmError,
+  EvmErrorMessage as ERROR,
+  EVMResult
+} from "@ethereumjs/evm";
 
 const encodeValue = (val: string) => {
   return Data.toString(val, 32).slice(2);

@@ -20,26 +20,31 @@ import {
 } from "@ganache/ethereum-transaction";
 import {
   toRpcSig,
-  ecsign,
   hashPersonalMessage,
   KECCAK256_NULL
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
 import { signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
+  ecsign,
   Heap,
   Quantity,
   PromiEvent,
   Api,
   keccak,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  min,
+  max
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import Wallet from "./wallet";
 
 import Emittery from "emittery";
-import estimateGas from "./helpers/gas-estimator";
+import estimateGas, {
+  EstimateGasResult,
+  EstimateGasRunArgs
+} from "./helpers/gas-estimator";
 import { assertArgLength } from "./helpers/assert-arg-length";
 import { parseFilterDetails, parseFilterRange } from "./helpers/filter-parsing";
 import { decode } from "@ganache/rlp";
@@ -47,7 +52,7 @@ import { Address } from "@ganache/ethereum-address";
 import { GanacheRawBlock } from "@ganache/ethereum-block";
 import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { SimulationTransaction } from "./helpers/simulations";
 
 async function autofillDefaultTransactionValues(
@@ -167,15 +172,17 @@ function createSimulatedTransaction(
     ? AccessLists.tryGetValidatedAccessList(transaction.accessList)
     : [];
 
+  const { parentHash } = simulationBlockHeader;
   const block = new RuntimeBlock(
     simulationBlockHeader.number,
-    simulationBlockHeader.parentHash,
+    parentHash,
     blockchain.coinbase,
     gas.toBuffer(),
     simulationBlockHeader.gasUsed.toBuffer(),
     simulationBlockHeader.timestamp,
     options.miner.difficulty,
     simulationBlockHeader.totalDifficulty,
+    blockchain.getMixHash(parentHash.toBuffer()),
     baseFeePerGasBigInt
   );
 
@@ -469,16 +476,16 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const buffer = Address.from(address).toBuffer();
+    const vmAddress = Address.from(address);
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
-    const account = await stateManager.getAccount({ buf: buffer } as any);
+    const eei = blockchain.vm.eei;
+    const account = await eei.getAccount(vmAddress);
 
-    account.nonce = {
-      toArrayLike: () => Quantity.toBuffer(nonce)
-    } as any;
+    account.nonce = Quantity.toBigInt(nonce);
 
-    await stateManager.putAccount({ buf: buffer } as any, account);
+    await eei.checkpoint();
+    await eei.putAccount(vmAddress, account);
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -508,20 +515,21 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const buffer = Address.from(address).toBuffer();
+    const vmAddress = Address.from(address);
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
-    const account = await stateManager.getAccount({ buf: buffer } as any);
+    const eei = blockchain.vm.eei;
+    const account = await eei.getAccount(vmAddress);
 
-    account.balance = {
-      toArrayLike: () => Quantity.toBuffer(balance)
-    } as any;
+    account.balance = Quantity.toBigInt(balance);
 
-    await stateManager.putAccount({ buf: buffer } as any, account);
+    await eei.checkpoint();
+    await eei.putAccount(vmAddress, account);
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
     await blockchain.mine(Capacity.Empty);
+
     return true;
   }
 
@@ -547,24 +555,21 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const addressBuffer = Address.from(address).toBuffer();
+    const vmAddress = Address.from(address);
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
+    const eei = blockchain.vm.eei;
     // The ethereumjs-vm StateManager does not allow to set empty code,
     // therefore we will manually set the code hash when "clearing" the contract code
+    await eei.checkpoint();
     if (codeBuffer.length > 0) {
-      await stateManager.putContractCode(
-        { buf: addressBuffer } as any,
-        codeBuffer
-      );
+      await eei.putContractCode(vmAddress, codeBuffer);
     } else {
-      const account = await stateManager.getAccount({
-        buf: addressBuffer
-      } as any);
+      const account = await eei.getAccount(vmAddress);
       account.codeHash = KECCAK256_NULL;
-      await stateManager.putAccount({ buf: addressBuffer } as any, account);
+      await eei.putAccount(vmAddress, account);
     }
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -596,16 +601,14 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const addressBuffer = Address.from(address).toBuffer();
+    const vmAddress = Address.from(address);
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);
     const blockchain = this.#blockchain;
-    const stateManager = blockchain.vm.stateManager;
-    await stateManager.putContractStorage(
-      { buf: addressBuffer } as any,
-      slotBuffer,
-      valueBuffer
-    );
+    const eei = blockchain.vm.eei;
+    await eei.checkpoint();
+    await eei.putContractStorage(vmAddress, slotBuffer, valueBuffer);
+    await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -774,7 +777,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_addAccount(address: DATA, passphrase: string) {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.addUnknownAccount(addy, passphrase);
   }
 
@@ -797,7 +800,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_removeAccount(address: DATA, passphrase: string) {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
@@ -1024,8 +1027,14 @@ export default class EthereumApi implements Api {
     const parentHeader = parentBlock.header;
     const options = this.#options;
 
-    const generateVM = () => {
-      return blockchain.vm.copy();
+    const generateVM = async () => {
+      // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
+      // /shrug
+      const vm = await blockchain.createVmFromStateTrie(
+        blockchain.trie.copy(false),
+        false
+      );
+      return vm;
     };
     return new Promise((resolve, reject) => {
       const { coinbase } = blockchain;
@@ -1044,24 +1053,29 @@ export default class EthereumApi implements Api {
       const block = new RuntimeBlock(
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
-        parentHeader.miner,
+        new Address(parentHeader.miner.toBuffer()),
         tx.gas.toBuffer(),
         parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
         options.miner.difficulty,
         parentHeader.totalDifficulty,
+        blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
         0n // no baseFeePerGas for estimates
       );
-      const runArgs = {
+      const runArgs: EstimateGasRunArgs = {
         tx: tx.toVmTransaction(),
         block,
         skipBalance: true,
         skipNonce: true
       };
-      estimateGas(generateVM, runArgs, (err: Error, result: any) => {
-        if (err) return reject(err);
-        resolve(Quantity.from(result.gasEstimate.toArrayLike(Buffer)));
-      });
+      estimateGas(
+        generateVM,
+        runArgs,
+        (err: Error, result: EstimateGasResult) => {
+          if (err) reject(err);
+          resolve(Quantity.from(result.gasEstimate));
+        }
+      );
     });
   }
 
@@ -1230,9 +1244,7 @@ export default class EthereumApi implements Api {
     }
     const targetBlock = await blockchain.blocks.get(blockNumber);
 
-    const ganacheAddress = Address.from(address);
-    const bufferAddress = ganacheAddress.toBuffer();
-    const ethereumJsAddress = { buf: bufferAddress } as any;
+    const vmAddress = Address.from(address);
     const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
 
     const stateManagerCopy = blockchain.vm.stateManager.copy();
@@ -1240,13 +1252,10 @@ export default class EthereumApi implements Api {
       targetBlock.header.stateRoot.toBuffer()
     );
 
-    const proof = await stateManagerCopy.getProof(
-      ethereumJsAddress,
-      slotBuffers
-    );
+    const proof = await stateManagerCopy.getProof(vmAddress, slotBuffers);
 
     return {
-      address: ganacheAddress,
+      address: vmAddress,
       balance: Quantity.from(proof.balance),
       codeHash: Data.from(proof.codeHash),
       nonce: Quantity.from(proof.nonce),
@@ -1899,7 +1908,7 @@ export default class EthereumApi implements Api {
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
     trie.setContext(addressStateRoot, addressBuf, blockNum);
     const value = await trie.get(paddedPosBuff);
-    return Data.from(decode(value), 32);
+    return Data.from(decode<Buffer>(value), 32);
   }
 
   /**
@@ -2929,7 +2938,7 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * const txObj = { from, gas: "0x5b8d80", gasPrice: "0x1dfd14000", value:"0x0", data: simpleSol };
    * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005"
-   * const overrides = { [from]: { balance: "0x3e8", "nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0xbaddad42"}}}
+   * const overrides = { [from]: { balance: "0x3e8", nonce: "0x5", code: "0xbaddad42", stateDiff: { [slot]: "0x00000000000000000000000000000000000000000000000000000000baddad42"}}};
    * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", overrides] });
    * console.log(result);
    * ```
@@ -2958,6 +2967,198 @@ export default class EthereumApi implements Api {
       simulationBlock,
       overrides
     );
+  }
+
+  /**
+   * Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.
+   *
+   * @param blockCount - Range of blocks between 1 and 1024. Will return less than the requested range if not all blocks are available.
+   * @param newestBlock - Highest block of the requested range.
+   * @param rewardPercentiles - A monotonically increasing list of percentile values. For each block in the requested range,
+   * the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile
+   * will be determined, accounting for gas consumed.
+   * @returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range
+   *
+   * * `oldestBlock`:  - Lowest number block of the returned range.
+   * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,
+   * because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+   * * `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.
+   * * `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the
+   * block is empty.
+   *
+   * @EIP [1559 - Fee market change](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md)
+   * @example
+   * ```javascript
+   * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.request({ method: "eth_sendTransaction", params: [{ from, to }] });
+   * const feeHistory = await provider.request({ method: "eth_feeHistory", params: ["0x1", "0x1", [10, 100]] });
+   * console.log(feeHistory);
+   * ```
+   */
+  @assertArgLength(3)
+  async eth_feeHistory(
+    blockCount: QUANTITY,
+    newestBlock: QUANTITY | Ethereum.Tag,
+    rewardPercentiles: number[]
+  ): Promise<Ethereum.FeeHistory<"private">> {
+    const blockchain = this.#blockchain;
+    const MIN_BLOCKS: number = 1;
+    const MAX_BLOCKS: number = 1024;
+    const PRECISION_FLOAT: number = 1e14;
+    const PAD_PRECISION = 16;
+    const PRECISION_BIG_INT: bigint = BigInt(1e16);
+
+    const newestBlockNumber = blockchain.blocks
+      .getEffectiveNumber(newestBlock)
+      .toBigInt();
+
+    // blockCount must be within MIN_BLOCKS and MAX_BLOCKS. blockCount > newestBlock is
+    // technically valid per the spec but we cannot go past the Genesis Block. Values
+    // above MAX_BLOCKS are technically within spec, however we cap totalBlocks because
+    // of the resource needs and potential abuse of a very large blockCount.
+    const totalBlocks = Number(
+      min(
+        max(Quantity.toBigInt(blockCount), MIN_BLOCKS),
+        newestBlockNumber + 1n,
+        MAX_BLOCKS
+      )
+    );
+
+    const baseFeePerGas: Quantity[] = new Array(totalBlocks);
+    const gasUsedRatio: number[] = new Array(totalBlocks);
+    let reward: Array<Quantity[]>;
+
+    // percentiles must be unique and in ascending order between 0 and 100
+    if (rewardPercentiles.length > 0) {
+      const ERR_INVALID_PERCENTILE =
+        "invalid reward percentile: percentiles must be unique and in ascending order";
+      if (rewardPercentiles[0] < 0)
+        throw new Error(`${ERR_INVALID_PERCENTILE} ${rewardPercentiles[0]}`);
+      if (rewardPercentiles[rewardPercentiles.length - 1] > 100)
+        throw new Error(
+          `${ERR_INVALID_PERCENTILE} ${
+            rewardPercentiles[rewardPercentiles.length - 1]
+          }`
+        );
+
+      for (let i = 1; i < rewardPercentiles.length; i++) {
+        if (rewardPercentiles[i] <= rewardPercentiles[i - 1]) {
+          throw new Error(
+            `${ERR_INVALID_PERCENTILE} ${rewardPercentiles[i]} ${
+              rewardPercentiles[i - 1]
+            }`
+          );
+        }
+      }
+
+      reward = new Array(totalBlocks);
+    }
+    // totalBlocks is inclusive of newestBlock
+    const oldestBlockNumber = newestBlockNumber - BigInt(totalBlocks - 1);
+
+    let currentBlock: Block;
+    let currentPosition = 0;
+
+    while (currentPosition < totalBlocks) {
+      currentBlock = await blockchain.blocks.get(
+        Quantity.toBuffer(oldestBlockNumber + BigInt(currentPosition))
+      );
+
+      baseFeePerGas[currentPosition] = currentBlock.header.baseFeePerGas;
+
+      const gasUsed = currentBlock.header.gasUsed.toBigInt();
+      const gasLimit = currentBlock.header.gasLimit.toBigInt();
+
+      if (gasUsed === gasLimit) {
+        gasUsedRatio[currentPosition] = 1;
+      } else {
+        gasUsedRatio[currentPosition] = Number(
+          `0.${((gasUsed * PRECISION_BIG_INT) / gasLimit)
+            .toString()
+            .padStart(PAD_PRECISION, "0")}`
+        );
+      }
+
+      // For each percentile, find the cost of the unit of gas at that percentage
+      if (reward !== undefined) {
+        const transactions = currentBlock.getTransactions();
+
+        // If there are no transactions, all reward percentiles are 0.
+        if (transactions.length === 0) {
+          reward[currentPosition] = rewardPercentiles.map(() => Quantity.Zero);
+        } else {
+          // For all transactions, effectiveGasReward = normalized fee per unit of gas
+          // earned by the miner regardless of transaction type
+          const baseFee = baseFeePerGas[currentPosition].toBigInt();
+
+          const receipts = await Promise.all(
+            transactions.map(tx =>
+              blockchain.transactionReceipts.get(tx.hash.toBuffer())
+            )
+          );
+
+          // Effective Reward is the amount paid per unit of gas
+          const effectiveRewardAndGasUsed = transactions
+            .map((tx, idx) => {
+              let effectiveGasReward: bigint;
+              if ("maxPriorityFeePerGas" in tx) {
+                const maxPriorityFeePerGas = tx.maxPriorityFeePerGas.toBigInt();
+                effectiveGasReward = BigInt(
+                  min(
+                    tx.maxFeePerGas.toBigInt() - baseFee,
+                    maxPriorityFeePerGas
+                  )
+                );
+              } else {
+                effectiveGasReward = tx.gasPrice.toBigInt() - baseFee;
+              }
+
+              return {
+                effectiveGasReward: effectiveGasReward,
+                gasUsed: Quantity.toBigInt(receipts[idx].gasUsed)
+              };
+            })
+            .sort((a, b) => {
+              if (a.effectiveGasReward > b.effectiveGasReward) return 1;
+              if (a.effectiveGasReward < b.effectiveGasReward) return -1;
+              return 0;
+            });
+
+          // All of the block transactions are ordered, ascending, from least to greatest by
+          // the fee the tx paid per unit of gas. For each percentile of block gas consumed,
+          // what was the fee paid for the unit of gas at that percentile.
+          reward[currentPosition] = rewardPercentiles.map(percentile => {
+            let totalGasUsed = 0n;
+
+            const targetGas =
+              (gasUsed * BigInt(percentile * PRECISION_FLOAT)) /
+              PRECISION_BIG_INT;
+
+            for (const values of effectiveRewardAndGasUsed) {
+              totalGasUsed = totalGasUsed + values.gasUsed;
+
+              if (targetGas <= totalGasUsed) {
+                return Quantity.from(values.effectiveGasReward);
+              }
+            }
+          });
+        }
+      }
+
+      currentPosition++;
+    }
+
+    // baseFeePerGas is calculated based on the header of the previous block, including the block after newestBlock.
+    baseFeePerGas[totalBlocks] = Quantity.from(
+      Block.calcNextBaseFee(currentBlock)
+    );
+
+    return {
+      oldestBlock: Quantity.from(oldestBlockNumber),
+      baseFeePerGas,
+      gasUsedRatio,
+      reward
+    };
   }
   //#endregion
 
@@ -3204,7 +3405,7 @@ export default class EthereumApi implements Api {
     passphrase: string,
     duration: number = 300
   ): Promise<boolean> {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
 

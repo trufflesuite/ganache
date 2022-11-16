@@ -3,13 +3,11 @@ import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile, { CompileOutput } from "../../helpers/compile";
 import { join } from "path";
-import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
+import { BUFFER_32_ZERO, BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { CallError } from "@ganache/ethereum-utils";
 import Blockchain from "../../../src/blockchain";
 import Wallet from "../../../src/wallet";
 import { Address } from "@ganache/ethereum-address";
-import { Address as EthereumJsAddress } from "ethereumjs-util";
-import { SimulationTransaction } from "../../../src/helpers/simulations";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   LegacyRpcTransaction,
@@ -18,6 +16,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { SimulationTransaction } from "../../../src/helpers/simulations";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -287,7 +286,7 @@ describe("api", () => {
           assert.strictEqual(overrideNonceAddress, overrideNonceAddress1);
           // the address generated depends on the nonce, so the two are difference
           assert.notEqual(overrideNonceAddress, defaultNonceAddress);
-        });
+        }).timeout(0);
 
         it("allows override of account code", async () => {
           const data = `0x${methods["getCode(address)"]}${encodedAddr}`;
@@ -872,20 +871,19 @@ describe("api", () => {
         let simTx: SimulationTransaction;
         let parentBlock: Block;
         let gas: Quantity;
-        let ethereumJsFromAddress: EthereumJsAddress,
-          ethereumJsToAddress: EthereumJsAddress;
+        let vmFromAddress: Address, vmToAddress: Address;
         let transaction: LegacyRpcTransaction;
         let privateKey: Data;
 
-        before(async () => {
+        beforeEach(async () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { quiet: true }
           });
-          wallet = new Wallet(options.wallet);
+          wallet = new Wallet(options.wallet, options.logging);
           [from, to] = wallet.addresses;
           blockchain = new Blockchain(
             options,
-            new Address(wallet.addresses[0])
+            Address.from(wallet.addresses[0])
           );
           await blockchain.initialize(wallet.initialAccounts);
 
@@ -902,19 +900,20 @@ describe("api", () => {
             parentHeader.timestamp,
             Quantity.One, // difficulty
             parentHeader.totalDifficulty,
+            BUFFER_32_ZERO,
             parentHeader.baseFeePerGas.toBigInt()
           );
+          vmFromAddress = Address.from(from);
+          vmToAddress = Address.from(to);
           simTx = {
-            from: new Address(from),
-            to: new Address(to),
+            from: vmFromAddress,
+            to: vmToAddress,
             gas,
             gasPrice: Quantity.from("0xfffffffffff"),
             value: Quantity.from("0xffff"),
             data: Data.from("0xabcdef1234"),
             block: block
           };
-          ethereumJsFromAddress = new EthereumJsAddress(Address.toBuffer(from));
-          ethereumJsToAddress = new EthereumJsAddress(Address.toBuffer(to));
           // set up a real transaction
           transaction = {
             from,
@@ -927,10 +926,18 @@ describe("api", () => {
           privateKey = wallet.unlockedAccounts.get(from);
         });
 
-        const getDbData = async (trie: GanacheTrie) => {
-          let dbData: (string | Buffer)[] = [];
-          for await (const data of trie.db._leveldb.createReadStream()) {
-            dbData.push(data);
+        const getDbData = async (
+          trie: GanacheTrie
+        ): Promise<[Buffer, Buffer][]> => {
+          const dbData = [];
+          const db = trie.db;
+          const readStream = db.createReadStream({
+            keys: true,
+            values: true
+          });
+
+          for await (const pair of readStream) {
+            dbData.push(pair);
           }
           return dbData;
         };
@@ -943,10 +950,8 @@ describe("api", () => {
             false,
             blockchain.common
           );
-          const fromState = await vm.stateManager.getAccount(
-            ethereumJsFromAddress
-          );
-          const toState = await vm.stateManager.getAccount(ethereumJsToAddress);
+          const fromState = await vm.stateManager.getAccount(vmFromAddress);
+          const toState = await vm.stateManager.getAccount(vmToAddress);
           return { root: trie.root, db: trieDbData, fromState, toState };
         };
 
@@ -984,7 +989,11 @@ describe("api", () => {
 
           // simulate the transaction, also setting overrides
           const overrides = {
-            [from]: { balance: "0x0", nonce: "0xfff", code: "0x12345678" }
+            [from]: {
+              balance: "0xffffffffffffffff",
+              nonce: "0xfff",
+              code: "0x12345678"
+            }
           };
           await blockchain.simulateTransaction(simTx, parentBlock, overrides);
 

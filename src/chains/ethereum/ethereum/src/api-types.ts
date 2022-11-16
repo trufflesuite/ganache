@@ -195,6 +195,12 @@ export namespace Ethereum {
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;
 
+  // eth_feeHistory
+  export type FeeHistory<P extends PublicPrivate = "public"> =
+    P extends "public"
+      ? Externalize<FeeHistory<"private">>
+      : UtilTypes.FeeHistory;
+
   // eth_getProof
   export type AccountProof<P extends PublicPrivate = "public"> =
     P extends "public"

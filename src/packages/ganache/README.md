@@ -47,7 +47,7 @@ Ganache can be used from the [command line](#command-line-use), [programmaticall
 
 ### Command line use
 
-You must first install [Node.js](https://nodejs.org/) >= v12.0.0 and npm >= 6.12.0.
+You must first install [Node.js](https://nodejs.org/) >= v14.0.0 and npm >= 6.12.0.
 
 To install Ganache globally, run:
 
@@ -60,7 +60,12 @@ In case you're upgrading from a previous version of Ganache, we've also written 
 Once installed globally, you can start ganache right from your command line:
 
 ```console
-$ ganache
+ganache
+```
+
+Your output should look something like this:
+
+```
 Ganache CLI v6.12.1 (ganache-core: 2.13.1)
 
 Available Accounts
@@ -109,7 +114,9 @@ Call Gas Limit
 Listening on 127.0.0.1:8545
 ```
 
-To install Ganache into an npm project, run:
+### NPM project use
+
+If you want to install Ganache into an npm project, run:
 
 ```console
 $ npm install ganache
@@ -235,7 +242,7 @@ const provider = ganache.provider(options);
 
 for programmatic use.
 
-The following options are listed for command line use, but can also be used when running Ganache programatically in your project.
+The following options are listed for command line use, but can also be used when running Ganache programmatically in your project.
 
 ```console
 Chain:
@@ -259,7 +266,7 @@ Chain:
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
           [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
-                                                london", "arrowGlacier", "grayGlacier"] [default: london
+                                         "london", "arrowGlacier", "grayGlacier", "merge"] [default: "london"]
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]

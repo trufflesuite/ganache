@@ -1,7 +1,5 @@
-import Common from "@ethereumjs/common";
-import VM from "@ethereumjs/vm";
-import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
-import { DefaultStateManager } from "@ethereumjs/vm/dist/state/index";
+import { Common } from "@ethereumjs/common";
+import type { InterpreterStep } from "@ethereumjs/evm";
 import { Address } from "@ganache/ethereum-address";
 import {
   AccessList,
@@ -11,16 +9,17 @@ import {
 import { CallError } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, hasOwn, keccak, Quantity } from "@ganache/utils";
 import { makeStepEvent } from "../provider-events";
-import {
-  Address as EthereumJsAddress,
-  BN,
-  KECCAK256_NULL
-} from "ethereumjs-util";
+import { KECCAK256_NULL } from "ethereumjs-util";
 import { GanacheTrie } from "./trie";
 import Blockchain from "../blockchain";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
+import {
+  EvmError as VmError,
+  EvmErrorMessage as ERROR,
+  EVMResult,
+  EEIInterface,
+  EVMInterface
+} from "@ethereumjs/evm";
 import { getPrecompiles } from "./precompiles";
 import { maybeGetLogs } from "@ganache/console.log";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -88,13 +87,13 @@ export type CreateAccessListResult = {
 /**
  * Stripped down version of the type from EthereumJs
  */
-interface VMRunCallOpts {
-  caller?: EthereumJsAddress;
+interface EVMRunCallOpts {
+  caller?: Address;
   data?: Buffer;
-  gasPrice?: BN;
-  gasLimit?: BN;
-  to?: EthereumJsAddress;
-  value?: BN;
+  gasPrice?: bigint;
+  gasLimit?: bigint;
+  to?: Address;
+  value?: bigint;
   block?: any;
 }
 
@@ -105,8 +104,8 @@ type CloneVmOptions = {
 };
 
 type CloneVmResult = {
-  vm: VM;
-  stateManager: DefaultStateManager;
+  evm: EVMInterface;
+  eei: EEIInterface;
   stateTrie: GanacheTrie;
 };
 
@@ -125,44 +124,32 @@ type CreateAccessListOptions = SimulatorCommonOptions;
 type RunCallSetupOptions = {
   common: Common;
   stateTrie: GanacheTrie;
-  stateManager: DefaultStateManager;
+  eei: EEIInterface;
   transaction: SimulationTransaction;
   overrides?: CallOverrides;
 };
 
 type RunCallSetupResult = {
-  runCallOpts: VMRunCallOpts;
-  accessListExclusions: EthereumJsAddress[];
-  addressesOnlyStorage: EthereumJsAddress[];
+  runCallOpts: EVMRunCallOpts;
+  accessListExclusions: Address[];
+  addressesOnlyStorage: Address[];
   intrinsicGas: bigint;
 };
 
 type InternalRunCallOptions = {
   blockchain: Blockchain;
-  runCallOpts: VMRunCallOpts;
-  vm: VM;
+  runCallOpts: EVMRunCallOpts;
+  evm: EVMInterface;
   options: EthereumInternalOptions;
   emitStepEvent: boolean;
 };
 
-const toLightEJSAddress = (address?: Address): EthereumJsAddress => {
-  if (address) {
-    const buf = address.toBuffer();
-    return { buf, equals: (a: { buf: Buffer }) => buf.equals(a.buf) } as any;
-  } else {
-    return null;
-  }
-};
-
-const warmAccessList = (
-  stateManager: DefaultStateManager,
-  accessList: AccessList
-) => {
+const warmAccessList = (eei: EEIInterface, accessList: AccessList) => {
   for (const { address, storageKeys } of accessList) {
     const addressBuf = Address.toBuffer(address);
-    stateManager.addWarmedAddress(addressBuf);
+    eei.addWarmedAddress(addressBuf);
     for (const slot of storageKeys) {
-      stateManager.addWarmedStorage(addressBuf, Data.toBuffer(slot, 32));
+      eei.addWarmedStorage(addressBuf, Data.toBuffer(slot, 32));
     }
   }
 };
@@ -211,30 +198,22 @@ const validateStorageOverride = (
 const applySimulationOverrides = async (
   overrides: CallOverrides,
   stateTrie: GanacheTrie,
-  stateManager: DefaultStateManager
+  eei: EEIInterface
 ): Promise<void> => {
   for (const address in overrides) {
     if (!hasOwn(overrides, address)) continue;
     const { balance, nonce, code, state, stateDiff } = overrides[address];
 
-    const vmAddr = { buf: Address.from(address).toBuffer() } as any;
+    const vmAddr = Address.from(address);
     // group together overrides that update the account
     if (nonce != null || balance != null || code != null) {
-      const account = await stateManager.getAccount(vmAddr);
+      const account = await eei.getAccount(vmAddr);
 
       if (nonce != null) {
-        account.nonce = {
-          toArrayLike: () =>
-            // geth treats empty strings as "0x0" nonce for overrides
-            nonce === "" ? BUFFER_EMPTY : Quantity.toBuffer(nonce)
-        } as any;
+        account.nonce = nonce === "" ? 0n : Quantity.toBigInt(nonce);
       }
       if (balance != null) {
-        account.balance = {
-          toArrayLike: () =>
-            // geth treats empty strings as "0x0" balance for overrides
-            balance === "" ? BUFFER_EMPTY : Quantity.toBuffer(balance)
-        } as any;
+        account.balance = balance === "" ? 0n : Quantity.toBigInt(balance);
       }
       if (code != null) {
         // geth treats empty strings as "0x" code for overrides
@@ -244,9 +223,9 @@ const applySimulationOverrides = async (
         const codeHash =
           codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
         account.codeHash = codeHash;
-        await stateTrie.db.put(codeHash, codeBuffer);
+        await stateTrie.database().put(codeHash, codeBuffer);
       }
-      await stateManager.putAccount(vmAddr, account);
+      await eei.putAccount(vmAddr, account);
     }
     // group together overrides that update storage
     if (state || stateDiff) {
@@ -266,13 +245,13 @@ const applySimulationOverrides = async (
           validateStorageOverride(slot, value, "State");
           if (!clearedState) {
             // override.state clears all storage and sets just the specified slots
-            await stateManager.clearContractStorage(vmAddr);
+            await eei.clearContractStorage(vmAddr);
             clearedState = true;
           }
           const slotBuf = Data.toBuffer(slot, 32);
           const valueBuf = Data.toBuffer(value);
 
-          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          await eei.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       } else {
         for (const slot in stateDiff) {
@@ -284,7 +263,7 @@ const applySimulationOverrides = async (
           const slotBuf = Data.toBuffer(slot, 32);
           const valueBuf = Data.toBuffer(value);
 
-          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          await eei.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       }
     }
@@ -313,11 +292,11 @@ const cloneVm = async ({
     false, // we'll activate precompiles manually later so we can track data
     common
   );
-  const stateManager = vm.stateManager as DefaultStateManager;
+  const { eei, evm } = vm;
   // take a checkpoint so the `runCall` never writes to the trie. We don't
   // commit/revert later because this stateTrie is ephemeral anyway.
-  await stateManager.checkpoint();
-  return { vm, stateManager, stateTrie };
+  await eei.checkpoint();
+  return { evm, eei, stateTrie };
 };
 
 /**
@@ -332,61 +311,56 @@ const cloneVm = async ({
 const runCallSetup = async ({
   common,
   stateTrie,
-  stateManager,
+  eei,
   transaction,
   overrides
 }: RunCallSetupOptions): Promise<RunCallSetupResult> => {
-  const caller = toLightEJSAddress(transaction.from);
+  const caller = transaction.from;
   const data = transaction.data;
-  let gasLimit = transaction.gas.toBigInt();
+  const gasLimit = transaction.gas.toBigInt();
   const hasToAddress = transaction.to != null;
 
   const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
   // subtract out the transaction's base fee from the gas limit before
   // simulating the tx, because `runCall` doesn't account for raw gas costs.
   const gasLeft = gasLimit - intrinsicGas;
-  const to = toLightEJSAddress(transaction.to);
-  const accessListExclusions: EthereumJsAddress[] = [];
-  const addressesOnlyStorage: EthereumJsAddress[] = [];
+  const { to } = transaction;
+  const accessListExclusions: Address[] = [];
+  const addressesOnlyStorage: Address[] = [];
   if (gasLeft >= 0n) {
     if (common.isActivatedEIP(2929)) {
       for (const precompile of getPrecompiles()) {
-        stateManager.addWarmedAddress(precompile.buf);
+        eei.addWarmedAddress(precompile.buf);
         accessListExclusions.push(precompile);
       }
       accessListExclusions.push(caller);
       if (to) {
-        stateManager.addWarmedAddress(to.buf);
+        eei.addWarmedAddress(to.buf);
         addressesOnlyStorage.push(to);
       }
     }
     // If there are any overrides requested for eth_call, apply
     // them now before running the simulation.
     if (overrides) {
-      await applySimulationOverrides(overrides, stateTrie, stateManager);
+      await applySimulationOverrides(overrides, stateTrie, eei);
     }
 
     // we need to update the balance and nonce of the sender _before_
     // we run this transaction so that things that rely on these values
     // are correct (like contract creation!).
-    const fromAccount = await stateManager.getAccount(caller);
-    fromAccount.nonce.iaddn(1);
-    const txCost = new BN(
-      (gasLimit * transaction.gasPrice.toBigInt()).toString()
-    );
-    fromAccount.balance.isub(txCost);
-    await stateManager.putAccount(caller, fromAccount);
+    const fromAccount = await eei.getAccount(caller);
+    fromAccount.nonce += 1n;
+    const txCost = gasLimit * transaction.gasPrice.toBigInt();
+    fromAccount.balance -= txCost;
+    await eei.putAccount(caller, fromAccount);
 
-    const runCallOpts = {
+    const runCallOpts: EVMRunCallOpts = {
       caller,
       data: transaction.data && transaction.data.toBuffer(),
-      gasPrice: new BN(transaction.gasPrice.toBuffer()),
-      gasLimit: new BN(Quantity.toBuffer(gasLeft)),
+      gasPrice: transaction.gasPrice.toBigInt(),
+      gasLimit: gasLeft,
       to,
-      value:
-        transaction.value == null
-          ? new BN(0)
-          : new BN(transaction.value.toBuffer()),
+      value: transaction.value === null ? 0n : transaction.value.toBigInt(),
       block: transaction.block as any
     };
     return {
@@ -417,12 +391,10 @@ const runCallSetup = async ({
 const _runCall = async ({
   blockchain,
   runCallOpts,
-  vm,
+  evm,
   options,
   emitStepEvent
 }: InternalRunCallOptions): Promise<EVMResult> => {
-  let callResult: EVMResult;
-
   const context = {};
   blockchain.emit("ganache:vm:tx:before", {
     context
@@ -442,16 +414,16 @@ const _runCall = async ({
     blockchain.emit("ganache:vm:tx:step", ganacheStepEvent);
   };
 
-  vm.on("step", stepEventListener);
+  evm.events.on("step", stepEventListener);
 
-  callResult = await vm.runCall(runCallOpts);
+  const callResult = await evm.runCall(runCallOpts);
 
   blockchain.emit("ganache:vm:tx:after", {
     context
   });
   // this function can be called in a loop, so remove step listeners
   // so we don't pile up too many
-  vm.removeListener("step", stepEventListener);
+  evm.events.removeListener("step", stepEventListener);
 
   if (callResult.execResult.exceptionError) {
     throw new CallError(callResult);
@@ -475,7 +447,7 @@ export const runCall = async ({
   emitStepEvent,
   overrides
 }: RunCallOptions): Promise<Data> => {
-  const { vm, stateManager, stateTrie } = await cloneVm({
+  const { evm, eei, stateTrie } = await cloneVm({
     blockchain,
     common,
     simulationBlock
@@ -484,20 +456,20 @@ export const runCall = async ({
   const { runCallOpts } = await runCallSetup({
     common,
     stateTrie,
-    stateManager,
+    eei,
     transaction,
     overrides
   });
 
   // we want to warm the access list provided by the user
   if (common.isActivatedEIP(2930) && transaction.accessList) {
-    warmAccessList(stateManager, transaction.accessList);
+    warmAccessList(eei, transaction.accessList);
   }
 
   const callResult = await _runCall({
     blockchain,
     runCallOpts,
-    vm,
+    evm,
     options,
     emitStepEvent
   });
@@ -534,7 +506,7 @@ export const createAccessList = async ({
   options,
   emitStepEvent
 }: CreateAccessListOptions): Promise<CreateAccessListResult> => {
-  const { vm, stateManager, stateTrie } = await cloneVm({
+  const { evm, eei, stateTrie } = await cloneVm({
     blockchain,
     common,
     simulationBlock
@@ -545,7 +517,7 @@ export const createAccessList = async ({
     intrinsicGas,
     accessListExclusions,
     addressesOnlyStorage
-  } = await runCallSetup({ common, stateTrie, stateManager, transaction });
+  } = await runCallSetup({ common, stateTrie, eei, transaction });
 
   // no real reason why this is our max, feel free to change
   const MAX_ITERATIONS = 1000;
@@ -555,16 +527,16 @@ export const createAccessList = async ({
   do {
     // checkpoint so we can get back to this vm state after every time we
     // run this loop
-    await stateManager.checkpoint();
-    warmAccessList(stateManager, previousAccessList);
+    await eei.checkpoint();
+    warmAccessList(eei, previousAccessList);
     callResult = await _runCall({
       blockchain,
       runCallOpts,
-      vm,
+      evm,
       options,
       emitStepEvent
     });
-    const accessList = stateManager.generateAccessList(
+    const accessList = eei.generateAccessList(
       accessListExclusions,
       addressesOnlyStorage
     );
@@ -580,8 +552,8 @@ export const createAccessList = async ({
       return { accessList, gasUsed };
     } else {
       // we are going to run this loop again so revert our changes
-      await stateManager.revert();
-      stateManager.clearWarmedAccounts();
+      await eei.revert();
+      eei.clearWarmedAccounts();
       previousAccessList = accessList;
     }
     iterations++;
@@ -606,8 +578,7 @@ const _getAccessListGasUsed = (
 ) => {
   const { dataFeeEIP2930 } = AccessLists.getAccessListData(accessList);
   const baseFeeBigInt = intrinsicGas + dataFeeEIP2930;
-  const gasUsedBigInt =
-    Quantity.toBigInt(callResult.gasUsed.toArrayLike(Buffer)) + baseFeeBigInt;
+  const gasUsedBigInt = callResult.execResult.executionGasUsed + baseFeeBigInt;
   const gasUsed = Quantity.from(gasUsedBigInt);
   return gasUsed;
 };

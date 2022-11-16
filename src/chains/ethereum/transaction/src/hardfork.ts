@@ -7,4 +7,5 @@ export type Hardfork =
   | "berlin"
   | "london"
   | "arrowGlacier"
-  | "grayGlacier";
+  | "grayGlacier"
+  | "merge";

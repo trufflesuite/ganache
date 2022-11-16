@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { TruffleColors } from "@ganache/colors";
 import { WEI } from "@ganache/utils";
 import type { EthereumProvider } from "@ganache/ethereum";
-import { toChecksumAddress } from "ethereumjs-util";
+import { toChecksumAddress } from "@ethereumjs/util";
 import { CliSettings } from "../types";
 
 function capitalizeFirstLetter(string: string) {

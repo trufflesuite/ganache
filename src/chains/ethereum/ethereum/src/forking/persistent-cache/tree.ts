@@ -43,7 +43,7 @@ export class Tree {
   }
 
   static deserialize(key: Buffer, value: Buffer) {
-    const [hash, parent, children] = (rlp.decode(value) as unknown) as [
+    const [hash, parent, children] = rlp.decode(value) as unknown as [
       Buffer,
       Buffer,
       Buffer[]

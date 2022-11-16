@@ -1,6 +1,6 @@
 import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 import { GanacheRawExtraTx } from "./raw";
