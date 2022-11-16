@@ -43,7 +43,7 @@ describe("@ganache/version-check", () => {
   });
 
   afterEach(() => {
-    const testConfigFileLocation = vc.configFileLocation();
+    const testConfigFileLocation = vc.configFileLocation;
     if (fs.existsSync(testConfigFileLocation)) {
       fs.unlinkSync(testConfigFileLocation);
     }
@@ -132,34 +132,6 @@ describe("@ganache/version-check", () => {
       });
       assert.equal(vc._config.enabled, false);
       delete process.env.TRUFFLE_SHUFFLE_TEST;
-    });
-  });
-
-  describe("ConfigFileManager", () => {
-    it("persists config changes to disk", () => {
-      const vc2 = new VersionCheck(testVersion, testConfig);
-
-      const vc3 = new VersionCheck(testVersion);
-
-      assert.deepStrictEqual(
-        vc2.getConfig(),
-        vc3.getConfig(),
-        "ConfigFileManager improperly saves config to disk"
-      );
-    });
-    it("persists the config across multiple instantiation types (no clobber)", () => {
-      let vc = new VersionCheck(testVersion);
-      const initialConfig = vc.getConfig();
-      assert.deepStrictEqual(initialConfig, ConfigFileManager.DEFAULTS);
-
-      vc = new VersionCheck(testVersion);
-      assert.deepStrictEqual(initialConfig, vc.getConfig());
-
-      vc = new VersionCheck(testVersion, testConfig);
-      assert.deepStrictEqual(
-        { ...initialConfig, ...testConfig },
-        vc.getConfig()
-      );
     });
   });
 

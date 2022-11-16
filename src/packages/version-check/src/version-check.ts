@@ -32,18 +32,19 @@ export class VersionCheck {
 
     this._config = this.getConfig();
 
+    // If we are running in CI, disable and quit.
     if (this._config.disableInCI && detectCI()) {
       this.disable();
-    }
-
-    if (semverIsValid(currentVersion)) {
-      this._currentVersion = semverClean(currentVersion);
     } else {
-      this.disable();
-    }
+      if (semverIsValid(currentVersion)) {
+        this._currentVersion = semverClean(currentVersion);
+      } else {
+        this.disable();
+      }
 
-    this._logger = logger || console;
-    this.getLatestVersion();
+      this._logger = logger || console;
+      this.getLatestVersion();
+    }
   }
 
   private _setConfig(config: VersionCheckConfig) {
@@ -54,11 +55,12 @@ export class VersionCheck {
     return this.ConfigFileManager.getConfig();
   }
 
-  configFileLocation(): string {
-    return this.ConfigFileManager.configFileLocation();
+  get configFileLocation(): string {
+    return this.ConfigFileManager.configFileLocation;
   }
 
   disable() {
+    this.destroy();
     this._setConfig({ enabled: false });
   }
 
@@ -101,7 +103,7 @@ export class VersionCheck {
       try {
         this._setConfig({
           latestVersion: await this.fetchLatest(),
-          lastNotification: new Date().getTime()
+          lastNotification: Date.now()
         });
       } catch {}
     }

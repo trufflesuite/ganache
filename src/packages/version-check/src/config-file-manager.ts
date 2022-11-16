@@ -5,27 +5,27 @@ export class ConfigFileManager {
   private _configFile: ConfigManager;
   private _config: VersionCheckConfig;
 
-  constructor(config: VersionCheckConfig) {
+  constructor(config?: VersionCheckConfig) {
     this._configFile = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
-        ? process.env.VERSION_CHECK_CONFIG_NAME
+        ? process.env.VERSION_CHECK_CONFIG_NAME // this is mostly for unit testing
         : "config" // config is the Conf package default
     });
 
     const existingConfig = this._configFile.get();
 
-    this._config = {
+    this.setConfig({
       ...ConfigFileManager.DEFAULTS,
       ...existingConfig,
       ...config
-    };
+    });
 
     // On first run, save the current config, else
     // only save when a new config is passed.
     if (!existingConfig.didInit || config) this.saveConfig();
   }
 
-  configFileLocation() {
+  get configFileLocation() {
     return this._configFile.path;
   }
 
@@ -42,7 +42,8 @@ export class ConfigFileManager {
       latestVersion,
       latestVersionLogged,
       lastNotification,
-      disableInCI
+      disableInCI,
+      didInit
     } = { ...this._config, ...config };
 
     this._config = {
@@ -53,7 +54,8 @@ export class ConfigFileManager {
       latestVersion,
       latestVersionLogged,
       lastNotification,
-      disableInCI
+      disableInCI,
+      didInit
     };
     this.saveConfig();
     return this._config;
