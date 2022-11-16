@@ -174,6 +174,7 @@ export async function startDetachedInstance(
     } catch (err) {
       switch ((err as CodedError).code) {
         case "EEXIST":
+          // an instance already exists with this name
           instance.instanceName = createInstanceName();
           break;
         case "ENOENT":
@@ -185,8 +186,6 @@ export async function startDetachedInstance(
         default:
           throw err;
       }
-
-      instance.instanceName = createInstanceName();
     }
   }
 
