@@ -6,6 +6,8 @@ export class ConfigFileManager {
   private _config: VersionCheckConfig;
 
   constructor(config?: VersionCheckConfig) {
+    // the file on disk will be:
+    // ~/.config/@ganache/version-check-nodejs/configName.json
     this._configFile = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME // this is mostly for unit testing
@@ -20,8 +22,8 @@ export class ConfigFileManager {
       ...config
     });
 
-    // On first run, save the current config, else
-    // only save when a new config is passed.
+    // On first run, save the current config to disk,
+    // else only save when a new config is passed.
     if (!existingConfig.didInit || config) this.saveConfig();
   }
 

@@ -6,7 +6,7 @@ import {
   semverClean,
   semverGte
 } from "./semver";
-import { detectCI } from "./ci";
+import { isCI } from "./ci";
 import { ConfigFileManager } from "./config-file-manager";
 import { bannerMessage } from "./banner-message";
 import type { VersionCheckConfig } from "./types";
@@ -33,7 +33,7 @@ export class VersionCheck {
     this._config = this.getConfig();
 
     // If we are running in CI, disable and quit.
-    if (this._config.disableInCI && detectCI()) {
+    if (this._config.disableInCI && isCI()) {
       this.disable();
     } else {
       if (semverIsValid(currentVersion)) {

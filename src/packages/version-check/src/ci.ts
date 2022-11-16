@@ -1,65 +1,52 @@
-export const envVars = [
-  "APPVEYOR",
-  "BITBUCKET_BUILD_NUMBER",
-  "BITBUCKET_DEPLOYMENT",
-  "BITRISE_IO",
-  "BUDDY_WORKSPACE_ID",
-  "BUILDER_OUTPUT",
-  "BUILDKITE",
-  "BUILDKITE",
-  "BUILD_NUMBER",
-  "CI",
-  "CIRCLECI",
-  "CIRRUS_CI",
-  "CI_NAME",
-  "CODEBUILD_SRC_DIR",
-  "CONTINUOUS_INTEGRATION",
-  "DRONE",
-  "DSARI",
-  "GERRIT_PROJECT",
-  "GITHUB_ACTION",
-  "GITLAB_CI",
-  "GITLAB_DEPLOYMENT",
-  "GO_PIPELINE_NAME",
-  "HUDSON_URL",
-  "HUDSON_URL",
-  "JENKINS_URL",
-  "JENKINS_URL",
-  "MAGNUM",
-  "NETLIFY",
-  "NEVERCODE",
-  "NOW_BUILDER",
-  "NOW_GITHUB_DEPLOYMENT",
-  "RENDER",
-  "SAIL_CI",
-  "SCREWDRIVER",
-  "SEMAPHORE",
-  "SHIPPABLE",
-  "STRIDER",
-  "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI",
-  "TASKCLUSTER_ROOT_URL",
-  "TDDIUM",
-  "TEAMCITY_VERSION",
-  "TF_BUILD",
-  "TRAVIS",
-  "VERCEL_BITBUCKET_DEPLOYMENT",
-  "VERCEL_GITHUB_DEPLOYMENT",
-  "VERCEL_URL",
-  "WERCKER",
-  "TRUFFLE_SHUFFLE_TEST"
-];
-
-export function detectCI() {
-  let currentEnvVar = 0;
-
-  while (currentEnvVar < envVars.length) {
-    const current = envVars[currentEnvVar];
-    if (!!process.env[current]) {
-      return true;
-    }
-
-    currentEnvVar++;
-  }
-
-  return false;
+export function isCI(): boolean {
+  return (
+    !!(
+      process.env["APPVEYOR"] ||
+      process.env["BITBUCKET_BUILD_NUMBER"] ||
+      process.env["BITBUCKET_DEPLOYMENT"] ||
+      process.env["BITRISE_IO"] ||
+      process.env["BUDDY_WORKSPACE_ID"] ||
+      process.env["BUILDER_OUTPUT"] ||
+      process.env["BUILDKITE"] ||
+      process.env["BUILDKITE"] ||
+      process.env["BUILD_NUMBER"] ||
+      process.env["CI"] ||
+      process.env["CIRCLECI"] ||
+      process.env["CIRRUS_CI"] ||
+      process.env["CI_NAME"] ||
+      process.env["CODEBUILD_SRC_DIR"] ||
+      process.env["CONTINUOUS_INTEGRATION"] ||
+      process.env["DRONE"] ||
+      process.env["DSARI"] ||
+      process.env["GERRIT_PROJECT"] ||
+      process.env["GITHUB_ACTION"] ||
+      process.env["GITLAB_CI"] ||
+      process.env["GITLAB_DEPLOYMENT"] ||
+      process.env["GO_PIPELINE_NAME"] ||
+      process.env["HUDSON_URL"] ||
+      process.env["JENKINS_URL"] ||
+      process.env["MAGNUM"] ||
+      process.env["NETLIFY"] ||
+      process.env["NEVERCODE"] ||
+      process.env["NOW_BUILDER"] ||
+      process.env["NOW_GITHUB_DEPLOYMENT"] ||
+      process.env["RENDER"] ||
+      process.env["SAIL_CI"] ||
+      process.env["SCREWDRIVER"] ||
+      process.env["SEMAPHORE"] ||
+      process.env["SHIPPABLE"] ||
+      process.env["STRIDER"] ||
+      process.env["SYSTEM_TEAMFOUNDATIONCOLLECTIONURI"] ||
+      process.env["TASKCLUSTER_ROOT_URL"] ||
+      process.env["TDDIUM"] ||
+      process.env["TEAMCITY_VERSION"] ||
+      process.env["TF_BUILD"] ||
+      process.env["TRAVIS"] ||
+      process.env["VERCEL_BITBUCKET_DEPLOYMENT"] ||
+      process.env["VERCEL_GITHUB_DEPLOYMENT"] ||
+      process.env["VERCEL_URL"] ||
+      process.env["WERCKER"] ||
+      process.env["TRUFFLE_SHUFFLE_TEST"]
+    ) || false
+  );
 }

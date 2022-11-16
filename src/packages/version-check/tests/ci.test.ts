@@ -1,13 +1,13 @@
 // @ts-nocheck
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
 
-import { detectCI } from "../src/ci";
+import { isCI } from "../src/ci";
 import assert from "assert";
 
-describe("detectCI", () => {
+describe("isCI", () => {
   it("returns true if envVar is found", () => {
     process.env.TRUFFLE_SHUFFLE_TEST = true;
-    assert.equal(detectCI(), true);
+    assert.equal(isCI(), true);
     delete process.env.TRUFFLE_SHUFFLE_TEST;
   });
 });
