@@ -87,18 +87,7 @@
     "abstract-leveldown",
     "async-eventemitter",
     "levelup",
-    "ethereum-cryptography",
-    "@ethereumjs/vm",
-    "@ethereumjs/trie",
-    "@ethereumjs/evm",
-    "@ethereumjs/block",
-    "@ethereumjs/statemanager",
-    "@ethereumjs/util",
-    "@ethereumjs/rlp",
-    "@ethereumjs/common",
-    "@ethereumjs/ethash",
-    "@ethereumjs/blockchain",
-    "@ethereumjs/tx"
+    "ethereum-cryptography"
   ],
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.
