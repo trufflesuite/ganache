@@ -36,14 +36,8 @@ describe("@ganache/version-check", () => {
   let message;
   const testLogger = { log: str => (message = str) };
 
-  before(() => {
-    process.env.IGNORE_ISCI = "true";
-  });
-  after(() => {
-    delete process.env.IGNORE_ISCI;
-  });
-
   beforeEach(() => {
+    process.env.IGNORE_ISCI = "true";
     vc = new VersionCheck(testVersion);
 
     message = "";
@@ -54,9 +48,16 @@ describe("@ganache/version-check", () => {
     if (fs.existsSync(testConfigFileLocation)) {
       fs.unlinkSync(testConfigFileLocation);
     }
+    delete process.env.IGNORE_ISCI;
   });
 
   describe("constructor", () => {
+    before(() => {
+      process.env.IGNORE_ISCI = "true";
+    });
+    after(() => {
+      delete process.env.IGNORE_ISCI;
+    });
     it("sets the current version", () => {
       assert(
         vc._currentVersion === testVersion,
@@ -132,8 +133,8 @@ describe("@ganache/version-check", () => {
       assert.equal(vc._currentVersion, version);
     });
     it("disables if CI is detected", () => {
+      delete process.env.IGNORE_ISCI;
       process.env.TRUFFLE_SHUFFLE_TEST = "true";
-
       vc = new VersionCheck(versionString, {
         enabled: true,
         disableInCI: true
