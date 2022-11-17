@@ -90,7 +90,7 @@
     "@ethereumjs/common",
     "@ethereumjs/ethash",
     "@ethereumjs/blockchain",
-    "@ethereumjs/tx",
+    "@ethereumjs/tx"
   ],
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.
