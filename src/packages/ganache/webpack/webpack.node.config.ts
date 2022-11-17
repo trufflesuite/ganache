@@ -53,7 +53,6 @@ const config: webpack.Configuration = merge({}, base, {
   externals: [
     //#region dependencies that have the potential to compile something at install time
     "@trufflesuite/bigint-buffer",
-    "@trufflesuite/uws-js-unofficial",
     "leveldown",
     "secp256k1",
     "keccak",
@@ -66,20 +65,7 @@ const config: webpack.Configuration = merge({}, base, {
     // things api-extractor can't handle, so we don't bundle them:
     "emittery",
     "abstract-leveldown",
-    "async-eventemitter",
-    "@ethereumjs/vm",
-    // because @ethereumjs/vm is already added as an external, mark all of the
-    // packages that we use that _it_ imports as also being external
-    "@ethereumjs/trie",
-    "@ethereumjs/evm",
-    "@ethereumjs/statemanager",
-    "@ethereumjs/util",
-    "@ethereumjs/rlp",
-    "@ethereumjs/common",
-    "@ethereumjs/block",
-    "@ethereumjs/ethash",
-    "@ethereumjs/blockchain",
-    "@ethereumjs/tx"
+    "async-eventemitter"
   ],
   module: {
     rules: [
