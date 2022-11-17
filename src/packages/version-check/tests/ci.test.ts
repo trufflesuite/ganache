@@ -6,6 +6,7 @@ import assert from "assert";
 
 describe("isCI", () => {
   it("returns true if envVar is found", () => {
+    delete process.env.IGNORE_ISCI;
     process.env.TRUFFLE_SHUFFLE_TEST = true;
     assert.strictEqual(isCI(), true);
     delete process.env.TRUFFLE_SHUFFLE_TEST;
