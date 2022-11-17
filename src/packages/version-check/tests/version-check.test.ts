@@ -36,6 +36,13 @@ describe("@ganache/version-check", () => {
   let message;
   const testLogger = { log: str => (message = str) };
 
+  before(() => {
+    process.env.IGNORE_ISCI = "true";
+  });
+  after(() => {
+    delete process.env.IGNORE_ISCI;
+  });
+
   beforeEach(() => {
     vc = new VersionCheck(testVersion);
 
@@ -94,6 +101,7 @@ describe("@ganache/version-check", () => {
       assert.deepStrictEqual(vc._config, expectedConfig);
     });
     it("disables if currentVersion is not a valid semver", () => {
+      delete process.env.IGNORE_ISCI;
       vc = new VersionCheck("");
 
       assert.equal(vc._config.enabled, false);
