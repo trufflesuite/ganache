@@ -50,7 +50,6 @@
     "tooling"
   ],
   "dependencies": {
-    "@ethereumjs/block": "4.0.1",
     "@ethereumjs/common": "3.0.1",
     "@ethereumjs/trie": "5.0.1",
     "@ethereumjs/tx": "4.0.1",
