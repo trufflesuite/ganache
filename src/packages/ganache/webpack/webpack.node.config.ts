@@ -64,6 +64,7 @@ const config: webpack.Configuration = merge({}, base, {
     "@ganache/filecoin",
     // things api-extractor can't handle, so we don't bundle them:
     "emittery",
+    "abstract-level",
     "abstract-leveldown",
     "async-eventemitter"
   ],

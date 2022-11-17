@@ -96,6 +96,7 @@
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "5.1.1",
     "@types/seedrandom": "3.0.1",
+    "abstract-level": "1.0.3",
     "abstract-leveldown": "7.2.0",
     "async-eventemitter": "0.2.4",
     "emittery": "0.10.0",
@@ -109,9 +110,7 @@
   },
   "bundledDependencies": [
     "@trufflesuite/bigint-buffer",
-    "@ethereumjs/vm",
-    "@ethereumjs/trie",
-    "@ethereumjs/evm",
+    "abstract-level",
     "abstract-leveldown",
     "async-eventemitter",
     "emittery",
