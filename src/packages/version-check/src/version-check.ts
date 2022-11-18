@@ -9,13 +9,20 @@ import {
 import { isCI } from "./ci";
 import { ConfigFileManager } from "./config-file-manager";
 import { bannerMessage } from "./banner-message";
-import type { VersionCheckConfig } from "./types";
+import type { VersionCheckOptions } from "./types";
 
+// Why is this not part of the config? Well, if a user
+// set this to a low value there could be problems.
 const ONE_DAY: number = 86400;
 
+/**
+ * @param  {string} currentVersion
+ * @param  {VersionCheckOptions} config?
+ * @param  {Logger} logger?
+ */
 export class VersionCheck {
   private ConfigFileManager: ConfigFileManager;
-  private _config: VersionCheckConfig;
+  private _config: VersionCheckOptions;
   private _logger: Logger;
   private _currentVersion: string;
 
@@ -25,12 +32,16 @@ export class VersionCheck {
 
   constructor(
     currentVersion: string,
-    config?: VersionCheckConfig,
+    config?: VersionCheckOptions,
     logger?: Logger
   ) {
-    this.ConfigFileManager = new ConfigFileManager(config);
+    // This will manage the config file on disk.
+    this.ConfigFileManager = new ConfigFileManager({
+      defaultConfig: VersionCheck.DEFAULTS,
+      config
+    });
 
-    this._config = this.getConfig();
+    this._config = this.ConfigFileManager.getConfig();
 
     // If we are running in CI, disable and quit.
     if (this._config.disableInCI && isCI()) {
@@ -46,13 +57,27 @@ export class VersionCheck {
       this.getLatestVersion();
     }
   }
+  /**
+   * Accepts a partial or whole config object. It will filter the
+   * new config based on properties that are defined in DEFAULTS
+   * to prevent unsupported config properties.
+   * @param  {VersionCheckOptions} config
+   */
+  private _updateConfig(config: VersionCheckOptions) {
+    const tempConfig = { ...this._config, ...config };
+    const validConfig = Object.keys(VersionCheck.DEFAULTS).reduce(
+      (validConfig, key) => {
+        validConfig[key] = tempConfig[key];
+        return validConfig;
+      },
+      {}
+    );
 
-  private _setConfig(config: VersionCheckConfig) {
-    this._config = this.ConfigFileManager.setConfig(config);
+    this._config = this.ConfigFileManager.setConfig(validConfig);
   }
 
-  getConfig(): VersionCheckConfig {
-    return this.ConfigFileManager.getConfig();
+  getConfig(): VersionCheckOptions {
+    return this._config;
   }
 
   get configFileLocation(): string {
@@ -61,7 +86,7 @@ export class VersionCheck {
 
   disable() {
     this.destroy();
-    this._setConfig({ enabled: false });
+    this._updateConfig({ enabled: false });
   }
 
   destroy() {
@@ -101,7 +126,7 @@ export class VersionCheck {
   async getLatestVersion() {
     if (this._config.enabled) {
       try {
-        this._setConfig({
+        this._updateConfig({
           latestVersion: await this.fetchLatest(),
           lastNotification: Date.now()
         });
@@ -161,13 +186,13 @@ export class VersionCheck {
         })
       );
 
-      this._setConfig({
+      this._updateConfig({
         latestVersionLogged: latestVersion
       });
     }
   }
 
-  // This is called with --version and is displayed each time
+  // This is called with --version
   cliMessage() {
     const currentVersion = this._currentVersion;
     const { latestVersion } = this._config;
@@ -175,5 +200,19 @@ export class VersionCheck {
       return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
     }
     return "";
+  }
+
+  static get DEFAULTS(): VersionCheckOptions {
+    return {
+      packageName: "ganache",
+      enabled: false,
+      url: "https://version.trufflesuite.com",
+      ttl: 2000, // http2session.setTimeout
+      latestVersion: "0.0.0", // Last version fetched from the server
+      latestVersionLogged: "0.0.0", // Last version to tell the user about
+      lastNotification: 0,
+      disableInCI: true,
+      didInit: true // this is set once the first time and never changed again
+    };
   }
 }

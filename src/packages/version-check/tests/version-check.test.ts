@@ -1,5 +1,5 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
-import { VersionCheckConfig } from "../src/types";
+import { VersionCheckOptions } from "../src/types";
 import { VersionCheck } from "../src/version-check";
 import { semverUpgradeType } from "../src/semver";
 import { ConfigFileManager } from "../src/config-file-manager";
@@ -13,7 +13,7 @@ describe("@ganache/version-check", () => {
   const versionString = "v1.2.3";
   const version = "1.2.3";
 
-  const testConfig: VersionCheckConfig = {
+  const testConfig: VersionCheckOptions = {
     packageName: "test",
     enabled: true,
     lastNotification: 0,
@@ -24,7 +24,7 @@ describe("@ganache/version-check", () => {
     disableInCI: false,
     didInit: true
   };
-  const sparseConfig: VersionCheckConfig = {
+  const sparseConfig: VersionCheckOptions = {
     packageName: "test",
     enabled: true,
     url: "test",
@@ -65,7 +65,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("instantiates with the default config", () => {
-      const config = ConfigFileManager.DEFAULTS;
+      const config = VersionCheck.DEFAULTS;
 
       assert.deepStrictEqual(
         vc._config,
@@ -74,7 +74,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("is set to opt out by default", () => {
-      const config = ConfigFileManager.DEFAULTS;
+      const config = VersionCheck.DEFAULTS;
 
       assert.equal(
         config.enabled,
@@ -93,7 +93,7 @@ describe("@ganache/version-check", () => {
     });
     it("sets an optional sparse config", () => {
       const expectedConfig = {
-        ...ConfigFileManager.DEFAULTS,
+        ...VersionCheck.DEFAULTS,
         ...sparseConfig
       };
 
@@ -619,3 +619,25 @@ describe("@ganache/version-check", () => {
     });
   });
 });
+
+/*
+ it("saves a sparse config", () => {
+      cfm = new ConfigFileManager({
+        defaultConfig: VersionCheck.DEFAULTS,
+        config: sparseConfig
+      });
+
+      assert.deepStrictEqual(cfm.getConfig(), {
+        ...VersionCheck.DEFAULTS,
+        ...sparseConfig
+      });
+    });
+    it("ignores invalid config properties", () => {
+      cfm = new ConfigFileManager({
+        defaultConfig: VersionCheck.DEFAULTS,
+        config: extraConfig
+      });
+
+      assert.deepStrictEqual(cfm.getConfig().badProperty, undefined);
+    });
+    */

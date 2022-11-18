@@ -1,83 +1,99 @@
 import Conf from "conf";
-import { VersionCheckConfig, ConfigManager } from "./types";
+import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
 
+/**
+ * Manages configuration changes between the defaultConfig,
+ * existingConfig, and config (new) values. Values are assigned as:
+ *
+ * {
+ * ...defaultConfig,
+ * ...existingConfig,
+ * ...config
+ * }
+ *
+ * Sets an internal property on the config, `__cfmDidInit`, to track
+ * if it is the first time setting this config. __cfmDidInit is treated
+ * like a reserved word and removed from 
+ *
+ * Removing this flag will not cause a crash it will just incur
+ * an extra disk write in the constructor the next time the app
+ * starts.
+ *
+
+ */
 export class ConfigFileManager {
   private _configFile: ConfigManager;
-  private _config: VersionCheckConfig;
+  private _config: AnyJSON;
 
-  constructor(config?: VersionCheckConfig) {
+  constructor(options: ConfigFileManagerOptions = {}) {
     // the file on disk will be:
     // ~/.config/@ganache/version-check-nodejs/configName.json
+    // VERSION_CHECK_CONFIG_NAME is used in unit testing to avoid
+    // clobbering any existing conf file stored on disk.
     this._configFile = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
-        ? process.env.VERSION_CHECK_CONFIG_NAME // this is mostly for unit testing
+        ? process.env.VERSION_CHECK_CONFIG_NAME //
         : "config" // config is the Conf package default
     });
 
+    // on first run, this will be '{}' but there is no way
+    // to know if this is the default, or if the user
+    // actually set this at some point. Conf will not save
+    // the empty file. see: __cfmDidInit
     const existingConfig = this._configFile.get();
 
-    this.setConfig({
-      ...ConfigFileManager.DEFAULTS,
+    const { defaultConfig, config } = options;
+
+    this._config = {
+      ...this.validateConfig(defaultConfig),
       ...existingConfig,
-      ...config
-    });
+      ...this.validateConfig(config)
+    };
 
-    // On first run, save the current config to disk,
-    // else only save when a new config is passed.
-    if (!existingConfig.didInit || config) this.saveConfig();
+    // On first run, save the current config to disk.
+    // An interal property, __cfmDidInit, is used to track this.
+    // Else only save when a new config is passed.
+    if (!existingConfig.__cfmDidInit) {
+      this._config.__cfmDidInit = true;
+      this.saveConfig();
+    } else if (config) this.saveConfig();
   }
-
+  /**
+   * Returns the physical location of the file on disk
+   */
   get configFileLocation() {
     return this._configFile.path;
   }
-
+  /**
+   * Returns a copy of the current config.
+   */
   getConfig() {
-    return this._config;
+    const config = { ...this._config };
+    delete config.__cfmDidInit;
+    return config;
   }
-
-  setConfig(config: VersionCheckConfig) {
-    const {
-      packageName,
-      enabled,
-      url,
-      ttl,
-      latestVersion,
-      latestVersionLogged,
-      lastNotification,
-      disableInCI,
-      didInit
-    } = { ...this._config, ...config };
-
-    this._config = {
-      packageName,
-      enabled,
-      url,
-      ttl,
-      latestVersion,
-      latestVersionLogged,
-      lastNotification,
-      disableInCI,
-      didInit
-    };
+  /**
+   * updates the
+   * @param  {AnyJSON} config - partial or complete config.
+   */
+  setConfig(config: AnyJSON) {
+    this._config = { ...this._config, ...this.validateConfig(config) };
     this.saveConfig();
-    return this._config;
+    return this.getConfig();
   }
 
   private saveConfig() {
     this._configFile.set(this._config);
   }
-
-  static get DEFAULTS(): VersionCheckConfig {
-    return {
-      packageName: "ganache",
-      enabled: false,
-      url: "https://version.trufflesuite.com",
-      ttl: 2000, // http2session.setTimeout
-      latestVersion: "0.0.0", // Last version fetched from the server
-      latestVersionLogged: "0.0.0", // Last version to tell the user about
-      lastNotification: 0,
-      disableInCI: true,
-      didInit: true // this is set once the first time and never changed again
-    };
+  /**
+   * In case someone tries to use the reserved property, __cfmDidInit,
+   * strip it out. Since configs are optional in some places this protects
+   * against undefined values coming from userland.
+   * @param  {AnyJSON} config
+   */
+  private validateConfig(config: AnyJSON) {
+    if (!config) return {};
+    delete config.__cfmDidInit;
+    return config;
   }
 }

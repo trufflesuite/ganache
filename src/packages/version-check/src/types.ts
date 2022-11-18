@@ -5,7 +5,7 @@ export type BannerMessageOptions = {
   latestVersion: string;
 };
 
-export type VersionCheckConfig = {
+export type VersionCheckOptions = {
   packageName?: string;
   enabled?: boolean;
   url?: string;
@@ -21,4 +21,13 @@ export type ConfigManager = {
   get: Function;
   set: Function;
   path: string;
+};
+
+export type ConfigFileManagerOptions = {
+  defaultConfig?: AnyJSON;
+  config?: AnyJSON;
+};
+
+export type AnyJSON = {
+  [key: string]: string | number | boolean;
 };

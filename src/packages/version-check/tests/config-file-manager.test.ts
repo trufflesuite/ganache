@@ -1,11 +1,12 @@
+import { VersionCheck } from "../src/version-check";
 import { ConfigFileManager } from "../src/config-file-manager";
-import { VersionCheckConfig } from "../src/types";
+import { VersionCheckOptions } from "../src/types";
 import assert from "assert";
 import * as fs from "fs";
 
 describe("ConfigFileManager", () => {
   let cfm;
-  const testConfig: VersionCheckConfig = {
+  const testConfig: VersionCheckOptions = {
     packageName: "test",
     enabled: true,
     lastNotification: 0,
@@ -16,7 +17,7 @@ describe("ConfigFileManager", () => {
     disableInCI: false,
     didInit: true
   };
-  const sparseConfig: VersionCheckConfig = {
+  const sparseConfig: VersionCheckOptions = {
     packageName: "test"
   };
   const extraConfig = {
@@ -33,8 +34,8 @@ describe("ConfigFileManager", () => {
   });
   describe("constructor", () => {
     it("starts with a default config", () => {
-      const defaultConfig = ConfigFileManager.DEFAULTS;
-      cfm = new ConfigFileManager();
+      const defaultConfig = VersionCheck.DEFAULTS;
+      cfm = new ConfigFileManager({ defaultConfig });
 
       assert.deepStrictEqual(defaultConfig, cfm.getConfig());
     });
@@ -44,15 +45,15 @@ describe("ConfigFileManager", () => {
       assert.strictEqual(fs.existsSync(cfm.configFileLocation), true);
     });
     it("accepts a config constructor param config", () => {
-      const defaultConfig = ConfigFileManager.DEFAULTS;
-      cfm = new ConfigFileManager(testConfig);
+      const defaultConfig = VersionCheck.DEFAULTS;
+      cfm = new ConfigFileManager({ config: testConfig });
 
       assert.notDeepStrictEqual(defaultConfig, cfm.getConfig());
       assert.deepStrictEqual(testConfig, cfm.getConfig());
     });
 
     it("does not clobber existing config on startup", () => {
-      cfm = new ConfigFileManager(testConfig);
+      cfm = new ConfigFileManager({ config: testConfig });
 
       cfm = new ConfigFileManager();
       assert.deepStrictEqual(testConfig, cfm.getConfig());
@@ -67,26 +68,16 @@ describe("ConfigFileManager", () => {
   });
   describe("getConfig", () => {
     it("returns the config", () => {
-      assert.deepStrictEqual(cfm.getConfig(), ConfigFileManager.DEFAULTS);
+      cfm = new ConfigFileManager({ defaultConfig: VersionCheck.DEFAULTS });
+      assert.deepStrictEqual(cfm.getConfig(), VersionCheck.DEFAULTS);
     });
   });
   describe("setConfig", () => {
-    it("saves a whole config", () => {
-      cfm = new ConfigFileManager(testConfig);
-      assert.deepStrictEqual(cfm.getConfig(), testConfig);
-    });
-    it("saves a sparse config", () => {
-      cfm = new ConfigFileManager(sparseConfig);
+    it("set a config property", () => {
+      cfm = new ConfigFileManager({ config: testConfig });
 
-      assert.deepStrictEqual(cfm.getConfig(), {
-        ...ConfigFileManager.DEFAULTS,
-        ...sparseConfig
-      });
-    });
-    it("ignores invalid config properties", () => {
-      cfm = new ConfigFileManager(extraConfig);
-
-      assert.deepStrictEqual(cfm.getConfig().badProperty, undefined);
+      cfm.setConfig({ enabled: false });
+      assert.deepStrictEqual(cfm.getConfig().enabled, false);
     });
   });
 });
