@@ -5,10 +5,10 @@ describe("@ganache/cli", () => {
   describe("detach", () => {
     describe("formatUptime()", () => {
       const durations = [
-        [0, "Just now"],
-        [0.1, "Just now"],
-        [1, "Just now"],
-        [2, "Just now"],
+        [0, "Just started"],
+        [0.1, "Just started"],
+        [1, "Just started"],
+        [2, "Just started"],
         [1000, "1 second"],
         [1001, "1 second"],
         [2000, "2 seconds"],
