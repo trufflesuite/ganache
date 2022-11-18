@@ -1,3 +1,12 @@
+/**
+ * Detects common env variables set by CI environments.
+ *
+ * Disabled by setting the IGNORE_ISCI env var.
+ *
+ * TRUFFLE_SHUFFLE_TEST is used for unit testing.
+ *
+ * @returns boolean
+ */
 export function isCI(): boolean {
   return process.env["IGNORE_ISCI"]
     ? false

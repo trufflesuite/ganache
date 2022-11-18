@@ -13,7 +13,7 @@ describe("ConfigFileManager", () => {
     url: "test",
     ttl: 100,
     latestVersion: "99.99.99",
-    latestVersionLogged: "99.99.90",
+    lastVersionLogged: "99.99.90",
     disableInCI: false,
     didInit: true
   };

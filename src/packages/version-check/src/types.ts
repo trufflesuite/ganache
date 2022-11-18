@@ -11,7 +11,7 @@ export type VersionCheckOptions = {
   url?: string;
   ttl?: number;
   latestVersion?: string;
-  latestVersionLogged?: string;
+  lastVersionLogged?: string;
   lastNotification?: number;
   disableInCI?: boolean;
   didInit?: true;

@@ -1,6 +1,10 @@
 import { TruffleColors } from "@ganache/colors";
 import { BannerMessageOptions } from "./types";
-
+/**
+ * Displays and npm-like banner message.
+ *
+ * @param  {BannerMessageOptions} options
+ */
 export function bannerMessage(options: BannerMessageOptions) {
   const { upgradeType, packageName, currentVersion, latestVersion } = options;
 

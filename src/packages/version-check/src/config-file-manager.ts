@@ -13,7 +13,7 @@ import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
  *
  * Sets an internal property on the config, `__cfmDidInit`, to track
  * if it is the first time setting this config. __cfmDidInit is treated
- * like a reserved word and removed from 
+ * like a reserved word and removed from `getConfig`.
  *
  * Removing this flag will not cause a crash it will just incur
  * an extra disk write in the constructor the next time the app

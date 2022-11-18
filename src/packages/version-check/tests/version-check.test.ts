@@ -20,7 +20,7 @@ describe("@ganache/version-check", () => {
     url: "test",
     ttl: 100,
     latestVersion: "99.99.99",
-    latestVersionLogged: "99.99.90",
+    lastVersionLogged: "99.99.90",
     disableInCI: false,
     didInit: true
   };
@@ -185,15 +185,15 @@ describe("@ganache/version-check", () => {
         "Version Check will notify if typeof currentVersion !== string"
       );
     });
-    it("false if latestVersionLogged === latestVersion", () => {
-      vc.alreadyLoggedThisVersion = () => true;
+    it("false if lastVersionLogged === latestVersion", () => {
+      vc.alreadyLoggedLatestVersion = () => true;
 
       const canNotifyUser = vc.canNotifyUser();
 
       assert.equal(
         canNotifyUser,
         false,
-        "Version Check will notify if alreadyLoggedThisVersion is true"
+        "Version Check will notify if alreadyLoggedLatestVersion is true"
       );
     });
     it("false if notification Interval has not passed", async () => {
@@ -204,7 +204,7 @@ describe("@ganache/version-check", () => {
         disableInCI: false
       };
       vc = new VersionCheck(currentVersion, config);
-      vc.alreadyLoggedThisVersion = () => false;
+      vc.alreadyLoggedLatestVersion = () => false;
 
       let canNotifyUser = vc.canNotifyUser();
 
@@ -224,7 +224,7 @@ describe("@ganache/version-check", () => {
         disableInCI: false
       };
       vc = new VersionCheck(currentVersion, config);
-      vc.alreadyLoggedThisVersion = () => false;
+      vc.alreadyLoggedLatestVersion = () => false;
 
       const canNotifyUser = vc.canNotifyUser();
 
@@ -236,47 +236,47 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("alreadyLoggedThisVersion", () => {
-    it("true if config.latestVersionLogged < latestVersion", () => {
+  describe("alreadyLoggedLatestVersion", () => {
+    it("true if config.lastVersionLogged < latestVersion", () => {
       const config = {
-        latestVersionLogged: "0.0.0",
+        lastVersionLogged: "0.0.0",
         latestVersion: "1.0.0",
         disableInCI: false
       };
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedThisVersion(),
+        vc.alreadyLoggedLatestVersion(),
         false,
-        "alreadyLoggedThisVersion is true when latestVersionLogged < latestVersion"
+        "alreadyLoggedLatestVersion is true when lastVersionLogged < latestVersion"
       );
     });
-    it("false if config.latestVersionLogged = latestVersion", () => {
+    it("false if config.lastVersionLogged = latestVersion", () => {
       const config = {
-        latestVersionLogged: "1.0.0",
+        lastVersionLogged: "1.0.0",
         latestVersion: "1.0.0",
         disableInCI: false
       };
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedThisVersion(),
+        vc.alreadyLoggedLatestVersion(),
         true,
-        "alreadyLoggedThisVersion is false when latestVersionLogged = latestVersion"
+        "alreadyLoggedLatestVersion is false when lastVersionLogged = latestVersion"
       );
     });
-    it("false if config.latestVersionLogged > latestVersion", () => {
+    it("false if config.lastVersionLogged > latestVersion", () => {
       const config = {
-        latestVersionLogged: "2.0.0",
+        lastVersionLogged: "2.0.0",
         latestVersion: "1.0.0",
         disableInCI: false
       };
       vc = new VersionCheck("0.0.0", config);
 
       assert.equal(
-        vc.alreadyLoggedThisVersion(),
+        vc.alreadyLoggedLatestVersion(),
         true,
-        "alreadyLoggedThisVersion is false when latestVersionLogged > latestVersion"
+        "alreadyLoggedLatestVersion is false when lastVersionLogged > latestVersion"
       );
     });
   });
@@ -356,7 +356,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(message, "", "Version Check will log if disabled.");
     });
     it("compares the constructor currentVersion to config.latestVersion", () => {
-      testConfig.latestVersionLogged = "0.0.0";
+      testConfig.lastVersionLogged = "0.0.0";
       vc = new VersionCheck(testVersion, testConfig, testLogger);
       vc.log();
 
@@ -410,17 +410,38 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
 
       assert.notEqual(
-        vc._config.latestVersionLogged,
+        vc._config.lastVersionLogged,
         testConfig.latestVersion,
-        "latestVersion and latestVersionLogged is the same before logging"
+        "latestVersion and lastVersionLogged is the same before logging"
       );
 
       vc.log();
 
       assert.equal(
-        vc._config.latestVersionLogged,
+        vc._config.lastVersionLogged,
         testConfig.latestVersion,
-        "latestVersionLogged was not successfully set after logging version message"
+        "lastVersionLogged was not successfully set after logging version message"
+      );
+    });
+    it("sets lastNotification", async () => {
+      vc = new VersionCheck(testVersion, testConfig, testLogger);
+
+      assert.notEqual(
+        vc._config.lastVersionLogged,
+        testConfig.latestVersion,
+        "latestVersion and lastVersionLogged is the same before logging"
+      );
+
+      const firstNotification = vc._config.lastNotification;
+
+      vc.log();
+
+      const secondNotification = vc._config.lastNotification;
+
+      assert.strictEqual(
+        secondNotification > firstNotification,
+        true,
+        "lastVersionLogged was not successfully set after logging version message"
       );
     });
     it("only logs the latestVersion one time", () => {
@@ -503,7 +524,7 @@ describe("@ganache/version-check", () => {
     });
   });
 
-  describe("getLatestVersion/fetchLatest", () => {
+  describe("getLatestVersion/_fetchLatest", () => {
     let api;
     const apiResponse = "1.0.0";
     const apiSettings = {
@@ -560,14 +581,14 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         latestVersion,
         testVersion,
-        "Version Check will fetchLatest if disabled."
+        "Version Check will _fetchLatest if disabled."
       );
     });
 
     it("fetches the latest version from the API", async () => {
       let latestVersion;
 
-      latestVersion = await vc.fetchLatest();
+      latestVersion = await vc._fetchLatest();
 
       assert.equal(latestVersion === apiResponse, true);
     });
@@ -583,15 +604,6 @@ describe("@ganache/version-check", () => {
       const latestVersion = vc._config.latestVersion;
 
       assert.equal(latestVersion, apiResponse);
-    });
-    it("sets lastNotification in the config", async () => {
-      const lastNotification = vc._config.lastNotification;
-      await vc.getLatestVersion();
-
-      const thisNotification = vc._config.lastNotification;
-
-      assert.equal(lastNotification, 0);
-      assert.notEqual(thisNotification, lastNotification);
     });
   });
 

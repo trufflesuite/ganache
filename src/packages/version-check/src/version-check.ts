@@ -16,6 +16,10 @@ import type { VersionCheckOptions } from "./types";
 const ONE_DAY: number = 86400;
 
 /**
+ * Requests the `latestVersion` semver from a remote url.
+ *
+ *
+ *
  * @param  {string} currentVersion
  * @param  {VersionCheckOptions} config?
  * @param  {Logger} logger?
@@ -58,6 +62,8 @@ export class VersionCheck {
     }
   }
   /**
+   * Never make changes or alter ._config directly, use _updateConfig.
+   *
    * Accepts a partial or whole config object. It will filter the
    * new config based on properties that are defined in DEFAULTS
    * to prevent unsupported config properties.
@@ -76,6 +82,11 @@ export class VersionCheck {
     this._config = this.ConfigFileManager.setConfig(validConfig);
   }
 
+  /**
+   * Returns the current config that is used by VersionCheck.
+   *
+   * @returns VersionCheckOptions
+   */
   getConfig(): VersionCheckOptions {
     return this._config;
   }
@@ -83,12 +94,17 @@ export class VersionCheck {
   get configFileLocation(): string {
     return this.ConfigFileManager.configFileLocation;
   }
-
+  /**
+   * Destroys any active requests and sets its config `enabled`
+   * to false.
+   */
   disable() {
     this.destroy();
     this._updateConfig({ enabled: false });
   }
-
+  /**
+   * Closes and destroys any active requests.
+   */
   destroy() {
     if (this._request) {
       this._request.close();
@@ -101,40 +117,59 @@ export class VersionCheck {
     this._request = null;
     this._session = null;
   }
-
+  /**
+   * Checks whether the required parameters pass for
+   * notifying the user of a newer version.
+   *
+   * @returns boolean
+   */
   canNotifyUser(): boolean {
     return (
       !!this._currentVersion &&
       this._config.enabled &&
-      !this.alreadyLoggedThisVersion() &&
+      !this.alreadyLoggedLatestVersion() &&
       this.notificationIntervalHasPassed()
     );
   }
-
-  alreadyLoggedThisVersion(): boolean {
+  /**
+   * Returns true if the user has already been notified of the
+   * `latestVersion` or higher.
+   *
+   * @returns boolean
+   */
+  alreadyLoggedLatestVersion(): boolean {
     return semverGte(
-      this._config.latestVersionLogged,
+      this._config.lastVersionLogged,
       this._config.latestVersion
     );
   }
-
+  /**
+   * Returns true if the hardcoded `_notificationInterval` amount of
+   * time has passed since the last time we notified the user.
+   *
+   * @returns boolean
+   */
   notificationIntervalHasPassed(): boolean {
     const timePassed = Date.now() - this._config.lastNotification;
     return timePassed > this._notificationInterval;
   }
-
+  /**
+   * Makes the request and updates the config with the latest semver.
+   */
   async getLatestVersion() {
     if (this._config.enabled) {
       try {
         this._updateConfig({
-          latestVersion: await this.fetchLatest(),
-          lastNotification: Date.now()
+          latestVersion: await this._fetchLatest()
         });
       } catch {}
     }
   }
-
-  private fetchLatest(): Promise<string> {
+  /**
+   * Makes the request to config.url
+   * @returns Promise
+   */
+  private _fetchLatest(): Promise<string> {
     this.destroy();
     const { packageName, url, ttl } = this._config;
 
@@ -162,14 +197,16 @@ export class VersionCheck {
             });
         })
         .setTimeout(ttl, () => {
-          req.close();
-          session.close();
+          this.destroy();
           reject(`ttl expired: ${ttl}`);
         });
       req.end();
     });
   }
-
+  /**
+   * If
+   *
+   */
   log() {
     if (this.canNotifyUser()) {
       const currentVersion = this._currentVersion;
@@ -187,7 +224,8 @@ export class VersionCheck {
       );
 
       this._updateConfig({
-        latestVersionLogged: latestVersion
+        lastNotification: Date.now(),
+        lastVersionLogged: latestVersion
       });
     }
   }
@@ -209,7 +247,7 @@ export class VersionCheck {
       url: "https://version.trufflesuite.com",
       ttl: 2000, // http2session.setTimeout
       latestVersion: "0.0.0", // Last version fetched from the server
-      latestVersionLogged: "0.0.0", // Last version to tell the user about
+      lastVersionLogged: "0.0.0", // Last version to tell the user about
       lastNotification: 0,
       disableInCI: true,
       didInit: true // this is set once the first time and never changed again
