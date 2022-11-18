@@ -204,7 +204,7 @@ export class VersionCheck {
     });
   }
   /**
-   * If
+   * Shows the banner message to the user on ganache startup.
    *
    */
   log() {
@@ -230,7 +230,9 @@ export class VersionCheck {
     }
   }
 
-  // This is called with --version
+  /**
+   * Appended to `ganache --version` if a newer version is known.
+   */
   cliMessage() {
     const currentVersion = this._currentVersion;
     const { latestVersion } = this._config;
@@ -249,8 +251,7 @@ export class VersionCheck {
       latestVersion: "0.0.0", // Last version fetched from the server
       lastVersionLogged: "0.0.0", // Last version to tell the user about
       lastNotification: 0,
-      disableInCI: true,
-      didInit: true // this is set once the first time and never changed again
+      disableInCI: true
     };
   }
 }
