@@ -515,6 +515,18 @@ $ ganache instances stop salted_caramel_ganache
 Process stopped
 ```
 
+With the following command, you can start Ganache, run your tests, and stop Ganache when you are finished.
+
+```
+GANACHE=$(ganache --detach) && npm run test; ganache instances stop $GANACHE
+```
+
+Or if you are running Powershell on Windows, you can do:
+
+```
+$GANACHE=ganache --detach; npm run test; ganache instances stop $GANACHE; Remove-Variable GANACHE
+```
+
 ### Ganache Provider Events
 
 In addition to [EIP-1193's](https://eips.ethereum.org/EIPS/eip-1193) `"message"` event and the legacy `"data"` event, Ganache emits 4 additional events: `"ganache:vm:tx:before"`, `"ganache:vm:tx:step"`, `"ganache:vm:tx:after"`, and `"ganache:vm:tx:console.log"`.

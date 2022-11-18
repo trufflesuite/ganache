@@ -13,7 +13,7 @@ import {
   stopDetachedInstance,
   startDetachedInstance,
   getDetachedInstances,
-  formatDuration
+  formatUptime
 } from "./detach";
 import { TruffleColors } from "@ganache/colors";
 import Table from "cli-table";
@@ -220,7 +220,7 @@ if (argv.action === "start") {
           instance.version,
           instance.host,
           instance.port.toString(),
-          formatDuration(uptime)
+          formatUptime(uptime)
         ]);
       }
 

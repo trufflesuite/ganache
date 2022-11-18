@@ -265,23 +265,23 @@ async function getDetachedInstanceByName(
 const detachArgRegex = /^-(?:D|-detach|-😈)$|=/;
 export function stripDetachArg(args: string[]): string[] {
   const strippedArgs = [...args];
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
+
+  for (let i = 0; i < strippedArgs.length; i++) {
+    const arg = strippedArgs[i];
     if (detachArgRegex.test(arg)) {
-      const followingArg = args[i + 1];
+      const followingArg = strippedArgs[i + 1];
       const hasTrailingValue =
         followingArg !== undefined && followingArg[0] !== "-";
 
       strippedArgs.splice(i, hasTrailingValue ? 2 : 1);
-      return strippedArgs;
     }
   }
-  return args;
+  return strippedArgs;
 }
 
 // adapted from https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/formatDuration.md
 // under CC-BY-4.0 License https://creativecommons.org/licenses/by/4.0/
-export function formatDuration(ms: number) {
+export function formatUptime(ms: number) {
   ms = Math.abs(ms);
   const time = {
     day: Math.floor(ms / 86400000),
@@ -293,6 +293,6 @@ export function formatDuration(ms: number) {
     Object.entries(time)
       .filter(val => val[1] !== 0)
       .map(([key, val]) => `${val} ${key}${val !== 1 ? "s" : ""}`)
-      .join(", ") || "Just now"
+      .join(", ") || "Just started"
   );
 }

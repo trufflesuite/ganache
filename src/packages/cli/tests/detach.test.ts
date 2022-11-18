@@ -1,9 +1,9 @@
 import assert from "assert";
-import { stripDetachArg, formatDuration } from "../src/detach";
+import { stripDetachArg, formatUptime } from "../src/detach";
 
 describe("@ganache/cli", () => {
   describe("detach", () => {
-    describe("formatDuration()", () => {
+    describe("formatUptime()", () => {
       const durations = [
         [0, "Just now"],
         [0.1, "Just now"],
@@ -18,10 +18,11 @@ describe("@ganache/cli", () => {
         [-1000, "1 second"],
         [171906000, "1 day, 23 hours, 45 minutes, 6 seconds"]
       ];
+
       durations.forEach(duration => {
         const [ms, formatted] = duration;
         it(`should format an input of ${ms} as "${formatted}"`, () => {
-          const result = formatDuration(ms as number);
+          const result = formatUptime(ms as number);
           assert.strictEqual(result, formatted);
         });
       });
@@ -64,12 +65,26 @@ describe("@ganache/cli", () => {
           assert.deepStrictEqual(stripped, ["--a", "--b"]);
         });
 
+        it(`should strip the ${detachArg} argument when it appears twice`, () => {
+          const args = ["--a", `${detachArg}`, "--b", `${detachArg}`, "--c"];
+          const stripped = stripDetachArg(args);
+
+          assert.deepStrictEqual(stripped, ["--a", "--b", "--c"]);
+        });
+
         it(`should strip the ${detachArg} argument when it has a provided value as the following argument`, () => {
           const args = ["--a", detachArg, "true", "--b"];
           const stripped = stripDetachArg(args);
 
           assert.deepStrictEqual(stripped, ["--a", "--b"]);
         });
+      });
+
+      it(`should strip the different detach arguments when it appears twice`, () => {
+        const args = ["--a", "--detach", "--b", "-D", "--c", "--😈", "--d"];
+        const stripped = stripDetachArg(args);
+
+        assert.deepStrictEqual(stripped, ["--a", "--b", "--c", "--d"]);
       });
 
       ["-detach", "--D", "-😈", "--detachy", "detach", "-E"].forEach(
