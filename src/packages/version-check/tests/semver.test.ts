@@ -1,7 +1,9 @@
-// @ts-nocheck
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
 import { semverIsValid, semverUpgradeType } from "../src/semver";
 import assert from "assert";
+
+// Regardless of what handles semver (lib, regex, etc) it's good to have
+// sanity checks.
 
 describe("semverUpgradeType", () => {
   const testVersion = "0.0.0";
@@ -16,30 +18,6 @@ describe("semverUpgradeType", () => {
     message = "";
   });
 
-  describe("nulls", () => {
-    it("handles null currentVersion", () => {
-      assert(
-        semverUpgradeType(null, "1.0.0") === null,
-        true,
-        "semverUpgradeType improperly handles null currentVersion"
-      );
-    });
-    it("handles null latestVersion", () => {
-      assert(
-        semverUpgradeType("1.0.0", null) === null,
-        true,
-        "semverUpgradeType improperly handles null latestVersion"
-      );
-    });
-
-    it("handles null versions", () => {
-      assert(
-        semverUpgradeType(null, null) === null,
-        true,
-        "semverUpgradeType improperly handles null versions"
-      );
-    });
-  });
   describe("patches", () => {
     it("0.0.0 -> 0.0.1", () => {
       const currentVersion = "0.0.0";
