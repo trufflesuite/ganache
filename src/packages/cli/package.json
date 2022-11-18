@@ -71,7 +71,7 @@
     "chalk": "4.1.0",
     "ethereumjs-util": "7.1.5",
     "marked-terminal": "4.1.0",
-    "cli-table": "^0.3.1",
+    "cli-table": "0.3.11",
     "@trufflesuite/ps-list": "0.0.3"
   }
 }
