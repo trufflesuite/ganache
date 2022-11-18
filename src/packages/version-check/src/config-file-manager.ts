@@ -18,8 +18,6 @@ import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
  * Removing this flag will not cause a crash it will just incur
  * an extra disk write in the constructor the next time the app
  * starts.
- *
-
  */
 export class ConfigFileManager {
   private _configFile: ConfigManager;
@@ -73,7 +71,7 @@ export class ConfigFileManager {
     return config;
   }
   /**
-   * updates the
+   * updates the config with a partial of complete config.
    * @param  {AnyJSON} config - partial or complete config.
    */
   setConfig(config: AnyJSON) {

@@ -528,8 +528,7 @@ describe("@ganache/version-check", () => {
     let api;
     const apiResponse = "1.0.0";
     const apiSettings = {
-      port: 4000,
-      path: "/?name=ganache"
+      port: 4000
     };
 
     beforeEach(() => {
@@ -540,19 +539,30 @@ describe("@ganache/version-check", () => {
         const path = headers[":path"];
         const method = headers[":method"];
 
-        if (path === "/?name=ganache" && method === "GET") {
-          if (stream.closed) return;
-
-          stream.respond({
-            ":status": 200
-          });
-          stream.write(apiResponse);
-          stream.end();
-        } else {
+        if (method !== "GET") {
           stream.respond({
             ":status": 404
           });
           stream.end();
+        }
+        switch (path) {
+          case "/?name=slow":
+            break;
+          case "/?name=ganache":
+            if (stream.closed) return;
+
+            stream.respond({
+              ":status": 200
+            });
+            stream.write(apiResponse);
+            stream.end();
+            break;
+          default:
+            stream.respond({
+              ":status": 404
+            });
+            stream.end();
+            break;
         }
       });
 
@@ -604,6 +614,30 @@ describe("@ganache/version-check", () => {
       const latestVersion = vc._config.latestVersion;
 
       assert.equal(latestVersion, apiResponse);
+    });
+
+    it("ttl", async () => {
+      const ttl = 1;
+
+      vc = new VersionCheck(
+        testVersion,
+        {
+          enabled: true,
+          url: "http://localhost:" + apiSettings.port,
+          packageName: "slow",
+          ttl
+        },
+        testLogger
+      );
+
+      let errorMessage;
+      try {
+        await vc._fetchLatest();
+      } catch (e) {
+        errorMessage = e;
+      }
+
+      assert.strictEqual(errorMessage, `ttl expired: ${ttl}`);
     });
   });
 
