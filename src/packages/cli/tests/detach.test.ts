@@ -1,8 +1,32 @@
 import assert from "assert";
-import { stripDetachArg } from "../src/detach";
+import { stripDetachArg, formatDuration } from "../src/detach";
 
 describe("@ganache/cli", () => {
   describe("detach", () => {
+    describe("formatDuration()", () => {
+      const durations = [
+        [0, "Just now"],
+        [0.1, "Just now"],
+        [1, "Just now"],
+        [2, "Just now"],
+        [1000, "1 second"],
+        [1001, "1 second"],
+        [2000, "2 seconds"],
+        [60000, "1 minute"],
+        [62000, "1 minute, 2 seconds"],
+        [1000000, "16 minutes, 40 seconds"],
+        [-1000, "1 second"],
+        [171906000, "1 day, 23 hours, 45 minutes, 6 seconds"]
+      ];
+      durations.forEach(duration => {
+        const [ms, formatted] = duration;
+        it(`should format an input of ${ms} as "${formatted}"`, () => {
+          const result = formatDuration(ms as number);
+          assert.strictEqual(result, formatted);
+        });
+      });
+    });
+
     describe("stripDetachArg()", () => {
       ["--detach", "-D", "--😈"].forEach(detachArg => {
         it(`should strip the ${detachArg} argument when it's the only argument`, () => {
