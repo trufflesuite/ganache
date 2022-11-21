@@ -76,7 +76,7 @@ const handleSignal = async (signal: NodeJS.Signals) => {
 };
 const closeHandler = async () => {
   try {
-    versionCheck.destroy();
+    if (versionCheck) versionCheck.destroy();
     // graceful shutdown
     switch (server.status) {
       case ServerStatus.opening:
@@ -150,6 +150,7 @@ async function startGanache(err: Error) {
     }
   }
   versionCheck.log();
+  versionCheck = null;
 }
 console.log("Starting RPC server");
 server.listen(cliSettings.port, cliSettings.host, startGanache);

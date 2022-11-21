@@ -17,13 +17,7 @@ describe("ConfigFileManager", () => {
     disableInCI: false,
     didInit: true
   };
-  const sparseConfig: VersionCheckOptions = {
-    packageName: "test"
-  };
-  const extraConfig = {
-    packageName: "test",
-    badProperty: "should not make it to conf"
-  };
+
   afterEach(() => {
     if (cfm) {
       const testConfigFileLocation = cfm.configFileLocation;

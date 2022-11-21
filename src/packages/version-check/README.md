@@ -2,29 +2,12 @@
 
 ### Description
 
-`version-check` (VC) alerts the user when it detects a newer version is available. It does so in two ways:
+`version-check` (VC) alerts the user when it detects a newer version is available.
 
 1. When the user starts `ganache` from the command line through a banner message.
 2. When the `ganache --version` command switch is run as a single string.
 
-VC does two things.
-
-1. On startup, VC will report based on an existing `latestVersion` stored on disk, comparing it to the currently running software version (`currentVersion`).
-2. It makes a request to a configured url and expects back a semver response representing the `latestVersion` that is then persisted to disk.
-
-#### Requirements
-
-VC does not block the currently running application when it makes a request to check on the `latestVersion`. It is specced to be eventually consistent, assuming users will start/stop the tool implementing VC frequently. At each startup, VC checks against the value of the previously fetched `latestVersion`.
-
-VC tracks the version that has been reported to the user to reduce its chattiness to the user. Upon start, VC will persist a `latestVersionLogged` representing the semver of the last version it displayed to the user upon starting ganache. VC will not display the banner message more than once for a given version. When the `ganache --version` command is run, VC will always display the single string message (if a newer version is known).
-
-On install, VC defaults the `latestVersion` and `latestVersionLogged` to `0.0.0`. This will always be below the first-run of the latest install.
-
-VC is specced to fail silently. If a request fails, returns invalid semver, or any combination of current/latest version is not valid semver it will quit without informing the user. It is self-healing if the API incorrectly reports a version and is later corrected it will inform the user of the latest, correct, version.
-
-VC relies on the same `conf` package as truffle to manage the data persistence across environments (Linux, Mac, Windows).
-
-VC relies on the `semver` package to perform `diff` and validation of semver.
+The banner message will display once per new version.
 
 #### Usage
 
@@ -35,19 +18,10 @@ const vc = new VersionCheck(currentVersionSemVer, [config], [logger]);
 ```
 
 ```javascript
-vc.init().log();
-```
-
-`log` will log the banner message to the user if the current is older than the `latestVersion` found on [npmjs.org](https://www.npmjs.com/package/ganache).
-
-`init` will not await the fetch, it fires the request and does not concern itself with the outcome or results. If the desired behavior is to wait for a response before logging to the user (forgoing the eventual consistency spec), VC can be used as such:
-
-```javascript
-await vc.getLatestVersion();
 vc.log();
 ```
 
-This usage will perform the the same steps as using `init`, however the `latestVersion` stored on disk will be the version returned from the fetch. This could be desirable by applications that are not concerned with latency/server timeout/ or that have configured a low `ttl` value in the VC config.
+`log` will log the banner message to the user if the current is older than the `latestVersion` found on [npmjs.org](https://www.npmjs.com/package/ganache).
 
 ```javascript
 vc.getVersionMessage();
@@ -157,3 +131,22 @@ Run `npm start -- --version`
 ganache v1.2.3 (@ganache/cli: DEV, @ganache/core: DEV)
 note: there is a new version available! 1.2.3 -> 7.0.5
 ```
+
+#### Additional Info
+
+VC does two things:
+
+1. On startup, VC will report based on an existing `latestVersion` stored on disk, comparing it to the currently running software version (`currentVersion`).
+2. It makes a request to a configured url and expects back a semver response representing the `latestVersion` that is then persisted to disk.
+
+VC does not block the currently running application when it makes a request to check on the `latestVersion`. It is specced to be eventually consistent, assuming users will start/stop the tool implementing VC frequently. At each startup, VC checks against the value of the previously fetched `latestVersion`.
+
+VC tracks the version that has been reported to the user to reduce its chattiness to the user. Upon start, VC will persist a `latestVersionLogged` representing the semver of the last version it displayed to the user upon starting ganache. VC will not display the banner message more than once for a given version. When the `ganache --version` command is run, VC will always display the single string message (if a newer version is known).
+
+On install, VC defaults the `latestVersion` and `latestVersionLogged` to `0.0.0`. This will always be below the first-run of the latest install.
+
+VC is specced to fail silently. If a request fails, returns invalid semver, or any combination of current/latest version is not valid semver it will quit without informing the user. It is self-healing if the API incorrectly reports a version and is later corrected it will inform the user of the latest, correct, version.
+
+VC relies on the same `conf` package as truffle to manage the data persistence across environments (Linux, Mac, Windows).
+
+VC relies on the `semver` package to perform `diff` and validation of semver.

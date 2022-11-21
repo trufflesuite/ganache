@@ -33,7 +33,7 @@ describe("@ganache/version-check", () => {
     disableInCI: false
   };
 
-  let message;
+  let message: string = "";
   const testLogger = { log: str => (message = str) };
 
   beforeEach(() => {
@@ -354,13 +354,14 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
       vc.log();
 
-      assert.equal(
+      assert.strictEqual(
         message.indexOf(testVersion) >= 0,
         true,
         "Log does not contain currentVersion"
       );
-      assert.equal(
-        message.indexOf(testConfig.latestVersion) >= 0,
+      assert.strictEqual(
+        testConfig.latestVersion &&
+          message.indexOf(testConfig.latestVersion) >= 0,
         true,
         "Log does not contain latestVersion"
       );
@@ -368,8 +369,8 @@ describe("@ganache/version-check", () => {
     it("reports on the config.packageName", () => {
       vc.log();
 
-      assert.equal(
-        message.indexOf(testConfig.packageName) >= -1,
+      assert.strictEqual(
+        testConfig.packageName && message.indexOf(testConfig.packageName) >= -1,
         true,
         "Log does not contain the packageName"
       );
@@ -383,8 +384,8 @@ describe("@ganache/version-check", () => {
       );
       vc.log();
 
-      assert.equal(
-        message.indexOf(upgradeType) >= 0,
+      assert.strictEqual(
+        upgradeType && message.indexOf(upgradeType) >= 0,
         true,
         "Log does not contain the correct upgradeType"
       );
@@ -394,7 +395,7 @@ describe("@ganache/version-check", () => {
 
       vc.log();
 
-      assert.equal(
+      assert.strictEqual(
         message.length > 0,
         true,
         "Log does not display the message"
@@ -403,7 +404,7 @@ describe("@ganache/version-check", () => {
     it("sets the latest version", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
 
-      assert.notEqual(
+      assert.notStrictEqual(
         vc._config.lastVersionLogged,
         testConfig.latestVersion,
         "latestVersion and lastVersionLogged is the same before logging"
@@ -411,7 +412,7 @@ describe("@ganache/version-check", () => {
 
       vc.log();
 
-      assert.equal(
+      assert.strictEqual(
         vc._config.lastVersionLogged,
         testConfig.latestVersion,
         "lastVersionLogged was not successfully set after logging version message"
@@ -420,7 +421,7 @@ describe("@ganache/version-check", () => {
     it("sets lastNotification", async () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
 
-      assert.notEqual(
+      assert.notStrictEqual(
         vc._config.lastVersionLogged,
         testConfig.latestVersion,
         "latestVersion and lastVersionLogged is the same before logging"
@@ -464,7 +465,7 @@ describe("@ganache/version-check", () => {
       );
 
       assert.strictEqual(
-        message.indexOf(upgradeType) >= 0,
+        upgradeType && message.indexOf(upgradeType) >= 0,
         true,
         "Message does not contain the upgradeType"
       );

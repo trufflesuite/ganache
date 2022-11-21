@@ -11,7 +11,7 @@ export function semverIsValid(semver: string) {
 }
 
 export function semverUpgradeType(a: string, b: string) {
-  if (!a || !b || semverGte(a, b)) return null;
+  if (semverGte(a, b)) return null;
 
   return semverDiff(a, b);
 }
