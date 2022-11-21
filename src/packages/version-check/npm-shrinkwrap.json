@@ -761,9 +761,10 @@
       }
     },
     "@types/semver": {
-      "version": "7.3.13",
-      "resolved": "https://registry.npmjs.org/@types/semver/-/semver-7.3.13.tgz",
-      "integrity": "sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw=="
+      "version": "7.3.5",
+      "resolved": "https://registry.npmjs.org/@types/semver/-/semver-7.3.5.tgz",
+      "integrity": "sha512-iotVxtCCsPLRAvxMFFgxL8HD2l4mAZ2Oin7/VJ2ooWO0VOK4EGOGmZWZn1uCq7RofR3I/1IOSjCHlFT71eVK0Q==",
+      "dev": true
     },
     "@ungap/promise-all-settled": {
       "version": "1.1.2",

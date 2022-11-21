@@ -52,12 +52,6 @@ describe("@ganache/version-check", () => {
   });
 
   describe("constructor", () => {
-    before(() => {
-      process.env.IGNORE_ISCI = "true";
-    });
-    after(() => {
-      delete process.env.IGNORE_ISCI;
-    });
     it("sets the current version", () => {
       assert(
         vc._currentVersion === testVersion,
