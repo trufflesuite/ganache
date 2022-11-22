@@ -58,7 +58,6 @@ export class VersionCheck {
       }
 
       this._logger = logger || console;
-      this.getLatestVersion();
     }
   }
 
@@ -245,6 +244,9 @@ export class VersionCheck {
    *
    */
   log() {
+    // We intentionally do not wait for this. We are always comparing against the
+    // previously fetched version.
+    this.getLatestVersion();
     if (this.canNotifyUser()) {
       const currentVersion = this._currentVersion;
       const { packageName, latestVersion } = this._config;
@@ -298,7 +300,7 @@ export class VersionCheck {
   static get DEFAULTS(): VersionCheckOptions {
     return {
       packageName: "ganache",
-      enabled: false,
+      enabled: true,
       url: "https://version.trufflesuite.com",
       ttl: 30000, // http2session.setTimeout
       latestVersion: "0.0.0", // Last version fetched from the server
