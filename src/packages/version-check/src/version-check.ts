@@ -198,7 +198,9 @@ export class VersionCheck {
 
     return new Promise<string>((resolve, reject) => {
       const session = http2.connect(url);
-      const req = session.request({ ":path": `/?name=${packageName}` });
+      const req = session.request({
+        ":path": `/version?package=${packageName}`
+      });
 
       this._session = session;
       this._request = req;
