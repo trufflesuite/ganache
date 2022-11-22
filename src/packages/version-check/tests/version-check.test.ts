@@ -235,13 +235,17 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         canNotifyUser,
         true,
-        "VC will notify user even if the notification interval has not passed."
+        "canNotifyUser returns false when notificationInterval has passed."
       );
 
       vc._config.lastNotification = new Date().getTime();
       canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(canNotifyUser, false);
+      assert.strictEqual(
+        canNotifyUser,
+        false,
+        "canNotifyUser returns true when notificationInterval has not passed."
+      );
     });
 
     it("true if currentVersion is a valid semver < latestVersion that has not been previously logged to the user", () => {
@@ -660,7 +664,7 @@ describe("@ganache/version-check", () => {
 
       const latestVersion = vc._config.latestVersion;
 
-      assert.equal(
+      assert.strictEqual(
         latestVersion,
         apiResponse,
         "latestVersion is not correctly set in _config after getLatestVersion."

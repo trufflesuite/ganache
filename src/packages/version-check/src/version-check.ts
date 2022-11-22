@@ -18,8 +18,7 @@ const ONE_DAY: number = 86400;
 /**
  * Requests the `latestVersion` semver from a remote url.
  *
- *
- *
+
  * @param  {string} currentVersion
  * @param  {VersionCheckOptions} config?
  * @param  {Logger} logger?

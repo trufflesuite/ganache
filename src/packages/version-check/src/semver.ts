@@ -10,8 +10,11 @@ export function semverIsValid(semver: string) {
   return semverValid(semver);
 }
 
-export function semverUpgradeType(a: string, b: string) {
-  if (semverGte(a, b)) return null;
+export function semverUpgradeType(
+  currentVersion: string,
+  latestVersion: string
+) {
+  if (semverGte(currentVersion, latestVersion)) return null;
 
-  return semverDiff(a, b);
+  return semverDiff(currentVersion, latestVersion);
 }

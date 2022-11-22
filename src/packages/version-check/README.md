@@ -21,7 +21,12 @@ const vc = new VersionCheck(currentVersionSemVer, [config], [logger]);
 vc.log();
 ```
 
-`log` will log the banner message to the user if the current is older than the `latestVersion` found on [npmjs.org](https://www.npmjs.com/package/ganache).
+`log` will log the banner message to the user if the current is older than the `latestVersion` found on [npmjs.org](https://www.npmjs.com/package/ganache). Running `log` multiple times will not log the banner message multiple times. The `canNotifyUser` check ensures:
+
+1. A current version is set.
+2. VC is enabled.
+3. The user has not already been notified of this version.
+4. The notification interval has passed.
 
 ```javascript
 vc.getVersionMessage();
