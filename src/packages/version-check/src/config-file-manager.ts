@@ -22,12 +22,17 @@ import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
 export class ConfigFileManager {
   private _configFile: ConfigManager;
   private _config: AnyJSON;
-
+  /**
+   * the file on disk will be:
+   * ~/.config/@ganache/version-check-nodejs/configName.json
+   *
+   * VERSION_CHECK_CONFIG_NAME is used in unit testing to avoid
+   * clobbering any existing conf file stored on disk.Do not test
+   * the "config" branch or you may destroy an existing config.
+   *
+   * @param  {ConfigFileManagerOptions={}} options
+   */
   constructor(options: ConfigFileManagerOptions = {}) {
-    // the file on disk will be:
-    // ~/.config/@ganache/version-check-nodejs/configName.json
-    // VERSION_CHECK_CONFIG_NAME is used in unit testing to avoid
-    // clobbering any existing conf file stored on disk.
     this._configFile = new Conf({
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME //
@@ -57,7 +62,7 @@ export class ConfigFileManager {
     } else if (config) this.saveConfig();
   }
   /**
-   * Returns the physical location of the file on disk
+   * Returns the path of the file on disk
    */
   get configFileLocation() {
     return this._configFile.path;

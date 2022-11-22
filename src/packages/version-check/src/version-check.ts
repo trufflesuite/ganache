@@ -16,9 +16,9 @@ import type { VersionCheckOptions } from "./types";
 const ONE_DAY: number = 86400;
 
 /**
- * Requests the `latestVersion` semver from a remote url.
+ * Requests the `latestVersion` semver from a remote url and manages
+ * notifying the user of newer software versions.
  *
-
  * @param  {string} currentVersion
  * @param  {VersionCheckOptions} config?
  * @param  {Logger} logger?
@@ -60,27 +60,35 @@ export class VersionCheck {
       this.getLatestVersion();
     }
   }
+
   /**
    * Accepts a partial or whole config object.
    *
-   * Never make changes or alter ._config directly, use _updateConfig.
+   * Never make changes or alter ._config directly, use _updateConfig
+   * to persist the changes to disk.
    *
    * @param  {VersionCheckOptions} config
    */
   private _updateConfig(config: VersionCheckOptions) {
-    this._config = this.ConfigFileManager.setConfig(
-      this._sanitizeConfig(config)
-    );
+    this._config = this.ConfigFileManager.setConfig({
+      ...this._config,
+      ...this._sanitizeConfig(config)
+    });
   }
 
+  /**
+   * Removes any properties from the config that do not match a
+   * DEFAULT property.
+   *
+   * @param  {VersionCheckOptions} config
+   */
   private _sanitizeConfig(config: VersionCheckOptions) {
     if (!config) return config;
 
-    const tempConfig = { ...this._config, ...config };
-    return Object.keys(VersionCheck.DEFAULTS).reduce((validConfig, key) => {
-      if (tempConfig.hasOwnProperty(key)) validConfig[key] = tempConfig[key];
+    return Object.keys(VersionCheck.DEFAULTS).reduce((safeConfig, key) => {
+      if (config.hasOwnProperty(key)) safeConfig[key] = config[key];
 
-      return validConfig;
+      return safeConfig;
     }, {});
   }
 
@@ -96,14 +104,19 @@ export class VersionCheck {
   get configFileLocation(): string {
     return this.ConfigFileManager.configFileLocation;
   }
+
   /**
    * Destroys any active requests and sets its config `enabled`
    * to false.
    */
   disable() {
     this.destroy();
-    this._updateConfig({ enabled: false });
+    // squelch errors - writes to fs.
+    try {
+      this._updateConfig({ enabled: false });
+    } catch {}
   }
+
   /**
    * Closes and destroys any active requests.
    */
@@ -119,6 +132,7 @@ export class VersionCheck {
     this._request = null;
     this._session = null;
   }
+
   /**
    * Checks whether the required parameters pass for
    * notifying the user of a newer version.
@@ -133,6 +147,7 @@ export class VersionCheck {
       this.notificationIntervalHasPassed()
     );
   }
+
   /**
    * Returns true if the user has already been notified of the
    * `latestVersion` or higher.
@@ -145,6 +160,7 @@ export class VersionCheck {
       this._config.latestVersion
     );
   }
+
   /**
    * Returns true if the hardcoded `_notificationInterval` amount of
    * time has passed since the last time we notified the user.
@@ -155,11 +171,13 @@ export class VersionCheck {
     const timePassed = Date.now() - this._config.lastNotification;
     return timePassed > this._notificationInterval;
   }
+
   /**
    * Makes the request and updates the config with the latest semver.
    */
   async getLatestVersion() {
     if (this._config.enabled) {
+      // squelch errors - Conf writes to the fs, _fetchLatest can reject.
       try {
         this._updateConfig({
           latestVersion: await this._fetchLatest()
@@ -167,8 +185,11 @@ export class VersionCheck {
       } catch {}
     }
   }
+
   /**
-   * Makes the request to config.url
+   * Makes the request to config.url for the latest semver string for
+   * `packageName`.
+   *
    * @returns Promise
    */
   private _fetchLatest(): Promise<string> {
@@ -205,6 +226,7 @@ export class VersionCheck {
       req.end();
     });
   }
+
   /**
    * Shows the banner message to the user on ganache startup.
    *
@@ -214,33 +236,49 @@ export class VersionCheck {
       const currentVersion = this._currentVersion;
       const { packageName, latestVersion } = this._config;
 
-      const upgradeType = semverUpgradeType(currentVersion, latestVersion);
+      // squelch any errors - semver can throw, _logger.log can be user-defined
+      // and _updateConfig writes to fs.
+      try {
+        const upgradeType = semverUpgradeType(currentVersion, latestVersion);
 
-      this._logger.log(
-        bannerMessage({
-          upgradeType,
-          packageName,
-          currentVersion,
-          latestVersion
-        })
-      );
+        this._logger.log(
+          bannerMessage({
+            upgradeType,
+            packageName,
+            currentVersion,
+            latestVersion
+          })
+        );
 
-      this._updateConfig({
-        lastNotification: Date.now(),
-        lastVersionLogged: latestVersion
-      });
+        this._updateConfig({
+          lastNotification: Date.now(),
+          lastVersionLogged: latestVersion
+        });
+      } catch {}
     }
   }
 
   /**
-   * Appended to `ganache --version` if a newer version is known.
+   * Appended to `ganache --version` if a newer version is known. This always runs
+   * regardless of whether enabled/disabled.
+   *
+   * In DEV mode (e.g. version === 'DEV') this._currentVersion will be undefined because
+   * 'DEV' is invalid semver and VC will disable in the constructor. Even though cliMessage
+   * runs regardless of enabled/disabled it is not possible to calculate an upgrade type for 'DEV'
+   * and semverUpgradeType will throw on undefined.
    */
   cliMessage() {
+    if (!this._currentVersion) return "";
+
     const currentVersion = this._currentVersion;
     const { latestVersion } = this._config;
-    if (semverUpgradeType(currentVersion, latestVersion)) {
-      return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
-    }
+
+    // squelch any errors - semver package can throw though it is unlikely to here.
+    try {
+      if (semverUpgradeType(currentVersion, latestVersion)) {
+        return `note: there is a new version available! ${currentVersion} -> ${latestVersion}`;
+      }
+    } catch {}
     return "";
   }
 

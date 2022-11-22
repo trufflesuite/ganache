@@ -382,6 +382,13 @@ describe("@ganache/version-check", () => {
         "cliMessage, incorrectly, does not log when VC is disabled."
       );
     });
+    it("does not log if _currentVersion is undefined", () => {
+      vc = new VersionCheck("Bad Version");
+
+      const didLog = !!vc.cliMessage();
+
+      assert.strictEqual(didLog, false, "cliMessage logs .");
+    });
   });
 
   describe("log", () => {
