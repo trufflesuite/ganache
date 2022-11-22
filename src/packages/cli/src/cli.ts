@@ -173,7 +173,7 @@ if (argv.action === "start") {
 } else if (argv.action === "start-detached") {
   startDetachedInstance(process.argv, argv, version)
     .then(instance => {
-      const highlightedName = porscheColor(instance.instanceName);
+      const highlightedName = porscheColor(instance.name);
       // output only the instance name to allow users to capture stdout and use to
       // programmatically stop the instance
       console.log(highlightedName);
@@ -215,7 +215,7 @@ if (argv.action === "start") {
         const uptime = now - instance.startTime;
         table.push([
           instance.pid.toString(),
-          porscheColor(instance.instanceName),
+          porscheColor(instance.name),
           instance.flavor,
           instance.version,
           instance.host,

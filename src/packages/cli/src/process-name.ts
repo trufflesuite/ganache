@@ -48,7 +48,7 @@ const flavors = [
   "orange",
   "peanut",
   "plum",
-  "poppy-seed",
+  "poppyseed",
   "rhubarb",
   "strawberry",
   "sugar",
