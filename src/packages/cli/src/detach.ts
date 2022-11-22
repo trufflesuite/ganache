@@ -2,7 +2,7 @@ import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
-import { Dirent, promises as fsPromises, rmdir } from "fs";
+import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
 const { readFile, rm, mkdir, readdir, writeFile } = fsPromises;
 import path from "path";
@@ -204,6 +204,7 @@ export async function startDetachedInstance(
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   let dirEntries: Dirent[];
   let processes: ProcessDescriptor[];
+
   try {
     [dirEntries, processes] = await Promise.all([
       readdir(dataPath, { withFileTypes: true }),
