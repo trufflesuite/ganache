@@ -111,6 +111,14 @@ describe("args", () => {
           );
         });
       });
+
+      it("is false, when proceeded with --no-detach", () => {
+        // see startDetachedInstance() in detach.ts
+        const rawArgs = ["--detach", "-D", "--😈", "--no-detach"];
+        const options = args(versionString, false, rawArgs);
+
+        assert.strictEqual(options.action, "start");
+      });
     });
   });
 });

@@ -98,7 +98,11 @@ export async function startDetachedInstance(
   version: string
 ): Promise<DetachedInstance> {
   const [bin, module, ...args] = argv;
-  const childArgs = stripDetachArg(args);
+
+  // append `--no-detach` argument to cancel out --detach and aliases (must be
+  // the last argument). See test "is false, when proceeded with --no-detach" in
+  // args.test.ts
+  const childArgs = [...args, "--no-detach"];
 
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
@@ -260,23 +264,6 @@ async function getDetachedInstanceByName(
   const filepath = getInstanceFilePath(instanceName);
   const content = await readFile(filepath, FILE_ENCODING);
   return JSON.parse(content) as DetachedInstance;
-}
-
-const detachArgRegex = /^-(?:D|-detach|-😈)$|=/;
-export function stripDetachArg(args: string[]): string[] {
-  const strippedArgs = [...args];
-
-  for (let i = 0; i < strippedArgs.length; i++) {
-    const arg = strippedArgs[i];
-    if (detachArgRegex.test(arg)) {
-      const followingArg = strippedArgs[i + 1];
-      const hasTrailingValue =
-        followingArg !== undefined && followingArg[0] !== "-";
-
-      strippedArgs.splice(i, hasTrailingValue ? 2 : 1);
-    }
-  }
-  return strippedArgs;
 }
 
 // adapted from https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/formatDuration.md
