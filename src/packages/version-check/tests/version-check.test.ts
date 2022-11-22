@@ -592,45 +592,47 @@ describe("@ganache/version-check", () => {
     }
 
     beforeEach(() => {
-      api = http2.createServer();
-      api.on("error", err => console.error(err));
+      try {
+        api = http2.createServer();
+        api.on("error", err => console.error(err));
 
-      api.on("stream", (stream, headers) => {
-        const path = headers[":path"];
-        const method = headers[":method"];
+        api.on("stream", (stream, headers) => {
+          const path = headers[":path"];
+          const method = headers[":method"];
 
-        if (method !== "GET") {
-          stream.respond({
-            ":status": 404
-          });
-          stream.end();
-        }
-        switch (path) {
-          // Mac osx11 on node 6 has a fit about this in ci.
-          case "/version?package=slow":
-            stream.end();
-            break;
-          case "/version?package=ganache":
-            handleResponse(stream);
-            break;
-          default:
+          if (method !== "GET") {
             stream.respond({
               ":status": 404
             });
             stream.end();
-            break;
-        }
-      });
+          }
+          switch (path) {
+            // Mac osx11 on node 6 has a fit about this in ci.
+            case "/version?package=slow":
+              // this can throw ECONNRESET in CI
+              break;
+            case "/version?package=ganache":
+              handleResponse(stream);
+              break;
+            default:
+              stream.respond({
+                ":status": 404
+              });
+              stream.end();
+              break;
+          }
+        });
 
-      api.listen(apiSettings.port);
-      vc = new VersionCheck(
-        testVersion,
-        {
-          enabled: true,
-          url: "http://localhost:" + apiSettings.port
-        },
-        testLogger
-      );
+        api.listen(apiSettings.port);
+        vc = new VersionCheck(
+          testVersion,
+          {
+            enabled: true,
+            url: "http://localhost:" + apiSettings.port
+          },
+          testLogger
+        );
+      } catch {}
     });
 
     afterEach(() => {
