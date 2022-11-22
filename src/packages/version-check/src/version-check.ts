@@ -15,6 +15,10 @@ import type { VersionCheckOptions } from "./types";
 // set this to a low value there could be problems.
 const ONE_DAY: number = 86400;
 
+// This is temporary. The timeline for removal is the activation date
+// of VC. Remove this variable and the ENV Var then update `isEnabled`
+const DEACTIVATED: boolean = !!process.env.VC_DEACTIVATED || true;
+
 /**
  * Requests the `latestVersion` semver from a remote url and manages
  * notifying the user of newer software versions.
@@ -46,9 +50,9 @@ export class VersionCheck {
 
     this._config = this.ConfigFileManager.getConfig();
 
-    // If we are running in CI, disable and quit. isDeactivated is a temp
+    // If we are running in CI, disable and quit. DEACTIVATED is a temp
     // check that will be removed later after we activate VC.
-    if ((this._config.disableInCI && isCI()) || this._config.isDeactivated) {
+    if (this._config.disableInCI && isCI()) {
       this.disable();
     } else {
       if (semverIsValid(currentVersion)) {
@@ -85,11 +89,6 @@ export class VersionCheck {
    * not remove an previously used property until the next _updateConfig
    * writes to disk.
    *
-   * E.g. `isDeactivated` will be true at release then removed later.
-   * The first time VC fetches the version and writes it to disk it will
-   * prune out the unused `isDeactivated` property from the file. Until
-   * that write, the deprecated/unused property will still exist on `_config`
-   *
    * @param  {VersionCheckOptions} config
    */
   private _sanitizeConfig(config: VersionCheckOptions) {
@@ -110,7 +109,19 @@ export class VersionCheck {
   getConfig(): VersionCheckOptions {
     return this._config;
   }
-
+  /**
+   * Checks if VC is enabled and activated. TODO Remove DEACTIVATED when
+   * activating VC
+   * @returns boolean
+   */
+  get isEnabled(): boolean {
+    return this._config.enabled && DEACTIVATED;
+  }
+  /**
+   * Returns the location of the config file on disk.
+   *
+   * @returns string
+   */
   get configFileLocation(): string {
     return this.ConfigFileManager.configFileLocation;
   }
@@ -152,7 +163,7 @@ export class VersionCheck {
   canNotifyUser(): boolean {
     return (
       !!this._currentVersion &&
-      this._config.enabled &&
+      this.isEnabled &&
       !this.alreadyLoggedLatestVersion() &&
       this.notificationIntervalHasPassed()
     );
@@ -186,7 +197,7 @@ export class VersionCheck {
    * Makes the request and updates the config with the latest semver.
    */
   async getLatestVersion() {
-    if (this._config.enabled) {
+    if (this.isEnabled) {
       // squelch errors - Conf writes to the fs, _fetchLatest can reject.
       try {
         this._updateConfig({

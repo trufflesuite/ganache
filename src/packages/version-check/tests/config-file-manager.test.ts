@@ -1,3 +1,5 @@
+process.env.VC_DEACTIVATED = "false";
+
 import { VersionCheck } from "../src/version-check";
 import { ConfigFileManager } from "../src/config-file-manager";
 import { VersionCheckOptions } from "../src/types";

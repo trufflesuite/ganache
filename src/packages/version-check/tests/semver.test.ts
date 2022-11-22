@@ -1,4 +1,5 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
+process.env.VC_DEACTIVATED = "false";
 import { semverIsValid, semverUpgradeType } from "../src/semver";
 import assert from "assert";
 

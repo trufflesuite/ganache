@@ -1,4 +1,6 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
+process.env.VC_DEACTIVATED = "false";
+
 import { VersionCheckOptions } from "../src/types";
 import { VersionCheck } from "../src/version-check";
 import { semverUpgradeType } from "../src/semver";
@@ -595,7 +597,16 @@ describe("@ganache/version-check", () => {
           stream.end();
         }
         switch (path) {
+          // Mac osx11 on node 6 has a fit about this in ci.
           case "/version?package=slow":
+            setTimeout(() => {
+              if (stream.closed) return;
+              stream.respond({
+                ":status": 200
+              });
+              stream.write(apiResponse);
+              stream.end();
+            }, 2);
             break;
           case "/version?package=ganache":
             if (stream.closed) return;
@@ -627,7 +638,9 @@ describe("@ganache/version-check", () => {
     });
 
     afterEach(() => {
-      api.close();
+      if (api) {
+        api.close();
+      }
     });
 
     it("will not getLatestVersion if version check is disabled", async () => {
