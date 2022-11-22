@@ -46,8 +46,9 @@ export class VersionCheck {
 
     this._config = this.ConfigFileManager.getConfig();
 
-    // If we are running in CI, disable and quit.
-    if (this._config.disableInCI && isCI()) {
+    // If we are running in CI, disable and quit. isDeactivated is a temp
+    // check that will be removed later after we activate VC.
+    if ((this._config.disableInCI && isCI()) || this._config.isDeactivated) {
       this.disable();
     } else {
       if (semverIsValid(currentVersion)) {
@@ -67,6 +68,7 @@ export class VersionCheck {
    * Never make changes or alter ._config directly, use _updateConfig
    * to persist the changes to disk.
    *
+   *
    * @param  {VersionCheckOptions} config
    */
   private _updateConfig(config: VersionCheckOptions) {
@@ -79,6 +81,15 @@ export class VersionCheck {
   /**
    * Removes any properties from the config that do not match a
    * DEFAULT property.
+   *
+   * A config passed to the constructor is sanitized, but that will
+   * not remove an previously used property until the next _updateConfig
+   * writes to disk.
+   *
+   * E.g. `isDeactivated` will be true at release then removed later.
+   * The first time VC fetches the version and writes it to disk it will
+   * prune out the unused `isDeactivated` property from the file. Until
+   * that write, the deprecated/unused property will still exist on `_config`
    *
    * @param  {VersionCheckOptions} config
    */
@@ -210,7 +221,7 @@ export class VersionCheck {
 
       req
         .on("error", reject)
-        .on("response", (headers, flags) => {
+        .on("response", (_headers, _flags) => {
           let data: string = "";
           req
             .on("data", chunk => {

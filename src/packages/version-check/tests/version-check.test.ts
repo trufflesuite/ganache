@@ -604,9 +604,9 @@ describe("@ganache/version-check", () => {
           stream.end();
         }
         switch (path) {
-          case "/?name=slow":
+          case "/version?package=slow":
             break;
-          case "/?name=ganache":
+          case "/version?package=ganache":
             if (stream.closed) return;
 
             stream.respond({
