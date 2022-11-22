@@ -701,6 +701,7 @@ describe("@ganache/version-check", () => {
         errorMessage = e;
       }
 
+      api.close();
       assert.strictEqual(errorMessage, `ttl expired: ${ttl}`);
     });
   });
