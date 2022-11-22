@@ -14,8 +14,7 @@ describe("ConfigFileManager", () => {
     ttl: 100,
     latestVersion: "99.99.99",
     lastVersionLogged: "99.99.90",
-    disableInCI: false,
-    didInit: true
+    disableInCI: false
   };
 
   afterEach(() => {

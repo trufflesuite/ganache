@@ -42,7 +42,7 @@ export class VersionCheck {
     // This will manage the config file on disk.
     this.ConfigFileManager = new ConfigFileManager({
       defaultConfig: VersionCheck.DEFAULTS,
-      config
+      config: this._sanitizeConfig(config)
     });
 
     this._config = this.ConfigFileManager.getConfig();
@@ -62,24 +62,27 @@ export class VersionCheck {
     }
   }
   /**
+   * Accepts a partial or whole config object.
+   *
    * Never make changes or alter ._config directly, use _updateConfig.
    *
-   * Accepts a partial or whole config object. It will filter the
-   * new config based on properties that are defined in DEFAULTS
-   * to prevent unsupported config properties.
    * @param  {VersionCheckOptions} config
    */
   private _updateConfig(config: VersionCheckOptions) {
-    const tempConfig = { ...this._config, ...config };
-    const validConfig = Object.keys(VersionCheck.DEFAULTS).reduce(
-      (validConfig, key) => {
-        validConfig[key] = tempConfig[key];
-        return validConfig;
-      },
-      {}
+    this._config = this.ConfigFileManager.setConfig(
+      this._sanitizeConfig(config)
     );
+  }
 
-    this._config = this.ConfigFileManager.setConfig(validConfig);
+  private _sanitizeConfig(config: VersionCheckOptions) {
+    if (!config) return config;
+
+    const tempConfig = { ...this._config, ...config };
+    return Object.keys(VersionCheck.DEFAULTS).reduce((validConfig, key) => {
+      if (tempConfig.hasOwnProperty(key)) validConfig[key] = tempConfig[key];
+
+      return validConfig;
+    }, {});
   }
 
   /**

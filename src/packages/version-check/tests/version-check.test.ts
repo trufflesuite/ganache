@@ -2,7 +2,6 @@ process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
 import { VersionCheckOptions } from "../src/types";
 import { VersionCheck } from "../src/version-check";
 import { semverUpgradeType } from "../src/semver";
-import { ConfigFileManager } from "../src/config-file-manager";
 import http2 from "http2";
 import assert from "assert";
 import * as fs from "fs";
@@ -21,8 +20,7 @@ describe("@ganache/version-check", () => {
     ttl: 100,
     latestVersion: "99.99.99",
     lastVersionLogged: "99.99.90",
-    disableInCI: false,
-    didInit: true
+    disableInCI: false
   };
   const sparseConfig: VersionCheckOptions = {
     packageName: "test",
@@ -53,9 +51,10 @@ describe("@ganache/version-check", () => {
 
   describe("constructor", () => {
     it("sets the current version", () => {
-      assert(
-        vc._currentVersion === testVersion,
-        "currentVersion incorrectly set by constructor"
+      assert.strictEqual(
+        vc._currentVersion,
+        testVersion,
+        "currentVersion incorrectly set by constructor."
       );
     });
     it("instantiates with the default config", () => {
@@ -64,16 +63,16 @@ describe("@ganache/version-check", () => {
       assert.deepStrictEqual(
         vc._config,
         config,
-        "Default Config values do not match newly created version checker"
+        "Default Config values do not match newly created version checker."
       );
     });
     it("is set to opt out by default", () => {
       const config = VersionCheck.DEFAULTS;
 
-      assert.equal(
+      assert.strictEqual(
         config.enabled,
         false,
-        "Default Config enabled is set to true, should be opt out by default for now"
+        "Default Config enabled is set to true, should be opt out by default for now."
       );
     });
     it("sets an optional config", () => {
@@ -82,7 +81,7 @@ describe("@ganache/version-check", () => {
       assert.deepStrictEqual(
         vc._config,
         testConfig,
-        "testConfig is not set in the version checker."
+        "testConfig is not set in the constructor."
       );
     });
     it("sets an optional sparse config", () => {
@@ -93,13 +92,31 @@ describe("@ganache/version-check", () => {
 
       vc = new VersionCheck(testVersion, sparseConfig);
 
-      assert.deepStrictEqual(vc._config, expectedConfig);
+      assert.deepStrictEqual(
+        vc._config,
+        expectedConfig,
+        "Sparse config values incorrectly set in constructor."
+      );
     });
-    it("disables if currentVersion is not a valid semver", () => {
+
+    it("strips invalid config properties from the constructor param", () => {
+      const bogusConfig = {
+        iShouldNotExist: "Existential Panic",
+        ...testConfig
+      };
+      vc = new VersionCheck(testVersion, bogusConfig);
+
+      assert.deepStrictEqual(
+        vc._config,
+        testConfig,
+        "Invalid config properties are not removed from config."
+      );
+    });
+    it("disables if currentVersion is not a valid semver.", () => {
       delete process.env.IGNORE_ISCI;
       vc = new VersionCheck("");
 
-      assert.equal(vc._config.enabled, false);
+      assert.strictEqual(vc._config.enabled, false);
     });
     it("sets an optional logger", () => {
       const someData = "some data";
@@ -111,20 +128,29 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("", testConfig, customLogger);
       const loggedData = vc._logger.log(someData);
 
-      assert(
-        loggedData === someData,
-        "Custom logger data inconsistent with supplied data"
+      assert.strictEqual(
+        loggedData,
+        someData,
+        "Custom logger data inconsistent with supplied data."
       );
     });
 
     it("uses console for the default logger", () => {
-      assert(vc._logger == console, "Default logger is not set to console");
+      assert.strictEqual(
+        vc._logger,
+        console,
+        "Default logger is not set to console."
+      );
     });
 
     it("cleans the currentVersion semver", () => {
       vc = new VersionCheck(versionString);
 
-      assert.equal(vc._currentVersion, version);
+      assert.strictEqual(
+        vc._currentVersion,
+        version,
+        "_currentVersion semver does not match constructor semver."
+      );
     });
     it("disables if CI is detected", () => {
       delete process.env.IGNORE_ISCI;
@@ -133,7 +159,11 @@ describe("@ganache/version-check", () => {
         enabled: true,
         disableInCI: true
       });
-      assert.equal(vc._config.enabled, false);
+      assert.strictEqual(
+        vc._config.enabled,
+        false,
+        "VC did not disable in CI."
+      );
       delete process.env.TRUFFLE_SHUFFLE_TEST;
     });
   });
@@ -143,40 +173,40 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck("");
       const canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(
+      assert.strictEqual(
         canNotifyUser,
         false,
-        "Version Check will notify if !currentVersion"
+        "Version Check will notify if !currentVersion."
       );
     });
     it("false if currentVersion === DEV", () => {
       vc = new VersionCheck("DEV");
       const canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(
+      assert.strictEqual(
         canNotifyUser,
         false,
-        "Version Check will notify if currentVersion === DEV"
+        "Version Check will notify if currentVersion === DEV."
       );
     });
     it("false if currentVersion === latestVersion", () => {
       vc = new VersionCheck(testVersion);
       const canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(
+      assert.strictEqual(
         canNotifyUser,
         false,
-        "Version Check will notify if currentVersion === latestVersion"
+        "Version Check will notify if currentVersion === latestVersion."
       );
     });
     it("false if typeof currentVersion !== string", () => {
       vc = new VersionCheck("");
       const canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(
+      assert.strictEqual(
         canNotifyUser,
         false,
-        "Version Check will notify if typeof currentVersion !== string"
+        "Version Check will notify if typeof currentVersion !== string."
       );
     });
     it("false if lastVersionLogged === latestVersion", () => {
@@ -184,10 +214,10 @@ describe("@ganache/version-check", () => {
 
       const canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(
+      assert.strictEqual(
         canNotifyUser,
         false,
-        "Version Check will notify if alreadyLoggedLatestVersion is true"
+        "Version Check will notify if alreadyLoggedLatestVersion is true."
       );
     });
     it("false if notification Interval has not passed", async () => {
@@ -202,7 +232,11 @@ describe("@ganache/version-check", () => {
 
       let canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(canNotifyUser, true);
+      assert.strictEqual(
+        canNotifyUser,
+        true,
+        "VC will notify user even if the notification interval has not passed."
+      );
 
       vc._config.lastNotification = new Date().getTime();
       canNotifyUser = vc.canNotifyUser();
@@ -222,10 +256,10 @@ describe("@ganache/version-check", () => {
 
       const canNotifyUser = vc.canNotifyUser();
 
-      assert.equal(
+      assert.strictEqual(
         canNotifyUser,
         true,
-        "Version Check will not notify if checks pass"
+        "Version Check will not notify if checks pass."
       );
     });
   });
@@ -239,10 +273,10 @@ describe("@ganache/version-check", () => {
       };
       vc = new VersionCheck("0.0.0", config);
 
-      assert.equal(
+      assert.strictEqual(
         vc.alreadyLoggedLatestVersion(),
         false,
-        "alreadyLoggedLatestVersion is true when lastVersionLogged < latestVersion"
+        "alreadyLoggedLatestVersion is true when lastVersionLogged < latestVersion."
       );
     });
     it("false if config.lastVersionLogged = latestVersion", () => {
@@ -253,10 +287,10 @@ describe("@ganache/version-check", () => {
       };
       vc = new VersionCheck("0.0.0", config);
 
-      assert.equal(
+      assert.strictEqual(
         vc.alreadyLoggedLatestVersion(),
         true,
-        "alreadyLoggedLatestVersion is false when lastVersionLogged = latestVersion"
+        "alreadyLoggedLatestVersion is false when lastVersionLogged = latestVersion."
       );
     });
     it("false if config.lastVersionLogged > latestVersion", () => {
@@ -267,10 +301,10 @@ describe("@ganache/version-check", () => {
       };
       vc = new VersionCheck("0.0.0", config);
 
-      assert.equal(
+      assert.strictEqual(
         vc.alreadyLoggedLatestVersion(),
         true,
-        "alreadyLoggedLatestVersion is false when lastVersionLogged > latestVersion"
+        "alreadyLoggedLatestVersion is false when lastVersionLogged > latestVersion."
       );
     });
   });
@@ -306,7 +340,11 @@ describe("@ganache/version-check", () => {
 
       const didLog = !!vc.cliMessage();
 
-      assert.equal(didLog, false);
+      assert.strictEqual(
+        didLog,
+        false,
+        "VC will log if currentVersion === latestVersion."
+      );
     });
 
     it("logs a single line with the currentVersion and latestVersion", () => {
@@ -317,8 +355,16 @@ describe("@ganache/version-check", () => {
       );
       const message = vc.cliMessage();
 
-      assert.equal(message.indexOf(options.currentVersion) >= 0, true);
-      assert.equal(message.indexOf(options.latestVersion) >= 0, true);
+      assert.strictEqual(
+        message.indexOf(options.currentVersion) >= 0,
+        true,
+        "cliMessage does not contain the currentVersion."
+      );
+      assert.strictEqual(
+        message.indexOf(options.latestVersion) >= 0,
+        true,
+        "cliMessage does not contain the latestVersion."
+      );
     });
 
     it("logs regardless of whether VersionCheck is enabled", () => {
@@ -326,7 +372,11 @@ describe("@ganache/version-check", () => {
 
       const didLog = !!vc.cliMessage();
 
-      assert.equal(didLog, true);
+      assert.strictEqual(
+        didLog,
+        true,
+        "cliMessage, incorrectly, does not log when VC is disabled."
+      );
     });
   });
 
@@ -357,13 +407,13 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.indexOf(testVersion) >= 0,
         true,
-        "Log does not contain currentVersion"
+        "Log does not contain currentVersion."
       );
       assert.strictEqual(
         testConfig.latestVersion &&
           message.indexOf(testConfig.latestVersion) >= 0,
         true,
-        "Log does not contain latestVersion"
+        "Log does not contain latestVersion."
       );
     });
     it("reports on the config.packageName", () => {
@@ -372,7 +422,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         testConfig.packageName && message.indexOf(testConfig.packageName) >= -1,
         true,
-        "Log does not contain the packageName"
+        "Log does not contain the packageName."
       );
     });
     it("reports the upgradeType based on semverUpgradeType", () => {
@@ -387,7 +437,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         upgradeType && message.indexOf(upgradeType) >= 0,
         true,
-        "Log does not contain the correct upgradeType"
+        "Log does not contain the correct upgradeType."
       );
     });
     it("logs the message", () => {
@@ -398,7 +448,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.length > 0,
         true,
-        "Log does not display the message"
+        "Log does not display the message."
       );
     });
     it("sets the latest version", () => {
@@ -407,7 +457,7 @@ describe("@ganache/version-check", () => {
       assert.notStrictEqual(
         vc._config.lastVersionLogged,
         testConfig.latestVersion,
-        "latestVersion and lastVersionLogged is the same before logging"
+        "latestVersion and lastVersionLogged is the same before logging."
       );
 
       vc.log();
@@ -415,7 +465,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         vc._config.lastVersionLogged,
         testConfig.latestVersion,
-        "lastVersionLogged was not successfully set after logging version message"
+        "lastVersionLogged was not successfully set after logging version message."
       );
     });
     it("sets lastNotification", async () => {
@@ -424,7 +474,7 @@ describe("@ganache/version-check", () => {
       assert.notStrictEqual(
         vc._config.lastVersionLogged,
         testConfig.latestVersion,
-        "latestVersion and lastVersionLogged is the same before logging"
+        "latestVersion and lastVersionLogged is the same before logging."
       );
 
       const firstNotification = vc._config.lastNotification;
@@ -436,7 +486,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         secondNotification > firstNotification,
         true,
-        "lastVersionLogged was not successfully set after logging version message"
+        "lastVersionLogged was not successfully set after logging version message."
       );
     });
     it("only logs the latestVersion one time", () => {
@@ -447,12 +497,12 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.length > 0,
         true,
-        "Log did not log the first time for this version"
+        "Log did not log the first time for this version."
       );
       message = "";
       vc.log();
 
-      assert.strictEqual(message, "", "logged the same version message twice");
+      assert.strictEqual(message, "", "logged the same version message twice.");
     });
 
     it("message contains the upgradeType", () => {
@@ -467,7 +517,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         upgradeType && message.indexOf(upgradeType) >= 0,
         true,
-        "Message does not contain the upgradeType"
+        "Message does not contain the upgradeType."
       );
     });
 
@@ -478,7 +528,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.indexOf(vc._config.packageName) >= 0,
         true,
-        "Message does not contain the upgradeType"
+        "Message does not contain the upgradeType."
       );
     });
     it("message contains the currentVersion", () => {
@@ -488,34 +538,36 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.indexOf(vc._currentVersion) >= 0,
         true,
-        "Message does not contain the upgradeType"
+        "Message does not contain the upgradeType."
       );
     });
     it("message contains the latestVersion", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
       vc.log();
 
-      assert.equal(
+      assert.strictEqual(
         message.indexOf(vc._config.latestVersion) >= 0,
         true,
-        "Message does not contain the upgradeType"
+        "Message does not contain the upgradeType."
       );
     });
     it("process.stdout.columns === -1", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
+      const oldColumns = process.stdout.columns;
       process.stdout.columns = -1;
 
       vc.log();
-
-      assert.equal(message.length > 0, true, "Message did not log");
+      process.stdout.columns = oldColumns;
+      assert.strictEqual(message.length > 0, true, "Message did not log.");
     });
     it("process.stdout.columns === null", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
+      const oldColumns = process.stdout.columns;
       process.stdout.columns = 0;
 
       vc.log();
-
-      assert.equal(message.length > 0, true, "Message did not log");
+      process.stdout.columns = oldColumns;
+      assert.strictEqual(message.length > 0, true, "Message did not log.");
     });
   });
 
@@ -595,20 +647,24 @@ describe("@ganache/version-check", () => {
 
       latestVersion = await vc._fetchLatest();
 
-      assert.equal(latestVersion === apiResponse, true);
+      assert.strictEqual(
+        latestVersion === apiResponse,
+        true,
+        "latestVersion does not match apiResponse."
+      );
     });
     it("does not fetch if vc is disabled", async () => {});
 
     it("fetches the latest version and sets it in the config file.", async () => {
-      const currentVersion = vc._currentVersion;
-
-      assert.equal(currentVersion, testVersion);
-
       await vc.getLatestVersion();
 
       const latestVersion = vc._config.latestVersion;
 
-      assert.equal(latestVersion, apiResponse);
+      assert.equal(
+        latestVersion,
+        apiResponse,
+        "latestVersion is not correctly set in _config after getLatestVersion."
+      );
     });
 
     it("ttl", async () => {
@@ -640,15 +696,23 @@ describe("@ganache/version-check", () => {
     it("sets status to 'destroyed'", () => {
       vc.destroy();
 
-      assert.equal(vc._request, null);
-      assert.equal(vc._session, null);
+      assert.strictEqual(
+        vc._request,
+        null,
+        "session request is not destroyed."
+      );
+      assert.strictEqual(vc._session, null, "session is not destroyed.");
     });
   });
 
   describe("notificationIntervalHasPassed", () => {
     it("returns true", () => {
       const hasPassed = vc.notificationIntervalHasPassed();
-      assert.equal(hasPassed, true);
+      assert.strictEqual(
+        hasPassed,
+        true,
+        "Notification interval has passed but hasPassed is false."
+      );
     });
     it("returns false", () => {
       const lastNotification = Date.now();
@@ -656,29 +720,11 @@ describe("@ganache/version-check", () => {
       vc = new VersionCheck(testVersion, { lastNotification }, testLogger);
 
       const hasPassed = vc.notificationIntervalHasPassed();
-      assert.equal(hasPassed, false);
+      assert.strictEqual(
+        hasPassed,
+        false,
+        "Notification interval has not passed but hasPassed is true."
+      );
     });
   });
 });
-
-/*
- it("saves a sparse config", () => {
-      cfm = new ConfigFileManager({
-        defaultConfig: VersionCheck.DEFAULTS,
-        config: sparseConfig
-      });
-
-      assert.deepStrictEqual(cfm.getConfig(), {
-        ...VersionCheck.DEFAULTS,
-        ...sparseConfig
-      });
-    });
-    it("ignores invalid config properties", () => {
-      cfm = new ConfigFileManager({
-        defaultConfig: VersionCheck.DEFAULTS,
-        config: extraConfig
-      });
-
-      assert.deepStrictEqual(cfm.getConfig().badProperty, undefined);
-    });
-    */
