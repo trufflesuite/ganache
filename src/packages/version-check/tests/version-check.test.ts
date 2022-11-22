@@ -582,6 +582,15 @@ describe("@ganache/version-check", () => {
       port: 4000
     };
 
+    function handleResponse(stream) {
+      if (stream.closed) return;
+      stream.respond({
+        ":status": 200
+      });
+      stream.write(apiResponse);
+      stream.end();
+    }
+
     beforeEach(() => {
       api = http2.createServer();
       api.on("error", err => console.error(err));
@@ -599,23 +608,10 @@ describe("@ganache/version-check", () => {
         switch (path) {
           // Mac osx11 on node 6 has a fit about this in ci.
           case "/version?package=slow":
-            setTimeout(() => {
-              if (stream.closed) return;
-              stream.respond({
-                ":status": 200
-              });
-              stream.write(apiResponse);
-              stream.end();
-            }, 2);
+            stream.end();
             break;
           case "/version?package=ganache":
-            if (stream.closed) return;
-
-            stream.respond({
-              ":status": 200
-            });
-            stream.write(apiResponse);
-            stream.end();
+            handleResponse(stream);
             break;
           default:
             stream.respond({
