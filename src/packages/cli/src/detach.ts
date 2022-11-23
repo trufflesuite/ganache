@@ -4,7 +4,7 @@ import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
 import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
-const { readFile, rm, mkdir, readdir, writeFile } = fsPromises;
+const { readFile, rm, mkdir, readdir, writeFile, unlink } = fsPromises;
 import path from "path";
 import { FlavorName } from "@ganache/flavors";
 
@@ -204,6 +204,7 @@ export async function startDetachedInstance(
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   let dirEntries: Dirent[];
   let processes: ProcessDescriptor[];
+  let someInstancesFailed = false;
 
   try {
     [dirEntries, processes] = await Promise.all([
@@ -220,51 +221,69 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   const instances: DetachedInstance[] = [];
 
   const loadingInstancesInfos = dirEntries.map(async dirEntry => {
-    const { name: instanceName, ext } = path.parse(dirEntry.name);
+    const filename = dirEntry.name;
+    const { name: instanceName, ext } = path.parse(filename);
 
-    if (dirEntry.isDirectory() || ext !== ".json") {
-      try {
-        rm(path.join(dataPath, dirEntry.name), { recursive: true });
-        console.warn(`Invalid instance file found; ${dirEntry.name} removed.`);
-      } catch {
-        console.warn(
-          `Invalid instance file found; ${dirEntry.name} could not be removed.`
-        );
-      }
+    let failureReason: string;
+
+    if (ext !== ".json") {
+      failureReason = `"${filename}" does not have a .json extension`;
     } else {
-      let shouldRemoveInstance = false;
+      let instance: DetachedInstance;
       try {
         // getDetachedInstanceByName() throws if the instance file is not found or
         // cannot be parsed
-        const instance = await getDetachedInstanceByName(instanceName);
-
+        instance = await getDetachedInstanceByName(instanceName);
+      } catch (err: any) {
+        failureReason = err.message;
+      }
+      if (instance) {
         const matchingProcess = processes.find(p => p.pid === instance.pid);
         if (!matchingProcess) {
-          console.warn(
-            `Process with PID ${instance.pid} could not be found; removing ${instanceName} from recorded instances.`
-          );
-          shouldRemoveInstance = true;
+          failureReason = `Process with PID ${instance.pid} could not be found`;
         } else if (matchingProcess.cmd !== instance.cmd) {
-          // if the cmd does not match the instance, the process has been killed,
-          // and another application has taken the pid
-          console.warn(
-            `Process with PID ${instance.pid} doesn't match ${instanceName}; removing${instanceName} from recorded instances.`
-          );
-          shouldRemoveInstance = true;
+          failureReason = `Process with PID ${instance.pid} does not match ${instanceName}`;
         } else {
           instances.push(instance);
         }
-      } catch {
-        console.warn(
-          `Failed to load instance data; ${instanceName} has been removed.`
-        );
-        shouldRemoveInstance = true;
       }
-      if (shouldRemoveInstance) await removeDetachedInstanceFile(instanceName);
+    }
+
+    if (failureReason !== undefined) {
+      someInstancesFailed = true;
+      const fullPath = path.join(dataPath, filename);
+      let resolution: string;
+      if (dirEntry.isDirectory()) {
+        const reason = `"${filename}" is a directory`;
+        try {
+          await rm(fullPath, { recursive: true });
+          failureReason = reason;
+        } catch {
+          resolution = `"${filename}" could not be removed`;
+        }
+      } else {
+        try {
+          await unlink(fullPath);
+        } catch {
+          resolution = `"${filename}" could not be removed`;
+        }
+      }
+
+      console.warn(
+        `Failed to load instance data. ${failureReason}. ${
+          resolution || `"${filename}" has been removed`
+        }.`
+      );
     }
   });
 
   await Promise.all(loadingInstancesInfos);
+
+  if (someInstancesFailed) {
+    console.warn(
+      "If this keeps happening, please open an issue at https://github.com/trufflesuite/ganache/issues/new\n"
+    );
+  }
 
   return instances;
 }
