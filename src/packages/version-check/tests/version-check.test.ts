@@ -595,10 +595,10 @@ describe("@ganache/version-check", () => {
 
     // This is probably overkill, handleResponse is probably slow enough
     // that a ttl of 1 would trigger first.
-    function handleSlowResponse(stream) {
+    async function handleSlowResponse(stream) {
       if (stream.closed) return;
 
-      sleep(10);
+      await sleep(10);
       try {
         stream.respond({
           ":status": 200
@@ -612,7 +612,7 @@ describe("@ganache/version-check", () => {
       api = http2.createServer();
       api.on("error", err => console.error(err));
 
-      api.on("stream", (stream, headers) => {
+      api.on("stream", async (stream, headers) => {
         const path = headers[":path"];
         const method = headers[":method"];
 
@@ -628,7 +628,7 @@ describe("@ganache/version-check", () => {
             // this can throw ECONNRESET in CI and for whatever reason mac 11 does not like this
             // at all. It causes a race condition-y intermittent test failure in `afterEach`
             // calling `done` multiple times.
-            handleSlowResponse(stream);
+            await handleSlowResponse(stream);
             break;
           case "/version?package=ganache":
             handleResponse(stream);
