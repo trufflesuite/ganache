@@ -23,7 +23,7 @@ const FILE_ENCODING = "utf8";
 const READY_MESSAGE = "ready";
 const START_ERROR =
   "An error occurred spawning a detached instance of Ganache:";
-const dataPath = envPaths(`Ganache/instances`).data;
+const dataPath = envPaths(`Ganache/instances`, { suffix: "" }).data;
 
 function getInstanceFilePath(instanceName: string): string {
   return path.join(dataPath, `${instanceName}.json`);

@@ -25,7 +25,7 @@ describe("@ganache/cli", () => {
       durations.forEach(duration => {
         const [ms, formatted] = duration;
         it(`should format an input of ${ms} as "${formatted}"`, () => {
-          const result = formatUptime(ms as number);
+          const result = formatUptime(ms);
           assert.strictEqual(result, formatted);
         });
       });
