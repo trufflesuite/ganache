@@ -10,16 +10,16 @@ describe("@ganache/cli", () => {
         [1, "Just started"],
         [-1, "Just started"],
         [2, "Just started"],
-        [1000, "1 second"],
-        [1001, "1 second"],
-        [-1000, "In 1 second"],
-        [-1001, "In 1 second"],
-        [2000, "2 seconds"],
-        [60000, "1 minute"],
-        [62000, "1 minute, 2 seconds"],
-        [1000000, "16 minutes, 40 seconds"],
-        [-171906000, "In 1 day, 23 hours, 45 minutes, 6 seconds"],
-        [171906000, "1 day, 23 hours, 45 minutes, 6 seconds"]
+        [1000, "1s"],
+        [1001, "1s"],
+        [-1000, "In 1s"],
+        [-1001, "In 1s"],
+        [2000, "2s"],
+        [60000, "1m"],
+        [62000, "1m 2s"],
+        [1000000, "16m 40s"],
+        [-171906000, "In 1d 23h 45m 6s"],
+        [171906000, "1d 23h 45m 6s"]
       ];
 
       durations.forEach(duration => {

@@ -60,7 +60,7 @@ In case you're upgrading from a previous version of Ganache, we've also written 
 Once installed globally, you can start ganache right from your command line:
 
 ```console
-$ ganache
+ganache
 ```
 
 Your output should look something like this:
@@ -230,7 +230,7 @@ In the meantime, check out our [Ethereum JSON-RPC documentation](/src/chains/eth
 The startup options are grouped in the `chain`, `database`, `fork`, `logging`, `miner`, and `wallet` namespaces, and should be used as such on startup, i.e.
 
 ```console
-$ ganache --namespace.option="value"
+ganache --namespace.option="value"
 ```
 
 for CLI use, and
@@ -518,7 +518,7 @@ Process stopped
 With the following command, you can start Ganache, run your tests, and stop Ganache when you are finished.
 
 ```console
-$ GANACHE=$(ganache --detach) && npm run test; ganache instances stop $GANACHE
+GANACHE=$(ganache --detach) && npm run test; ganache instances stop $GANACHE
 ```
 
 Or if you are running PowerShell on Windows, you can do:

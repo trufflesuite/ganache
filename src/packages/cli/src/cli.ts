@@ -200,11 +200,11 @@ if (argv.action === "start") {
           chalk.bold("Flavor"),
           chalk.bold("Version"),
           chalk.bold("Host"),
-          chalk.bold("Port"),
           chalk.bold("Uptime")
         ],
+        colAligns: ["right", "left", "left", "left", "left", "left"],
         style: {
-          head: ["white", "white", "white", "white", "white", "white", "white"]
+          head: ["white", "white", "white", "white", "white", "white"]
         }
       });
 
@@ -218,8 +218,7 @@ if (argv.action === "start") {
           porscheColor(instance.name),
           instance.flavor,
           instance.version,
-          instance.host,
-          instance.port.toString(),
+          `${instance.host}:${instance.port.toString()}`,
           formatUptime(uptime)
         ]);
       }
