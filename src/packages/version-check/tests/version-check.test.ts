@@ -581,32 +581,6 @@ describe("@ganache/version-check", () => {
     const apiSettings = {
       port: 4000
     };
-    const sleep = milliseconds => {
-      return new Promise(resolve => setTimeout(resolve, milliseconds));
-    };
-    function handleResponse(stream) {
-      if (stream.closed) return;
-      stream.respond({
-        ":status": 200
-      });
-      stream.write(apiResponse);
-      stream.end();
-    }
-
-    // This is probably overkill, handleResponse is probably slow enough
-    // that a ttl of 1 would trigger first.
-    async function handleSlowResponse(stream) {
-      if (stream.closed) return;
-
-      await sleep(10);
-      try {
-        stream.respond({
-          ":status": 200
-        });
-        stream.write(apiResponse);
-        stream.end();
-      } catch {}
-    }
 
     beforeEach(() => {
       api = http2.createServer();
@@ -623,15 +597,13 @@ describe("@ganache/version-check", () => {
           stream.end();
         }
         switch (path) {
-          // Mac osx11 has a fit about this in ci.
-          case "/version?package=slow":
-            // this can throw ECONNRESET in CI and for whatever reason mac 11 does not like this
-            // at all. It causes a race condition-y intermittent test failure in `afterEach`
-            // calling `done` multiple times.
-            await handleSlowResponse(stream);
-            break;
           case "/version?package=ganache":
-            handleResponse(stream);
+            if (stream.closed) return;
+            stream.respond({
+              ":status": 200
+            });
+            stream.write(apiResponse);
+            stream.end();
             break;
           default:
             stream.respond({
@@ -698,7 +670,7 @@ describe("@ganache/version-check", () => {
       );
     });
 
-    it("When the ttl expires, cancel throw and cancel the request", async () => {
+    it("When the ttl expires, throw and cancel the request", async () => {
       const ttl = 1;
 
       vc = new VersionCheck(
