@@ -591,48 +591,66 @@ describe("@ganache/version-check", () => {
       stream.end();
     }
 
-    beforeEach(() => {
+    // This is probably overkill, handleResponse is probably slow enough
+    // that a ttl of 1 would trigger first.
+    // 'Why don't you use setTimeout here?' Well, that unblocks and the unit test
+    // will finish and the `done() called multiple times` thing on mac happens all
+    // the time.
+    function handleSlowResponse(stream) {
+      if (stream.closed) return;
+
       try {
-        api = http2.createServer();
-        api.on("error", err => console.error(err));
+        stream.respond({
+          ":status": Math.random() * Math.random() * Math.random() * 0 + 200
+        });
+        stream.write(apiResponse);
+        stream.end();
+      } catch {}
+    }
 
-        api.on("stream", (stream, headers) => {
-          const path = headers[":path"];
-          const method = headers[":method"];
+    beforeEach(() => {
+      api = http2.createServer();
+      api.on("error", err => console.error(err));
 
-          if (method !== "GET") {
+      api.on("stream", (stream, headers) => {
+        const path = headers[":path"];
+        const method = headers[":method"];
+
+        if (method !== "GET") {
+          stream.respond({
+            ":status": 404
+          });
+          stream.end();
+        }
+        switch (path) {
+          // Mac osx11 has a fit about this in ci.
+          case "/version?package=slow":
+            // this can throw ECONNRESET in CI and for whatever reason mac 11 does not like this
+            // at all. It causes a race condition-y intermittent test failure in `afterEach`
+            // calling `done` multiple times.
+            handleSlowResponse(stream);
+            break;
+          case "/version?package=ganache":
+            handleResponse(stream);
+            break;
+          default:
             stream.respond({
               ":status": 404
             });
             stream.end();
-          }
-          switch (path) {
-            // Mac osx11 on node 6 has a fit about this in ci.
-            case "/version?package=slow":
-              // this can throw ECONNRESET in CI
-              break;
-            case "/version?package=ganache":
-              handleResponse(stream);
-              break;
-            default:
-              stream.respond({
-                ":status": 404
-              });
-              stream.end();
-              break;
-          }
-        });
+            break;
+        }
+      });
 
-        api.listen(apiSettings.port);
-        vc = new VersionCheck(
-          testVersion,
-          {
-            enabled: true,
-            url: "http://localhost:" + apiSettings.port
-          },
-          testLogger
-        );
-      } catch {}
+      api.listen(apiSettings.port);
+      vc = new VersionCheck(
+        testVersion,
+        {
+          enabled: true,
+          url: "http://localhost:" + apiSettings.port
+        },
+        testLogger
+      );
     });
 
     afterEach(() => {
@@ -701,8 +719,6 @@ describe("@ganache/version-check", () => {
         errorMessage = e;
       }
 
-      // This line is for steve jobs.
-      api.close();
       assert.strictEqual(errorMessage, `ttl expired: ${ttl}`);
     });
   });
