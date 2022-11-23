@@ -635,45 +635,6 @@ describe("@ganache/version-check", () => {
       }
     });
 
-    it("will not getLatestVersion if version check is disabled", async () => {
-      vc.disable();
-
-      await vc.getLatestVersion();
-
-      const { latestVersion } = vc.getConfig();
-
-      assert.strictEqual(
-        latestVersion,
-        testVersion,
-        "Version Check will _fetchLatest if disabled."
-      );
-    });
-
-    it("fetches the latest version from the API", async () => {
-      let latestVersion;
-
-      latestVersion = await vc._fetchLatest();
-
-      assert.strictEqual(
-        latestVersion === apiResponse,
-        true,
-        "latestVersion does not match apiResponse."
-      );
-    });
-    it("does not fetch if vc is disabled", async () => {});
-
-    it("fetches the latest version and sets it in the config file.", async () => {
-      await vc.getLatestVersion();
-
-      const latestVersion = vc._config.latestVersion;
-
-      assert.strictEqual(
-        latestVersion,
-        apiResponse,
-        "latestVersion is not correctly set in _config after getLatestVersion."
-      );
-    });
-
     it("When the ttl expires, throw and cancel the request", async () => {
       const ttl = 1;
 
