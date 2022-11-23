@@ -581,6 +581,9 @@ describe("@ganache/version-check", () => {
     const apiSettings = {
       port: 4000
     };
+    const sleep = milliseconds => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds));
+    };
 
     beforeEach(() => {
       api = http2.createServer();
@@ -606,6 +609,7 @@ describe("@ganache/version-check", () => {
             stream.end();
             break;
           default:
+            await sleep(10);
             stream.respond({
               ":status": 404
             });
