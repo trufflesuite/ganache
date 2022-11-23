@@ -634,29 +634,43 @@ describe("@ganache/version-check", () => {
         api.close();
       }
     });
+    it("will not getLatestVersion if version check is disabled", async () => {
+      vc.disable();
 
-    it("When the ttl expires, throw and cancel the request", async () => {
-      const ttl = 1;
+      await vc.getLatestVersion();
 
-      vc = new VersionCheck(
+      const { latestVersion } = vc.getConfig();
+
+      assert.strictEqual(
+        latestVersion,
         testVersion,
-        {
-          enabled: true,
-          url: "http://localhost:" + apiSettings.port,
-          packageName: "slow",
-          ttl
-        },
-        testLogger
+        "Version Check will _fetchLatest if disabled."
       );
+    });
 
-      let errorMessage;
-      try {
-        await vc._fetchLatest();
-      } catch (e) {
-        errorMessage = e;
-      }
+    it("fetches the latest version from the API", async () => {
+      let latestVersion;
 
-      assert.strictEqual(errorMessage, `ttl expired: ${ttl}`);
+      latestVersion = await vc._fetchLatest();
+
+      assert.strictEqual(
+        latestVersion === apiResponse,
+        true,
+        "latestVersion does not match apiResponse."
+      );
+    });
+    it("does not fetch if vc is disabled", async () => {});
+
+    it("fetches the latest version and sets it in the config file.", async () => {
+      await vc.getLatestVersion();
+
+      const latestVersion = vc._config.latestVersion;
+
+      assert.strictEqual(
+        latestVersion,
+        apiResponse,
+        "latestVersion is not correctly set in _config after getLatestVersion."
+      );
     });
   });
 
