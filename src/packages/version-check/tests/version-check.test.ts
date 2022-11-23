@@ -581,7 +581,9 @@ describe("@ganache/version-check", () => {
     const apiSettings = {
       port: 4000
     };
-
+    const sleep = milliseconds => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds));
+    };
     function handleResponse(stream) {
       if (stream.closed) return;
       stream.respond({
@@ -593,15 +595,13 @@ describe("@ganache/version-check", () => {
 
     // This is probably overkill, handleResponse is probably slow enough
     // that a ttl of 1 would trigger first.
-    // 'Why don't you use setTimeout here?' Well, that unblocks and the unit test
-    // will finish and the `done() called multiple times` thing on mac happens all
-    // the time.
     function handleSlowResponse(stream) {
       if (stream.closed) return;
 
+      sleep(10);
       try {
         stream.respond({
-          ":status": Math.random() * Math.random() * Math.random() * 0 + 200
+          ":status": 200
         });
         stream.write(apiResponse);
         stream.end();
@@ -698,7 +698,7 @@ describe("@ganache/version-check", () => {
       );
     });
 
-    it("ttl", async () => {
+    it("When the ttl expires, cancel throw and cancel the request", async () => {
       const ttl = 1;
 
       vc = new VersionCheck(
