@@ -29,10 +29,10 @@ vc.log();
 4. The notification interval has passed.
 
 ```javascript
-vc.getVersionMessage();
+vc.cliMessage();
 ```
 
-`getVersionMessage` returns a single string noting the `currentVersion` and `latestVersion` if a semver change is detected. This string is appended to the `detailedVersion` string in `@ganache/cli` to support the `ganache --version` command switch.
+`cliMessage` returns a single string noting the `currentVersion` and `latestVersion` if a semver change is detected. This string is appended to the `detailedVersion` string in `@ganache/cli` to support the `ganache --version` command switch.
 
 #### Test
 
@@ -66,8 +66,11 @@ Starting RPC server
   "enabled": true,
   "url": "https://version.trufflesuite.com/",
   "ttl": 300,
-  "latestVersion": "7.0.5",
-  "latestVersionLogged": "0.0.0"
+  "latestVersion": "0.0.0",
+  "lastVersionLogged": "0.0.0",
+  "lastNotification": 0,
+  "disableInCI": true,
+  "activated": false
 }
 ```
 
@@ -141,7 +144,7 @@ note: there is a new version available! 1.2.3 -> 7.0.5
 
 VC does two things:
 
-1. On startup, VC will report based on an existing `latestVersion` stored on disk, comparing it to the currently running software version (`currentVersion`).
+1. On logging, VC will report based on an existing `latestVersion` stored on disk, comparing it to the currently running software version (`currentVersion`).
 2. It makes a request to a configured url and expects back a semver response representing the `latestVersion` that is then persisted to disk.
 
 VC does not block the currently running application when it makes a request to check on the `latestVersion`. It is specced to be eventually consistent, assuming users will start/stop the tool implementing VC frequently. At each startup, VC checks against the value of the previously fetched `latestVersion`.
