@@ -659,8 +659,32 @@ describe("@ganache/version-check", () => {
         "latestVersion does not match apiResponse."
       );
     });
-    it("does not fetch if vc is disabled", async () => {});
+    /*
+    This will only ever cause intermittent failures in mocha on mac.
+    it("When the ttl expires, throw and cancel the request", async () => {
+      const ttl = 1;
 
+      vc = new VersionCheck(
+        testVersion,
+        {
+          enabled: true,
+          url: "http://localhost:" + apiSettings.port,
+          packageName: "slow",
+          ttl
+        },
+        testLogger
+      );
+
+      let errorMessage;
+      try {
+        await vc._fetchLatest();
+      } catch (e) {
+        errorMessage = e;
+      }
+
+      assert.strictEqual(errorMessage, `ttl expired: ${ttl}`);
+    });
+*/
     it("fetches the latest version and sets it in the config file.", async () => {
       await vc.getLatestVersion();
 
