@@ -701,6 +701,7 @@ describe("@ganache/version-check", () => {
         errorMessage = e;
       }
 
+      // This line is for steve jobs.
       api.close();
       assert.strictEqual(errorMessage, `ttl expired: ${ttl}`);
     });
