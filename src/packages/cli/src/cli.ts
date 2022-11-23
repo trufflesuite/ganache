@@ -202,7 +202,7 @@ if (argv.action === "start") {
           chalk.bold("Host"),
           chalk.bold("Uptime")
         ],
-        colAligns: ["right", "left", "left", "left", "left", "left"],
+        colAligns: ["right", "left", "left", "left", "left", "right"],
         style: {
           head: ["white", "white", "white", "white", "white", "white"]
         }
