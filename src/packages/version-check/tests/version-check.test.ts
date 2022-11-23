@@ -1,5 +1,5 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
-process.env.VC_DEACTIVATED = "false";
+process.env.VC_ACTIVATED = "true";
 
 import { VersionCheckOptions } from "../src/types";
 import { VersionCheck } from "../src/version-check";
@@ -22,7 +22,8 @@ describe("@ganache/version-check", () => {
     ttl: 100,
     latestVersion: "99.99.99",
     lastVersionLogged: "99.99.90",
-    disableInCI: false
+    disableInCI: false,
+    activated: false
   };
   const sparseConfig: VersionCheckOptions = {
     packageName: "test",

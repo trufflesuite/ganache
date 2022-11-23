@@ -15,10 +15,6 @@ import type { VersionCheckOptions } from "./types";
 // set this to a low value there could be problems.
 const ONE_DAY: number = 86400;
 
-// This is temporary. The timeline for removal is the activation date
-// of VC. Remove this variable and the ENV Var then update `isEnabled`
-const DEACTIVATED: boolean = !!process.env.VC_DEACTIVATED || true;
-
 /**
  * Requests the `latestVersion` semver from a remote url and manages
  * notifying the user of newer software versions.
@@ -50,8 +46,7 @@ export class VersionCheck {
 
     this._config = this.ConfigFileManager.getConfig();
 
-    // If we are running in CI, disable and quit. DEACTIVATED is a temp
-    // check that will be removed later after we activate VC.
+    // If we are running in CI, disable and quit.
     if (this._config.disableInCI && isCI()) {
       this.disable();
     } else {
@@ -115,7 +110,9 @@ export class VersionCheck {
    * @returns boolean
    */
   get isEnabled(): boolean {
-    return this._config.enabled && DEACTIVATED;
+    return process.env.VC_ACTIVATED
+      ? this._config.enabled
+      : this._config.enabled && this._config.activated;
   }
   /**
    * Returns the location of the config file on disk.
@@ -317,7 +314,8 @@ export class VersionCheck {
       latestVersion: "0.0.0", // Last version fetched from the server
       lastVersionLogged: "0.0.0", // Last version to tell the user about
       lastNotification: 0,
-      disableInCI: true
+      disableInCI: true,
+      activated: false
     };
   }
 }

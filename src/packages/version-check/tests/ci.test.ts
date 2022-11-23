@@ -1,5 +1,5 @@
 process.env.VERSION_CHECK_CONFIG_NAME = "testConfig";
-process.env.VC_DEACTIVATED = "false";
+process.env.VC_ACTIVATED = "true";
 
 import { isCI } from "../src/ci";
 import assert from "assert";

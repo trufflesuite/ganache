@@ -1,4 +1,4 @@
-process.env.VC_DEACTIVATED = "false";
+process.env.VC_ACTIVATED = "true";
 
 import { VersionCheck } from "../src/version-check";
 import { ConfigFileManager } from "../src/config-file-manager";
