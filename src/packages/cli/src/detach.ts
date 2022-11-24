@@ -1,4 +1,4 @@
-import { fork } from "child_process";
+import { fork, ForkOptions } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
@@ -95,7 +95,8 @@ export async function startDetachedInstance(
     flavor?: FlavorName;
     server: { host: string; port: number };
   },
-  version: string
+  version: string,
+  forkOptions?: ForkOptions
 ): Promise<DetachedInstance> {
   const [bin, module, ...args] = argv;
 
@@ -105,6 +106,7 @@ export async function startDetachedInstance(
   const childArgs = [...args, "--no-detach"];
 
   const child = fork(module, childArgs, {
+    ...forkOptions,
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
   });
