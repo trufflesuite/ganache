@@ -48,7 +48,7 @@ export async function removeDetachedInstanceFile(
 ): Promise<boolean> {
   const instanceFilename = getInstanceFilePath(instanceName);
   try {
-    await rm(instanceFilename);
+    await unlink(instanceFilename);
     return true;
   } catch {}
   return false;
