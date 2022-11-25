@@ -68,7 +68,7 @@ describe("@ganache/cli", () => {
 
       before(async function () {
         // set timeout here, because the long running piece is in the before() hook
-        this.timeout(10000);
+        this.timeout(30000);
 
         beforeStartTime = Date.now();
         const startingInstance = startDetachedInstance(

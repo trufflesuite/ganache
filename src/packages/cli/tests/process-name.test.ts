@@ -55,9 +55,8 @@ describe("createProcessName", () => {
     const generatedName = createProcessName();
     // each part must be at least 3 chars long, and at most 20 chars
     const nameRegex = /^([a-z]{3,20}_){2}[a-z]{3,20}$/;
-    assert.match(
-      generatedName,
-      nameRegex,
+    assert(
+      nameRegex.test(generatedName),
       `Exepected to have generated a reasonable name, got "${generatedName}"`
     );
   });
