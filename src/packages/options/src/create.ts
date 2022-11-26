@@ -6,18 +6,18 @@ import { hasOwn } from "@ganache/utils";
 
 export type NamespacedOptions = { [key: string]: Base.Config };
 
-export type ProviderOptions<O extends NamespacedOptions> = Partial<
-  {
-    [K in keyof O]: ExternalConfig<O[K]>;
-  }
->;
+export type ProviderOptions<O extends NamespacedOptions> = Partial<{
+  [K in keyof O]: ExternalConfig<O[K]>;
+}>;
 
 export type InternalOptions<O extends NamespacedOptions> = {
   [K in keyof O]: InternalConfig<O[K]>;
 };
 
 export type Defaults<O extends NamespacedOptions> = {
-  [K in keyof O]: Definitions<O[K]>;
+  [K in keyof O]: O[K]["dependsOn"] extends null
+    ? Definitions<O[K]>
+    : Definitions<O[K], O[O[K]["dependsOn"]]>;
 };
 
 const checkForConflicts = (
@@ -38,11 +38,12 @@ const checkForConflicts = (
   }
 };
 
+let config: any = {};
+
 function fill(defaults: any, options: any, target: any, namespace: any) {
   const def = defaults[namespace];
-  const config = (target[namespace] = target[namespace] || {});
+  const namespaceConfig = (target[namespace] = target[namespace] || {});
   const flavor = options.flavor;
-
   const suppliedOptions = new Set<string>();
   const keys = Object.keys(def);
   if (hasOwn(options, namespace)) {
@@ -61,7 +62,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
             suppliedOptions,
             propDefinition.conflicts
           );
-          config[key] = normalized;
+          namespaceConfig[key] = normalized;
           suppliedOptions.add(key);
         }
       } else {
@@ -76,13 +77,14 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
               suppliedOptions,
               propDefinition.conflicts
             );
-            config[key] = normalized;
+            namespaceConfig[key] = normalized;
             suppliedOptions.add(key);
           }
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default(config, flavor);
+          namespaceConfig[key] = propDefinition.default(config, flavor);
         }
       }
+      config = { ...config, ...namespaceConfig };
     }
   } else {
     for (let i = 0, l = keys.length; i < l; i++) {
@@ -100,12 +102,14 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
             suppliedOptions,
             propDefinition.conflicts
           );
-          config[key] = normalized;
+          namespaceConfig[key] = normalized;
           suppliedOptions.add(key);
         }
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default(config, flavor);
+        namespaceConfig[key] = propDefinition.default(config, flavor);
       }
+      config = { ...config, ...namespaceConfig };
+      // config[namespace] = namespaceConfig;
     }
   }
 }

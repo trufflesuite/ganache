@@ -86,34 +86,31 @@ describe("EthereumOptionsConfig", () => {
     describe("hardfork", () => {
       // array of all networks except mainnet
       const testData = KNOWN_NETWORKS.filter(n => n !== "mainnet");
-      beforeEach(() => {
-        //reset process arguments
-        process.argv = [];
-      });
       it("defaults to `grayGlacier` when network option is not provided", () => {
         const options = EthereumOptionsConfig.normalize({} as Object);
         assert.strictEqual(options.chain.hardfork, "grayGlacier");
       });
       it("defaults to `grayGlacier` when network option is blank", () => {
-        process.argv.push("--fork");
-        const options = EthereumOptionsConfig.normalize({} as Object);
+        const options = EthereumOptionsConfig.normalize({ fork: {} } as Object);
         assert.strictEqual(options.chain.hardfork, "grayGlacier");
       });
       it("defaults to `grayGlacier` when network is `mainnet`", () => {
-        process.argv.push("--fork", "mainnet");
-        const options = EthereumOptionsConfig.normalize({} as Object);
+        const options = EthereumOptionsConfig.normalize({
+          fork: { network: "mainnet" }
+        } as Object);
         assert.strictEqual(options.chain.hardfork, "grayGlacier");
       });
       testData.forEach(network => {
         it(`defaults to london when network is ${network}`, () => {
-          process.argv.push("--fork", network);
-          const options = EthereumOptionsConfig.normalize({} as Object);
+          const options = EthereumOptionsConfig.normalize({
+            fork: { network }
+          } as Object);
           assert.strictEqual(options.chain.hardfork, "london");
         });
       });
       it("overrides default `grayGlacier` value to hardfork provided when network is `mainnet`", () => {
-        process.argv.push("--fork", "mainnet");
         const options = EthereumOptionsConfig.normalize({
+          fork: { network: "mainnet" },
           hardfork: "berlin"
         } as Object);
         assert.strictEqual(options.chain.hardfork, "berlin");

@@ -25,11 +25,13 @@ export type ExternalConfig<C extends Base.Config> = Partial<
   ExclusiveGroupUnionAndUnconstrainedPlus<C, "rawType">
 >;
 
-export type InternalConfig<
-  C extends Base.Config
-> = ExclusiveGroupUnionAndUnconstrainedPlus<C, "type">;
+export type InternalConfig<C extends Base.Config> =
+  ExclusiveGroupUnionAndUnconstrainedPlus<C, "type">;
 
-export type Definitions<C extends Base.Config> = {
+export type Definitions<
+  C extends Base.Config,
+  O extends Base.Config | null = null
+> = {
   [N in OptionName<C>]: {
     readonly normalize: Normalize<C, N>;
     readonly cliDescription: string;
@@ -60,7 +62,9 @@ export type Definitions<C extends Base.Config> = {
       : {
           // using type string for flavor to prevent circular dependency
           readonly default: (
-            config: InternalConfig<C>,
+            config: O extends null
+              ? InternalConfig<C>
+              : InternalConfig<C> & InternalConfig<O>,
             flavor: string
           ) => OptionType<C, N>;
           readonly defaultDescription?: string;

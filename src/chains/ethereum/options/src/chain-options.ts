@@ -1,8 +1,7 @@
 import { getDefaultForkByNetwork, normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { ArrayToTuple, Writeable } from "./helper-types";
-import yargs, { boolean } from "yargs";
-import { KnownNetworks } from "./fork-options";
+import { ForkConfig } from "./fork-options";
 
 const HARDFORKS = [
   "constantinople",
@@ -141,9 +140,10 @@ export type ChainConfig = {
       };
     };
   };
+  dependsOn: "fork";
 };
 
-export const ChainOptions: Definitions<ChainConfig> = {
+export const ChainOptions: Definitions<ChainConfig, ForkConfig> = {
   allowUnlimitedContractSize: {
     normalize,
     cliDescription:
@@ -198,14 +198,8 @@ export const ChainOptions: Definitions<ChainConfig> = {
   hardfork: {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
-    default: () => {
-      const forkArg = yargs.parse(process.argv)["fork"];
-      // If fork argument is undefined or blank, default value is mainnet
-      const fork =
-        forkArg === undefined || typeof forkArg === "boolean"
-          ? "mainnet"
-          : forkArg;
-      return getDefaultForkByNetwork(fork as KnownNetworks);
+    default: ({ network }) => {
+      return getDefaultForkByNetwork(network ? network : "mainnet");
     },
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],

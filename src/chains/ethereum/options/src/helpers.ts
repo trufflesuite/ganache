@@ -1,7 +1,6 @@
 import { Hardfork } from "./chain-options";
-import { KnownNetworks } from "./fork-options";
 
-export const getDefaultForkByNetwork = (network: KnownNetworks): Hardfork => {
+export const getDefaultForkByNetwork = (network: string): Hardfork => {
   switch (network) {
     case "mainnet":
       return "grayGlacier";

@@ -7,25 +7,23 @@ import { ForkConfig, ForkOptions } from "./fork-options";
 import {
   Base,
   Defaults,
-  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
   LegacyOptions,
   OptionName,
   OptionRawType,
-  Options,
   OptionsConfig
 } from "@ganache/options";
 import { UnionToIntersection } from "./helper-types";
 
-type EthereumConfig = {
+export type EthereumConfig = {
+  fork: ForkConfig;
   chain: ChainConfig;
   database: DatabaseConfig;
   logging: LoggingConfig;
   miner: MinerConfig;
   wallet: WalletConfig;
-  fork: ForkConfig;
 };
 
 type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
@@ -37,39 +35,37 @@ type MakeLegacyOptions<C extends Base.Config> = UnionToIntersection<
 >;
 
 export type EthereumLegacyProviderOptions = Partial<
-  MakeLegacyOptions<ChainConfig> &
+  MakeLegacyOptions<ForkConfig> &
+    MakeLegacyOptions<ChainConfig> &
     MakeLegacyOptions<DatabaseConfig> &
     MakeLegacyOptions<LoggingConfig> &
     MakeLegacyOptions<MinerConfig> &
-    MakeLegacyOptions<WalletConfig> &
-    MakeLegacyOptions<ForkConfig>
+    MakeLegacyOptions<WalletConfig>
 >;
 
-export type EthereumProviderOptions = Partial<
-  {
-    [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
-  }
->;
+export type EthereumProviderOptions = Partial<{
+  [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
+}>;
 
 export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
 
 export const EthereumDefaults: Defaults<EthereumConfig> = {
+  fork: ForkOptions,
   chain: ChainOptions,
   database: DatabaseOptions,
   logging: LoggingOptions,
   miner: MinerOptions,
-  wallet: WalletOptions,
-  fork: ForkOptions
+  wallet: WalletOptions
 };
 
 export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
 
+export * from "./fork-options";
 export * from "./chain-options";
 export * from "./database-options";
 export * from "./helpers";
 export * from "./logging-options";
 export * from "./miner-options";
 export * from "./wallet-options";
-export * from "./fork-options";

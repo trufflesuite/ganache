@@ -45,5 +45,6 @@ export namespace Base {
     };
 
     exclusiveGroups?: ExclusiveGroup[];
+    dependsOn?: string;
   };
 }
