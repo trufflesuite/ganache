@@ -4,7 +4,7 @@ import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
 import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
-const { readFile, rm, mkdir, readdir, writeFile, unlink } = fsPromises;
+const { readFile, mkdir, readdir, rmdir, writeFile, unlink } = fsPromises;
 import path from "path";
 import { FlavorName } from "@ganache/flavors";
 
@@ -256,7 +256,7 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
       if (dirEntry.isDirectory()) {
         const reason = `"${filename}" is a directory`;
         try {
-          await rm(fullPath, { recursive: true });
+          await rmdir(fullPath, { recursive: true });
           failureReason = reason;
         } catch {
           resolution = `"${filename}" could not be removed`;
