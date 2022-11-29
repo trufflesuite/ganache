@@ -180,7 +180,7 @@ describe("@ganache/cli", () => {
         await assert.rejects(
           startingInstance,
           new Error(
-            "An error occurred spawning a detached instance of Ganache:\nThe detached instance exited with error code: 1"
+            "An error occurred spawning a detached instance of Ganache:\nThe detached instance exited with error code: 0"
           ),
           "Expected the instance to reject"
         );
