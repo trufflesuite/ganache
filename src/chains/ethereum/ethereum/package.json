@@ -30,7 +30,8 @@
     "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'"
+    "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "postinstall": "npx patch-package@6.5.0"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -50,7 +51,6 @@
     "tooling"
   ],
   "dependencies": {
-    "@ethereumjs/block": "4.0.1",
     "@ethereumjs/common": "3.0.1",
     "@ethereumjs/trie": "5.0.1",
     "@ethereumjs/tx": "4.0.1",
@@ -75,6 +75,7 @@
     "eth-sig-util": "2.5.3",
     "ethereumjs-abi": "0.6.8",
     "leveldown": "6.1.0",
+    "levelup": "5.1.1",
     "lodash.clonedeep": "4.5.0",
     "lru-cache": "6.0.0",
     "mcl-wasm": "0.9.0",
@@ -90,6 +91,7 @@
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",
+    "@types/levelup": "5.1.0",
     "@types/lodash.clonedeep": "4.5.6",
     "@types/lru-cache": "5.1.1",
     "@types/mocha": "9.0.0",
