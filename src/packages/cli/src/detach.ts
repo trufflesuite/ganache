@@ -96,7 +96,7 @@ export async function startDetachedInstance(
     server: { host: string; port: number };
   },
   version: string,
-  forkOptions?: ForkOptions
+  execArgv: string[] = process.execArgv
 ): Promise<DetachedInstance> {
   const [bin, module, ...args] = argv;
 
@@ -106,7 +106,7 @@ export async function startDetachedInstance(
   const childArgs = [...args, "--no-detach"];
 
   const child = fork(module, childArgs, {
-    ...forkOptions,
+    execArgv,
     stdio: ["ignore", "ignore", "pipe", "ipc"],
     detached: true
   });
@@ -149,10 +149,11 @@ export async function startDetachedInstance(
 
   const flavor = instanceInfo.flavor;
   const { host, port } = instanceInfo.server;
+
   const cmd =
     process.platform === "win32"
       ? path.basename(process.execPath)
-      : [process.execPath, ...process.execArgv, module, ...childArgs].join(" ");
+      : [process.execPath, ...execArgv, module, ...childArgs].join(" ");
   const pid = child.pid;
   const startTime = Date.now();
 

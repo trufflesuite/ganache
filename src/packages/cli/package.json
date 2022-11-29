@@ -60,7 +60,8 @@
     "mocha": "9.1.3",
     "ts-node": "10.4.0",
     "typescript": "4.6.4",
-    "superagent": "6.1.0"
+    "superagent": "6.1.0",
+    "nyc": "15.1.0"
   },
   "dependencies": {
     "@ganache/colors": "0.3.0",
