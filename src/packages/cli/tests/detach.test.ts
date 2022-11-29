@@ -46,6 +46,19 @@ async function createInstanceFiles(
   await Promise.all(writingFiles);
 }
 
+const jsonRpc = {
+  jsonrpc: "2.0",
+  id: "1"
+};
+
+const instanceInfo = {
+  flavor: "ethereum" as FlavorName,
+  server: {
+    host: "127.0.0.1",
+    port: 8544
+  }
+};
+
 describe("@ganache/cli", () => {
   describe("detach", () => {
     describe("formatUptime()", () => {
@@ -149,23 +162,35 @@ describe("@ganache/cli", () => {
       });
     });
 
+    describe("startDetachedInstance()", () => {
+      it("rejects when the underlying ganache instance exits", async () => {
+        const startingInstance = startDetachedInstance(
+          [
+            "_",
+            join(__dirname, "../", "src", "cli.ts"),
+            "not",
+            "valid",
+            "args"
+          ],
+          instanceInfo,
+          "DEV",
+          ["--require", "ts-node/register"]
+        );
+
+        await assert.rejects(
+          startingInstance,
+          new Error(
+            "An error occurred spawning a detached instance of Ganache:\nThe detached instance exited with error code: 1"
+          ),
+          "Expected the instance to reject"
+        );
+      }).timeout(10000);
+    });
+
     // these tests aren't the best (in that they have a wide scope), but they
     // are that way because starting and stopping an instance is very slow. In
     // order to avoid blowing out the run time, we only start and stop once.
     describe("with a detached instance running", () => {
-      const jsonRpc = {
-        jsonrpc: "2.0",
-        id: "1"
-      };
-
-      const instanceInfo = {
-        flavor: "ethereum" as FlavorName,
-        server: {
-          host: "127.0.0.1",
-          port: 8544
-        }
-      };
-
       const args = [
         "--detach",
         "--port",
