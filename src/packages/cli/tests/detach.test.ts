@@ -186,7 +186,7 @@ describe("@ganache/cli", () => {
           ),
           "Expected the instance to reject"
         );
-      }).timeout(10000);
+      }).timeout(30000);
     });
 
     // these tests aren't the best (in that they have a wide scope), but they
