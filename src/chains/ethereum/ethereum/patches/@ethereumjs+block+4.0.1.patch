@@ -6,7 +6,7 @@ index 4614cd8..1e33678 100644
  /// <reference types="node" />
  import { Trie } from '@ethereumjs/trie';
 -import { ethers } from 'ethers';
-+// we aren't actually using ethers, so we don't want to have to add
++// we aren't actually using ethers, so we don't want to have to add it
 +// as a bundledPackage in the api-extractor.json to get the types to work.
 +// instead, we're just faking the types here.
 +declare namespace ethers  {
