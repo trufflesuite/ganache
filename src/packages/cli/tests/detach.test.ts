@@ -10,7 +10,9 @@ import {
 import request from "superagent";
 import { FlavorName } from "@ganache/flavors";
 import envPaths from "env-paths";
-import { readdir, rmdir, mkdir, writeFile } from "fs/promises";
+import { promises as fsPromises } from "fs";
+// this awkward import is required to support node 12
+const { readdir, rmdir, mkdir, writeFile } = fsPromises;
 import psList from "@trufflesuite/ps-list";
 
 const dataPath = envPaths(`Ganache/instances`, { suffix: "" }).data;
