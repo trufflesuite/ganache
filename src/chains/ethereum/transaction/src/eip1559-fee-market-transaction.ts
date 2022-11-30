@@ -3,8 +3,10 @@ import {
   Quantity,
   keccak,
   BUFFER_32_ZERO,
+  BUFFER_EMPTY,
   BUFFER_ZERO,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  ecsign
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
@@ -27,21 +29,6 @@ import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
 
 const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
-
-function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
-  const object = { signature: new Uint8Array(64), recid: null };
-  const status = secp256k1.ecdsaSign(object, msgHash, privateKey);
-  if (status === 0) {
-    const buffer = object.signature.buffer;
-    const r = Buffer.from(buffer, 0, 32);
-    const s = Buffer.from(buffer, 32, 32);
-    return { r, s, v: object.recid };
-  } else {
-    throw new Error(
-      "The nonce generation function failed, or the private key was invalid"
-    );
-  }
-}
 
 const CAPABILITIES = [2718, 2930, 1559];
 
@@ -66,7 +53,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas = Quantity.from(data[2]);
       this.maxFeePerGas = Quantity.from(data[3]);
       this.gas = Quantity.from(data[4]);
-      this.to = data[5].length == 0 ? Quantity.Empty : Address.from(data[5]);
+      this.to = data[5].length == 0 ? null : Address.from(data[5]);
       this.value = Quantity.from(data[6]);
       this.data = Data.from(data[7]);
       const accessListData = AccessLists.getAccessListData(data[8]);
@@ -129,7 +116,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       blockNumber: this.blockNumber ? this.blockNumber : null,
       transactionIndex: this.index ? this.index : null,
       from: this.from,
-      to: this.to.isNull() ? null : this.to,
+      to: this.to,
       value: this.value,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas,
       maxFeePerGas: this.maxFeePerGas,
@@ -152,9 +139,6 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
-    const from = this.from;
-    const sender = from.toBuffer();
-    const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
@@ -162,20 +146,11 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       maxPriorityFeePerGas: this.maxPriorityFeePerGas.toBigInt(),
       maxFeePerGas: this.maxFeePerGas.toBigInt(),
       gasLimit: this.gas.toBigInt(),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
+      to: this.to,
       value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
-        toString() {
-          return from.toString();
-        }
-      }),
+      getSenderAddress: () => this.from,
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
@@ -264,7 +239,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas.toBuffer(),
       this.maxFeePerGas.toBuffer(),
       this.gas.toBuffer(),
-      this.to.toBuffer(),
+      this.to ? this.to.toBuffer() : BUFFER_EMPTY,
       this.value.toBuffer(),
       this.data.toBuffer(),
       this.accessList,

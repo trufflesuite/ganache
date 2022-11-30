@@ -4,7 +4,6 @@ import { Address } from "@ganache/ethereum-address";
 import { VM } from "@ethereumjs/vm";
 import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheTrie } from "./trie";
-import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 
 export type SimulationTransaction = {
   /**
@@ -66,11 +65,9 @@ export function runCall(
   transaction: SimulationTransaction,
   gasLeft: bigint
 ) {
-  const caller = { buf: transaction.from.toBuffer() } as EthereumJsAddress;
+  const caller = new Address(transaction.from.toBuffer());
   const to =
-    transaction.to == null
-      ? undefined
-      : ({ buf: transaction.to.toBuffer() } as EthereumJsAddress);
+    transaction.to == null ? null : new Address(transaction.to.toBuffer());
   const value = transaction.value == null ? 0n : transaction.value.toBigInt();
 
   vm.evm.runCall({
@@ -126,9 +123,7 @@ export async function applySimulationOverrides(
     if (!hasOwn(overrides, address)) continue;
     const { balance, nonce, code, state, stateDiff } = overrides[address];
 
-    const vmAddr = {
-      buf: Address.from(address).toBuffer()
-    } as EthereumJsAddress;
+    const vmAddr = Address.from(address);
     // group together overrides that update the account
     if (nonce != null || balance != null || code != null) {
       const account = await eei.getAccount(vmAddr);

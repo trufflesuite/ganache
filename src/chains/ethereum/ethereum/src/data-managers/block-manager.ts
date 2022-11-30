@@ -1,6 +1,5 @@
 import Manager from "./manager";
 import { Tag, QUANTITY } from "@ganache/ethereum-utils";
-import { GanacheSublevel } from "../database";
 import { Quantity, Data, BUFFER_ZERO } from "@ganache/utils";
 import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
@@ -15,6 +14,7 @@ import {
   TransactionFactory,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
+import { GanacheLevelUp } from "../database";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -40,13 +40,13 @@ export default class BlockManager extends Manager<Block> {
 
   #blockchain: Blockchain;
   #common: Common;
-  #blockIndexes: GanacheSublevel;
+  #blockIndexes: GanacheLevelUp;
 
   static async initialize(
     blockchain: Blockchain,
     common: Common,
-    blockIndexes: GanacheSublevel,
-    base: GanacheSublevel
+    blockIndexes: GanacheLevelUp,
+    base: GanacheLevelUp
   ) {
     const bm = new BlockManager(blockchain, common, blockIndexes, base);
     await bm.updateTaggedBlocks();
@@ -56,8 +56,8 @@ export default class BlockManager extends Manager<Block> {
   constructor(
     blockchain: Blockchain,
     common: Common,
-    blockIndexes: GanacheSublevel,
-    base: GanacheSublevel
+    blockIndexes: GanacheLevelUp,
+    base: GanacheLevelUp
   ) {
     super(base, Block, common);
 
@@ -93,7 +93,7 @@ export default class BlockManager extends Manager<Block> {
     const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
     json.transactions.forEach((tx, index) => {
       const blockExtra = [
-        Quantity.toBuffer(tx.from),
+        Address.toBuffer(tx.from),
         Quantity.toBuffer(tx.hash)
       ] as any;
       const txExtra = [
@@ -281,8 +281,8 @@ export default class BlockManager extends Manager<Block> {
   async updateTaggedBlocks() {
     const [earliest, latestBlockNumber] = await Promise.all([
       (async () => {
-        for await (const data of this.base.values({ limit: 1 })) {
-          return new Block(data, this.#common);
+        for await (const data of this.base.createValueStream({ limit: 1 })) {
+          return new Block(data as Buffer, this.#common);
         }
       })(),
       this.#blockIndexes.get(LATEST_INDEX_KEY).catch(e => null)
@@ -301,8 +301,8 @@ export default class BlockManager extends Manager<Block> {
       // don't have to hit this code again next time.
       this.latest = await (async () => {
         let latest: Block;
-        for await (const data of this.base.values()) {
-          const block = new Block(data, this.#common);
+        for await (const data of this.base.createValueStream()) {
+          const block = new Block(data as Buffer, this.#common);
           if (
             !latest ||
             block.header.number.toBigInt() > latest.header.number.toBigInt()

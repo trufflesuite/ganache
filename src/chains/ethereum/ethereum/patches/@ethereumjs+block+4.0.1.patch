@@ -1,0 +1,19 @@
+diff --git a/node_modules/@ethereumjs/block/dist/block.d.ts b/node_modules/@ethereumjs/block/dist/block.d.ts
+index 4614cd8..1e33678 100644
+--- a/node_modules/@ethereumjs/block/dist/block.d.ts
++++ b/node_modules/@ethereumjs/block/dist/block.d.ts
+@@ -1,6 +1,13 @@
+ /// <reference types="node" />
+ import { Trie } from '@ethereumjs/trie';
+-import { ethers } from 'ethers';
++// we aren't actually using ethers, so we don't want to have to add it
++// as a bundledPackage in the api-extractor.json to get the types to work.
++// instead, we're just faking the types here.
++declare namespace ethers  {
++  export namespace providers {
++    export type JsonRpcProvider = any
++  }
++}
+ import { BlockHeader } from './header';
+ import type { BlockBuffer, BlockData, BlockOptions, JsonBlock, JsonRpcBlock } from './types';
+ import type { Common } from '@ethereumjs/common';

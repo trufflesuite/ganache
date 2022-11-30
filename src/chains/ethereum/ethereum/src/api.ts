@@ -19,13 +19,13 @@ import {
 } from "@ganache/ethereum-transaction";
 import {
   toRpcSig,
-  ecsign,
   hashPersonalMessage,
   KECCAK256_NULL
 } from "@ethereumjs/util";
 import { signTypedData_v4 } from "eth-sig-util";
 import {
   Data,
+  ecsign,
   Heap,
   Quantity,
   PromiEvent,
@@ -363,16 +363,15 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const buffer = Address.from(address).toBuffer();
-    const ejsAddress = { buf: buffer } as any;
+    const vmAddress = Address.from(address);
     const blockchain = this.#blockchain;
     const eei = blockchain.vm.eei;
-    const account = await eei.getAccount(ejsAddress);
+    const account = await eei.getAccount(vmAddress);
 
     account.nonce = Quantity.toBigInt(nonce);
 
     await eei.checkpoint();
-    await eei.putAccount(ejsAddress, account);
+    await eei.putAccount(vmAddress, account);
     await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
@@ -403,16 +402,15 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const buffer = Address.from(address).toBuffer();
-    const ejsAddress = { buf: buffer } as any;
+    const vmAddress = Address.from(address);
     const blockchain = this.#blockchain;
     const eei = blockchain.vm.eei;
-    const account = await eei.getAccount(ejsAddress);
+    const account = await eei.getAccount(vmAddress);
 
     account.balance = Quantity.toBigInt(balance);
 
     await eei.checkpoint();
-    await eei.putAccount(ejsAddress, account);
+    await eei.putAccount(vmAddress, account);
     await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
@@ -444,8 +442,7 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const addressBuffer = Address.from(address).toBuffer();
-    const ejsAddress = { buf: addressBuffer } as any;
+    const vmAddress = Address.from(address);
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
     const eei = blockchain.vm.eei;
@@ -453,13 +450,11 @@ export default class EthereumApi implements Api {
     // therefore we will manually set the code hash when "clearing" the contract code
     await eei.checkpoint();
     if (codeBuffer.length > 0) {
-      await eei.putContractCode(ejsAddress, codeBuffer);
+      await eei.putContractCode(vmAddress, codeBuffer);
     } else {
-      const account = await eei.getAccount({
-        buf: addressBuffer
-      } as any);
+      const account = await eei.getAccount(vmAddress);
       account.codeHash = KECCAK256_NULL;
-      await eei.putAccount(ejsAddress, account);
+      await eei.putAccount(vmAddress, account);
     }
     await eei.commit();
 
@@ -493,17 +488,13 @@ export default class EthereumApi implements Api {
     // TODO: the effect of this function could happen during a block mine operation, which would cause all sorts of
     // issues. We need to figure out a good way of timing this.
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
-    const addressBuffer = Address.from(address).toBuffer();
+    const vmAddress = Address.from(address);
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);
     const blockchain = this.#blockchain;
     const eei = blockchain.vm.eei;
     await eei.checkpoint();
-    await eei.putContractStorage(
-      { buf: addressBuffer } as any,
-      slotBuffer,
-      valueBuffer
-    );
+    await eei.putContractStorage(vmAddress, slotBuffer, valueBuffer);
     await eei.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
@@ -673,7 +664,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_addAccount(address: DATA, passphrase: string) {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.addUnknownAccount(addy, passphrase);
   }
 
@@ -696,7 +687,7 @@ export default class EthereumApi implements Api {
    * ```
    */
   async evm_removeAccount(address: DATA, passphrase: string) {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.removeKnownAccount(addy, passphrase);
   }
 
@@ -950,7 +941,7 @@ export default class EthereumApi implements Api {
       const block = new RuntimeBlock(
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
-        parentHeader.miner,
+        new Address(parentHeader.miner.toBuffer()),
         tx.gas.toBuffer(),
         parentHeader.gasUsed.toBuffer(),
         parentHeader.timestamp,
@@ -1141,9 +1132,7 @@ export default class EthereumApi implements Api {
     }
     const targetBlock = await blockchain.blocks.get(blockNumber);
 
-    const ganacheAddress = Address.from(address);
-    const bufferAddress = ganacheAddress.toBuffer();
-    const ethereumJsAddress = { buf: bufferAddress } as any;
+    const vmAddress = Address.from(address);
     const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
 
     const stateManagerCopy = blockchain.vm.stateManager.copy();
@@ -1151,13 +1140,10 @@ export default class EthereumApi implements Api {
       targetBlock.header.stateRoot.toBuffer()
     );
 
-    const proof = await stateManagerCopy.getProof(
-      ethereumJsAddress,
-      slotBuffers
-    );
+    const proof = await stateManagerCopy.getProof(vmAddress, slotBuffers);
 
     return {
-      address: ganacheAddress,
+      address: vmAddress,
       balance: Quantity.from(proof.balance),
       codeHash: Data.from(proof.codeHash),
       nonce: Quantity.from(proof.nonce),
@@ -3344,7 +3330,7 @@ export default class EthereumApi implements Api {
     passphrase: string,
     duration: number = 300
   ): Promise<boolean> {
-    const addy = new Address(address);
+    const addy = Address.from(address);
     return this.#wallet.unlockAccount(addy, passphrase, duration);
   }
 

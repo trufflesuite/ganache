@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
-import Database, { DBType } from "./database";
+import Database from "./database";
 import Emittery from "emittery";
 import {
   BlockLogs,
@@ -19,7 +19,6 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { Address as EthereumJsAddress } from "@ethereumjs/util";
 import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
@@ -28,7 +27,8 @@ import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult
+  EVMResult,
+  EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
 import {
@@ -60,10 +60,9 @@ import {
   CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
-import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
-import { LevelDB } from "./leveldb";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";
 import TransactionReceiptManager from "./data-managers/transaction-receipt-manager";
 import { BUFFER_ZERO } from "@ganache/utils";
@@ -77,7 +76,7 @@ import {
 
 import mcl from "mcl-wasm";
 import { maybeGetLogs } from "@ganache/console.log";
-import { UpgradedLevelDown } from "./leveldown-to-level";
+import { TrieDB } from "./trie-db";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -146,23 +145,11 @@ function setStateRootSync(
   stateManager._storageTries = {};
 }
 
-function makeTrie(blockchain: Blockchain, db: Database, root: Data) {
-  let trieDb: LevelDB | UpgradedLevelDown;
-  switch (db.type) {
-    case DBType.Level:
-      trieDb = new LevelDB(db.trie as any);
-      break;
-    case DBType.LevelDown:
-      trieDb = db.db as unknown as UpgradedLevelDown;
-      break;
-    default:
-      // this really shouldn't happen
-      throw new Error("Database type not supported.");
-  }
+function makeTrie(blockchain: Blockchain, trieDB: TrieDB, root: Data) {
   if (blockchain.fallback) {
-    return new ForkTrie(trieDb, root ? root.toBuffer() : null, blockchain);
+    return new ForkTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   } else {
-    return new GanacheTrie(trieDb, root ? root.toBuffer() : null, blockchain);
+    return new GanacheTrie(trieDB, root ? root.toBuffer() : null, blockchain);
   }
 }
 
@@ -302,7 +289,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         } else {
           stateRoot = null;
         }
-        this.trie = makeTrie(this, database, stateRoot);
+        this.trie = makeTrie(this, database.trie, stateRoot);
       }
 
       // create VM and listen to step events
@@ -698,26 +685,27 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
 
     common = common || this.common;
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: stateTrie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
-    // @ts-ignore
-    const vm = new VM({
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const vm = await VM.create({
       activatePrecompiles: false,
       common,
-      allowUnlimitedContractSize,
       blockchain,
-      stateManager: this.fallback
-        ? // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new ForkStateManager({
-            trie: stateTrie as ForkTrie,
-            prefixCodeHashes: false
-          })
-        : // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false })
-    }) as VM;
-    // @ts-ignore
-    vm.evm._allowUnlimitedContractSize = allowUnlimitedContractSize;
+      stateManager,
+      evm
+    });
+
     if (activatePrecompile) {
       await activatePrecompiles(vm.eei);
 
@@ -753,10 +741,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit accounts, but for forking.
       const stateManager = <DefaultStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
-      initialAccounts.forEach(acc => {
-        const a = { buf: acc.address.toBuffer() } as any;
-        (stateManager as DefaultStateManager)._cache.put(a, acc as any);
-        (this.vm.eei as any).touchAccount(a);
+      initialAccounts.forEach(account => {
+        this.vm.eei.putAccount(account.address, account as any);
       });
       await stateManager.commit();
 
@@ -1103,16 +1089,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
-    let to: EthereumJsAddress = null;
-    if (hasToAddress) {
-      const toBuf = transaction.to.toBuffer();
-      to = {
-        equals: (a: { buf: Buffer }) => toBuf.equals(a.buf),
-        buf: toBuf
-      } as any;
-    } else {
-      to = null;
-    }
+    const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
@@ -1165,6 +1142,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       });
 
       const caller = transaction.from.toBuffer();
+      const callerAddress = new Address(caller);
 
       if (common.isActivatedEIP(2929)) {
         const eei = vm.eei;
@@ -1181,23 +1159,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
-      const fromAccount = await vm.eei.getAccount({
-        buf: caller
-      } as any);
+      const fromAccount = await vm.eei.getAccount(callerAddress);
       fromAccount.nonce += 1n;
       const txCost = gasLimit * transaction.gasPrice.toBigInt();
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
       fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
-      await vm.eei.putAccount({ buf: caller } as any, fromAccount);
+      await vm.eei.putAccount(callerAddress, fromAccount);
 
       // finally, run the call
-      // @ts-ignore types are dumbs
       result = await vm.evm.runCall({
-        caller: {
-          buf: caller,
-          equals: (a: { buf: Buffer }) => caller.equals(a.buf)
-        } as any,
+        caller: callerAddress,
         data: transaction.data && transaction.data.toBuffer(),
         gasPrice: transaction.gasPrice.toBigInt(),
         gasLimit: gasLeft,
@@ -1218,7 +1190,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
-      // @ts-ignore types are dumbs
       throw new CallError(result);
     } else {
       return Data.from(result.execResult.returnValue || "0x");
@@ -1254,23 +1225,31 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         )
       : this.common;
 
+    const stateManager = this.fallback
+      ? // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new ForkStateManager({
+          trie: trie as ForkTrie,
+          prefixCodeHashes: false
+        })
+      : // TODO: prefixCodeHashes should eventually be conditional
+        // https://github.com/trufflesuite/ganache/issues/3701
+        new DefaultStateManager({ trie, prefixCodeHashes: false });
+
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = new EVM({
+      common,
+      allowUnlimitedContractSize:
+        this.#options.chain.allowUnlimitedContractSize,
+      eei
+    });
     const vm = await VM.create({
       activatePrecompiles: false,
       common,
       blockchain,
-      stateManager: this.fallback
-        ? // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new ForkStateManager({
-            trie: trie as ForkTrie,
-            prefixCodeHashes: false
-          })
-        : // TODO: prefixCodeHashes should eventually be conditional
-          // https://github.com/trufflesuite/ganache/issues/3701
-          new DefaultStateManager({ trie: trie, prefixCodeHashes: false })
+      stateManager,
+      evm
     });
-    //@ts-ignore
-    vm._allowUnlimitedContractSize = this.vm.evm._allowUnlimitedContractSize;
 
     const storage: StorageRecords = {};
 
@@ -1369,7 +1348,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           case "SLOAD": {
             const key = stack[stack.length - 1];
             const result = await vm.stateManager.getContractStorage(
-              event.address as any,
+              event.address,
               key.toBuffer()
             );
             const value = TraceData.from(result);
@@ -1414,14 +1393,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         if (tx === transaction) {
           if (keys && contractAddress) {
             const database = this.#database;
-            const ejsContractAddress = { buf: contractAddress } as any;
             await Promise.all(
               keys.map(async key => {
                 // get the raw key using the hashed key
                 const rawKey = await database.storageKeys.get(key);
 
                 const result = await vm.stateManager.getContractStorage(
-                  ejsContractAddress,
+                  new Address(contractAddress),
                   rawKey
                 );
 
@@ -1475,7 +1453,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const newBlock = new RuntimeBlock(
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
-      parentBlock.header.miner,
+      Address.from(parentBlock.header.miner.toString()),
       parentBlock.header.gasLimit.toBuffer(),
       BUFFER_ZERO,
       // make sure we use the same timestamp as the target block
@@ -1613,7 +1591,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const parentBlock = await this.blocks.getByHash(
       targetBlock.header.parentHash.toBuffer()
     );
-    const trie = makeTrie(this, this.#database, parentBlock.header.stateRoot);
+    const trie = makeTrie(
+      this,
+      this.#database.trie,
+      parentBlock.header.stateRoot
+    );
 
     // get the contractAddress account storage trie
     const contractAddressBuffer = Address.from(contractAddress).toBuffer();
@@ -1667,7 +1649,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         const rs = storageTrie.createReadStream();
-        // @ts-ignore
         rs.on("data", handleData).on("error", reject).on("end", handleEnd);
       });
     };

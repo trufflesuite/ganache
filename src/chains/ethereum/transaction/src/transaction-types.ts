@@ -23,7 +23,7 @@ export type LegacyTransactionJSON = {
   blockHash: Data;
   blockNumber: Quantity;
   transactionIndex: Quantity;
-  from: Data;
+  from: Address;
   to: Address;
   value: Quantity;
   gas: Quantity;
@@ -42,7 +42,7 @@ export type EIP2930AccessListTransactionJSON = {
   blockHash: Data;
   blockNumber: Quantity;
   transactionIndex: Quantity;
-  from: Data;
+  from: Address;
   to: Address;
   value: Quantity;
   gas: Quantity;
@@ -62,7 +62,7 @@ export type EIP1559FeeMarketTransactionJSON = {
   blockHash: Data;
   blockNumber: Quantity;
   transactionIndex: Quantity;
-  from: Data;
+  from: Address;
   to: Address;
   value: Quantity;
   maxPriorityFeePerGas: Quantity;

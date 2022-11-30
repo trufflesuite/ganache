@@ -1,6 +1,6 @@
 import { Tag } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
-import { GanacheLevel, GanacheSublevel } from "../../database";
+import { GanacheLevelUp } from "../../database";
 import { Tree } from "./tree";
 
 export type Request = (method: string, params: any[]) => Promise<any>;
@@ -55,14 +55,11 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
       return null;
   }
 }
-/**
- *   Sets the version if the DB was just created, or errors if we already have a
- *   version, but it isn't what we expected.
- * @param db
- * @param version
- */
-export async function setDbVersion(db: GanacheLevel, version: Buffer) {
-  const VERSION_KEY = Buffer.from("version", "utf-8");
+
+const VERSION_KEY = Buffer.from("version", "utf-8");
+export async function setDbVersion(db: GanacheLevelUp, version: Buffer) {
+  // set the version if the DB was just created, or error if we already have
+  // a version, but it isn't what we expected
   try {
     const recordedVersion = await db.get(VERSION_KEY);
     if (!version.equals(recordedVersion)) {
@@ -80,7 +77,7 @@ export async function setDbVersion(db: GanacheLevel, version: Buffer) {
 }
 
 export async function resolveTargetAndClosestAncestor(
-  db: GanacheSublevel,
+  db: GanacheLevelUp,
   request: Request,
   targetHeight: Quantity,
   targetHash: Data
@@ -151,19 +148,19 @@ export async function resolveTargetAndClosestAncestor(
 }
 
 export async function* findRelated(
-  db: GanacheSublevel,
+  db: GanacheLevelUp,
   request: Request,
   options: FindOptions
 ) {
-  const readStream = db.iterator({
+  const readStream = db.createReadStream({
     keys: true,
     values: true,
     ...options
   });
 
   for await (const pair of readStream) {
-    const [key, value] = pair as [key: Buffer, value: Uint8Array];
-    const node = Tree.deserialize(key, Buffer.from(value));
+    const { key, value } = pair as unknown as { key: Buffer; value: Buffer };
+    const node = Tree.deserialize(key, value);
     const { height: candidateHeight } = node.decodeKey();
     const block = await getBlockByNumber(request, candidateHeight);
     // if the chain has a block at this height, and the hash of the
@@ -182,7 +179,7 @@ export async function* findRelated(
  * @returns the closest known ancestor, or `upTo` if we know of no ancestors
  */
 export async function findClosestAncestor(
-  db: GanacheSublevel,
+  db: GanacheLevelUp,
   request: Request,
   height: Quantity,
   upTo: Buffer
@@ -203,7 +200,7 @@ export async function findClosestAncestor(
  * @returns the closest known descendants, or null
  */
 export async function* findClosestDescendants(
-  db: GanacheSublevel,
+  db: GanacheLevelUp,
   request: Request,
   height: Quantity
 ) {
