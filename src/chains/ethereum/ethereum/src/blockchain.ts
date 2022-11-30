@@ -685,16 +685,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
 
     common = common || this.common;
+
+    // TODO: prefixCodeHashes should eventually be conditional
+    // https://github.com/trufflesuite/ganache/issues/3701
     const stateManager = this.fallback
-      ? // TODO: prefixCodeHashes should eventually be conditional
-        // https://github.com/trufflesuite/ganache/issues/3701
-        new ForkStateManager({
+      ? new ForkStateManager({
           trie: stateTrie as ForkTrie,
           prefixCodeHashes: false
         })
-      : // TODO: prefixCodeHashes should eventually be conditional
-        // https://github.com/trufflesuite/ganache/issues/3701
-        new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false });
+      : new DefaultStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
     const eei = new EEI(stateManager, common, blockchain);
     const evm = new EVM({ common, allowUnlimitedContractSize, eei });
@@ -1225,16 +1224,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         )
       : this.common;
 
+    // TODO: prefixCodeHashes should eventually be conditional
+    // https://github.com/trufflesuite/ganache/issues/3701
     const stateManager = this.fallback
-      ? // TODO: prefixCodeHashes should eventually be conditional
-        // https://github.com/trufflesuite/ganache/issues/3701
-        new ForkStateManager({
+      ? new ForkStateManager({
           trie: trie as ForkTrie,
           prefixCodeHashes: false
         })
-      : // TODO: prefixCodeHashes should eventually be conditional
-        // https://github.com/trufflesuite/ganache/issues/3701
-        new DefaultStateManager({ trie, prefixCodeHashes: false });
+      : new DefaultStateManager({ trie, prefixCodeHashes: false });
 
     const eei = new EEI(stateManager, common, blockchain);
     const evm = new EVM({
