@@ -119,6 +119,6 @@ describe("merge", () => {
       // it changed
       assert.notStrictEqual(viewResult1, viewResult2);
       assert.strictEqual(viewResult2, lastblock.mixHash);
-    }).timeout(0);
+    });
   });
 });

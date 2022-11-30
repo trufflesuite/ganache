@@ -286,7 +286,7 @@ describe("api", () => {
           assert.strictEqual(overrideNonceAddress, overrideNonceAddress1);
           // the address generated depends on the nonce, so the two are difference
           assert.notEqual(overrideNonceAddress, defaultNonceAddress);
-        }).timeout(0);
+        });
 
         it("allows override of account code", async () => {
           const data = `0x${methods["getCode(address)"]}${encodedAddr}`;
