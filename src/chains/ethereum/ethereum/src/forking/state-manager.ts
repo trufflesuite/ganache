@@ -27,6 +27,7 @@ export interface DefaultStateManagerOpts {
  */
 export class ForkStateManager extends StateManager {
   _cache: ForkCache;
+  readonly prefixCodeHashes: boolean;
 
   /**
    * Instantiate the StateManager interface.
@@ -35,6 +36,7 @@ export class ForkStateManager extends StateManager {
     super(opts);
 
     this._cache = new ForkCache(opts.trie);
+    this.prefixCodeHashes = opts.prefixCodeHashes || false;
   }
 
   /**
@@ -44,7 +46,8 @@ export class ForkStateManager extends StateManager {
    */
   copy(): StateManager {
     return new ForkStateManager({
-      trie: this._trie.copy(false) as ForkTrie
+      trie: this._trie.copy(false) as ForkTrie,
+      prefixCodeHashes: this.prefixCodeHashes
     });
   }
 
