@@ -523,7 +523,7 @@ GANACHE=$(ganache --detach) && npm run test; ganache instances stop $GANACHE
 Or if you are running PowerShell on Windows, you can do:
 
 ```PowerShell
-$GANACHE=ganache --detach; npm run test; ganache instances stop $GANACHE; Remove-Variable GANACHE
+$GANACHE=ganache --detach; npm run test; ganache instances stop $GANACHE
 ```
 
 ### Ganache Provider Events
