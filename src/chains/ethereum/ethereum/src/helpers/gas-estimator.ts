@@ -20,8 +20,7 @@ export type EstimateGasResult =
     };
 
 const bigIntToBN = (val: bigint) => {
-  if (val < 0n) return new BN(val.toString());
-  return new BN(Quantity.toBuffer(val));
+  return new BN(val.toString());
 };
 const MULTIPLE = 64 / 63;
 
