@@ -18,7 +18,7 @@ export type EstimateGasResult =
   | RunTxResult & {
       gasEstimate?: bigint;
     };
-// proof that I don't know what I'm doing:
+
 const bigIntToBN = (val: bigint) => {
   if (val < 0n) return new BN(val.toString());
   return new BN(Quantity.toBuffer(val));
