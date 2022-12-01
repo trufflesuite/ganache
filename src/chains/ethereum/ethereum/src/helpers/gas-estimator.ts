@@ -24,11 +24,7 @@ const bigIntToBN = (val: bigint) => {
 };
 const MULTIPLE = 64 / 63;
 
-const check = (set: Set<string>) => {
-  return (opname: string) => {
-    return set.has(opname);
-  };
-};
+const check = (set: Set<string>) => (opname: string) => set.has(opname);
 const isCall = check(
   new Set(["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"])
 );
