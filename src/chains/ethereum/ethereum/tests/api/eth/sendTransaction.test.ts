@@ -82,7 +82,7 @@ describe("api", () => {
                   value: `0x${(balance - approximateGasCost).toString(16)}`
                 }),
                 new RegExp(
-                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=london -> block -> tx\\)`
+                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=merge -> block -> tx\\)`
                 )
               );
             } finally {
