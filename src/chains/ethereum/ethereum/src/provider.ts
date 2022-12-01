@@ -94,7 +94,7 @@ function hookEventSystem(
 type Primitives = string | number | null | undefined | symbol | bigint;
 
 // Externalize changes any `Quantity`, `Data`, `ITraceData`, `Address` types
-// into `string` as that's how they are after being serialized to JSON. It's be
+// into `string` as that's how they are after being serialized to JSON. It'd be
 // nice if `JSON.stringify` did that for us, as our types implement `toJSON()`,
 // but it doesn't
 export type Externalize<X> =

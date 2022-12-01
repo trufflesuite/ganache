@@ -49,7 +49,7 @@ import { ConsoleLogs, maybeGetLogs } from "@ganache/console.log";
 // ... initialize vm ...
 
 // vm should be an instance of @ethereumjs/vm
-vm.evm.on("step", event => {
+vm.evm.events.on("step", event => {
   const logs: ConsoleLogs | null = maybeGetLogs(event); // (string | bigint | boolean)[] | null
   // do something with `logs`
 });

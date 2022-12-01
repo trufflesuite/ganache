@@ -609,11 +609,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   ) => {
     const nextBlock = this.#readyNextBlock(this.blocks.latest, timestamp);
 
-    // if block time is incremental, adjustments should only apply once,
-    // otherwise they accumulate with each block.
-    if (this.#options.miner.timestampIncrement !== "clock") {
-      this.#timeAdjustment = 0;
-    }
     const transactions = await this.#miner.mine(
       nextBlock,
       maxTransactions,

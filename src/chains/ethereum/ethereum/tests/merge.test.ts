@@ -81,7 +81,7 @@ describe("merge", () => {
       const receipt = await provider.send("eth_getTransactionReceipt", [
         txHash
       ]);
-      // make sure it didn't revert, which is will do if `difficulty` is not > `1`
+      // make sure it didn't revert, which it will do if `difficulty` is not > `1`
       assert.strictEqual(receipt.status, "0x1");
 
       const viewResult1 = await provider.send("eth_call", [
