@@ -52,7 +52,7 @@
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
     "local-web-server": "4.2.1",
-    "mocha": "9.1.3",
+    "mocha": "9.2.2",
     "ts-node": "10.4.0",
     "typedoc": "0.22.10",
     "typescript": "4.6.4"
