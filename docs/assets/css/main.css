@@ -149,6 +149,7 @@ i {
 }
 .console-container {
   position: relative;
+  z-index: 0;
 }
 .console {
   font-family: "Droid Sans Mono", monospace, monospace, "Droid Sans Fallback";
@@ -247,6 +248,9 @@ article.sidebar-open {
   article.sidebar-open {
     margin-left: 33.3%;
   }
+  article.sidebar-open .console-container {
+    left: 16px;
+  }
 }
 /* large devices (desktops) */
 @media (min-width: 992px) {
@@ -263,4 +267,17 @@ article.sidebar-open {
   article.sidebar-open {
     margin-left: 25%;
   }
+  .console-container {
+    left: 16px;
+  }
+}
+
+.monaco {
+  padding-left: 26px;
+  height: 100px;
+  background-color: #1e1e1e;
+}
+.monaco pre {
+  background-color: #1e1e1e;
+  margin: 0px;
 }
