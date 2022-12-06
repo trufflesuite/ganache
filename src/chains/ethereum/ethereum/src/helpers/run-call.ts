@@ -65,9 +65,8 @@ export function runCall(
   transaction: SimulationTransaction,
   gasLeft: bigint
 ) {
-  const caller = new Address(transaction.from.toBuffer());
-  const to =
-    transaction.to == null ? null : new Address(transaction.to.toBuffer());
+  const caller = transaction.from;
+  const to = transaction.to ?? null;
   const value = transaction.value == null ? 0n : transaction.value.toBigInt();
 
   vm.evm.runCall({
