@@ -385,6 +385,7 @@ const html = `
         </article>
       </main>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/ganache@7.5.0/dist/web/ganache.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
     <script src="./assets/js/inject-editor.js"></script>
     <script>

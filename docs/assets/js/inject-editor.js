@@ -13,10 +13,7 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
-require([
-  "./assets/js/ganache/ganache.min.js",
-  "vs/editor/editor.main"
-], function (Ganache) {
+require([, "vs/editor/editor.main"], function () {
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
     target: monaco.languages.typescript.ScriptTarget.ESNext,
     module: monaco.languages.typescript.ModuleKind.ESNext,
