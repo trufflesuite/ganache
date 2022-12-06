@@ -113,7 +113,7 @@ export class RuntimeBlock {
       gasLimit: gasLimit.toBigInt(),
       gasUsed: gasUsed.toBigInt(),
       timestamp: timestamp.toBigInt(),
-      baseFeePerGas: baseFeePerGas === undefined ? 0n : baseFeePerGas,
+      baseFeePerGas: baseFeePerGas ?? 0n,
       mixHash,
       prevRandao: mixHash
     };
