@@ -38,176 +38,189 @@ require([, "vs/editor/editor.main"], function () {
   monaco.editor.createModel(libSource, "typescript", monaco.Uri.parse(libUri));
 
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  async function run(e, editor, consoleDiv, outputDiv) {
+    e.preventDefault();
+    e.stopPropagation();
 
-  document.querySelectorAll(".monaco").forEach(codeNode => {
-    async function run(e) {
-      e.preventDefault();
-      e.stopPropagation();
+    // clean up our user's code
+    const code = editor.getValue().replace(/^export \{\/\*magic\*\/\};\n/, "");
 
-      // clean up out user's code
-      const code = editor
-        .getValue()
-        .replace(/^export \{\/\*magic\*\/\};\n/, "");
+    consoleDiv.innerHTML = "";
+    outputDiv.innerHTML = "";
 
-      consoleDiv.innerHTML = "";
-      outputDiv.innerHTML = "";
-
-      const makeConsole = element => {
-        return {
-          log: (...args) => {
-            // very naive console implementation
-            const line = document.createElement("div");
-            line.classList.add("mtk1");
-            line.classList.add("console-line");
-            line.innerHTML = args
-              .map(a => {
-                if (a instanceof Error) {
+    const makeConsole = element => {
+      return {
+        log: (...args) => {
+          // very naive console implementation
+          const line = document.createElement("div");
+          line.classList.add("mtk1");
+          line.classList.add("console-line");
+          line.innerHTML = args
+            .map(a => {
+              if (a instanceof Error) {
+                return (
+                  "<pre style='white-space:pre-wrap'>" +
+                  escapeHtml(
+                    JSON.stringify(
+                      { ...a, message: a.message, stack: a.stack },
+                      null,
+                      2
+                    )
+                  ) +
+                  "</pre>"
+                );
+              } else if (typeof a === "object") {
+                try {
                   return (
                     "<pre style='white-space:pre-wrap'>" +
-                    escapeHtml(
-                      JSON.stringify(
-                        { ...a, message: a.message, stack: a.stack },
-                        null,
-                        2
-                      )
-                    ) +
+                    escapeHtml(JSON.stringify(a, null, 2)) +
                     "</pre>"
                   );
-                } else if (typeof a === "object") {
-                  try {
-                    return (
-                      "<pre style='white-space:pre-wrap'>" +
-                      escapeHtml(JSON.stringify(a, null, 2)) +
-                      "</pre>"
-                    );
-                  } catch {
-                    return escapeHtml(a);
-                  }
-                } else if (typeof a === "string") {
-                  return (
-                    "<pre style='white-space:pre-wrap'>" +
-                    escapeHtml(a) +
-                    "</pre>"
-                  );
-                } else {
-                  return escapeHtml("" + a);
+                } catch {
+                  return escapeHtml(a);
                 }
-              })
-              .join(" ");
-            element.prepend(line);
-          }
-        };
-      };
-      const k = makeConsole(consoleDiv);
-      const ganache = {
-        provider: (options = {}) => {
-          delete options.logger;
-          if (!options.logging) {
-            options.logging = {};
-          }
-          options.logging.logger = makeConsole(outputDiv);
-          return Ganache.provider(options);
+              } else if (typeof a === "string") {
+                return (
+                  "<pre style='white-space:pre-wrap'>" +
+                  escapeHtml(a) +
+                  "</pre>"
+                );
+              } else {
+                return escapeHtml("" + a);
+              }
+            })
+            .join(" ");
+          element.prepend(line);
         }
       };
-      const codeText = code.trim();
-      const assert = a => {
-        if (a) return true;
-        throw new Error("not equal");
-      };
-      assert.strictEqual = (a, b) => {
-        if (a === b) return true;
-        throw new Error("not strict equal");
-      };
+    };
+    const k = makeConsole(consoleDiv);
+    const ganache = {
+      provider: (options = {}) => {
+        delete options.logger;
+        if (!options.logging) {
+          options.logging = {};
+        }
+        options.logging.logger = makeConsole(outputDiv);
+        return Ganache.provider(options);
+      }
+    };
+    const codeText = code.trim();
+    const assert = a => {
+      if (a) return true;
+      throw new Error("not equal");
+    };
+    assert.strictEqual = (a, b) => {
+      if (a === b) return true;
+      throw new Error("not strict equal");
+    };
 
-      const fn = new AsyncFunction(
-        "ganache",
-        "assert",
-        "console",
-        `with ({provider: ganache.provider()}) {
+    const fn = new AsyncFunction(
+      "ganache",
+      "assert",
+      "console",
+      `with ({provider: ganache.provider()}) {
+        try {
+          return await (async () => {
+            "use strict";
+            ${codeText}
+          })();
+        } catch (e) {
+          console.log(e);
+        } finally {
           try {
-            return await (async () => {
-              "use strict";
-              ${codeText}
-            })();
-          } catch (e) {
-            console.log(e);
-          } finally {
-            try {
-              // await provider.disconnect();
-              // delete all tmp ganache-core databases
-              await indexedDB.databases().then(dbs => {
-                return Promise.all(dbs.map(db => {
-                  if (db.name.startsWith("/tmp/ganache-core_")) {
-                    // return indexedDB.deleteDatabase(db.name);
-                  }
-                }));
-              });
-            } catch {}
+            await provider.disconnect();
+            // delete all tmp ganache-core databases
+            await indexedDB.databases().then(dbs => {
+              return Promise.all(dbs.map(db => {
+                if (db.name.startsWith("/tmp/ganache-core_")) {
+                  return indexedDB.deleteDatabase(db.name);
+                }
+              }));
+            });
+          } catch {}
+        }
+      }`
+    );
+    await fn(ganache, assert, k);
+  }
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const codeNode = entry.target;
+        const codeText = codeNode.innerText.trim();
+
+        const { consoleContainer, consoleDiv, outputDiv } = createConsole();
+        consoleContainer.style.display = "none";
+        codeNode.parentNode.insertBefore(
+          consoleContainer,
+          codeNode.nextSibling
+        );
+
+        const container = document.createElement("div");
+        container.classList.add("editor-container");
+        codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
+        codeNode.style.display = "none";
+        container.style.height =
+          Math.max(100, codeText.split(/\n/).length * 20 + 20) + "px";
+
+        const editor = monaco.editor.create(container, {
+          automaticLayout: true,
+          model: monaco.editor.createModel(
+            // we prepend `export {/*magic*/}` so the typechecker doesn't think the code is global and shared between editors
+            "export {/*magic*/};\n" + codeText,
+            codeNode.dataset.language || "javascript",
+            monaco.Uri.parse(`js:${codeNode.dataset.method}.js`)
+          ),
+          lineNumbers: "off",
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          scrollbar: { alwaysConsumeMouseWheel: false },
+          theme: "vs-dark"
+        });
+        // hide the first line (export {/*magic*/};)
+        editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
+
+        editor.onDidChangeCursorSelection(e => {
+          // because we hide the first line we need to make sure the user can't select it
+          if (
+            e.selection.startLineNumber === 1 ||
+            e.selection.selectionStartLineNumber === 1 ||
+            e.selection.positionLineNumber === 1
+          ) {
+            e.selection.startLineNumber = Math.max(
+              e.selection.startLineNumber,
+              2
+            );
+            e.selection.selectionStartLineNumber = Math.max(
+              e.selection.selectionStartLineNumber,
+              2
+            );
+            e.selection.positionLineNumber = Math.max(
+              e.selection.positionLineNumber,
+              2
+            );
+            editor.setSelection(e.selection);
           }
-        }`
-      );
-      await fn(ganache, assert, k);
-    }
+        });
 
-    const codeText = codeNode.innerText.trim();
-
-    const { consoleContainer, consoleDiv, outputDiv } = createConsole();
-    consoleContainer.style.display = "none";
-    codeNode.parentNode.insertBefore(consoleContainer, codeNode.nextSibling);
-
-    const container = document.createElement("div");
-    container.classList.add("editor-container");
-    codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
-    codeNode.style.display = "none";
-    container.style.height =
-      Math.max(100, codeText.split(/\n/).length * 20 + 20) + "px";
-
-    const editor = monaco.editor.create(container, {
-      automaticLayout: true,
-      model: monaco.editor.createModel(
-        // we prepend `export {/*magic*/}` so the typechecker doesn't think the code is global and shared between editors
-        "export {/*magic*/};\n" + codeText,
-        codeNode.dataset.language || "javascript",
-        monaco.Uri.parse(`js:${codeNode.dataset.method}.js`)
-      ),
-      lineNumbers: "off",
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      theme: "vs-dark"
-    });
-    // hide the first line (export {/*magic*/};)
-    editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
-
-    editor.onDidChangeCursorSelection(e => {
-      // because we hide the first line we need to make sure the user can't select it
-      if (
-        e.selection.startLineNumber === 1 ||
-        e.selection.selectionStartLineNumber === 1 ||
-        e.selection.positionLineNumber === 1
-      ) {
-        e.selection.startLineNumber = Math.max(e.selection.startLineNumber, 2);
-        e.selection.selectionStartLineNumber = Math.max(
-          e.selection.selectionStartLineNumber,
-          2
-        );
-        e.selection.positionLineNumber = Math.max(
-          e.selection.positionLineNumber,
-          2
-        );
-        editor.setSelection(e.selection);
+        const runButton = document.createElement("div");
+        runButton.innerText = "▶ Try it!";
+        runButton.classList.add("run-button");
+        runButton.addEventListener("click", async e => {
+          consoleContainer.style.display = "block";
+          runButton.style.opacity = ".5";
+          await run(e, editor, consoleDiv, outputDiv);
+          runButton.style.opacity = "";
+        });
+        codeNode.parentNode.insertBefore(runButton, codeNode.nextSibling);
+        observer.unobserve(codeNode);
       }
     });
-
-    const runButton = document.createElement("div");
-    runButton.innerText = "▶ Try it!";
-    runButton.classList.add("run-button");
-    runButton.addEventListener("click", async e => {
-      consoleContainer.style.display = "block";
-      runButton.style.opacity = ".5";
-      await run(e);
-      runButton.style.opacity = "";
-    });
-    codeNode.parentNode.insertBefore(runButton, codeNode.nextSibling);
+  });
+  document.querySelectorAll(".monaco").forEach(codeNode => {
+    observer.observe(codeNode);
   });
 });
 
