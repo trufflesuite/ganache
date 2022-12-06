@@ -101,7 +101,6 @@ export class RuntimeBlock {
     mixHash: Buffer,
     baseFeePerGas: bigint | undefined
   ) {
-    const ts = timestamp.toBuffer();
     const coinbaseBuffer = coinbase.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
@@ -113,7 +112,7 @@ export class RuntimeBlock {
       ),
       gasLimit: Quantity.toBigInt(gasLimit),
       gasUsed: Quantity.toBigInt(gasUsed),
-      timestamp: Quantity.toBigInt(ts),
+      timestamp: timestamp.toBigInt(),
       baseFeePerGas: baseFeePerGas === undefined ? 0n : baseFeePerGas,
       mixHash,
       prevRandao: mixHash
