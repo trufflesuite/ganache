@@ -46,7 +46,7 @@ export class Connector<
 {
   #provider: EthereumProvider;
 
-  static BUFFERIFY_THRESHOLD: number = 100000;
+  static BUFFERIFY_THRESHOLD: number = 30000;
 
   get provider() {
     return this.#provider;
@@ -130,29 +130,50 @@ export class Connector<
       if (
         payload.method === "debug_traceTransaction" &&
         typeof results === "object" &&
-        Array.isArray(results.structLogs) &&
-        // for "large" debug_traceTransaction results we convert to individual
-        // parts of the response to Buffers, yielded via a Generator function,
-        // instead of using JSON.stringify. This is necessary because we:
-        //   * avoid V8's maximum string length limit of 1GB
-        //   * avoid and the max Buffer length limit of ~2GB (on 64bit
-        //     architectures).
-        //   * avoid heap allocation failures due to trying to hold too much
-        //     data in memory (which can happen if we don't immediately consume
-        //     the `format` result -- by buffering everything into one array,
-        //     for example)
-        //
-        // We don't do this for everything because the bufferfication is so very
-        // very slow.
-        //
-        // TODO(perf): an even better way of solving this would be to convert
-        // `debug_traceTransaction` to a generator that yields chunks (of
-        // Buffer) as soon as they're available. We could then `write` these
-        // individual chunks immediately and our memory use would stay
-        // relatively low and constant.
-        results.structLogs.length > this.BUFFERIFY_THRESHOLD
+        Array.isArray(results.structLogs)
       ) {
-        return bufferify(json, "");
+        if (
+          // for "large" debug_traceTransaction results we convert to individual
+          // parts of the response to Buffers, yielded via a Generator function,
+          // instead of using JSON.stringify. This is necessary because we:
+          //   * avoid V8's maximum string length limit of 1GB
+          //   * avoid and the max Buffer length limit of ~2GB (on 64bit
+          //     architectures).
+          //   * avoid heap allocation failures due to trying to hold too much
+          //     data in memory (which can happen if we don't immediately consume
+          //     the `format` result -- by buffering everything into one array,
+          //     for example)
+          //
+          // We don't do this for everything because the bufferfication is so very
+          // very slow.
+          //
+          // TODO(perf): an even better way of solving this would be to convert
+          // `debug_traceTransaction` to a generator that yields chunks (of
+          // Buffer) as soon as they're available. We could then `write` these
+          // individual chunks immediately and our memory use would stay
+          // relatively low and constant.
+          results.structLogs.length > this.BUFFERIFY_THRESHOLD
+        ) {
+          return bufferify(json, "");
+        } else {
+          try {
+            // struct logs that are under the BUFFERIFY_THRESHOLD can still
+            // cause stringification to fail, so we need to try/catch this
+            // and fall back to `bufferify` if it does.
+            // We don't go straight to `bufferify` because it's much slower than
+            // `JSON.stringify`.
+            return JSON.stringify(json);
+          } catch (e) {
+            if (
+              e instanceof RangeError &&
+              e.message === "Invalid string length"
+            ) {
+              return bufferify(json, "");
+            } else {
+              throw e;
+            }
+          }
+        }
       } else {
         return JSON.stringify(json);
       }
