@@ -713,7 +713,7 @@ describe("@ganache/version-check", () => {
   });
 
   describe("notificationIntervalHasPassed", () => {
-    it("returns true", () => {
+    it("returns true if the notificationInterval has passed", () => {
       const hasPassed = vc.notificationIntervalHasPassed();
       assert.strictEqual(
         hasPassed,
@@ -721,7 +721,7 @@ describe("@ganache/version-check", () => {
         "Notification interval has passed but hasPassed is false."
       );
     });
-    it("returns false", () => {
+    it("returns false if the notificationInterval has passed", () => {
       const lastNotification = Date.now();
 
       vc = new VersionCheck(testVersion, { lastNotification }, testLogger);

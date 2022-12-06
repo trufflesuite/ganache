@@ -57,5 +57,5 @@ export function isCI(): boolean {
         process.env["VERCEL_URL"] ||
         process.env["WERCKER"] ||
         process.env["TRUFFLE_SHUFFLE_TEST"]
-      ) || false;
+      );
 }
