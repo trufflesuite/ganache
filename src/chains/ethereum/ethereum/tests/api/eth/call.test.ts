@@ -876,8 +876,8 @@ describe("api", () => {
             parentHeader.number,
             parentHeader.parentHash,
             blockchain.coinbase,
-            gas.toBuffer(),
-            parentHeader.gasUsed.toBuffer(),
+            gas,
+            parentHeader.gasUsed,
             parentHeader.timestamp,
             Quantity.One, // difficulty
             parentHeader.totalDifficulty,

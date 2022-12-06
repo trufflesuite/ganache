@@ -93,8 +93,8 @@ export class RuntimeBlock {
     number: Quantity,
     parentHash: Data,
     coinbase: Address,
-    gasLimit: Buffer,
-    gasUsed: Buffer,
+    gasLimit: Quantity,
+    gasUsed: Quantity,
     timestamp: Quantity,
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity,
@@ -110,8 +110,8 @@ export class RuntimeBlock {
       totalDifficulty: Quantity.toBuffer(
         previousBlockTotalDifficulty.toBigInt() + difficulty.toBigInt()
       ),
-      gasLimit: Quantity.toBigInt(gasLimit),
-      gasUsed: Quantity.toBigInt(gasUsed),
+      gasLimit: gasLimit.toBigInt(),
+      gasUsed: gasUsed.toBigInt(),
       timestamp: timestamp.toBigInt(),
       baseFeePerGas: baseFeePerGas === undefined ? 0n : baseFeePerGas,
       mixHash,
