@@ -5,11 +5,19 @@
   --main-bg-heavy-contrast: #806f74;
   --medium-bg-color: rgba(255, 255, 255, 0.1);
   --body-text: #fff0e1;
-  --turquoise: #3fe0c5;
-  --porsche: #e4a663;
-  --light-porsche: #f7e6d5;
+
   --light-turquoise: #99f4e5;
+  --turquoise: #3fe0c5;
   --medium-dark-turquoise: #1bd4b5;
+  --dark-turquoise: #00c3a2;
+
+  --light-porsche: #f7e6d5;
+  --porsche: #e4a663;
+  --medium-dark-porsche: #c2823c;
+  --dark-porsche: #9f611d;
+
+  --light-pink: #f069d6;
+  --pink: #e911bd;
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -20,11 +28,12 @@
     --medium-bg-color: rgba(0, 0, 0, 0.05);
     --body-text: #5e464d;
 
+    --light-turquoise: #4b7a73;
     --turquoise: #258575;
+    --medium-dark-turquoise: #12826f;
+
     --porsche: #785632;
     --light-porsche: #736456;
-    --light-turquoise: #4b7a73;
-    --medium-dark-turquoise: #12826f;
   }
 }
 html,
