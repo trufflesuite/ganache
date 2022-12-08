@@ -681,7 +681,7 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const passphrase = "passphrase"
+   * const passphrase = "";
    * const result = await provider.send("evm_removeAccount", [address, passphrase] );
    * console.log(result);
    * ```
