@@ -1,6 +1,6 @@
 require.config({
   paths: {
-    vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.21.2/min/vs"
+    vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs"
   }
 });
 
