@@ -3358,6 +3358,8 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const passphrase = "passphrase";
    * const newAccount = await provider.send("personal_newAccount", [passphrase] );
+   * // fund the new account
+   * await provider.send("evm_setAccountBalance", [newAccount,"0xffffffffffffff"])
    * const [to] = await provider.send("personal_listAccounts");
    *
    * // use account and passphrase to send the transaction
