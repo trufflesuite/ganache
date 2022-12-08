@@ -7,14 +7,6 @@ import {
 
 import allSettled from "promise.allsettled";
 
-// This `shim()` is necessary for `Promise.allSettled` to be shimmed
-// in `node@10`. We cannot use `allSettled([...])` directly due to
-// https://github.com/es-shims/Promise.allSettled/issues/5 without
-// upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
-// then this line could be removed and `Promise.allSettled` below
-// could replaced with `allSettled`.
-allSettled.shim();
-
 import AggregateError from "aggregate-error";
 import type {
   TemplatedApp,
@@ -225,7 +217,7 @@ export class Server<
 
     this.#status = ServerStatus.opening;
 
-    const promise = Promise.allSettled([
+    const promise = allSettled([
       this.#initializer,
       new Promise(
         (resolve: (listenSocket: false | us_listen_socket) => void) => {
@@ -263,10 +255,10 @@ export class Server<
       const errors: Error[] = [];
 
       if (promiseResults[0].status === "rejected") {
-        errors.push(promiseResults[0].reason);
+        errors.push(promiseResults[0].reason as Error);
       }
       if (promiseResults[1].status === "rejected") {
-        errors.push(promiseResults[1].reason);
+        errors.push(promiseResults[1].reason as Error);
       }
 
       if (errors.length === 0) {
