@@ -211,7 +211,7 @@ require(["vs/editor/editor.main"], function () {
         container.classList.add("editor-container");
         codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
         container.style.height =
-          Math.max(100, codeText.split(/\n/).length * 20 + 20) + "px";
+          Math.max(100, codeText.split(/\n/).length * 19 + 20) + "px";
 
         const editor = monaco.editor.create(container, {
           automaticLayout: true,
