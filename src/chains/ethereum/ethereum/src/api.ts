@@ -820,7 +820,7 @@ export default class EthereumApi implements Api {
    * @returns The SHA3 result of the given string.
    * @example
    * ```javascript
-   * const data = "hello trufflers";
+   * const data = "0xabcdef0123456789";
    * const sha3 = await provider.send("web3_sha3", [data] );
    * console.log(sha3);
    * ```
