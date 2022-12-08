@@ -130,10 +130,6 @@
   color: var(--light-turquoise);
 }
 
-.hljs-built_in {
-  color: var(--medium-dark-turquoise);
-}
-
 .hljs-symbol,
 .hljs-bullet,
 .hljs-variable,
