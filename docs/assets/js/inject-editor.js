@@ -159,9 +159,9 @@ require([, "vs/editor/editor.main"], function () {
         );
 
         const container = document.createElement("div");
+        container.style.display = "none";
         container.classList.add("editor-container");
         codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
-        codeNode.style.display = "none";
         container.style.height =
           Math.max(100, codeText.split(/\n/).length * 20 + 20) + "px";
 
@@ -204,6 +204,8 @@ require([, "vs/editor/editor.main"], function () {
             editor.setSelection(e.selection);
           }
         });
+        container.style.display = "";
+        codeNode.style.display = "none";
 
         const runButton = document.createElement("div");
         runButton.innerText = "▶ Try it!";
