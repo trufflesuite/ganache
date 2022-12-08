@@ -3621,6 +3621,7 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * await provider.send("miner_stop")
    * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
    * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
    * const pool = await provider.send("txpool_content");
