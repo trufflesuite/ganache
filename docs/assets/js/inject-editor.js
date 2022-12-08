@@ -13,7 +13,49 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
-require([, "vs/editor/editor.main"], function () {
+function getThemeRules() {
+  const styles = getComputedStyle(document.body);
+
+  const bodyText = styles.getPropertyValue("--body-text").substring(2, 8);
+  const lightTurquoise = styles
+    .getPropertyValue("--light-turquoise")
+    .substring(2, 8);
+  const mediumDarkTurquoise = styles
+    .getPropertyValue("--medium-dark-turquoise")
+    .substring(2, 8);
+  const darkTurquoise = styles
+    .getPropertyValue("--dark-turquoise")
+    .substring(2, 8);
+  const lightPorsche = styles
+    .getPropertyValue("--light-porsche")
+    .substring(2, 8);
+  const porsche = styles.getPropertyValue("--porsche").substring(2, 8);
+
+  const lightPink = styles.getPropertyValue("--light-pink").substring(2, 8);
+  const pink = styles.getPropertyValue("--pink").substring(2, 8);
+
+  return [
+    { token: "", foreground: bodyText },
+    { token: "emphasis", fontStyle: "italic" },
+    { token: "strong", fontStyle: "bold" },
+    { token: "variable", foreground: bodyText },
+    { token: "variable.function", foreground: mediumDarkTurquoise },
+    { token: "variable.parameter", foreground: lightPorsche },
+    { token: "constant", foreground: porsche },
+    { token: "comment", foreground: lightPink },
+    { token: "number", foreground: pink },
+    { token: "type", foreground: mediumDarkTurquoise },
+    { token: "delimiter", foreground: bodyText },
+    { token: "tag", foreground: porsche },
+    { token: "key", foreground: lightTurquoise },
+    { token: "attribute.name", foreground: lightTurquoise },
+    { token: "attribute.value.hex.css", foreground: lightTurquoise },
+    { token: "string", foreground: darkTurquoise },
+    { token: "keyword", foreground: porsche }
+  ];
+}
+
+require(["vs/editor/editor.main"], function () {
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
     target: monaco.languages.typescript.ScriptTarget.ESNext,
     module: monaco.languages.typescript.ModuleKind.ESNext,
@@ -36,6 +78,12 @@ require([, "vs/editor/editor.main"], function () {
   const libUri = "ts:filename/provider.d.ts";
   monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
   monaco.editor.createModel(libSource, "typescript", monaco.Uri.parse(libUri));
+  monaco.editor.defineTheme("ganache", {
+    base: "vs-dark",
+    colors: {},
+    inherit: true,
+    rules: getThemeRules()
+  });
 
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   async function run(e, editor, consoleDiv, outputDiv) {
@@ -177,7 +225,7 @@ require([, "vs/editor/editor.main"], function () {
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
           scrollbar: { alwaysConsumeMouseWheel: false },
-          theme: "vs-dark"
+          theme: "ganache"
         });
         // hide the first line (export {/*magic*/};)
         editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
