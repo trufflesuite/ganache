@@ -283,10 +283,16 @@ article.sidebar-open {
 
 .monaco {
   padding-left: 26px;
-  height: 100px;
+  min-height: 100px;
   background-color: #1e1e1e;
 }
 .monaco pre {
   background-color: #1e1e1e;
   margin: 0px;
+  padding-bottom: 20px;
+}
+
+code {
+  font-size: 14px;
+  line-height: 19px;
 }
