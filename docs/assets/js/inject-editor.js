@@ -13,7 +13,7 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
-function getThemeRules() {
+function getTheme() {
   const styles = getComputedStyle(document.body);
 
   const bodyText = styles.getPropertyValue("--body-text").substring(2, 8);
@@ -34,7 +34,9 @@ function getThemeRules() {
   const lightPink = styles.getPropertyValue("--light-pink").substring(2, 8);
   const pink = styles.getPropertyValue("--pink").substring(2, 8);
 
-  return [
+  const thunder = styles.getPropertyValue("--thunder").substring(2, 8);
+
+  const rules = [
     { token: "", foreground: bodyText },
     { token: "emphasis", fontStyle: "italic" },
     { token: "strong", fontStyle: "bold" },
@@ -53,6 +55,12 @@ function getThemeRules() {
     { token: "string", foreground: darkTurquoise },
     { token: "keyword", foreground: porsche }
   ];
+  return {
+    base: "vs-dark",
+    colors: { "editor.background": `#${thunder}` },
+    inherit: true,
+    rules
+  };
 }
 
 require(["vs/editor/editor.main"], function () {
@@ -78,12 +86,7 @@ require(["vs/editor/editor.main"], function () {
   const libUri = "ts:filename/provider.d.ts";
   monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
   monaco.editor.createModel(libSource, "typescript", monaco.Uri.parse(libUri));
-  monaco.editor.defineTheme("ganache", {
-    base: "vs-dark",
-    colors: {},
-    inherit: true,
-    rules: getThemeRules()
-  });
+  monaco.editor.defineTheme("ganache", getTheme());
 
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   async function run(e, editor, consoleDiv, outputDiv) {
