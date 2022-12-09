@@ -55,12 +55,10 @@
     "@ganache/utils": "0.6.0",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
     "aggregate-error": "3.1.0",
-    "emittery": "0.10.0",
-    "promise.allsettled": "1.0.4"
+    "emittery": "0.10.0"
   },
   "devDependencies": {
     "@types/mocha": "9.0.0",
-    "@types/promise.allsettled": "1.0.3",
     "@types/superagent": "4.1.10",
     "cross-env": "7.0.3",
     "mocha": "9.1.3",

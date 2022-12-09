@@ -5,8 +5,6 @@ import {
   serverOptionsConfig
 } from "./options";
 
-import allSettled from "promise.allsettled";
-
 import AggregateError from "aggregate-error";
 import type {
   TemplatedApp,
@@ -217,7 +215,7 @@ export class Server<
 
     this.#status = ServerStatus.opening;
 
-    const promise = allSettled([
+    const promise = Promise.allSettled([
       this.#initializer,
       new Promise(
         (resolve: (listenSocket: false | us_listen_socket) => void) => {
