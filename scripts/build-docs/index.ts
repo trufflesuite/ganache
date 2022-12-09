@@ -1,5 +1,6 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
+const { execSync } = require("child_process");
 const marked = require("marked");
 const hljs = require("highlight.js");
 
@@ -256,7 +257,14 @@ function renderTag(method: Method, tag: Tag, i: number) {
 
 function renderSource(method: Method) {
   const source = method.sources[0];
-  return `<a href="https://github.com/trufflesuite/ganache/blob/next/src/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
+  let branch = "master";
+  if (!process.env.CI) {
+    branch =
+      execSync("git rev-parse --abbrev-ref HEAD", {
+        encoding: "utf8"
+      }).trim() || "master";
+  }
+  return `<a href="https://github.com/trufflesuite/ganache/blob/${branch}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
 }
 
 function renderTags(method: Method) {
