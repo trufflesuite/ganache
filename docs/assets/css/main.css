@@ -18,6 +18,8 @@
 
   --light-pink: #f069d6;
   --pink: #e911bd;
+
+  --thunder: #251f21;
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -177,7 +179,7 @@ i {
   width: 12px;
 }
 .console::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--thunder);
 }
 .console::-webkit-scrollbar-thumb {
   background: hsla(0, 0%, 47%, 0.4);
@@ -284,10 +286,10 @@ article.sidebar-open {
 .monaco {
   padding-left: 26px;
   min-height: 100px;
-  background-color: #1e1e1e;
+  background-color: var(--thunder);
 }
 .monaco pre {
-  background-color: #1e1e1e;
+  background-color: var(--thunder);
   margin: 0px;
   padding-bottom: 20px;
 }
@@ -296,3 +298,10 @@ code {
   font-size: 14px;
   line-height: 19px;
 }
+
+.hide-monaco {
+  visibility: hidden;
+  height: 0px;
+  min-height: 0px;
+}
+
