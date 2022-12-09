@@ -195,79 +195,95 @@ require(["vs/editor/editor.main"], function () {
     );
     await fn(ganache, assert, k);
   }
+  const hasInsertedEditor = codeNode =>
+    codeNode.classList.contains("hide-monaco");
 
+  const insertEditor = codeNode => {
+    // we've already processed this node, so back out
+    if (hasInsertedEditor(codeNode)) return;
+
+    const codeText = codeNode.innerText.trim();
+
+    const { consoleContainer, consoleDiv, outputDiv } = createConsole();
+    consoleContainer.style.display = "none";
+    codeNode.parentNode.insertBefore(consoleContainer, codeNode.nextSibling);
+
+    const container = document.createElement("div");
+    container.style.display = "none";
+    container.classList.add("editor-container");
+    codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
+    container.style.height =
+      Math.max(100, codeText.split(/\n/).length * 19 + 20) + "px";
+
+    const editor = monaco.editor.create(container, {
+      automaticLayout: true,
+      model: monaco.editor.createModel(
+        // we prepend `export {/*magic*/}` so the typechecker doesn't think the code is global and shared between editors
+        "export {/*magic*/};\n" + codeText,
+        codeNode.dataset.language || "javascript",
+        monaco.Uri.parse(`js:${codeNode.dataset.method}.js`)
+      ),
+      lineNumbers: "off",
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      scrollbar: { alwaysConsumeMouseWheel: false },
+      theme: "ganache"
+    });
+    // hide the first line (export {/*magic*/};)
+    editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
+
+    editor.onDidChangeCursorSelection(e => {
+      // because we hide the first line we need to make sure the user can't select it
+      if (
+        e.selection.startLineNumber === 1 ||
+        e.selection.selectionStartLineNumber === 1 ||
+        e.selection.positionLineNumber === 1
+      ) {
+        e.selection.startLineNumber = Math.max(e.selection.startLineNumber, 2);
+        e.selection.selectionStartLineNumber = Math.max(
+          e.selection.selectionStartLineNumber,
+          2
+        );
+        e.selection.positionLineNumber = Math.max(
+          e.selection.positionLineNumber,
+          2
+        );
+        editor.setSelection(e.selection);
+      }
+    });
+    container.style.display = "";
+    codeNode.classList.add("hide-monaco");
+
+    const runButton = document.createElement("div");
+    runButton.innerText = "▶ Try it!";
+    runButton.classList.add("run-button");
+    runButton.addEventListener("click", async e => {
+      consoleContainer.style.display = "block";
+      runButton.style.opacity = ".5";
+      await run(e, editor, consoleDiv, outputDiv);
+      runButton.style.opacity = "";
+    });
+    codeNode.parentNode.insertBefore(runButton, codeNode.nextSibling);
+  };
   const observer = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const codeNode = entry.target;
-        const codeText = codeNode.innerText.trim();
-
-        const { consoleContainer, consoleDiv, outputDiv } = createConsole();
-        consoleContainer.style.display = "none";
-        codeNode.parentNode.insertBefore(
-          consoleContainer,
-          codeNode.nextSibling
-        );
-
-        const container = document.createElement("div");
-        container.style.display = "none";
-        container.classList.add("editor-container");
-        codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
-        container.style.height =
-          Math.max(100, codeText.split(/\n/).length * 19 + 20) + "px";
-
-        const editor = monaco.editor.create(container, {
-          automaticLayout: true,
-          model: monaco.editor.createModel(
-            // we prepend `export {/*magic*/}` so the typechecker doesn't think the code is global and shared between editors
-            "export {/*magic*/};\n" + codeText,
-            codeNode.dataset.language || "javascript",
-            monaco.Uri.parse(`js:${codeNode.dataset.method}.js`)
-          ),
-          lineNumbers: "off",
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-          scrollbar: { alwaysConsumeMouseWheel: false },
-          theme: "ganache"
-        });
-        // hide the first line (export {/*magic*/};)
-        editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
-
-        editor.onDidChangeCursorSelection(e => {
-          // because we hide the first line we need to make sure the user can't select it
-          if (
-            e.selection.startLineNumber === 1 ||
-            e.selection.selectionStartLineNumber === 1 ||
-            e.selection.positionLineNumber === 1
-          ) {
-            e.selection.startLineNumber = Math.max(
-              e.selection.startLineNumber,
-              2
-            );
-            e.selection.selectionStartLineNumber = Math.max(
-              e.selection.selectionStartLineNumber,
-              2
-            );
-            e.selection.positionLineNumber = Math.max(
-              e.selection.positionLineNumber,
-              2
-            );
-            editor.setSelection(e.selection);
+        insertEditor(codeNode);
+        const parent = codeNode.parentElement.parentElement;
+        // always load the sibling nodes when there's an intersection
+        // this is to try to minimize the flicker that happens when the editor
+        // is created while visible
+        const loadNode = parentNode => {
+          if (parentNode) {
+            const node = parentNode.querySelector(".monaco");
+            if (node) {
+              insertEditor(node);
+            }
           }
-        });
-        container.style.display = "";
-        codeNode.style.display = "none";
-
-        const runButton = document.createElement("div");
-        runButton.innerText = "▶ Try it!";
-        runButton.classList.add("run-button");
-        runButton.addEventListener("click", async e => {
-          consoleContainer.style.display = "block";
-          runButton.style.opacity = ".5";
-          await run(e, editor, consoleDiv, outputDiv);
-          runButton.style.opacity = "";
-        });
-        codeNode.parentNode.insertBefore(runButton, codeNode.nextSibling);
+        };
+        loadNode(parent.previousElementSibling);
+        loadNode(parent.nextElementSibling);
         observer.unobserve(codeNode);
       }
     });
