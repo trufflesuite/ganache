@@ -184,6 +184,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"] ));
    * ```
+   * @category db
    */
   @assertArgLength(3)
   async db_putString(
@@ -204,6 +205,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("db_getString", ["testDb", "testKey"] ));
    * ```
+   * @category db
    */
   @assertArgLength(2)
   async db_getString(dbName: string, key: string) {
@@ -221,6 +223,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("db_putHex", ["testDb", "testKey", "0x0"] ));
    * ```
+   * @category db
    */
   @assertArgLength(3)
   async db_putHex(dbName: string, key: string, data: DATA) {
@@ -237,6 +240,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("db_getHex", ["testDb", "testKey"] ));
    * ```
+   * @category db
    */
   @assertArgLength(2)
   async db_getHex(dbName: string, key: string) {
@@ -252,6 +256,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("bzz_hive"));
    * ```
+   * @category bzz
    */
   @assertArgLength(0)
   async bzz_hive() {
@@ -265,6 +270,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("bzz_info"));
    * ```
+   * @category bzz
    */
   @assertArgLength(0)
   async bzz_info() {
@@ -293,6 +299,7 @@ export default class EthereumApi implements Api {
    * await provider.send("evm_mine", [{blocks: 5}] ); // mines 5 blocks
    * console.log("end", await provider.send("eth_blockNumber"));
    * ```
+   * @category evm
    */
   async evm_mine(): Promise<"0x0">;
   async evm_mine(timestamp: number): Promise<"0x0">;
@@ -357,6 +364,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.send("evm_setAccountNonce", [address, nonce] );
    * console.log(result);
    * ```
+   * @category evm
    */
   @assertArgLength(2)
   async evm_setAccountNonce(address: DATA, nonce: QUANTITY) {
@@ -396,6 +404,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.send("evm_setAccountBalance", [address, balance] );
    * console.log(result);
    * ```
+   * @category evm
    */
   @assertArgLength(2)
   async evm_setAccountBalance(address: DATA, balance: QUANTITY) {
@@ -436,6 +445,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.send("evm_setAccountCode", [address, data] );
    * console.log(result);
    * ```
+   * @category evm
    */
   @assertArgLength(2)
   async evm_setAccountCode(address: DATA, code: DATA) {
@@ -482,6 +492,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.send("evm_setAccountStorageAt", [address, slot, data] );
    * console.log(result);
    * ```
+   * @category evm
    */
   @assertArgLength(3)
   async evm_setAccountStorageAt(address: DATA, slot: DATA, value: DATA) {
@@ -513,6 +524,7 @@ export default class EthereumApi implements Api {
    * const timeAdjustment = await provider.send("evm_increaseTime", [seconds] );
    * console.log(timeAdjustment);
    * ```
+   * @category evm
    */
   @assertArgLength(1)
   async evm_increaseTime(seconds: number | QUANTITY) {
@@ -539,6 +551,7 @@ export default class EthereumApi implements Api {
    *   console.log(time); // should be about two seconds ago
    * }, 1000);
    * ```
+   * @category evm
    */
   @assertArgLength(0, 1)
   async evm_setTime(time: number | QUANTITY | Date) {
@@ -596,6 +609,7 @@ export default class EthereumApi implements Api {
    * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
    * console.log({isBalanceReverted: isBalanceReverted});
    * ```
+   * @category evm
    */
   @assertArgLength(1)
   async evm_revert(snapshotId: QUANTITY) {
@@ -638,6 +652,7 @@ export default class EthereumApi implements Api {
    * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
    * console.log({isBalanceReverted: isBalanceReverted});
    * ```
+   * @category evm
    */
   async evm_snapshot() {
     return Quantity.from(this.#blockchain.snapshot());
@@ -662,6 +677,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.send("evm_addAccount", [address, passphrase] );
    * console.log(result);
    * ```
+   * @category evm
    */
   async evm_addAccount(address: DATA, passphrase: string) {
     const addy = Address.from(address);
@@ -685,6 +701,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.send("evm_removeAccount", [address, passphrase] );
    * console.log(result);
    * ```
+   * @category evm
    */
   async evm_removeAccount(address: DATA, passphrase: string) {
     const addy = Address.from(address);
@@ -709,6 +726,7 @@ export default class EthereumApi implements Api {
    * // check that eth_mining returns true
    * console.log(await provider.send("eth_mining"));
    * ```
+   * @category miner
    */
   @assertArgLength(0, 1)
   async miner_start(threads: number = 1) {
@@ -739,6 +757,7 @@ export default class EthereumApi implements Api {
    * // check that eth_mining returns false
    * console.log(await provider.send("eth_mining"));
    * ```
+   * @category miner
    */
   @assertArgLength(0)
   async miner_stop() {
@@ -756,6 +775,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("miner_setGasPrice", [300000] ));
    * ```
+   * @category miner
    */
   @assertArgLength(1)
   async miner_setGasPrice(number: QUANTITY) {
@@ -772,6 +792,7 @@ export default class EthereumApi implements Api {
    * const [account] = await provider.request({ method: "eth_accounts", params: [] });
    * console.log(await provider.send("miner_setEtherbase", [account] ));
    * ```
+   * @category miner
    */
   @assertArgLength(1)
   async miner_setEtherbase(address: DATA) {
@@ -787,6 +808,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("miner_setExtra", ["0x0"] ));
    * ```
+   * @category miner
    */
   @assertArgLength(1)
   async miner_setExtra(extra: DATA) {
@@ -808,6 +830,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("web3_clientVersion"));
    * ```
+   * @category web3
    */
   @assertArgLength(0)
   async web3_clientVersion() {
@@ -824,6 +847,7 @@ export default class EthereumApi implements Api {
    * const sha3 = await provider.send("web3_sha3", [data] );
    * console.log(sha3);
    * ```
+   * @category web3
    */
   @assertArgLength(1)
   async web3_sha3(data: DATA) {
@@ -840,6 +864,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("net_version"));
    * ```
+   * @category net
    */
   @assertArgLength(0)
   async net_version() {
@@ -853,6 +878,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("net_listening"));
    * ```
+   * @category net
    */
   @assertArgLength(0)
   async net_listening() {
@@ -866,6 +892,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("net_peerCount"));
    * ```
+   * @category net
    */
   @assertArgLength(0)
   async net_peerCount() {
@@ -902,6 +929,7 @@ export default class EthereumApi implements Api {
    * const gasEstimate = await provider.request({ method: "eth_estimateGas", params: [{ from, to }, "latest" ] });
    * console.log(gasEstimate);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 2)
   async eth_estimateGas(
@@ -975,6 +1003,7 @@ export default class EthereumApi implements Api {
    * const version = await provider.request({ method: "eth_protocolVersion", params: [] });
    * console.log(version);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_protocolVersion() {
@@ -996,6 +1025,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.request({ method: "eth_syncing", params: [] });
    * console.log(result);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_syncing() {
@@ -1010,6 +1040,7 @@ export default class EthereumApi implements Api {
    * const coinbaseAddress = await provider.request({ method: "eth_coinbase" });
    * console.log(coinbaseAddress);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_coinbase() {
@@ -1050,6 +1081,7 @@ export default class EthereumApi implements Api {
    * const block = await provider.request({ method: "eth_getBlockByNumber", params: ["0x0", false] });
    * console.log(block);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 2)
   async eth_getBlockByNumber<IncludeTransactions extends boolean = false>(
@@ -1116,6 +1148,7 @@ export default class EthereumApi implements Api {
    * const proof = await provider.request({ method: "eth_getProof", params: [txReceipt.contractAddress, ["0x0", "0x1"], "latest"] });
    * console.log(proof);
    * ```
+   * @category eth
    */
   @assertArgLength(2, 3)
   async eth_getProof(
@@ -1206,6 +1239,7 @@ export default class EthereumApi implements Api {
    * const block = await provider.request({ method: "eth_getBlockByHash", params: [txReceipt.blockHash, true] });
    * console.log(block);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 2)
   async eth_getBlockByHash<IncludeTransactions extends boolean = false>(
@@ -1231,6 +1265,7 @@ export default class EthereumApi implements Api {
    * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByNumber", params: ["0x0"] });
    * console.log(txCount);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getBlockTransactionCountByNumber(
@@ -1270,6 +1305,7 @@ export default class EthereumApi implements Api {
    * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByHash", params: [txReceipt.blockHash] });
    * console.log(txCount);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
@@ -1292,6 +1328,7 @@ export default class EthereumApi implements Api {
    * const compilers = await provider.send("eth_getCompilers");
    * console.log(compilers);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_getCompilers() {
@@ -1330,6 +1367,7 @@ export default class EthereumApi implements Api {
    * const tx = await provider.request({ method: "eth_getTransactionByBlockHashAndIndex", params: [ blockHash, transactionIndex ] });
    * console.log(tx);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockHashAndIndex(
@@ -1377,6 +1415,7 @@ export default class EthereumApi implements Api {
    * const tx = await provider.request({ method: "eth_getTransactionByBlockNumberAndIndex", params: [ "latest", transactionIndex ] });
    * console.log(tx);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_getTransactionByBlockNumberAndIndex(
@@ -1400,6 +1439,7 @@ export default class EthereumApi implements Api {
    * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", [blockHash] );
    * console.log(uncleCount);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getUncleCountByBlockHash(hash: DATA) {
@@ -1415,6 +1455,7 @@ export default class EthereumApi implements Api {
    * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"] );
    * console.log(uncleCount);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getUncleCountByBlockNumber(blockNumber: QUANTITY | Ethereum.Tag) {
@@ -1457,6 +1498,7 @@ export default class EthereumApi implements Api {
    * const block = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"] );
    * console.log(block);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_getUncleByBlockHashAndIndex(hash: DATA, index: QUANTITY) {
@@ -1498,6 +1540,7 @@ export default class EthereumApi implements Api {
    * const block = await provider.send("eth_getUncleByBlockNumberAndIndex", ["latest", "0x0"] );
    * console.log(block);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_getUncleByBlockNumberAndIndex(
@@ -1518,6 +1561,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("eth_getWork", [] ));
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_getWork() {
@@ -1539,6 +1583,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.request({ method: "eth_submitWork", params: [nonce, powHash, digest] });
    * console.log(result);
    * ```
+   * @category eth
    */
   @assertArgLength(3)
   async eth_submitWork(nonce: DATA, powHash: DATA, digest: DATA) {
@@ -1558,6 +1603,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.request({ method: "eth_submitHashrate", params: [hashRate, clientId] });
    * console.log(result);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_submitHashrate(hashRate: DATA, clientID: DATA) {
@@ -1572,6 +1618,7 @@ export default class EthereumApi implements Api {
    * const isMining = await provider.request({ method: "eth_mining", params: [] });
    * console.log(isMining);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_mining() {
@@ -1587,6 +1634,7 @@ export default class EthereumApi implements Api {
    * const hashrate = await provider.request({ method: "eth_hashrate", params: [] });
    * console.log(hashrate);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_hashrate() {
@@ -1601,6 +1649,7 @@ export default class EthereumApi implements Api {
    * const gasPrice = await provider.request({ method: "eth_gasPrice", params: [] });
    * console.log(gasPrice);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_gasPrice() {
@@ -1615,6 +1664,7 @@ export default class EthereumApi implements Api {
    * const suggestedTip = await provider.request({ method: "eth_maxPriorityFeePerGas", params: [] });
    * console.log(suggestedTip);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_maxPriorityFeePerGas() {
@@ -1629,6 +1679,7 @@ export default class EthereumApi implements Api {
    * const accounts = await provider.request({ method: "eth_accounts", params: [] });
    * console.log(accounts);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_accounts() {
@@ -1643,6 +1694,7 @@ export default class EthereumApi implements Api {
    * const blockNumber = await provider.request({ method: "eth_blockNumber" });
    * console.log(blockNumber);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_blockNumber() {
@@ -1660,6 +1712,7 @@ export default class EthereumApi implements Api {
    * const chainId = await provider.send("eth_chainId");
    * console.log(chainId);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_chainId() {
@@ -1680,6 +1733,7 @@ export default class EthereumApi implements Api {
    * const balance = await provider.request({ method: "eth_getBalance", params: [accounts[0], "latest"] });
    * console.log(balance);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 2)
   async eth_getBalance(
@@ -1719,6 +1773,7 @@ export default class EthereumApi implements Api {
    * const code = await provider.request({ method: "eth_getCode", params: [txReceipt.contractAddress, "latest"] });
    * console.log(code);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 2)
   async eth_getCode(
@@ -1757,6 +1812,7 @@ export default class EthereumApi implements Api {
    * const storageValue = await provider.request({ method: "eth_getStorageAt", params: [txReceipt.contractAddress, "0x0", "latest"] });
    * console.log(storageValue);
    * ```
+   * @category eth
    */
   @assertArgLength(2, 3)
   async eth_getStorageAt(
@@ -1830,6 +1886,7 @@ export default class EthereumApi implements Api {
    * const tx = await provider.request({ method: "eth_getTransactionByHash", params: [ txHash ] });
    * console.log(tx);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getTransactionByHash(
@@ -1873,6 +1930,7 @@ export default class EthereumApi implements Api {
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [ txHash ] });
    * console.log(txReceipt);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getTransactionReceipt(
@@ -1939,6 +1997,7 @@ export default class EthereumApi implements Api {
    * await provider.once("message"); // Note: `await provider.once` is non-standard
    * console.log(txHash);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_sendTransaction(transaction: Ethereum.Transaction): Promise<Data> {
@@ -1995,6 +2054,7 @@ export default class EthereumApi implements Api {
    * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to }] });
    * console.log(signedTx)
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_signTransaction(transaction: Ethereum.Transaction): Promise<Data> {
@@ -2034,6 +2094,7 @@ export default class EthereumApi implements Api {
    * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
    * console.log(txHash);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_sendRawTransaction(transaction: string) {
@@ -2067,6 +2128,7 @@ export default class EthereumApi implements Api {
    * const signature = await provider.request({ method: "eth_sign", params: [account, msg] });
    * console.log(signature);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_sign(address: DATA, message: DATA) {
@@ -2137,6 +2199,7 @@ export default class EthereumApi implements Api {
    * const signature = await provider.request({ method: "eth_signTypedData", params: [account, typedData] });
    * console.log(signature);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_signTypedData(address: DATA, typedData: Ethereum.TypedData) {
@@ -2197,6 +2260,7 @@ export default class EthereumApi implements Api {
    * const signature = await provider.request({ method: "eth_signTypedData_v4", params: [account, typedData] });
    * console.log(signature);
    * ```
+   * @category eth
    */
   @assertArgLength(2)
   async eth_signTypedData_v4(address: DATA, typedData: Ethereum.TypedData) {
@@ -2246,6 +2310,7 @@ export default class EthereumApi implements Api {
    * const subscriptionId = await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * console.log(subscriptionId);
    * ```
+   * @category eth
    */
   eth_subscribe(
     subscriptionName: Ethereum.SubscriptionName
@@ -2385,6 +2450,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.request({ method: "eth_unsubscribe", params: [subscriptionId] });
    * console.log(result);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_unsubscribe(subscriptionId: Ethereum.SubscriptionId) {
@@ -2409,6 +2475,7 @@ export default class EthereumApi implements Api {
    * const filterId = await provider.request({ method: "eth_newBlockFilter", params: [] });
    * console.log(filterId);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_newBlockFilter(): Promise<Quantity> {
@@ -2436,6 +2503,7 @@ export default class EthereumApi implements Api {
    * const filterId = await provider.request({ method: "eth_newPendingTransactionFilter", params: [] });
    * console.log(filterId);
    * ```
+   * @category eth
    */
   @assertArgLength(0)
   async eth_newPendingTransactionFilter(): Promise<Quantity> {
@@ -2495,6 +2563,7 @@ export default class EthereumApi implements Api {
    * const filterId = await provider.request({ method: "eth_newFilter", params: [] });
    * console.log(filterId);
    * ```
+   * @category eth
    */
   @assertArgLength(0, 1)
   async eth_newFilter(filter?: Ethereum.Filter): Promise<Quantity> {
@@ -2573,6 +2642,7 @@ export default class EthereumApi implements Api {
    *
    * await provider.send("eth_unsubscribe", [subscriptionId]);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getFilterChanges(filterId: QUANTITY): Promise<Data[]> {
@@ -2599,6 +2669,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.request({ method: "eth_uninstallFilter", params: [filterId] });
    * console.log(result);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_uninstallFilter(filterId: QUANTITY): Promise<boolean> {
@@ -2643,6 +2714,7 @@ export default class EthereumApi implements Api {
    * const logs = await provider.request({ method: "eth_getFilterLogs", params: [filterId] });
    * console.log(logs);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getFilterLogs(filterId: QUANTITY): Promise<Ethereum.Logs> {
@@ -2700,6 +2772,7 @@ export default class EthereumApi implements Api {
    * const logs = await provider.request({ method: "eth_getLogs", params: [{ address: contractAddress }] });
    * console.log(logs);
    * ```
+   * @category eth
    */
   @assertArgLength(1)
   async eth_getLogs(filter: Ethereum.LogsFilter): Promise<Ethereum.Logs> {
@@ -2723,6 +2796,7 @@ export default class EthereumApi implements Api {
    * const txCount = await provider.request({ method: "eth_getTransactionCount", params: [ from, "latest" ] });
    * console.log(txCount);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 2)
   async eth_getTransactionCount(
@@ -2781,6 +2855,7 @@ export default class EthereumApi implements Api {
    * const result = await provider.request({ method: "eth_call", params: [txObj, "latest", overrides] });
    * console.log(result);
    * ```
+   * @category eth
    */
   @assertArgLength(1, 3)
   async eth_call(
@@ -2919,6 +2994,7 @@ export default class EthereumApi implements Api {
    * const feeHistory = await provider.request({ method: "eth_feeHistory", params: ["0x1", "0x1", [10, 100]] });
    * console.log(feeHistory);
    * ```
+   * @category eth
    */
   @assertArgLength(3)
   async eth_feeHistory(
@@ -3138,6 +3214,7 @@ export default class EthereumApi implements Api {
    * const transactionTrace = await provider.request({ method: "debug_traceTransaction", params: [txHash] });
    * console.log(transactionTrace);
    * ```
+   * @category debug
    */
   async debug_traceTransaction(
     transactionHash: DATA,
@@ -3189,6 +3266,7 @@ export default class EthereumApi implements Api {
    * const storage = await provider.request({ method: "debug_storageRangeAt", params: [blockHash, transactionIndex, contractAddress, "0x01", 1] });
    * console.log(storage);
    * ```
+   * @category debug
    */
   async debug_storageRangeAt(
     blockHash: DATA,
@@ -3217,6 +3295,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("personal_listAccounts"));
    * ```
+   * @category personal
    */
   @assertArgLength(0)
   async personal_listAccounts(): Promise<string[]> {
@@ -3234,6 +3313,7 @@ export default class EthereumApi implements Api {
    * const address = await provider.send("personal_newAccount", [passphrase] );
    * console.log(address);
    * ```
+   * @category personal
    */
   @assertArgLength(1)
   async personal_newAccount(passphrase: string): Promise<Address> {
@@ -3265,6 +3345,7 @@ export default class EthereumApi implements Api {
    * const address = await provider.send("personal_importRawKey",[rawKey, passphrase] );
    * console.log(address);
    * ```
+   * @category personal
    */
   @assertArgLength(2)
   async personal_importRawKey(
@@ -3295,6 +3376,7 @@ export default class EthereumApi implements Api {
    * const isLocked = await provider.send("personal_lockAccount", [account] );
    * console.log(isLocked);
    * ```
+   * @category personal
    */
   @assertArgLength(1)
   async personal_lockAccount(address: DATA): Promise<boolean> {
@@ -3323,6 +3405,7 @@ export default class EthereumApi implements Api {
    * const isUnlocked = await provider.send("personal_unlockAccount", [newAccount, passphrase] );
    * console.log(isUnlocked);
    * ```
+   * @category personal
    */
   @assertArgLength(2, 3)
   async personal_unlockAccount(
@@ -3366,6 +3449,7 @@ export default class EthereumApi implements Api {
    * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to, gasLimit: "0x5b8d80" }, passphrase] );
    * console.log(txHash);
    * ```
+   * @category personal
    */
   @assertArgLength(2)
   async personal_sendTransaction(
@@ -3425,6 +3509,7 @@ export default class EthereumApi implements Api {
    * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to }, passphrase] });
    * console.log(signedTx)
    * ```
+   * @category personal
    */
   @assertArgLength(2)
   async personal_signTransaction(
@@ -3456,6 +3541,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("rpc_modules"));
    * ```
+   * @category rpc
    */
   @assertArgLength(0)
   async rpc_modules(): Promise<typeof RPC_MODULES> {
@@ -3473,6 +3559,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_newIdentity"));
    * ```
+   * @category shh
    */
   @assertArgLength(0)
   async shh_newIdentity(): Promise<string> {
@@ -3488,6 +3575,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_hasIdentity", ["0x0"] ));
    * ```
+   * @category shh
    */
   @assertArgLength(1)
   async shh_hasIdentity(address: DATA): Promise<boolean> {
@@ -3498,6 +3586,7 @@ export default class EthereumApi implements Api {
    * Creates a new group.
    *
    * @returns The address of the new group.
+   * @category shh
    */
   @assertArgLength(0)
   async shh_newGroup(): Promise<string> {
@@ -3513,6 +3602,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_addToGroup", ["0x0"] ));
    * ```
+   * @category shh
    */
   @assertArgLength(1)
   async shh_addToGroup(address: DATA): Promise<boolean> {
@@ -3530,6 +3620,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_newFilter", ["0x0", []] ));
    * ```
+   * @category shh
    */
   @assertArgLength(2)
   async shh_newFilter(to: DATA, topics: DATA[]): Promise<boolean> {
@@ -3546,6 +3637,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_uninstallFilter", ["0x0"] ));
    * ```
+   * @category shh
    */
   @assertArgLength(1)
   async shh_uninstallFilter(id: QUANTITY): Promise<boolean> {
@@ -3561,6 +3653,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_getFilterChanges", ["0x0"] ));
    * ```
+   * @category shh
    */
   @assertArgLength(1)
   async shh_getFilterChanges(id: QUANTITY): Promise<[]> {
@@ -3576,6 +3669,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_getMessages", ["0x0"] ));
    * ```
+   * @category shh
    */
   @assertArgLength(1)
   async shh_getMessages(id: QUANTITY): Promise<boolean> {
@@ -3591,6 +3685,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_post", [{}] ));
    * ```
+   * @category shh
    */
   @assertArgLength(1)
   async shh_post(postData: Ethereum.WhisperPostObject): Promise<boolean> {
@@ -3605,6 +3700,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * console.log(await provider.send("shh_version"));
    * ```
+   * @category shh
    */
   @assertArgLength(0)
   async shh_version(): Promise<string> {
@@ -3627,6 +3723,7 @@ export default class EthereumApi implements Api {
    * const pool = await provider.send("txpool_content");
    * console.log(pool);
    * ```
+   * @category txpool
    */
   @assertArgLength(0)
   async txpool_content(): Promise<Ethereum.Pool.Content<"private">> {
