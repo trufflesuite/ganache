@@ -305,3 +305,35 @@ code {
   min-height: 0px;
 }
 
+.category-header {
+  text-transform: uppercase;
+}
+
+.sidebar > details {
+  margin-top: 20px;
+}
+.sidebar > details > summary {
+  text-transform: uppercase;
+}
+.sidebar > details > ul {
+  text-transform: none;
+  padding-left: 17px;
+  margin-top: 5px;
+  padding-bottom: 0px;
+}
+
+.sidebar > details > ul > li {
+  border-left-style: dotted;
+  border-left-width: 1px;
+  border-color: rgba(255, 255, 255, 0.4);
+  padding: 1px 0px 0px 10px;
+  margin: 1px;
+}
+
+.sidebar > details > ul > li > div {
+  display: inline;
+  margin-left: -8px;
+  font-size: x-small;
+  margin-right: 5px;
+  color: rgba(255, 255, 255, 0.4);
+}
