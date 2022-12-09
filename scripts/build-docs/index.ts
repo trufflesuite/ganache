@@ -19,9 +19,19 @@ const highlight = () => {
 const markedOptions = {
   highlight: highlight().fn
 };
-
+type Category = {
+  title: string;
+  children: number[];
+};
+type Group = {
+  title: string;
+  kind: number;
+  children: Child[];
+  categories: Category[];
+};
 type Child = {
   children: Child[];
+  groups: Group[];
 } & Method;
 const api = JSON.parse(
   readFileSync(join(__dirname, "../../docs/typedoc/api.json"), "utf8")
@@ -41,11 +51,6 @@ function x(unsafe: string) {
 function e(s: string) {
   return encodeURIComponent(s);
 }
-
-const methods = ethereum.children.filter(
-  (method: Method) =>
-    method.name !== "constructor" && method.kindString === "Method"
-) as Method[];
 
 type Tag = {
   tag: string;
@@ -71,6 +76,7 @@ type Comment = {
 };
 
 type Method = {
+  id: number;
   name: string;
   signatures: {
     name: string;
@@ -168,9 +174,9 @@ function (${name}: ${type})
 }
 
 function renderMethodLink(method: Method) {
-  return `<a href="#${e(x(method.name))}" onclick="toggleSidebar()">${x(
-    method.name
-  )}</a>`;
+  return `<div>---</div><a href="#${e(
+    x(method.name)
+  )}" onclick="toggleSidebar()">${x(method.name)}</a>`;
 }
 
 function renderMethodDocs(method: Method) {
@@ -337,8 +343,33 @@ function renderSignature(method: Method) {
     .value.replace('<span class="hljs-keyword">function</span>', "");
 }
 
-const methodList: string[] = [];
+const methodListByGroup: string[] = [];
 const methodDocs: string[] = [];
+
+const methodGroup = ethereum.groups[2];
+methodGroup.categories.forEach(category => {
+  const methodListForGroup: string[] = [];
+  methodDocs.push(
+    `<div class="content"><h2 class="category-header">${category.title} methods</h2></div>`
+  );
+  category.children.forEach(childId => {
+    const method = ethereum.children.find(child => child.id === childId);
+    if (method) {
+      methodListForGroup.push(renderMethodLink(method));
+      methodDocs.push(renderMethodDocs(method));
+    }
+  });
+  methodListByGroup.push(
+    `<details open><summary>${
+      category.title
+    }</summary><ul><li>${methodListForGroup.join(
+      "</li><li>"
+    )}</li></ul></details>`
+  );
+});
+const preamble =
+  marked(`This reference describes all Ganache JSON-RPC methods and provides interactive examples for each method. The interactive examples are powered by [Ganache in the Browser](https://github.com/trufflesuite/ganache/#browser-use) and demonstrate using Ganache programmatically [as an EIP-1193 provider](https://github.com/trufflesuite/ganache/#as-an-eip-1193-provider-only). Try running these examples to see Ganache in action! Each editor can be changed to further test Ganache features.
+
 **Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in some [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
 const html = `
@@ -367,13 +398,10 @@ const html = `
       <main>
         <aside>
           <nav class="sidebar hide">
-            <ul>
-              <li>
-              ${methodList.join("</li><li>")}
-              </li>
-            </ul>
+              ${methodListByGroup.join("")}
           </nav>
         </aside>
+        <div class="sidebar-spacer hide"></div>
         <article>
           <div class="content">
           <h2>Ganache JSON-RPC Documentation</h2>
@@ -389,8 +417,10 @@ const html = `
     <script>
       function toggleSidebar() {
         const toggleSidebarBtn = document.querySelector(".sidebar");
+        const spacer = document.querySelector(".sidebar-spacer");
         const main = document.querySelector("article");
         toggleSidebarBtn.classList.toggle("hide");
+        spacer.classList.toggle("hide");
         main.classList.toggle("sidebar-open");
       }
     </script>
