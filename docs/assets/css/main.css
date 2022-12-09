@@ -251,13 +251,25 @@ article div.wide-content {
 article.sidebar-open {
   transition: 0.3s ease-in-out;
 }
+.sidebar-spacer.sidebar-open {
+  transition: 0.3s ease-in-out;
+}
+.sidebar {
+  min-width: 390px;
+  max-width: 420px;
+}
+.sidebar-spacer {
+  min-width: 390px;
+  max-width: 420px;
+}
+
 /* medium devices (tablets) */
 @media (min-width: 768px) {
   .sidebar {
     width: 33.3%;
   }
-  article.sidebar-open {
-    margin-left: 33.3%;
+  .sidebar-spacer {
+    width: 33.3%;
   }
   article.sidebar-open .console-container {
     left: 16px;
@@ -272,11 +284,9 @@ article.sidebar-open {
     width: 25%;
     display: block;
   }
-  article {
-    margin-left: 25%;
-  }
-  article.sidebar-open {
-    margin-left: 25%;
+  .sidebar-spacer {
+    width: 25%;
+    display: block;
   }
   .console-container {
     left: 16px;
