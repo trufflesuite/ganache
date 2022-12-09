@@ -339,10 +339,7 @@ function renderSignature(method: Method) {
 
 const methodList: string[] = [];
 const methodDocs: string[] = [];
-methods.forEach(method => {
-  methodList.push(renderMethodLink(method));
-  methodDocs.push(renderMethodDocs(method));
-});
+**Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in some [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
 const html = `
 <!DOCTYPE html>
@@ -379,7 +376,8 @@ const html = `
         </aside>
         <article>
           <div class="content">
-            <p>Ganache Ethereum JSON-RPC documentation.</p>
+          <h2>Ganache JSON-RPC Documentation</h2>
+            <p>${preamble}</p>
           </div>
             ${methodDocs.join("")}
         </article>
