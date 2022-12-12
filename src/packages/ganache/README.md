@@ -227,7 +227,7 @@ In the meantime, check out our [Ethereum JSON-RPC documentation](/src/chains/eth
 
 ### Startup Options
 
-The startup options are grouped in the `chain`, `database`, `fork`, `logging`, `miner`, and `wallet` namespaces, and should be used as such on startup, i.e.
+The startup options are grouped in the `chain`, `database`, `fork`, `logging`, `miner`, `wallet`, and `server` namespaces, and should be used as such on startup, i.e.
 
 ```console
 ganache --namespace.option="value"
