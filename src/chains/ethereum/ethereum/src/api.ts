@@ -546,10 +546,13 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const currentDate = Date.now();
-   * setTimeout(async () => {
-   *   const time = await provider.send("evm_setTime", [currentDate] );
-   *   console.log(time); // should be about two seconds ago
-   * }, 1000);
+   * await new Promise(resolve => {
+   *   setTimeout(async () => {
+   *     const time = await provider.send("evm_setTime", [currentDate]);
+   *     console.log(time); // should be about two seconds ago
+   *     resolve();
+   *   }, 1000);
+   * });
    * ```
    * @category evm
    */
