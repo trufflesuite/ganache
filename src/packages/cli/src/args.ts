@@ -3,14 +3,15 @@ import yargs, { Options } from "yargs";
 import {
   DefaultFlavor,
   FilecoinFlavorName,
-  DefaultOptionsByName
+  DefaultOptionsByName,
+  FlavorName
 } from "@ganache/flavors";
 import {
   Base,
   Definitions,
   YargsPrimitiveCliTypeStrings
 } from "@ganache/options";
-import { Command, Argv } from "./types";
+import { FlavorCommand, StartArgs, GanacheArgs } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
 import marked from "marked";
@@ -86,9 +87,11 @@ function processOption(
     // the types held within each array
     const { cliType } = optionObj;
     const array = cliType && cliType.startsWith("array:"); // e.g. array:string or array:number
-    const type = (array
-      ? cliType.slice(6) // remove the "array:" part
-      : cliType) as YargsPrimitiveCliTypeStrings;
+    const type = (
+      array
+        ? cliType.slice(6) // remove the "array:" part
+        : cliType
+    ) as YargsPrimitiveCliTypeStrings;
 
     const options: Options = {
       group,
@@ -127,9 +130,9 @@ function applyDefaults(
     const group = `${category[0].toUpperCase()}${category.slice(
       1
     )}:` as GroupType;
-    const categoryObj = (flavorDefaults[
+    const categoryObj = flavorDefaults[
       category
-    ] as unknown) as Definitions<Base.Config>;
+    ] as unknown as Definitions<Base.Config>;
     const state = {};
     for (const option in categoryObj) {
       const optionObj = categoryObj[option];
@@ -146,13 +149,18 @@ function applyDefaults(
   }
 }
 
-export default function (version: string, isDocker: boolean) {
+export default function (
+  version: string,
+  isDocker: boolean,
+  rawArgs = process.argv.slice(2)
+) {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version)}}`;
-  let args = yargs
-    // disable dot-notation because yargs just can't coerce args properly...
-    // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
+
+  // disable dot-notation because yargs just can't coerce args properly...
+  // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
+  yargs
     .parserConfiguration({ "dot-notation": false })
     .strict()
     .usage(versionUsageOutputText)
@@ -168,7 +176,7 @@ export default function (version: string, isDocker: boolean) {
   let flavor: keyof typeof DefaultOptionsByName;
   for (flavor in DefaultOptionsByName) {
     const flavorDefaults = DefaultOptionsByName[flavor];
-    let command: Command;
+    let command: FlavorCommand;
     let defaultPort: number;
     switch (flavor) {
       // since "ethereum" is the DefaultFlavor we don't need a `case` for it
@@ -185,7 +193,7 @@ export default function (version: string, isDocker: boolean) {
         defaultPort = 8545;
     }
 
-    args = args.command(
+    yargs.command(
       command,
       chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
@@ -219,32 +227,116 @@ export default function (version: string, isDocker: boolean) {
             }
 
             return true;
+          })
+          .option("detach", {
+            description: highlight(
+              "Run Ganache in detached (daemon) mode." +
+                EOL +
+                "See `ganache instances --help` for information on managing detached instances."
+            ),
+            type: "boolean",
+            alias: ["D", "😈"]
           });
+      },
+      parsedArgs => {
+        parsedArgs.action = parsedArgs.detach ? "start-detached" : "start";
       }
     );
   }
 
-  args = args
+  yargs
+    .command(
+      "instances",
+      highlight(
+        "Manage instances of Ganache running in detached mode." +
+          EOL +
+          "(Ganache can be run in detached mode by providing the `--detach` flag)"
+      ),
+      _yargs => {
+        _yargs
+          .command(
+            "list",
+            "List instances running in detached mode",
+            _ => {},
+            listArgs => {
+              listArgs.action = "list";
+            }
+          )
+          .command(
+            "stop <name>",
+            "Stop the instance specified by <name>",
+            stopArgs => {
+              stopArgs.positional("name", { type: "string" });
+            },
+            stopArgs => {
+              stopArgs.action = "stop";
+            }
+          )
+          .version(false);
+      }
+    )
     .showHelpOnFail(false, "Specify -? or --help for available options")
     .alias("help", "?")
     .wrap(wrapWidth)
     .version(version);
 
-  const parsedArgs = args.argv;
-  const finalArgs = {
-    flavor: parsedArgs._.length > 0 ? parsedArgs._[0] : DefaultFlavor
-  } as Argv;
-  for (let key in parsedArgs) {
-    // split on the first "."
-    const [group, option] = key.split(/\.(.+)/);
-    // only copy namespaced/group keys
-    if (option) {
-      if (!finalArgs[group]) {
-        finalArgs[group] = {};
-      }
-      finalArgs[group][option] = parsedArgs[key];
-    }
+  const parsedArgs = yargs.parse(rawArgs);
+
+  let finalArgs: GanacheArgs;
+  if (parsedArgs.action === "stop") {
+    finalArgs = {
+      action: "stop",
+      name: parsedArgs.name as string
+    };
+  } else if (parsedArgs.action === "list") {
+    finalArgs = { action: "list" };
+  } else if (
+    parsedArgs.action === "start" ||
+    parsedArgs.action === "start-detached"
+  ) {
+    const action = parsedArgs.action;
+    const flavor = (parsedArgs._.length > 0
+      ? parsedArgs._[0]
+      : DefaultFlavor) as any as FlavorName;
+
+    finalArgs = {
+      flavor,
+      action,
+      ...(expandArgs(parsedArgs) as Omit<
+        StartArgs<FlavorName>,
+        "flavor" | "action"
+      >)
+    };
+  } else {
+    throw new Error(`Unknown action: ${parsedArgs.action}`);
   }
 
   return finalArgs;
+}
+
+/**
+ * Expands the arguments into an object including only namespaced keys from the
+ * `args` argument.
+ * @param  {object} args to be expanded
+ * @returns {object} with the expanded arguments
+ */
+export function expandArgs(args: object): object {
+  const namespacedArgs = {};
+
+  for (const key in args) {
+    // ignore keys that are kebab-cased - they will be duplicated as camelCase
+    if (key.indexOf("-") === -1) {
+      // split on the first "."
+      const [namespace, option] = key.split(/\.(.+)/);
+      // only copy namespaced/group keys, and ignore keys with kebab cases
+      if (option) {
+        if (!namespacedArgs[namespace]) {
+          namespacedArgs[namespace] = {};
+        }
+        namespacedArgs[namespace][option] = args[key];
+      }
+    }
+  }
+
+  return namespacedArgs;
 }

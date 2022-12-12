@@ -1,15 +1,28 @@
 import { DefaultFlavor, FlavorName } from "@ganache/flavors";
 import { ServerOptions } from "@ganache/core";
 
-type CliOptions = {
+type CliServerOptions = {
   host: string;
   port: number;
 };
-export type Argv = ServerOptions<FlavorName> & {
-  _: [FlavorName];
-  server: CliOptions;
+
+type Action = "start" | "start-detached" | "list" | "stop";
+
+type AbstractArgs<TAction = Action> = {
+  action: TAction;
 };
 
-export type CliSettings = { host: string; port: number };
+export type StartArgs<TFlavorName extends FlavorName> =
+  ServerOptions<TFlavorName> & {
+    _: [TFlavorName];
+    server: CliServerOptions;
+  } & AbstractArgs<"start" | "start-detached">;
 
-export type Command = FlavorName | ["$0", typeof DefaultFlavor];
+export type GanacheArgs =
+  | (AbstractArgs<"stop"> & { name: string })
+  | AbstractArgs<"list">
+  | StartArgs<FlavorName>;
+
+export type CliSettings = CliServerOptions;
+
+export type FlavorCommand = FlavorName | ["$0", typeof DefaultFlavor];
