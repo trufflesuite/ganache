@@ -180,6 +180,7 @@ require(["vs/editor/editor.main"], function () {
           console.log(e);
         } finally {
           try {
+            console.log("disconnecting ganache provider");
             await provider.disconnect();
             // delete all tmp ganache-core databases
             await indexedDB.databases().then(dbs => {
@@ -227,7 +228,9 @@ require(["vs/editor/editor.main"], function () {
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       scrollbar: { alwaysConsumeMouseWheel: false },
-      theme: "ganache"
+      theme: "ganache",
+      folding: false,
+      lineDecorationsWidth: 10
     });
     // hide the first line (export {/*magic*/};)
     editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
