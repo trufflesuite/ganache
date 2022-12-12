@@ -182,7 +182,7 @@ function renderMethodLink(method: Method) {
 
 function renderMethodDocs(method: Method) {
   return `
-  <div>
+  <div class="doc-section">
     <a name="${x(method.name)}"></a>
     <h3 class="signature">
       ${renderSignature(method)}
@@ -464,7 +464,7 @@ const html = `
         </aside>
         <div class="sidebar-spacer hide"></div>
         <article>
-          <div class="content">
+          <div class="content preamble">
           <h2>Ganache JSON-RPC Documentation</h2>
             <p>${preamble}</p>
           </div>

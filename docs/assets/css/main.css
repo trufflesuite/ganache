@@ -1,4 +1,5 @@
 :root {
+  --body-bg-color: #281e21;
   --main-bg-color: #33262a;
   --main-bg-light-contrast: #443338;
   --main-bg-medium-contrast: #5a4d51;
@@ -40,7 +41,7 @@
 }
 html,
 body {
-  background-color: var(--main-bg-color);
+  background-color: var(--body-bg-color);
   margin: 0;
   padding: 0;
   color: var(--body-text);
@@ -58,6 +59,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--main-bg-heavy-contrast);
 }
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.5);
+}
 h1 {
   color: var(--porsche);
   font-family: "Grand Hotel";
@@ -68,7 +72,7 @@ h1 {
   font-size: 1em;
   padding: 1.5em 2em;
   background: var(--medium-bg-color);
-  margin-top: 4em;
+  margin-top: 0em;
   font-family: "Share Tech Mono", monospace;
 }
 a {
@@ -112,10 +116,9 @@ i {
   text-transform: capitalize;
 }
 .example_container {
-  margin-bottom: 4rem;
+  margin-bottom: 0rem;
 }
 .tag_example {
-  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.25);
   padding-bottom: 1rem !important;
 }
 .return_type {
@@ -132,7 +135,7 @@ i {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
   position: absolute;
-  right: 14px;
+  right: 2rem;
   padding: 0.25em 0.5em;
   cursor: pointer;
   border-radius: 0 0 3px 3px;
@@ -148,6 +151,9 @@ i {
 .editor-container {
   position: relative;
   z-index: 0;
+  margin: 0px 0rem 0px 1rem;
+  box-shadow: 0 3px 3px rgb(0 0 0 / 30%);
+  border-radius: 6px;
 }
 .editor-container::before {
   content: " ";
@@ -161,6 +167,9 @@ i {
 .console-container {
   position: relative;
   z-index: 0;
+  margin: 0px 0rem 0px 1rem;
+  box-shadow: 0 3px 3px rgb(0 0 0 / 30%);
+  border-radius: 6px;
 }
 .console {
   font-family: "Droid Sans Mono", monospace, monospace, "Droid Sans Fallback";
@@ -174,6 +183,7 @@ i {
   padding: 0.3em 0.1em;
   display: flex;
   flex-direction: column-reverse;
+  border-radius: 6px;
 }
 .console::-webkit-scrollbar {
   width: 12px;
@@ -242,9 +252,23 @@ article {
   flex: 1;
   overflow: auto;
 }
-article div.content {
+article > div {
+  box-shadow: 0 3px 3px rgb(0 0 0 / 30%);
+  margin-bottom: 2rem;
+  background-color: var(--main-bg-color);
+}
+article .doc-section {
+  border-top: solid 1px rgba(255, 255, 255, 0.2);
+  padding-bottom: 2rem;
+}
+.doc-section > div.content {
   padding: 0 2rem;
 }
+.monaco-editor,
+.monaco-editor .overflow-guard {
+  border-radius: 6px;
+}
+
 article div.wide-content {
   padding: 0 0;
 }
@@ -255,11 +279,9 @@ article.sidebar-open {
   transition: 0.3s ease-in-out;
 }
 .sidebar {
-  min-width: 390px;
   max-width: 420px;
 }
 .sidebar-spacer {
-  min-width: 390px;
   max-width: 420px;
 }
 
@@ -270,9 +292,6 @@ article.sidebar-open {
   }
   .sidebar-spacer {
     width: 33.3%;
-  }
-  article.sidebar-open .console-container {
-    left: 16px;
   }
 }
 /* large devices (desktops) */
@@ -288,15 +307,16 @@ article.sidebar-open {
     width: 25%;
     display: block;
   }
-  .console-container {
-    left: 16px;
-  }
 }
 
 .monaco {
-  padding-left: 26px;
+  padding-left: 10px;
   min-height: 100px;
   background-color: var(--thunder);
+  margin: 0px 0rem 0px 1rem;
+  border-radius: 6px;
+  box-shadow: 0 3px 3px rgb(0 0 0 / 30%);
+  overflow: auto;
 }
 .monaco pre {
   background-color: var(--thunder);
@@ -314,9 +334,15 @@ code {
   height: 0px;
   min-height: 0px;
 }
-
 .category-header {
+  margin-bottom: 0;
+  padding: 0rem 2rem;
+  border-top: solid 1px rgba(255, 255, 255, 0.06);
+}
+.category-header > h2 {
   text-transform: uppercase;
+  margin: 0;
+  padding: 0.75rem 0rem;
 }
 
 .sidebar > details {
@@ -338,6 +364,7 @@ code {
   border-color: rgba(255, 255, 255, 0.4);
   padding: 1px 0px 0px 10px;
   margin: 1px;
+  white-space: nowrap;
 }
 
 .sidebar > details > ul > li > div {
@@ -346,4 +373,14 @@ code {
   font-size: x-small;
   margin-right: 5px;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.preamble {
+  padding: 0rem 2rem 1rem 2rem;
+  border-top: none;
+}
+
+.preamble > h2 {
+  margin-top: 0rem;
+  padding-top: 1rem;
 }
