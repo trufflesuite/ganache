@@ -232,6 +232,14 @@ header h1 {
 header span {
   padding-left: 1em;
 }
+header a.github-link {
+  float: right;
+  margin: 0.75rem 1rem 0.75rem 1rem;
+}
+header a path {
+  filter: invert(74%) sepia(34%) saturate(728%) hue-rotate(338deg)
+    brightness(94%) contrast(90%);
+}
 main {
   display: flex;
   overflow: auto;
@@ -383,4 +391,13 @@ code {
 .preamble > h2 {
   margin-top: 0rem;
   padding-top: 1rem;
+}
+
+header svg:hover {
+  background-color: rgba(255, 255, 255, 0.13);
+  border-radius: 16px;
+}
+.logo {
+  height: 2rem;
+  width: 2rem;
 }
