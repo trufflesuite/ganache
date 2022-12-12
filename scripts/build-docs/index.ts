@@ -351,30 +351,83 @@ function renderSignature(method: Method) {
     .value.replace('<span class="hljs-keyword">function</span>', "");
 }
 
+/**
+ * Array of api method namespaces in the order they should appear on the page.
+ */
+const orderedNamespaces = [
+  "eth",
+  "debug",
+  "evm",
+  "miner",
+  "personal",
+  "txpool",
+  "web3",
+  "db",
+  "rpc",
+  "net",
+  "bzz",
+  "shh",
+  "other"
+];
+
+const groupedMethods: { [group: string]: Method[] } = {};
+for (const child of ethereum.children) {
+  const { name } = child;
+  if (name === "constructor" || child.kindString !== "Method") continue;
+
+  const parts = name.split("_");
+  let namespace = "other";
+  if (parts.length > 1) {
+    if (!parts[1]) {
+      console.warn(`method name is only namespace ${name}`);
+      // we can't put this one on the page and have it look right, so skip
+      continue;
+    }
+    if (parts[0]) {
+      namespace = parts[0];
+    }
+  }
+  if (namespace === "other") {
+    console.warn(`method does not have namespace prefix: ${name}`);
+  }
+  if (!orderedNamespaces.includes(namespace)) {
+    console.warn(
+      `method namespace is not included in set of namespaces for ordering: ${name}`
+    );
+    orderedNamespaces.push(namespace);
+  }
+  const methodsInGroup = groupedMethods[namespace];
+  if (methodsInGroup) {
+    methodsInGroup.push(child);
+  } else {
+    groupedMethods[namespace] = [child];
+  }
+}
+
 const methodListByGroup: string[] = [];
 const methodDocs: string[] = [];
 
-const methodGroup = ethereum.groups[2];
-methodGroup.categories.forEach(category => {
-  const methodListForGroup: string[] = [];
-  methodDocs.push(
-    `<div class="content"><h2 class="category-header">${category.title} methods</h2></div>`
-  );
-  category.children.forEach(childId => {
-    const method = ethereum.children.find(child => child.id === childId);
-    if (method) {
-      methodListForGroup.push(renderMethodLink(method));
-      methodDocs.push(renderMethodDocs(method));
+for (const namespace of orderedNamespaces) {
+  const methodsInGroup = groupedMethods[namespace];
+  if (methodsInGroup) {
+    const methodListForGroup: string[] = [];
+    methodDocs.push(
+      `<div class="content category-header"><h2>${namespace} namespace</h2></div>`
+    );
+    for (const method of methodsInGroup) {
+      if (method) {
+        methodListForGroup.push(renderMethodLink(method));
+        methodDocs.push(renderMethodDocs(method));
+      }
     }
-  });
-  methodListByGroup.push(
-    `<details open><summary>${
-      category.title
-    }</summary><ul><li>${methodListForGroup.join(
-      "</li><li>"
-    )}</li></ul></details>`
-  );
-});
+    methodListByGroup.push(
+      `<details open><summary>${namespace}</summary><ul><li>${methodListForGroup.join(
+        "</li><li>"
+      )}</li></ul></details>`
+    );
+  }
+}
+
 const preamble =
   marked(`This reference describes all Ganache JSON-RPC methods and provides interactive examples for each method. The interactive examples are powered by [Ganache in the Browser](https://github.com/trufflesuite/ganache/#browser-use) and demonstrate using Ganache programmatically [as an EIP-1193 provider](https://github.com/trufflesuite/ganache/#as-an-eip-1193-provider-only). Try running these examples to see Ganache in action! Each editor can be changed to further test Ganache features.
 
