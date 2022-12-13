@@ -68,7 +68,7 @@ export class WsHandler extends BaseHandler implements Handler {
       // backoff and eventually fail
       // do not schedule reconnection for adhoc reconnection requests
       if (this.retryCounter === 0) {
-        throw new Error("Connection to Infura has failed. Try again");
+        this.logging.logger.log("Connection to Infura has failed. Try again");
       } else {
         if (!this.adhocReconnectionRequest) {
           this.retryCounter--;
