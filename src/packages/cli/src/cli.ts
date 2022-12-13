@@ -8,6 +8,7 @@ import initializeEthereum from "./initialize/ethereum";
 import initializeFilecoin from "./initialize/filecoin";
 import type { FilecoinProvider } from "@ganache/filecoin";
 import type { EthereumProvider } from "@ganache/ethereum";
+import { VersionCheck } from "@ganache/version-check";
 import {
   notifyDetachedInstanceReady,
   stopDetachedInstance,
@@ -53,8 +54,14 @@ const argv = args(detailedVersion, isDocker);
 if (argv.action === "start") {
   const flavor = argv.flavor;
   const cliSettings = argv.server;
+  let versionCheck = new VersionCheck(version);
+  const versionMessage = versionCheck.cliMessage();
 
   console.log(detailedVersion);
+
+  if (versionMessage) {
+    console.log(versionMessage);
+  }
 
   let server: ReturnType<typeof Ganache.server>;
   try {
@@ -80,6 +87,7 @@ if (argv.action === "start") {
   };
   const closeHandler = async () => {
     try {
+      if (versionCheck) versionCheck.destroy();
       // graceful shutdown
       switch (server.status) {
         case ServerStatus.opening:
@@ -152,6 +160,9 @@ if (argv.action === "start") {
         break;
       }
     }
+
+    versionCheck.log();
+    versionCheck = null;
 
     // if process.send is defined, this is a child_process (we assume a detached
     // instance), so we need to notify that we are ready.
