@@ -32,6 +32,7 @@ export class VersionCheck {
   private _session: http2.ClientHttp2Session;
   private _request: http2.ClientHttp2Stream;
   private _notificationInterval: number = ONE_DAY;
+  private _enabled: boolean = true; // Disable but do not write to disk, e.g. 'DEV' semver
 
   constructor(
     currentVersion: string,
@@ -48,12 +49,12 @@ export class VersionCheck {
 
     // If we are running in CI, disable and quit.
     if (this._config.disableInCI && isCI()) {
-      this.disable();
+      this._enabled = false;
     } else {
       if (semverIsValid(currentVersion)) {
         this._currentVersion = semverClean(currentVersion);
       } else {
-        this.disable();
+        this._enabled = false;
       }
 
       this._logger = logger || console;
@@ -105,14 +106,16 @@ export class VersionCheck {
     return this._config;
   }
   /**
-   * Checks if VC is enabled and activated. TODO Remove DEACTIVATED when
-   * activating VC
+   * Checks if VC is enabled and activated. TODO Remove process.env.VC_ACTIVATED
+   * when activating VC. Truffle/ganache users may test by setting the
+   * VC_ACTIVATED process.env to any value.
+   *
    * @returns boolean
    */
   get isEnabled(): boolean {
     return process.env.VC_ACTIVATED
-      ? this._config.enabled
-      : this._config.enabled && this._config.activated;
+      ? this._config.enabled && this._enabled
+      : false;
   }
   /**
    * Returns the location of the config file on disk.
@@ -314,8 +317,7 @@ export class VersionCheck {
       latestVersion: "0.0.0", // Last version fetched from the server
       lastVersionLogged: "0.0.0", // Last version to tell the user about
       lastNotification: 0,
-      disableInCI: true,
-      activated: false
+      disableInCI: true
     };
   }
 }

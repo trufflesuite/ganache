@@ -22,8 +22,7 @@ describe("@ganache/version-check", () => {
     ttl: 100,
     latestVersion: "99.99.99",
     lastVersionLogged: "99.99.90",
-    disableInCI: false,
-    activated: false
+    disableInCI: false
   };
   const sparseConfig: VersionCheckOptions = {
     packageName: "test",
@@ -110,7 +109,7 @@ describe("@ganache/version-check", () => {
       delete process.env.IGNORE_ISCI;
       vc = new VersionCheck("");
 
-      assert.strictEqual(vc._config.enabled, false);
+      assert.strictEqual(vc.isEnabled, false);
     });
     it("sets an optional logger", () => {
       const someData = "some data";
@@ -153,11 +152,7 @@ describe("@ganache/version-check", () => {
         enabled: true,
         disableInCI: true
       });
-      assert.strictEqual(
-        vc._config.enabled,
-        false,
-        "VC did not disable in CI."
-      );
+      assert.strictEqual(vc.isEnabled, false, "VC did not disable in CI.");
       delete process.env.TRUFFLE_SHUFFLE_TEST;
     });
   });
