@@ -33,10 +33,10 @@ const createWebSocketServer = (port: number): WebSocket.Server => {
 };
 
 // create test server
-const URL = "ws://localhost:1001/";
+const URL = "ws://localhost:8888/";
 let wsServer: WebSocket.Server;
 let wsHandler: WsHandler;
-wsServer = createWebSocketServer(1001);
+wsServer = createWebSocketServer(8888);
 
 describe("ws-handler", function () {
   describe("retries", function () {
