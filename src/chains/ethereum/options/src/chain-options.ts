@@ -125,6 +125,13 @@ export type ChainConfig = {
     };
 
     /**
+     * Specify a relative filepath for a genesis.json to configure the @ethereumjs/vm
+     */
+    readonly genesisPath: {
+      type: string;
+    };
+
+    /**
      * Whether to report runtime errors from EVM code as RPC errors.
      *
      * @defaultValue false
@@ -202,6 +209,12 @@ export const ChainOptions: Definitions<ChainConfig> = {
     cliAliases: ["k", "hardfork"],
     cliType: "string",
     cliChoices: HARDFORKS as Writeable<typeof HARDFORKS>
+  },
+  genesisPath: {
+    normalize,
+    cliDescription: "Set a genesis.json file",
+    cliAliases: ["j", "json"],
+    cliType: "string"
   },
   vmErrorsOnRPCResponse: {
     normalize,
