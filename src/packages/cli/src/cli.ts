@@ -47,13 +47,6 @@ const coreVersion = process.env.CORE_VERSION || "DEV";
 
 const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @ganache/core: ${coreVersion})`;
 
-let versionCheck = new VersionCheck(version);
-const versionMessage = versionCheck.cliMessage();
-
-if (versionMessage) {
-  console.log(versionMessage);
-}
-
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
 
@@ -61,8 +54,14 @@ const argv = args(detailedVersion, isDocker);
 if (argv.action === "start") {
   const flavor = argv.flavor;
   const cliSettings = argv.server;
+  let versionCheck = new VersionCheck(version);
+  const versionMessage = versionCheck.cliMessage();
 
   console.log(detailedVersion);
+
+  if (versionMessage) {
+    console.log(versionMessage);
+  }
 
   let server: ReturnType<typeof Ganache.server>;
   try {

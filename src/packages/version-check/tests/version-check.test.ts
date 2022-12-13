@@ -308,19 +308,19 @@ describe("@ganache/version-check", () => {
   });
 
   describe("cliMessage", () => {
-    let options;
+    let options: VersionCheckOptions;
+    const currentVersion: string = "1.2.3";
 
     beforeEach(() => {
       options = {
-        upgradeType: "major",
         packageName: "ganache",
-        currentVersion: "1.2.3",
+
         latestVersion: "3.2.1",
         disableInCI: false
       };
 
       vc = new VersionCheck(
-        options.currentVersion,
+        currentVersion,
         { latestVersion: options.latestVersion },
         testLogger
       );
@@ -329,9 +329,9 @@ describe("@ganache/version-check", () => {
 
     it("will not log if semver is the same between currentVersion and latestVersion", () => {
       vc = new VersionCheck(
-        options.currentVersion,
+        currentVersion,
         {
-          latestVersion: options.currentVersion
+          latestVersion: currentVersion
         },
         testLogger
       );
@@ -347,14 +347,14 @@ describe("@ganache/version-check", () => {
 
     it("logs a single line with the currentVersion and latestVersion", () => {
       vc = new VersionCheck(
-        options.currentVersion,
+        currentVersion,
         { latestVersion: options.latestVersion },
         testLogger
       );
       const message = vc.cliMessage();
 
       assert.strictEqual(
-        message.indexOf(options.currentVersion) >= 0,
+        message.indexOf(currentVersion) >= 0,
         true,
         "cliMessage does not contain the currentVersion."
       );
