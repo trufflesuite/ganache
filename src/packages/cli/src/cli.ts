@@ -87,6 +87,7 @@ if (argv.action === "start") {
   };
   const closeHandler = async () => {
     try {
+      if (versionCheck) versionCheck.destroy();
       // graceful shutdown
       switch (server.status) {
         case ServerStatus.opening:
@@ -159,6 +160,9 @@ if (argv.action === "start") {
         break;
       }
     }
+
+    versionCheck.log();
+    versionCheck = null;
 
     // if process.send is defined, this is a child_process (we assume a detached
     // instance), so we need to notify that we are ready.
