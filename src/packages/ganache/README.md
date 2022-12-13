@@ -227,7 +227,7 @@ In the meantime, check out our [Ethereum JSON-RPC documentation](/src/chains/eth
 
 ### Startup Options
 
-The startup options are grouped in the `chain`, `database`, `fork`, `logging`, `miner`, and `wallet` namespaces, and should be used as such on startup, i.e.
+The startup options are grouped in the `chain`, `database`, `fork`, `logging`, `miner`, `wallet`, and `server` namespaces, and should be used as such on startup, i.e.
 
 ```console
 ganache --namespace.option="value"
@@ -476,7 +476,54 @@ Server:
   -p, --server.port, --port             Port to listen on.
                                         deprecated aliases: --port
                                                                                       [number] [default: 8545]
+```
 
+### Detached Instances
+
+Ganache can be started as a background instance via the CLI by providing the following argument (along with any valid combination
+of the Ganache startup arguments above):
+
+```console
+  -D, --detach, --😈                     Run Ganache in detached (daemon) mode.                       [boolean]
+```
+
+This will start Ganache as a background process, and return to the console as soon as Ganache has started and is ready to
+receive requests. A friendly name will be returned to STDOUT which can then be used to interact with the instance via
+the `ganache instances` command with the following arguments:
+
+```console
+Commands:
+  ganache instances list         List instances running in detached mode
+  ganache instances stop <name>  Stop the instance specified by <name>
+```
+
+E.g., start Ganache on port 8544, with a block time of 10 seconds, and then stop the instance.
+
+```console
+$ ganache --port=8544 --miner.blockTime=10 --detach
+salted_caramel_ganache
+
+$ ganache instances list
+┌───────┬────────────────────────┬──────────┬─────────┬────────────────┬────────┐
+│   PID │ Name                   │ Flavor   │ Version │ Host           │ Uptime │
+├───────┼────────────────────────┼──────────┼─────────┼────────────────┼────────┤
+│ 12182 │ salted_caramel_ganache │ ethereum │ 7.6.0   │ 127.0.0.1:8545 │    36s │
+└───────┴────────────────────────┴──────────┴─────────┴────────────────┴────────┘
+
+$ ganache instances stop salted_caramel_ganache
+Process stopped
+```
+
+With the following command, you can start Ganache, run your tests, and stop Ganache when you are finished.
+
+```console
+GANACHE=$(ganache --detach) && npm run test; ganache instances stop $GANACHE
+```
+
+Or if you are running PowerShell on Windows, you can do:
+
+```PowerShell
+$GANACHE=ganache --detach; npm run test; ganache instances stop $GANACHE
 ```
 
 ### Ganache Provider Events
