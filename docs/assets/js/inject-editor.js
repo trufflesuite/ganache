@@ -337,7 +337,7 @@ function createTabs(consoleDiv, outputDiv) {
 
   const tabB = document.createElement("div");
   tabB.classList.add("tab");
-  tabB.innerHTML = "Logs";
+  tabB.innerHTML = "Ganache Logs";
   tabB.onclick = function () {
     tabB.classList.add("tab-active");
     tabA.classList.remove("tab-active");
