@@ -489,7 +489,7 @@ const html = `
         <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
           <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
         </a>
-        <a class="header-action" href="https://github.com/trufflesuite/ganache" target="_blank" rel="noopener noreferrer" title="Github" >
+        <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
           <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
         </a>
       </header>
