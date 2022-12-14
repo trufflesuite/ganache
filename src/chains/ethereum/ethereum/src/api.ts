@@ -583,7 +583,6 @@ export default class EthereumApi implements Api {
    * // send value to another account (over-simplified example)
    * await provider.send("eth_subscribe", ["newHeads"] );
    * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}] );
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * // ensure balance has updated
    * const newBalance = await provider.send("eth_getBalance", [from] );
@@ -626,7 +625,6 @@ export default class EthereumApi implements Api {
    * // send value to another account (over-simplified example)
    * await provider.send("eth_subscribe", ["newHeads"] );
    * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}] );
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * // ensure balance has updated
    * const newBalance = await provider.send("eth_getBalance", [from] );
@@ -1114,7 +1112,6 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const proof = await provider.request({ method: "eth_getProof", params: [txReceipt.contractAddress, ["0x0", "0x1"], "latest"] });
    * console.log(proof);
@@ -1204,7 +1201,6 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const block = await provider.request({ method: "eth_getBlockByHash", params: [txReceipt.blockHash, true] });
    * console.log(block);
@@ -1268,7 +1264,6 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const txCount = await provider.request({ method: "eth_getBlockTransactionCountByHash", params: [txReceipt.blockHash] });
    * console.log(txCount);
@@ -1327,7 +1322,6 @@ export default class EthereumApi implements Api {
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const { blockHash, transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    *
    * const tx = await provider.request({ method: "eth_getTransactionByBlockHashAndIndex", params: [ blockHash, transactionIndex ] });
@@ -1374,7 +1368,6 @@ export default class EthereumApi implements Api {
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const { transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    *
    * const tx = await provider.request({ method: "eth_getTransactionByBlockNumberAndIndex", params: [ "latest", transactionIndex ] });
@@ -1717,7 +1710,6 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const code = await provider.request({ method: "eth_getCode", params: [txReceipt.contractAddress, "latest"] });
    * console.log(code);
@@ -1755,7 +1747,6 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const storageValue = await provider.request({ method: "eth_getStorageAt", params: [txReceipt.contractAddress, "0x0", "latest"] });
    * console.log(storageValue);
@@ -1828,7 +1819,6 @@ export default class EthereumApi implements Api {
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const tx = await provider.request({ method: "eth_getTransactionByHash", params: [ txHash ] });
    * console.log(tx);
@@ -1871,7 +1861,6 @@ export default class EthereumApi implements Api {
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const txReceipt = await provider.request({ method: "eth_getTransactionReceipt", params: [ txHash ] });
    * console.log(txReceipt);
@@ -1939,7 +1928,6 @@ export default class EthereumApi implements Api {
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * console.log(txHash);
    * ```
    */
@@ -2569,7 +2557,6 @@ export default class EthereumApi implements Api {
    *
    * const subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
    * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
-   * await provider.once("message");
    *
    * const changes = await provider.request({ method: "eth_getFilterChanges", params: [filterId] });
    * console.log(changes);
@@ -2641,7 +2628,6 @@ export default class EthereumApi implements Api {
    *
    * await provider.send("eth_subscribe", ["newHeads"]);
    * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
-   * await provider.once("message");
    *
    * const logs = await provider.request({ method: "eth_getFilterLogs", params: [filterId] });
    * console.log(logs);
@@ -2696,7 +2682,6 @@ export default class EthereumApi implements Api {
    *
    * await provider.send("eth_subscribe", ["newHeads"]);
    * const txHash = await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
-   * await provider.once("message");
    *
    * const { contractAddress } = await provider.send("eth_getTransactionReceipt", [txHash] );
    *
@@ -2721,7 +2706,6 @@ export default class EthereumApi implements Api {
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * await provider.request({ method: "eth_sendTransaction", params: [{ from, to, gas: "0x5b8d80" }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const txCount = await provider.request({ method: "eth_getTransactionCount", params: [ from, "latest" ] });
    * console.log(txCount);
@@ -3137,7 +3121,6 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    * const transactionTrace = await provider.request({ method: "debug_traceTransaction", params: [txHash] });
    * console.log(transactionTrace);
    * ```
@@ -3179,14 +3162,12 @@ export default class EthereumApi implements Api {
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const initialTxHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", data: simpleSol }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const {contractAddress} = await provider.request({ method: "eth_getTransactionReceipt", params: [initialTxHash] });
    *
    * // set value to 19
    * const data = "0x552410770000000000000000000000000000000000000000000000000000000000000019";
    * const txHash = await provider.request({ method: "eth_sendTransaction", params: [{ from, to: contractAddress, data }] });
-   * await provider.once("message"); // Note: `await provider.once` is non-standard
    *
    * const { blockHash, transactionIndex } = await provider.request({ method: "eth_getTransactionReceipt", params: [txHash] });
    * const storage = await provider.request({ method: "debug_storageRangeAt", params: [blockHash, transactionIndex, contractAddress, "0x01", 1] });
