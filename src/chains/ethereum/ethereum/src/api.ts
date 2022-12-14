@@ -2905,7 +2905,7 @@ export default class EthereumApi implements Api {
    * @param rewardPercentiles - A monotonically increasing list of percentile values. For each block in the requested range,
    * the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile
    * will be determined, accounting for gas consumed.
-   * @returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range
+   * @returns Transaction base fee per gas and effective priority fee per gas for the requested/supported block range
    *
    * * `oldestBlock`:  - Lowest number block of the returned range.
    * * `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,
