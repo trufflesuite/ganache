@@ -264,7 +264,6 @@ function renderSource(method: Method) {
         encoding: "utf8"
       }).trim() || "master";
   } catch (e) {}
-
   return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
 }
 
