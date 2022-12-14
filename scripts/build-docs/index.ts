@@ -460,8 +460,8 @@ const html = `
         <span onclick="toggleSidebar()">
           <i class="fas fa-bars"></i>
         </span>
-        <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/">
-          <img src="./assets/img/ganache-logomark.svg" class="logo"/>
+        <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/" title="Ganache website">
+          <img src="./assets/img/ganache-logomark.svg" alt="ganache logo"/>
           <h1>Ganache</h1>
         </a>
         <a class="github-link" href="https://github.com/trufflesuite/ganache">
