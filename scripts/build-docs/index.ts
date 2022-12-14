@@ -260,7 +260,7 @@ function renderSource(method: Method) {
   let branch = "master";
   if (!process.env.CI) {
     branch =
-      execSync("git rev-parse --abbrev-ref HEAD", {
+      execSync("git rev-parse HEAD", {
         encoding: "utf8"
       }).trim() || "master";
   }
