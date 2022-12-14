@@ -266,17 +266,26 @@ header {
 }
 header h1 {
   display: inline-block;
+  margin: 0.5rem;
 }
 header span {
   padding-left: 1em;
 }
-header a.github-link {
-  float: right;
-  margin: 0.75rem 1rem 0.75rem 1rem;
+.ganache-link {
+  margin: 0rem 1rem;
+  display: none;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
 }
-header a path {
-  filter: invert(74%) sepia(34%) saturate(728%) hue-rotate(338deg)
-    brightness(94%) contrast(90%);
+.ganache-link img {
+  height: 3.5em;
+  width: 3.5em;
+  display: inline-block;
+  vertical-align: bottom;
+}
+a.ganache-link:hover {
+  text-decoration: none;
 }
 main {
   display: flex;
@@ -325,9 +334,8 @@ article.sidebar-open {
     width: 25%;
     display: block !important;
   }
-  .sidebar-spacer {
-    width: 25%;
-    display: block;
+  .ganache-link {
+    display: inline-block;
   }
 }
 
