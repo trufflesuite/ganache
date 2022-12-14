@@ -241,7 +241,8 @@ require(["vs/editor/editor.main"], function () {
       scrollbar: { alwaysConsumeMouseWheel: false },
       theme: "ganache",
       folding: false,
-      lineDecorationsWidth: 10
+      lineDecorationsWidth: 10,
+      contextmenu: false
     });
     // hide the first line (export {/*magic*/};)
     editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
