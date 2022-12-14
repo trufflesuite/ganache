@@ -257,15 +257,15 @@ function renderTag(method: Method, tag: Tag, i: number) {
 
 function renderSource(method: Method) {
   const source = method.sources[0];
-  let branch = "master";
+  let branchOrCommitHash = "master";
   try {
-    branch =
+    branchOrCommitHash =
       execSync("git rev-parse HEAD", {
         encoding: "utf8"
       }).trim() || "master";
   } catch (e) {}
 
-  return `<a href="https://github.com/trufflesuite/ganache/blob/${branch}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
+  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
 }
 
 function renderTags(method: Method) {
