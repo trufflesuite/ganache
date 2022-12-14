@@ -132,11 +132,13 @@ If you want to use the new default mode but still be able to get the reason for
 a transaction failure, you need to resend your transaction with an `eth_call`.
 This will return the revert reason in nearly all cases[^2].
 
-#### Dropped support for Node v8 and v10
+#### v7.0.0-7.6.0, Dropped support for Node v8 and v10
 
-We no longer support Node v8 - v11. You'll need to update to Node v12.0.0 or
-later. NOTE: Support for Node.js v12.x.x will be dropped shortly after the
-Node.js Foundation stops supporting it in April 2022.
+As of v7.0.0 we no longer support Node v8-v10. You'll need to update to Node v12.0.0 or later.
+
+#### v7.7.0+, Dropped support for Node v12
+
+We no longer support Node v12. You'll need to update to Node v14.0.0 or later. NOTE: Support for Node.js v14.x.x will be dropped shortly after the Node.js Foundation stops supporting it in April 2023.
 
 #### DockerHub repo has been moved to trufflesuite/ganache
 
@@ -447,7 +449,3 @@ be addressing this shortcoming in a future EIP and release by extending eth_call
 with an option to run the transaction at a certain _index_ in the specified
 block (you likely won't ever see this option enabled on public nodes, like
 Infura, as it can be a very CPU-intensive process).
-
-## ganache v7.0.0-v7.6.0 to ganache v7.7.0+
-
-As of Ganache v7.7.0, Node 12 is no longer supported. You'll need to update to Node 14.0.0 or later to use Ganache v7.7.0 or later.
