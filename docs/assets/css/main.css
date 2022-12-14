@@ -275,6 +275,7 @@ header h1 {
   margin: 0.5rem;
 }
 header span {
+  position: absolute;
   margin: 1.25rem 1rem;
 }
 .ganache-link {
