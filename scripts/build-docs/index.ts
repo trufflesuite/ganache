@@ -471,12 +471,11 @@ const html = `
         </a>
       </header>
       <main>
-        <aside>
-          <nav class="sidebar hide">
+        <aside class="hide">
+          <nav class="sidebar">
               ${methodListByGroup.join("")}
           </nav>
         </aside>
-        <div class="sidebar-spacer hide"></div>
         <article>
           <div class="content preamble">
           <h2>Ganache JSON-RPC Documentation</h2>
@@ -491,11 +490,9 @@ const html = `
     <script src="./assets/js/inject-editor.js"></script>
     <script>
       function toggleSidebar() {
-        const toggleSidebarBtn = document.querySelector(".sidebar");
-        const spacer = document.querySelector(".sidebar-spacer");
+        const toggleSidebarBtn = document.querySelector("aside");
         const main = document.querySelector("article");
         toggleSidebarBtn.classList.toggle("hide");
-        spacer.classList.toggle("hide");
         main.classList.toggle("sidebar-open");
       }
     </script>

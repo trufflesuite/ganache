@@ -84,16 +84,24 @@ i {
   font-size: 1.25em;
   cursor: pointer;
 }
-.sidebar {
-  display: block;
+aside {
   height: 100%;
   width: 100%;
-  position: fixed;
   z-index: 2;
   background: var(--main-bg-color);
   overflow-x: scroll;
   padding-left: 1em;
-  transition: 0.3s ease-in-out;
+  max-width: 420px;
+  min-width: 390px;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.15);
+}
+aside ul {
+  list-style: none;
+  padding: 0 0 2rem 0;
+  margin: 1rem 0;
+}
+aside ul li {
+  margin: 0.5rem 1rem 0.5rem 0;
 }
 .hide {
   display: none;
@@ -240,18 +248,6 @@ main {
   display: flex;
   overflow: auto;
 }
-aside {
-  overflow: auto;
-  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.15);
-}
-aside ul {
-  list-style: none;
-  padding: 0 0 2rem 0;
-  margin: 1rem 0;
-}
-aside ul li {
-  margin: 0.5rem 1rem 0.5rem 0;
-}
 article {
   flex: 1;
   overflow: auto;
@@ -279,22 +275,10 @@ article div.wide-content {
 article.sidebar-open {
   transition: 0.3s ease-in-out;
 }
-.sidebar-spacer.sidebar-open {
-  transition: 0.3s ease-in-out;
-}
-.sidebar {
-  max-width: 420px;
-}
-.sidebar-spacer {
-  max-width: 420px;
-}
 
 /* medium devices (tablets) */
 @media (min-width: 768px) {
-  .sidebar {
-    width: 33.3%;
-  }
-  .sidebar-spacer {
+  aside {
     width: 33.3%;
   }
 }
@@ -303,9 +287,9 @@ article.sidebar-open {
   header span {
     display: none;
   }
-  .sidebar {
+  aside {
     width: 25%;
-    display: block;
+    display: block !important;
   }
   .sidebar-spacer {
     width: 25%;
