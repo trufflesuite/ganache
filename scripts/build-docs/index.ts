@@ -421,9 +421,15 @@ for (const namespace of orderedNamespaces) {
       }
     }
     methodListByGroup.push(
-      `<details open><summary>${namespace}</summary><ul><li>${methodListForGroup.join(
-        "</li><li>"
-      )}</li></ul></details>`
+      `<details open>
+        <summary>
+          <img src="./assets/img/chevron.svg"/>
+          ${namespace}
+        </summary>
+        <ul>
+          <li>${methodListForGroup.join("</li><li>")}</li>
+        </ul>
+      </details>`
     );
   }
 }

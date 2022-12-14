@@ -7,6 +7,8 @@
   --medium-bg-color: rgba(255, 255, 255, 0.1);
   --body-text: #fff0e1;
 
+  --chevron-bg: invert(94%) sepia(11%) saturate(658%) hue-rotate(317deg)
+    brightness(102%) contrast(103%);
   --light-turquoise: #99f4e5;
   --turquoise: #3fe0c5;
   --medium-dark-turquoise: #1bd4b5;
@@ -22,14 +24,8 @@
 
   --thunder: #251f21;
 }
-@media (prefers-color-scheme: light) {
-  :root {
-    --main-bg-color: #fff;
-    --main-bg-light-contrast: #f1f1f1;
-    --main-bg-medium-contrast: #aaa;
-    --main-bg-heavy-contrast: #bbb;
-    --medium-bg-color: rgba(0, 0, 0, 0.05);
-    --body-text: #5e464d;
+  --chevron-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
+    brightness(96%) contrast(93%);
 
     --light-turquoise: #4b7a73;
     --turquoise: #258575;
@@ -358,6 +354,20 @@ code {
 }
 .sidebar > details > summary {
   text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.sidebar > details:not([open]) > summary > img {
+  transform: rotate(0deg);
+}
+.sidebar > details > summary > img {
+  height: 1rem;
+  width: 1rem;
+  filter: var(--chevron-bg);
+  margin-right: 0.5rem;
+  transform: rotate(90deg);
+  transition: transform 0.1s ease;
 }
 .sidebar > details > ul {
   text-transform: none;
