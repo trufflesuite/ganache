@@ -222,8 +222,7 @@ const provider = Ganache.provider(options);
 
 ## Documentation
 
-New interactive RPC documentation coming soon!
-In the meantime, check out our [Ethereum JSON-RPC documentation](/src/chains/ethereum/ethereum/RPC-METHODS.md).
+See our [Interactive Docs](https://trufflesuite.github.io/ganache/) for a full list of Ganache's RPC methods!
 
 ### Startup Options
 
