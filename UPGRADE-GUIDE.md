@@ -1,6 +1,6 @@
 # Ganache Upgrade Guide
 
-## ganache-core v2.x.x and ganache-cli v6.x.x to ganache v7.0.0-v7.6.0
+## ganache-core v2.x.x and ganache-cli v6.x.x to ganache v7.x.x
 
 ### Installing
 
