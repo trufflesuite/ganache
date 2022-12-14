@@ -1,6 +1,6 @@
 # Ganache Upgrade Guide
 
-## ganache-core v2.x.x and ganache-cli v6.x.x to ganache v7.x.x
+## ganache-core v2.x.x and ganache-cli v6.x.x to ganache v7.0.0-v7.6.0
 
 ### Installing
 
@@ -447,3 +447,7 @@ be addressing this shortcoming in a future EIP and release by extending eth_call
 with an option to run the transaction at a certain _index_ in the specified
 block (you likely won't ever see this option enabled on public nodes, like
 Infura, as it can be a very CPU-intensive process).
+
+## ganache v7.0.0-v7.6.0 to ganache v7.7.0+
+
+As of Ganache v7.7.0, Node 12 is no longer supported. You'll need to update to Node 14.0.0 or later to use Ganache v7.7.0 or later.
