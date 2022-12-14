@@ -12,6 +12,8 @@
   --action-bg-hover: rgba(255, 255, 255, 0.3);
   --action-shadow: rgba(0, 0, 0, 0.3);
   --action-border: rgba(255, 255, 255, 0.8);
+
+  --color-switcher-icon: url("./assets/img/sun.svg");
   --icon-bg: invert(98%) sepia(22%) saturate(1116%) hue-rotate(298deg)
     brightness(103%) contrast(103%);
   --chevron-bg: invert(94%) sepia(11%) saturate(658%) hue-rotate(317deg)
@@ -47,6 +49,8 @@
   --action-bg-hover: rgba(0, 0, 0, 0.3);
   --action-shadow: rgba(0, 0, 0, 0.2);
   --action-border: rgba(0, 0, 0, 0.2);
+
+  --color-switcher-icon: url("./assets/img/moon.svg");
   --icon-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
     brightness(96%) contrast(93%);
   --chevron-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
@@ -433,7 +437,36 @@ header svg:hover {
   background-color: rgba(255, 255, 255, 0.13);
   border-radius: 16px;
 }
-.logo {
+.header-action > .logo {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.header-action {
+  float: right;
+  margin: 1rem 0.5rem;
+  border: 1px solid var(--action-border);
+  border-radius: 8px;
+  display: flex;
+  background-color: var(--action-bg);
+  transition: background-color 0.2s ease-in-out;
+  cursor: pointer;
   height: 2rem;
   width: 2rem;
+  justify-content: center;
+  align-items: center;
+}
+.header-action:hover {
+  background-color: var(--action-bg-hover);
+}
+.header-action:first-of-type {
+  margin-right: 1.5rem;
+}
+.header-action > .logo {
+  filter: var(--icon-bg);
+}
+#color-switcher .logo {
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0);
+  border: none;
 }
