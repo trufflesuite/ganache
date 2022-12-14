@@ -1,12 +1,30 @@
-import { BN } from "ethereumjs-util";
+import BN from "bn.js";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
 import { Quantity } from "@ganache/utils";
+import { RunTxOpts, RunTxResult, VM } from "@ethereumjs/vm";
+import type { InterpreterStep } from "@ethereumjs/evm/";
+import { RuntimeBlock } from "@ganache/ethereum-block";
 
-const bn = (val = 0) => new (BN as any)(val);
+const bn = (val = 0): BN => new BN(val);
 const STIPEND = bn(2300);
+export type EstimateGasRunArgs = {
+  tx: { gasLimit: bigint };
+  block: RuntimeBlock;
+  skipBalance: boolean;
+  skipNonce: boolean;
+};
+
+export type EstimateGasResult =
+  | RunTxResult & {
+      gasEstimate?: bigint;
+    };
+
+const bigIntToBN = (val: bigint) => {
+  return new BN(val.toString());
+};
 const MULTIPLE = 64 / 63;
 
-const check = set => opname => set.has(opname);
+const check = (set: Set<string>) => (opname: string) => set.has(opname);
 const isCall = check(
   new Set(["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"])
 );
@@ -15,15 +33,19 @@ const isCreate = check(new Set(["CREATE", "CREATE2"]));
 const isTerminator = check(
   new Set(["STOP", "RETURN", "REVERT", "INVALID", "SELFDESTRUCT"])
 );
-
+type SystemOptions = {
+  index: number;
+  depth: number;
+  name: string;
+};
 const stepTracker = () => {
-  const sysOps = [];
-  const allOps = [];
-  const preCompile = new Set();
+  const sysOps: SystemOptions[] = [];
+  const allOps: InterpreterStep[] = [];
+  const preCompile: Set<number> = new Set();
   let preCompileCheck = false;
   let precompileCallDepth = 0;
   return {
-    collect: info => {
+    collect: (info: InterpreterStep) => {
       if (preCompileCheck) {
         if (info.depth === precompileCallDepth) {
           // If the current depth is unchanged.
@@ -34,7 +56,7 @@ const stepTracker = () => {
         preCompileCheck = false;
       }
       if (isCall(info.opcode.name)) {
-        info.stack = info.stack.map(val => val.clone());
+        info.stack = [...info.stack];
         preCompileCheck = true;
         precompileCallDepth = info.depth;
         sysOps.push({
@@ -52,7 +74,7 @@ const stepTracker = () => {
       // This goes last so we can use the length for the index ^
       allOps.push(info);
     },
-    isPrecompile: index => preCompile.has(index),
+    isPrecompile: (index: number) => preCompile.has(index),
     done: () =>
       !allOps.length ||
       sysOps.length < 2 ||
@@ -62,8 +84,13 @@ const stepTracker = () => {
   };
 };
 
-const estimateGas = (generateVM, runArgs, callback) => {
-  exactimate(generateVM(), runArgs, (err, result) => {
+const estimateGas = async (
+  generateVM: () => Promise<VM>,
+  runArgs: EstimateGasRunArgs,
+  callback: (err: Error, result?: EstimateGasResult) => void
+) => {
+  const vm = await generateVM();
+  exactimate(vm, runArgs, (err, result) => {
     if (err) return callback(err);
     binSearch(generateVM, runArgs, result, (err, result) => {
       if (err) return callback(err);
@@ -72,20 +99,27 @@ const estimateGas = (generateVM, runArgs, callback) => {
   });
 };
 
-const binSearch = async (generateVM, runArgs, result, callback) => {
-  const MAX = runArgs.block.header.gasLimit;
+const binSearch = async (
+  generateVM: () => Promise<VM>,
+  runArgs: EstimateGasRunArgs,
+  result: EstimateGasResult,
+  callback: (err: Error, result?: EstimateGasResult) => void
+) => {
+  const MAX = bigIntToBN(runArgs.block.header.gasLimit);
   const gasRefund = result.execResult.gasRefund;
   const startingGas = gasRefund
-    ? result.gasEstimate.add(gasRefund)
-    : result.gasEstimate;
+    ? bigIntToBN(result.gasEstimate + gasRefund)
+    : bigIntToBN(result.gasEstimate);
   const range = { lo: startingGas, hi: startingGas };
-  const isEnoughGas = async gas => {
-    const vm = generateVM(); // Generate fresh VM
-    runArgs.tx.gasLimit = new BN(gas.toArrayLike(Buffer));
+  const isEnoughGas = async (gas: BN) => {
+    const vm = await generateVM(); // Generate fresh VM
+    runArgs.tx.gasLimit = Quantity.toBigInt(gas.toBuffer());
     await vm.stateManager.checkpoint();
-    const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
+    const result = await vm
+      .runTx(runArgs as unknown as RunTxOpts)
+      .catch(vmerr => ({ vmerr }));
     await vm.stateManager.revert();
-    return !result.vmerr && !result.execResult.exceptionError;
+    return !("vmerr" in result) && !result.execResult.exceptionError;
   };
 
   if (!(await isEnoughGas(range.hi))) {
@@ -111,14 +145,19 @@ const binSearch = async (generateVM, runArgs, result, callback) => {
     }
   }
 
-  result.gasEstimate = range.hi;
+  result.gasEstimate = Quantity.toBigInt(range.hi.toBuffer());
   callback(null, result);
 };
 
-const exactimate = async (vm, runArgs, callback) => {
+const exactimate = async (
+  vm: VM,
+  runArgs: EstimateGasRunArgs,
+  callback: (err: Error, result?: EstimateGasResult) => void
+) => {
   const steps = stepTracker();
-  vm.on("step", steps.collect);
+  vm.evm.events.on("step", steps.collect);
 
+  type ContextType = ReturnType<typeof Context>;
   const Context = (index: number, fee?: BN) => {
     const base = index === 0;
     let start = index;
@@ -127,11 +166,11 @@ const exactimate = async (vm, runArgs, callback) => {
     let sixtyFloorths = bn();
     const op = steps.ops[index];
     const next = steps.ops[index + 1];
-    const intermediateCost = op.gasLeft.sub(next.gasLeft);
+    const intermediateCost = bigIntToBN(op.gasLeft - next.gasLeft);
     const callingFee = fee || bn();
     let compositeContext = false;
 
-    function addGas(val) {
+    function addGas(val: BN) {
       // Add to our current context, but accounted for in sixtyfloorths
       if (sixtyFloorths.gtn(0)) {
         if (val.gte(sixtyFloorths)) {
@@ -146,11 +185,11 @@ const exactimate = async (vm, runArgs, callback) => {
     return {
       start: () => start,
       stop: () => stop,
-      setStart: val => {
+      setStart: (val: number) => {
         start = val;
         compositeContext = true;
       },
-      setStop: val => {
+      setStop: (val: number) => {
         stop = val;
       },
       getCost: () => ({ cost, sixtyFloorths }),
@@ -159,36 +198,43 @@ const exactimate = async (vm, runArgs, callback) => {
         addGas(values.cost);
         sixtyFloorths.iadd(values.sixtyFloorths);
       },
-      addSixtyFloorth: sixtyFloorth => {
+      addSixtyFloorth: (sixtyFloorth: BN) => {
         sixtyFloorths.iadd(sixtyFloorth);
       },
       addRange: (fee = bn()) => {
+        const range =
+          steps.ops[base || compositeContext ? start : start + 1].gasLeft -
+          steps.ops[stop].gasLeft;
         // only occurs on stack increasing ops
-        addGas(
-          steps.ops[base || compositeContext ? start : start + 1].gasLeft
-            .sub(steps.ops[stop].gasLeft)
-            .add(fee)
-        );
+        addGas(bigIntToBN(range).add(fee));
       },
       finalizeRange: () => {
-        let range;
+        let range: BN;
         // if we have a composite context and we are NOT at the final terminator
         if (compositeContext && stop !== steps.ops.length - 1) {
-          range = steps.ops[start].gasLeft.sub(steps.ops[stop - 1].gasLeft);
+          range = bigIntToBN(
+            steps.ops[start].gasLeft - steps.ops[stop - 1].gasLeft
+          );
           addGas(range);
-          const tail = steps.ops[stop - 1].gasLeft.sub(steps.ops[stop].gasLeft);
+          const tail = bigIntToBN(
+            steps.ops[stop - 1].gasLeft - steps.ops[stop].gasLeft
+          );
           range = tail.add(intermediateCost);
         } else {
-          range = steps.ops[start].gasLeft.sub(steps.ops[stop].gasLeft);
+          range = bigIntToBN(
+            steps.ops[start].gasLeft - steps.ops[stop].gasLeft
+          );
         }
         range.isub(callingFee);
         addGas(range);
         if (
           isCallOrCallcode(op.opcode.name) &&
-          !op.stack[op.stack.length - 3].isZero()
+          !(op.stack[op.stack.length - 3] === 0n)
         ) {
           cost.iadd(sixtyFloorths);
-          const innerCost = next.gasLeft.sub(steps.ops[stop - 1].gasLeft);
+          const innerCost = bigIntToBN(
+            next.gasLeft - steps.ops[stop - 1].gasLeft
+          );
           if (innerCost.gt(STIPEND)) {
             sixtyFloorths = cost.divn(63);
           } else if (innerCost.lte(STIPEND)) {
@@ -206,9 +252,9 @@ const exactimate = async (vm, runArgs, callback) => {
     const sysops = steps.systemOps;
     const ops = steps.ops;
     const opIndex = cursor => sysops[cursor].index;
-    const stack = [];
+    const stack: ContextType[] = [];
     let cursor = 0;
-    let context = Context(0);
+    let context: ContextType = Context(0);
     while (cursor < sysops.length) {
       const currentIndex = opIndex(cursor);
       const current = ops[currentIndex];
@@ -221,9 +267,10 @@ const exactimate = async (vm, runArgs, callback) => {
           context.addSixtyFloorth(STIPEND);
         } else {
           context.setStop(currentIndex);
-          context.addRange(bn(current.opcode.fee));
+          const feeBn = bn(current.opcode.fee);
+          context.addRange(feeBn);
           stack.push(context);
-          context = Context(currentIndex, bn(current.opcode.fee)); // setup next context
+          context = Context(currentIndex, feeBn); // setup next context
         }
       } else if (isTerminator(name)) {
         // only on the last operation
@@ -248,10 +295,12 @@ const exactimate = async (vm, runArgs, callback) => {
     return gas.cost.add(gas.sixtyFloorths);
   };
   await vm.stateManager.checkpoint();
-  const result = await vm.runTx(runArgs).catch(vmerr => ({ vmerr }));
+  const result = await vm
+    .runTx(runArgs as unknown as RunTxOpts)
+    .catch(vmerr => ({ vmerr }));
   await vm.stateManager.revert();
-  const vmerr = result.vmerr;
-  if (vmerr) {
+  if ("vmerr" in result) {
+    const vmerr = result.vmerr;
     return callback(vmerr);
   } else if (result.execResult.exceptionError) {
     const error = new RuntimeError(
@@ -261,17 +310,21 @@ const exactimate = async (vm, runArgs, callback) => {
       RETURN_TYPES.RETURN_VALUE
     );
     return callback(error, result);
-  } else if (steps.done()) {
-    const estimate = result.gasUsed;
-    result.gasEstimate = estimate;
   } else {
-    const actualUsed = steps.ops[0].gasLeft.sub(
-      steps.ops[steps.ops.length - 1].gasLeft
-    );
-    const sixtyFloorths = getTotal().sub(actualUsed);
-    result.gasEstimate = result.gasUsed.add(sixtyFloorths);
+    const ret: EstimateGasResult = result;
+    if (steps.done()) {
+      const estimate = result.totalGasSpent;
+      ret.gasEstimate = estimate;
+    } else {
+      const gasLeftStart = steps.ops[0].gasLeft;
+      const gasLeftEnd = steps.ops[steps.ops.length - 1].gasLeft;
+      const actualUsed = bigIntToBN(gasLeftStart - gasLeftEnd);
+      const sixtyFloorths = getTotal().sub(actualUsed);
+      ret.gasEstimate =
+        result.totalGasSpent + Quantity.toBigInt(sixtyFloorths.toBuffer());
+    }
+    callback(null, ret);
   }
-  callback(vmerr, result);
 };
 
 export default estimateGas;

@@ -1,4 +1,5 @@
 import { toBufferBE } from "../common";
+import { BUFFER_EMPTY } from "./constants";
 import { uintToBuffer } from "./uint-to-buffer";
 
 const allocUnsafe = Buffer.allocUnsafe;
@@ -21,7 +22,9 @@ try {
   if (!toBufferBE) throw new Error("Missing function `toBufferBE`!");
 
   _bigIntToBuffer = (value: bigint) => {
-    if (value <= MAX_SAFE_INTEGER) {
+    if (value === 0n) {
+      return BUFFER_EMPTY;
+    } else if (value <= MAX_SAFE_INTEGER) {
       return uintToBuffer(Number(value));
     } else {
       const size = bigIntByteLength(value);
@@ -30,7 +33,9 @@ try {
   };
 } catch {
   _bigIntToBuffer = (value: bigint): Buffer => {
-    if (value <= MAX_SAFE_INTEGER) {
+    if (value === 0n) {
+      return BUFFER_EMPTY;
+    } else if (value <= MAX_SAFE_INTEGER) {
       // if this value can be handled as a JS number safely, convert it that way
       return uintToBuffer(Number(value));
     } else {

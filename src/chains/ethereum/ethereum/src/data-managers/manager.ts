@@ -1,5 +1,5 @@
-import { LevelUp } from "levelup";
 import { BUFFER_ZERO, Data } from "@ganache/utils";
+import { GanacheLevelUp } from "../database";
 const NOTFOUND = 404;
 
 export type Instantiable<T> = { new (...args: any[]): T };
@@ -7,9 +7,9 @@ export type Instantiable<T> = { new (...args: any[]): T };
 export default class Manager<T> {
   #Type: Instantiable<T>;
   #options: {};
-  protected base: LevelUp;
+  protected base: GanacheLevelUp;
   constructor(
-    base: LevelUp,
+    base: GanacheLevelUp,
     type: Instantiable<T>,
     options?: ConstructorParameters<Instantiable<T>>[1]
   ) {

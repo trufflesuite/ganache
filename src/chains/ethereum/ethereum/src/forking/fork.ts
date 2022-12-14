@@ -1,7 +1,7 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Data, Quantity, KNOWN_CHAINIDS } from "@ganache/utils";
 import AbortController from "abort-controller";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { HttpHandler } from "./handlers/http-handler";
 import { WsHandler } from "./handlers/ws-handler";
 import { Handler } from "./types";
@@ -114,8 +114,7 @@ export class Fork {
 
     this.chainId = chainId;
 
-    this.common = Common.forCustomChain(
-      KNOWN_CHAINIDS.has(chainId) ? chainId : 1,
+    this.common = Common.custom(
       {
         name: "ganache-fork",
         defaultHardfork: this.#hardfork,
@@ -126,7 +125,8 @@ export class Fork {
         // replay attacks
         chainId: this.#options.chain.chainId,
         comment: "Local test network fork"
-      }
+      },
+      { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
     );
     // disable listeners to common since we don't actually cause any `emit`s,
     // but other EVM parts to listen and will make node complain about too
@@ -302,12 +302,12 @@ export class Fork {
 
       // we don't know about this chain or hardfork, so just carry on per usual,
       // but with the fork's chainId (instead of our local chainId)
-      return Common.forCustomChain(
-        1,
+      return Common.custom(
         {
-          chainId: this.chainId
+          chainId: this.chainId,
+          defaultHardfork: common.hardfork()
         },
-        common.hardfork()
+        { baseChain: 1 }
       );
     } else {
       return common;

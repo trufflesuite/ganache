@@ -1,14 +1,14 @@
 import { BlockLogs, FilterArgs } from "@ganache/ethereum-utils";
-import { LevelUp } from "levelup";
 import Manager from "./manager";
 import { Quantity } from "@ganache/utils";
 import Blockchain from "../blockchain";
 import { parseFilter, parseFilterDetails } from "../helpers/filter-parsing";
 import { Ethereum } from "../api-types";
+import { GanacheLevelUp } from "../database";
 
 export default class BlockLogManager extends Manager<BlockLogs> {
   #blockchain: Blockchain;
-  constructor(base: LevelUp, blockchain: Blockchain) {
+  constructor(base: GanacheLevelUp, blockchain: Blockchain) {
     super(base, BlockLogs);
     this.#blockchain = blockchain;
   }

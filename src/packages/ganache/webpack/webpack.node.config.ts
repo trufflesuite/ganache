@@ -21,7 +21,9 @@ const config: webpack.Configuration = merge({}, base, {
       // in any package.
       debug: require.resolve("./polyfills/debug"),
       // the `setimmediate` package is only used in the browser
-      setimmediate: false
+      setimmediate: false,
+      // TODO: remove once https://github.com/trufflesuite/ganache/issues/3899 is resolved
+      ethers: false
     }
   },
   plugins: [
@@ -61,7 +63,10 @@ const config: webpack.Configuration = merge({}, base, {
     //#endregion
     "@ganache/filecoin",
     // things api-extractor can't handle, so we don't bundle them:
-    "emittery"
+    "emittery",
+    "abstract-level",
+    "abstract-leveldown",
+    "async-eventemitter"
   ],
   module: {
     rules: [

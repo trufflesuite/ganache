@@ -3,7 +3,7 @@ import {
   Quantity,
   keccak,
   BUFFER_EMPTY,
-  uintToBuffer
+  bigIntToBuffer
 } from "@ganache/utils";
 import {
   EIP1559FeeMarketDatabaseTx,
@@ -13,9 +13,6 @@ import {
 import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 import secp256k1 from "@ganache/secp256k1";
-
-const intToBuffer = (value: number) =>
-  value === 0 ? BUFFER_EMPTY : uintToBuffer(value);
 
 /**
  * Copies `length` bytes from `source` to the `target`, filling remaining
@@ -73,29 +70,29 @@ export const isValidSigRecovery = (recovery: number) => {
 export const ecdsaRecover = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
   sharedBuffer: Buffer,
-  v: number,
-  chainId: number,
+  v: bigint,
+  chainId: bigint,
   rBuf: Buffer,
   sBuf: Buffer
 ) => {
   let data: Buffer;
   let recid: number;
 
-  const eip155V = chainId * 2 + 35;
-  const isEip155 = v === eip155V || v === eip155V + 1;
+  const eip155V = chainId * 2n + 35n;
+  const isEip155 = v === eip155V || v === eip155V + 1n;
 
   if (isEip155) {
-    const chainBuf = intToBuffer(chainId);
+    const chainBuf = bigIntToBuffer(chainId);
     const extras = [chainBuf, BUFFER_EMPTY, BUFFER_EMPTY] as const;
     const epilogue = encodeRange(extras, 0, 3);
     data = digest(
       [partialRlp.output, epilogue.output],
       partialRlp.length + epilogue.length
     );
-    recid = v - eip155V;
+    recid = Number(v - eip155V);
   } else {
     data = digest([partialRlp.output], partialRlp.length);
-    recid = v - 27;
+    recid = Number(v) - 27;
   }
 
   return _ecdsaRecover(data, sharedBuffer, rBuf, sBuf, recid);
@@ -150,10 +147,10 @@ const SHARED_BUFFER = Buffer.allocUnsafe(65);
 
 export const computeFromAddress = (
   partialRlp: { output: Buffer[] | Readonly<Buffer[]>; length: number },
-  v: number,
+  v: bigint,
   rBuf: Buffer,
   sBuf: Buffer,
-  chainId: number
+  chainId: bigint
 ) => {
   const senderPubKey = ecdsaRecover(
     partialRlp,
@@ -170,7 +167,7 @@ export const computeFromAddress = (
 export const computeIntrinsicsLegacyTx = (
   v: Quantity,
   raw: LegacyDatabasePayload,
-  chainId: number
+  chainId: bigint
 ) => {
   const encodedData = encodeRange(raw, 0, 6);
   const encodedSignature = encodeRange(raw, 6, 3);
@@ -181,7 +178,7 @@ export const computeIntrinsicsLegacyTx = (
   return {
     from: computeFromAddress(
       encodedData,
-      v.toNumber(),
+      v.toBigInt(),
       raw[7],
       raw[8],
       chainId

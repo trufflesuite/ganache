@@ -1,4 +1,4 @@
-import type { AbstractLevelDOWN } from "abstract-leveldown";
+import type { AbstractLevelDOWN, AbstractIterator } from "abstract-leveldown";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import Blockchain from "./blockchain";
@@ -7,7 +7,13 @@ import sub from "subleveldown";
 import encode from "encoding-down";
 import leveldown from "leveldown";
 import type { LevelUp } from "levelup";
+import { TrieDB } from "./trie-db";
 const levelup = require("levelup");
+
+export type GanacheLevelUp = LevelUp<
+  AbstractLevelDOWN<Buffer, Buffer>,
+  AbstractIterator<Buffer, Buffer>
+>;
 
 setGracefulCleanup();
 const tmpOptions = { prefix: "ganache_", unsafeCleanup: true };
@@ -19,14 +25,14 @@ export default class Database extends Emittery {
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
-  public db: LevelUp = null;
-  public blocks: LevelUp;
-  public blockIndexes: LevelUp;
-  public blockLogs: LevelUp;
-  public transactions: LevelUp;
-  public transactionReceipts: LevelUp;
-  public storageKeys: LevelUp;
-  public trie: LevelUp;
+  public db: GanacheLevelUp = null;
+  public blocks: GanacheLevelUp;
+  public blockIndexes: GanacheLevelUp;
+  public blockLogs: GanacheLevelUp;
+  public transactions: GanacheLevelUp;
+  public transactionReceipts: GanacheLevelUp;
+  public storageKeys: GanacheLevelUp;
+  public trie: TrieDB;
   public readonly initialized: boolean;
   #rootStore: AbstractLevelDOWN;
 
@@ -54,7 +60,7 @@ export default class Database extends Emittery {
       valueEncoding: "binary"
     };
     const store = this.#options.db;
-    let db: LevelUp;
+    let db: GanacheLevelUp;
     if (store) {
       this.#rootStore = encode(store as AbstractLevelDOWN, levelupOptions);
       db = levelup(this.#rootStore, {});
@@ -81,7 +87,8 @@ export default class Database extends Emittery {
     if (this.#closed) return this.#cleanup();
 
     const open = db.open();
-    this.trie = sub(db, "T", levelupOptions);
+    const sublevelTrie = sub(db, "T", levelupOptions);
+    this.trie = new TrieDB(sublevelTrie);
 
     this.db = db;
     await open;
