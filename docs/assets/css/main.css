@@ -1,3 +1,4 @@
+[data-theme="dark"],
 :root {
   --body-bg-color: #281e21;
   --main-bg-color: #33262a;
@@ -36,6 +37,7 @@
 
   --thunder: #251f21;
 }
+[data-theme="light"] {
   --body-bg-color: rgba(0, 0, 0, 0.02);
   --main-bg-color: #fff;
   --main-bg-light-contrast: #f1f1f1;
