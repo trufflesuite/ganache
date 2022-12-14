@@ -24,13 +24,11 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
-      - name: Run build
-        run: npm run build
+      - run: npm run tsc
+      - run: npm test
         env:
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
-      - name: Update documentation
-        run: |
-          npm run docs.build
+          FORCE_COLOR: 1
+          INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
   build-all:
     strategy:
