@@ -7,8 +7,18 @@
   --medium-bg-color: rgba(255, 255, 255, 0.1);
   --body-text: #fff0e1;
 
+  --action-bg: rgba(255, 255, 255, 0.1);
+  --action-text: rgba(255, 255, 255, 0.9);
+  --action-bg-hover: rgba(255, 255, 255, 0.3);
+  --action-shadow: rgba(0, 0, 0, 0.3);
+  --action-border: rgba(255, 255, 255, 0.8);
+  --icon-bg: invert(98%) sepia(22%) saturate(1116%) hue-rotate(298deg)
+    brightness(103%) contrast(103%);
   --chevron-bg: invert(94%) sepia(11%) saturate(658%) hue-rotate(317deg)
     brightness(102%) contrast(103%);
+
+  --console-line: rgba(255, 255, 255, 0.05);
+
   --light-turquoise: #99f4e5;
   --turquoise: #3fe0c5;
   --medium-dark-turquoise: #1bd4b5;
@@ -24,16 +34,40 @@
 
   --thunder: #251f21;
 }
+  --body-bg-color: rgba(0, 0, 0, 0.02);
+  --main-bg-color: #fff;
+  --main-bg-light-contrast: #f1f1f1;
+  --main-bg-medium-contrast: #aaa;
+  --main-bg-heavy-contrast: #bbb;
+  --medium-bg-color: rgba(0, 0, 0, 0.08);
+  --body-text: #251f21;
+
+  --action-bg: rgba(0, 0, 0, 0.1);
+  --action-text: rgba(0, 0, 0, 0.9);
+  --action-bg-hover: rgba(0, 0, 0, 0.3);
+  --action-shadow: rgba(0, 0, 0, 0.2);
+  --action-border: rgba(0, 0, 0, 0.2);
+  --icon-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
+    brightness(96%) contrast(93%);
   --chevron-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
     brightness(96%) contrast(93%);
 
-    --light-turquoise: #4b7a73;
-    --turquoise: #258575;
-    --medium-dark-turquoise: #12826f;
+  --console-line: rgba(0, 0, 0, 0.05);
 
-    --porsche: #785632;
-    --light-porsche: #736456;
-  }
+  --light-turquoise: #4b7a73;
+  --turquoise: #258575;
+  --medium-dark-turquoise: #12826f;
+  --dark-turquoise: #248e7c;
+
+  --light-porsche: #736456;
+  --porsche: #785632;
+  --medium-dark-porsche: #e4a663;
+  --dark-porsche: #f7e6d5;
+
+  --light-pink: #e911bd;
+  --pink: #f069d6;
+
+  --thunder: #f1f1f1;
 }
 html,
 body {
@@ -56,7 +90,7 @@ body {
   background: var(--main-bg-heavy-contrast);
 }
 ::-webkit-scrollbar-corner {
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--main-bg-heavy-contrast);
 }
 h1 {
   color: var(--porsche);
@@ -132,12 +166,12 @@ aside ul li {
   display: inline;
 }
 .console-line {
-  border-top: solid 1px rgba(255, 255, 255, 0.05);
+  border-top: solid 1px var(--console-line);
   padding: 0 1em;
 }
 .run-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--action-bg);
+  color: var(--action-text);
   position: absolute;
   right: 2rem;
   padding: 0.25em 0.5em;
@@ -145,12 +179,12 @@ aside ul li {
   border-radius: 0 0 3px 3px;
   z-index: 1;
   text-transform: uppercase;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 5px var(--action-shadow);
   position: absolute;
   transition: background-color 0.2s ease-in-out;
 }
 .run-button:hover {
-  background-color: rgba(255, 255, 255, 0.13);
+  background-color: var(--action-bg-hover);
 }
 .editor-container {
   position: relative;
