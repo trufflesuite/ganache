@@ -51,6 +51,20 @@ describe("RLP encoding (string):", function () {
     assert.strictEqual(encodedDog[2], 111);
     assert.strictEqual(encodedDog[3], 103);
   });
+
+  it("length of string >55 should return 0xb7+len(len(data)) plus len(data) plus data", function () {
+    const encodedLongString = RLP.encode(
+      Buffer.from(
+        "zoo255zoo255zzzzzzzzzzzzssssssssssssssssssssssssssssssssssssssssssssss"
+      )
+    );
+    assert.strictEqual(72, encodedLongString.length);
+    assert.strictEqual(encodedLongString[0], 184);
+    assert.strictEqual(encodedLongString[1], 70);
+    assert.strictEqual(encodedLongString[2], 122);
+    assert.strictEqual(encodedLongString[3], 111);
+    assert.strictEqual(encodedLongString[12], 53);
+  });
 });
 
 describe("RLP encoding (list):", function () {
