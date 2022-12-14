@@ -55,13 +55,25 @@ function getTheme() {
     { token: "string", foreground: darkTurquoise },
     { token: "keyword", foreground: porsche }
   ];
+  const base = getUserColorTheme() === "light" ? "vs" : "vs-dark";
   return {
-    base: "vs-dark",
+    base,
     colors: { "editor.background": `#${thunder}` },
     inherit: true,
     rules
   };
 }
+
+(function setupColorThemeListener() {
+  const colorSwitcher = document.querySelector("#color-switcher");
+  colorSwitcher.addEventListener("click", () => {
+    const theme = getUserColorTheme();
+    const newTheme = theme === "light" ? "dark" : "light";
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    monaco.editor.defineTheme("ganache", getTheme());
+  });
+})();
 
 require(["vs/editor/editor.main"], function () {
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
