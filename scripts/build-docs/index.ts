@@ -122,7 +122,7 @@ function g(): ${returnType}
     )
     .replace(/<\/?pre>/g, "");
   let returnHtml =
-    returnTypeHtml.replace(/\n$/, "") +
+    returnTypeHtml.replace(/\n/g, "") +
     (comment ? marked.parse(": " + comment, markedOptions) : "");
 
   return `
