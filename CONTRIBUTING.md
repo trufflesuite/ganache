@@ -24,7 +24,6 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 - If you do not have Python 2.7 installed, you need to install it
   - example: `sudo apt update && sudo apt install python2.7`
 - Run `npm config set python python2.7`
-- If you still get errors, [read here](https://blog.logrocket.com/solving-common-issues-node-gyp/).
 
 ### on Windows
 
