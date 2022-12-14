@@ -3439,7 +3439,7 @@ export default class EthereumApi implements Api {
 
 
   /**
-   * Returns the number of transactions created by specified address currently pending for inclusion in the next block(s), as well as the ones that are being scheduled for future execution only.
+   * Returns transactions created by the specified address currently pending inclusion in the next blocks, as well as the ones that are scheduled for future execution.
    * 
    * @param address - The account address
    * @returns The transactions currently pending or queued in the transaction pool by address.
