@@ -180,7 +180,6 @@ require(["vs/editor/editor.main"], function () {
           console.log(e);
         } finally {
           try {
-            console.log("disconnecting ganache provider");
             await provider.disconnect();
             // delete all tmp ganache-core databases
             await indexedDB.databases().then(dbs => {
