@@ -31,14 +31,17 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 
 ### on macOS
 
-- Determine if you have Xcode command line tools installed
-  - example the console will tell you if they're already installed): `xcode-select --install`
-- Determine if you have Python 2.7 installed
-  - example: `which python2.7`
-- If you do not have Python 2.7 installed, you need to install it. We recommend `pyenv` for this so you can keep the default MacOS python installation untouched.
+- Attempt to install Xcode command line tools (the console will tell you if they're already installed)
+  - example: `xcode-select --install`
+- Determine if you have Python 2.x installed
+  - example: `which python`
+- If you do not have Python 2.x installed, you need to install it. We recommend `pyenv` for this so you can keep the default MacOS python installation untouched.
   1. [Install `pyenv`](https://github.com/pyenv/pyenv#homebrew-in-macos)
   2. [Setup your shell environment for `pyenv`](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv)
   3. Install Python 2.x: `pyenv install 2.7.18`
+- If the above steps don't fix the `node-gyp` issue and you've recently updated your OS, you may need to re-install Xcode command line tools:
+  1. Remove the existing, broken installation: `rm -rf /Library/Developer/CommandLineTools`
+  2. Install them again: `xcode-select --install`
 
 ## Clean install
 
