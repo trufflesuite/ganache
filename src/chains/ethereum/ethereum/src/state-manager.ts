@@ -1,4 +1,4 @@
-import SM from "@ethereumjs/vm/dist/state/stateManager";
+import { DefaultStateManager as SM } from "@ethereumjs/statemanager";
 
 export class StateManager extends SM {
   /**

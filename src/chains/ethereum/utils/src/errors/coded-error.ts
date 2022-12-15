@@ -1,4 +1,3 @@
-import { ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { JsonRpcErrorCode } from "@ganache/utils";
 import { rawDecode } from "ethereumjs-abi";
 
