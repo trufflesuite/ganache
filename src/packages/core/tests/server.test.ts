@@ -494,7 +494,7 @@ describe("server", () => {
 
       try {
         await assert.rejects(setup(), {
-          message: `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`,
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`,
           code: "EADDRINUSE"
         });
       } finally {
