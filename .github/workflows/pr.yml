@@ -70,5 +70,6 @@ jobs:
         # this should match the os and version used in the release.yml
         if: startsWith(matrix.os, 'ubuntu-20.04') && startsWith(matrix.node, '14.')
         uses: actions/upload-artifact@v3
+        with:
           name: Candidate
-            path: ./src/packages/ganache/ganache-*.tgz
+          path: ./src/packages/ganache/ganache-*.tgz
