@@ -2,13 +2,14 @@ import {
   Data,
   Quantity,
   keccak,
-  BUFFER_ZERO,
   BUFFER_32_ZERO,
-  JsonRpcErrorCode
+  BUFFER_EMPTY,
+  BUFFER_ZERO,
+  JsonRpcErrorCode,
+  ecsign
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
+import type { Common } from "@ethereumjs/common";
 import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -24,23 +25,7 @@ import {
   Capability,
   EIP2930AccessListTransactionJSON
 } from "./transaction-types";
-import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
-
-function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
-  const object = { signature: new Uint8Array(64), recid: null };
-  const status = secp256k1.ecdsaSign(object, msgHash, privateKey);
-  if (status === 0) {
-    const buffer = object.signature.buffer;
-    const r = Buffer.from(buffer, 0, 32);
-    const s = Buffer.from(buffer, 32, 32);
-    return { r, s, v: object.recid };
-  } else {
-    throw new Error(
-      "The nonce generation function failed, or the private key was invalid"
-    );
-  }
-}
 
 const CAPABILITIES = [2718, 2930];
 
@@ -63,7 +48,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.nonce = Quantity.from(data[1]);
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data[2]);
       this.gas = Quantity.from(data[3]);
-      this.to = data[4].length == 0 ? Quantity.Empty : Address.from(data[4]);
+      this.to = data[4].length == 0 ? null : Address.from(data[4]);
       this.value = Quantity.from(data[5]);
       this.data = Data.from(data[6]);
       const accessListData = AccessLists.getAccessListData(data[7]);
@@ -79,9 +64,9 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
         // TODO(hack): we use the presence of `extra` to determine if this data
         // come from the "database" or not. Transactions that come from the
         // database must not be validated since they may come from a fork.
-        if (common.chainId() !== this.chainId.toNumber()) {
+        if (common.chainId() !== this.chainId.toBigInt()) {
           throw new CodedError(
-            `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
+            `Invalid chain id (${this.chainId.toBigInt()}) for chain with id ${common.chainId()}.`,
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
@@ -97,14 +82,14 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     } else {
       if (data.chainId) {
         this.chainId = Quantity.from(data.chainId);
-        if (this.common.chainId() !== this.chainId.toNumber()) {
+        if (this.common.chainId() !== this.chainId.toBigInt()) {
           throw new CodedError(
             `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
       } else {
-        this.chainId = Quantity.from(common.chainIdBN().toArrayLike(Buffer));
+        this.chainId = Quantity.from(common.chainId());
       }
 
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
@@ -130,7 +115,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       blockNumber: this.blockNumber ? this.blockNumber : null,
       transactionIndex: this.index ? this.index : null,
       from: this.from,
-      to: this.to.isNull() ? null : this.to,
+      to: this.to,
       value: this.value,
       gas: this.gas,
       gasPrice: this.gasPrice,
@@ -150,40 +135,27 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
-    const from = this.from;
-    const sender = this.from.toBuffer();
-    const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      gasPrice: new BN(this.gasPrice.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
+      nonce: this.nonce.toBigInt(),
+      gasPrice: this.gasPrice.toBigInt(),
+      gasLimit: this.gas.toBigInt(),
+      to: this.to,
+      value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
-        toString() {
-          return from.toString();
-        }
-      }),
+      getSenderAddress: () => this.from,
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.toBuffer(fee + this.accessListDataFee));
+        return fee + this.accessListDataFee;
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
-        const c = gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
-        return new BN(Quantity.toBuffer(c));
+        return gas.toBigInt() * gasPrice.toBigInt() + value.toBigInt();
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);
@@ -250,7 +222,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
       this.gas.toBuffer(),
-      this.to.toBuffer(),
+      this.to ? this.to.toBuffer() : BUFFER_EMPTY,
       this.value.toBuffer(),
       this.data.toBuffer(),
       this.accessList,

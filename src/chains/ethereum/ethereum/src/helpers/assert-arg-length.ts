@@ -1,7 +1,6 @@
 type UnknownFn = (this: unknown, ...args: any[]) => unknown;
-type FunctionPropertyDescriptor<T extends UnknownFn> = TypedPropertyDescriptor<
-  T
->;
+type FunctionPropertyDescriptor<T extends UnknownFn> =
+  TypedPropertyDescriptor<T>;
 export function assertArgLength(min: number, max: number = min) {
   return function <O extends Object, T extends UnknownFn>(
     target: O,
@@ -13,7 +12,7 @@ export function assertArgLength(min: number, max: number = min) {
       const length = arguments.length;
       if (length < min || length > max) {
         throw new Error(
-          `Incorrect number of arguments. '${propertyKey}' requires ${
+          `Incorrect number of arguments. '${String(propertyKey)}' requires ${
             min === max
               ? `exactly ${min} ${min === 1 ? "argument" : "arguments"}.`
               : `between ${min} and ${max} arguments.`

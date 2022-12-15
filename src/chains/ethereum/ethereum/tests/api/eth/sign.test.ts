@@ -3,10 +3,11 @@ import {
   ecrecover,
   pubToAddress,
   fromSigned,
-  hashPersonalMessage
-} from "ethereumjs-util";
+  hashPersonalMessage,
+  fromRpcSig
+} from "@ethereumjs/util";
 import getProvider from "../../helpers/getProvider";
-import { Data } from "@ganache/utils";
+import { Data, Quantity } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {
@@ -40,14 +41,11 @@ describe("api", () => {
           address,
           Data.toString(msg)
         ]);
-        sgn = sgn.slice(2);
+        const { v, r, s } = fromRpcSig(sgn);
 
-        const r = Buffer.from(sgn.slice(0, 64), "hex");
-        const s = Buffer.from(sgn.slice(64, 128), "hex");
-        const v = parseInt(sgn.slice(128), 16);
         const pub = ecrecover(msgHash, v, r, s);
         const addr = fromSigned(pubToAddress(pub));
-        const strAddr = "0x" + addr.toString("hex");
+        const strAddr = Data.toString(`0x${addr.toString(16)}`, 20);
         assert.strictEqual(strAddr, accounts[0].toLowerCase());
       });
 
@@ -60,15 +58,12 @@ describe("api", () => {
         const msgHash = hashPersonalMessage(edgeCaseMsg);
 
         let sgn = await provider.send("eth_sign", [accounts[0], msgHex]);
-        sgn = sgn.slice(2);
 
-        const r = Buffer.from(sgn.slice(0, 64), "hex");
-        const s = Buffer.from(sgn.slice(64, 128), "hex");
-        const v = parseInt(sgn.slice(128), 16);
+        const { v, r, s } = fromRpcSig(sgn);
         const pub = ecrecover(msgHash, v, r, s);
         const addr = fromSigned(pubToAddress(pub));
-        const strAddr = "0x" + addr.toString("hex");
-        assert.deepStrictEqual(strAddr, accounts[0].toLowerCase());
+        const strAddr = Data.toString(Quantity.toBuffer(addr), 20);
+        assert.strictEqual(strAddr, accounts[0].toLowerCase());
       });
 
       after("shutdown", async () => {

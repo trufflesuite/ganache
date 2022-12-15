@@ -1,11 +1,8 @@
 import { RuntimeBlock } from "@ganache/ethereum-block";
-import { Quantity, Data, hasOwn, keccak, BUFFER_EMPTY } from "@ganache/utils";
+import { Quantity, Data, hasOwn, keccak } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import Message from "@ethereumjs/vm/dist/evm/message";
-import VM from "@ethereumjs/vm";
-import { BN } from "ethereumjs-util";
-import EVM from "@ethereumjs/vm/dist/evm/evm";
-import { KECCAK256_NULL } from "ethereumjs-util";
+import { VM } from "@ethereumjs/vm";
+import { KECCAK256_NULL } from "@ethereumjs/util";
 import { GanacheTrie } from "./trie";
 
 export type SimulationTransaction = {
@@ -68,28 +65,20 @@ export function runCall(
   transaction: SimulationTransaction,
   gasLeft: bigint
 ) {
-  const caller = { buf: transaction.from.toBuffer() };
-  const to =
-    transaction.to == null ? undefined : { buf: transaction.to.toBuffer() };
-  const value = new BN(
-    transaction.value == null ? 0 : transaction.value.toBuffer()
-  );
+  const caller = transaction.from;
+  const to = transaction.to ?? null;
+  const value = transaction.value == null ? 0n : transaction.value.toBigInt();
 
-  const txContext = {
-    gasPrice: new BN(transaction.gasPrice.toBuffer()),
-    origin: caller
-  } as any;
-
-  const message = new Message({
+  vm.evm.runCall({
+    origin: caller,
+    block: transaction.block as any,
+    gasPrice: transaction.gasPrice.toBigInt(),
     caller,
-    gasLimit: new BN(Quantity.toBuffer(gasLeft)),
+    gasLimit: gasLeft,
     to,
     value,
     data: transaction.data && transaction.data.toBuffer()
   });
-
-  const evm = new EVM(vm, txContext, transaction.block as any);
-  return evm.executeMessage(message);
 }
 
 const validateStorageOverride = (
@@ -128,29 +117,21 @@ export async function applySimulationOverrides(
   vm: VM,
   overrides: CallOverrides
 ): Promise<void> {
-  const stateManager = vm.stateManager;
+  const eei = vm.eei;
   for (const address in overrides) {
     if (!hasOwn(overrides, address)) continue;
     const { balance, nonce, code, state, stateDiff } = overrides[address];
 
-    const vmAddr = { buf: Address.from(address).toBuffer() } as any;
+    const vmAddr = Address.from(address);
     // group together overrides that update the account
     if (nonce != null || balance != null || code != null) {
-      const account = await stateManager.getAccount(vmAddr);
+      const account = await eei.getAccount(vmAddr);
 
       if (nonce != null) {
-        account.nonce = {
-          toArrayLike: () =>
-            // geth treats empty strings as "0x0" nonce for overrides
-            nonce === "" ? BUFFER_EMPTY : Quantity.toBuffer(nonce)
-        } as any;
+        account.nonce = nonce === "" ? 0n : Quantity.toBigInt(nonce);
       }
       if (balance != null) {
-        account.balance = {
-          toArrayLike: () =>
-            // geth treats empty strings as "0x0" balance for overrides
-            balance === "" ? BUFFER_EMPTY : Quantity.toBuffer(balance)
-        } as any;
+        account.balance = balance === "" ? 0n : Quantity.toBigInt(balance);
       }
       if (code != null) {
         // geth treats empty strings as "0x" code for overrides
@@ -160,9 +141,9 @@ export async function applySimulationOverrides(
         const codeHash =
           codeBuffer.length > 0 ? keccak(codeBuffer) : KECCAK256_NULL;
         account.codeHash = codeHash;
-        await stateTrie.db.put(codeHash, codeBuffer);
+        await stateTrie.database().put(codeHash, codeBuffer);
       }
-      await stateManager.putAccount(vmAddr, account);
+      await eei.putAccount(vmAddr, account);
     }
     // group together overrides that update storage
     if (state || stateDiff) {
@@ -182,13 +163,13 @@ export async function applySimulationOverrides(
           validateStorageOverride(slot, value, "State");
           if (!clearedState) {
             // override.state clears all storage and sets just the specified slots
-            await stateManager.clearContractStorage(vmAddr);
+            await eei.clearContractStorage(vmAddr);
             clearedState = true;
           }
           const slotBuf = Data.toBuffer(slot, 32);
           const valueBuf = Data.toBuffer(value);
 
-          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          await eei.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       } else {
         for (const slot in stateDiff) {
@@ -200,7 +181,7 @@ export async function applySimulationOverrides(
           const slotBuf = Data.toBuffer(slot, 32);
           const valueBuf = Data.toBuffer(value);
 
-          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
+          await eei.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       }
     }
