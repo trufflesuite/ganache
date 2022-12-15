@@ -87,6 +87,37 @@ export class WsHandler extends BaseHandler implements Handler {
     return await this.queueRequest<T>(method, params, key, send, options);
   }
 
+  public async batch<T>(params: any[], options = { disableCache: false }) {
+    await this.open;
+    if (this.abortSignal.aborted) return Promise.reject(new AbortError());
+
+    const key = JSON.stringify(params);
+    //`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`
+
+    const send = () => {
+      if (this.abortSignal.aborted) return Promise.reject(new AbortError());
+
+      // TODO you could check for each method/params but that makes things a bit hairy
+
+      const messageId = this.id + 1;
+      const deferred = Deferred<{
+        response: JsonRpcResponse | JsonRpcError;
+        raw: string | Buffer;
+      }>();
+
+      // TODO: timeout an in-flight request after some amount of time
+      // Issue: https://github.com/trufflesuite/ganache/issues/3478
+      // batch messageId will be the first messageId used in the batch
+      this.inFlightRequests.set(messageId, deferred);
+
+      // todo, just do it as a string
+
+      this.connection.send(params);
+      return deferred.promise.finally(() => this.requestCache.delete(key));
+    };
+    return await this.queueRequest<T>("batch", params, key, send, options);
+  }
+
   public onMessage(event: WebSocket.MessageEvent) {
     if (event.type !== "message") return;
 

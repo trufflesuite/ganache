@@ -119,5 +119,16 @@ describe("blockchain", async () => {
         }`
       );
     });
+    it.only("batchGet", async () => {
+      const options = EthereumOptionsConfig.normalize({});
+
+      // set up wallet/blockchain
+      const wallet = new Wallet(options.wallet, options.logging);
+      const initialAccounts = wallet.initialAccounts;
+      const blockchain = new Blockchain(options, initialAccounts[0].address);
+      await blockchain.initialize(wallet.initialAccounts);
+
+      console.log(await blockchain.blocks.batchGet(["latest", "latest"]));
+    });
   });
 });

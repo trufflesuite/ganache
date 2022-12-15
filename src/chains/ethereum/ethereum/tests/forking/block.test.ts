@@ -68,5 +68,7 @@ describe("forking", function () {
       const block = await provider.send("eth_getBlockByNumber", ["0x0", true]);
       assert.deepStrictEqual(block, block0);
     });
+
+    it("should get a batch of blocks from the original chain", async () => {});
   });
 });

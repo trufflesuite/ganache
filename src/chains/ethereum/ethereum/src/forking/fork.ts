@@ -250,7 +250,13 @@ export class Fork {
     params: unknown[],
     options = { disableCache: false }
   ): Promise<T> {
-    return this.#handler.request<T>(method, params, options);
+    // I do not like this. Since this is the junction between handler and app
+    // it's the easiest spot
+    if (method === "batch") {
+      return this.#handler.batch<T>(params, options);
+    } else {
+      return this.#handler.request<T>(method, params, options);
+    }
   }
 
   public abort() {

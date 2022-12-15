@@ -49,4 +49,15 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       );
     }
   }
+
+  // A batch is a batch of operations, not necessarily sequential data access.
+  // A batch of ops against our db will be processed 1 by 1 and returned.
+  // forked batches will be sent to the api
+  async batchGet(keys: string[] | Buffer[]) {
+    if (this.#blockchain.fallback) {
+      // pass to fallback
+    } else {
+      // loop over get
+    }
+  }
 }

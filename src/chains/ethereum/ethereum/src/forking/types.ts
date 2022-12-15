@@ -6,6 +6,10 @@ export interface Handler {
     params: unknown[],
     options: { disableCache: boolean }
   ) => Promise<T>;
+  batch?: <T>(
+    params: unknown[],
+    options: { disableCache: boolean }
+  ) => Promise<T>;
   setCache: (cache: PersistentCache) => void;
   close: () => Promise<void>;
 }
