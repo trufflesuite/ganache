@@ -530,9 +530,6 @@ article.sidebar-open {
 .editor-container .monaco-editor .margin {
   background-color: var(--monaco-margin);
 }
-.monaco-editor .view-lines {
-  padding-left: 0.5em;
-}
 .monaco {
   padding-left: 10px;
   min-height: 100px;
