@@ -475,7 +475,8 @@ const html = `
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
-    <div class="container">
+    <input type="checkbox" id="theme-switch">
+    <div class="container" id="page">
       <header>
         <span onclick="toggleSidebar()">
           <i class="fas fa-bars"></i>
@@ -485,7 +486,7 @@ const html = `
           <h1>Ganache</h1>
         </a>
         <div class="header-action" id="color-switcher">
-          <button class="logo" style="background-image: var(--color-switcher-icon);" title="Change Color Theme"></button>
+          <label for="theme-switch" class="logo" style="background-image: var(--color-switcher-icon);" title="Change Color Theme"></label>
         </div>
         <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
           <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
@@ -509,6 +510,13 @@ const html = `
         </article>
       </main>
     </div>
+    <script> 
+      (function initColorTheme() {
+        const theme = getUserColorTheme();
+        const checked = theme === "light" ? true : false;
+        document.querySelector("#theme-switch").checked = checked;
+      })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/ganache@latest/dist/web/ganache.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
     <script src="./assets/js/inject-editor.js"></script>

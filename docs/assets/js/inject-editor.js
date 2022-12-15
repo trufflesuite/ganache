@@ -14,7 +14,7 @@ function escapeHtml(unsafe) {
 }
 
 function getTheme() {
-  const styles = getComputedStyle(document.body);
+  const styles = getComputedStyle(document.querySelector("#page"));
 
   const bodyText = styles.getPropertyValue("--body-text").substring(2, 8);
   const lightTurquoise = styles
@@ -65,10 +65,9 @@ function getTheme() {
 }
 
 (function setupColorThemeListener() {
-  const colorSwitcher = document.querySelector("#color-switcher");
-  colorSwitcher.addEventListener("click", () => {
-    const theme = getUserColorTheme();
-    const newTheme = theme === "light" ? "dark" : "light";
+  const colorSwitcher = document.querySelector("#theme-switch");
+  colorSwitcher.addEventListener("change", e => {
+    const newTheme = e.target.checked === true ? "light" : "dark";
     localStorage.setItem("theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
     monaco.editor.defineTheme("ganache", getTheme());

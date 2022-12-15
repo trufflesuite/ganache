@@ -37,7 +37,8 @@
 
   --thunder: #251f21;
 }
-[data-theme="light"] {
+[data-theme="light"],
+#theme-switch:checked ~ #page {
   --body-bg-color: rgba(0, 0, 0, 0.02);
   --main-bg-color: #fff;
   --main-bg-light-contrast: #f1f1f1;
@@ -76,12 +77,23 @@
   --thunder: #f1f1f1;
 }
 html,
-body {
-  background-color: var(--body-bg-color);
+body,
+#page {
   margin: 0;
   padding: 0;
   color: var(--body-text);
   font-family: "Open Sans", sans-serif;
+}
+#page {
+  color: var(--body-text);
+  background-color: var(--body-bg-color);
+}
+#theme-switch {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
 }
 ::-webkit-scrollbar {
   width: 12px;
@@ -472,4 +484,7 @@ header svg:hover {
   background-position: center;
   background-color: rgba(255, 255, 255, 0);
   border: none;
+  height: 2rem;
+  width: 2rem;
+  background-repeat: no-repeat;
 }
