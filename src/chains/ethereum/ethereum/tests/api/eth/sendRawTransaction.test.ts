@@ -1,8 +1,8 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
-import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
-import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
+import { Common } from "@ethereumjs/common";
 import { join } from "path";
 import compile from "../../helpers/compile";
 import { EthereumProviderOptions } from "@ganache/ethereum-options";
@@ -15,15 +15,15 @@ describe("api", () => {
         "0x4c3fc38239e503913706205746ef2dcc54a5ea9971988bfcac136b43e3190841";
       let provider: EthereumProvider;
       let accounts: string[];
-      const common = Common.forCustomChain(
-        "mainnet",
+      const common = Common.custom(
         {
           name: "ganache",
           chainId: 1337,
           comment: "Local test network",
-          bootstrapNodes: []
+          bootstrapNodes: [],
+          defaultHardfork: "petersburg"
         },
-        "petersburg"
+        { baseChain: "mainnet" }
       );
       beforeEach(async () => {
         provider = await getProvider({

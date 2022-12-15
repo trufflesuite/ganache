@@ -1,3 +1,4 @@
+import { Address } from "@ganache/ethereum-address";
 import { Data, Quantity } from "@ganache/utils";
 
 export type StorageProof = {
@@ -7,7 +8,7 @@ export type StorageProof = {
 };
 
 export type AccountProof = {
-  address: Data;
+  address: Address;
   balance: Quantity;
   codeHash: Data;
   nonce: Quantity;

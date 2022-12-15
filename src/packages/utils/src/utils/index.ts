@@ -12,3 +12,4 @@ export * from "./keccak";
 export * from "./find-insert-position";
 export * from "./random-number-generator";
 export * from "./min-max";
+export * from "./signature";

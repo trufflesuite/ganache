@@ -3,7 +3,7 @@ import { BlockLogs, TransactionLog } from "@ganache/ethereum-utils";
 import { decode, digest, encodeRange } from "@ganache/rlp";
 import { Data, Quantity } from "@ganache/utils";
 import { AccessList } from "./access-lists";
-import Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { TypedTransaction } from "./transaction-types";
 
 const STATUSES = [Quantity.Zero, Quantity.One];
@@ -27,7 +27,7 @@ export interface TransactionReceipt {
   transactionIndex: Quantity;
   blockNumber: Quantity;
   blockHash: Data;
-  from: Data;
+  from: Address;
   to: Address;
   cumulativeGasUsed: Quantity;
   gasUsed: Quantity;

@@ -1,5 +1,5 @@
-import { BUFFER_ZERO, Quantity } from "@ganache/utils";
-import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import { BUFFER_ZERO } from "@ganache/utils";
+import type { InterpreterStep } from "@ethereumjs/evm";
 import { ConsoleLogs } from "@ganache/console.log";
 
 export type EvmStepContext = {};
@@ -19,7 +19,7 @@ function normalizeEvent(event: InterpreterStep) {
   // Instead of making a bunch of individual buffers, we just make 1 and then
   // fill it in as needed.
   const sharedBuffer = Buffer.allocUnsafe(104 + memoryLength);
-  account.stateRoot.copy(sharedBuffer, 0, 0, 32); // always 32 bytes
+  account.storageRoot.copy(sharedBuffer, 0, 0, 32); // always 32 bytes
   account.codeHash.copy(sharedBuffer, 32, 0, 32); // always 32 bytes
   event.address.buf.copy(sharedBuffer, 64, 0, 20); // always 20 bytes
   event.codeAddress.buf.copy(sharedBuffer, 84, 0, 20); // always 20 bytes
@@ -37,27 +37,25 @@ function normalizeEvent(event: InterpreterStep) {
 
   return {
     account: {
-      nonce: Quantity.from(account.nonce.toArrayLike(Buffer)).toBigInt(),
-      balance: Quantity.from(account.balance.toArrayLike(Buffer)).toBigInt(),
+      nonce: account.nonce,
+      balance: account.balance,
       stateRoot,
       codeHash
     },
     address,
     codeAddress,
     depth: BigInt(event.depth),
-    gasLeft: Quantity.from(event.gasLeft.toArrayLike(Buffer)).toBigInt(),
-    gasRefund: Quantity.from(event.gasRefund.toArrayLike(Buffer)).toBigInt(),
+    gasLeft: event.gasLeft,
+    gasRefund: event.gasRefund,
     memory,
-    memoryWordCount: Quantity.from(
-      event.memoryWordCount.toArrayLike(Buffer)
-    ).toBigInt(),
+    memoryWordCount: event.memoryWordCount,
     opcode: {
       name: opcode.name,
       fee: opcode.fee
     },
     pc: BigInt(event.pc),
-    returnStack: event.returnStack.map(rs => rs.toArrayLike(Buffer)),
-    stack: event.stack.map(s => s.toArrayLike(Buffer))
+    returnStack: event.returnStack.map(r => r),
+    stack: event.stack.map(s => s)
   };
 }
 
