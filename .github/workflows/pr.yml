@@ -56,6 +56,7 @@ jobs:
         # 5. exit with non-zero exit code if the test fails.
         run: |
           npm run build &&
+          npm run prepublishOnly &&
           cd ./src/packages/ganache &&
           npm pack &&
           size="$(zcat ganache-*.tgz | wc -c)" &&
