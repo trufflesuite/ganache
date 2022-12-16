@@ -112,9 +112,6 @@
     "@trufflesuite/bigint-buffer",
     "keccak",
     "leveldown",
-    "secp256k1",
-    "@types/bn.js",
-    "@types/lru-cache",
-    "@types/seedrandom"
+    "secp256k1"
   ]
 }
