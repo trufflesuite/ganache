@@ -1,21 +1,25 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Pull Requests
+name: Develop
 
-on: [pull_request]
+on:
+  push:
+    branches: [develop]
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        node: [14.0.0, 14.x, 16.x, 18.x]
+        node: [14.0.0, 14.x, 16.x, 18.x, 19x]
         os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
         exclude:
-          # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
+          # Node v18+ does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
           - os: ubuntu-18.04
             node: 18.x
+          - os: ubuntu-18.04
+            node: 19.x
 
     runs-on: ${{ matrix.os }}
 
