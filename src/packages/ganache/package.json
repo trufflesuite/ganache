@@ -110,9 +110,6 @@
   },
   "bundledDependencies": [
     "@trufflesuite/bigint-buffer",
-    "abstract-leveldown",
-    "async-eventemitter",
-    "emittery",
     "keccak",
     "leveldown",
     "secp256k1",
