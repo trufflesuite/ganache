@@ -10,17 +10,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
+        node: [14.0.0, 14.x, 16.x, 18.x]
         os: [ubuntu-20.04]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
+        node: [14.0.0, 14.x, 16.x, 18.x]
         os: [windows-2022, ubuntu-18.04, ubuntu-20.04, macos-11]
         exclude:
           # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
@@ -46,18 +46,18 @@ jobs:
     if: github.ref == 'refs/heads/develop'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
 
       - name: Add msbuild to PATH
         # we need msbuild tools for the `bigint-buffer` module
         if: startsWith(matrix.os, 'windows-')
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: install node tools
         # we don't need to install the windows-build-tools package, as we

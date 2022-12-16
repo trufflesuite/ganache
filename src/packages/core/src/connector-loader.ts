@@ -47,9 +47,12 @@ const initialize = <T extends FlavorName = typeof DefaultFlavor>(
   // provider is ready we unpause.. This lets us accept queue requests before
   // we've even fully initialized.
 
+  // The function referenced by requestcoordinator.resume will be changed when
+  // requestCoordinator.stop() is called. Ensure that no references to the
+  // function are held, otherwise internal errors may be surfaced.
   return {
     connector,
-    promise: connectPromise.then(requestCoordinator.resume)
+    promise: connectPromise.then(() => requestCoordinator.resume())
   };
 };
 

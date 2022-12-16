@@ -35,7 +35,6 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { ConsoleLogs } from "@ganache/console.log";
 
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
@@ -94,16 +93,16 @@ function hookEventSystem(
 
 type Primitives = string | number | null | undefined | symbol | bigint;
 
-// Externalize changes any `Quantity`, `Data`, `ITraceData` types into `string`
-// as that's how they are after being serialized to JSON. It's be nice if
-// `JSON.stringify` did that for us, as our types implement `toJSON()`, but it
-// doesn't
+// Externalize changes any `Quantity`, `Data`, `ITraceData`, `Address` types
+// into `string` as that's how they are after being serialized to JSON. It'd be
+// nice if `JSON.stringify` did that for us, as our types implement `toJSON()`,
+// but it doesn't
 export type Externalize<X> =
   // if X is a Primitive return it as is
   X extends Primitives
     ? X
-    : // if X is a Quantity | Data | ITraceData return `string`
-    X extends Quantity | Data | ITraceData
+    : // if X is a Quantity | Data | ITraceData | Address return `string`
+    X extends Quantity | Data | ITraceData | Address
     ? string
     : // if X can be iterated iterate and recurse on each element
       { [N in keyof X]: Externalize<X[N]> };
@@ -141,8 +140,8 @@ export class EthereumProvider
 {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
-  #executor: Executor;
   #wallet: Wallet;
+  readonly #executor: Executor;
   readonly #blockchain: Blockchain;
 
   constructor(
@@ -156,7 +155,10 @@ export class EthereumProvider
       options as EthereumProviderOptions
     ));
 
-    const wallet = (this.#wallet = new Wallet(providerOptions.wallet));
+    const wallet = (this.#wallet = new Wallet(
+      providerOptions.wallet,
+      providerOptions.logging
+    ));
     const accounts = wallet.initialAccounts;
     const fork =
       providerOptions.fork.url ||
@@ -419,10 +421,19 @@ export class EthereumProvider
     }
   };
 
+  /**
+   * Disconnect the provider instance. This will cause the underlying blockchain to be stopped, and any pending
+   * tasks to be rejected. Emits a `disconnect` event once successfully disconnected.
+   * @returns Fullfills with `undefined` once the provider has been disconnected.
+   */
   public disconnect = async () => {
+    // executor.stop() will stop accepting new tasks, but will not wait for inflight tasks. These may reject with
+    // (unhelpful) internal errors. See https://github.com/trufflesuite/ganache/issues/3499
+    this.#executor.stop();
     await this.#blockchain.stop();
+
+    this.#executor.end();
     this.emit("disconnect");
-    return;
   };
 
   //#region legacy

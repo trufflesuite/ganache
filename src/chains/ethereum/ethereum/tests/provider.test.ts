@@ -1,8 +1,8 @@
 import assert from "assert";
 import { join } from "path";
-import Transaction from "@ethereumjs/tx/dist/legacyTransaction";
+import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
 import { Data, JsonRpcRequest } from "@ganache/utils";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { EthereumProvider } from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
@@ -139,6 +139,134 @@ describe("provider", () => {
         Math.floor(+time / 1000) + fastForward + timestampIncrement;
       assert.strictEqual(parseInt(block.timestamp), expectedTime);
       await provider.disconnect();
+    });
+
+    async function mineBlocksForTimestamps(
+      provider: EthereumProvider
+    ): Promise<number[]> {
+      // mine a block with a specified timestamp
+      await provider.request({
+        method: "evm_mine",
+        params: [timeArgumentSeconds]
+      });
+      const specifiedBlock = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+      // mine a block without a specified timestamp
+      await provider.request({
+        method: "evm_mine",
+        params: []
+      });
+      const unspecifiedBlock = await provider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false]
+      });
+
+      return [+specifiedBlock.timestamp, +unspecifiedBlock.timestamp];
+    }
+
+    const timeArgumentSeconds = 100;
+
+    it("uses timestamp adjustment in subsequent blocks with `timestampIncrement` of `clock`", async () => {
+      const provider = await getProvider({
+        miner: { timestampIncrement: "clock" }
+      });
+
+      const [specifiedBlock, unspecifiedBlock] = await mineBlocksForTimestamps(
+        provider
+      );
+
+      assert.strictEqual(
+        specifiedBlock,
+        timeArgumentSeconds,
+        "Unexpected timestamp for block mined with specified timestamp"
+      );
+
+      assert(
+        unspecifiedBlock >= timeArgumentSeconds &&
+          unspecifiedBlock <= timeArgumentSeconds + 1000,
+        `Unexpected timestamp for block mined without specified timestamp - expected a value between ${timeArgumentSeconds} and ${
+          timeArgumentSeconds + 1000
+        }, got ${+unspecifiedBlock}`
+      );
+
+      await provider.disconnect();
+    });
+
+    it("uses timestamp adjustment in subsequent blocks with numeric `timestampIncrement`", async () => {
+      const timestampIncrement = 5; // seconds
+
+      const provider = await getProvider({
+        miner: { timestampIncrement }
+      });
+
+      const [specifiedBlock, unspecifiedBlock] = await mineBlocksForTimestamps(
+        provider
+      );
+
+      assert.strictEqual(
+        specifiedBlock,
+        timeArgumentSeconds,
+        "Unexpected timestamp for block mined with specified timestamp"
+      );
+
+      assert.strictEqual(
+        unspecifiedBlock,
+        timeArgumentSeconds + timestampIncrement,
+        "Unexpected timestamp for block mined without specified timestamp"
+      );
+
+      await provider.disconnect();
+    });
+
+    it("applies timestamp adjustment only once when `timestampIncrement` is used", async () => {
+      const time = new Date("2019-01-01T00:00:00.000Z");
+      const timestampIncrement = 5; // seconds
+      const fastForwardSeconds = 100;
+      const provider = await getProvider({
+        chain: { time },
+        miner: { timestampIncrement }
+      });
+
+      await provider.request({
+        method: "evm_increaseTime",
+        params: [`0x${fastForwardSeconds.toString(16)}`]
+      });
+
+      const mineAndAssertTimestamp = async (
+        expectedTimestampSeconds: number,
+        message?: string
+      ) => {
+        await provider.request({
+          method: "evm_mine",
+          params: []
+        });
+        const { timestamp } = await provider.request({
+          method: "eth_getBlockByNumber",
+          params: ["latest", false]
+        });
+        assert.strictEqual(
+          timestamp,
+          `0x${expectedTimestampSeconds.toString(16)}`,
+          message
+        );
+      };
+
+      let startTimeSeconds = Math.floor(+time / 1000);
+
+      await mineAndAssertTimestamp(
+        startTimeSeconds + fastForwardSeconds + timestampIncrement,
+        "unexpected timestamp for the first block mined"
+      );
+      await mineAndAssertTimestamp(
+        startTimeSeconds + fastForwardSeconds + timestampIncrement * 2,
+        "unexpected timestamp for the second block mined"
+      );
+      await mineAndAssertTimestamp(
+        startTimeSeconds + fastForwardSeconds + timestampIncrement * 3,
+        "unexpected timestamp for the third block mined"
+      );
     });
 
     it("uses the `timestampIncrement` for the first block when forking", async () => {
@@ -319,7 +447,7 @@ describe("provider", () => {
           // specify gasPrice so we don't have to deal with a type 2 transaction
           { ...transaction, nonce: "0x1", gasPrice },
           {
-            common: Common.forCustomChain("mainnet", { chainId: 1337 })
+            common: Common.custom({ chainId: 1337 }, { baseChain: "mainnet" })
           }
         );
         const rawTransaction = Data.from(
@@ -459,6 +587,94 @@ describe("provider", () => {
       assert(subscription != null);
       assert.deepStrictEqual(subscriptionId, "0x1");
       assert.notStrictEqual(hash, "");
+    });
+  });
+
+  describe("disconnect()", () => {
+    let provider: EthereumProvider;
+
+    [true, false].forEach(asyncRequestProcessing => {
+      describe(`asyncRequestProcessing: ${asyncRequestProcessing}`, () => {
+        beforeEach("Instantiate provider", async () => {
+          provider = await getProvider({
+            chain: { asyncRequestProcessing }
+          });
+        });
+
+        it("immediately and syncronously stops accepting request when `disconnect()` is called", async () => {
+          provider.disconnect();
+          const whenBlockByNumber = provider.request({
+            method: "eth_getBlockByNumber",
+            params: ["latest"]
+          });
+
+          await assert.rejects(
+            whenBlockByNumber,
+            new Error("Cannot process request, Ganache is disconnected."),
+            "Requests made after disconnect is called should reject"
+          );
+        });
+
+        it("emits the 'disconnect' event", async () => {
+          const whenDisconnected = provider.once("disconnect");
+          await provider.disconnect();
+          await assert.doesNotReject(
+            whenDisconnected,
+            'The provider should emit the "disconnect" event'
+          );
+        });
+
+        // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
+        it.skip("processes requests executed before disconnect is called", async () => {
+          const whenBlockByNumber = provider.request({
+            method: "eth_getProof",
+            params: ["0xC7D9E2d5FE0Ff5C43102158C31BbC4aA2fDe10d8", [], "latest"]
+          });
+          const whenDisconnected = provider.disconnect();
+
+          await assert.doesNotReject(
+            whenBlockByNumber,
+            "Currently executing request should resolve"
+          );
+          await assert.doesNotReject(
+            whenDisconnected,
+            'The provider should emit the "disconnect" event'
+          );
+        });
+      });
+    });
+
+    // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
+    describe.skip("without asyncRequestProcessing", () => {
+      // we only test this with asyncRequestProcessing: false, because it's impossible to force requests
+      // to be "pending" when asyncRequestProcessing: true
+      it("processes started requests, but reject pending requests", async () => {
+        provider = await getProvider({
+          chain: { asyncRequestProcessing: false }
+        });
+
+        const active = provider.request({
+          method: "eth_getProof",
+          params: ["0x4Ae2736a3b914C7597131fd1Ef30F74aC4B20874", [], "latest"]
+        });
+        const pending = provider.request({
+          method: "eth_getBlockByNumber",
+          params: ["latest"]
+        });
+
+        const whenDisconnected = provider.disconnect();
+
+        await assert.rejects(
+          pending,
+          new Error("Cannot process request, Ganache is disconnected."),
+          "pending tasks should reject"
+        );
+        await assert.doesNotReject(active, "active tasks should not reject");
+        await assert.doesNotReject(
+          whenDisconnected,
+          'The provider should emit the "disconnect" event'
+        );
+      });
     });
   });
 });

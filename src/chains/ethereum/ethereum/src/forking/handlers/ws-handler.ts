@@ -1,5 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
-import { AbortError, CodedError } from "@ganache/ethereum-utils";
+import { AbortError } from "@ganache/ethereum-utils";
 import { AbortSignal } from "abort-controller";
 import WebSocket from "ws";
 import { Handler } from "../types";
@@ -23,7 +23,10 @@ export class WsHandler extends BaseHandler implements Handler {
   constructor(options: EthereumInternalOptions, abortSignal: AbortSignal) {
     super(options, abortSignal);
 
-    const { url, origin } = options.fork;
+    const {
+      fork: { url, origin },
+      logging
+    } = options;
 
     this.connection = new WebSocket(url.toString(), {
       origin,
@@ -40,11 +43,13 @@ export class WsHandler extends BaseHandler implements Handler {
     // handler too.
     this.connection.binaryType = "nodebuffer";
 
-    this.open = this.connect(this.connection);
+    this.open = this.connect(this.connection, logging);
     this.connection.onclose = () => {
       // try to connect again...
+      // Issue: https://github.com/trufflesuite/ganache/issues/3476
       // TODO: backoff and eventually fail
-      this.open = this.connect(this.connection);
+      // Issue: https://github.com/trufflesuite/ganache/issues/3477
+      this.open = this.connect(this.connection, logging);
     };
     this.abortSignal.addEventListener("abort", () => {
       this.connection.onclose = null;
@@ -73,6 +78,7 @@ export class WsHandler extends BaseHandler implements Handler {
       }>();
 
       // TODO: timeout an in-flight request after some amount of time
+      // Issue: https://github.com/trufflesuite/ganache/issues/3478
       this.inFlightRequests.set(messageId, deferred);
 
       this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
@@ -89,6 +95,7 @@ export class WsHandler extends BaseHandler implements Handler {
     const raw = event.data as Buffer;
 
     // TODO: handle invalid JSON (throws on parse)?
+    // Issue: https://github.com/trufflesuite/ganache/issues/3479
     const response = JSON.parse(raw) as JsonRpcResponse | JsonRpcError;
     const id = response.id;
     const prom = this.inFlightRequests.get(id);
@@ -98,7 +105,10 @@ export class WsHandler extends BaseHandler implements Handler {
     }
   }
 
-  private connect(connection: WebSocket) {
+  private connect(
+    connection: WebSocket,
+    logging: EthereumInternalOptions["logging"]
+  ) {
     let open = new Promise((resolve, reject) => {
       connection.onopen = resolve;
       connection.onerror = reject;
@@ -109,7 +119,7 @@ export class WsHandler extends BaseHandler implements Handler {
         connection.onerror = null;
       },
       err => {
-        console.log(err);
+        logging.logger.log(err);
       }
     );
     return open;

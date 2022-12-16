@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
+        node: [14.0.0, 14.x, 16.x, 18.x]
         os: [windows-2022, ubuntu-18.04, ubuntu-20.04, macos-11]
         exclude:
           # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
@@ -21,22 +21,22 @@ jobs:
 
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.7.0
+        uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
 
       - name: Add msbuild to PATH
         # we need msbuild tools for the `bcrypto` module
         if: startsWith(matrix.os, 'windows-')
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1
 
       - run: npm ci
       - run: npm run tsc
@@ -56,6 +56,7 @@ jobs:
         # 5. exit with non-zero exit code if the test fails.
         run: |
           npm run build &&
+          npm run prepublishOnly &&
           cd ./src/packages/ganache &&
           npm pack &&
           size="$(zcat ganache-*.tgz | wc -c)" &&
@@ -63,4 +64,13 @@ jobs:
           echo "Bundle size is $([[ "$size" -lt 99000000 ]] && echo "ok" || echo "not ok")" &&
           test "$size" -lt 99000000
         env:
-          INFURA_KEY: ${{ secrets.INFURA_KEY }}
+          # use a fake infura key for the bundle size check so this test will
+          # run successfully on external contributor Pull Requests
+          INFURA_KEY: "badc0de0deadc0debadc0de0deadc0de"
+      - name: Upload artifact
+        # this should match the os and version used in the release.yml
+        if: startsWith(matrix.os, 'ubuntu-20.04') && startsWith(matrix.node, '14.')
+        uses: actions/upload-artifact@v3
+        with:
+          name: Candidate
+          path: ./src/packages/ganache/ganache-*.tgz

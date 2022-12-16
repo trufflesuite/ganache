@@ -1,6 +1,6 @@
 import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { Hardfork } from "./hardfork";
 import { Params } from "./params";
 import { GanacheRawExtraTx } from "./raw";
@@ -47,6 +47,7 @@ export const calculateIntrinsicGas = (
       // Make sure we don't exceed uint64 for all data combinations.
       // TODO: make sure these upper-bound checks are safe to remove, then
       // remove if so.
+      // Issue: https://github.com/trufflesuite/ganache/issues/3486
       // NOTE: This is an upper-bounds limit ported from geth that doesn't
       // make sense for Ethereum, as exceeding the upper bound would require
       // something like 200+ Petabytes of data.

@@ -82,7 +82,7 @@ describe("api", () => {
                   value: `0x${(balance - approximateGasCost).toString(16)}`
                 }),
                 new RegExp(
-                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=london -> block -> tx\\)`
+                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=merge -> block -> tx\\)`
                 )
               );
             } finally {
@@ -329,7 +329,7 @@ describe("api", () => {
           // https://eips.ethereum.org/EIPS/eip-2
 
           const options = EthereumOptionsConfig.normalize({});
-          const wallet = new Wallet(options.wallet);
+          const wallet = new Wallet(options.wallet, options.logging);
 
           function makeKeys(address: string) {
             const addressBuf = Data.toBuffer(address);

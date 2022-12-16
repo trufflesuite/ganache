@@ -74,7 +74,7 @@ class PromiseQueue<T> {
    * given value.
    */
   clear(value: T) {
-    // remove all entrys from the queue and mark them.
+    // remove all entries from the queue and mark them.
     const cancelledQueue = this.#queue.splice(0);
     cancelledQueue.forEach(entry => {
       entry.queue = cancelledQueue;

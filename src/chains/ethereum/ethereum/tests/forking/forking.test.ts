@@ -1197,21 +1197,6 @@ describe("forking", function () {
         balance: "0x6d3c9dd798891c3455045",
         block: "0xcfd6e0"
       },
-      ropsten: {
-        address: "0x00000000219ab540356cbb839cbe05303d7705fa",
-        balance: "0x6cdf802b72c2a000",
-        block: "0xae42fd"
-      },
-      kovan: {
-        address: "0x596e8221A30bFe6e7eFF67Fee664A01C73BA3C56",
-        balance: "0x19b2bed356f3da980e2e3",
-        block: "0x1a36e09"
-      },
-      rinkeby: {
-        address: "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D",
-        balance: "0x11cde6445010582e1ae",
-        block: "0x92c444"
-      },
       goerli: {
         address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
         balance: "0x81744abdb769a3b6dc08b",
@@ -1221,6 +1206,11 @@ describe("forking", function () {
         address: "0x9d525E28Fe5830eE92d7Aa799c4D21590567B595",
         balance: "0x81744abdb769a3b6dc08b",
         block: "0x595434"
+      },
+      sepolia: {
+        address: "0xd7d76c58b3a519e9fA6Cc4D22dC017259BC49F1E",
+        balance: "0x52b7d2dcc80cd2e4000000",
+        block: "0x1AD62D"
       }
     };
     let localProvider: EthereumProvider;

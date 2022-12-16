@@ -27,7 +27,7 @@ describe("blockchain", async () => {
       const options = EthereumOptionsConfig.normalize(optionsJson);
 
       // set up wallet/blockchain
-      const wallet = new Wallet(options.wallet);
+      const wallet = new Wallet(options.wallet, options.logging);
       const initialAccounts = wallet.initialAccounts;
       const blockchain = new Blockchain(options, initialAccounts[0].address);
       await blockchain.initialize(wallet.initialAccounts);
@@ -82,11 +82,14 @@ describe("blockchain", async () => {
           try {
             const blockNumber = block.header.number.toString();
             const expectedBlockNumber = startingBlockNumber + i + 1;
-            assert.equal(blockNumber, `0x${expectedBlockNumber.toString(16)}`);
-            assert.equal(transactions.length, 1);
+            assert.strictEqual(
+              blockNumber,
+              `0x${expectedBlockNumber.toString(16)}`
+            );
+            assert.strictEqual(transactions.length, 1);
 
             const transaction = transactions[0];
-            assert.equal(
+            assert.strictEqual(
               transaction.hash.toString(),
               transactionHashes[i].toString()
             );
@@ -109,7 +112,12 @@ describe("blockchain", async () => {
       // assert that second block's timestamp is at least `blockTime` greater
       // than the first block's. meaning, these blocks weren't mined one after
       // the other
-      assert(timestamps[1] >= timestamps[0] + blockTime);
+      assert(
+        timestamps[1] >= timestamps[0] + blockTime,
+        `Unexpected timestamp - expected >= ${timestamps[0] + blockTime}, got ${
+          timestamps[1]
+        }`
+      );
     });
   });
 });

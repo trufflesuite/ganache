@@ -1,23 +1,18 @@
-import { BN } from "ethereumjs-util";
 import { WORD_SIZE } from "./handlers";
 import { signatureMap } from "./signatures";
 
-const CONSOLE_ADDRESS = new BN(
-  Buffer.from([
-    0x63, 0x6f, 0x6e, 0x73, 0x6f, 0x6c, 0x65, 0x2e, 0x6c, 0x6f, 0x67
-  ])
-);
+const CONSOLE_ADDRESS = 0x636f6e736f6c652e6c6f67n;
 
 /**
  * The purpose of this type is to help maintainers visualize the layout of
  * the `stack`.
  */
 type LogsStack = [
-  ...rest: BN[],
-  memoryLength: BN,
-  memoryOffset: BN,
-  toAddress: BN,
-  _: BN
+  ...rest: bigint[],
+  memoryLength: bigint,
+  memoryOffset: bigint,
+  toAddress: bigint,
+  _: bigint
 ];
 
 /**
@@ -35,7 +30,7 @@ type LogsStack = [
 export const maybeGetLogs = (event: {
   opcode: { name: string };
   memory: Buffer;
-  stack: BN[];
+  stack: bigint[];
 }): ConsoleLogs | null => {
   if (event.opcode.name !== "STATICCALL") return null;
 
@@ -45,13 +40,13 @@ export const maybeGetLogs = (event: {
   const [memoryLength, memoryOffset, toAddress] = stack.slice(-4, -1);
 
   // only if the toAddress is our console address we should try parsing
-  if (!toAddress.eq(CONSOLE_ADDRESS)) return null;
+  if (toAddress !== CONSOLE_ADDRESS) return null;
 
   // STATICCALL allows for passing in invalid pointers and lengths so we need to
   // guard against failures with a try/catch
   try {
-    const memoryStart = memoryOffset.toNumber();
-    const memoryEnd = memoryStart + memoryLength.toNumber();
+    const memoryStart = Number(memoryOffset);
+    const memoryEnd = memoryStart + Number(memoryLength);
     const memory: Buffer = event.memory.subarray(memoryStart, memoryEnd);
     const method = memory.readUInt32BE(0); // 4 bytes wide
     const handlers = signatureMap.get(method);

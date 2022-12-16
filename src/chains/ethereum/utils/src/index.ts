@@ -19,3 +19,4 @@ export * from "./types/subscriptions";
 export * from "./types/trace-transaction";
 export * from "./types/tuple-from-union";
 export * from "./types/account-proof";
+export * from "./types/fee-history";
