@@ -139,8 +139,14 @@ const getCommitMetrics = (branch: string) => {
   numStat.forEach(line => {
     if (!line) return;
     const [added, deleted, file] = line.split(/\t/g);
-    metrics.additionCount += parseInt(added, 10);
-    metrics.deletionCount += parseInt(deleted, 10);
+    // binary files will show as "-" and "-" for added and deleted
+    // because they don't have "lines"
+    if (Number.isInteger(parseInt(added, 10))) {
+      metrics.additionCount += parseInt(added, 10);
+    }
+    if (Number.isInteger(parseInt(deleted, 10))) {
+      metrics.deletionCount += parseInt(deleted, 10);
+    }
     files.add(file);
   });
   metrics.fileCount = files.size;
