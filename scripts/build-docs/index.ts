@@ -175,9 +175,10 @@ function (${name}: ${type})
 }
 
 function renderMethodLink(method: Method) {
+  const title = x(method.name);
   return `<div>---</div><a href="#${e(
     x(method.name)
-  )}" onclick="toggleSidebar()">${x(method.name)}</a>`;
+  )}" onclick="toggleSidebar()" title="${title}">${title}</a>`;
 }
 
 function renderMethodDocs(method: Method) {
@@ -264,7 +265,7 @@ function renderSource(method: Method) {
         encoding: "utf8"
       }).trim() || "master";
   } catch (e) {}
-  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
+  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener" title="Source Code">source</a>`;
 }
 
 function renderTags(method: Method) {
@@ -423,7 +424,7 @@ for (const namespace of orderedNamespaces) {
     methodListByGroup.push(
       `<details open>
         <summary>
-          <img src="./assets/img/chevron.svg"/>
+          <img src="./assets/img/chevron.svg" alt="chevron"/>
           ${namespace}
         </summary>
         <ul>
@@ -479,17 +480,17 @@ const html = `
         <span onclick="toggleSidebar()">
           <i class="fas fa-bars"></i>
         </span>
-        <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/" title="Ganache website">
+        <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
           <img src="./assets/img/ganache-logomark.svg" alt="ganache logo"/>
           <h1>Ganache</h1>
         </a>
         <div class="header-action" id="color-switcher">
-          <button class="logo" style="background-image: var(--color-switcher-icon);" title="Change color theme"></button>
+          <button class="logo" style="background-image: var(--color-switcher-icon);" title="Change Color Theme"></button>
         </div>
         <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
           <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
         </a>
-        <a class="header-action" href="https://github.com/trufflesuite/ganache" target="_blank" rel="noopener noreferrer" title="Github" >
+        <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
           <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
         </a>
       </header>
