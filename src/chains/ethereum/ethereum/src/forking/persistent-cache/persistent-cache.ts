@@ -15,8 +15,8 @@ import {
   setDbVersion,
   findClosestDescendants
 } from "./helpers";
-import type { AbstractIterator, AbstractLevelDOWN } from "abstract-leveldown";
-import type { LevelUp } from "levelup";
+import type { AbstractLevelDOWN } from "abstract-leveldown";
+import { GanacheLevelUp } from "../../database";
 const levelup = require("levelup");
 
 const levelupOptions = {
@@ -35,15 +35,9 @@ const maxValueByteBuffer = Buffer.from([0xff]);
  */
 export class PersistentCache {
   public readonly version = BUFFER_ZERO;
-  protected db: LevelUp<AbstractLevelDOWN, AbstractIterator<Buffer, Buffer>>;
-  protected cacheDb: LevelUp<
-    AbstractLevelDOWN,
-    AbstractIterator<Buffer, Buffer>
-  >;
-  protected ancestorDb: LevelUp<
-    AbstractLevelDOWN,
-    AbstractIterator<Buffer, Buffer>
-  >;
+  protected db: GanacheLevelUp;
+  protected cacheDb: GanacheLevelUp;
+  protected ancestorDb: GanacheLevelUp;
   protected ancestry: Ancestry;
   protected hashBuffer: Buffer;
   protected request: Request;
@@ -119,7 +113,7 @@ export class PersistentCache {
       leveldown(directory, leveldownOpts),
       levelupOptions
     );
-    const db = await new Promise<LevelUp>((resolve, reject) => {
+    const db = await new Promise<GanacheLevelUp>((resolve, reject) => {
       const db = levelup(store, (err: Error) => {
         if (err) return void reject(err);
         resolve(db);
@@ -222,6 +216,7 @@ export class PersistentCache {
 
     // TODO(perf): we always re-save the targetBlock but could optimize to only
     // resave if it is needed.
+    // Issue: https://github.com/trufflesuite/ganache/issues/3485
     atomicBatch.put(targetBlock.key, targetBlock.serialize());
 
     await atomicBatch.write();

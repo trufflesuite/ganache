@@ -14,7 +14,12 @@ const testData = [
     0x0123456789abcdef,
     Buffer.from([0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef])
   ],
-  [Buffer.from([0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), "0x10000000000000", 0x10000000000000, Buffer.from([ 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])]
+  [
+    Buffer.from([0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),
+    "0x10000000000000",
+    0x10000000000000,
+    Buffer.from([0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+  ]
 ];
 
 const nullLikeInputs = [null, undefined, Buffer.alloc(0)];
@@ -70,14 +75,14 @@ describe("json-rpc-quantity", () => {
     it("should return 0x0 for a non-empty buffer of 0x00 bytes", () => {
       const result = new Quantity(Buffer.alloc(10), true).toString();
 
-      assert.equal(result, "0x0");
+      assert.strictEqual(result, "0x0");
     });
 
     it(`should return "0x0" for null-like inputs`, () => {
       nullLikeInputs.forEach(input => {
         const result = new Quantity(input, false).toString();
 
-        assert.equal(result, "0x0");
+        assert.strictEqual(result, "0x0");
       });
     });
 
@@ -88,7 +93,7 @@ describe("json-rpc-quantity", () => {
         [true, false].forEach(nullable => {
           const result = new Quantity(input, nullable).toString();
 
-          assert.equal(result, expected);
+          assert.strictEqual(result, expected);
         });
       });
     });
@@ -106,14 +111,14 @@ describe("json-rpc-quantity", () => {
     it("should return null for empty input", () => {
       const result = new Quantity(Buffer.alloc(0), true).toNumber();
 
-      assert.equal(result, null);
+      assert.strictEqual(result, null);
     });
 
     it("should return 0 for null-like inputs", () => {
       nullLikeInputs.forEach(input => {
         const result = new Quantity(input, false).toNumber();
 
-        assert.equal(result, 0);
+        assert.strictEqual(result, 0);
       });
     });
 
@@ -124,7 +129,7 @@ describe("json-rpc-quantity", () => {
         [true, false].forEach(nullable => {
           const result = new Quantity(input, nullable).toNumber();
 
-          assert.equal(result, expected);
+          assert.strictEqual(result, expected);
         });
       });
     });
@@ -137,21 +142,21 @@ describe("json-rpc-quantity", () => {
       nullLikeInputs.forEach(input => {
         const result = new Quantity(input, true).toBuffer();
 
-        assert.deepEqual(result, Buffer.alloc(0));
+        assert.deepStrictEqual(result, Buffer.alloc(0));
       });
     });
 
     it("should return an empty buffer for an empty buffer input", () => {
       const result = new Quantity(Buffer.alloc(0), true).toBuffer();
 
-      assert.deepEqual(result, Buffer.alloc(0));
+      assert.deepStrictEqual(result, Buffer.alloc(0));
     });
 
     it("should return an empty buffer for null-like inputs", () => {
       nullLikeInputs.forEach(input => {
         const result = new Quantity(input, false).toBuffer();
 
-        assert.deepEqual(result, Buffer.alloc(0));
+        assert.deepStrictEqual(result, Buffer.alloc(0));
       });
     });
 
@@ -161,7 +166,7 @@ describe("json-rpc-quantity", () => {
       )).toString("hex")}`, () => {
         const result = new Quantity(input).toBuffer();
 
-        assert.deepEqual(result, expected);
+        assert.deepStrictEqual(result, expected);
       });
     });
   });
@@ -182,7 +187,7 @@ describe("json-rpc-quantity", () => {
         [Buffer.alloc(1), Buffer.alloc(2)].forEach(input => {
           const quantity = new Quantity(input, nullable);
 
-          assert.equal(quantity.isNull(), false);
+          assert.strictEqual(quantity.isNull(), false);
         });
       });
     });

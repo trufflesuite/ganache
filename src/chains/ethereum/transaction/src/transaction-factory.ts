@@ -1,5 +1,5 @@
 import { Data, JsonRpcErrorCode, Quantity } from "@ganache/utils";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { Transaction } from "./rpc-transaction";
@@ -37,8 +37,6 @@ function assertValidTransactionSValue(common: Common, tx: TypedTransaction) {
     );
   }
 }
-
-const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 
 export enum TransactionType {
   Legacy = 0x0,
@@ -82,6 +80,7 @@ export class TransactionFactory {
         } else {
           // TODO: I believe this is unreachable with current architecture.
           // If 2718 is supported, so is 2930.
+          // Issue: https://github.com/trufflesuite/ganache/issues/3487
           throw new CodedError(
             `EIP 2930 is not activated.`,
             JsonRpcErrorCode.INVALID_PARAMS
@@ -265,14 +264,8 @@ export class TransactionFactory {
       type === TransactionType.EIP2930AccessList
     ) {
       return type;
-    } else if (
-      type >= UNTYPED_TX_START_BYTE ||
-      type === TransactionType.Legacy ||
-      type === undefined
-    ) {
-      return TransactionType.Legacy;
     } else {
-      throw new Error(`Invalid transaction type: ${type}`);
+      return TransactionType.Legacy;
     }
   }
 

@@ -2,11 +2,11 @@
 
 ## Getting set up
 
-- Use Node.js v12.0.0.
-  - Why v12.0.0? Because this is the first LTS release of Node.js v12 and is the earliest version Ganache supports.
+- Use Node.js v14.0.0.
+  - Why v14.0.0? Because this is the first LTS release of Node.js v14 and is the earliest version Ganache supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
-    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v12.0.0.
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v14.0.0.
 - `git clone git@github.com:trufflesuite/ganache.git`
 - `cd ganache`
 - `npm install` (use npm v6)
@@ -153,7 +153,7 @@ index 2a2aa9e..57cbf21 100644
 
 These are guidelines, not rules. :-)
 
-- Use Node.js v12.0.0 for most local development.
+- Use Node.js v14.0.0 for most local development.
 - Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
 - Write tests.
@@ -182,7 +182,7 @@ find useful.
 
 We _always_ "Squash and Merge" Pull Requests into a single commit message when merging into the `develop` branch.
 
-The "Squash and Merge" commit message _must_ be in the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) format:
+The PR title and "Squash and Merge" commit message _must_ be in the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) format. The [semantic-prs](https://github.com/Ezard/semantic-prs#readme) Github app is enabled for the repo and configured to require a PR title in the conventional commit format. When you "Squash and Merge", the commit message will automatically pull from the PR title, so just don't change this and there shouldn't be any issues. The conventional commit format is as follows:
 
 ```
 <type>[optional scope]: <description> (#PR Number)
@@ -200,7 +200,7 @@ fix: reduce bundle size and check size in CI (#1234)
 Co-authored-by: TinusLorvalds <lorvalds@finux-loundation.org>
 ```
 
-Notice how the description is in lowercase (except for initialisms/acronyms). The description should be clear and consise. The subject line does _not_ have to be fewer than 50 characters if making it shorter removes useful information.
+Notice how the description is in lowercase (except for initialisms/acronyms). The description should be clear and concise. The subject line does _not_ have to be fewer than 50 characters if making it shorter removes useful information.
 
 Co-authors should be preserved.
 
