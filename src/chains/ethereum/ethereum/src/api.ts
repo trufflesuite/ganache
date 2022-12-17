@@ -960,7 +960,7 @@ export default class EthereumApi implements Api {
         generateVM,
         runArgs,
         (err: Error, result: EstimateGasResult) => {
-          if (err) reject(err);
+          if (err) return void reject(err);
           resolve(Quantity.from(result.gasEstimate));
         }
       );
