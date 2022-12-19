@@ -1,4 +1,4 @@
-import { fork, ForkOptions } from "child_process";
+import { fork } from "child_process";
 import createInstanceName from "./process-name";
 import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";

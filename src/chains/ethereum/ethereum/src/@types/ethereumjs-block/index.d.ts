@@ -3,7 +3,7 @@ declare module "ethereumjs-block" {
   import { Blockchain } from "ethereumjs-blockchain";
   import Transaction from "ethereumjs-tx";
   import BlockHeader from "ethereumjs-block/header";
-  import Trie from "merkle-patricia-tree/baseTrie";
+  import { Trie } from "@ethereumjs/trie/baseTrie";
 
   type LargeNumber = string | Buffer | BN;
   type Callback<T> = (err: Error | null, result: T) => void;

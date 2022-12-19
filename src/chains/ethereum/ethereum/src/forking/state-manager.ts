@@ -1,9 +1,8 @@
-import { Address as EJS_Address } from "ethereumjs-util";
-import { decode } from "rlp";
-import StateManager from "@ethereumjs/vm/dist/state/stateManager";
+import { Address as EJS_Address } from "@ethereumjs/util";
+import { decode } from "@ganache/rlp";
+import { DefaultStateManager as StateManager } from "@ethereumjs/statemanager";
 import AccountManager from "../data-managers/account-manager";
 import { ForkCache } from "./cache";
-import Common from "@ethereumjs/common";
 import { ForkTrie } from "./trie";
 
 /**
@@ -11,13 +10,15 @@ import { ForkTrie } from "./trie";
  */
 export interface DefaultStateManagerOpts {
   /**
-   * Parameters of the chain ([`Common`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common))
-   */
-  common: Common;
-  /**
-   * An [`merkle-patricia-tree`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
+   * An [`@ethereumjs/trie`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
    */
   trie: ForkTrie;
+  /**
+   * Enables code hash prefixing, which is used by `ethereumjs/statemanager` to
+   * [distinguish between a contract deployed with code `0x80` and
+   * `RLP([])`](https://github.com/ethereumjs/ethereumjs-monorepo/blob/master/packages/statemanager/src/stateManager.ts#L40)
+   */
+  prefixCodeHashes?: boolean;
 }
 
 /**
@@ -26,7 +27,7 @@ export interface DefaultStateManagerOpts {
  */
 export class ForkStateManager extends StateManager {
   _cache: ForkCache;
-  private accounts: AccountManager;
+  readonly prefixCodeHashes: boolean;
 
   /**
    * Instantiate the StateManager interface.
@@ -35,6 +36,7 @@ export class ForkStateManager extends StateManager {
     super(opts);
 
     this._cache = new ForkCache(opts.trie);
+    this.prefixCodeHashes = opts.prefixCodeHashes || false;
   }
 
   /**
@@ -45,7 +47,7 @@ export class ForkStateManager extends StateManager {
   copy(): StateManager {
     return new ForkStateManager({
       trie: this._trie.copy(false) as ForkTrie,
-      common: this._common
+      prefixCodeHashes: this.prefixCodeHashes
     });
   }
 
@@ -59,13 +61,13 @@ export class ForkStateManager extends StateManager {
     const account = await this.getAccount(address);
     const storageTrie = this._trie.copy(true) as ForkTrie;
     storageTrie.setContext(
-      account.stateRoot,
+      account.storageRoot,
       address.buf,
       storageTrie.blockNumber
     );
     // we copy checkpoints over only for the metadata checkpoints, not the trie
     // checkpoints.
-    storageTrie.db.checkpoints = [];
+    storageTrie.database().checkpoints = [];
     return storageTrie;
   }
 
@@ -82,6 +84,6 @@ export class ForkStateManager extends StateManager {
   async getContractStorage(address: EJS_Address, key: Buffer): Promise<Buffer> {
     const trie = (await this._getStorageTrie(address)) as ForkTrie;
     const value = await trie.get(key);
-    return decode(value);
+    return decode<Buffer>(value);
   }
 }

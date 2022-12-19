@@ -132,11 +132,13 @@ If you want to use the new default mode but still be able to get the reason for
 a transaction failure, you need to resend your transaction with an `eth_call`.
 This will return the revert reason in nearly all cases[^2].
 
-#### Dropped support for Node v8 and v10
+#### v7.0.0-7.6.0, Dropped support for Node v8 and v10
 
-We no longer support Node v8 - v11. You'll need to update to Node v12.0.0 or
-later. NOTE: Support for Node.js v12.x.x will be dropped shortly after the
-Node.js Foundation stops supporting it in April 2022.
+As of v7.0.0 we no longer support Node v8-v10. You'll need to update to Node v12.0.0 or later.
+
+#### v7.7.0+, Dropped support for Node v12
+
+We no longer support Node v12. You'll need to update to Node v14.0.0 or later. NOTE: Support for Node.js v14.x.x will be dropped shortly after the Node.js Foundation stops supporting it in April 2023.
 
 #### DockerHub repo has been moved to trufflesuite/ganache
 

@@ -182,6 +182,9 @@ describe("args", () => {
     });
 
     describe("detach", () => {
+      const versionString = "Version string";
+      const isDocker = false;
+
       const detachModeArgs = [
         "--detach",
         "--D",
