@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [14.0.0, 14.x, 16.x, 18.xm 19.x]
+        node: [14.0.0, 14.x, 16.x, 18.x, 19.x]
         os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
         exclude:
           # Node v18+ does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
