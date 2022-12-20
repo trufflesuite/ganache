@@ -263,7 +263,17 @@ export const WalletOptions: Definitions<WalletConfig> = {
     conflicts: ["mnemonic", "deterministic"]
   },
   mnemonic: {
-    normalize,
+    // if the mnemonic is empty, we want to throw an error because it is likely
+    // unexpected behavior
+    normalize: (mnemonic, config) => {
+      // if the mnemonic is `""` use `default` mnemonic generation.
+      if (mnemonic === "") {
+        // NOTE: the `flavor` param here isn't used by `default` but is
+        // required by the `default` function signature, so we pass in ""
+        return WalletOptions.mnemonic.default(config, "");
+      }
+      return mnemonic;
+    },
     cliDescription:
       "Use a specific HD wallet mnemonic to generate initial addresses.",
     // The order of the options matter here! `wallet.seed`

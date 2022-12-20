@@ -50,6 +50,18 @@ describe("EthereumOptionsConfig", () => {
         } as Object);
       });
     });
+    it("uses default mnemonic path when 'mnemonic' is an empty string", () => {
+      const config = {
+        wallet: { mnemonic: "" }
+      };
+      const options1 = EthereumOptionsConfig.normalize(config);
+      const options2 = EthereumOptionsConfig.normalize(config);
+      // we should effectively ignore the empty string:
+      assert.notStrictEqual(options1.wallet.mnemonic, "");
+      assert.notStrictEqual(options2.wallet.mnemonic, "");
+      // and we should generate a different mnemonic each time:
+      assert.notStrictEqual(options1.wallet.mnemonic, options2.wallet.mnemonic);
+    });
 
     describe("legacy input formats", () => {
       it("accepts some legacy input formats", () => {
