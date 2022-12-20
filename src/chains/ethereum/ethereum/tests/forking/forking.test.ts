@@ -17,7 +17,7 @@ import {
 import compile from "../helpers/compile";
 import path from "path";
 import { CodedError } from "@ganache/ethereum-utils";
-import getPort from "get-port";
+import { findPort } from "find-open-port";
 
 async function deployContract(
   remoteProvider: EthereumProvider,
@@ -55,7 +55,7 @@ async function deployContract(
   };
 }
 const getRemotePort = async () => {
-  return await getPort();
+  return await findPort();
 };
 
 describe("forking", async function () {
@@ -116,7 +116,7 @@ describe("forking", async function () {
       totalDifficulty: "0x0",
       transactions: []
     };
-    const port = await getPort();
+    const port = await findPort();
     let junk: any;
     let server: http.Server;
     beforeEach("start mock http server", async () => {

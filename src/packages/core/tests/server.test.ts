@@ -26,7 +26,7 @@ import {
   NetworkInterfaceInfoIPv6,
   networkInterfaces
 } from "os";
-import getPort from "get-port";
+import { findPort } from "find-open-port";
 
 const chunkSize = 1024 * 1024;
 
@@ -55,7 +55,7 @@ describe("server", () => {
     }
   };
   before(async () => {
-    port = await getPort();
+    port = await findPort();
   });
   async function setup(
     options: ServerOptions = defaultOptions,
