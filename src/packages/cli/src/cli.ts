@@ -138,17 +138,18 @@ if (argv.action === "start") {
       return;
     }
     started = true;
+    const { address: host, port } = server.address();
     switch (flavor) {
       case FilecoinFlavorName: {
-        await initializeFilecoin(
-          server.provider as FilecoinProvider,
-          cliSettings
-        );
+        await initializeFilecoin(server.provider as FilecoinProvider, {
+          host,
+          port
+        });
         break;
       }
       case EthereumFlavorName:
       default: {
-        initializeEthereum(server.provider as EthereumProvider, cliSettings);
+        initializeEthereum(server.provider as EthereumProvider, { host, port });
         break;
       }
     }

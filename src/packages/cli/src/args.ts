@@ -218,7 +218,7 @@ export default function (
           })
           .check(argv => {
             const { "server.port": port, "server.host": host } = argv;
-            if (port < 1 || port > 65535) {
+            if (port < 0 || port > 65535) {
               throw new Error(`Invalid port number '${port}'`);
             }
 

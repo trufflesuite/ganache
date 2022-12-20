@@ -13,6 +13,7 @@ import type {
 import {
   App,
   us_listen_socket_close,
+  us_socket_local_port,
   _cfg as setUwsGlobalConfig
 } from "@trufflesuite/uws-js-unofficial";
 
@@ -32,6 +33,8 @@ import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
+import { createServer } from "http";
+import { isIPv4 } from "net";
 
 export type Provider = Connector["provider"];
 
@@ -43,13 +46,13 @@ export type Callback = (err: Error | null) => void;
  * Server ready state constants.
  *
  * These are bit flags. This means that you can check if the status is:
- *  * ready: `status === Status.ready` or `status & Status.ready !== 0`
- *  * opening: `status === Status.opening` or `status & Status.opening !== 0`
- *  * open: `status === Status.open` or `status & Status.open !== 0`
- *  * opening || open: `status & Status.openingOrOpen !== 0` or `status & (Status.opening | Status.open) !== 0`
- *  * closing: `status === Status.closing` or `status & Status.closing !== 0`
- *  * closed: `status === Status.closed` or `status & Status.closed !== 0`
- *  * closing || closed: `status & Status.closingOrClosed !== 0` or `status & (Status.closing | Status.closed) !== 0`
+ *  * ready: `status === ServerStatus.ready` or `status & ServerStatus.ready !== 0`
+ *  * opening: `status === ServerStatus.opening` or `status & ServerStatus.opening !== 0`
+ *  * open: `status === ServerStatus.open` or `status & ServerStatus.open !== 0`
+ *  * opening || open: `status & ServerStatus.openingOrOpen !== 0` or `status & (ServerStatus.opening | ServerStatus.open) !== 0`
+ *  * closing: `status === ServerStatus.closing` or `status & ServerStatus.closing !== 0`
+ *  * closed: `status === ServerStatus.closed` or `status & ServerStatus.closed !== 0`
+ *  * closing || closed: `status & ServerStatus.closingOrClosed !== 0` or `status & (ServerStatus.closing | ServerStatus.closed) !== 0`
  */
 export enum ServerStatus {
   /**
@@ -106,6 +109,7 @@ export class Server<
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
+  #host: string | null = null;
   #connector: ConnectorsByName[Flavor];
   #websocketServer: WebsocketServer | null = null;
 
@@ -183,8 +187,7 @@ export class Server<
       (typeof port !== "number" && typeof port !== "string") ||
       (typeof port === "string" && (<string>port).trim().length === 0) ||
       +port !== +port >>> 0 ||
-      port > 0xffff ||
-      port === 0
+      port > 0xffff
     ) {
       const err = new Error(
         `Port should be >= 0 and < 65536. Received ${port}.`
@@ -239,6 +242,7 @@ export class Server<
         if (listenSocket) {
           this.#status = ServerStatus.open;
           this.#listenSocket = listenSocket;
+          this.#host = (host as string) || DEFAULT_HOST;
         } else {
           this.#status = ServerStatus.closed;
           const err = new Error(
@@ -282,6 +286,19 @@ export class Server<
       promise.then(() => callback(null)).catch(callback);
     } else {
       return promise;
+    }
+  }
+
+  public address() {
+    if (this.#status === ServerStatus.open) {
+      const address = this.#host;
+      return {
+        address,
+        family: isIPv4(address) ? "IPv4" : "IPv6",
+        port: us_socket_local_port(this.#listenSocket)
+      };
+    } else {
+      return null;
     }
   }
 
