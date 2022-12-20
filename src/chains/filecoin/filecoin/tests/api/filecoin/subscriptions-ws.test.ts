@@ -8,10 +8,12 @@ describe("api", () => {
   describe("filecoin", () => {
     let server: Server<"filecoin">;
     let ws: WebSocket;
-    const port = 7778; // Use a different port than the default, to test it works
+    let port: number;
 
     before(async () => {
-      server = await getServer(port);
+      const serverDetails = await getServer();
+      server = serverDetails.server;
+      port = serverDetails.port;
       ws = new WebSocket(`ws://localhost:${port}/rpc/v0`);
 
       await new Promise<void>((resolve, reject) => {
