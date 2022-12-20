@@ -116,10 +116,11 @@ describe("forking", async function () {
       totalDifficulty: "0x0",
       transactions: []
     };
-    const port = await findPort();
+    let port: number;
     let junk: any;
     let server: http.Server;
     beforeEach("start mock http server", async () => {
+      port = await findPort();
       // mock a server so we can send bad requests back at ganache
       server = http.createServer((req, res) => {
         let body = "";
