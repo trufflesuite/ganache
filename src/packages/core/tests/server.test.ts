@@ -353,7 +353,7 @@ describe("server", () => {
           assert.strictEqual(
             address!.port,
             +specificPort,
-            "server.address().port should be non-zero after server.listen(0)"
+            "server.address().port should be equal to the specified port after server.listen(nonZeroPort)"
           );
           const req = request.post(`http://localhost:${+specificPort}`);
           await req.send(jsonRpcJson);
