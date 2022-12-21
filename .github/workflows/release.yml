@@ -177,6 +177,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # by specifying the tag of this version as the ref to checkout, we're
+          # making sure the version we just released to npm is being released to
+          # Docker.
+          ref: v${{ needs.release.outputs.VERSION }}
       - name: Run Ganache's docker publish action
         # we are running our local action, so point directly to a folder
         # containing an `action.yml` file
