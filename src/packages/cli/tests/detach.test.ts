@@ -10,9 +10,7 @@ import {
 import request from "superagent";
 import { FlavorName } from "@ganache/flavors";
 import envPaths from "env-paths";
-import { promises as fsPromises } from "fs";
-// this awkward import is required to support node 12
-const { readdir, rmdir, mkdir, writeFile } = fsPromises;
+import { readdir, rmdir, mkdir, writeFile } from "fs/promises";
 import psList from "@trufflesuite/ps-list";
 
 const dataPath = envPaths(`Ganache/instances`, { suffix: "" }).data;
@@ -33,7 +31,7 @@ async function createInstanceFiles(
   files: { name: string; contents: string }[]
 ) {
   try {
-    await mkdir(dataPath);
+    await mkdir(dataPath, { recursive: true });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== "EEXIST") {
       throw new Error(`Couldn't create the instances folder\n${dataPath}`);
