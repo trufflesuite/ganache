@@ -33,8 +33,13 @@ import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
-import { createServer } from "http";
-import { isIPv4 } from "net";
+
+// not using the "net" node package in order to avoid having to polyfill this
+// for the browser build.
+// isIPv4 taken from https://github.com/nodejs/node/blob/01323d50c4b24cf730a651d06ba20633905ecbed/lib/internal/net.js#L31
+const v4Seg = "(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
+const IPv4Reg = new RegExp(`^(${v4Seg}[.]){3}${v4Seg}$`);
+const isIPv4 = (s: string) => IPv4Reg.test(s);
 
 export type Provider = Connector["provider"];
 
