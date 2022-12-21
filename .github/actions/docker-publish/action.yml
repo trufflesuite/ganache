@@ -28,6 +28,10 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: 14
+        cache: "npm"
+        cache-dependency-path: |
+          **/package-lock.json
+          **/npm-shrinkwrap.json
 
     - name: Run installation
       run: npm ci
