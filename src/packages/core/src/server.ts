@@ -245,7 +245,7 @@ export class Server<
             `listen EADDRINUSE: address already in use ${
               host || DEFAULT_HOST
             }:${portNumber}.`
-          ) as any;
+          ) as NodeJS.ErrnoException;
           // emulate part of node's EADDRINUSE error:
           err.code = "EADDRINUSE";
           throw err;
