@@ -117,7 +117,7 @@ export async function startDetachedInstance(
   // It signals by sending the port number to which it was bound back to us;
   // this is needed because Ganache may bind to a random port if the user
   // specified port 0.
-  const actualPort = await new Promise<number>((resolve, reject) => {
+  const port = await new Promise<number>((resolve, reject) => {
     child.on("message", port => {
       resolve(port as number);
     });
@@ -148,7 +148,7 @@ export async function startDetachedInstance(
   child.disconnect();
 
   const flavor = instanceInfo.flavor;
-  const { host, port } = instanceInfo.server;
+  const { host } = instanceInfo.server;
   const cmd =
     process.platform === "win32"
       ? path.basename(process.execPath)
@@ -161,7 +161,7 @@ export async function startDetachedInstance(
     pid,
     name: createInstanceName(),
     host,
-    port: actualPort,
+    port,
     flavor,
     cmd,
     version
