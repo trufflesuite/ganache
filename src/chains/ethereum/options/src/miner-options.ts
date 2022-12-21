@@ -221,6 +221,10 @@ const toNumberOrString = (str: string) => {
   }
 };
 
+const normalizeQuantity = (rawInput: number | bigint | string | Buffer) => {
+  return Quantity.from(rawInput);
+};
+
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
     normalize: rawInput => {
@@ -246,7 +250,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliType: "string"
   },
   defaultGasPrice: {
-    normalize: Quantity.from,
+    normalize: normalizeQuantity,
     cliDescription:
       "Sets the default gas price in WEI for transactions if not otherwise specified.",
     default: () => Quantity.from(2_000_000_000),
@@ -256,7 +260,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliCoerce: toBigIntOrString
   },
   blockGasLimit: {
-    normalize: Quantity.from,
+    normalize: normalizeQuantity,
     cliDescription: "Sets the block gas limit in WEI.",
     default: () => Quantity.from(30_000_000),
     legacyName: "gasLimit",
@@ -274,7 +278,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliCoerce: estimateOrToBigIntOrString
   },
   difficulty: {
-    normalize: Quantity.from,
+    normalize: normalizeQuantity,
     cliDescription:
       "Sets the block difficulty. Value is always 0 after the merge hardfork.",
     default: () => Quantity.One,
@@ -282,7 +286,7 @@ export const MinerOptions: Definitions<MinerConfig> = {
     cliCoerce: toBigIntOrString
   },
   callGasLimit: {
-    normalize: Quantity.from,
+    normalize: normalizeQuantity,
     cliDescription:
       "Sets the transaction gas limit in WEI for `eth_call` and `eth_estimateGas` calls.",
     default: () => Quantity.from(50_000_000),
