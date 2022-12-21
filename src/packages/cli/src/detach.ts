@@ -114,7 +114,7 @@ export async function startDetachedInstance(
 
   // Wait for the child process to send the "ready" message, which indicates
   // that the Ganache server has started and is ready to receive RPC requests.
-  // It signals by sending the port number to which it was bound to back to us;
+  // It signals by sending the port number to which it was bound back to us;
   // this is needed because Ganache may bind to a random port if the user
   // specified port 0.
   const actualPort = await new Promise<number>((resolve, reject) => {
