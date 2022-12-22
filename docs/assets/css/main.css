@@ -1,31 +1,21 @@
-[data-theme="dark"],
+/* #region Themes */
 :root {
-  --body-bg-color: #281e21;
-  --main-bg-color: #33262a;
-  --main-bg-light-contrast: #443338;
-  --main-bg-medium-contrast: #5a4d51;
-  --main-bg-heavy-contrast: #806f74;
-  --medium-bg-color: rgba(255, 255, 255, 0.1);
-  --body-text: #fff0e1;
+  --truffle-beige-0: #fcfbfa;
+  --truffle-beige-2: #f5f2ee;
+  --truffle-beige-3: #f1ede8;
+  --truffle-beige-4: #ede8e2;
 
-  --action-bg: rgba(255, 255, 255, 0.1);
-  --action-text: rgba(255, 255, 255, 0.9);
-  --action-bg-hover: rgba(255, 255, 255, 0.3);
-  --action-shadow: rgba(0, 0, 0, 0.3);
-  --action-border: rgba(255, 255, 255, 0.8);
+  --truffle-brown-5: #45373b;
+  --truffle-brown-9: #271f21;
 
-  --color-switcher-icon: url("../../assets/img/sun.svg");
-  --icon-bg: invert(98%) sepia(22%) saturate(1116%) hue-rotate(298deg)
-    brightness(103%) contrast(103%);
-  --chevron-bg: invert(94%) sepia(11%) saturate(658%) hue-rotate(317deg)
-    brightness(102%) contrast(103%);
-
-  --console-line: rgba(255, 255, 255, 0.05);
+  --ganache-orange: #ebb67e;
+  --ganache-orange-brighter: #ffd68a;
 
   --light-turquoise: #99f4e5;
   --turquoise: #3fe0c5;
   --medium-dark-turquoise: #1bd4b5;
   --dark-turquoise: #00c3a2;
+  --very-dark-turquoise: #258575;
 
   --light-porsche: #f7e6d5;
   --porsche: #e4a663;
@@ -36,46 +26,97 @@
   --pink: #e911bd;
 
   --thunder: #251f21;
+
+  --primary-bg: var(--ganache-orange);
+  --primary-bg-hover: var(--ganache-orange-brighter);
+  --primary-text: rgba(0, 0, 0, 0.9);
+}
+[data-theme="dark"],
+:root {
+  --body-bg-color: #281e21;
+  --main-bg-color: #33262a;
+  --main-bg-light-contrast: #443338;
+  --main-bg-medium-contrast: #5a4d51;
+  --main-bg-heavy-contrast: #806f74;
+  --medium-bg-color: rgba(255, 255, 255, 0.1);
+  --body-text: #fff0e1;
+  --link: var(--turquoise);
+
+  --action-bg: rgba(255, 255, 255, 0.1);
+  --action-text: rgba(255, 255, 255, 0.9);
+  --action-bg-hover: rgba(255, 255, 255, 0.3);
+  --action-shadow: rgba(0, 0, 0, 0.3);
+  --action-border: rgba(255, 255, 255, 0.8);
+
+  --monaco-bg: var(--truffle-brown-9);
+  --monaco-margin: var(--truffle-brown-5);
+  --console-tab-text: #fff;
+  --console-tab-border: #fff;
+
+  --editor-text-1: var(--body-text);
+  --editor-text-2: var(--turquoise);
+  --editor-text-3: var(--medium-dark-turquoise);
+  --editor-text-4: var(--dark-turquoise);
+  --editor-text-5: var(--light-porsche);
+  --editor-text-6: var(--porsche);
+  --editor-text-7: var(--medium-dark-porsche);
+  --editor-text-8: var(--dark-porsche);
+  --editor-text-9: var(--light-pink);
+  --editor-text-10: var(--pink);
+
+  --icon-bg: invert(98%) sepia(22%) saturate(1116%) hue-rotate(298deg)
+    brightness(103%) contrast(103%);
+  --chevron-bg: invert(94%) sepia(11%) saturate(658%) hue-rotate(317deg)
+    brightness(102%) contrast(103%);
+
+  --console-line: rgba(255, 255, 255, 0.05);
 }
 [data-theme="light"],
 #theme-switch:checked ~ #page {
-  --body-bg-color: rgba(0, 0, 0, 0.02);
-  --main-bg-color: #fff;
+  --body-bg-color: var(--truffle-beige-3);
+  --main-bg-color: var(--truffle-beige-2);
   --main-bg-light-contrast: #f1f1f1;
   --main-bg-medium-contrast: #aaa;
   --main-bg-heavy-contrast: #bbb;
-  --medium-bg-color: rgba(0, 0, 0, 0.08);
+  --medium-bg-color: #fff;
   --body-text: #251f21;
+  --link: var(--very-dark-turquoise);
 
-  --action-bg: rgba(0, 0, 0, 0.1);
+  --nav-bg-color: var(--truffle-beige-4);
+
+  --section-border: rgba(202, 186, 167, 0.45);
+
+  --action-bg: var(--truffle-beige-2);
   --action-text: rgba(0, 0, 0, 0.9);
   --action-bg-hover: rgba(0, 0, 0, 0.3);
   --action-shadow: rgba(0, 0, 0, 0.2);
   --action-border: rgba(0, 0, 0, 0.2);
 
-  --color-switcher-icon: url("../../assets/img/moon.svg");
+  --monaco-bg: var(--truffle-beige-0);
+  --monaco-margin: var(--truffle-beige-4);
+  --console-tab-text: var(--truffle-brown-9);
+  --console-tab-border: var(--truffle-brown-9);
+
+  --editor-text-1: var(--body-text);
+  --editor-text-2: var(--dark-turquoise);
+  --editor-text-3: var(--turquoise);
+  --editor-text-4: var(--medium-dark-turquoise);
+  --editor-text-5: var(--dark-porsche);
+  --editor-text-6: var(--dark-porsche);
+  --editor-text-7: var(--medium-dark-porsche);
+  --editor-text-8: var(--light-porsche);
+  --editor-text-9: var(--pink);
+  --editor-text-10: var(--light-pink);
+
   --icon-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
     brightness(96%) contrast(93%);
   --chevron-bg: invert(9%) sepia(8%) saturate(7492%) hue-rotate(301deg)
     brightness(96%) contrast(93%);
 
   --console-line: rgba(0, 0, 0, 0.05);
-
-  --light-turquoise: #4b7a73;
-  --turquoise: #258575;
-  --medium-dark-turquoise: #12826f;
-  --dark-turquoise: #248e7c;
-
-  --light-porsche: #736456;
-  --porsche: #785632;
-  --medium-dark-porsche: #e4a663;
-  --dark-porsche: #f7e6d5;
-
-  --light-pink: #e911bd;
-  --pink: #f069d6;
-
-  --thunder: #f1f1f1;
 }
+
+/* #endregion Themes*/
 /* #region Global */
 html,
 body,

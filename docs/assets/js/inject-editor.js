@@ -16,49 +16,43 @@ function escapeHtml(unsafe) {
 function getTheme() {
   const styles = getComputedStyle(document.querySelector("#page"));
 
-  const bodyText = styles.getPropertyValue("--body-text").substring(2, 8);
-  const lightTurquoise = styles
-    .getPropertyValue("--light-turquoise")
-    .substring(2, 8);
-  const mediumDarkTurquoise = styles
-    .getPropertyValue("--medium-dark-turquoise")
-    .substring(2, 8);
-  const darkTurquoise = styles
-    .getPropertyValue("--dark-turquoise")
-    .substring(2, 8);
-  const lightPorsche = styles
-    .getPropertyValue("--light-porsche")
-    .substring(2, 8);
-  const porsche = styles.getPropertyValue("--porsche").substring(2, 8);
+  const format = str => str.trim().substring(1, 7);
 
-  const lightPink = styles.getPropertyValue("--light-pink").substring(2, 8);
-  const pink = styles.getPropertyValue("--pink").substring(2, 8);
+  const bodyText = format(styles.getPropertyValue("--body-text"));
+  const text1 = format(styles.getPropertyValue("--editor-text-1"));
+  const text3 = format(styles.getPropertyValue("--editor-text-3"));
+  const text4 = format(styles.getPropertyValue("--editor-text-4"));
+  const text5 = format(styles.getPropertyValue("--editor-text-5"));
+  const text6 = format(styles.getPropertyValue("--editor-text-6"));
 
-  const thunder = styles.getPropertyValue("--thunder").substring(2, 8);
+  const text9 = format(styles.getPropertyValue("--editor-text-9"));
+  const text10 = format(styles.getPropertyValue("--editor-text-10"));
+
+  const bg = format(styles.getPropertyValue("--monaco-bg"));
 
   const rules = [
     { token: "", foreground: bodyText },
     { token: "emphasis", fontStyle: "italic" },
     { token: "strong", fontStyle: "bold" },
     { token: "variable", foreground: bodyText },
-    { token: "variable.function", foreground: mediumDarkTurquoise },
-    { token: "variable.parameter", foreground: lightPorsche },
-    { token: "constant", foreground: porsche },
-    { token: "comment", foreground: lightPink },
-    { token: "number", foreground: pink },
-    { token: "type", foreground: mediumDarkTurquoise },
+    { token: "variable.function", foreground: text3 },
+    { token: "variable.parameter", foreground: text5 },
+    { token: "constant", foreground: text6 },
+    { token: "comment", foreground: text9 },
+    { token: "number", foreground: text10 },
+    { token: "type", foreground: text3 },
     { token: "delimiter", foreground: bodyText },
-    { token: "tag", foreground: porsche },
-    { token: "key", foreground: lightTurquoise },
-    { token: "attribute.name", foreground: lightTurquoise },
-    { token: "attribute.value.hex.css", foreground: lightTurquoise },
-    { token: "string", foreground: darkTurquoise },
-    { token: "keyword", foreground: porsche }
+    { token: "tag", foreground: text6 },
+    { token: "key", foreground: text1 },
+    { token: "attribute.name", foreground: text1 },
+    { token: "attribute.value.hex.css", foreground: text1 },
+    { token: "string", foreground: text4 },
+    { token: "keyword", foreground: text6 }
   ];
   const base = getUserColorTheme() === "light" ? "vs" : "vs-dark";
   return {
     base,
-    colors: { "editor.background": `#${thunder}` },
+    colors: { "editor.background": `#${bg}` },
     inherit: true,
     rules
   };
