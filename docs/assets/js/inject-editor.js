@@ -65,8 +65,7 @@ function getTheme() {
 }
 
 (function setupColorThemeListener() {
-  const colorSwitcher = document.querySelector("#theme-switch");
-  colorSwitcher.addEventListener("change", e => {
+  const pageTheme = document.querySelector("#theme-switch");
     const newTheme = e.target.checked === true ? "light" : "dark";
     localStorage.setItem("theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
