@@ -104,7 +104,7 @@
 .hljs-attr,
 .hljs-attribute,
 .hljs-selector-id {
-  color: var(--editor-text-1);
+  color: var(--body-text);
 }
 
 .hljs-string,

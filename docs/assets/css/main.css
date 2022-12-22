@@ -54,7 +54,7 @@
   --console-tab-text: #fff;
   --console-tab-border: #fff;
 
-  --editor-text-1: var(--body-text);
+  --editor-text-1: var(--dark-turquoise);
   --editor-text-2: var(--turquoise);
   --editor-text-3: var(--medium-dark-turquoise);
   --editor-text-4: var(--dark-turquoise);

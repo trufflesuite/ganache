@@ -43,7 +43,7 @@ function getTheme() {
     { token: "type", foreground: text3 },
     { token: "delimiter", foreground: bodyText },
     { token: "tag", foreground: text6 },
-    { token: "key", foreground: text1 },
+    { token: "key", foreground: bodyText },
     { token: "attribute.name", foreground: text1 },
     { token: "attribute.value.hex.css", foreground: text1 },
     { token: "string", foreground: text4 },
