@@ -447,12 +447,11 @@ const html = `
     <title>Ganache Ethereum JSON-RPC Documentation</title>
     <meta name="description" content="Ganache Ethereum JSON-RPC Documentation" />
     <meta name="author" content="David Murdoch" />
-
+    <script src="./assets/js/preload.js"></script>
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 
     <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:300i,300,400|Oswald:200,400,700|Share+Tech+Mono|Varela+Round&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.12.0/css/all.css" integrity="sha384-ekOryaXPbeCpWQNxMwSWVvQ0+1VrStoPJq54shlYhR8HzQgig1v5fas6YgOqLoKz" crossorigin="anonymous" />
-    <script src="./assets/js/preload.js"></script>
     <link rel="stylesheet" href="./assets/css/main.css" />
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
