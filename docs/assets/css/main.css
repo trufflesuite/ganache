@@ -523,10 +523,11 @@ code {
   z-index: 1;
 }
 .console-container {
+  margin-top: 0.75rem;
   position: relative;
   z-index: 0;
   box-shadow: 0 3px 3px rgb(0 0 0 / 30%);
-  border-radius: 6px;
+  border-radius: 6px 6px 0px 6px;
 }
 .console {
   font-family: "Droid Sans Mono", monospace, monospace, "Droid Sans Fallback";
@@ -540,7 +541,7 @@ code {
   padding: 0.3em 0.1em;
   display: flex;
   flex-direction: column-reverse;
-  border-radius: 6px;
+  border-radius: 6px 6px 0px 6px;
 }
 .console::-webkit-scrollbar {
   width: 12px;
@@ -560,6 +561,7 @@ code {
   z-index: 9;
   font-size: 0.75em;
   text-transform: uppercase;
+  border-radius: 6px 0px;
 }
 .tab {
   display: inline-block;
