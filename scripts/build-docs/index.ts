@@ -475,7 +475,7 @@ const html = `
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
-    <input type="checkbox" id="theme-switch">
+    <input type="checkbox" id="theme-switch" tabIndex="-1">
     <div class="container" id="page">
       <header>
         <span onclick="toggleSidebar()">
@@ -486,7 +486,10 @@ const html = `
           <h1>Ganache</h1>
         </a>
         <div class="header-action" id="color-switcher">
-          <label for="theme-switch" class="logo" style="background-image: var(--color-switcher-icon);" title="Change Color Theme"></label>
+        <label for="theme-switch" class="logo" title="Change Color Theme" tabIndex="0">
+          <img src="./assets/img/sun.svg" id="sun"/>
+          <img src="./assets/img/moon.svg" id="moon"/>
+        </label>
         </div>
         <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
           <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
