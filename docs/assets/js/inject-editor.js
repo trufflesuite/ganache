@@ -66,10 +66,22 @@ function getTheme() {
 
 (function setupColorThemeListener() {
   const pageTheme = document.querySelector("#theme-switch");
+
+  pageTheme.addEventListener("change", e => {
     const newTheme = e.target.checked === true ? "light" : "dark";
     localStorage.setItem("theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
     monaco.editor.defineTheme("ganache", getTheme());
+  });
+
+  // set up spacebar to control theme change for accessibility
+  const colorSwitcher = document.querySelector("#color-switcher").children[0];
+  colorSwitcher.addEventListener("keydown", e => {
+    const { keyCode, target } = e;
+    // they pressed the space key
+    if (keyCode && keyCode === 32) {
+      target.click();
+    }
   });
 })();
 
