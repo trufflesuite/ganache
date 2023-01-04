@@ -429,6 +429,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const hash = tx.hash.toBuffer();
         const index = Quantity.from(i);
 
+        // update the effective gas price of the transaction based off of the
+        // baseFeePerGas of the block that the transaction is actually on
+        tx.updateEffectiveGasPrice(block.header.baseFeePerGas);
         // save transaction to the database
         const serialized = tx.serializeForDb(blockHash, blockNumberQ, index);
         this.transactions.set(hash, serialized);
