@@ -136,7 +136,7 @@ export class InternalTransactionReceipt {
   public toJSON(
     block: {
       hash(): Data;
-      header: { number: Quantity; baseFeePerGas?: Quantity };
+      header: { number: Quantity };
     },
     transaction: TypedTransaction,
     common: Common
