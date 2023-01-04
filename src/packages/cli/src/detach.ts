@@ -32,7 +32,7 @@ function getInstanceFilePath(instanceName: string): string {
  * Notify that the detached instance has started and is ready to receive requests.
  */
 export function notifyDetachedInstanceReady(port: number) {
-  // in "detach" mode, the parent will wait until the "ready" message is
+  // in "detach" mode, the parent will wait until the port is
   // received before disconnecting from the child process.
   process.send(port);
 }
@@ -112,11 +112,10 @@ export async function startDetachedInstance(
   // event is emitted) will be streamed to stderr on the parent.
   child.stderr.pipe(process.stderr);
 
-  // Wait for the child process to send the "ready" message, which indicates
-  // that the Ganache server has started and is ready to receive RPC requests.
-  // It signals by sending the port number to which it was bound back to us;
-  // this is needed because Ganache may bind to a random port if the user
-  // specified port 0.
+  // Wait for the child process to send its port, which indicates that the
+  // Ganache server has started and is ready to receive RPC requests. It signals
+  // by sending the port number to which it was bound back to us; this is needed
+  // because Ganache may bind to a random port if the user specified port 0.
   const port = await new Promise<number>((resolve, reject) => {
     child.on("message", port => {
       resolve(port as number);
