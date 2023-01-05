@@ -292,9 +292,12 @@ export default class BlockManager extends Manager<Block> {
         );
         return new Block(BlockManager.rawFromJSON(json, common), common);
       }
-    }
-    for await (const data of this.base.createValueStream({ limit: 1 })) {
-      return new Block(data as Buffer, this.#common);
+    } else {
+      // if we're forking, there shouldn't be an earliest block saved to the db,
+      // it's always retrieved from the fork
+      for await (const data of this.base.createValueStream({ limit: 1 })) {
+        return new Block(data as Buffer, this.#common);
+      }
     }
   }
 
