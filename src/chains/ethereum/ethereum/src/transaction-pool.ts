@@ -189,9 +189,10 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       !transaction.effectiveGasPrice &&
       this.#blockchain.common.isActivatedEIP(1559)
     ) {
-      const baseFeePerGas = Quantity.from(
-        Block.calcNextBaseFee(this.#blockchain.blocks.latest)
+      const baseFeePerGas = Block.calcNextBaseFee(
+        this.#blockchain.blocks.latest
       );
+
       transaction.updateEffectiveGasPrice(baseFeePerGas);
     }
 

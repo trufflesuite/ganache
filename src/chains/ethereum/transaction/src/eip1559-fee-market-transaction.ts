@@ -253,8 +253,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     return computeIntrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
   }
 
-  public updateEffectiveGasPrice(baseFeePerGas: Quantity) {
-    const baseFeePerGasBigInt = baseFeePerGas.toBigInt();
+  public updateEffectiveGasPrice(baseFeePerGas: bigint) {
+    const baseFeePerGasBigInt = baseFeePerGas;
     const maxFeePerGas = this.maxFeePerGas.toBigInt();
     const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
     const a = maxFeePerGas - baseFeePerGasBigInt;

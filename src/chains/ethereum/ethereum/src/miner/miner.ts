@@ -71,7 +71,7 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
   values[a].effectiveGasPrice > values[b].effectiveGasPrice;
 
-const refresher = (item: TypedTransaction, context: Quantity) =>
+const refresher = (item: TypedTransaction, context: bigint) =>
   item.updateEffectiveGasPrice(context);
 
 export default class Miner extends Emittery<{
@@ -127,10 +127,7 @@ export default class Miner extends Emittery<{
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new Heap<TypedTransaction, Quantity>(
-    sortByPrice,
-    refresher
-  );
+  readonly #priced = new Heap<TypedTransaction, bigint>(sortByPrice, refresher);
   /*
    * @param executables - A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -427,7 +424,7 @@ export default class Miner extends Emittery<{
           // if baseFeePerGas is undefined, we are pre london hard fork.
           // no need to refresh the order of the heap because all Txs only have gasPrice.
           if (this.#currentBlockBaseFeePerGas !== undefined) {
-            priced.refresh(this.#currentBlockBaseFeePerGas);
+            priced.refresh(this.#currentBlockBaseFeePerGas.toBigInt());
           }
         } else {
           // reset the miner
@@ -536,7 +533,9 @@ export default class Miner extends Emittery<{
       if (next && !next.locked) {
         const origin = next.from.toString();
         origins.add(origin);
-        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
+        next.updateEffectiveGasPrice(
+          this.#currentBlockBaseFeePerGas.toBigInt()
+        );
         priced.push(next);
         next.locked = true;
       }
@@ -574,7 +573,9 @@ export default class Miner extends Emittery<{
           continue;
         }
         origins.add(origin);
-        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
+        next.updateEffectiveGasPrice(
+          this.#currentBlockBaseFeePerGas.toBigInt()
+        );
         priced.push(next);
         next.locked = true;
       }
