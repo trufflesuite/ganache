@@ -331,6 +331,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           blocks.latest = await this.#blockBeingSavedPromise.then(
             ({ block }) => block
           );
+          // when we are forking, blocks.earliest is already set to what was
+          // retrieve from the fork
           if (!blocks.earliest) {
             blocks.earliest = blocks.latest;
           }
