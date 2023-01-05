@@ -2894,6 +2894,10 @@ export default class EthereumApi implements Api {
     );
   }
 
+  async eth_batchBlocks() {
+    return this.#blockchain.blocks.getBatch(["0x0", "0x0"]);
+  }
+
   /**
    * Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.
    *

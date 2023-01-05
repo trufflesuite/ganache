@@ -223,10 +223,8 @@ export default class BlockManager extends Manager<Block> {
     });
   }
 
-  async batchGet(tagOrBlockNumbers: QUANTITY[] | Buffer[] | Tag[]) {
+  async getBatch(tagOrBlockNumbers: QUANTITY[] | Buffer[] | Tag[]) {
     if (this.#blockchain.fallback) {
-      // surgery begins here lol
-
       const fallback = this.#blockchain.fallback;
 
       tagOrBlockNumbers = tagOrBlockNumbers.map(tagOrBlockNumber => {
@@ -266,6 +264,7 @@ export default class BlockManager extends Manager<Block> {
 
       // end
     } else {
+      console.log(tagOrBlockNumbers);
       return await Promise.all(
         tagOrBlockNumbers.map(async tagOrBlockNumber => {
           return await this.get(tagOrBlockNumber);
