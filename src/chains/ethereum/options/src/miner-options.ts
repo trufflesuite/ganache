@@ -61,7 +61,7 @@ export type MinerConfig = {
     };
 
     /**
-     * Sets the block difficulty
+     * Sets the block difficulty; value is always 0 after the merge hardfork
      *
      * @defaultValue 1
      */
@@ -275,7 +275,8 @@ export const MinerOptions: Definitions<MinerConfig> = {
   },
   difficulty: {
     normalize: Quantity.from,
-    cliDescription: "Sets the block difficulty.",
+    cliDescription:
+      "Sets the block difficulty. Value is always 0 after the merge hardfork.",
     default: () => Quantity.One,
     cliType: "string",
     cliCoerce: toBigIntOrString

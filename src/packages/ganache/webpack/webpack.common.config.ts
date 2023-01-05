@@ -89,9 +89,6 @@ const base: webpack.Configuration = {
   },
   plugins: [
     new webpack.EnvironmentPlugin({
-      // replace process.env.DEBUG in our code, because we don't use it but
-      // ethereumjs packages do, but we don't implement everything required
-      DEBUG: false,
       // set ganache version
       VERSION,
       CLI_VERSION,
@@ -100,7 +97,13 @@ const base: webpack.Configuration = {
     }),
     new webpack.DefinePlugin({
       // replace process.env.INFURA_KEY in our code
-      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY)
+      "process.env.INFURA_KEY": JSON.stringify(INFURA_KEY),
+      // ethereumjs sets the debug flag to true if process.env.DEBUG _exists_, even
+      // if it is set to false, so here we set it to undefined. once
+      // https://github.com/ethereumjs/ethereumjs-monorepo/issues/2306 is fixed,
+      // we can update this and have our webpacked version actually remove the
+      // DEBUG codepaths inside the ethereumjs dependencies
+      "process.env.DEBUG": "undefined"
     })
   ]
 };

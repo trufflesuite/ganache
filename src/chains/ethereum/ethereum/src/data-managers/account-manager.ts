@@ -4,7 +4,7 @@ import {
   QUANTITY,
   Tag
 } from "@ganache/ethereum-utils";
-import { KECCAK256_NULL } from "ethereumjs-util";
+import { KECCAK256_NULL } from "@ethereumjs/util";
 import { Quantity, Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { decode } from "@ganache/rlp";
@@ -105,6 +105,6 @@ export default class AccountManager {
 
     const [, , , codeHash] = decode<EthereumRawAccount>(data);
     if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
-    else return this.#blockchain.trie.db.get(codeHash).then(Data.from);
+    else return this.#blockchain.trie.database().get(codeHash).then(Data.from);
   }
 }

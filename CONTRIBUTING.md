@@ -2,11 +2,11 @@
 
 ## Getting set up
 
-- Use Node.js v12.0.0.
-  - Why v12.0.0? Because this is the first LTS release of Node.js v12 and is the earliest version Ganache supports.
+- Use Node.js v14.0.0.
+  - Why v14.0.0? Because this is the first LTS release of Node.js v14 and is the earliest version Ganache supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
-    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v12.0.0.
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v14.0.0.
 - `git clone git@github.com:trufflesuite/ganache.git`
 - `cd ganache`
 - `npm install` (use npm v6)
@@ -18,11 +18,12 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 
 ### on Linux (Ubuntu-based)
 
+- Make sure `npm` commands are not run as `root`.
 - Determine if you have Python 2.7 installed
   - example: `which python2.7`
 - If you do not have Python 2.7 installed, you need to install it
   - example: `sudo apt update && sudo apt install python2.7`
-- Finally, run `npm config set python python2.7`
+- Run `npm config set python python2.7`
 
 ### on Windows
 
@@ -153,7 +154,7 @@ index 2a2aa9e..57cbf21 100644
 
 These are guidelines, not rules. :-)
 
-- Use Node.js v12.0.0 for most local development.
+- Use Node.js v14.0.0 for most local development.
 - Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
 - Write tests.

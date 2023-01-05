@@ -1,6 +1,6 @@
 import { Tag } from "@ganache/ethereum-utils";
 import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
-import { LevelUp } from "levelup";
+import { GanacheLevelUp } from "../../database";
 import { Tree } from "./tree";
 
 export type Request = (method: string, params: any[]) => Promise<any>;
@@ -56,11 +56,12 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
   }
 }
 
-export async function setDbVersion(db: LevelUp, version: Buffer) {
+const VERSION_KEY = Buffer.from("version", "utf-8");
+export async function setDbVersion(db: GanacheLevelUp, version: Buffer) {
   // set the version if the DB was just created, or error if we already have
   // a version, but it isn't what we expected
   try {
-    const recordedVersion = await db.get("version");
+    const recordedVersion = await db.get(VERSION_KEY);
     if (!version.equals(recordedVersion)) {
       // in the future this is where database migrations would go
       throw new Error(
@@ -71,12 +72,12 @@ export async function setDbVersion(db: LevelUp, version: Buffer) {
     if (!e.notFound) throw e;
 
     // if we didn't have a `version` key we need to set one
-    await db.put("version", version);
+    await db.put(VERSION_KEY, version);
   }
 }
 
 export async function resolveTargetAndClosestAncestor(
-  db: LevelUp,
+  db: GanacheLevelUp,
   request: Request,
   targetHeight: Quantity,
   targetHash: Data
@@ -147,7 +148,7 @@ export async function resolveTargetAndClosestAncestor(
 }
 
 export async function* findRelated(
-  db: LevelUp,
+  db: GanacheLevelUp,
   request: Request,
   options: FindOptions
 ) {
@@ -178,7 +179,7 @@ export async function* findRelated(
  * @returns the closest known ancestor, or `upTo` if we know of no ancestors
  */
 export async function findClosestAncestor(
-  db: LevelUp,
+  db: GanacheLevelUp,
   request: Request,
   height: Quantity,
   upTo: Buffer
@@ -199,7 +200,7 @@ export async function findClosestAncestor(
  * @returns the closest known descendants, or null
  */
 export async function* findClosestDescendants(
-  db: LevelUp,
+  db: GanacheLevelUp,
   request: Request,
   height: Quantity
 ) {

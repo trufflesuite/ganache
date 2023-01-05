@@ -1,7 +1,7 @@
 import assert from "assert";
 import { Address } from "@ganache/ethereum-address";
 import { BUFFER_ZERO, Data, Quantity } from "@ganache/utils";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
 import { Transaction, TransactionFactory } from "@ganache/ethereum-transaction";
 import Blockchain from "../../ethereum/src/blockchain";
@@ -32,7 +32,7 @@ describe("@ganache/ethereum-block", async () => {
       });
       const wallet = new Wallet(options.wallet, options.logging);
       const [from, to] = wallet.addresses;
-      const fromAddress = new Address(from);
+      const fromAddress = Address.from(from);
       const tx: Transaction = {
         type: "0x2",
         from: from,
@@ -42,15 +42,14 @@ describe("@ganache/ethereum-block", async () => {
         gas: "0x5208"
       };
 
-      const common = Common.forCustomChain(
-        "mainnet",
+      const common = Common.custom(
         {
-          name: "ganache",
           chainId: 1337,
           comment: "Local test network",
-          bootstrapNodes: []
+          bootstrapNodes: [],
+          defaultHardfork: "grayGlacier"
         },
-        "london"
+        { baseChain: "mainnet" }
       );
       blockchain = new Blockchain(options, fromAddress);
       await blockchain.initialize(wallet.initialAccounts);
