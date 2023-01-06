@@ -8,10 +8,7 @@ import Deferred, { DeferredPromise } from "../deferred";
 import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
 
 const { JSONRPC_PREFIX } = BaseHandler;
-const batchData = JSON.stringify([
-  { jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] },
-  { jsonrpc: "2.0", id: 2, method: "eth_blockNumber", params: [] }
-]);
+
 export class WsHandler extends BaseHandler implements Handler {
   private open: Promise<unknown>;
   private connection: WebSocket;
@@ -156,6 +153,8 @@ export class WsHandler extends BaseHandler implements Handler {
     if (prom) {
       this.inFlightRequests.delete(id);
       prom.resolve({ response, raw: raw });
+    } else {
+      prom.reject("response did not find a matching request"); // WIP
     }
   }
 

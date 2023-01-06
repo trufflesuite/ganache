@@ -164,9 +164,7 @@ export class BaseHandler {
     method: string,
     params: any[],
     key: string,
-    send: (
-      ...args: unknown[]
-    ) => Promise<{
+    send: (...args: unknown[]) => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
     }>,
@@ -188,46 +186,55 @@ export class BaseHandler {
       .then(async ({ response, raw }) => {
         if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-        if (hasOwn(response, "result")) {
-          if (!options.disableCache) {
-            // cache non-error responses only
-            this.valueCache.set(key, raw);
+        // WIP Batch -> result will be in each batched item. Maybe don't cache for now?
 
-            // swallow errors for the persistentCache, since it's not vital that
-            // it always works
-            if (this.persistentCache) {
-              const prom = this.persistentCache
-                .put(
-                  method,
-                  params,
-                  key,
-                  typeof raw === "string" ? Buffer.from(raw) : raw
-                )
-                .catch(_ => {
-                  // the cache.put may fail if the db is closed while a request
-                  // is in flight. This is a "fire and forget" method.
+        if (Array.isArray(response)) {
+          const res: any = JSON.stringify(response);
+          return res as T;
+        } else {
+          if (hasOwn(response, "result")) {
+            if (!options.disableCache) {
+              // cache non-error responses only
+              this.valueCache.set(key, raw);
+
+              // swallow errors for the persistentCache, since it's not vital that
+              // it always works
+              if (this.persistentCache) {
+                const prom = this.persistentCache
+                  .put(
+                    method,
+                    params,
+                    key,
+                    typeof raw === "string" ? Buffer.from(raw) : raw
+                  )
+                  .catch(_ => {
+                    // the cache.put may fail if the db is closed while a request
+                    // is in flight. This is a "fire and forget" method.
+                  });
+
+                // track these unawaited `puts`
+                this.fireForget.add(prom);
+
+                // clean up once complete
+                prom.finally(() => {
+                  this.fireForget.delete(prom);
                 });
-
-              // track these unawaited `puts`
-              this.fireForget.add(prom);
-
-              // clean up once complete
-              prom.finally(() => {
-                this.fireForget.delete(prom);
-              });
+              }
             }
-          }
 
-          return response.result as T;
-        } else if (hasOwn(response, "error") && response.error != null) {
-          const { error } = response as JsonRpcError;
-          throw new CodedError(error.message, error.code);
+            return response.result as T;
+          } else if (hasOwn(response, "error") && response.error != null) {
+            const { error } = response as JsonRpcError;
+            throw new CodedError(error.message, error.code);
+          }
         }
+
         throw new Error(`${INVALID_RESPONSE}\`${JSON.stringify(response)}\``);
       });
     this.requestCache.set(key, promise);
     return await promise;
   }
+
   private fireForget = new Set();
   async close() {
     await Promise.all(this.fireForget.keys());

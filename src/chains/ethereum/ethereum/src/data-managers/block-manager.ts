@@ -241,22 +241,30 @@ export default class BlockManager extends Manager<Block> {
         }
       });
 
-      // todo turn tagOrBlockNumbers into method batch
-      console.log("BATCHING");
-      const json = await fallback.batch<any>(
-        "eth_getBlockByNumber",
-        tagOrBlockNumbers
+      // get the full block data
+      const params = tagOrBlockNumbers.map(param => {
+        return [param, true];
+      });
+
+      const json = JSON.parse(
+        await fallback.batch<any>("eth_getBlockByNumber", params)
       );
       console.log(json);
       if (json == null) {
         return null;
       } else {
-        const common = fallback.getCommonForBlockNumber(
-          this.#common,
-          BigInt(json.number)
-        );
+        const blocks = json.map(data => {
+          const common = fallback.getCommonForBlockNumber(
+            this.#common,
+            BigInt(data.result)
+          );
 
-        return BlockManager.rawFromJSON(json, common);
+          const block = BlockManager.rawFromJSON(data.result, common);
+          console.log(block);
+
+          return data;
+        });
+        return blocks;
       }
 
       // end
