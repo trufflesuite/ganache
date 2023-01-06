@@ -234,22 +234,19 @@ export default class BlockManager extends Manager<Block> {
         } else if (!fallback.isValidForkBlockNumber(tagOrBlockNumber)) {
           // don't get the block if the requested block is _after_ our fallback's
           // blocknumber because it doesn't exist in our local chain.
-          return "0x999999999999999999999999"; // Someone in 10^19 years will have to patch this.
-          // Why did he do this? We need to return null here, but pulling our the nulls and putting
-          // them back is some work I just wanted to get past at the moment. The 0x9999... large
-          // enough for 1000 blocks per 12 seconds for the next 10^19 years. If we're still around
-          // this might give you enough time for the size debate, lookin' at you bitcoin.
+          // Infura will also return null if you pass them null.
+          return null;
         } else {
           return tagOrBlockNumber.toString();
         }
       });
 
       // todo turn tagOrBlockNumbers into method batch
-
-      const json = await fallback.request<any>("batch", [
-        { method: "eth_getBlockByNumber", params: ["0x00"] },
-        { method: "eth_getBlockByNumber", params: ["0x01"] }
-      ]);
+      console.log("BATCHING");
+      const json = await fallback.batch<any>(
+        "eth_getBlockByNumber",
+        tagOrBlockNumbers
+      );
       console.log(json);
       if (json == null) {
         return null;
@@ -264,7 +261,7 @@ export default class BlockManager extends Manager<Block> {
 
       // end
     } else {
-      console.log(tagOrBlockNumbers);
+      // We are not in fallback, use normal get
       return await Promise.all(
         tagOrBlockNumbers.map(async tagOrBlockNumber => {
           return await this.get(tagOrBlockNumber);

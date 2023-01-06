@@ -7,6 +7,7 @@ export interface Handler {
     options: { disableCache: boolean }
   ) => Promise<T>;
   batch?: <T>(
+    method: string,
     params: unknown[],
     options: { disableCache: boolean }
   ) => Promise<T>;

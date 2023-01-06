@@ -250,13 +250,23 @@ export class Fork {
     params: unknown[],
     options = { disableCache: false }
   ): Promise<T> {
-    // I do not like this. Since this is the junction between handler and app
-    // it's the easiest spot
-    if (method === "batch") {
-      return this.#handler.batch<T>(params, options);
-    } else {
-      return this.#handler.request<T>(method, params, options);
-    }
+    return this.#handler.request<T>(method, params, options);
+  }
+
+  /**
+   * RPC can handle any mixture of methods and their params
+   *
+   * @param methods array of RPC endpoint methods
+   * @param params array of param arrays for the methods
+   * @param options
+   * @returns
+   */
+  public batch<T = unknown>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false }
+  ) {
+    return this.#handler.batch<T>(method, params, options);
   }
 
   public abort() {

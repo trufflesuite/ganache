@@ -8,7 +8,10 @@ import Deferred, { DeferredPromise } from "../deferred";
 import { JsonRpcResponse, JsonRpcError } from "@ganache/utils";
 
 const { JSONRPC_PREFIX } = BaseHandler;
-
+const batchData = JSON.stringify([
+  { jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] },
+  { jsonrpc: "2.0", id: 2, method: "eth_blockNumber", params: [] }
+]);
 export class WsHandler extends BaseHandler implements Handler {
   private open: Promise<unknown>;
   private connection: WebSocket;
@@ -87,11 +90,15 @@ export class WsHandler extends BaseHandler implements Handler {
     return await this.queueRequest<T>(method, params, key, send, options);
   }
 
-  public async batch<T>(params: any[], options = { disableCache: false }) {
+  public async batch<T>(
+    method: string,
+    params: any[],
+    options = { disableCache: false }
+  ) {
     await this.open;
     if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-    const key = JSON.stringify(params);
+    const key = JSON.stringify({ method, params });
     //`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`
 
     const send = () => {
@@ -112,10 +119,20 @@ export class WsHandler extends BaseHandler implements Handler {
 
       // todo, just do it as a string
 
-      this.connection.send(params);
+      // create params from... params
+      const payload = params.map((param, id) => {
+        return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
+          method,
+          params: [param]
+        }).slice(1)}`;
+      });
+
+      const data = `[${payload.join(",")}]`;
+
+      this.connection.send(data);
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
-    return await this.queueRequest<T>("batch", params, key, send, options);
+    return await this.queueRequest<T>(method, params, key, send, options);
   }
 
   public onMessage(event: WebSocket.MessageEvent) {
@@ -128,7 +145,13 @@ export class WsHandler extends BaseHandler implements Handler {
     // TODO: handle invalid JSON (throws on parse)?
     // Issue: https://github.com/trufflesuite/ganache/issues/3479
     const response = JSON.parse(raw) as JsonRpcResponse | JsonRpcError;
-    const id = response.id;
+    let id;
+    if (Array.isArray(response)) {
+      id = response[0].id;
+    } else {
+      id = response.id;
+    }
+
     const prom = this.inFlightRequests.get(id);
     if (prom) {
       this.inFlightRequests.delete(id);
