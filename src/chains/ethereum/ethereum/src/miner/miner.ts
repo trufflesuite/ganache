@@ -146,7 +146,7 @@ export default class Miner extends Emittery<{
     this.#executables = executables;
     this.#createBlock = (previousBlock: Block) => {
       const newBlock = createBlock(previousBlock);
-      this.#setCurrentBlockBaseFeePerGas(newBlock);
+      this.#currentBlockBaseFeePerGas = newBlock.header.baseFeePerGas;
       return newBlock;
     };
 
@@ -179,7 +179,7 @@ export default class Miner extends Emittery<{
       this.#updatePricedHeap();
       return;
     } else {
-      this.#setCurrentBlockBaseFeePerGas(block);
+      this.#currentBlockBaseFeePerGas = block.header.baseFeePerGas;
       this.#setPricedHeap();
       const result = await this.#mine(block, maxTransactions, onlyOneBlock);
       this.emit("idle");
@@ -581,15 +581,4 @@ export default class Miner extends Emittery<{
   public toggleStepEvent(enable: boolean) {
     this.#emitStepEvent = enable;
   }
-
-  /**
-   * Sets the #currentBlockBaseFeePerGas property if the current block
-   * has a baseFeePerGas property
-   */
-  #setCurrentBlockBaseFeePerGas = (block: RuntimeBlock) => {
-    const baseFeePerGas = block.header.baseFeePerGas;
-    // before london hard fork, there will be no baseFeePerGas on the block
-    this.#currentBlockBaseFeePerGas =
-      baseFeePerGas === undefined ? undefined : baseFeePerGas;
-  };
 }
