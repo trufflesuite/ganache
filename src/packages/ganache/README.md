@@ -165,7 +165,7 @@ const ganache = require("ganache");
 
 const options = {};
 const server = ganache.server(options);
-const PORT = 0; // 0 means any port
+const PORT = 0; // 0 means any available port
 server.listen(PORT, async err => {
   if (err) throw err;
 
