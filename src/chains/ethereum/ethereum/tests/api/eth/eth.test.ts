@@ -586,8 +586,8 @@ describe("api", () => {
         } as any;
         // we previously had a bug where the `gasPrice` field returned from
         // `eth_getTransactionByHash` was incorrect when multiple transactions
-        // were sent, because we weren't saving the updated `effectiveGasPrice`.
-        // this tests against that. see:
+        // were sent, because we weren't assigning the correct `effectiveGasPrice`
+        // when adding the transaction to the pool. see:
         // https://github.com/trufflesuite/ganache/issues/4094
         const hashes = await Promise.all([
           provider.send("eth_sendTransaction", [txJson]),
