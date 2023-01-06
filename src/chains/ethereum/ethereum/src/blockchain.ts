@@ -332,7 +332,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             ({ block }) => block
           );
           // when we are forking, blocks.earliest is already set to what was
-          // retrieve from the fork
+          // retrieved from the fork
           if (!blocks.earliest) {
             blocks.earliest = blocks.latest;
           }
