@@ -93,7 +93,7 @@ export default class Miner extends Emittery<{
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
-  #currentBlockBaseFeePerGas: Quantity;
+  #currentBlockBaseFeePerGas: bigint;
   #resolver: (value: void) => void;
 
   /**
@@ -424,7 +424,7 @@ export default class Miner extends Emittery<{
           // if baseFeePerGas is undefined, we are pre london hard fork.
           // no need to refresh the order of the heap because all Txs only have gasPrice.
           if (this.#currentBlockBaseFeePerGas !== undefined) {
-            priced.refresh(this.#currentBlockBaseFeePerGas.toBigInt());
+            priced.refresh(this.#currentBlockBaseFeePerGas);
           }
         } else {
           // reset the miner
@@ -533,9 +533,7 @@ export default class Miner extends Emittery<{
       if (next && !next.locked) {
         const origin = next.from.toString();
         origins.add(origin);
-        next.updateEffectiveGasPrice(
-          this.#currentBlockBaseFeePerGas.toBigInt()
-        );
+        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
         priced.push(next);
         next.locked = true;
       }
@@ -573,9 +571,7 @@ export default class Miner extends Emittery<{
           continue;
         }
         origins.add(origin);
-        next.updateEffectiveGasPrice(
-          this.#currentBlockBaseFeePerGas.toBigInt()
-        );
+        next.updateEffectiveGasPrice(this.#currentBlockBaseFeePerGas);
         priced.push(next);
         next.locked = true;
       }
@@ -594,6 +590,6 @@ export default class Miner extends Emittery<{
     const baseFeePerGas = block.header.baseFeePerGas;
     // before london hard fork, there will be no baseFeePerGas on the block
     this.#currentBlockBaseFeePerGas =
-      baseFeePerGas === undefined ? undefined : Quantity.from(baseFeePerGas);
+      baseFeePerGas === undefined ? undefined : baseFeePerGas;
   };
 }
