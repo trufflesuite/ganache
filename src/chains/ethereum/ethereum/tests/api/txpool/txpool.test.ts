@@ -120,4 +120,110 @@ describe("txpool", () => {
       assert.deepStrictEqual(queued, {});
     });
   });
+
+  describe("contentFrom", () => {
+    let provider: EthereumProvider;
+    let accounts: string[];
+
+    beforeEach(async () => {
+      provider = await getProvider({
+        miner: { blockTime: 1000 }
+      });
+      accounts = await provider.send("eth_accounts");
+    });
+
+    it("handles pending and queued transactions", async () => {
+      const pendingTransactions = await Promise.all([
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2]
+          }
+        ]),
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[2],
+            to: accounts[3]
+          }
+        ]),
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2]
+          }
+        ])
+      ]);
+
+      const queuedTransactions = await Promise.all([
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2],
+            nonce: "0x123",
+          }
+        ])
+      ]);
+
+      const { pending, queued } = await provider.send("txpool_contentFrom", [accounts[1]]);
+
+      const pendingAddresses = Object.keys(pending);
+      const queuedAddresses = Object.keys(queued);
+      
+      assert(pendingAddresses.findIndex((value) => value === accounts[1]) == 0)
+      assert(pendingAddresses.findIndex((value) => value === accounts[2]) == -1)
+      assert(pendingAddresses.length == 1)
+
+      assert(queuedAddresses.findIndex((value) => value === accounts[1]) == 0)
+      assert(queuedAddresses.findIndex((value) => value === accounts[2]) == -1)
+      assert(queuedAddresses.length == 1)
+    })
+  })
+
+  describe("status", () => {
+    let provider: EthereumProvider;
+    let accounts: string[];
+    beforeEach(async () => {
+      provider = await getProvider({
+        miner: { blockTime: 1000 }
+      });
+      accounts = await provider.send("eth_accounts");
+    });
+
+    it("handles pending and queued transactions", async () => {
+      const pendingTransactions = await Promise.all([
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2]
+          }
+        ]),
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[2],
+            to: accounts[3]
+          }
+        ]),
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2]
+          }
+        ])
+      ]);
+
+      const queuedTransactions = await Promise.all([
+        provider.send("eth_sendTransaction", [
+          {
+            from: accounts[1],
+            to: accounts[2],
+            nonce: "0x123",
+          }
+        ])
+      ]);
+
+      const { pending, queued } = await provider.send("txpool_status");
+      assert.strictEqual(pending, pendingTransactions.length);
+      assert.strictEqual(queued, queuedTransactions.length);
+    });
+  });
 });

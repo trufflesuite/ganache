@@ -3627,39 +3627,83 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(0)
   async txpool_content(): Promise<Ethereum.Pool.Content<"private">> {
-    const { transactions, common } = this.#blockchain;
+    const { transactions } = this.#blockchain;
     const {
-      transactionPool: { executables, origins }
+      transactionPool: { executables, origins, processMap }
     } = transactions;
-
-    const processMap = (map: Map<string, Heap<TypedTransaction>>) => {
-      let res: Record<
-        string,
-        Record<string, Ethereum.Pool.Transaction<"private">>
-      > = {};
-      for (let [_, { array, length }] of map) {
-        for (let i = 0; i < length; ++i) {
-          const transaction = array[i];
-          const from = transaction.from.toString();
-          if (res[from] === undefined) {
-            res[from] = {};
-          }
-          // The nonce keys are actual decimal numbers (as strings) and not
-          // hex literals (based on what geth returns).
-          const nonce = transaction.nonce.toBigInt().toString();
-          res[from][nonce] = transaction.toJSON(
-            common
-          ) as Ethereum.Pool.Transaction<"private">;
-        }
-      }
-      return res;
-    };
 
     return {
       pending: processMap(executables.pending),
       queued: processMap(origins)
     };
   }
+
+
+  /**
+   * Returns transactions created by the specified address currently pending inclusion in the next blocks, as well as the ones that are scheduled for future execution.
+   * 
+   * @param address - The account address
+   * @returns The transactions currently pending or queued in the transaction pool by address.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_contentFrom", [from]);
+   * console.log(pool);
+   * ```
+   */
+   @assertArgLength(1)
+   async txpool_contentFrom(address: DATA): Promise<Ethereum.Pool.Content<"private">> {
+    const { transactions } = this.#blockchain;
+    const {
+      transactionPool: { executables, origins, processMap }
+    } = transactions;
+
+    const fromAddress = Address.from(address);
+
+    return {
+      pending: processMap(executables.pending, fromAddress),
+      queued: processMap(origins, fromAddress)
+    };
+   }
+
+  /**
+   * Returns the number of transactions currently pending for inclusion in the next block(s), as well as the ones that are being scheduled for future execution only.
+   *
+   * @returns The count of transactions currently pending or queued in the transaction pool.
+   * @example
+   * ```javascript
+   * const [from] = await provider.request({ method: "eth_accounts", params: [] });
+   * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
+   * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
+   * const pool = await provider.send("txpool_status");
+   * console.log(pool);
+   * ```
+   */
+   @assertArgLength(0)
+   async txpool_status(): Promise<{pending: number, queued: number}> {
+     const { transactions } = this.#blockchain;
+     const {
+       transactionPool: { executables, origins }
+     } = transactions;
+     
+     let pending = 0;
+     let queued = 0;
+
+     for (const [_, transactions] of executables.pending) {
+      pending += transactions?.array.length || 0;
+     }
+
+     for (const [_, transactions] of origins) {
+      queued += transactions?.array.length || 0;
+     }
+
+     return {
+       pending,
+       queued
+     };
+   }
 
   //#endregion
 }

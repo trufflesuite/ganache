@@ -14,6 +14,8 @@ import {
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
+import { Ethereum } from "./api-types";
+import { Address } from "@ganache/ethereum-address";
 
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -452,6 +454,33 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
     return null;
   }
+
+  public processMap(map: Map<string, Heap<TypedTransaction>>, address?: Address) {
+    let res: Record<
+      string,
+      Record<string, Ethereum.Pool.Transaction<"private">>
+    > = {};
+    
+    for (let [_, { array, length }] of map) {
+      for (let i = 0; i < length; ++i) {
+        const transaction = array[i];
+
+        if(address && transaction.from.toString() != address.toString()) {
+          continue;
+        }
+        
+        const from = transaction.from.toString();
+        if (res[from] === undefined) {
+          res[from] = {};
+        }
+        // The nonce keys are actual decimal numbers (as strings) and not
+        // hex literals (based on what geth returns).
+        const nonce = transaction.nonce.toBigInt().toString();
+        res[from][nonce] = transaction.toJSON() as Ethereum.Pool.Transaction<"private">;
+      }
+    }
+    return res;
+  };
 
   readonly drain = () => {
     // notify listeners (the blockchain, then the miner, eventually) that we
