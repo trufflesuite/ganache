@@ -26,12 +26,13 @@ import {
   NetworkInterfaceInfoIPv6,
   networkInterfaces
 } from "os";
+import { findPort } from "find-open-port";
+
 const chunkSize = 1024 * 1024;
 
 const IS_WINDOWS = process.platform === "win32";
 
 describe("server", () => {
-  const port = 5234;
   const networkId = 1234;
   const jsonRpcJson: any = {
     jsonrpc: "2.0",
@@ -43,6 +44,7 @@ describe("server", () => {
     log: (_message: string) => {}
   };
   let s: Server;
+  let port: number;
 
   const defaultOptions = {
     chain: {
@@ -52,7 +54,9 @@ describe("server", () => {
       logger
     }
   };
-
+  before(async () => {
+    port = await findPort();
+  });
   async function setup(
     options: ServerOptions = defaultOptions,
     host: string | null = null

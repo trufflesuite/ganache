@@ -53,7 +53,7 @@ export const updateRemotesAccountNonces = async (
 };
 
 export const startLocalChain = async (
-  port: number,
+  port?: number,
   options?: EthereumProviderOptions["fork"]
 ) => {
   const fork: EthereumProviderOptions["fork"] = { ...options };

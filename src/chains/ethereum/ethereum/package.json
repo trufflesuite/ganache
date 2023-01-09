@@ -102,6 +102,7 @@
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",
     "fast-check": "3.0.1",
+    "find-open-port": "2.0.3",
     "fs-extra": "9.0.1",
     "local-web-server": "4.2.1",
     "memdown": "6.1.1",
