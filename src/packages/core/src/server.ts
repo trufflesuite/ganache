@@ -33,6 +33,7 @@ import ConnectorLoader from "./connector-loader";
 import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
+import { Arguments } from "yargs";
 
 // not using the "net" node package in order to avoid having to polyfill this
 // for the browser build.
@@ -40,6 +41,64 @@ import Emittery from "emittery";
 const v4Seg = "(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
 const IPv4Reg = new RegExp(`^(${v4Seg}[.]){3}${v4Seg}$`);
 const isIPv4 = (s: string) => IPv4Reg.test(s);
+
+const isPortValid = (port: number) => {
+  return (
+    (typeof port !== "number" && typeof port !== "string") ||
+    (typeof port === "string" && (<string>port).trim().length === 0) ||
+    +port !== +port >>> 0 ||
+    port > 0xffff
+  );
+};
+
+const normalizeListenArgs = (
+  args: IArguments,
+  port: number | Callback | undefined,
+  host: string | Callback | undefined,
+  callback: Callback | undefined
+) => {
+  switch (args.length) {
+    case 0: // listen()
+      return [0, null, null];
+    case 1: // listen(port) | listen(callback)
+      if (typeof port === "function") {
+        return [0, null, port];
+      } else if (!isPortValid(port)) {
+        return Promise.reject(
+          new Error(`Port should be >= 0 and < 65536. Received ${port}.`)
+        );
+      } else {
+        return [+port, null, null];
+      }
+    case 2: // listen(port, host) | listen(port, callback)
+      if (typeof host === "function") {
+        if (!isPortValid(<number>port)) {
+          const err = new Error(
+            `Port should be >= 0 and < 65536. Received ${port}.`
+          );
+          return process.nextTick(callback!, err);
+        }
+        return [+port, null, host];
+      } else if (!isPortValid(<number>port)) {
+        const err = new Error(
+          `Port should be >= 0 and < 65536. Received ${port}.`
+        );
+        return Promise.reject(err);
+      } else {
+        return [+port, host, null];
+      }
+    default:
+      // listen(port, host, callback)
+      if (!isPortValid(<number>port)) {
+        const err = new Error(
+          `Port should be >= 0 and < 65536. Received ${port}.`
+        );
+        return process.nextTick(callback!, err);
+      } else {
+        return [+port, host, callback];
+      }
+  }
+};
 
 export type Provider = Connector["provider"];
 
@@ -170,16 +229,25 @@ export class Server<
     await (connector as any).once("ready");
   }
 
+  listen(): Promise<void>;
+  listen(callback: Callback): void;
   listen(port: number): Promise<void>;
   listen(port: number, host: string): Promise<void>;
   listen(port: number, callback: Callback): void;
   listen(port: number, host: string, callback: Callback): void;
   listen(
-    port: number,
+    port?: number | Callback,
     host?: string | Callback,
     callback?: Callback
   ): void | Promise<void> {
-    if (typeof host === "function") {
+    if (arguments.length === 0) {
+      port = 0;
+    }
+    if (typeof port === "function") {
+      callback = port;
+      port = 0;
+      host = null;
+    } else if (typeof host === "function") {
       callback = host;
       host = null;
     }
@@ -208,17 +276,13 @@ export class Server<
     if (status === ServerStatus.closing) {
       // if closing
       const err = new Error(`Cannot start server while it is closing.`);
-      return callbackIsFunction
-        ? process.nextTick(callback!, err)
-        : Promise.reject(err);
+      return callback ? process.nextTick(callback, err) : Promise.reject(err);
     } else if ((status & ServerStatus.openingOrOpen) !== 0) {
       // if opening or open
       const err = new Error(
         `Server is already open, or is opening, on port: ${portNumber}.`
       );
-      return callbackIsFunction
-        ? process.nextTick(callback!, err)
-        : Promise.reject(err);
+      return callback ? process.nextTick(callback, err) : Promise.reject(err);
     }
 
     this.#status = ServerStatus.opening;
@@ -287,13 +351,34 @@ export class Server<
       }
     });
 
-    if (callbackIsFunction) {
+    if (callback) {
       promise.then(() => callback(null)).catch(callback);
     } else {
       return promise;
     }
   }
 
+  /**
+   * Returns the bound `address`, the address `family` name, and `port` of
+   * the server as reported by the operating system (useful to find which port
+   * was assigned when getting an OS-assigned address): `{ port: 12346, family:
+   * 'IPv4', address: '127.0.0.1' }`.
+   *
+   * ```js
+   * const server = ganache.server();
+   * server.listen(() => {
+   *
+   * });
+   *
+   * // Grab an arbitrary unused port.
+   * server.listen(0, () => {
+   *   console.log('opened server on', server.address());
+   * });
+   * ```
+   *
+   * `server.address()` returns `null` before the `"open"` event has been emitted
+   * or after calling `server.close()`.
+   */
   public address() {
     if (this.#listenSocket) {
       const address = this.#host;

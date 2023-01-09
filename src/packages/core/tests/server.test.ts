@@ -5,7 +5,7 @@
 // construction due to missing private fields
 import Ganache, { Server } from "../index";
 
-import assert from "assert";
+import assert, { rejects } from "assert";
 import request from "superagent";
 import WebSocket from "ws";
 import { ServerStatus } from "../src/server";
@@ -26,6 +26,7 @@ import {
   NetworkInterfaceInfoIPv6,
   networkInterfaces
 } from "os";
+import { resolveTxt } from "dns";
 const chunkSize = 1024 * 1024;
 
 const IS_WINDOWS = process.platform === "win32";
@@ -368,39 +369,91 @@ describe("server", () => {
       }
     });
 
-    it("finds a port to listen on when port is 0", async () => {
-      const zeroPort = 0;
-      s = Ganache.server(defaultOptions);
-      assert.strictEqual(
-        s.address(),
-        null,
-        "server.address() should be null before `server.listen(...)` is called"
-      );
-      await s.listen(zeroPort);
-
-      try {
-        const address = s.address();
-        assert.notEqual(
-          address,
+    describe("port 0", () => {
+      async function checkResult(s: Server) {
+        try {
+          const address = s.address();
+          assert.notEqual(
+            address,
+            null,
+            "server.address() should not be null after listening"
+          );
+          const specificPort = address!.port;
+          assert.notStrictEqual(
+            specificPort,
+            0,
+            "server.address().port should be non-zero after server.listen(0)"
+          );
+          const req = request.post(`http://localhost:${+specificPort}`);
+          await req.send(jsonRpcJson);
+        } finally {
+          await teardown();
+        }
+        assert.strictEqual(
+          s.address(),
           null,
-          "server.address() should not be null after listening"
+          "server.address() should be null after server is stopped"
         );
-        const specificPort = address!.port;
-        assert.notStrictEqual(
-          specificPort,
-          zeroPort,
-          "server.address().port should be non-zero after server.listen(0)"
-        );
-        const req = request.post(`http://localhost:${+specificPort}`);
-        await req.send(jsonRpcJson);
-      } finally {
-        await teardown();
       }
-      assert.strictEqual(
-        s.address(),
-        null,
-        "server.address() should be null after server is stopped"
-      );
+
+      it("finds a port to listen on when port is 0", async () => {
+        s = Ganache.server(defaultOptions);
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null before `server.listen(...)` is called"
+        );
+        await s.listen(0);
+
+        await checkResult(s);
+      });
+      it("finds a port to listen on when port isn't given, promise style", async () => {
+        s = Ganache.server(defaultOptions);
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null before `server.listen(...)` is called"
+        );
+        await s.listen();
+
+        await checkResult(s);
+      });
+      it("finds a port to listen on when port is 0, callback style", async () => {
+        s = Ganache.server(defaultOptions);
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null before `server.listen(...)` is called"
+        );
+        await new Promise<void>((resolve, reject) => {
+          s.listen(0, async () => {
+            try {
+              await checkResult(s);
+              resolve();
+            } catch (e) {
+              reject(e);
+            }
+          });
+        });
+      });
+      it("finds a port to listen on when port isn't given, callback style", async () => {
+        s = Ganache.server(defaultOptions);
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null before `server.listen(...)` is called"
+        );
+        await new Promise<void>((resolve, reject) => {
+          s.listen(async () => {
+            try {
+              await checkResult(s);
+              resolve();
+            } catch (e) {
+              reject(e);
+            }
+          });
+        });
+      });
     });
 
     it("fails with invalid ports", async () => {
@@ -432,7 +485,7 @@ describe("server", () => {
         s = Ganache.server(defaultOptions);
 
         try {
-          await assert.rejects(s.listen(<any>specificPort), {
+          await assert.rejects(s.listen(<number>specificPort), {
             message: `Port should be >= 0 and < 65536. Received ${specificPort}.`
           });
         } finally {
