@@ -888,7 +888,7 @@ describe("forking", function () {
         // make sure deleted state was properly reverted
         await testPermutations(
           localProvider,
-          localInitialValue,
+          expectedValueAfterRevert,
           snapshotValues
         );
 
@@ -917,7 +917,7 @@ describe("forking", function () {
       for (const remoteInitialValue of initialValues) {
         for (const initialValue of initialValues) {
           for (const permutation of permutations) {
-            it(`should revert to previous value after snapshot/{change}/revert, fork value: ${remoteInitialValue}, initialValue, ${initialValue}, permutations: ${JSON.stringify(
+            it(`should revert to previous value after snapshot/{change}/revert, fork value: ${remoteInitialValue}, initialValue, ${initialValue}, permutation: ${JSON.stringify(
               permutation
             )}`, async () => {
               const subId = await remoteProvider.send("eth_subscribe", [
