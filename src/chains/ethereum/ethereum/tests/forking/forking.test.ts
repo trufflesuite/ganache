@@ -805,31 +805,6 @@ describe("forking", function () {
     });
 
     describe("snapshot/revert", () => {
-      it.skip("should revert a value deletion", async () => {
-        const { localProvider } = await startLocalChain(PORT, {
-          disableCache: true
-        });
-        const initialBlockNumber = +(await localProvider.send(
-          "eth_blockNumber"
-        ));
-
-        const initialValue = await get(
-          localProvider,
-          "value0",
-          initialBlockNumber
-        );
-
-        const snapId = await localProvider.send("evm_snapshot");
-        await set(localProvider, 0, 0);
-        await localProvider.send("evm_mine");
-        await localProvider.send("evm_revert", [snapId]);
-        const finalBlockNumber = +(await localProvider.send("eth_blockNumber"));
-
-        const finalValue = await get(localProvider, "value0", finalBlockNumber);
-
-        assert.strictEqual(finalValue, initialValue);
-      });
-
       async function testPermutations(
         localProvider: EthereumProvider,
         initialValue: number,
