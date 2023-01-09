@@ -1885,16 +1885,12 @@ export default class EthereumApi implements Api {
 
     const transactionPromise = transactions.get(txHash);
     const receiptPromise = transactionReceipts.get(txHash);
-    const blockPromise = transactionPromise.then(t =>
-      t ? blocks.get(t.blockNumber.toBuffer()) : null
-    );
-    const [transaction, receipt, block] = await Promise.all([
+    const [transaction, receipt] = await Promise.all([
       transactionPromise,
-      receiptPromise,
-      blockPromise
+      receiptPromise
     ]);
     if (transaction) {
-      return receipt.toJSON(block, transaction, common);
+      return receipt.toJSON(transaction, common);
     }
 
     // if we are performing "strict" instamining, then check to see if the

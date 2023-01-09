@@ -256,5 +256,5 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   );
 
   protected abstract toVmTransaction();
-  protected abstract updateEffectiveGasPrice(baseFeePerGas?: Quantity);
+  protected abstract updateEffectiveGasPrice(baseFeePerGas: bigint);
 }
