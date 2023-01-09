@@ -54,9 +54,6 @@ async function deployContract(
     methods
   };
 }
-const getRemotePort = async () => {
-  return await findPort();
-};
 
 describe("forking", async function () {
   this.timeout(10000);
@@ -76,7 +73,7 @@ describe("forking", async function () {
     });
     remoteProvider = remoteServer.provider as unknown as EthereumProvider;
     remoteAccounts = Object.keys(remoteProvider.getInitialAccounts());
-    remotePort = await getRemotePort();
+    remotePort = await findPort();
     await remoteServer.listen(remotePort);
   });
 
