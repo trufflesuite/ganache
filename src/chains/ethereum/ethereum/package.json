@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Ganache's Ethereum client implementation",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/ethereum/ethereum#readme",
@@ -58,9 +58,9 @@
     "@ethereumjs/vm": "6.2.0",
     "@ganache/console.log": "0.3.0",
     "@ganache/ethereum-address": "0.7.0",
-    "@ganache/ethereum-block": "0.7.0",
+    "@ganache/ethereum-block": "0.7.1",
     "@ganache/ethereum-options": "0.7.0",
-    "@ganache/ethereum-transaction": "0.7.0",
+    "@ganache/ethereum-transaction": "0.7.1",
     "@ganache/ethereum-utils": "0.7.0",
     "@ganache/options": "0.7.0",
     "@ganache/promise-queue": "0.4.0",
