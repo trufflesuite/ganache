@@ -826,15 +826,15 @@ describe("forking", function () {
         }
       }
 
-      /*
-        
-        - initialises localProvider as a fork of remoteProvider
-        - sets `value1` to `initialValue` (if it is not null)
-        - create snapshot
-        - iterate `snapshotValues`, setting `value1` to each value
-        - revert
-        - ensure that `value1` has reverted to either `initialValue`, or `initialRemoteValue` if not provided
-      */
+      /**
+       *  - Initializes `localProvider` as a fork of `remoteProvider`.
+       *  - Sets `value1` to `localInitialValue` (if it is not null).
+       *  - Creates a snapshot .
+       *  - Iterates `snapshotValues`, setting `value1` to each of those values.
+       *  - Reverts.
+       *  - Ensures that `value1` has reverted to either `localInitialValue` or
+       *    `remoteInitialValue` (if the `localInitialValue` was not provided).
+       */
       async function initializeSnapshotSetRevertThenTest(
         remoteInitialValue: number,
         localInitialValue: number | null,
@@ -849,7 +849,7 @@ describe("forking", function () {
         const subId = await localProvider.send("eth_subscribe", ["newHeads"]);
 
         if (localInitialValue !== null) {
-          // set value1 to {initialValue} (delete it, if the value is 0)
+          // set value1 to {initialValue} (note: if the value is `0` it actually deletes it from the state)
           await set(localProvider, 1, localInitialValue);
           await localProvider.once("message");
 
@@ -942,7 +942,7 @@ describe("forking", function () {
               const startValue = await get(
                 remoteProvider,
                 "value1",
-                +blockNumber
+                blockNumber
               );
 
               await initializeSnapshotSetRevertThenTest(
