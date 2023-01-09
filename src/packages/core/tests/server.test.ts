@@ -493,10 +493,10 @@ describe("server", () => {
       server.listen(port);
 
       try {
-        await assert.rejects(
-          setup(),
-          `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-        );
+        await assert.rejects(setup(), {
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`,
+          code: "EADDRINUSE"
+        });
       } finally {
         await Promise.all([
           teardown(),
@@ -517,7 +517,8 @@ describe("server", () => {
         const s = Ganache.server();
         const listen = promisify(s.listen.bind(s));
         await assert.rejects(listen(port), {
-          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`,
+          code: "EADDRINUSE"
         });
       } finally {
         await Promise.all([

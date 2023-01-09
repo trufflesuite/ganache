@@ -18,11 +18,12 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
 
 ### on Linux (Ubuntu-based)
 
+- Make sure `npm` commands are not run as `root`.
 - Determine if you have Python 2.7 installed
   - example: `which python2.7`
 - If you do not have Python 2.7 installed, you need to install it
   - example: `sudo apt update && sudo apt install python2.7`
-- Finally, run `npm config set python python2.7`
+- Run `npm config set python python2.7`
 
 ### on Windows
 
