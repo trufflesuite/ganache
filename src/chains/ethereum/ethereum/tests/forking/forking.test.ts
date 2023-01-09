@@ -805,6 +805,31 @@ describe("forking", function () {
     });
 
     describe("snapshot/revert", () => {
+      it.skip("should revert a value deletion", async () => {
+        const { localProvider } = await startLocalChain(PORT, {
+          disableCache: true
+        });
+        const initialBlockNumber = +(await localProvider.send(
+          "eth_blockNumber"
+        ));
+
+        const initialValue = await get(
+          localProvider,
+          "value0",
+          initialBlockNumber
+        );
+
+        const snapId = await localProvider.send("evm_snapshot");
+        await set(localProvider, 0, 0);
+        await localProvider.send("evm_mine");
+        await localProvider.send("evm_revert", [snapId]);
+        const finalBlockNumber = +(await localProvider.send("eth_blockNumber"));
+
+        const finalValue = await get(localProvider, "value0", finalBlockNumber);
+
+        assert.strictEqual(finalValue, initialValue);
+      });
+
       async function testPermutations(
         localProvider: EthereumProvider,
         initialValue: number,
@@ -825,31 +850,52 @@ describe("forking", function () {
           ); //sanity check
         }
       }
+
+      /*
+        
+        - initialises localProvider as a fork of remoteProvider
+        - sets `value1` to `initialValue` (if it is not null)
+        - create snapshot
+        - iterate `snapshotValues`, setting `value1` to each value
+        - revert
+        - ensure that `value1` has reverted to either `initialValue`, or `initialRemoteValue` if not provided
+      */
       async function initializeSnapshotSetRevertThenTest(
-        initialValue: number,
+        remoteInitialValue: number,
+        localInitialValue: number | null,
         snapshotValues: number[]
       ) {
+        const expectedValueAfterRevert =
+          localInitialValue == null ? remoteInitialValue : localInitialValue;
+
         const { localProvider } = await startLocalChain(PORT, {
           disableCache: true
         });
         const subId = await localProvider.send("eth_subscribe", ["newHeads"]);
 
-        // set value1 to {initialValue} (delete it)
-        await set(localProvider, 1, initialValue);
-        const message = await localProvider.once("message");
-        const initialBlockNumber = parseInt(
-          (message.data.result as any).number,
-          16
-        );
-        assert.strictEqual(
-          Quantity.from(
-            await get(localProvider, "value1", initialBlockNumber)
-          ).toNumber(),
-          initialValue
-        ); // sanity check
+        if (localInitialValue !== null) {
+          // set value1 to {initialValue} (delete it, if the value is 0)
+          await set(localProvider, 1, localInitialValue);
+          await localProvider.once("message");
+
+          assert.strictEqual(
+            +(await get(
+              localProvider,
+              "value1",
+              await getBlockNumber(localProvider)
+            )),
+            localInitialValue
+          ); // sanity check
+        }
+
+        const initialBlockNumber = await getBlockNumber(localProvider);
 
         const snapId = await localProvider.send("evm_snapshot");
-        await testPermutations(localProvider, initialValue, snapshotValues);
+        await testPermutations(
+          localProvider,
+          expectedValueAfterRevert,
+          snapshotValues
+        );
         await localProvider.send("evm_revert", [snapId]);
 
         assert.strictEqual(
@@ -858,21 +904,23 @@ describe("forking", function () {
         ); // sanity check
 
         assert.strictEqual(
-          Quantity.from(
-            await get(localProvider, "value1", initialBlockNumber)
-          ).toNumber(),
-          initialValue,
+          +(await get(localProvider, "value1", initialBlockNumber)),
+          expectedValueAfterRevert,
           "value was not reverted to `initialValue` after evm_revert"
         );
 
         // Finally, check all permutations outside of the snapshot/revert to
         // make sure deleted state was properly reverted
-        await testPermutations(localProvider, initialValue, snapshotValues);
+        await testPermutations(
+          localProvider,
+          localInitialValue,
+          snapshotValues
+        );
 
         await localProvider.send("eth_unsubscribe", [subId]);
       }
 
-      const initialValues = [0, 1];
+      const initialValues = [null, 0, 1]; // null means to _not_ set an initial value
       // test all permutations of values: 0, 1, 2
       const permutations = [
         [0],
@@ -894,26 +942,36 @@ describe("forking", function () {
       for (const remoteInitialValue of initialValues) {
         for (const initialValue of initialValues) {
           for (const permutation of permutations) {
-            it(`should revert to previous value after snapshot/{change}/revert, fork value: ${remoteInitialValue}, initialValue, ${initialValue}, permutation: ${JSON.stringify(
+            it(`should revert to previous value after snapshot/{change}/revert, fork value: ${remoteInitialValue}, initialValue, ${initialValue}, permutations: ${JSON.stringify(
               permutation
             )}`, async () => {
               const subId = await remoteProvider.send("eth_subscribe", [
                 "newHeads"
               ]);
-              // set the remoteProvider's value1 initialValue to {remoteInitialValue}
-              await set(remoteProvider, 1, remoteInitialValue);
-              const message = await remoteProvider.once("message");
-              await remoteProvider.send("eth_unsubscribe", [subId]);
-              const blockNumber = parseInt(
-                (message.data.result as any).number,
-                16
+              // set the remoteProvider's value1 initialValue to {remoteInitialValue} (only if not null)
+              if (remoteInitialValue !== null) {
+                await set(remoteProvider, 1, remoteInitialValue);
+                await remoteProvider.once("message");
+                await remoteProvider.send("eth_unsubscribe", [subId]);
+                const blockNumber = await getBlockNumber(remoteProvider);
+                assert.strictEqual(
+                  parseInt(
+                    await get(remoteProvider, "value1", blockNumber),
+                    16
+                  ),
+                  remoteInitialValue
+                ); // sanity check to make sure our initial conditions are correct
+              }
+
+              const blockNumber = await getBlockNumber(remoteProvider);
+              const startValue = await get(
+                remoteProvider,
+                "value1",
+                +blockNumber
               );
-              assert.strictEqual(
-                parseInt(await get(remoteProvider, "value1", blockNumber), 16),
-                remoteInitialValue
-              ); // sanity check to make sure our initial conditions are correct
 
               await initializeSnapshotSetRevertThenTest(
+                +startValue,
                 initialValue,
                 permutation
               );
