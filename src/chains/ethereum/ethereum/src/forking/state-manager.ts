@@ -7,7 +7,7 @@ import { GanacheStateManager } from "../state-manager";
 /**
  * Options for constructing a [[GanacheStateManager]].
  */
-export interface GanacheStateManagerOpts {
+export interface ForkStateManagerOpts {
   /**
    * An [`@ethereumjs/trie`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
    */
@@ -31,7 +31,7 @@ export class ForkStateManager extends GanacheStateManager {
   /**
    * Instantiate the StateManager interface.
    */
-  constructor(opts: GanacheStateManagerOpts) {
+  constructor(opts: ForkStateManagerOpts) {
     super(opts);
 
     this._cache = new ForkCache(opts.trie);
