@@ -733,7 +733,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const { miner: minerOptions } = this.#options;
 
       // commit accounts, but for forking.
-      const stateManager = <GanacheStateManager>this.vm.stateManager;
+      const stateManager = <DefaultStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
       initialAccounts.forEach(account => {
         this.vm.eei.putAccount(account.address, account as any);
