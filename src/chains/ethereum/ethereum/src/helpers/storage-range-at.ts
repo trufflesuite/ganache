@@ -96,6 +96,18 @@ async function getHashedKeysWithValues(
   });
 }
 
+/**
+ * Given an array of keccak256 hashed `keys` and RLP encoded `values` pairs,
+ * look up the "raw" (unhashed) key in the given `database` for each pair,
+ * returning a `Record` of `StorageRecord`s for each pair where the Record key
+ * is the hashed key and the `Record`'s value is another `Record` where the key
+ * is the "raw" key and the value is the RLP decoded `value`.
+ *
+ * @param hashedKeys - the hash keys
+ * @param values - the RLP encode values
+ * @param count - the number of pairs from hashedKeys/values to process
+ * @param database - the database containing the `hashedKey -> rawKey` index.
+ */
 export async function getStorage(
   hashedKeys: Buffer[],
   values: Buffer[],
@@ -123,14 +135,17 @@ export async function getStorage(
 }
 
 /**
+ * Returns storage within the given `storageTrie` given a `startKey` and max
+ * number of entries to return (`maxKeys`).
+ *
  * `ethereumjs-vm` has a `dumpStorage(account)` method, but we need to honor
  * `startKey` and `maxKeys`, and we do that by not loading every key and
  * value into memory, which `dumpStorage` would do.
+ *
  * @param startKey
  * @param maxKeys
  * @param storageTrie
  * @param database
- * @returns
  */
 export async function dumpTrieStorageDetails(
   startKey: Buffer,
