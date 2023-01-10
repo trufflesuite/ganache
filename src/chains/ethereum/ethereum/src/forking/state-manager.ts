@@ -43,7 +43,7 @@ export class ForkStateManager extends GanacheStateManager {
    * at the last fully committed point, i.e. as if all current
    * checkpoints were reverted.
    */
-  copy(): GanacheStateManager {
+  copy(): ForkStateManager {
     return new ForkStateManager({
       trie: this._trie.copy(false) as ForkTrie,
       prefixCodeHashes: this.prefixCodeHashes
