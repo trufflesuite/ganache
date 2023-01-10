@@ -3,12 +3,13 @@ import {
   Quantity,
   keccak,
   BUFFER_32_ZERO,
+  BUFFER_EMPTY,
   BUFFER_ZERO,
-  JsonRpcErrorCode
+  JsonRpcErrorCode,
+  ecsign
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import type Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
+import type { Common } from "@ethereumjs/common";
 import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
@@ -27,20 +28,7 @@ import {
 import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
 
-function ecsign(msgHash: Uint8Array, privateKey: Uint8Array) {
-  const object = { signature: new Uint8Array(64), recid: null };
-  const status = secp256k1.ecdsaSign(object, msgHash, privateKey);
-  if (status === 0) {
-    const buffer = object.signature.buffer;
-    const r = Buffer.from(buffer, 0, 32);
-    const s = Buffer.from(buffer, 32, 32);
-    return { r, s, v: object.recid };
-  } else {
-    throw new Error(
-      "The nonce generation function failed, or the private key was invalid"
-    );
-  }
-}
+const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
 
 const CAPABILITIES = [2718, 2930, 1559];
 
@@ -65,7 +53,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas = Quantity.from(data[2]);
       this.maxFeePerGas = Quantity.from(data[3]);
       this.gas = Quantity.from(data[4]);
-      this.to = data[5].length == 0 ? Quantity.Empty : Address.from(data[5]);
+      this.to = data[5].length == 0 ? null : Address.from(data[5]);
       this.value = Quantity.from(data[6]);
       this.data = Data.from(data[7]);
       const accessListData = AccessLists.getAccessListData(data[8]);
@@ -81,7 +69,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
         // TODO(hack): we use the presence of `extra` to determine if this data
         // come from the "database" or not. Transactions that come from the
         // database must not be validated since they may come from a fork.
-        if (common.chainId() !== this.chainId.toNumber()) {
+        if (common.chainId() !== this.chainId.toBigInt()) {
           throw new CodedError(
             `Invalid chain id (${this.chainId.toNumber()}) for chain with id ${common.chainId()}.`,
             JsonRpcErrorCode.INVALID_INPUT
@@ -101,7 +89,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       if (data.chainId) {
         this.chainId = Quantity.from(data.chainId);
       } else {
-        this.chainId = Quantity.from(common.chainIdBN().toArrayLike(Buffer));
+        this.chainId = Quantity.from(common.chainId());
       }
 
       this.maxPriorityFeePerGas = Quantity.from(data.maxPriorityFeePerGas);
@@ -128,7 +116,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       blockNumber: this.blockNumber ? this.blockNumber : null,
       transactionIndex: this.index ? this.index : null,
       from: this.from,
-      to: this.to.isNull() ? null : this.to,
+      to: this.to,
       value: this.value,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas,
       maxFeePerGas: this.maxFeePerGas,
@@ -151,51 +139,39 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public toVmTransaction() {
-    const from = this.from;
-    const sender = from.toBuffer();
-    const to = this.to.toBuffer();
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
-      nonce: new BN(this.nonce.toBuffer()),
-      maxPriorityFeePerGas: new BN(this.maxPriorityFeePerGas.toBuffer()),
-      maxFeePerGas: new BN(this.maxFeePerGas.toBuffer()),
-      gasLimit: new BN(this.gas.toBuffer()),
-      to:
-        to.length === 0
-          ? null
-          : { buf: to, equals: (a: { buf: Buffer }) => to.equals(a.buf) },
-      value: new BN(this.value.toBuffer()),
+      nonce: this.nonce.toBigInt(),
+      maxPriorityFeePerGas: this.maxPriorityFeePerGas.toBigInt(),
+      maxFeePerGas: this.maxFeePerGas.toBigInt(),
+      gasLimit: this.gas.toBigInt(),
+      to: this.to,
+      value: this.value.toBigInt(),
       data,
       AccessListJSON: this.accessListJSON,
-      getSenderAddress: () => ({
-        buf: sender,
-        equals: (a: { buf: Buffer }) => sender.equals(a.buf),
-        toString() {
-          return from.toString();
-        }
-      }),
+      getSenderAddress: () => this.from,
       /**
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
         const fee = this.calculateIntrinsicGas();
-        return new BN(Quantity.toBuffer(fee + this.accessListDataFee));
+        return fee + this.accessListDataFee;
       },
-      getUpfrontCost: (baseFee: BN = new BN(0)) => {
+      getUpfrontCost: (baseFee: bigint = 0n) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;
-        const maxPriorityFeePerGasBN = new BN(maxPriorityFeePerGas.toBuffer());
-        const maxFeePerGasBN = new BN(maxFeePerGas.toBuffer());
-        const gasLimitBN = new BN(gas.toBuffer());
-        const valueBN = new BN(value.toBuffer());
+        const maxPriorityFeePerGasBI = maxPriorityFeePerGas.toBigInt();
+        const maxFeePerGasBI = maxFeePerGas.toBigInt();
+        const gasLimitBI = gas.toBigInt();
+        const valueBI = value.toBigInt();
 
-        const inclusionFeePerGas = BN.min(
-          maxPriorityFeePerGasBN,
-          maxFeePerGasBN.sub(baseFee)
+        const inclusionFeePerGas = bigIntMin(
+          maxPriorityFeePerGasBI,
+          maxFeePerGasBI - baseFee
         );
-        const gasPrice = inclusionFeePerGas.add(baseFee);
+        const gasPrice = inclusionFeePerGas + baseFee;
 
-        return gasLimitBN.mul(gasPrice).add(valueBN);
+        return gasLimitBI * gasPrice + valueBI;
       },
       supports: (capability: Capability) => {
         return CAPABILITIES.includes(capability);
@@ -263,7 +239,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.maxPriorityFeePerGas.toBuffer(),
       this.maxFeePerGas.toBuffer(),
       this.gas.toBuffer(),
-      this.to.toBuffer(),
+      this.to ? this.to.toBuffer() : BUFFER_EMPTY,
       this.value.toBuffer(),
       this.data.toBuffer(),
       this.accessList,
@@ -277,12 +253,11 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     return computeIntrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
   }
 
-  public updateEffectiveGasPrice(baseFeePerGas: Quantity) {
-    const baseFeePerGasBigInt = baseFeePerGas.toBigInt();
+  public updateEffectiveGasPrice(baseFeePerGas: bigint) {
     const maxFeePerGas = this.maxFeePerGas.toBigInt();
     const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
-    const a = maxFeePerGas - baseFeePerGasBigInt;
+    const a = maxFeePerGas - baseFeePerGas;
     const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
-    this.effectiveGasPrice = Quantity.from(baseFeePerGasBigInt + tip);
+    this.effectiveGasPrice = Quantity.from(baseFeePerGas + tip);
   }
 }

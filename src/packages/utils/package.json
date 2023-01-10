@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/utils#readme",
@@ -47,6 +47,7 @@
     "tooling"
   ],
   "dependencies": {
+    "@ganache/secp256k1": "0.5.0",
     "emittery": "0.10.0",
     "keccak": "3.0.2",
     "seedrandom": "3.0.5"
@@ -58,8 +59,8 @@
     "cross-env": "7.0.3",
     "mocha": "9.1.3",
     "sinon": "11.1.2",
-    "ts-node": "10.4.0",
-    "typescript": "4.6.4"
+    "ts-node": "10.9.1",
+    "typescript": "4.7.4"
   },
   "optionalDependencies": {
     "@trufflesuite/bigint-buffer": "1.1.10"

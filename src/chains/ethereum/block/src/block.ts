@@ -7,7 +7,7 @@ import {
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
@@ -93,7 +93,7 @@ export class Block {
       // get the maxFeePerGas and maxPriorityFeePerGas, use those to calculate
       // the effectiveGasPrice and add it to `extra` above, or we can just
       // leave it out of extra and update the effectiveGasPrice after like this
-      tx.updateEffectiveGasPrice(header.baseFeePerGas);
+      tx.updateEffectiveGasPrice(header.baseFeePerGas?.toBigInt());
       return txFn(tx);
     }) as IncludeTransactions extends true ? TypedTransactionJSON[] : Data[];
 

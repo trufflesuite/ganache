@@ -5,13 +5,13 @@ import {
 } from "@ganache/ethereum-utils";
 import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
-import type Common from "@ethereumjs/common";
+import type { Common } from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
   TypedDatabasePayload,
   TypedDatabaseTransaction
 } from "./raw";
-import type { RunTxResult } from "@ethereumjs/vm/dist/runTx";
+import type { RunTxResult } from "@ethereumjs/vm";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { InternalTransactionReceipt } from "./transaction-receipt";
@@ -84,8 +84,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       // handle JSON
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
-      this.to =
-        data.to == null ? Quantity.Empty : toValidLengthAddress(data.to, "to");
+      this.to = data.to == null ? null : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =
         data.data == null
@@ -151,7 +150,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       Quantity.toBuffer(cumulativeGasUsed),
       result.bloom.bitvector,
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
-      result.gasUsed.toArrayLike(Buffer),
+      Quantity.toBuffer(result.totalGasSpent),
       result.createdAddress ? result.createdAddress.buf : null,
       this.type
     ));
@@ -253,9 +252,9 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   protected abstract computeIntrinsics(
     v: Quantity,
     raw: TypedDatabaseTransaction,
-    chainId: number
+    chainId: bigint
   );
 
   protected abstract toVmTransaction();
-  protected abstract updateEffectiveGasPrice(baseFeePerGas?: Quantity);
+  protected abstract updateEffectiveGasPrice(baseFeePerGas: bigint);
 }

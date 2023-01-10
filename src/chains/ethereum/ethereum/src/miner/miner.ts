@@ -1,4 +1,4 @@
-import type { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import type { InterpreterStep } from "@ethereumjs/evm";
 import {
   RuntimeError,
   RETURN_TYPES,
@@ -14,12 +14,13 @@ import {
   Heap
 } from "@ganache/utils";
 import { encode } from "@ganache/rlp";
-import { BaseTrie as Trie } from "merkle-patricia-tree";
+import { Trie } from "@ethereumjs/trie";
 import Emittery from "emittery";
-import VM from "@ethereumjs/vm";
+import { DefaultStateManager } from "@ethereumjs/statemanager";
+import { VM } from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { EVMResult } from "@ethereumjs/evm";
 import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";
@@ -70,7 +71,7 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
   values[a].effectiveGasPrice > values[b].effectiveGasPrice;
 
-const refresher = (item: TypedTransaction, context: Quantity) =>
+const refresher = (item: TypedTransaction, context: bigint) =>
   item.updateEffectiveGasPrice(context);
 
 export default class Miner extends Emittery<{
@@ -92,7 +93,7 @@ export default class Miner extends Emittery<{
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
-  #currentBlockBaseFeePerGas: Quantity;
+  #currentBlockBaseFeePerGas: bigint;
   #resolver: (value: void) => void;
 
   /**
@@ -126,10 +127,7 @@ export default class Miner extends Emittery<{
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new Heap<TypedTransaction, Quantity>(
-    sortByPrice,
-    refresher
-  );
+  readonly #priced = new Heap<TypedTransaction, bigint>(sortByPrice, refresher);
   /*
    * @param executables - A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -148,7 +146,7 @@ export default class Miner extends Emittery<{
     this.#executables = executables;
     this.#createBlock = (previousBlock: Block) => {
       const newBlock = createBlock(previousBlock);
-      this.#setCurrentBlockBaseFeePerGas(newBlock);
+      this.#currentBlockBaseFeePerGas = newBlock.header.baseFeePerGas;
       return newBlock;
     };
 
@@ -181,7 +179,7 @@ export default class Miner extends Emittery<{
       this.#updatePricedHeap();
       return;
     } else {
-      this.#setCurrentBlockBaseFeePerGas(block);
+      this.#currentBlockBaseFeePerGas = block.header.baseFeePerGas;
       this.#setPricedHeap();
       const result = await this.#mine(block, maxTransactions, onlyOneBlock);
       this.emit("idle");
@@ -233,18 +231,18 @@ export default class Miner extends Emittery<{
       this.#isBusy = true;
 
       blockTransactions = [];
-      const transactionsTrie = new Trie(null, null);
-      const receiptTrie = new Trie(null, null);
+      const transactionsTrie = new Trie();
+      const receiptTrie = new Trie();
 
       // don't mine anything at all if maxTransactions is `0`
       if (maxTransactions === Capacity.Empty) {
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
-          transactionsTrie.root,
-          receiptTrie.root,
+          transactionsTrie.root(),
+          receiptTrie.root(),
           BUFFER_256_ZERO,
-          (vm.stateManager as any)._trie.root,
+          (vm.stateManager as DefaultStateManager)._trie.root(),
           0n, // gas used
           options.extraData,
           [],
@@ -274,14 +272,14 @@ export default class Miner extends Emittery<{
       const stepListener = (event: InterpreterStep) => {
         if (event.opcode.name === "SSTORE") {
           const key = TraceData.from(
-            event.stack[event.stack.length - 1].toArrayLike(Buffer)
+            Quantity.toBuffer(event.stack[event.stack.length - 1])
           ).toBuffer();
           const hashedKey = keccak(key);
           storageKeys.set(hashedKey.toString(), { key, hashedKey });
         }
       };
 
-      vm.on("step", stepListener);
+      vm.evm.events.on("step", stepListener);
       // Run until we run out of items, or until the inner loop stops us.
       // we don't call `shift()` here because we will may need to `replace`
       // this `best` transaction with the next best transaction from the same
@@ -311,14 +309,12 @@ export default class Miner extends Emittery<{
 
         // Set the internal trie's block number (for forking)
         (vm.stateManager as any)._trie.blockNumber = Quantity.from(
-          runtimeBlock.header.number.toArrayLike(Buffer)
+          runtimeBlock.header.number
         );
 
         const result = await this.#runTx(best, runtimeBlock, origin, pending);
         if (result !== null) {
-          const gasUsed = Quantity.from(
-            result.gasUsed.toArrayLike(Buffer)
-          ).toBigInt();
+          const gasUsed = result.totalGasSpent;
           if (blockGasLeft >= gasUsed) {
             // if the transaction will fit in the block, commit it!
             await vm.stateManager.commit();
@@ -400,13 +396,13 @@ export default class Miner extends Emittery<{
       await Promise.all(promises);
       await vm.stateManager.commit();
 
-      vm.removeListener("step", stepListener);
+      vm.evm.events.removeListener("step", stepListener);
 
       const finalizedBlockData = runtimeBlock.finalize(
-        transactionsTrie.root,
-        receiptTrie.root,
+        transactionsTrie.root(),
+        receiptTrie.root(),
         blockBloom,
-        (vm.stateManager as any)._trie.root,
+        (vm.stateManager as DefaultStateManager)._trie.root(),
         blockGasUsed,
         options.extraData,
         blockTransactions,
@@ -458,7 +454,7 @@ export default class Miner extends Emittery<{
       if (!this.#emitStepEvent) return;
       this.emit("ganache:vm:tx:step", makeStepEvent(context, event));
     };
-    vm.on("step", stepListener);
+    vm.evm.events.on("step", stepListener);
     try {
       return await vm.runTx({
         tx: tx.toVmTransaction() as any,
@@ -490,7 +486,7 @@ export default class Miner extends Emittery<{
       tx.finalize("rejected", error);
       return null;
     } finally {
-      vm.removeListener("step", stepListener);
+      vm.evm.events.removeListener("step", stepListener);
       this.emit("ganache:vm:tx:after", { context });
     }
   };
@@ -585,17 +581,4 @@ export default class Miner extends Emittery<{
   public toggleStepEvent(enable: boolean) {
     this.#emitStepEvent = enable;
   }
-
-  /**
-   * Sets the #currentBlockBaseFeePerGas property if the current block
-   * has a baseFeePerGas property
-   */
-  #setCurrentBlockBaseFeePerGas = (block: RuntimeBlock) => {
-    const baseFeePerGas = block.header.baseFeePerGas;
-    // before london hard fork, there will be no baseFeePerGas on the block
-    this.#currentBlockBaseFeePerGas =
-      baseFeePerGas === undefined
-        ? undefined
-        : Quantity.from(baseFeePerGas.buf);
-  };
 }

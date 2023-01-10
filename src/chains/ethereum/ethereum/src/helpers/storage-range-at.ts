@@ -6,7 +6,7 @@ import type {
   StorageRangeAtResult,
   StorageRecords
 } from "@ganache/ethereum-utils";
-import { BaseTrie as Trie } from "merkle-patricia-tree";
+import { Trie } from "@ethereumjs/trie";
 
 type TrieData = { key: Buffer; value: Buffer };
 type HashedKeysWithValues = {

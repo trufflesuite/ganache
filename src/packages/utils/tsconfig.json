@@ -8,5 +8,11 @@
   "include": [
     "index.ts",
     "src/**/*"
+  ],
+  "references": [
+    {
+      "name": "@ganache/secp256k1",
+      "path": "../secp256k1"
+    }
   ]
 }

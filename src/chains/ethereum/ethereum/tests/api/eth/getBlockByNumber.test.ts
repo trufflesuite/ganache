@@ -9,7 +9,11 @@ describe("api", () => {
     describe("getBlockByNumber", () => {
       describe("difficulty", () => {
         beforeEach(async () => {
-          provider = await getProvider();
+          provider = await getProvider(
+            // the block difficulty changes after the merge, so we need rules
+            // from before the merge
+            { chain: { hardfork: "london" } }
+          );
         });
         afterEach(async () => {
           provider && (await provider.disconnect());
@@ -27,7 +31,11 @@ describe("api", () => {
       describe("totalDifficulty", () => {
         describe("when the default values are used", () => {
           beforeEach(async () => {
-            provider = await getProvider();
+            provider = await getProvider(
+              // the block difficulty changes after the merge, so we need rules
+              // from before the merge
+              { chain: { hardfork: "london" } }
+            );
           });
           afterEach(async () => {
             provider && (await provider.disconnect());
@@ -65,7 +73,10 @@ describe("api", () => {
           beforeEach(async () => {
             difficulty = Math.floor(Math.random() * 9 + 1);
             provider = await getProvider({
-              miner: { difficulty }
+              miner: { difficulty },
+              // the block difficulty changes after the merge, so we need rules
+              // from before the merge
+              chain: { hardfork: "london" }
             });
           });
           afterEach(async () => {

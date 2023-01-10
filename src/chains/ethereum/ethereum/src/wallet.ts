@@ -12,12 +12,11 @@ import {
   unref,
   WEI
 } from "@ganache/utils";
-import { privateToAddress } from "ethereumjs-util";
+import { privateToAddress } from "@ethereumjs/util";
 import secp256k1, { SECP256K1_N } from "@ganache/secp256k1";
 import { mnemonicToSeedSync } from "bip39";
 import { alea } from "seedrandom";
 import crypto from "crypto";
-import createKeccakHash from "keccak";
 import { writeFileSync } from "fs";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Address } from "@ganache/ethereum-address";
@@ -383,9 +382,7 @@ export default class Wallet {
       cipher.update(privateKey.toBuffer()),
       cipher.final()
     ]);
-    const mac = createKeccakHash("keccak256")
-      .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
-      .digest();
+    const mac = keccak(Buffer.concat([derivedKey.slice(16, 32), ciphertext]));
     return {
       crypto: {
         cipher: CIPHER,
@@ -430,9 +427,9 @@ export default class Wallet {
           kdfParams.dklen,
           { ...kdfParams, N: kdfParams.n }
         );
-        localMac = createKeccakHash("keccak256")
-          .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
-          .digest();
+        localMac = keccak(
+          Buffer.concat([derivedKey.slice(16, 32), ciphertext])
+        );
       } catch {
         localMac = null;
       }

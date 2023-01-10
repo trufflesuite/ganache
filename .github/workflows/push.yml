@@ -10,8 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
-        os: [ubuntu-20.04]
+        node: [14.0.0, 14.x, 16.x, 18.x]
+        os: [ubuntu-22.04]
 
     runs-on: ${{ matrix.os }}
 
@@ -34,12 +34,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12.0.0, 12.x, 14.x, 16.x, 18.x]
-        os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
-        exclude:
-          # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
-          - os: ubuntu-18.04
-            node: 18.x
+        node: [14.0.0, 14.x, 16.x, 18.x]
+        os: [windows-2019, ubuntu-20.04, ubuntu-22.04, macos-12]
 
     runs-on: ${{ matrix.os }}
 
@@ -66,7 +62,7 @@ jobs:
         # resources it downloads no longer exist, and windows-build-tools@5
         # fails to install Python (it will wait on the python installer forever)
         if: startsWith(matrix.os, 'windows-')
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912 #v4.4.0
         with:
           python-version: "2.7"
 

@@ -1,16 +1,16 @@
 import { Address } from "@ganache/ethereum-address";
 import { keccak, BUFFER_EMPTY, Quantity, Data } from "@ganache/utils";
-import type { LevelUp } from "levelup";
 import Blockchain from "../blockchain";
 import AccountManager from "../data-managers/account-manager";
 import { GanacheTrie } from "../helpers/trie";
-import sub from "subleveldown";
-import { CheckpointDB } from "merkle-patricia-tree/dist/checkpointDb";
+import { CheckpointDB } from "@ethereumjs/trie";
+
 import * as lexico from "./lexicographic-key-codec";
 import { encode } from "@ganache/rlp";
 import { Account } from "@ganache/ethereum-utils";
-import { KECCAK256_NULL } from "ethereumjs-util";
-type KVP = { key: Buffer; value: Buffer };
+import { KECCAK256_NULL } from "@ethereumjs/util";
+import { TrieDB } from "../trie-db";
+import { GanacheLevelUp } from "../database";
 
 const DELETED_VALUE = Buffer.allocUnsafe(1).fill(1);
 const GET_CODE = "eth_getCode";
@@ -18,7 +18,7 @@ const GET_NONCE = "eth_getTransactionCount";
 const GET_BALANCE = "eth_getBalance";
 const GET_STORAGE_AT = "eth_getStorageAt";
 
-const MetadataSingletons = new WeakMap<LevelUp, LevelUp>();
+const MetadataSingletons = new WeakMap<TrieDB, GanacheLevelUp>();
 
 const LEVELDOWN_OPTIONS = {
   keyEncoding: "binary",
@@ -37,45 +37,39 @@ export class ForkTrie extends GanacheTrie {
   private isPreForkBlock = false;
   private forkBlockNumber: bigint;
   public blockNumber: Quantity;
-  private metadata: CheckpointDB;
+  private checkpointedMetadata: CheckpointDB;
+  /** The underlying database for `checkpointedMetadata */
+  private metadataDB: GanacheLevelUp;
 
-  constructor(db: LevelUp | null, root: Buffer, blockchain: Blockchain) {
+  constructor(db: TrieDB | null, root: Buffer, blockchain: Blockchain) {
     super(db, root, blockchain);
-
     this.accounts = blockchain.accounts;
     this.blockNumber = this.blockchain.fallback.blockNumber;
     this.forkBlockNumber = this.blockNumber.toBigInt();
 
-    if (MetadataSingletons.has(db)) {
-      this.metadata = new CheckpointDB(MetadataSingletons.get(db));
-    } else {
-      const metadataDb = sub(db, "f", LEVELDOWN_OPTIONS);
-      MetadataSingletons.set(db, metadataDb);
-      this.metadata = new CheckpointDB(metadataDb);
+    let metadataDB = MetadataSingletons.get(db);
+    if (!metadataDB) {
+      metadataDB = db.sublevel("f", LEVELDOWN_OPTIONS);
+      MetadataSingletons.set(db, metadataDB);
     }
-  }
+    this.metadataDB = metadataDB;
 
-  set root(value: Buffer) {
-    (this as any)._root = value;
-  }
-
-  get root() {
-    return (this as any)._root;
+    this.checkpointedMetadata = new CheckpointDB(new TrieDB(this.metadataDB));
   }
 
   checkpoint() {
     super.checkpoint();
-    this.metadata.checkpoint(this.root);
+    this.checkpointedMetadata.checkpoint(this.root());
   }
   async commit() {
-    await Promise.all([super.commit(), this.metadata.commit()]);
+    await Promise.all([super.commit(), this.checkpointedMetadata.commit()]);
   }
   async revert() {
-    await Promise.all([super.revert(), this.metadata.revert()]);
+    await Promise.all([super.revert(), this.checkpointedMetadata.revert()]);
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
-    (this as any)._root = stateRoot;
+    this._root = stateRoot;
     this.address = address;
     this.blockNumber = blockNumber;
     this.isPreForkBlock = blockNumber.toBigInt() < this.forkBlockNumber;
@@ -94,7 +88,7 @@ export class ForkTrie extends GanacheTrie {
     startBlockNumber: Quantity,
     endBlockNumber: Quantity
   ) {
-    const db = this.metadata._leveldb;
+    const db = this.metadataDB;
     const stream = db.createKeyStream({
       gte: lexico.encode([startBlockNumber.toBuffer()]),
       lt: lexico.encode([
@@ -102,7 +96,9 @@ export class ForkTrie extends GanacheTrie {
       ])
     });
     const batch = db.batch();
-    for await (const key of stream) batch.del(key);
+    for await (const key of stream) {
+      batch.del(key);
+    }
     await batch.write();
   }
 
@@ -122,7 +118,7 @@ export class ForkTrie extends GanacheTrie {
     // TODO(perf): there is probably a better/faster way of doing this for the
     // common case.
     // Issue: https://github.com/trufflesuite/ganache/issues/3483
-    const checkpoints = this.metadata.checkpoints;
+    const { checkpoints } = this.checkpointedMetadata;
     for (let i = checkpoints.length - 1; i >= 0; i--) {
       for (let [encodedKeyStr, value] of checkpoints[i].keyValueMap.entries()) {
         if (!value || !value.equals(DELETED_VALUE)) continue;
@@ -139,12 +135,16 @@ export class ForkTrie extends GanacheTrie {
     // because it just checks every single key we've ever deleted (before this
     // one).
     // Issue: https://github.com/trufflesuite/ganache/issues/3484
-    const stream = this.metadata._leveldb.createReadStream({
+    const db = this.metadataDB;
+    const stream = db.createReadStream({
       lte: this.createDelKey(key),
       reverse: true
     });
     for await (const data of stream) {
-      const { key: encodedKey, value } = data as unknown as KVP;
+      const { key: encodedKey, value } = data as unknown as {
+        key: Buffer;
+        value: Buffer;
+      };
       if (!value || !value.equals(DELETED_VALUE)) continue;
       if (isEqualKey(encodedKey, selfAddress, key)) return true;
     }
@@ -153,8 +153,10 @@ export class ForkTrie extends GanacheTrie {
     return false;
   }
 
+  // note: this function is a slightly modified version of
+  // https://github.com/ethereumjs/ethereumjs-monorepo/blob/34f3dcdf37d2fbeffeb41dc3de693f59b91c46bc/packages/trie/src/trie/trie.ts#L218
   async del(key: Buffer) {
-    await this.lock.wait();
+    await this._lock.acquire();
 
     // we only track if the key was deleted (locally) for state tries _after_
     // the fork block because we can't possibly delete keys _before_ the fork
@@ -162,20 +164,28 @@ export class ForkTrie extends GanacheTrie {
     // This little optimization can cut debug_traceTransaction time _in half_.
     if (!this.isPreForkBlock) {
       const delKey = this.createDelKey(key);
-      const metaDataPutPromise = this.metadata.put(delKey, DELETED_VALUE);
+      const metaDataPutPromise = this.checkpointedMetadata.put(
+        delKey,
+        DELETED_VALUE
+      );
 
       const hash = keccak(key);
       const { node, stack } = await this.findPath(hash);
-      if (node) await this._deleteNode(hash, stack);
+      if (node) {
+        await this._deleteNode(hash, stack);
+        await this.persistRoot();
+      }
 
       await metaDataPutPromise;
     } else {
       const hash = keccak(key);
       const { node, stack } = await this.findPath(hash);
-      if (node) await this._deleteNode(hash, stack);
+      if (node) {
+        await this._deleteNode(hash, stack);
+        await this.persistRoot();
+      }
     }
-
-    this.lock.signal();
+    this._lock.release();
   }
 
   /**
@@ -285,20 +295,19 @@ export class ForkTrie extends GanacheTrie {
    * underlying db.
    */
   copy(includeCheckpoints: boolean = true) {
-    const db = this.db.copy() as CheckpointDB;
     const secureTrie = new ForkTrie(
-      db._leveldb as LevelUp,
-      this.root,
+      this.db.copy(),
+      this.root(),
       this.blockchain
     );
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;
-    if (includeCheckpoints && this.isCheckpoint) {
-      secureTrie.db.checkpoints = [...this.db.checkpoints];
+    if (includeCheckpoints && this.hasCheckpoints()) {
+      secureTrie._db.checkpoints = [...this._db.checkpoints];
 
-      // Our `metadata.checkpoints` needs to be the same reference to the
-      // parent's metadata.checkpoints so that we can continue to track these
+      // Our metadata checkpoints need to be the same reference to the
+      // parent's metadata checkpoints so that we can continue to track these
       // changes on this copy, otherwise deletions made to a contract's storage
       // may not be tracked.
       // Note: db.checkpoints don't need this same treatment because of the way
@@ -306,7 +315,8 @@ export class ForkTrie extends GanacheTrie {
       // Instead, it saves to its own internal cache, which eventually gets
       // reverted or committed (flushed). Our metadata doesn't utilize a central
       // cache.
-      secureTrie.metadata.checkpoints = this.metadata.checkpoints;
+      secureTrie.checkpointedMetadata.checkpoints =
+        this.checkpointedMetadata.checkpoints;
     }
     return secureTrie;
   }
