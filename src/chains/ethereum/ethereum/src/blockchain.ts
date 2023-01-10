@@ -1258,7 +1258,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as DefaultStateManager)._cache.flush = async () => {};
+    (vm.stateManager as GanacheStateManager)._cache.flush = async () => {};
 
     // Process the block without committing the data.
     await vm.stateManager.checkpoint();
