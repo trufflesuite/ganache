@@ -164,7 +164,10 @@ export const parseArgs = (version: string) => {
       type: "string"
     });
     if (flavor !== "ethereum") {
+      // filecoin used to be references by the name "filecoin", and not it's
+      // package name
       if (flavor === "filecoin") flavor = "@ganache/filecoin";
+
       // load flavor plugin:
       const { default: FlavorInterface } = eval("require")(flavor);
       flavorDefaults = FlavorInterface.optionsConfig.defaults;
