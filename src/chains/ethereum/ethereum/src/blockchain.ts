@@ -710,8 +710,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         await mclInitPromise; // ensure that mcl is initialized!
       }
     }
-    // skip `vm.init`, since we don't use any of it
-    (vm as any)._isInitialized = true;
     return vm;
   };
 
