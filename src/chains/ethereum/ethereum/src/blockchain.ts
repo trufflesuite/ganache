@@ -328,8 +328,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             options.miner.blockGasLimit,
             initialAccounts
           );
-          blocks.earliest = blocks.latest =
-            await this.#blockBeingSavedPromise.then(({ block }) => block);
+          blocks.latest = await this.#blockBeingSavedPromise.then(
+            ({ block }) => block
+          );
+          // when we are forking, blocks.earliest is already set to what was
+          // retrieved from the fork
+          if (!blocks.earliest) {
+            blocks.earliest = blocks.latest;
+          }
         }
       }
 
