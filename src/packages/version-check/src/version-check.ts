@@ -14,7 +14,7 @@ import type { VersionCheckOptions } from "./types";
 // Why is this not part of the config? Well, if a user
 // set this to a low value there could be problems.
 const ONE_DAY: number = 86400;
-
+const ACTIVATED = process.env.VC_ACTIVATED || false;
 /**
  * Requests the `latestVersion` semver from a remote url and manages
  * notifying the user of newer software versions.
@@ -113,9 +113,7 @@ export class VersionCheck {
    * @returns boolean
    */
   get isEnabled(): boolean {
-    return process.env.VC_ACTIVATED
-      ? this._config.enabled && this._enabled
-      : false;
+    return ACTIVATED ? this._config.enabled && this._enabled : false;
   }
   /**
    * Returns the location of the config file on disk.
