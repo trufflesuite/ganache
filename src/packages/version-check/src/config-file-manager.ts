@@ -23,7 +23,7 @@ export class ConfigFileManager {
   private _configFile: ConfigManager;
   private _config: AnyJSON;
   /**
-   * the file on disk will be:
+   * the file on disk (for linux) will be:
    * ~/.config/@ganache/version-check-nodejs/configName.json
    *
    * VERSION_CHECK_CONFIG_NAME is used in unit testing to avoid
