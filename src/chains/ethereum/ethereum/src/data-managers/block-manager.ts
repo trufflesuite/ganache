@@ -256,12 +256,12 @@ export default class BlockManager extends Manager<Block> {
         const blocks = json.map(data => {
           const common = fallback.getCommonForBlockNumber(
             this.#common,
-            BigInt(data.result)
+            BigInt(data.result.number)
           );
 
           const block = BlockManager.rawFromJSON(data.result, common);
 
-          return data;
+          return block;
         });
         return blocks;
       }

@@ -2894,8 +2894,11 @@ export default class EthereumApi implements Api {
     );
   }
 
-  async eth_batchBlocks(blockNumbers: QUANTITY[]) {
-    return this.#blockchain.blocks.getBatch(blockNumbers);
+  async eth_batchBlocks(
+    blockNumbers: QUANTITY[]
+  ): Promise<[Ethereum.Block] | null> {
+    const blocks = await this.#blockchain.blocks.getBatch(blockNumbers);
+    return blocks;
   }
 
   /**
