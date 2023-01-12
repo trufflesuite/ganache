@@ -170,7 +170,7 @@ export class VersionCheck {
   /**
    * Returns true if the user has already been notified of the
    * `latestVersion` or higher. If the user installs the latest
-   * version before getting the latest semver this will
+   * version before getting the latest semver this will return true if currentVersion === latestVersion.
    *
    * @returns boolean
    */
