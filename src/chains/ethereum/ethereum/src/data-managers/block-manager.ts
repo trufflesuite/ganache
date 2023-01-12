@@ -249,7 +249,7 @@ export default class BlockManager extends Manager<Block> {
       const json = JSON.parse(
         await fallback.batch<any>("eth_getBlockByNumber", params)
       );
-      console.log(json);
+
       if (json == null) {
         return null;
       } else {
@@ -260,7 +260,6 @@ export default class BlockManager extends Manager<Block> {
           );
 
           const block = BlockManager.rawFromJSON(data.result, common);
-          console.log(block);
 
           return data;
         });

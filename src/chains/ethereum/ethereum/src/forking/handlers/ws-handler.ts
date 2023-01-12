@@ -120,7 +120,7 @@ export class WsHandler extends BaseHandler implements Handler {
       const payload = params.map((param, id) => {
         return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
           method,
-          params: [param]
+          params: param
         }).slice(1)}`;
       });
 
@@ -129,6 +129,7 @@ export class WsHandler extends BaseHandler implements Handler {
       this.connection.send(data);
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
+
     return await this.queueRequest<T>(method, params, key, send, options);
   }
 

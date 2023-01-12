@@ -2895,7 +2895,6 @@ export default class EthereumApi implements Api {
   }
 
   async eth_batchBlocks(blockNumbers: QUANTITY[]) {
-    console.log(blockNumbers);
     return this.#blockchain.blocks.getBatch(blockNumbers);
   }
 

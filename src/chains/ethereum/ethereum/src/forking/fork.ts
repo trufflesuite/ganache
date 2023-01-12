@@ -264,7 +264,7 @@ export class Fork {
   public batch<T = unknown>(
     method: string,
     params: unknown[],
-    options = { disableCache: false }
+    options = { disableCache: true }
   ) {
     return this.#handler.batch<T>(method, params, options);
   }
