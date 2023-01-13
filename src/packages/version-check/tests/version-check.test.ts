@@ -106,7 +106,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("disables if currentVersion is not a valid semver.", () => {
-      vc = new VersionCheck("");
+      vc = new VersionCheck("invalid-version");
 
       assert.strictEqual(vc.isEnabled, false);
     });
