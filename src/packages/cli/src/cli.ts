@@ -161,7 +161,8 @@ if (argv.action === "start") {
       }
     }
 
-    versionCheck.log();
+    versionCheck.performVersionCheckAndOutputBanner();
+    // do not destroy VC, it has an async side effect
     versionCheck = null;
 
     // if process.send is defined, this is a child_process (we assume a detached

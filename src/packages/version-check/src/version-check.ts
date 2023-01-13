@@ -14,7 +14,7 @@ import type { VersionCheckOptions } from "./types";
 // Why is this not part of the config? Well, if a user
 // set this to a low value there could be problems.
 const ONE_DAY: number = 86400;
-const ACTIVATED = !!process.env.VC_ACTIVATED || false;
+const ACTIVATED = true;
 /**
  * Requests the `latestVersion` semver from a remote url and manages
  * notifying the user of newer software versions.
@@ -253,10 +253,11 @@ export class VersionCheck {
    * Shows the banner message to the user on ganache startup.
    *
    */
-  log() {
+  performVersionCheckAndOutputBanner() {
     // We intentionally do not wait for this. We are always comparing against the
     // previously fetched version.
     this.getLatestVersion();
+
     if (this.canNotifyUser()) {
       const currentVersion = this._currentVersion;
       const { packageName, latestVersion } = this._config;
@@ -309,14 +310,16 @@ export class VersionCheck {
 
   static get DEFAULTS(): VersionCheckOptions {
     return {
-      packageName: "ganache",
-      enabled: true,
-      url: "https://version.trufflesuite.com",
-      ttl: 30000, // http2session.setTimeout
-      latestVersion: "0.0.0", // Last version fetched from the server
-      lastVersionLogged: "0.0.0", // Last version to tell the user about
-      lastNotification: 0,
-      disableInCI: true
+      versionCheck: {
+        packageName: "ganache",
+        enabled: true,
+        url: "https://version.trufflesuite.com",
+        ttl: 30000, // http2session.setTimeout
+        latestVersion: "0.0.0", // Last version fetched from the server
+        lastVersionLogged: "0.0.0", // Last version to tell the user about
+        lastNotification: 0,
+        disableInCI: true
+      }
     };
   }
 }

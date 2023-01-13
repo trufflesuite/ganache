@@ -322,7 +322,7 @@ describe("@ganache/version-check", () => {
       message = "";
     });
 
-    it("will not log if semver is the same between currentVersion and latestVersion", () => {
+    it("will not generate a log message if semver is the same between currentVersion and latestVersion", () => {
       vc = new VersionCheck(
         currentVersion,
         {
@@ -387,7 +387,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(message, "", "Version Check will log if disabled.");
     });
     it("will not log if currentVersion !== semver", () => {
-      vc = new VersionCheck("DEV", { disableInCI: false });
+      vc = new VersionCheck("DEV", { disableInCI: false }, testLogger);
       assert.strictEqual(
         message,
         "",
@@ -560,7 +560,7 @@ describe("@ganache/version-check", () => {
       process.stdout.columns = oldColumns;
       assert.strictEqual(message.length > 0, true, "Message did not log.");
     });
-    it("process.stdout.columns === null", () => {
+    it("process.stdout.columns === 0", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
       const oldColumns = process.stdout.columns;
       process.stdout.columns = 0;
@@ -695,15 +695,11 @@ describe("@ganache/version-check", () => {
   });
 
   describe("destroy", () => {
-    it("sets status to 'destroyed'", () => {
+    it("sets _request and _session to null", () => {
       vc.destroy();
 
-      assert.strictEqual(
-        vc._request,
-        null,
-        "session request is not destroyed."
-      );
-      assert.strictEqual(vc._session, null, "session is not destroyed.");
+      assert.strictEqual(vc._request, null, "_request is not destroyed.");
+      assert.strictEqual(vc._session, null, "_session is not destroyed.");
     });
   });
 
