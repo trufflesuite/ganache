@@ -16,6 +16,10 @@ export type VersionCheckOptions = {
   disableInCI?: boolean;
 };
 
+export type NamespacedOptions = {
+  versionCheck: VersionCheckOptions;
+};
+
 export type ConfigManager = {
   get: Function;
   set: Function;

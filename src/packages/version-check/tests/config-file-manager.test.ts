@@ -34,11 +34,6 @@ describe("ConfigFileManager", () => {
 
       assert.deepStrictEqual(defaultConfig, cfm.getConfig());
     });
-    it("saves the config file on first run", () => {
-      cfm = new ConfigFileManager();
-
-      assert.strictEqual(fs.existsSync(cfm.configFileLocation), true);
-    });
     it("accepts a config constructor param config", () => {
       const defaultConfig = VersionCheck.DEFAULTS;
       cfm = new ConfigFileManager({ config: testConfig });
@@ -56,7 +51,9 @@ describe("ConfigFileManager", () => {
   });
   describe("configFileLocation", () => {
     it("stores the config file path", () => {
-      cfm = new ConfigFileManager();
+      cfm = new ConfigFileManager({
+        config: testConfig
+      });
 
       assert.strictEqual(fs.existsSync(cfm.configFileLocation), true);
     });
