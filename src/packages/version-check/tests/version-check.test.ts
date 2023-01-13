@@ -528,7 +528,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.indexOf(vc._config.packageName) >= 0,
         true,
-        "Message does not contain the upgradeType."
+        "Message does not contain the packageName."
       );
     });
     it("message contains the currentVersion", () => {
@@ -538,7 +538,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.indexOf(vc._currentVersion) >= 0,
         true,
-        "Message does not contain the upgradeType."
+        "Message does not contain the currentVersion."
       );
     });
     it("message contains the latestVersion", () => {
@@ -548,7 +548,7 @@ describe("@ganache/version-check", () => {
       assert.strictEqual(
         message.indexOf(vc._config.latestVersion) >= 0,
         true,
-        "Message does not contain the upgradeType."
+        "Message does not contain the latestVersion."
       );
     });
     it("process.stdout.columns === -1", () => {
