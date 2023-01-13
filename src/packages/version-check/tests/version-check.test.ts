@@ -384,6 +384,8 @@ describe("@ganache/version-check", () => {
     it("will not log if disabled", () => {
       vc.disable();
 
+      vc.performVersionCheckAndOutputBanner();
+
       assert.strictEqual(message, "", "Version Check will log if disabled.");
     });
     it("will not log if currentVersion !== semver", () => {
@@ -402,7 +404,7 @@ describe("@ganache/version-check", () => {
     it("compares the constructor currentVersion to config.latestVersion", () => {
       testConfig.lastVersionLogged = "0.0.0";
       vc = new VersionCheck(testVersion, testConfig, testLogger);
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         message.indexOf(testVersion) >= 0,
@@ -417,7 +419,7 @@ describe("@ganache/version-check", () => {
       );
     });
     it("reports on the config.packageName", () => {
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         testConfig.packageName && message.indexOf(testConfig.packageName) >= -1,
@@ -432,7 +434,7 @@ describe("@ganache/version-check", () => {
         testVersion,
         testConfig.latestVersion as string
       );
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         upgradeType && message.indexOf(upgradeType) >= 0,
@@ -443,7 +445,7 @@ describe("@ganache/version-check", () => {
     it("logs the message", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
 
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         message.length > 0,
@@ -460,7 +462,7 @@ describe("@ganache/version-check", () => {
         "latestVersion and lastVersionLogged is the same before logging."
       );
 
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         vc._config.lastVersionLogged,
@@ -479,7 +481,7 @@ describe("@ganache/version-check", () => {
 
       const firstNotification = vc._config.lastNotification;
 
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       const secondNotification = vc._config.lastNotification;
 
@@ -492,7 +494,7 @@ describe("@ganache/version-check", () => {
     it("only logs the latestVersion one time", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
 
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         message.length > 0,
@@ -500,14 +502,14 @@ describe("@ganache/version-check", () => {
         "Log did not log the first time for this version."
       );
       message = "";
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(message, "", "logged the same version message twice.");
     });
 
     it("message contains the upgradeType", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       const upgradeType = semverUpgradeType(
         vc._currentVersion,
@@ -523,7 +525,7 @@ describe("@ganache/version-check", () => {
 
     it("message contains the packageName", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         message.indexOf(vc._config.packageName) >= 0,
@@ -533,7 +535,7 @@ describe("@ganache/version-check", () => {
     });
     it("message contains the currentVersion", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         message.indexOf(vc._currentVersion) >= 0,
@@ -543,7 +545,7 @@ describe("@ganache/version-check", () => {
     });
     it("message contains the latestVersion", () => {
       vc = new VersionCheck(testVersion, testConfig, testLogger);
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
 
       assert.strictEqual(
         message.indexOf(vc._config.latestVersion) >= 0,
@@ -556,7 +558,7 @@ describe("@ganache/version-check", () => {
       const oldColumns = process.stdout.columns;
       process.stdout.columns = -1;
 
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
       process.stdout.columns = oldColumns;
       assert.strictEqual(message.length > 0, true, "Message did not log.");
     });
@@ -565,7 +567,7 @@ describe("@ganache/version-check", () => {
       const oldColumns = process.stdout.columns;
       process.stdout.columns = 0;
 
-      vc.log();
+      vc.performVersionCheckAndOutputBanner();
       process.stdout.columns = oldColumns;
       assert.strictEqual(message.length > 0, true, "Message did not log.");
     });
