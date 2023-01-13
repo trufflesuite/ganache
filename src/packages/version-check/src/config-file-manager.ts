@@ -41,8 +41,9 @@ export class ConfigFileManager {
     // This file will eventually be replaced by another project. For now, we want to write to the
     // future location in the namespace for VersionCheck.
     // https://github.com/trufflesuite/ganache/pull/3285/files/0644054b8458eafdb52f2a9699842ed0c91f6a4e#r1068731549
+    // Ive seen this crash when '/' is in the projectName, e.g. "Ganache/cli" but it seems ok if a file exists already.
     this._configFile = new Conf({
-      projectName: "Ganache", // Using 'Ganache/cli' with an empty Suffix throws.
+      projectName: "Ganache/cli", // Using 'Ganache/cli' with an empty Suffix throws.
       projectSuffix: "", // we could change the filename to cli.json.
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME
