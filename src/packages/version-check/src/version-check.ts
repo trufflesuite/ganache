@@ -40,19 +40,23 @@ export class VersionCheck {
     logger?: Logger
   ) {
     // This will manage the config file on disk.
-    this.ConfigFileManager = new ConfigFileManager({
-      defaultConfig: VersionCheck.DEFAULTS,
-      config: this._sanitizeConfig(config)
+    this.ConfigFileManager = new ConfigFileManager();
+
+    this._config = this._sanitizeConfig({
+      ...VersionCheck.DEFAULTS,
+      ...this.ConfigFileManager.getConfig(),
+      ...config
     });
-
-    this._config = this.ConfigFileManager.getConfig();
-
     // If we are running in CI, disable and quit.
     if (this._config.disableInCI && isCI()) {
       this._enabled = false;
     } else {
       if (semverIsValid(currentVersion)) {
         this._currentVersion = semverClean(currentVersion);
+
+        if (config) {
+          this.ConfigFileManager.setConfig(this._config);
+        }
       } else {
         this._enabled = false;
       }
@@ -113,7 +117,7 @@ export class VersionCheck {
    * @returns boolean
    */
   get isEnabled(): boolean {
-    return ACTIVATED ? this._config.enabled && this._enabled : false;
+    return ACTIVATED ? !!this._config.enabled && this._enabled : false;
   }
   /**
    * Returns the location of the config file on disk.

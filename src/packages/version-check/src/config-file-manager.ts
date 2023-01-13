@@ -1,5 +1,10 @@
 import Conf from "conf";
-import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
+import {
+  ConfigManager,
+  ConfigFileManagerOptions,
+  VersionCheckOptions,
+  CLIConfig
+} from "./types";
 
 /**
  * This will be replaced eventually.
@@ -21,7 +26,7 @@ import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
  */
 export class ConfigFileManager {
   private _configFile: ConfigManager;
-  private _config: AnyJSON;
+  private _config: VersionCheckOptions; // In the future this will have more namespaces and live somewhere else.
   /**
    * the file on disk (for linux) will be:
    * ~/.config/@ganache/version-check-nodejs/configName.json
@@ -32,34 +37,25 @@ export class ConfigFileManager {
    *
    * @param  {ConfigFileManagerOptions={}} options
    */
-  constructor(options: ConfigFileManagerOptions = {}) {
+  constructor(config?: VersionCheckOptions) {
     // This file will eventually be replaced by another project. For now, we want to write to the
     // future location in the namespace for VersionCheck.
     // https://github.com/trufflesuite/ganache/pull/3285/files/0644054b8458eafdb52f2a9699842ed0c91f6a4e#r1068731549
     this._configFile = new Conf({
-      projectName: "Ganache",
-      projectSuffix: "",
+      projectName: "Ganache", // Using 'Ganache/cli' with an empty Suffix throws.
+      projectSuffix: "", // we could change the filename to cli.json.
       configName: process.env.VERSION_CHECK_CONFIG_NAME
         ? process.env.VERSION_CHECK_CONFIG_NAME
         : "config" // config is the Conf package default
     });
 
-    // on first run, this will be '{}' but there is no way
-    // to know if this is the default, or if the user
-    // actually set this at some point. Conf will not save
-    // the empty file.
-    const existingConfig = this._configFile.get();
-
-    const { defaultConfig, config } = options;
-
-    this._config = {
-      ...this.validateConfig(defaultConfig),
-      ...existingConfig,
-      ...this.validateConfig(config)
-    };
-
     // Only save when a new config is passed.
-    if (config) this.saveConfig();
+    if (config) {
+      this._config = config;
+      this.saveConfig();
+    } else {
+      this._config = this._configFile.get();
+    }
   }
   /**
    * Returns the path of the file on disk
@@ -70,7 +66,7 @@ export class ConfigFileManager {
   /**
    * Returns a copy of the current config.
    */
-  getConfig() {
+  getConfig(): VersionCheckOptions {
     const config = { ...this._config };
     return config;
   }
@@ -78,22 +74,16 @@ export class ConfigFileManager {
    * updates the config with a partial of complete config.
    * @param  {AnyJSON} config - partial or complete config.
    */
-  setConfig(config: AnyJSON) {
-    this._config = { ...this._config, ...this.validateConfig(config) };
+  setConfig(config: VersionCheckOptions) {
+    this._config = {
+      ...this._config,
+      ...config
+    };
     this.saveConfig();
     return this.getConfig();
   }
 
   private saveConfig() {
     this._configFile.set(this._config);
-  }
-  /**
-   * Since configs are optional in some places this protects
-   * against undefined values coming from userland.
-   * @param  {AnyJSON} config
-   */
-  private validateConfig(config: AnyJSON) {
-    if (!config) return {};
-    return config;
   }
 }

@@ -106,7 +106,6 @@ describe("@ganache/version-check", () => {
       );
     });
     it("disables if currentVersion is not a valid semver.", () => {
-      delete process.env.IGNORE_ISCI;
       vc = new VersionCheck("");
 
       assert.strictEqual(vc.isEnabled, false);

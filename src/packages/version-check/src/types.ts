@@ -16,7 +16,7 @@ export type VersionCheckOptions = {
   disableInCI?: boolean;
 };
 
-export type CLIOptions = {
+export type CLIConfig = {
   versionCheck: VersionCheckOptions;
 };
 

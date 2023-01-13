@@ -28,45 +28,36 @@ describe("ConfigFileManager", () => {
     }
   });
   describe("constructor", () => {
-    it("starts with a default config", () => {
+    it("starts without a config", () => {
+      cfm = new ConfigFileManager();
+
+      // {} is the default, empty value from Conf
+      assert.deepStrictEqual({}, cfm.getConfig());
+    });
+    it("passing a config in the constructor clobbers existing config", () => {
       const defaultConfig = VersionCheck.DEFAULTS;
-      cfm = new ConfigFileManager({ defaultConfig });
+      cfm = new ConfigFileManager(testConfig);
+      cfm = new ConfigFileManager(defaultConfig);
 
       assert.deepStrictEqual(defaultConfig, cfm.getConfig());
-    });
-    it("accepts a config constructor param config", () => {
-      const defaultConfig = VersionCheck.DEFAULTS;
-      cfm = new ConfigFileManager({ config: testConfig });
-
-      assert.notDeepStrictEqual(defaultConfig, cfm.getConfig());
-      assert.deepStrictEqual(testConfig, cfm.getConfig());
-    });
-
-    it("does not clobber existing config on startup", () => {
-      cfm = new ConfigFileManager({ config: testConfig });
-
-      cfm = new ConfigFileManager();
-      assert.deepStrictEqual(testConfig, cfm.getConfig());
     });
   });
   describe("configFileLocation", () => {
     it("stores the config file path", () => {
-      cfm = new ConfigFileManager({
-        config: testConfig
-      });
+      cfm = new ConfigFileManager(testConfig);
 
       assert.strictEqual(fs.existsSync(cfm.configFileLocation), true);
     });
   });
   describe("getConfig", () => {
     it("returns the config", () => {
-      cfm = new ConfigFileManager({ defaultConfig: VersionCheck.DEFAULTS });
+      cfm = new ConfigFileManager(VersionCheck.DEFAULTS);
       assert.deepStrictEqual(cfm.getConfig(), VersionCheck.DEFAULTS);
     });
   });
   describe("setConfig", () => {
-    it("set a config property", () => {
-      cfm = new ConfigFileManager({ config: testConfig });
+    it("sets a config property", () => {
+      cfm = new ConfigFileManager(testConfig);
 
       cfm.setConfig({ enabled: false });
       assert.deepStrictEqual(cfm.getConfig().enabled, false);
