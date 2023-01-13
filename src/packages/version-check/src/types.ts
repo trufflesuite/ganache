@@ -16,7 +16,7 @@ export type VersionCheckOptions = {
   disableInCI?: boolean;
 };
 
-export type NamespacedOptions = {
+export type CLIOptions = {
   versionCheck: VersionCheckOptions;
 };
 

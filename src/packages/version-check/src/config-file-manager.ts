@@ -2,6 +2,10 @@ import Conf from "conf";
 import { ConfigManager, AnyJSON, ConfigFileManagerOptions } from "./types";
 
 /**
+ * This will be replaced eventually.
+ * https://github.com/trufflesuite/ganache/pull/3285/files/0644054b8458eafdb52f2a9699842ed0c91f6a4e#r1068731549
+ *
+ *
  * Manages configuration changes between the defaultConfig,
  * existingConfig, and config (new) values. Values are assigned as:
  *
@@ -29,9 +33,14 @@ export class ConfigFileManager {
    * @param  {ConfigFileManagerOptions={}} options
    */
   constructor(options: ConfigFileManagerOptions = {}) {
+    // This file will eventually be replaced by another project. For now, we want to write to the
+    // future location in the namespace for VersionCheck.
+    // https://github.com/trufflesuite/ganache/pull/3285/files/0644054b8458eafdb52f2a9699842ed0c91f6a4e#r1068731549
     this._configFile = new Conf({
+      projectName: "Ganache",
+      projectSuffix: "",
       configName: process.env.VERSION_CHECK_CONFIG_NAME
-        ? process.env.VERSION_CHECK_CONFIG_NAME //
+        ? process.env.VERSION_CHECK_CONFIG_NAME
         : "config" // config is the Conf package default
     });
 
