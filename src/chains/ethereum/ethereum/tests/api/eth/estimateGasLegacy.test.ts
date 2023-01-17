@@ -24,15 +24,16 @@ const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL = 19200n;
 const RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO = 19800n;
 const RSELFDESTRUCT_REFUND = 24000n;
 const HARDFORKS: Hardfork[] = [
-  // "constantinople",
-  // "byzantium",
-  // "petersburg",
-  "istanbul"
-  // "muirGlacier"
-  // "berlin",
-  // "london",
-  // "arrowGlacier",
-  // "grayGlacier"
+  "byzantium",
+  "constantinople",
+  "petersburg",
+  "istanbul",
+  "muirGlacier",
+  "berlin",
+  "london",
+  "arrowGlacier",
+  "grayGlacier",
+  "merge"
 ];
 
 describe("api", () => {
