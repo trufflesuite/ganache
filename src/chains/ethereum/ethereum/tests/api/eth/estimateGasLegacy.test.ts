@@ -36,6 +36,14 @@ const HARDFORKS: Hardfork[] = [
   "merge"
 ];
 
+// some contracts can't be compiled with the default hardfork version.
+// put the alternatives here
+const CONTRACT_EVM_VERSIONS: { [contract: string]: EVMVersion } = {
+  "Fib.sol": "byzantium",
+  "ContractFactory.sol": "byzantium",
+  "Donation.sol": "byzantium",
+  "EstimateGas.sol": "byzantium"
+};
 describe("api", () => {
   describe("eth", () => {
     describe.only("estimateGas", function () {
@@ -50,31 +58,46 @@ describe("api", () => {
               [methodName: string]: string;
             }
           > = new Map();
-
+          let contractData: {
+            contractName: string;
+            contract: CompileOutput;
+          }[] = [];
           const contractDir = join(__dirname, "contracts/gas-estimation");
-          const deployContract = async (contractName: string) => {
-            const contract = compile(join(contractDir, contractName));
 
-            const id = await provider.send("eth_subscribe", ["newHeads"]);
-
-            const transactionHash = await provider.send("eth_sendTransaction", [
-              {
-                from,
-                data: contract.code,
-                gas: "0xffffff"
-              }
-            ]);
-
-            await provider.once("message");
-
-            const receipt = await provider.send("eth_getTransactionReceipt", [
-              transactionHash
-            ]);
-            await provider.send("eth_unsubscribe", [id]);
-            contracts.set(contractName, {
-              address: receipt.contractAddress,
-              ...contract.contract.evm.methodIdentifiers
+          const compileAll = (contractName: string) => {
+            const evmVersion = CONTRACT_EVM_VERSIONS[contractName];
+            const contract = compile(join(contractDir, contractName), {
+              evmVersion
             });
+            contractData.push({ contractName, contract });
+          };
+
+          const deployContracts = async () => {
+            for (const { contractName, contract } of contractData) {
+              const id = await provider.send("eth_subscribe", ["newHeads"]);
+
+              const transactionHash = await provider.send(
+                "eth_sendTransaction",
+                [
+                  {
+                    from,
+                    data: contract.code,
+                    gas: "0xffffff"
+                  }
+                ]
+              );
+
+              await provider.once("message");
+
+              const receipt = await provider.send("eth_getTransactionReceipt", [
+                transactionHash
+              ]);
+              await provider.send("eth_unsubscribe", [id]);
+              contracts.set(contractName, {
+                address: receipt.contractAddress,
+                ...contract.contract.evm.methodIdentifiers
+              });
+            }
           };
           const sendAndAwait = async (transaction: Transaction) => {
             const id = await provider.send("eth_subscribe", ["newHeads"]);
@@ -87,6 +110,11 @@ describe("api", () => {
             await provider.send("eth_unsubscribe", [id]);
             return hash;
           };
+          before("compile all contracts", async () => {
+            readdirSync(contractDir).forEach(file => {
+              compileAll(file);
+            });
+          });
           beforeEach("setting up provider", async () => {
             const options: EthereumProviderOptions = {
               chain: { hardfork }
@@ -95,12 +123,9 @@ describe("api", () => {
             provider = await getProvider(options);
             [from, to] = await provider.send("eth_accounts");
           });
-          beforeEach("deploying contracts", async () => {
-            const proms = [];
-            readdirSync(contractDir).forEach(file => {
-              proms.push(deployContract(file));
-            });
-            await Promise.all(proms);
+          beforeEach("deploying contracts", async function () {
+            this.timeout(0);
+            await deployContracts();
           });
 
           describe("EIP150 Gas Estimation: ", function () {
