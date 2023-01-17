@@ -1058,7 +1058,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (this.#isPaused() || !this.#instamine) {
       return hash;
     } else {
-      if (this.#instamine && this.#options.miner.instamine === "eager") {
+      // if the transaction is not executable, we just have to return the hash
+      if (
+        this.#instamine &&
+        this.#options.miner.instamine === "eager" &&
+        isExecutable
+      ) {
         // in eager instamine mode we must wait for the transaction to be saved
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
