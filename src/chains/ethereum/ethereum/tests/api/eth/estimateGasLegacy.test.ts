@@ -194,33 +194,34 @@ describe("api", () => {
               );
             });
 
-            // it("Should estimate gas perfectly with EIP150 - CREATE", async () => {
-            //   const { accounts, instance, send } = ContractFactory;
-            //   const txParams = {
-            //     from: accounts[0],
-            //     to: instance._address,
-            //     data: instance.methods.createInstance().encodeABI()
-            //   };
-            //   const { result: estimateHex } = await send(
-            //     "eth_estimateGas",
-            //     txParams
-            //   );
-            //   const estimate = new BN(estimateHex.substring(2), "hex");
-            //   txParams.gas = "0x" + estimate.subn(1).toString("hex");
-            //   await assert.rejects(
-            //     () => send("eth_sendTransaction", txParams),
-            //     {
-            //       message: "VM Exception while processing transaction: revert"
-            //     }
-            //   );
+            it("Should estimate gas perfectly with EIP150 - CREATE", async () => {
+              const contract = contracts.get("ContractFactory.sol");
+              const tx1 = {
+                from,
+                to: contract.address,
+                data: `0x${contract["createInstance()"]}`
+              };
+              const estimateHex = await provider.send("eth_estimateGas", [tx1]);
+              const estimate = Quantity.toBigInt(estimateHex);
+              const tx2 = {
+                ...tx1,
+                gas: Quantity.toString(estimate - 1n)
+              };
+              await assert.rejects(sendAndGetReceipt(tx2), {
+                message: "VM Exception while processing transaction: revert"
+              });
 
-            //   txParams.gas = estimateHex;
-            //   await assert.doesNotReject(
-            //     () => send("eth_sendTransaction", txParams),
-            //     undefined,
-            //     `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
-            //   );
-            // });
+              const tx3 = {
+                ...tx1,
+                gas: estimateHex
+              };
+              const receipt = await sendAndGetReceipt(tx3);
+              await assert.strictEqual(
+                receipt.status,
+                "0x1",
+                `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
+              );
+            });
 
             // it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async () => {
             //   const { accounts, instance } = Donation;
