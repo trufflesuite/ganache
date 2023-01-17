@@ -44,6 +44,11 @@ const CONTRACT_EVM_VERSIONS: { [contract: string]: EVMVersion } = {
   "Donation.sol": "byzantium",
   "EstimateGas.sol": "byzantium"
 };
+
+const encodeValue = (val: number | string) => {
+  return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
+};
+
 describe("api", () => {
   describe("eth", () => {
     describe.only("estimateGas", function () {
