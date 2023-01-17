@@ -104,16 +104,19 @@ describe("api", () => {
               });
             }
           };
-          const sendAndAwait = async (transaction: Transaction) => {
+
+          const sendAndGetReceipt = async (transaction: Transaction) => {
             const id = await provider.send("eth_subscribe", ["newHeads"]);
 
             const hash = await provider.send("eth_sendTransaction", [
               transaction
             ]);
-
             await provider.once("message");
             await provider.send("eth_unsubscribe", [id]);
-            return hash;
+            const receipt = await provider.send("eth_getTransactionReceipt", [
+              hash
+            ]);
+            return receipt;
           };
           before("compile all contracts", async () => {
             readdirSync(contractDir).forEach(file => {
