@@ -2903,12 +2903,17 @@ export default class EthereumApi implements Api {
       return block.getTransactions();
     });
 
-    //For each block's txs, get their receipts
-    const receipts = txsByBlock.map(blockTxs => {
+    //For each blocks' txs, get their receipts
+    const blockTxHashes = txsByBlock.map(blockTxs => {
       return blockTxs.map(tx => tx.hash);
     });
 
-    const r = await this.#blockchain.transactionReceipts.getBatch(receipts[1]);
+    // Each blocks' txs are subarrays with the hashes
+    const receipts = await Promise.all(
+      blockTxHashes.map(async blockHashes => {
+        return await this.#blockchain.transactionReceipts.getBatch(blockHashes);
+      })
+    );
     console.log(receipts);
     return blocks;
   }
