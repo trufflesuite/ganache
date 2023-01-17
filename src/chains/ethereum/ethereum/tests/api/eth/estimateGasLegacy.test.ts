@@ -125,7 +125,7 @@ describe("api", () => {
           });
           beforeEach("setting up provider", async () => {
             const options: EthereumProviderOptions = {
-              chain: { hardfork }
+              chain: { hardfork, vmErrorsOnRPCResponse: true }
             };
 
             provider = await getProvider(options);
@@ -165,28 +165,31 @@ describe("api", () => {
               const estimate = await provider.send("eth_estimateGas", [tx1]);
               const oneLess = Quantity.toBigInt(estimate) - 1n;
               const tx2 = {
-                gas: oneLess.toString(),
+                gas: Quantity.toString(oneLess),
                 from,
                 to: contract.address,
                 value: "0x10"
               };
+
               await assert.rejects(
-                sendAndAwait(tx2),
+                sendAndGetReceipt(tx2),
                 {
                   message:
                     "VM Exception while processing transaction: out of gas"
                 },
                 `One less gas than estimated should have failed. One less was ${oneLess}`
               );
+
               const tx3 = {
                 gas: estimate,
                 from,
                 to: contract.address,
                 value: "0x10"
               };
-              await assert.doesNotReject(
-                sendAndAwait(tx3),
-                undefined,
+              const receipt = await sendAndGetReceipt(tx3);
+              assert.strictEqual(
+                receipt.status,
+                "0x1",
                 `Transaction sent with estimated gas should not have failed. Gas used: ${estimate}`
               );
             });
