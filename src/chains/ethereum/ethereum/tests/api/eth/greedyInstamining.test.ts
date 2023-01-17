@@ -45,6 +45,37 @@ describe("api", () => {
           assert.notStrictEqual(receipt, null);
         });
 
+        it("returns the tx hash before mining for future-nonce transactions", async () => {
+          const provider = await getProvider({
+            miner: { instamine: "eager" },
+            chain: { vmErrorsOnRPCResponse: true }
+          });
+          const [from, to] = await provider.send("eth_accounts");
+          const futureNonceTx = { from, to, nonce: "0x1" };
+          const futureNonceTxHash = await provider.send("eth_sendTransaction", [
+            futureNonceTx
+          ]);
+          assert.notEqual(futureNonceTxHash, null);
+          const nullReceipt = await provider.send("eth_getTransactionReceipt", [
+            futureNonceTxHash
+          ]);
+          assert.strictEqual(nullReceipt, null);
+          await provider.send("eth_subscribe", ["newHeads"]);
+          // send a transaction to fill the nonce gap
+          await provider.send("eth_sendTransaction", [{ from, to }]);
+          // usually we don't have to wait for these messages in eager mode,
+          // but because instamine only mines one tx per block, we need to
+          // wait for our future-nonce tx to be mined before fetching the
+          // receipt
+          await provider.once("message");
+          await provider.once("message");
+          // now our nonce gap is filled so the original tx is mined
+          const receipt = await provider.send("eth_getTransactionReceipt", [
+            futureNonceTxHash
+          ]);
+          assert.notStrictEqual(receipt, null);
+        });
+
         it("handles transaction balance errors, callback style", done => {
           getProvider({
             miner: { instamine: "eager" },
