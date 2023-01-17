@@ -25,7 +25,10 @@ async function fetchNetworkId(fork: Fork) {
 function fetchBlockNumber(fork: Fork) {
   // {disableCache: true} required so we never cache the blockNumber, as forking
   // shouldn't ever cache a method that can change!
-  return fork.request<string>("eth_blockNumber", [], { disableCache: true });
+  return fork.request<string>("eth_blockNumber", [], {
+    disableCache: true,
+    batch: false
+  });
 }
 function fetchBlock(fork: Fork, blockNumber: Quantity | typeof Tag.latest) {
   return fork.request<any>("eth_getBlockByNumber", [blockNumber, true]);
@@ -248,7 +251,7 @@ export class Fork {
   public request<T = unknown>(
     method: string,
     params: unknown[],
-    options = { disableCache: false }
+    options = { disableCache: false, batch: false }
   ): Promise<T> {
     return this.#handler.request<T>(method, params, options);
   }
@@ -264,7 +267,7 @@ export class Fork {
   public batch<T = unknown>(
     method: string,
     params: unknown[],
-    options = { disableCache: true }
+    options = { disableCache: true, batch: true }
   ) {
     return this.#handler.batch<T>(method, params, options);
   }

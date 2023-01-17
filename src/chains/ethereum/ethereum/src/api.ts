@@ -2914,7 +2914,7 @@ export default class EthereumApi implements Api {
         return await this.#blockchain.transactionReceipts.getBatch(blockHashes);
       })
     );
-    console.log(receipts);
+
     return blocks;
   }
 

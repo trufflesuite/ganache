@@ -61,7 +61,7 @@ export class WsHandler extends BaseHandler implements Handler {
   public async request<T>(
     method: string,
     params: unknown[],
-    options = { disableCache: false }
+    options = { disableCache: false, batch: false }
   ) {
     await this.open;
     if (this.abortSignal.aborted) return Promise.reject(new AbortError());
@@ -81,7 +81,23 @@ export class WsHandler extends BaseHandler implements Handler {
       // Issue: https://github.com/trufflesuite/ganache/issues/3478
       this.inFlightRequests.set(messageId, deferred);
 
-      this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
+      if (options.batch) {
+        const payload = params
+          .map((param, id) => {
+            return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
+              method,
+              params: param
+            }).slice(1)}`;
+          })
+          .join(",");
+
+        const data = `[${payload}]`;
+
+        this.connection.send(data);
+      } else {
+        this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
+      }
+
       return deferred.promise.finally(() => this.requestCache.delete(key));
     };
     return await this.queueRequest<T>(method, params, key, send, options);
@@ -90,47 +106,9 @@ export class WsHandler extends BaseHandler implements Handler {
   public async batch<T>(
     method: string,
     params: any[],
-    options = { disableCache: false }
-  ) {
-    await this.open;
-    if (this.abortSignal.aborted) return Promise.reject(new AbortError());
-
-    const key = JSON.stringify({ method, params });
-    //`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`
-
-    const send = () => {
-      if (this.abortSignal.aborted) return Promise.reject(new AbortError());
-
-      // TODO you could check for each method/params but that makes things a bit hairy
-
-      const messageId = this.id + 1;
-      const deferred = Deferred<{
-        response: JsonRpcResponse | JsonRpcError;
-        raw: string | Buffer;
-      }>();
-
-      // TODO: timeout an in-flight request after some amount of time
-      // Issue: https://github.com/trufflesuite/ganache/issues/3478
-      // batch messageId will be the first messageId used in the batch
-      this.inFlightRequests.set(messageId, deferred);
-
-      // todo, just do it as a string
-
-      // create payload from... params
-      const payload = params.map((param, id) => {
-        return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
-          method,
-          params: param
-        }).slice(1)}`;
-      });
-
-      const data = `[${payload.join(",")}]`;
-
-      this.connection.send(data);
-      return deferred.promise.finally(() => this.requestCache.delete(key));
-    };
-
-    return await this.queueRequest<T>(method, params, key, send, options);
+    options = { disableCache: false, batch: true }
+  ): Promise<T> {
+    return this.request(method, params, options);
   }
 
   public onMessage(event: WebSocket.MessageEvent) {
