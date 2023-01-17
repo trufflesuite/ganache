@@ -223,70 +223,53 @@ describe("api", () => {
               );
             });
 
-            // it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async () => {
-            //   const { accounts, instance } = Donation;
-            //   // Pre-condition
-            //   const address = accounts[0];
-            //   const donateTx = { from: address, value: 50 };
-            //   donateTx.gas = await instance.methods
-            //     .donate()
-            //     .estimateGas(donateTx);
-            //   await instance.methods.donate().send(donateTx);
-            //   const tx = { from: address };
-            //   const est = await instance.methods
-            //     .moveFund(address, 5)
-            //     .estimateGas(tx);
-            //   tx.gas = est - 1;
-            //   await assert.rejects(
-            //     () => instance.methods.moveFund(address, 5).send(tx),
-            //     {
-            //       message:
-            //         "VM Exception while processing transaction: out of gas"
-            //     }
-            //   );
-            //   tx.gas = est;
-            //   await assert.doesNotReject(
-            //     () => instance.methods.moveFund(address, 5).send(tx),
-            //     undefined,
-            //     `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
-            //   );
-            // }).timeout(1000000);
+            it("Should estimate gas perfectly with EIP150 - CALL INSIDE CREATE", async () => {
+              const contract = contracts.get("Donation.sol");
+              // Pre-condition
+              const donateTx = {
+                from,
+                to: contract.address,
+                value: "0x50",
+                data: `0x${contract["donate()"]}`
+              };
+              const estimate = await provider.send("eth_estimateGas", [
+                donateTx
+              ]);
+              const tx = { ...donateTx, gas: estimate };
+              const receipt = await sendAndGetReceipt(tx);
+              assert.strictEqual(
+                receipt.status,
+                "0x1",
+                `SANITY CHECK. Failed to send donate transaction with gas estimate: ${estimate}.`
+              );
 
-            // if (hardfork !== "byzantium") {
-            //   it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async () => {
-            //     const { accounts, instance } = TestDepth;
-            //     const depth = 3;
-            //     const promises = Array(depth)
-            //       .fill(0)
-            //       .map((_, i) => {
-            //         const depth = i + 1;
-            //         return instance.methods
-            //           .depth(depth)
-            //           .estimateGas()
-            //           .then(async est => {
-            //             return Promise.all([
-            //               assert.doesNotReject(
-            //                 instance.methods.depth(depth).send({
-            //                   from: accounts[5],
-            //                   gas: est
-            //                 }),
-            //                 undefined,
-            //                 `SANITY CHECK. Still not enough gas? ${est} Our estimate is still too low`
-            //               ),
-            //               assert.rejects(
-            //                 instance.methods.depth(depth).send({
-            //                   from: accounts[5],
-            //                   gas: est - 1
-            //                 }),
-            //                 {
-            //                   name: "RuntimeError"
-            //                 }
-            //               )
-            //             ]);
-            //           });
-            //       });
-            //     await Promise.all(promises);
-            //   }).timeout(3000);
+              const moveFundTx = {
+                from,
+                to: contract.address,
+                data: `0x${contract["moveFund(address,uint256)"]}${encodeValue(
+                  from
+                )}${encodeValue("0x5")}`
+              };
+              const moveFundEstimate = await provider.send("eth_estimateGas", [
+                moveFundTx
+              ]);
+              const oneless = Quantity.toBigInt(moveFundEstimate) - 1n;
+              const tx1 = {
+                ...moveFundTx,
+                gas: Quantity.toString(oneless)
+              };
+              // send the transaction with one less gas than the estimate
+              await assert.rejects(sendAndGetReceipt(tx1), {
+                message: "VM Exception while processing transaction: out of gas"
+              });
+              const tx2 = { ...moveFundTx, gas: moveFundEstimate };
+              const receipt2 = await sendAndGetReceipt(tx2);
+              assert.strictEqual(
+                receipt2.status,
+                "0x1",
+                `SANITY CHECK. Still not enough gas? ${moveFundEstimate} Our estimate is still too low`
+              );
+            });
 
             //   it("Should estimate gas perfectly with EIP150 - CREATE2", async () => {
             //     const { accounts, instance, web3 } = Create2;
