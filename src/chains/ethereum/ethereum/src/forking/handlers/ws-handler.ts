@@ -116,7 +116,7 @@ export class WsHandler extends BaseHandler implements Handler {
 
       // todo, just do it as a string
 
-      // create params from... params
+      // create payload from... params
       const payload = params.map((param, id) => {
         return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
           method,

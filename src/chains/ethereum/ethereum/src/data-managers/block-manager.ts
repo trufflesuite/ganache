@@ -241,11 +241,12 @@ export default class BlockManager extends Manager<Block> {
         }
       });
 
-      // get the full block data
+      // Create the params for the payload, true here will include txs.
       const params = tagOrBlockNumbers.map(param => {
         return [param, true];
       });
 
+      // the method is included because it is required to key the cache.
       const json = JSON.parse(
         await fallback.batch<any>("eth_getBlockByNumber", params)
       );

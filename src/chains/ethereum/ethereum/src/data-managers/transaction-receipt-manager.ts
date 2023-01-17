@@ -17,6 +17,7 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
     if (receipt) {
       return receipt;
     } else if (this.#blockchain.fallback) {
+      const fallback = this.#blockchain.fallback;
       const res = await this.#blockchain.fallback.request<any | null>(
         "eth_getTransactionReceipt",
         [typeof key === "string" ? key : Data.from(key)]
@@ -50,12 +51,28 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
     }
   }
 
-  // A batch is a batch of operations, not necessarily sequential data access.
+  // A batch is a multicall operation, not necessarily sequential data access.
   // A batch of ops against our db will be processed 1 by 1 and returned.
   // forked batches will be sent to the api
-  async batchGet(keys: string[] | Buffer[]) {
+  async getBatch(keys: string[] | Buffer[]) {
+    if (!keys.length) return [];
+
     if (this.#blockchain.fallback) {
-      // pass to fallback
+      const { fallback } = this.#blockchain;
+
+      // Create the batch payload
+      const params = keys.map(key => {
+        return [key];
+      });
+
+      console.log(params);
+
+      // the method is included because it is required to key the cache.
+      const json = JSON.parse(
+        await fallback.batch<any>("eth_getTransactionReceipt", params)
+      );
+
+      return json;
     } else {
       // loop over get
       return await Promise.all(

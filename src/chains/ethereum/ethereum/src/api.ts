@@ -2899,10 +2899,17 @@ export default class EthereumApi implements Api {
   ): Promise<[Ethereum.Block] | null> {
     const blocks = await this.#blockchain.blocks.getBatch(blockNumbers);
 
-    const transactions = blocks.map(block => {
+    const txsByBlock: [any[]] = blocks.map(block => {
       return block.getTransactions();
     });
 
+    //For each block's txs, get their receipts
+    const receipts = txsByBlock.map(blockTxs => {
+      return blockTxs.map(tx => tx.hash);
+    });
+
+    const r = await this.#blockchain.transactionReceipts.getBatch(receipts[1]);
+    console.log(receipts);
     return blocks;
   }
 
