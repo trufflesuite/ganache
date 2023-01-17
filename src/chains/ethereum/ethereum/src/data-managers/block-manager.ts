@@ -259,7 +259,10 @@ export default class BlockManager extends Manager<Block> {
             BigInt(data.result.number)
           );
 
-          const block = BlockManager.rawFromJSON(data.result, common);
+          const block = new Block(
+            BlockManager.rawFromJSON(data.result, common),
+            common
+          );
 
           return block;
         });

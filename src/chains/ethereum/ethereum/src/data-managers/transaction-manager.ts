@@ -87,6 +87,7 @@ export default class TransactionManager extends Manager<NoOp> {
     if (!factory) return null;
     return factory.tx;
   }
+
   /**
    * Adds the transaction to the transaction pool.
    *
