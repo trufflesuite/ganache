@@ -58,6 +58,11 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       // pass to fallback
     } else {
       // loop over get
+      return await Promise.all(
+        keys.map(async key => {
+          return await this.get(key);
+        })
+      );
     }
   }
 }

@@ -2898,6 +2898,11 @@ export default class EthereumApi implements Api {
     blockNumbers: QUANTITY[]
   ): Promise<[Ethereum.Block] | null> {
     const blocks = await this.#blockchain.blocks.getBatch(blockNumbers);
+
+    const transactions = blocks.map(block => {
+      return block.getTransactions();
+    });
+
     return blocks;
   }
 
