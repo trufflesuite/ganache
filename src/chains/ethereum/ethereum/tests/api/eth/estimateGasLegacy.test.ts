@@ -1,11 +1,11 @@
 import { EthereumProviderOptions, Hardfork } from "@ganache/ethereum-options";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
-import compile from "../../helpers/compile";
+import compile, { CompileOutput, EVMVersion } from "../../helpers/compile";
 import { join } from "path";
-import { readdirSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { Transaction } from "@ganache/ethereum-transaction";
-import { Quantity } from "@ganache/utils";
+import { keccak, Quantity } from "@ganache/utils";
 import assert from "assert";
 
 // const memdown = require("memdown");
