@@ -2897,11 +2897,16 @@ export default class EthereumApi implements Api {
   async eth_batchBlocks(
     blockNumbers: QUANTITY[]
   ): Promise<[Ethereum.Block] | null> {
-    const blocks = await this.#blockchain.blocks.getBatch(blockNumbers);
+    // Blocks that are not found will be null;
+    const blocks = await this.#blockchain.blocks.batch(blockNumbers);
 
-    const txsByBlock: [any[]] = blocks.map(block => {
-      return block.getTransactions();
-    });
+    const txsByBlock: [any[]] = blocks
+      .filter(block => {
+        return block !== null;
+      })
+      .map(block => {
+        return block.getTransactions();
+      });
 
     //For each blocks' txs, get their receipts
     const blockTxHashes = txsByBlock.map(blockTxs => {
@@ -2911,7 +2916,7 @@ export default class EthereumApi implements Api {
     // Each blocks' txs are subarrays with the hashes
     const receipts = await Promise.all(
       blockTxHashes.map(async blockHashes => {
-        return await this.#blockchain.transactionReceipts.getBatch(blockHashes);
+        return await this.#blockchain.transactionReceipts.batch(blockHashes);
       })
     );
 

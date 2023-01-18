@@ -53,7 +53,7 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
   // A batch is a multicall operation, not necessarily sequential data access.
   // A batch of ops against our db will be processed 1 by 1 and returned.
   // forked batches will be sent to the api
-  async getBatch(keys: string[] | Buffer[]) {
+  async batch(keys: string[] | Buffer[]) {
     if (!keys.length) return [];
 
     if (this.#blockchain.fallback) {

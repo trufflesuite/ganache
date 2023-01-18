@@ -225,7 +225,7 @@ export default class BlockManager extends Manager<Block> {
 
   // This is almost all dupe code for get, but with array support.
   // this can fit inside get if we change the interface a bit.
-  async getBatch(tagOrBlockNumbers: QUANTITY[] | Buffer[] | Tag[]) {
+  async batch(tagOrBlockNumbers: QUANTITY[] | Buffer[] | Tag[]) {
     if (this.#blockchain.fallback) {
       const fallback = this.#blockchain.fallback;
 
@@ -257,6 +257,8 @@ export default class BlockManager extends Manager<Block> {
         return null;
       } else {
         const blocks = json.map(data => {
+          if (data === null) return null;
+
           const common = fallback.getCommonForBlockNumber(
             this.#common,
             BigInt(data.result.number)
@@ -277,7 +279,11 @@ export default class BlockManager extends Manager<Block> {
       // We are not in fallback, use normal get
       return await Promise.all(
         tagOrBlockNumbers.map(async tagOrBlockNumber => {
-          return await this.get(tagOrBlockNumber);
+          try {
+            return await this.get(tagOrBlockNumber);
+          } catch (e) {
+            return null;
+          }
         })
       );
     }
