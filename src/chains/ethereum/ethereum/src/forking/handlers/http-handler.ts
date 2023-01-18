@@ -83,6 +83,14 @@ export class HttpHandler extends BaseHandler implements Handler {
     return chunks.length === 1 ? chunks[0] : Buffer.concat(chunks, totalLength);
   }
 
+  public async batch<T>(
+    method: string,
+    params: unknown[],
+    options = { disableCache: false, batch: true }
+  ): Promise<T> {
+    return this.request(method, params, options);
+  }
+
   public async request<T>(
     method: string,
     params: unknown[],
@@ -109,7 +117,23 @@ export class HttpHandler extends BaseHandler implements Handler {
         response: JsonRpcResponse | JsonRpcError;
         raw: Buffer;
       }>();
-      const postData = `${JSONRPC_PREFIX}${this.id++},${key.slice(1)}`;
+      // wip batch here
+
+      let postData;
+      if (options.batch) {
+        const messageId = this.id++;
+        postData = `[${params
+          .map((param, id) => {
+            return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
+              method,
+              params: param
+            }).slice(1)}`;
+          })
+          .join(",")}]`;
+      } else {
+        postData = `${JSONRPC_PREFIX}${this.id++},${key.slice(1)}`;
+      }
+
       this.headers["content-length"] = postData.length;
 
       const req = this._request(requestOptions);
