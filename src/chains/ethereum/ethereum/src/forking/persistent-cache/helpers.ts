@@ -40,7 +40,6 @@ export type FindOptions = (
     }
 ) & { reverse?: boolean };
 
-// TODO COME HERE
 export function getBlockNumberFromParams(method: string, params: any[]) {
   // get the request's block number
   switch (method) {

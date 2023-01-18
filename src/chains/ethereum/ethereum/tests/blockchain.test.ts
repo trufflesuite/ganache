@@ -7,6 +7,7 @@ import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import Wallet from "../src/wallet";
 import Blockchain from "../src/blockchain";
 import { Block } from "@ganache/ethereum-block";
+import { Capacity } from "../src/miner/miner";
 
 describe("blockchain", async () => {
   describe("interval mining", () => {
@@ -118,6 +119,54 @@ describe("blockchain", async () => {
           timestamps[1]
         }`
       );
+    });
+  });
+  describe("batching", () => {
+    const gasLimit = "0x5208";
+    const blockTime = 1;
+    const optionsJson = {
+      miner: {
+        blockGasLimit: gasLimit,
+        blockTime,
+        instamine: "strict" as const
+      }
+    };
+    const options = EthereumOptionsConfig.normalize(optionsJson);
+
+    // set up wallet/blockchain
+    const wallet = new Wallet(options.wallet, options.logging);
+    const initialAccounts = wallet.initialAccounts;
+    let blockchain;
+
+    beforeEach(async () => {
+      blockchain = new Blockchain(options, initialAccounts[0].address);
+      await blockchain.initialize(wallet.initialAccounts);
+    });
+
+    it("retrieves batches of blocks in order", async () => {
+      const aBagOfBlockNumbers = ["0x0", "0x1", "0x2"];
+
+      await blockchain.mine(Capacity.Empty);
+      await blockchain.mine(Capacity.Empty);
+      await blockchain.mine(Capacity.Empty);
+
+      const blocks = await blockchain.blocks.batch(aBagOfBlockNumbers);
+
+      assert.strictEqual(blocks.length, aBagOfBlockNumbers.length);
+
+      blocks.forEach((block, idx) => {
+        assert.strictEqual(
+          block.header.number.toString(),
+          aBagOfBlockNumbers[idx]
+        );
+      });
+    });
+    it("returns null for block numbers that are not found", async () => {
+      const thisBlockNumberDoesNotExist = ["0x0", "0xFFFFFF"];
+      const blocks = await blockchain.blocks.batch(thisBlockNumberDoesNotExist);
+
+      assert.strictEqual(blocks.length, thisBlockNumberDoesNotExist.length);
+      assert.strictEqual(blocks[1], null);
     });
   });
 });

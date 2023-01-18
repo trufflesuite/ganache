@@ -223,30 +223,30 @@ export default class BlockManager extends Manager<Block> {
     });
   }
 
-  // This is almost all dupe code for get, but with array support.
-  // this can fit inside get if we change the interface a bit.
+  // This is almost all dupe code for `get` and `fromFallback`, but with array support.
   async batch(tagOrBlockNumbers: QUANTITY[] | Buffer[] | Tag[]) {
     if (this.#blockchain.fallback) {
       const fallback = this.#blockchain.fallback;
 
-      tagOrBlockNumbers = tagOrBlockNumbers.map(tagOrBlockNumber => {
-        if (typeof tagOrBlockNumber === "string") {
-          // do nuffin
-          return tagOrBlockNumber;
-        } else if (!fallback.isValidForkBlockNumber(tagOrBlockNumber)) {
-          // don't get the block if the requested block is _after_ our fallback's
-          // blocknumber because it doesn't exist in our local chain.
-          // Infura will also return null if you pass them null.
-          return null;
-        } else {
-          return tagOrBlockNumber.toString();
-        }
-      });
-
-      // Create the individual payloads, true here will include txs.
-      const params = tagOrBlockNumbers.map(param => {
-        return [param, true];
-      });
+      // Create the params for each eth_getBlocksNumberNumber, true here will include txs.
+      const params = tagOrBlockNumbers
+        .map(tagOrBlockNumber => {
+          if (typeof tagOrBlockNumber === "string") {
+            return tagOrBlockNumber;
+          } else if (
+            !this.#blockchain.fallback.isValidForkBlockNumber(tagOrBlockNumber)
+          ) {
+            // don't get the block if the requested block is _after_ our fallback's
+            // blocknumber because it doesn't exist in our local chain.
+            // Infura will also return null if you pass them null.
+            return null;
+          } else {
+            return tagOrBlockNumber.toString();
+          }
+        })
+        .map(blockNumber => {
+          return [blockNumber, true];
+        });
 
       // the method is included because it is required to key the cache.
       const json = JSON.parse(
@@ -259,7 +259,7 @@ export default class BlockManager extends Manager<Block> {
         const blocks = json.map(data => {
           if (data === null) return null;
 
-          const common = fallback.getCommonForBlockNumber(
+          const common = this.#blockchain.fallback.getCommonForBlockNumber(
             this.#common,
             BigInt(data.result.number)
           );
@@ -298,6 +298,7 @@ export default class BlockManager extends Manager<Block> {
     const blockNumber = Quantity.from(tagOrBlockNumber);
     const block = await this.getRaw(blockNumber.toBuffer());
     const common = this.#common;
+
     if (block) return new Block(block, common);
     else {
       const fallback = this.#blockchain.fallback;

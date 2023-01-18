@@ -186,9 +186,10 @@ export class BaseHandler {
       .then(async ({ response, raw }) => {
         if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
-        // WIP Batch -> result will be in each batched item. Maybe don't cache for now?
-
         if (Array.isArray(response)) {
+          // The response is from a batch/multicall request.
+          // Note the persistant cache did not like the batch response. Starting
+          // Point: Check if params being an array of arrays is the problem.
           const res: any = JSON.stringify(response);
           return res as T;
         } else {

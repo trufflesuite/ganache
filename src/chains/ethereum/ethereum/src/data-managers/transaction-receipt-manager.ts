@@ -23,36 +23,12 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       );
       if (!res) return null;
 
-      const status =
-        res.status === "0x1" ? Quantity.One.toBuffer() : BUFFER_ZERO;
-      const cumulativeGasUsed = Quantity.toBuffer(res.cumulativeGasUsed);
-      const logsBloom = Data.toBuffer(res.logsBloom, 256);
-      const logs = res.logs.map(log => [
-        Address.from(log.address).toBuffer(),
-        log.topics.map(topic => Data.toBuffer(topic)),
-        Array.isArray(log.data)
-          ? log.data.map(data => Data.toBuffer(data))
-          : Data.toBuffer(log.data)
-      ]);
-      const gasUsed = Quantity.toBuffer(res.gasUsed);
-      const contractAddress =
-        res.contractAddress == null
-          ? BUFFER_EMPTY
-          : Address.from(res.contractAddress).toBuffer();
-      return InternalTransactionReceipt.fromValues(
-        status,
-        cumulativeGasUsed,
-        logsBloom,
-        logs,
-        gasUsed,
-        contractAddress
-      );
+      return this._makeInternalTransactionReceiptFromResponseValues(res);
     }
   }
 
-  // A batch is a multicall operation, not necessarily sequential data access.
-  // A batch of ops against our db will be processed 1 by 1 and returned.
-  // forked batches will be sent to the api
+  // This is almost identical to get, but with support for arrays
+  // so that we can reduce the requests in fallback/forking mode.
   async batch(keys: string[] | Buffer[]) {
     if (!keys.length) return [];
 
@@ -72,31 +48,8 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       return json.map(data => {
         if (!data || !data.result) return null;
 
-        const res = data.result;
-
-        const status =
-          res.status === "0x1" ? Quantity.One.toBuffer() : BUFFER_ZERO;
-        const cumulativeGasUsed = Quantity.toBuffer(res.cumulativeGasUsed);
-        const logsBloom = Data.toBuffer(res.logsBloom, 256);
-        const logs = res.logs.map(log => [
-          Address.from(log.address).toBuffer(),
-          log.topics.map(topic => Data.toBuffer(topic)),
-          Array.isArray(log.data)
-            ? log.data.map(data => Data.toBuffer(data))
-            : Data.toBuffer(log.data)
-        ]);
-        const gasUsed = Quantity.toBuffer(res.gasUsed);
-        const contractAddress =
-          res.contractAddress == null
-            ? BUFFER_EMPTY
-            : Address.from(res.contractAddress).toBuffer();
-        return InternalTransactionReceipt.fromValues(
-          status,
-          cumulativeGasUsed,
-          logsBloom,
-          logs,
-          gasUsed,
-          contractAddress
+        return this._makeInternalTransactionReceiptFromResponseValues(
+          data.result
         );
       });
     } else {
@@ -107,5 +60,31 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
         })
       );
     }
+  }
+
+  private _makeInternalTransactionReceiptFromResponseValues(res) {
+    const status = res.status === "0x1" ? Quantity.One.toBuffer() : BUFFER_ZERO;
+    const cumulativeGasUsed = Quantity.toBuffer(res.cumulativeGasUsed);
+    const logsBloom = Data.toBuffer(res.logsBloom, 256);
+    const logs = res.logs.map(log => [
+      Address.from(log.address).toBuffer(),
+      log.topics.map(topic => Data.toBuffer(topic)),
+      Array.isArray(log.data)
+        ? log.data.map(data => Data.toBuffer(data))
+        : Data.toBuffer(log.data)
+    ]);
+    const gasUsed = Quantity.toBuffer(res.gasUsed);
+    const contractAddress =
+      res.contractAddress == null
+        ? BUFFER_EMPTY
+        : Address.from(res.contractAddress).toBuffer();
+    return InternalTransactionReceipt.fromValues(
+      status,
+      cumulativeGasUsed,
+      logsBloom,
+      logs,
+      gasUsed,
+      contractAddress
+    );
   }
 }
