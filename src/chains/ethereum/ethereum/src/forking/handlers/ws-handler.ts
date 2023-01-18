@@ -82,18 +82,16 @@ export class WsHandler extends BaseHandler implements Handler {
       this.inFlightRequests.set(messageId, deferred);
 
       if (options.batch) {
-        const payload = params
-          .map((param, id) => {
-            return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
-              method,
-              params: param
-            }).slice(1)}`;
-          })
-          .join(",");
-
-        const data = `[${payload}]`;
-
-        this.connection.send(data);
+        this.connection.send(
+          `[${params
+            .map((param, id) => {
+              return `${JSONRPC_PREFIX}${messageId + id},${JSON.stringify({
+                method,
+                params: param
+              }).slice(1)}`;
+            })
+            .join(",")}]`
+        );
       } else {
         this.connection.send(`${JSONRPC_PREFIX}${messageId},${key.slice(1)}`);
       }

@@ -223,6 +223,8 @@ export default class BlockManager extends Manager<Block> {
     });
   }
 
+  // This is almost all dupe code for get, but with array support.
+  // this can fit inside get if we change the interface a bit.
   async getBatch(tagOrBlockNumbers: QUANTITY[] | Buffer[] | Tag[]) {
     if (this.#blockchain.fallback) {
       const fallback = this.#blockchain.fallback;
@@ -241,7 +243,7 @@ export default class BlockManager extends Manager<Block> {
         }
       });
 
-      // Create the params for the payload, true here will include txs.
+      // Create the individual payloads, true here will include txs.
       const params = tagOrBlockNumbers.map(param => {
         return [param, true];
       });
