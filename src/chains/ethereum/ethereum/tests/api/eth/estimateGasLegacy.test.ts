@@ -271,147 +271,225 @@ describe("api", () => {
               );
             });
 
-            //   it("Should estimate gas perfectly with EIP150 - CREATE2", async () => {
-            //     const { accounts, instance, web3 } = Create2;
-            //     const { result: newContract } = compile(
-            //       "./test/contracts/gas/",
-            //       "GasLeft"
-            //     );
-            //     const bytecode =
-            //       newContract.contracts["GasLeft.sol"].GasLeft.evm.bytecode
-            //         .object;
-            //     const byteCode = `0x${bytecode}${web3.eth.abi
-            //       .encodeParameter("address", accounts[0])
-            //       .slice(2)}`;
-            //     const salt = `0x${"0".repeat(63)}1`;
-            //     const futureAddress = `0x${web3.utils
-            //       .sha3(
-            //         `0x${[
-            //           "ff",
-            //           instance._address,
-            //           salt,
-            //           web3.utils.sha3(byteCode)
-            //         ]
-            //           .map(val => val.replace(/0x/, ""))
-            //           .join("")}`
-            //       )
-            //       .slice(-40)}`.toLowerCase();
-            //     const codeCheck = await web3.eth.getCode(futureAddress);
-            //     assert(
-            //       codeCheck.slice(2).length === 0,
-            //       "contract should not be deployed on chain!"
-            //     );
+            if (hardfork !== "byzantium") {
+              it("Should estimate gas perfectly with EIP150 - DELEGATECALL", async () => {
+                const contract = contracts.get("TestDepth.sol");
+                const depth = 3;
+                const promises = Array(depth)
+                  .fill(0)
+                  .map((_, i) => {
+                    const depth = i + 1;
+                    const tx = {
+                      from,
+                      to: contract.address,
+                      data: `0x${contract["depth(uint256)"]}${encodeValue(
+                        depth
+                      )}`
+                    };
+                    return provider
+                      .send("eth_estimateGas", [tx])
+                      .then(estimate => {
+                        const oneless = Quantity.toBigInt(estimate) - 1n;
+                        const tx2 = {
+                          ...tx,
+                          gas: Quantity.toString(oneless)
+                        };
+                        const tx3 = { ...tx, gas: estimate };
+                        return Promise.all([
+                          assert.rejects(sendAndGetReceipt(tx2), {
+                            message:
+                              "VM Exception while processing transaction: out of gas"
+                          }),
+                          sendAndGetReceipt(tx3).then(receipt => {
+                            assert.strictEqual(
+                              receipt.status,
+                              "0x1",
+                              `SANITY CHECK. Still not enough gas? ${estimate} Our estimate is still too low`
+                            );
+                          })
+                        ]);
+                      });
+                  });
+                await Promise.all(promises);
+              });
+              it.skip(
+                "2Should estimate gas perfectly with EIP150 - DELEGATECALL",
+                async () => {
+                  const contract = contracts.get("TestDepth.sol");
+                  const depth = 10;
+                  for (let i = 0; i < depth; i++) {
+                    const depth = i + 1;
+                    const tx = {
+                      from,
+                      to: contract.address,
+                      data: `0x${contract["depth(uint256)"]}${encodeValue(
+                        depth
+                      )}`
+                    };
+                    const estimate = await provider.send("eth_estimateGas", [
+                      tx
+                    ]);
+                    const oneless = Quantity.toBigInt(estimate) - 1n;
+                    const tx2 = {
+                      ...tx,
+                      gas: Quantity.toString(oneless)
+                    };
+                    const tx3 = { ...tx, gas: estimate };
+                    try {
+                      const receipt = await sendAndGetReceipt(tx3);
+                      const onelessReceipt = await sendAndGetReceipt(tx2);
+                      console.log(receipt, onelessReceipt);
+                    } catch (e) {
+                      console.log(`depth of ${depth} failed as expected`);
+                    }
+                  }
+                }
+              ).timeout(0);
 
-            //     const nonce = await web3.eth.getTransactionCount(accounts[0]);
-            //     const result = await instance.methods
-            //       .deploy(byteCode, salt)
-            //       .send({
-            //         from: accounts[0],
-            //         gas: 4500000,
-            //         gasPrice: 10000000000,
-            //         nonce
-            //       });
+              it.skip(
+                "Should estimate gas perfectly with EIP150 - CREATE2",
+                async () => {
+                  const contract = contracts.get("CreateTwo.sol");
+                  const bytecode = JSON.parse(
+                    readFileSync(join(contractDir, "GasLeft.sol"), "utf8")
+                  ).contract.evm.bytecode.object;
+                  const bytecodeWithParams = `0x${bytecode}${encodeValue(
+                    from
+                  )}`;
+                  const hashedBytecode = keccak(
+                    Quantity.toBuffer(bytecodeWithParams)
+                  );
+                  const salt = `0x${"0".repeat(63)}1`;
+                  const unhashedAddress = `0x${[
+                    "ff",
+                    contract.address,
+                    salt,
+                    Quantity.toString(hashedBytecode)
+                  ]
+                    .map(val => val.replace(/0x/, ""))
+                    .join("")}`.slice(-40);
+                  const futureAddress = `0x${Quantity.toString(
+                    keccak(Quantity.toBuffer(unhashedAddress))
+                  )}`.toLowerCase();
 
-            //     const addr = result.events.RelayAddress.returnValues.addr;
-            //     assert(
-            //       addr,
-            //       futureAddress,
-            //       "future contract address not the same as computed value"
-            //     );
-            //     const codeCheck2 = await web3.eth.getCode(futureAddress);
-            //     assert(
-            //       codeCheck2.slice(2).length > 0,
-            //       "contract should be deployed on chain!"
-            //     );
-            //   }).timeout(1000000);
+                  const codeCheck = await provider.send("eth_getCode", [
+                    futureAddress
+                  ]);
+                  assert(
+                    codeCheck.slice(2).length === 0,
+                    "contract should not be deployed on chain!"
+                  );
 
-            //   // TODO: Make this actually test SVT
-            //   it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async () => {
-            //     const { accounts, instance, send, web3 } = SendContract;
-            //     const toBN = hex => new BN(hex.substring(2), "hex");
-            //     const toBNStr = (hex, base = 10) => toBN(hex).toString(base);
-            //     const sign = createSignedTx(privateKey);
-            //     const gasPrice = "0x77359400";
-            //     const amountToTransfer = "0xfffffff1ff000000";
+                  const nonce = await provider.send("eth_getTransactionCount", [
+                    from
+                  ]);
+                  const receipt = await sendAndGetReceipt({
+                    from,
+                    to: contract.address,
+                    data: `0x${contract["deploy(bytes memory,uint256)"]}`
+                  });
 
-            //     // Get initial Balance after contract deploy
-            //     const { result: balance } = await send(
-            //       "eth_getBalance",
-            //       accounts[0]
-            //     );
+                  // const addr = result.events.RelayAddress.returnValues.addr;
+                  // assert(
+                  //   addr,
+                  //   futureAddress,
+                  //   "future contract address not the same as computed value"
+                  // );
+                  // const codeCheck2 = await web3.eth.getCode(futureAddress);
+                  // assert(
+                  //   codeCheck2.slice(2).length > 0,
+                  //   "contract should be deployed on chain!"
+                  // );
+                }
+              ).timeout(0);
 
-            //     // Initial seeding of capital to contract, we check the balance after.
-            //     const tx = {
-            //       gasPrice,
-            //       value: amountToTransfer, // ~18 ether
-            //       from: accounts[0],
-            //       to: instance._address
-            //     };
-            //     ({ result: tx.gasLimit } = await send("eth_estimateGas", tx));
-            //     const { result: hash } = await send("eth_sendTransaction", tx);
-            //     const {
-            //       result: { gasUsed: initialGasUsed }
-            //     } = await send("eth_getTransactionReceipt", hash);
+              //   // TODO: Make this actually test SVT
+              //   it("Should estimate gas perfectly with EIP150 - Simple Value Transfer", async () => {
+              //     const { accounts, instance, send, web3 } = SendContract;
+              //     const toBN = hex => new BN(hex.substring(2), "hex");
+              //     const toBNStr = (hex, base = 10) => toBN(hex).toString(base);
+              //     const sign = createSignedTx(privateKey);
+              //     const gasPrice = "0x77359400";
+              //     const amountToTransfer = "0xfffffff1ff000000";
 
-            //     // Assert that the contract has the correct balance ~18 ether
-            //     const getBalance = await instance.methods
-            //       .getBalance()
-            //       .call({ from: accounts[0] });
-            //     assert.strictEqual(
-            //       toBNStr(amountToTransfer),
-            //       getBalance,
-            //       "balance is not ~18 ether"
-            //     );
+              //     // Get initial Balance after contract deploy
+              //     const { result: balance } = await send(
+              //       "eth_getBalance",
+              //       accounts[0]
+              //     );
 
-            //     // It's not neccessary to sign but currently it's the only test that demonstrates sending signed
-            //     // transactions that call a contract method.
-            //     // Calling `encodeABI()` on the desired contract method will return the
-            //     // the necessary bytecode to call the contract method with the given parameters
-            //     // NOTE: errors from encodeABI are likely do to incorrect types for the method arguments
-            //     // Double check the contracts method signature and your arguments
-            //     // Ex: transfer(Address[], uint))  =>  transfer(Array, hex string of int)
-            //     const txParams = {
-            //       gasPrice,
-            //       nonce: "0x2",
-            //       to: instance._address,
-            //       value: "0x0",
-            //       data: instance.methods
-            //         .transfer(accounts, amountToTransfer)
-            //         .encodeABI()
-            //     };
-            //     ({ result: txParams.gasLimit } = await send(
-            //       "eth_estimateGas",
-            //       sign(txParams).serialize()
-            //     ));
-            //     const { gasUsed: signedGasUsed } =
-            //       await web3.eth.sendSignedTransaction(
-            //         sign(txParams).serialize()
-            //       );
-            //     const { result: newBalance } = await send(
-            //       "eth_getBalance",
-            //       accounts[0]
-            //     );
-            //     // Gasprice * ( sum of gas used )
-            //     const gas = toBN(gasPrice).mul(
-            //       toBN(initialGasUsed).addn(signedGasUsed)
-            //     );
-            //     // Our current balance, plus the wei spent on gas === original gas
-            //     const currentBalancePlusGas = toBN(newBalance)
-            //       .add(gas)
-            //       .toString();
-            //     assert.strictEqual(
-            //       toBNStr(balance),
-            //       currentBalancePlusGas,
-            //       "balance + gas used !== to start balance"
-            //     );
+              //     // Initial seeding of capital to contract, we check the balance after.
+              //     const tx = {
+              //       gasPrice,
+              //       value: amountToTransfer, // ~18 ether
+              //       from: accounts[0],
+              //       to: instance._address
+              //     };
+              //     ({ result: tx.gasLimit } = await send("eth_estimateGas", tx));
+              //     const { result: hash } = await send("eth_sendTransaction", tx);
+              //     const {
+              //       result: { gasUsed: initialGasUsed }
+              //     } = await send("eth_getTransactionReceipt", hash);
 
-            //     // Assert that signed tx successfully drains contract to address
-            //     const newContractBalance = await instance.methods
-            //       .getBalance()
-            //       .call({ from: accounts[0] });
-            //     assert.strictEqual(newContractBalance, "0", "balance is not 0");
-            //   }).timeout(10000);
-            // }
+              //     // Assert that the contract has the correct balance ~18 ether
+              //     const getBalance = await instance.methods
+              //       .getBalance()
+              //       .call({ from: accounts[0] });
+              //     assert.strictEqual(
+              //       toBNStr(amountToTransfer),
+              //       getBalance,
+              //       "balance is not ~18 ether"
+              //     );
+
+              //     // It's not neccessary to sign but currently it's the only test that demonstrates sending signed
+              //     // transactions that call a contract method.
+              //     // Calling `encodeABI()` on the desired contract method will return the
+              //     // the necessary bytecode to call the contract method with the given parameters
+              //     // NOTE: errors from encodeABI are likely do to incorrect types for the method arguments
+              //     // Double check the contracts method signature and your arguments
+              //     // Ex: transfer(Address[], uint))  =>  transfer(Array, hex string of int)
+              //     const txParams = {
+              //       gasPrice,
+              //       nonce: "0x2",
+              //       to: instance._address,
+              //       value: "0x0",
+              //       data: instance.methods
+              //         .transfer(accounts, amountToTransfer)
+              //         .encodeABI()
+              //     };
+              //     ({ result: txParams.gasLimit } = await send(
+              //       "eth_estimateGas",
+              //       sign(txParams).serialize()
+              //     ));
+              //     const { gasUsed: signedGasUsed } =
+              //       await web3.eth.sendSignedTransaction(
+              //         sign(txParams).serialize()
+              //       );
+              //     const { result: newBalance } = await send(
+              //       "eth_getBalance",
+              //       accounts[0]
+              //     );
+              //     // Gasprice * ( sum of gas used )
+              //     const gas = toBN(gasPrice).mul(
+              //       toBN(initialGasUsed).addn(signedGasUsed)
+              //     );
+              //     // Our current balance, plus the wei spent on gas === original gas
+              //     const currentBalancePlusGas = toBN(newBalance)
+              //       .add(gas)
+              //       .toString();
+              //     assert.strictEqual(
+              //       toBNStr(balance),
+              //       currentBalancePlusGas,
+              //       "balance + gas used !== to start balance"
+              //     );
+
+              //     // Assert that signed tx successfully drains contract to address
+              //     const newContractBalance = await instance.methods
+              //       .getBalance()
+              //       .call({ from: accounts[0] });
+              //     assert.strictEqual(newContractBalance, "0", "balance is not 0");
+              //   }).timeout(10000);
+            }
 
             // it("should correctly handle non-zero value child messages", async () => {
             //   const {
@@ -443,70 +521,64 @@ describe("api", () => {
             // });
           });
 
-          describe.only("Refunds", function () {
-            it(
-              "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original " +
-                "value is 0",
-              async function () {
-                const { address, reset, triggerRsclearRefund } =
-                  contracts.get("EstimateGas.sol");
-                const options = {
-                  from,
-                  gas: Quantity.toString(5000000),
-                  to: address
-                };
-                // prime storage by making sure it is set to 0
-                await sendAndAwait({ ...options, data: reset });
-                console.log("successfully reset");
-                // update storage and then reset it back to 0
-                const tx = { ...options, data: triggerRsclearRefund };
-                let estimate;
-                let hash;
-                try {
-                  estimate = Quantity.toBigInt(
-                    await provider.send("eth_estimateGas", [tx])
+          describe("Refunds", function () {
+            it(`accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's original value is 0`, async function () {
+              const { address, ...methods } = contracts.get("EstimateGas.sol");
+              const options = {
+                from,
+                gas: Quantity.toString(5000000),
+                to: address
+              };
+              // prime storage by making sure it is set to 0
+              const { status } = await sendAndGetReceipt({
+                ...options,
+                data: `0x${methods["reset()"]}`
+              });
+              assert.strictEqual(
+                status,
+                "0x1",
+                "Failed to prime storage in gas refund test."
+              );
+              // update storage and then reset it back to 0
+              const tx = {
+                ...options,
+                data: `0x${methods["triggerRsclearRefund()"]}`
+              };
+
+              const estimate = Quantity.toBigInt(
+                await provider.send("eth_estimateGas", [tx])
+              );
+              const receipt = await sendAndGetReceipt(tx);
+
+              const gasUsed = Quantity.toBigInt(receipt.gasUsed);
+              switch (hardfork) {
+                case "byzantium":
+                case "petersburg":
+                  assert.strictEqual(gasUsed, estimate - RSCLEAR_REFUND);
+                  break;
+                case "muirGlacier":
+                case "istanbul":
+                  // EIP-2200
+                  assert(
+                    gasUsed <=
+                      estimate -
+                        RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL +
+                        2300n
                   );
-                  console.log("estimate", estimate);
-                  hash = await sendAndAwait(tx);
-                } catch (err) {
-                  console.log(err);
-                  const call = await provider.send("eth_call", [tx]);
-                  console.log(call);
-                }
-                const receipt = await provider.send(
-                  "eth_getTransactionReceipt",
-                  [hash]
-                );
-                const gasUsed = Quantity.toBigInt(receipt.gasUsed);
-                switch (hardfork) {
-                  case "byzantium":
-                  case "petersburg":
-                    assert.strictEqual(gasUsed, estimate - RSCLEAR_REFUND);
-                    break;
-                  case "muirGlacier":
-                  case "istanbul":
-                    // EIP-2200
-                    assert(
-                      gasUsed <=
-                        estimate -
-                          RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO_ISTANBUL +
-                          2300n
-                    );
-                    break;
-                  case "constantinople":
-                    // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
-                    // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
-                    assert.strictEqual(
-                      gasUsed,
-                      estimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
-                    );
-                    break;
-                  default:
-                    throw new Error("Invalid hardfork option: " + hardfork);
-                }
-                assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+                  break;
+                case "constantinople":
+                  // since storage was initially primed to 0 and we call triggerRsclearRefund(), which then
+                  // resets storage back to 0, 19800 gas is added to the refund counter per Constantinople EIP 1283
+                  assert.strictEqual(
+                    gasUsed,
+                    estimate - RSCLEAR_REFUND_FOR_RESETTING_DIRTY_SLOT_TO_ZERO
+                  );
+                  break;
+                default:
+                  throw new Error("Invalid hardfork option: " + hardfork);
               }
-            );
+              assert.strictEqual(receipt.gasUsed, receipt.cumulativeGasUsed);
+            });
             //   it(
             //     "accounts for Rsclear Refund in gasEstimate when a dirty storage slot is reset and it's " +
             //       "original value is not 0",
