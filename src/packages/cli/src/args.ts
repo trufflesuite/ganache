@@ -1,5 +1,10 @@
+// `import Yargs from "yargs"` is the Yargs singleton and namespace
+// `import yargs from "yargs/yargs"` is the non-singleton interface
+// See https://github.com/yargs/yargs/issues/1648
+import Yargs, { Options } from "yargs";
+import yargs from "yargs/yargs";
+
 import { TruffleColors } from "@ganache/colors";
-import yargs, { Options } from "yargs";
 import {
   DefaultFlavor,
   FilecoinFlavorName,
@@ -26,7 +31,7 @@ marked.setOptions({
   })
 });
 
-const wrapWidth = Math.min(120, yargs.terminalWidth());
+const wrapWidth = Math.min(120, Yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.io/support";
 
@@ -43,7 +48,7 @@ const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
 const center = (str: string) =>
   " ".repeat(Math.max(0, Math.floor((wrapWidth - str.length) / 2))) + str;
 
-const addAliases = (args: yargs.Argv<{}>, aliases: string[], key: string) => {
+const addAliases = (args: Yargs.Argv<{}>, aliases: string[], key: string) => {
   const options = { hidden: true, alias: key };
   return aliases.reduce((args, a) => args.option(a, options), args);
 };
@@ -54,7 +59,7 @@ function processOption(
   group: string,
   option: string,
   optionObj: Definitions<Base.Config>[string],
-  argv: yargs.Argv,
+  argv: Yargs.Argv,
   flavor: string
 ) {
   if (optionObj.disableInCLI !== true) {
@@ -122,7 +127,7 @@ function applyDefaults(
   flavorDefaults:
     | typeof DefaultOptionsByName[keyof typeof DefaultOptionsByName]
     | typeof _DefaultServerOptions,
-  flavorArgs: yargs.Argv<{}>,
+  flavorArgs: Yargs.Argv<{}>,
   flavor: keyof typeof DefaultOptionsByName
 ) {
   for (const category in flavorDefaults) {
@@ -160,8 +165,9 @@ export default function (
 
   // disable dot-notation because yargs just can't coerce args properly...
   // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
-  yargs
+  const yargsParser = yargs()
     .parserConfiguration({ "dot-notation": false })
+    .exitProcess(false)
     .strict()
     .usage(versionUsageOutputText)
     .epilogue(
@@ -188,12 +194,9 @@ export default function (
         command = ["$0", flavor];
         defaultPort = 8545;
         break;
-      default:
-        command = flavor;
-        defaultPort = 8545;
     }
 
-    yargs.command(
+    yargsParser.command(
       command,
       chalk`Use the {bold ${flavor}} flavor of Ganache`,
       flavorArgs => {
@@ -214,14 +217,19 @@ export default function (
             description: chalk`Port to listen on.${EOL}{dim deprecated aliases: --port}${EOL}`,
             alias: ["p", "port"],
             type: "number",
-            default: defaultPort
+            default: defaultPort,
+            // `string: true` to allow raw value to be used in validation below
+            // (otherwise string values becomes NaN)
+            string: true,
+            coerce: port => (isFinite(port) ? +port : port)
           })
           .check(argv => {
             const { "server.port": port, "server.host": host } = argv;
-            if (port < 1 || port > 65535) {
-              throw new Error(`Invalid port number '${port}'`);
+            if (!isFinite(port) || port < 1 || port > 65535) {
+              throw new Error(
+                `Port should be >= 0 and < 65536. Received ${port}.`
+              );
             }
-
             if (host.trim() === "") {
               throw new Error("Cannot leave host blank; please provide a host");
             }
@@ -244,7 +252,7 @@ export default function (
     );
   }
 
-  yargs
+  yargsParser
     .command(
       "instances",
       highlight(
@@ -272,6 +280,14 @@ export default function (
               stopArgs.action = "stop";
             }
           )
+          .check(instancesArgs => {
+            if (instancesArgs["_"].length <= 1) {
+              throw new Error(
+                "No sub-command given. See `ganache instances --help` for more information."
+              );
+            }
+            return true;
+          })
           .version(false);
       }
     )
@@ -280,7 +296,7 @@ export default function (
     .wrap(wrapWidth)
     .version(version);
 
-  const parsedArgs = yargs.parse(rawArgs);
+  const parsedArgs = yargsParser.parse(rawArgs);
 
   let finalArgs: GanacheArgs;
   if (parsedArgs.action === "stop") {
@@ -308,7 +324,7 @@ export default function (
       >)
     };
   } else {
-    throw new Error(`Unknown action: ${parsedArgs.action}`);
+    finalArgs = { action: "none" };
   }
 
   return finalArgs;
