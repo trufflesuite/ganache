@@ -165,11 +165,11 @@ const ganache = require("ganache");
 
 const options = {};
 const server = ganache.server(options);
-const PORT = 8545;
+const PORT = 0; // 0 means any available port
 server.listen(PORT, async err => {
   if (err) throw err;
 
-  console.log(`ganache listening on port ${PORT}...`);
+  console.log(`ganache listening on port ${server.address().port}...`);
   const provider = server.provider;
   const accounts = await provider.request({
     method: "eth_accounts",
