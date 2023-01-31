@@ -35,7 +35,7 @@ If installation fails due to a `node-gyp` issue you may need to perform some add
   - example: `xcode-select --install`
 - Determine if you have Python 2.x installed
   - example: `which python`
-- If you do not have Python 2.x installed, you need to install it. We recommend `pyenv` for this so you can keep the default MacOS python installation untouched.
+- If you do not have Python 2.x installed, you need to install it. We recommend `pyenv` for this so you can keep the default macOS Python installation untouched.
   1. [Install `pyenv`](https://github.com/pyenv/pyenv#homebrew-in-macos)
   2. [Setup your shell environment for `pyenv`](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv)
   3. Install Python 2.x: `pyenv install 2.7.18`
