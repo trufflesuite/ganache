@@ -501,7 +501,7 @@ const html = `
         document.querySelector("#theme-switch").checked = checked;
       })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/ganache@latest/dist/web/ganache.min.js"></script>
+    <script src="./assets/js/ganache/ganache.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
     <script src="./assets/js/inject-editor.js"></script>
     <script>
