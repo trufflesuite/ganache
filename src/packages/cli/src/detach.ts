@@ -19,6 +19,8 @@ export type DetachedInstance = {
   version: string;
 };
 
+const MAX_SUGGESTIONS = 4;
+const MAX_LEVENSHTEIN_DISTANCE = 10;
 const FILE_ENCODING = "utf8";
 const START_ERROR =
   "An error occurred spawning a detached instance of Ganache:";
@@ -53,6 +55,12 @@ export async function removeDetachedInstanceFile(
   return false;
 }
 
+// A fuzzy matched detached instance(s). Either a strong match as instance,
+// or a list of suggestions.
+type InstanceOrSuggestions =
+  | { instance: DetachedInstance }
+  | { suggestions: string[] };
+
 /**
  * Attempts to stop a detached instance with the specified instance name by
  * sending a SIGTERM signal. Returns a boolean indicating whether the process
@@ -61,25 +69,118 @@ export async function removeDetachedInstanceFile(
  *
  * Note: This does not guarantee that the instance actually stops.
  * @param  {string} instanceName
- * @returns boolean indicating whether the instance was found.
+ * @returns {InstanceOrSuggestions} either the stopped instance, or suggestions for similar instance names
  */
 export async function stopDetachedInstance(
   instanceName: string
-): Promise<boolean> {
-  try {
-    // getDetachedInstanceByName() throws if the instance file is not found or
-    // cannot be parsed
-    const instance = await getDetachedInstanceByName(instanceName);
+): Promise<InstanceOrSuggestions> {
+  let instance;
 
-    // process.kill() throws if the process was not found (or was a group
-    // process in Windows)
-    process.kill(instance.pid, "SIGTERM");
-  } catch (err) {
-    return false;
-  } finally {
-    await removeDetachedInstanceFile(instanceName);
+  try {
+    instance = await getDetachedInstanceByName(instanceName);
+  } catch {
+    const similarInstances = await getSimilarInstanceNames(instanceName);
+
+    if (similarInstances.match) {
+      try {
+        instance = await getDetachedInstanceByName(similarInstances.match);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+          // The instance file was removed between the call to
+          // `getSimilarInstanceNames` and `getDetachedInstancesByName`, but we
+          // didn't get suggestions (although some may exist). We _could_
+          // reiterate stopDetachedInstance but that seems messy. Let's just
+          // output "Instance not found", and be done with it.
+          return {
+            suggestions: []
+          };
+        }
+        throw err;
+      }
+    } else {
+      return { suggestions: similarInstances.suggestions };
+    }
   }
-  return true;
+
+  if (instance) {
+    // process.kill() throws if the process was not found (or was a group process in Windows)
+    try {
+      process.kill(instance.pid, "SIGTERM");
+    } catch (err) {
+      // process not found
+      // todo: log message saying that the process could not be found
+    } finally {
+      await removeDetachedInstanceFile(instance.name);
+      return { instance };
+    }
+  }
+}
+
+/*
+Find instances with names similar to instanceName.
+
+If there is a single instance with an exact prefix match, it is returned as the
+match property in the result. Otherwise, up to `MAX_SUGGESTIONS` names that are
+similar to instanceName are returned, prioritizing names that start with
+instanceName and then ordered by increasing Levenshtein distance, with a maximum
+distance of `MAX_LEVENSHTEIN_DISTANCE`.
+*/
+async function getSimilarInstanceNames(
+  instanceName: string
+): Promise<{ match?: string; suggestions?: string[] }> {
+  let filenames: string[];
+  try {
+    filenames = (await fsPromises.readdir(dataPath, { withFileTypes: true }))
+      .map(file => {
+        const { name, ext } = path.parse(file.name);
+        if (ext === ".json") return name;
+      })
+      .filter(name => name !== undefined);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      // instances directory does not exist, so there can be no suggestions
+      return { suggestions: [] };
+    }
+  }
+
+  const matches = [];
+  for (const name of filenames) {
+    if (name.startsWith(instanceName)) {
+      matches.push(name);
+    }
+  }
+
+  if (matches.length === 1) {
+    return { match: matches[0] };
+  }
+
+  const similar = [];
+  for (const name of filenames) {
+    const distance = levenshteinDistance(instanceName, name);
+
+    similar.push({
+      name,
+      distance
+    });
+  }
+
+  const suggestions = similar
+    .filter(
+      s =>
+        s.distance <= MAX_LEVENSHTEIN_DISTANCE &&
+        !matches.some(m => m === s.name)
+    )
+    .sort((a, b) => a.distance - b.distance)
+    .map(s => s.name);
+
+  // matches should be at the start of the suggestions array
+  suggestions.splice(0, 0, ...matches);
+
+  if (similar.length > 0) {
+    return {
+      suggestions: suggestions.slice(0, MAX_SUGGESTIONS)
+    };
+  }
 }
 
 /**
@@ -322,4 +423,35 @@ export function formatUptime(ms: number) {
     .join(" ");
 
   return isFuture ? `In ${duration}` : duration;
+}
+
+export function levenshteinDistance(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  let matrix = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) == a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
 }

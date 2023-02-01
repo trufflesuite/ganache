@@ -164,11 +164,21 @@ if (argv.action === "start") {
 } else if (argv.action === "stop") {
   const instanceName = argv.name;
 
-  stopDetachedInstance(instanceName).then(instanceFound => {
-    if (instanceFound) {
-      console.log("Instance stopped");
+  stopDetachedInstance(instanceName).then(instanceOrSuggestions => {
+    if ("instance" in instanceOrSuggestions) {
+      const highlightedName = porscheColor(instanceOrSuggestions.instance.name);
+      console.log(`${highlightedName} stopped.`);
     } else {
-      console.error("Instance not found");
+      console.log("Instance not found.");
+      if (instanceOrSuggestions.suggestions?.length > 0) {
+        console.log();
+        console.log("Did you mean:");
+        console.log(
+          instanceOrSuggestions.suggestions
+            .map(name => " - " + porscheColor(name))
+            .join("\n")
+        );
+      }
     }
   });
 } else if (argv.action === "start-detached") {
