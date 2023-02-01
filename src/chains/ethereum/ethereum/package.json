@@ -87,7 +87,7 @@
     "ws": "8.2.3"
   },
   "devDependencies": {
-    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
+    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
     "@types/keccak": "3.0.1",

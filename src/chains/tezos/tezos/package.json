@@ -47,7 +47,7 @@
     "emittery": "0.10.0"
   },
   "devDependencies": {
-    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.1",
+    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
     "@types/mocha": "9.0.0",
     "cheerio": "1.0.0-rc.3",
     "cross-env": "7.0.3",

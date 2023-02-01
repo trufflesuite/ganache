@@ -40,6 +40,22 @@ describe("forking", function () {
       assert.deepStrictEqual(block.parentHash, remoteBlock.hash);
     });
 
+    it("after initialization our earliest block should be the fork earliest block, parentHash should match", async () => {
+      const res = await request.post(URL).send({
+        jsonrpc: "2.0",
+        id: "1",
+        method: "eth_getBlockByNumber",
+        params: ["earliest", true]
+      });
+      const remoteBlock = JSON.parse(res.text).result;
+      const block = await provider.send("eth_getBlockByNumber", [
+        "earliest",
+        true
+      ]);
+      assert.deepStrictEqual(parseInt(block.number), parseInt(remoteBlock.number));
+      assert.deepStrictEqual(block.hash, remoteBlock.hash);
+    });
+
     //todo: reinstate this test after https://github.com/trufflesuite/ganache/issues/3616 is fixed
     it.skip("should get a block from the original chain", async () => {
       const res = await request.post(URL).send({

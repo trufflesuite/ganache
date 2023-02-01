@@ -336,15 +336,71 @@ describe("server", () => {
 
       for (const specificPort of validPorts) {
         s = Ganache.server(defaultOptions);
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null before `server.listen(...)` is called"
+        );
         await s.listen(<any>specificPort);
 
         try {
+          const address = s.address();
+          assert.notEqual(
+            address,
+            null,
+            "server.address() should not be null after listening"
+          );
+          assert.strictEqual(
+            address!.port,
+            +specificPort,
+            "server.address().port should be equal to the specified port after server.listen(nonZeroPort)"
+          );
           const req = request.post(`http://localhost:${+specificPort}`);
           await req.send(jsonRpcJson);
         } finally {
           await teardown();
         }
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null after server is stopped"
+        );
       }
+    });
+
+    it("finds a port to listen on when port is 0", async () => {
+      const zeroPort = 0;
+      s = Ganache.server(defaultOptions);
+      assert.strictEqual(
+        s.address(),
+        null,
+        "server.address() should be null before `server.listen(...)` is called"
+      );
+      await s.listen(zeroPort);
+
+      try {
+        const address = s.address();
+        assert.notEqual(
+          address,
+          null,
+          "server.address() should not be null after listening"
+        );
+        const specificPort = address!.port;
+        assert.notStrictEqual(
+          specificPort,
+          zeroPort,
+          "server.address().port should be non-zero after server.listen(0)"
+        );
+        const req = request.post(`http://localhost:${+specificPort}`);
+        await req.send(jsonRpcJson);
+      } finally {
+        await teardown();
+      }
+      assert.strictEqual(
+        s.address(),
+        null,
+        "server.address() should be null after server is stopped"
+      );
     });
 
     it("fails with invalid ports", async () => {
@@ -369,8 +425,7 @@ describe("server", () => {
         "-0o1",
         "-0b1",
         "0o",
-        "0b",
-        0
+        "0b"
       ];
 
       for (const specificPort of invalidPorts) {
