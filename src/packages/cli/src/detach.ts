@@ -81,7 +81,7 @@ export async function stopDetachedInstance(
   } catch {
     const similarInstances = await getSimilarInstanceNames(instanceName);
 
-    if (similarInstances.match) {
+    if ("match" in similarInstances) {
       try {
         instance = await getDetachedInstanceByName(similarInstances.match);
       } catch (err) {
@@ -117,17 +117,17 @@ export async function stopDetachedInstance(
 }
 
 /*
-Find instances with names similar to instanceName.
+Find instances with names similar to `instanceName`.
 
 If there is a single instance with an exact prefix match, it is returned as the
-match property in the result. Otherwise, up to `MAX_SUGGESTIONS` names that are
-similar to instanceName are returned, prioritizing names that start with
-instanceName and then ordered by increasing Levenshtein distance, with a maximum
-distance of `MAX_LEVENSHTEIN_DISTANCE`.
+`match` property in the result. Otherwise, up to `MAX_SUGGESTIONS` names that
+are similar to `instanceName` are returned as `suggestions`. Names with an exact
+prefix match are prioritized, followed by increasing Levenshtein distance, up to
+a maximum distance of `MAX_LEVENSHTEIN_DISTANCE`.
 */
 async function getSimilarInstanceNames(
   instanceName: string
-): Promise<{ match?: string; suggestions?: string[] }> {
+): Promise<{ match: string } | { suggestions: string[] }> {
   let filenames: string[];
   try {
     filenames = (await fsPromises.readdir(dataPath, { withFileTypes: true }))
@@ -154,33 +154,40 @@ async function getSimilarInstanceNames(
     return { match: matches[0] };
   }
 
-  const similar = [];
-  for (const name of filenames) {
-    const distance = levenshteinDistance(instanceName, name);
+  let suggestions: string[];
+  if (matches.length >= MAX_SUGGESTIONS) {
+    suggestions = matches;
+  } else {
+    const similar = [];
 
-    similar.push({
-      name,
-      distance
-    });
+    for (const name of filenames) {
+      const distance = levenshteinDistance(instanceName, name);
+
+      similar.push({
+        name,
+        distance
+      });
+    }
+
+    suggestions = similar
+      .filter(
+        s =>
+          s.distance <= MAX_LEVENSHTEIN_DISTANCE &&
+          !matches.some(m => m === s.name)
+      )
+      .sort((a, b) => a.distance - b.distance)
+      .map(s => s.name);
+    // matches should be at the start of the suggestions array
+    suggestions.splice(0, 0, ...matches);
   }
 
-  const suggestions = similar
-    .filter(
-      s =>
-        s.distance <= MAX_LEVENSHTEIN_DISTANCE &&
-        !matches.some(m => m === s.name)
-    )
-    .sort((a, b) => a.distance - b.distance)
-    .map(s => s.name);
-
-  // matches should be at the start of the suggestions array
-  suggestions.splice(0, 0, ...matches);
-
-  if (similar.length > 0) {
+  if (suggestions.length > 0) {
     return {
       suggestions: suggestions.slice(0, MAX_SUGGESTIONS)
     };
   }
+
+  return { suggestions: [] };
 }
 
 /**

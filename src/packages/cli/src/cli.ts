@@ -169,6 +169,7 @@ if (argv.action === "start") {
       const highlightedName = porscheColor(instanceOrSuggestions.instance.name);
       console.log(`${highlightedName} stopped.`);
     } else {
+      process.exitCode = 1;
       console.log("Instance not found.");
       if (instanceOrSuggestions.suggestions?.length > 0) {
         console.log();
@@ -191,7 +192,8 @@ if (argv.action === "start") {
     })
     .catch(err => {
       // the child process would have output its error to stdout, so no need to
-      // output anything more
+      // output anything more other than set the exitCode
+      process.exitCode = 1;
     });
 } else if (argv.action === "list") {
   getDetachedInstances().then(instances => {
