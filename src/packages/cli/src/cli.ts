@@ -170,7 +170,7 @@ if (argv.action === "start") {
       console.log(`${highlightedName} stopped.`);
     } else {
       process.exitCode = 1;
-      console.log("Instance not found.");
+      console.log(`${porscheColor(instanceName)} not found.`);
       if (instanceOrSuggestions.suggestions?.length > 0) {
         console.log();
         console.log("Did you mean:");
