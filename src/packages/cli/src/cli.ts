@@ -192,7 +192,7 @@ if (argv.action === "start") {
     })
     .catch(err => {
       // the child process would have output its error to stdout, so no need to
-      // output anything more other than set the exitCode
+      // do anything more other than set the exitCode
       process.exitCode = 1;
     });
 } else if (argv.action === "list") {

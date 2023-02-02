@@ -69,7 +69,8 @@ type InstanceOrSuggestions =
  *
  * Note: This does not guarantee that the instance actually stops.
  * @param  {string} instanceName
- * @returns {InstanceOrSuggestions} either the stopped instance, or suggestions for similar instance names
+ * @returns {InstanceOrSuggestions} either the stopped `instance`, or
+ * `suggestions` for similar instance names
  */
 export async function stopDetachedInstance(
   instanceName: string
@@ -85,12 +86,12 @@ export async function stopDetachedInstance(
       try {
         instance = await getDetachedInstanceByName(similarInstances.match);
       } catch (err) {
-        if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
           // The instance file was removed between the call to
           // `getSimilarInstanceNames` and `getDetachedInstancesByName`, but we
           // didn't get suggestions (although some may exist). We _could_
           // reiterate stopDetachedInstance but that seems messy. Let's just
-          // output "Instance not found", and be done with it.
+          // tell the user the instance wasn't found, and be done with it.
           return {
             suggestions: []
           };
@@ -103,7 +104,8 @@ export async function stopDetachedInstance(
   }
 
   if (instance) {
-    // process.kill() throws if the process was not found (or was a group process in Windows)
+    // process.kill() throws if the process was not found (or was a group
+    // process in Windows)
     try {
       process.kill(instance.pid, "SIGTERM");
     } catch (err) {
@@ -128,14 +130,17 @@ a maximum distance of `MAX_LEVENSHTEIN_DISTANCE`.
 async function getSimilarInstanceNames(
   instanceName: string
 ): Promise<{ match: string } | { suggestions: string[] }> {
-  let filenames: string[];
+  const filenames: string[] = [];
   try {
-    filenames = (await fsPromises.readdir(dataPath, { withFileTypes: true }))
-      .map(file => {
-        const { name, ext } = path.parse(file.name);
-        if (ext === ".json") return name;
-      })
-      .filter(name => name !== undefined);
+    const parsedPaths = (
+      await fsPromises.readdir(dataPath, { withFileTypes: true })
+    ).map(file => path.parse(file.name));
+
+    for (const { ext, name } of parsedPaths) {
+      if (ext === ".json") {
+        filenames.push(name);
+      }
+    }
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       // instances directory does not exist, so there can be no suggestions
@@ -143,51 +148,44 @@ async function getSimilarInstanceNames(
     }
   }
 
-  const matches = [];
+  const prefixMatches = [];
   for (const name of filenames) {
     if (name.startsWith(instanceName)) {
-      matches.push(name);
+      prefixMatches.push(name);
     }
   }
 
-  if (matches.length === 1) {
-    return { match: matches[0] };
+  if (prefixMatches.length === 1) {
+    return { match: prefixMatches[0] };
   }
 
   let suggestions: string[];
-  if (matches.length >= MAX_SUGGESTIONS) {
-    suggestions = matches;
+  if (prefixMatches.length >= MAX_SUGGESTIONS) {
+    suggestions = prefixMatches;
   } else {
     const similar = [];
 
     for (const name of filenames) {
-      const distance = levenshteinDistance(instanceName, name);
-
-      similar.push({
-        name,
-        distance
-      });
+      if (!prefixMatches.some(m => m === name)) {
+        const distance = levenshteinDistance(instanceName, name);
+        if (distance <= MAX_LEVENSHTEIN_DISTANCE) {
+          similar.push({
+            name,
+            distance
+          });
+        }
+      }
     }
+    similar.sort((a, b) => a.distance - b.distance);
 
-    suggestions = similar
-      .filter(
-        s =>
-          s.distance <= MAX_LEVENSHTEIN_DISTANCE &&
-          !matches.some(m => m === s.name)
-      )
-      .sort((a, b) => a.distance - b.distance)
-      .map(s => s.name);
+    suggestions = similar.map(s => s.name);
     // matches should be at the start of the suggestions array
-    suggestions.splice(0, 0, ...matches);
+    suggestions.splice(0, 0, ...prefixMatches);
   }
 
-  if (suggestions.length > 0) {
-    return {
-      suggestions: suggestions.slice(0, MAX_SUGGESTIONS)
-    };
-  }
-
-  return { suggestions: [] };
+  return {
+    suggestions: suggestions.slice(0, MAX_SUGGESTIONS)
+  };
 }
 
 /**
