@@ -69,8 +69,8 @@ type InstanceOrSuggestions =
  *
  * Note: This does not guarantee that the instance actually stops.
  * @param  {string} instanceName
- * @returns {InstanceOrSuggestions} either the stopped `instance`, or
- * `suggestions` for similar instance names
+ * @returns {InstanceOrSuggestions} an object containing either the stopped
+ * `instance`, or `suggestions` for similar instance names
  */
 export async function stopDetachedInstance(
   instanceName: string
@@ -118,15 +118,19 @@ export async function stopDetachedInstance(
   }
 }
 
-/*
-Find instances with names similar to `instanceName`.
-
-If there is a single instance with an exact prefix match, it is returned as the
-`match` property in the result. Otherwise, up to `MAX_SUGGESTIONS` names that
-are similar to `instanceName` are returned as `suggestions`. Names with an exact
-prefix match are prioritized, followed by increasing Levenshtein distance, up to
-a maximum distance of `MAX_LEVENSHTEIN_DISTANCE`.
-*/
+/**
+ * Find instances with names similar to `instanceName`.
+ *
+ * If there is a single instance with an exact prefix match, it is returned as
+ * the `match` property in the result. Otherwise, up to `MAX_SUGGESTIONS` names
+ * that are similar to `instanceName` are returned as `suggestions`. Names with
+ * an exact prefix match are prioritized, followed by increasing Levenshtein
+ * distance, up to a maximum distance of `MAX_LEVENSHTEIN_DISTANCE`.
+ * @param {string} instanceName the name for which similarly named instance will
+ * be searched
+ * @returns {{ match: string } | { suggestions: string[] }} an object
+ * containiner either a single exact `match` or a number of `suggestions`
+ */
 async function getSimilarInstanceNames(
   instanceName: string
 ): Promise<{ match: string } | { suggestions: string[] }> {
@@ -430,6 +434,16 @@ export function formatUptime(ms: number) {
   return isFuture ? `In ${duration}` : duration;
 }
 
+/**
+ * This function calculates the Levenshtein distance between two strings.
+ * Levenshtein distance is a measure of the difference between two strings,
+ * defined as the minimum number of edits (insertions, deletions or substitutions)
+ * required to transform one string into another.
+ *
+ * @param {string} a - The first string to compare.
+ * @param {string} b - The second string to compare.
+ * @return {number} The Levenshtein distance between the two strings.
+ */
 export function levenshteinDistance(a: string, b: string): number {
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
