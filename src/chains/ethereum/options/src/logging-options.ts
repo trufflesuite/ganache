@@ -145,9 +145,7 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
         const diskLogFormatter = config.timestamps
           ? message => {
               const linePrefix = `${new Date().toISOString()} `;
-              // Matches _after_ a new line character _or_ the start of the
-              // string. Essentially the start of every line
-              return message.replace(/^|(?<=\n)/g, linePrefix);
+              return message.replace(/^/gm, linePrefix);
             }
           : message => message;
 
