@@ -47,7 +47,7 @@
     "tooling"
   ],
   "dependencies": {
-    "ipfs": "0.52.3",
+    "ipfs": "0.66.0",
     "ipfs-http-server": "0.1.4",
     "ipld-dag-cbor": "0.17.0",
     "leveldown": "6.1.0",
