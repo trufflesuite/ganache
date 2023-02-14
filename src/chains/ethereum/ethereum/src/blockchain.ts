@@ -328,8 +328,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             options.miner.blockGasLimit,
             initialAccounts
           );
-          blocks.earliest = blocks.latest =
-            await this.#blockBeingSavedPromise.then(({ block }) => block);
+          blocks.latest = await this.#blockBeingSavedPromise.then(
+            ({ block }) => block
+          );
+          // when we are forking, blocks.earliest is already set to what was
+          // retrieved from the fork
+          if (!blocks.earliest) {
+            blocks.earliest = blocks.latest;
+          }
         }
       }
 
@@ -710,9 +716,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         await mclInitPromise; // ensure that mcl is initialized!
       }
     }
-    // skip `vm.init`, since we don't use any of it
-    (vm as any)._isInitialized = true;
-    return vm as VM & { stateManager: GanacheStateManager };
+    return vm;
   };
 
   #commitAccounts = (accounts: Account[]) => {

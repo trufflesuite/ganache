@@ -3703,7 +3703,7 @@
 																		},
 																		{
 																			"type": "unknown",
-																			"name": "{ type?: string; nonce: string; value: string; r: string; s: string; blockHash: null; hash: string; blockNumber: null; gasPrice: string; gas: string; to: string; v: string; from: string; transactionIndex: null; input: string; }"
+																			"name": "{ type?: string; nonce: string; value: string; r: string; s: string; hash: string; blockHash: null; blockNumber: null; gasPrice: string; gas: string; to: string; v: string; from: string; transactionIndex: null; input: string; }"
 																		}
 																	]
 																}
@@ -4238,7 +4238,7 @@
 																		},
 																		{
 																			"type": "unknown",
-																			"name": "{ type?: string; nonce: string; value: string; r: string; s: string; blockHash: null; hash: string; blockNumber: null; gasPrice: string; gas: string; to: string; v: string; from: string; transactionIndex: null; input: string; }"
+																			"name": "{ type?: string; nonce: string; value: string; r: string; s: string; hash: string; blockHash: null; blockNumber: null; gasPrice: string; gas: string; to: string; v: string; from: string; transactionIndex: null; input: string; }"
 																		}
 																	]
 																}
