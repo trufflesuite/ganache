@@ -66,6 +66,12 @@ jobs:
         with:
           python-version: "2.7"
 
+        # this downgrade can be removed once https://github.com/npm/cli/issues/6126 is fixed and is used by the latest
+        # version of Node.js v18
+      - name: downgrade to npm@v8.19.2 for Windows with Node v18.14.0+
+        if: startsWith(matrix.os, 'windows-') && startsWith(matrix.node, '18.') && matrix.node != '18.0.0'
+        run: npm install --global npm@8.19.2
+
       - name: install node-gyp
         if: startsWith(matrix.os, 'windows-')
         run: npm install --global node-gyp@7.1.2
