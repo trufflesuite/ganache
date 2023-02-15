@@ -55,29 +55,6 @@ jobs:
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.1
 
-      - name: install node tools
-        # we don't need to install the windows-build-tools package, as we
-        # already have almost everything we need. We only need to install
-        # python 2.7. Also windows-build-tools@4 fails to install because some
-        # resources it downloads no longer exist, and windows-build-tools@5
-        # fails to install Python (it will wait on the python installer forever)
-        if: startsWith(matrix.os, 'windows-')
-        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912 #v4.4.0
-        with:
-          python-version: "2.7"
-
-      - name: install node-gyp
-        if: startsWith(matrix.os, 'windows-')
-        run: npm install --global node-gyp@7.1.2
-
-      - name: Set node config to use python2.7
-        if: startsWith(matrix.os, 'windows-')
-        run: npm config set python python2.7
-
-      - name: Set node config to set msvs_version to 2019
-        if: startsWith(matrix.os, 'windows-')
-        run: npm config set msvs_version 2019 --global
-
       - run: npm ci
       - run: npm run tsc
       - run: npm test
