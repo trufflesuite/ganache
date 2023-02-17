@@ -1,5 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
+import { Logger } from "@ganache/ethereum-options/typings/src/logging-options";
 
 describe("api", () => {
   describe("eth", () => {
@@ -45,33 +46,40 @@ describe("api", () => {
           assert.notStrictEqual(receipt, null);
         });
 
-        it("returns the tx hash before mining for future-nonce transactions", async () => {
+        it("log a message about future-nonce transactions in eager mode", async () => {
+          let logger: Logger;
+          const logPromise = new Promise<boolean>(resolve => {
+            logger = {
+              log: (msg: string) => {
+                const regex =
+                  /Transaction "0x[a-zA-z0-9]{64}" has a too-high nonce; this transaction has been added to the pool, and will be processed when its nonce is reached\. See https:\/\/github.com\/trufflesuite\/ganache\/issues\/4165 for more information\./;
+                if (regex.test(msg)) resolve(true);
+              }
+            };
+          });
+
           const provider = await getProvider({
+            logging: { logger },
             miner: { instamine: "eager" },
             chain: { vmErrorsOnRPCResponse: true }
           });
           const [from, to] = await provider.send("eth_accounts");
           const futureNonceTx = { from, to, nonce: "0x1" };
-          const futureNonceTxHash = await provider.send("eth_sendTransaction", [
+          const futureNonceProm = provider.send("eth_sendTransaction", [
             futureNonceTx
           ]);
-          assert.notEqual(futureNonceTxHash, null);
-          const nullReceipt = await provider.send("eth_getTransactionReceipt", [
-            futureNonceTxHash
-          ]);
-          assert.strictEqual(nullReceipt, null);
-          await provider.send("eth_subscribe", ["newHeads"]);
+
           // send a transaction to fill the nonce gap
-          await provider.send("eth_sendTransaction", [{ from, to }]);
-          // usually we don't have to wait for these messages in eager mode,
-          // but because instamine only mines one tx per block, we need to
-          // wait for our future-nonce tx to be mined before fetching the
-          // receipt
-          await provider.once("message");
-          await provider.once("message");
+          provider.send("eth_sendTransaction", [{ from, to }]); // we don't await this on purpose.
+
+          const result = await Promise.race([futureNonceProm, logPromise]);
+          // `logPromise` should resolve before the the hash gets returned
+          // (logPromise returns true)
+          assert.strictEqual(result, true);
+
           // now our nonce gap is filled so the original tx is mined
           const receipt = await provider.send("eth_getTransactionReceipt", [
-            futureNonceTxHash
+            await futureNonceProm
           ]);
           assert.notStrictEqual(receipt, null);
         });
