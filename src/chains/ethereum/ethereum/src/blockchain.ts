@@ -1054,16 +1054,22 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       process.nextTick(this.emit.bind(this), "pendingTransaction", transaction);
     }
 
-    const hash = transaction.hash;
-    if (this.#isPaused() || !this.#instamine) {
+    const { hash } = transaction;
+    const instamine = this.#instamine;
+    if (!instamine || this.#isPaused()) {
       return hash;
     } else {
+      const options = this.#options;
       // if the transaction is not executable, we just have to return the hash
-      if (
-        this.#instamine &&
-        this.#options.miner.instamine === "eager" &&
-        isExecutable
-      ) {
+      if (instamine && options.miner.instamine === "eager") {
+        if (!isExecutable) {
+          // users have been confused about why ganache "hangs" when sending a
+          // transaction with a "too-high" nonce. This message should help them
+          // understand what's going on.
+          options.logging.logger.log(
+            `Transaction "${hash}" has a too-high nonce; this transaction has been added to the pool, and will be processed when its nonce is reached. See https://github.com/trufflesuite/ganache/issues/4165 for more information.`
+          );
+        }
         // in eager instamine mode we must wait for the transaction to be saved
         // before we can return the hash
         const { status, error } = await transaction.once("finalized");
@@ -1072,7 +1078,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // vmErrorsOnRPCResponse is enabled.
         if (
           error &&
-          (status === "rejected" || this.#options.chain.vmErrorsOnRPCResponse)
+          (status === "rejected" || options.chain.vmErrorsOnRPCResponse)
         )
           throw error;
       }
