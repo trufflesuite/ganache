@@ -1,6 +1,7 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { appendFileSync } from "fs";
+import { promises } from "fs";
+const open = promises.open;
 import { format } from "util";
 
 export type Logger = {
@@ -140,8 +141,16 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
           return diskLogFormatter(formattedMessage) + "\n";
         };
 
+        const whenHandle = open(config.file, "a");
+        let writing: Promise<void>;
+
         logger = (message: any, ...additionalParams: any[]) => {
-          appendFileSync(config.file, formatter(message, additionalParams));
+          whenHandle.then(async handle => {
+            if (writing) {
+              await writing;
+            }
+            writing = handle.appendFile(formatter(message, additionalParams));
+          });
         };
       }
 
