@@ -84,14 +84,6 @@ export type LoggingConfig = {
     readonly file: {
       type: string;
     };
-
-    /**
-     * Set to `true` to include a timestamp in the log output.
-     */
-    readonly timestamps: {
-      type: boolean;
-      hasDefault: true;
-    };
   };
 };
 
@@ -123,12 +115,6 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliDescription: "The path of a file to which logs will be appended.",
     cliType: "string"
   },
-  timestamps: {
-    normalize,
-    cliDescription: "Set to `true` to include a timestamp in the log output.",
-    cliType: "boolean",
-    default: () => false
-  },
   logger: {
     normalize,
     cliDescription:
@@ -142,14 +128,12 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
       if (config.file == null) {
         logger = consoleLogger;
       } else {
-        const diskLogFormatter = config.timestamps
-          ? message => {
-              const linePrefix = `${new Date().toISOString()} `;
-              return message.replace(/^/gm, linePrefix);
-            }
-          : message => message;
+        const diskLogFormatter = (message: any) => {
+          const linePrefix = `${new Date().toISOString()} `;
+          return message.toString().replace(/^/gm, linePrefix);
+        };
 
-        const formatter = (message, additionalParams) => {
+        const formatter = (message: any, additionalParams: any[]) => {
           const formattedMessage = format(message, ...additionalParams);
           // we are logging to a file, but we still need to log to console
           consoleLogger(formattedMessage);
