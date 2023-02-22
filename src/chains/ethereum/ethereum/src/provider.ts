@@ -164,6 +164,7 @@ export class EthereumProvider
       providerOptions.fork.url ||
       providerOptions.fork.provider ||
       providerOptions.fork.network;
+
     const fallback = fork ? new Fork(providerOptions, accounts) : null;
     const coinbase = parseCoinbase(providerOptions.miner.coinbase, accounts);
     const blockchain = new Blockchain(providerOptions, coinbase, fallback);
