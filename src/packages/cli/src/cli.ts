@@ -13,12 +13,14 @@ import {
   stopDetachedInstance,
   startDetachedInstance,
   getDetachedInstances,
-  formatUptime
+  formatUptime,
+  getInstanceLogsPath,
+  getDetachedInstanceByName
 } from "./detach";
 import { TruffleColors } from "@ganache/colors";
 import Table from "cli-table";
 import chalk from "chalk";
-
+import { getLogsStream } from "./logs-stream";
 const porscheColor = chalk.hex(TruffleColors.porsche);
 
 const logAndForceExit = (messages: any[], exitCode = 0) => {
@@ -172,6 +174,36 @@ if (argv.action === "start") {
       console.error("Instance not found");
     }
   });
+} else if (argv.action === "logs") {
+  const instanceName = argv.name;
+
+  getDetachedInstanceByName(instanceName)
+    .then(_ => {
+      const path = getInstanceLogsPath(instanceName);
+
+      const stream = getLogsStream(path, {
+        follow: argv.follow,
+        since: argv.since,
+        until: argv.until
+      });
+
+      stream.on("error", err => {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+          console.log(
+            `No logs are available for ${instanceName}.\nTry calling some RPC methods.`
+          );
+        }
+      });
+      stream.pipe(process.stdout);
+      //todo: we need to be able to quit from this if `--follow` is provided
+    })
+    .catch(err => {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+        console.error("Instance not found");
+      } else {
+        console.error(err);
+      }
+    });
 } else if (argv.action === "start-detached") {
   startDetachedInstance(process.argv, argv, version)
     .then(instance => {
