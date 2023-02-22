@@ -1,6 +1,7 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { appendFileSync } from "fs";
+import { format } from "util";
 
 export type Logger = {
   log(message?: any, ...optionalParams: any[]): void;
@@ -80,14 +81,14 @@ export type LoggingConfig = {
      * The path to a file to log to. If this option is set, Ganache will log output
      * to a file located at the path.
      */
-    readonly filePath: {
+    readonly file: {
       type: string;
     };
 
     /**
      * Set to `true` to include a timestamp in the log output.
      */
-    readonly includeTimestamp: {
+    readonly timestamps: {
       type: boolean;
       hasDefault: true;
     };
@@ -117,13 +118,12 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliAliases: ["v", "verbose"],
     cliType: "boolean"
   },
-  filePath: {
+  file: {
     normalize,
-    cliDescription: "The path to a file to log to.",
-    cliAliases: ["log-file"],
+    cliDescription: "The path of a file to which logs will be appended.",
     cliType: "string"
   },
-  includeTimestamp: {
+  timestamps: {
     normalize,
     cliDescription: "Set to `true` to include a timestamp in the log output.",
     cliType: "boolean",
@@ -137,20 +137,29 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     // disable the default logger if `quiet` is `true`
     default: config => {
       let logger: (message?: any, ...optionalParams: any[]) => void;
-      if (config.filePath == null) {
-        logger = config.quiet ? () => {} : console.log;
+      const consoleLogger = config.quiet ? () => {} : console.log;
+
+      if (config.file == null) {
+        logger = consoleLogger;
       } else {
-        const formatter = config.includeTimestamp
-          ? (message, additionalParams) =>
-              `${Date.now()}\t${message} ${additionalParams.join(", ")}\n`
-          : (message, additionalParams) =>
-              `${message} ${additionalParams.join(", ")}\n`;
+        const diskLogFormatter = config.timestamps
+          ? message => {
+              const linePrefix = `${new Date().toISOString()} `;
+              // Matches _after_ a new line character _or_ the start of the
+              // string. Essentially the start of every line
+              return message.replace(/^|(?<=\n)/g, linePrefix);
+            }
+          : message => message;
+
+        const formatter = (message, additionalParams) => {
+          const formattedMessage = format(message, ...additionalParams);
+          // we are logging to a file, but we still need to log to console
+          consoleLogger(formattedMessage);
+          return diskLogFormatter(formattedMessage) + "\n";
+        };
 
         logger = (message: any, ...additionalParams: any[]) => {
-          appendFileSync(
-            config.filePath,
-            formatter(message.replace(/\n/g, "\n\t"), additionalParams)
-          );
+          appendFileSync(config.file, formatter(message, additionalParams));
         };
       }
 
