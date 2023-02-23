@@ -81,8 +81,8 @@ export type LoggingConfig = {
     };
 
     /**
-     * The path to a file to log to. If this option is set, Ganache will log output
-     * to a file located at the path.
+     * If you set this option, Ganache will write logs to a file located at the
+     * specified path.
      */
     readonly file: {
       type: string;
@@ -127,7 +127,8 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
 
       return rawInput;
     },
-    cliDescription: "The path of a file to which logs will be appended.",
+    cliDescription:
+      "If set, Ganache will write logs to a file located at the specified path.",
     cliType: "string"
   },
   logger: {
@@ -137,6 +138,8 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     disableInCLI: true,
     // disable the default logger if `quiet` is `true`
     default: config => {
+      // don't just return the response from createLogger(), because it includes
+      // getWaitHandle
       const { log } = createLogger(config);
       return {
         log
@@ -144,11 +147,6 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     },
     legacyName: "logger"
   }
-};
-
-type CreateLoggerConfig = {
-  quiet?: boolean;
-  file?: string;
 };
 
 /**
@@ -193,6 +191,7 @@ export function createLogger(config: { quiet?: boolean; file?: string }): {
         return handle.appendFile(diskLogFormatter(formattedMessage) + "\n");
       });
     };
+
     return {
       log,
       getWaitHandle: () => writing

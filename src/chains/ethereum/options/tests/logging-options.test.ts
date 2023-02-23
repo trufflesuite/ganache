@@ -7,6 +7,10 @@ const { readFile, unlink } = promises;
 
 describe("EthereumOptionsConfig", () => {
   describe("logging", () => {
+    // resolve absolute path of current working directory, which is clearly an
+    // invalid file path (because it's a directory).
+    const invalidFilePath = resolve("");
+
     describe("options", () => {
       let spy: any;
       beforeEach(() => {
@@ -34,20 +38,18 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("fails if an invalid file path is provided", () => {
-        // resolve to the current working directory, which is clearly an invalid file path.
-        const invalidPath = resolve("");
-        const message = `Failed to write logs to ${invalidPath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
+        const message = `Failed to write logs to ${invalidFilePath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
 
         assert.throws(() => {
           EthereumOptionsConfig.normalize({
-            logging: { file: invalidPath }
+            logging: { file: invalidFilePath }
           });
         }, new Error(message));
       });
     });
 
     describe("createLogger()", () => {
-      const getFilename = (slug: string) => `./tests/test-${slug}.log`;
+      const getFilePath = (slug: string) => `./tests/test-${slug}.log`;
       const message = "test message";
 
       const sandbox = sinon.createSandbox();
@@ -82,7 +84,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should still log to console when a file is specified", async () => {
-        const file = getFilename("write-to-console");
+        const file = getFilePath("write-to-console");
 
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
@@ -112,7 +114,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should write to the file provided", async () => {
-        const file = getFilename("write-to-file-provided");
+        const file = getFilePath("write-to-file-provided");
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
 
@@ -153,7 +155,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should timestamp each line on multi-line log messages", async () => {
-        const file = getFilename("timestamp-each-line");
+        const file = getFilePath("timestamp-each-line");
 
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
@@ -191,7 +193,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should not throw if the underlying file does not exist", async () => {
-        const file = getFilename("underlying-file-does-not-exist");
+        const file = getFilePath("underlying-file-does-not-exist");
 
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
@@ -205,11 +207,8 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should reject waitHandle if the underlying file is inaccessible", async () => {
-        // resolve to the current working directory, which is clearly an invalid file path.
-        const file = resolve("");
-
         const { log, getWaitHandle } = createLogger({
-          file
+          file: invalidFilePath
         });
 
         assert(getWaitHandle);
