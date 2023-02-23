@@ -45,7 +45,7 @@ describe("EthereumOptionsConfig", () => {
     });
 
     describe("createLogger()", () => {
-      const file = "./test.log";
+      const getFilename = (slug: string) => `./tests/test-${slug}.log`;
       const message = "test message";
 
       const sandbox = sinon.createSandbox();
@@ -80,6 +80,8 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should still log to console when a file is specified", async () => {
+        const file = getFilename("write-to-console");
+
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
 
@@ -108,6 +110,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should write to the file provided", async () => {
+        const file = getFilename("write-to-file-provided");
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
 
@@ -148,6 +151,8 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should timestamp each line on multi-line log messages", async () => {
+        const file = getFilename("timestamp-each-line");
+
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
 
@@ -184,6 +189,8 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should not throw if the underlying file does not exist", async () => {
+        const file = getFilename("underlying-file-does-not-exist");
+
         const { log, getWaitHandle } = createLogger({ file });
         assert(getWaitHandle);
 
