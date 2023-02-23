@@ -107,19 +107,10 @@ export function createFollowReadStream(filename: string): Readable {
           watcher.close();
           createStream();
         });
-      });
+      })
+      .on("error", err => followStream.emit("error", err));
   }
   createStream();
 
   return followStream;
-}
-
-function readFromBuffers(buffers: Buffer[], size?: number) {
-  const entireBuffer = Buffer.concat(buffers.splice(0, buffers.length));
-  if (size == undefined || size <= entireBuffer.length) {
-    return entireBuffer;
-  } else {
-    buffers.push(entireBuffer.slice(size + 1));
-    return entireBuffer.slice(0, size);
-  }
 }

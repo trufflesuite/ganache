@@ -189,8 +189,10 @@ if (argv.action === "start") {
 
       stream.on("error", err => {
         if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-          console.log(
-            `No logs are available for ${instanceName}.\nTry calling some RPC methods.`
+          console.error(
+            `No logs found for ${porscheColor(
+              instanceName
+            )}. The log file may have been deleted.\n\nYou may need to restart the instance.`
           );
         }
       });
