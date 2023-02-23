@@ -1,6 +1,6 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { promises, openSync, closeSync } from "fs";
+import { promises, writeFileSync } from "fs";
 const open = promises.open;
 import { format } from "util";
 
@@ -115,10 +115,9 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   file: {
     normalize: rawInput => {
-      // this will throw if the file is not writable
+      // this will throw if the file is not writable, and creates the log file for later appending
       try {
-        const fh = openSync(rawInput, "a");
-        closeSync(fh);
+        writeFileSync(rawInput, Buffer.alloc(0));
       } catch (err) {
         throw new Error(
           `Failed to write logs to ${rawInput}. Please check if the file path is valid and if the process has write permissions to the directory.`
