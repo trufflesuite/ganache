@@ -203,8 +203,8 @@ describe("EthereumOptionsConfig", () => {
         }
       });
 
-      it("should reject waitHandle if the underlying file is inaccessible", () => {
-        const file = process.platform === "win32" ? "c:\\NUL" :"/invalid/path/to/log/file.log";
+      it("should reject waitHandle if the underlying file is inaccessible", async () => {
+        const file = "/invalid/path/to/file.log";
         const { log, getWaitHandle } = createLogger({
           file
         });
@@ -212,7 +212,7 @@ describe("EthereumOptionsConfig", () => {
 
         log(message);
 
-        assert.rejects(
+        await assert.rejects(
           getWaitHandle(),
           err => (err as NodeJS.ErrnoException).code === "ENOENT",
           "Expected an error to be thrown with code 'ENOENT'."
