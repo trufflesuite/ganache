@@ -204,8 +204,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should reject waitHandle if the underlying file is inaccessible", () => {
-        const file = resolve("/invalid/path/to/log/file.log");
-        console.log({ file });
+        const file = process.platform === "win32" ? "c:\\NUL" :"/invalid/path/to/log/file.log";
         const { log, getWaitHandle } = createLogger({
           file
         });
