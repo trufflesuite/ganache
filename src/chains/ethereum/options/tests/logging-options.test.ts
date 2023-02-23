@@ -2,7 +2,6 @@ import assert from "assert";
 import { createLogger, EthereumOptionsConfig, LogFunc } from "../src";
 import sinon from "sinon";
 import { promises } from "fs";
-import { resolve } from "path";
 const { readFile, unlink } = promises;
 
 describe("EthereumOptionsConfig", () => {
@@ -34,11 +33,11 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("fails if an invalid file path is provided", () => {
-        const invalidPath = "/invalid_path_to_file.log";
+        const invalidPath = "/invalid/path/to/file.log";
         const message = `Failed to write logs to ${invalidPath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
-
+        
         assert.throws(() => {
-          const options = EthereumOptionsConfig.normalize({
+          EthereumOptionsConfig.normalize({
             logging: { file: invalidPath }
           });
         }, new Error(message));
@@ -204,10 +203,11 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should reject waitHandle if the underlying file is inaccessible", async () => {
-        const file = process.platform === "win32" ? "c:\\NUL" : "/invalid/path/to/file";
+        const file = process.platform === "win32" ? "t:\\volume_does_not_exist" : "/invalid/path/to/file.log";
         const { log, getWaitHandle } = createLogger({
           file
         });
+
         assert(getWaitHandle);
 
         log(message);
