@@ -2,6 +2,7 @@ import assert from "assert";
 import { createLogger, EthereumOptionsConfig, LogFunc } from "../src";
 import sinon from "sinon";
 import { promises } from "fs";
+import { resolve } from "path";
 const { readFile, unlink } = promises;
 
 describe("EthereumOptionsConfig", () => {
@@ -203,8 +204,10 @@ describe("EthereumOptionsConfig", () => {
       });
 
       it("should reject waitHandle if the underlying file is inaccessible", () => {
+        const file = resolve("/invalid/path/to/log/file.log");
+        console.log({ file });
         const { log, getWaitHandle } = createLogger({
-          file: "/invalid/path/to/log/file.log"
+          file
         });
         assert(getWaitHandle);
 
