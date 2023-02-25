@@ -16,7 +16,7 @@ function escapeHtml(unsafe) {
 function getTheme() {
   const styles = getComputedStyle(document.querySelector("#page"));
 
-  const format = str => str.trim().substring(1, 7);
+  const format = str => str.trim().substring(1, 9);
 
   const bodyText = format(styles.getPropertyValue("--body-text"));
   const text1 = format(styles.getPropertyValue("--editor-text-1"));
@@ -29,6 +29,12 @@ function getTheme() {
   const text10 = format(styles.getPropertyValue("--editor-text-10"));
 
   const bg = format(styles.getPropertyValue("--monaco-bg"));
+  const ganacheOrangeDimmed = format(
+    styles.getPropertyValue("--ganache-orange-dimmed")
+  );
+  const ganacheOrangeDimmedMore = format(
+    styles.getPropertyValue("--ganache-orange-dimmed-more")
+  );
 
   const rules = [
     { token: "", foreground: bodyText },
@@ -52,7 +58,11 @@ function getTheme() {
   const base = getUserColorTheme() === "light" ? "vs" : "vs-dark";
   return {
     base,
-    colors: { "editor.background": `#${bg}` },
+    colors: {
+      "editor.background": `#${bg}`,
+      "editor.selectionBackground": `#${ganacheOrangeDimmed}`,
+      "editor.inactiveSelectionBackground": `#${ganacheOrangeDimmedMore}`
+    },
     inherit: true,
     rules
   };
@@ -98,7 +108,8 @@ require(["vs/editor/editor.main"], function () {
     esModuleInterop: true,
     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs
   });
-  const libSource = `declare const provider = {request: any, send: any, once: any, off: any, removeListener: any, on: any, sendAsync: any, disconnect: any, getOptions: any, getInitialAccounts: any};`;
+  const libSource =
+    "declare const provider = {request: any, send: any, once: any, off: any, removeListener: any, on: any, sendAsync: any, disconnect: any, getOptions: any, getInitialAccounts: any};";
   const libUri = "ts:filename/provider.d.ts";
   monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
   monaco.editor.createModel(libSource, "typescript", monaco.Uri.parse(libUri));
@@ -182,35 +193,51 @@ require(["vs/editor/editor.main"], function () {
       throw new Error("not strict equal");
     };
 
-    const fn = new AsyncFunction(
-      "ganache",
-      "assert",
-      "console",
-      `with ({provider: ganache.provider()}) {
-        try {
-          return await (async () => {
-            "use strict";
-            ${codeText}
-          })();
-        } catch (e) {
-          console.log(e);
-        } finally {
+    try {
+      // check that code is valid syntax before trying it
+      new AsyncFunction(codeText).toString();
+
+      const fn = new AsyncFunction(
+        "ganache",
+        "assert",
+        "console",
+        `with ({provider: ganache.provider()}) {
           try {
-            await provider.disconnect();
-            // delete all tmp ganache-core databases
-            await indexedDB.databases().then(dbs => {
-              return Promise.all(dbs.map(db => {
-                if (db.name.startsWith("/tmp/ganache-core_")) {
-                  return indexedDB.deleteDatabase(db.name);
-                }
-              }));
-            });
-          } catch {}
-        }
-      }`
-    );
-    await fn(ganache, assert, k);
+            return await (async () => {
+              "use strict";
+              {
+                ${codeText}
+              }
+            })();
+          } catch (e) {
+            console.log(e);
+          } finally {
+            try {
+              await provider.disconnect();
+              // delete all tmp ganache-core databases
+              await indexedDB.databases().then(dbs => {
+                return Promise.all(dbs.map(db => {
+                  if (db.name.startsWith("/tmp/ganache-core_")) {
+                    return indexedDB.deleteDatabase(db.name);
+                  }
+                }));
+              });
+            } catch {}
+          }
+        }`
+      );
+
+      await fn(ganache, assert, k);
+    } catch (e) {
+      k.log("Error executing code:");
+      k.log(e.name);
+      k.log(e);
+      console.error(e);
+    }
   }
+  const isMacLike = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
+  const modifierKey = isMacLike ? "⌘" : "Ctrl";
+
   const hasInsertedEditor = codeNode =>
     codeNode.classList.contains("hide-monaco");
 
@@ -218,19 +245,24 @@ require(["vs/editor/editor.main"], function () {
     // we've already processed this node, so back out
     if (hasInsertedEditor(codeNode)) return;
 
-    const codeText = codeNode.innerText.trim();
+    const codeText = codeNode.textContent.trim();
 
     const { consoleContainer, consoleDiv, outputDiv } = createConsole();
     consoleContainer.style.display = "none";
-    codeNode.parentNode.insertBefore(consoleContainer, codeNode.nextSibling);
+    codeNode.parentNode.parentNode.insertBefore(
+      consoleContainer,
+      codeNode.parentNode.nextSibling
+    );
 
     const container = document.createElement("div");
     container.style.display = "none";
     container.classList.add("editor-container");
-    codeNode.parentNode.insertBefore(container, codeNode.nextSibling);
+    codeNode.parentNode.parentNode.insertBefore(
+      container,
+      codeNode.parentNode.nextSibling
+    );
     container.style.height =
       Math.max(100, codeText.split(/\n/).length * 19 + 20) + "px";
-
     const editor = monaco.editor.create(container, {
       automaticLayout: true,
       model: monaco.editor.createModel(
@@ -245,9 +277,11 @@ require(["vs/editor/editor.main"], function () {
       scrollbar: { alwaysConsumeMouseWheel: false },
       theme: "ganache",
       folding: false,
-      lineDecorationsWidth: 10,
+      lineDecorationsWidth: 12,
+      overviewRulerBorder: false,
       contextmenu: false
     });
+
     // hide the first line (export {/*magic*/};)
     editor.setHiddenAreas([{ startLineNumber: 1, endLineNumber: 1 }]);
 
@@ -270,51 +304,114 @@ require(["vs/editor/editor.main"], function () {
         editor.setSelection(e.selection);
       }
     });
+
     container.style.display = "";
     codeNode.classList.add("hide-monaco");
 
     const runButton = document.createElement("div");
-    runButton.innerText = "▶ Try it!";
+    runButton.innerText = "Run";
+    runButton.tabIndex = 0;
+    runButton.title = `${modifierKey}+Enter`;
     runButton.classList.add("run-button");
+    let running = false;
     runButton.addEventListener("click", async e => {
+      if (running) {
+        return;
+      }
       consoleContainer.style.display = "block";
-      runButton.style.opacity = ".5";
-      await run(e, editor, consoleDiv, outputDiv);
-      runButton.style.opacity = "";
+      runButton.style.opacity = ".75";
+      running = true;
+      try {
+        await run(e, editor, consoleDiv, outputDiv);
+      } finally {
+        running = false;
+        runButton.style.opacity = "";
+      }
     });
-    codeNode.parentNode.insertBefore(runButton, codeNode.nextSibling);
+
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      function () {
+        runButton.click();
+      }
+    );
+
+    editor.addCommand(
+      monaco.KeyCode.Escape,
+      function () {
+        document.activeElement.blur();
+      },
+      "!suggestWidgetVisible"
+    );
+
+    codeNode.parentNode.parentNode.insertBefore(
+      runButton,
+      codeNode.parentNode.nextSibling
+    );
+    codeNode.previousElementSibling.style.display = "none";
   };
+  function renderNodeAndFriends(codeNode) {
+    insertEditor(codeNode);
+    const parent =
+      codeNode.parentElement.parentElement.parentElement.parentElement;
+    // always load the sibling nodes when there's an intersection
+    // this is to try to minimize the flicker that happens when the editor
+    // is created while visible
+    const loadNode = parentNode => {
+      if (parentNode) {
+        const node = parentNode.querySelector(".monaco");
+        if (node) {
+          insertEditor(node);
+        }
+      }
+    };
+    loadNode(parent.previousElementSibling);
+    loadNode(parent.nextElementSibling);
+    observer.unobserve(codeNode);
+  }
   const observer = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const codeNode = entry.target;
-        insertEditor(codeNode);
-        const parent = codeNode.parentElement.parentElement;
-        // always load the sibling nodes when there's an intersection
-        // this is to try to minimize the flicker that happens when the editor
-        // is created while visible
-        const loadNode = parentNode => {
-          if (parentNode) {
-            const node = parentNode.querySelector(".monaco");
-            if (node) {
-              insertEditor(node);
-            }
-          }
-        };
-        loadNode(parent.previousElementSibling);
-        loadNode(parent.nextElementSibling);
-        observer.unobserve(codeNode);
+        renderNodeAndFriends(entry.target);
       }
     });
   });
   document.querySelectorAll(".monaco").forEach(codeNode => {
     observer.observe(codeNode);
   });
+  // when an anchor element is clicked let's pre-emptively start loading it's
+  const sidebar = document.querySelector(".sidebar");
+  sidebar.addEventListener("mousedown", e => {
+    const target = e.target;
+    if (target.tagName === "A") {
+      const hash = target.getAttribute("href");
+      if (hash) {
+        const codeNode = document
+          .querySelector(hash)
+          .parentNode.querySelector(".monaco");
+        renderNodeAndFriends(codeNode);
+      }
+    }
+  });
+  sidebar.addEventListener("click", e => {
+    const target = e.target;
+    if (target.tagName === "A") {
+      toggleSidebar();
+    }
+  });
 });
+
+const toggleSidebarBtn = document.querySelector("aside");
+const main = document.querySelector("article");
+function toggleSidebar() {
+  document.getElementById("sidebar-switch-button").click();
+
+  // toggleSidebarBtn.classList.toggle("hide");
+  // main.classList.toggle("sidebar-open");
+}
 
 function makeConsoleEl() {
   const consoleDiv = document.createElement("div");
-  consoleDiv.classList.add("monaco-editor-background");
   consoleDiv.classList.add("console");
 
   return consoleDiv;
@@ -323,6 +420,7 @@ function makeConsoleEl() {
 function createConsole() {
   const consoleContainer = document.createElement("div");
   consoleContainer.classList.add("console-container");
+  consoleContainer.classList.add("monaco-editor-background");
 
   const consoleDiv = makeConsoleEl();
   const outputDiv = makeConsoleEl();
@@ -338,9 +436,9 @@ function createConsole() {
 function createTabs(consoleDiv, outputDiv) {
   const tabContainer = document.createElement("div");
   tabContainer.classList.add("tab-container");
-  tabContainer.classList.add("monaco-editor-background");
 
-  const tabA = document.createElement("div");
+  const tabA = document.createElement("button");
+  tabA.tabIndex = 0;
   tabA.classList.add("tab");
   tabA.classList.add("tab-active");
   tabA.innerHTML = "Console";
@@ -352,7 +450,8 @@ function createTabs(consoleDiv, outputDiv) {
     outputDiv.style.display = "none";
   };
 
-  const tabB = document.createElement("div");
+  const tabB = document.createElement("button");
+  tabB.tabIndex = 0;
   tabB.classList.add("tab");
   tabB.innerHTML = "Ganache Logs";
   tabB.onclick = function () {
