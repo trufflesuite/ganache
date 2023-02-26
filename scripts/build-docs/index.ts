@@ -468,6 +468,15 @@ const html = `
     <input type="checkbox" id="sidebar-switch" tabIndex="-1">
     <div class="container" id="page">
       <header>
+        <svg style="position:absolute;pointer-events:none;opacity:0;" width="10" height="10" viewBox="0 0 10 10">
+          <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
+            <path
+              fill="red"
+              stroke="none"
+              d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"
+            />
+          </clipPath>
+        </svg>
         <label id="sidebar-switch-button" for="sidebar-switch">
           <i class="fas fa-bars"></i>
         </label>
@@ -503,15 +512,6 @@ const html = `
         </article>
       </main>
     </div>
-    <svg style="display:none" width="10" height="10" viewBox="0 0 10 10">
-      <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
-        <path
-          fill="red"
-          stroke="none"
-          d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"
-        />
-      </clipPath>
-    </svg>
     <script> 
       (function initColorTheme() {
         const theme = getUserColorTheme();

@@ -298,7 +298,6 @@ header svg:hover {
 }
 .header-action {
   float: right;
-  border-radius: 8px;
   display: flex;
   background-color: var(--action-bg);
   transition: background-color 0.2s ease-in-out;
