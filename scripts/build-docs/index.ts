@@ -455,6 +455,7 @@ const html = `
     <title>Ganache Ethereum JSON-RPC Documentation</title>
     <meta name="description" content="Ganache Ethereum JSON-RPC Documentation" />
     <meta name="author" content="David Murdoch" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="./assets/js/preload.js"></script>
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 

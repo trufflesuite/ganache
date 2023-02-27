@@ -9,6 +9,7 @@
   --truffle-brown-9: #271f21;
 
   --ganache-orange: #ebb67e;
+  --ganache-orange-transparent: #ebb67e77;
   --ganache-orange-brighter: #ffd68a;
   --ganache-orange-dimmed: #e4a76377;
   --ganache-orange-dimmed-more: #ac92733f;
@@ -127,6 +128,10 @@
 .monaco ::selection {
   color: unset;
   background: var(--ganache-orange-dimmed);
+}
+
+html {
+  -webkit-tap-highlight-color: var(--ganache-orange-transparent);
 }
 
 /* #endregion Themes*/
@@ -583,6 +588,7 @@ code {
 
 /* #region MonacoEditor */
 .run-button {
+  -webkit-tap-highlight-color: transparent;
   background: var(--primary-bg);
   color: var(--primary-text);
   position: absolute;
