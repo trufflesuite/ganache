@@ -176,7 +176,7 @@ function (${name}: ${type})
 
 function renderMethodLink(method: Method) {
   const title = x(method.name);
-  return `<a href="#${e(x(method.name))}">${title}</a>`;
+  return `<a href="#${e(title)}">${title}</a>`;
 }
 
 function renderMethodDocs(method: Method) {
@@ -431,8 +431,8 @@ for (const namespace of orderedNamespaces) {
     }
     methodListByGroup.push(
       `<details open>
-        <summary title="Toggle ${namespace} navbar">
-          <img src="./assets/img/chevron.svg" alt="chevron"/>
+        <summary>
+          <img src="./assets/img/chevron.svg" alt="" />
           ${namespace}
         </summary>
         <ul>
@@ -465,8 +465,8 @@ const html = `
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
-    <input type="checkbox" id="theme-switch" tabIndex="-1">
-    <input type="checkbox" id="sidebar-switch" tabIndex="-1">
+    <input type="checkbox" id="theme-switch" tabindex="2">
+    <input type="checkbox" id="sidebar-switch" tabindex="3">
     <div class="container" id="page">
       <header>
         <svg style="position:absolute;pointer-events:none;opacity:0;" width="10" height="10" viewBox="0 0 10 10">
@@ -478,25 +478,31 @@ const html = `
             />
           </clipPath>
         </svg>
-        <label id="sidebar-switch-button" for="sidebar-switch">
+        <label id="sidebar-switch-button" for="sidebar-switch" title="Toggle menu">
           <i class="fas fa-bars"></i>
         </label>
-        <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
+        <a class="ganache-link" tabindex="1" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
           <img src="./assets/img/ganache-logomark.svg" alt="ganache logo"/>
           <h1>Ganache</h1>
         </a>
-        <div class="header-action" id="color-switcher">
-        <label for="theme-switch" class="logo" title="Change Color Theme" tabIndex="0">
-          <img src="./assets/img/sun.svg" id="sun"/>
-          <img src="./assets/img/moon.svg" id="moon"/>
-        </label>
+        <div class="header-actions">
+          <label class="header-action" id="color-switcher" for="theme-switch">
+            <div>
+              <img src="./assets/img/sun.svg" id="sun" class="logo" title="Change color theme to light mode" />
+              <img src="./assets/img/moon.svg" id="moon" class="logo" title="Change color theme dark mode" />
+            </div>
+          </label>
+          <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
+            <div>
+              <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
+            </div>
+          </a>
+          <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
+            <div>
+              <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
+            </div>
+          </a>
         </div>
-        <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
-          <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
-        </a>
-        <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
-          <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
-        </a>
       </header>
       <main>
         <aside class="hide">

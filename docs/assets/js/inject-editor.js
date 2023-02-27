@@ -77,16 +77,6 @@ function getTheme() {
     document.documentElement.setAttribute("data-theme", newTheme);
     monaco.editor.defineTheme("ganache", getTheme());
   });
-
-  // set up spacebar to control theme change for accessibility
-  const colorSwitcher = document.querySelector("#color-switcher").children[0];
-  colorSwitcher.addEventListener("keydown", e => {
-    const { keyCode, target } = e;
-    // they pressed the space key
-    if (keyCode && keyCode === 32) {
-      target.click();
-    }
-  });
 })();
 
 require(["vs/editor/editor.main"], function () {
@@ -308,13 +298,14 @@ require(["vs/editor/editor.main"], function () {
     container.style.display = "";
     codeNode.classList.add("hide-monaco");
 
-    const runButton = document.createElement("div");
+    const runButton = document.createElement("button");
+    runButton.type = "button";
     runButton.innerText = "Run";
-    runButton.tabIndex = 0;
     runButton.title = `${modifierKey}+Enter`;
     runButton.classList.add("run-button");
     let running = false;
     runButton.addEventListener("click", async e => {
+      console.log(e);
       if (running) {
         return;
       }
