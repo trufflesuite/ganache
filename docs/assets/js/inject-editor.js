@@ -106,9 +106,29 @@ require(["vs/editor/editor.main"], function () {
   monaco.editor.defineTheme("ganache", getTheme());
 
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  let ganachePromise = null;
+  async function downloadGanacheIfNeeded() {
+    if (Ganache) return;
+    if (!ganachePromise) {
+      return (ganachePromise = await new Promise(resolve => {
+        require(["./assets/js/ganache/ganache.min.js"], g => {
+          Ganache = g;
+          resolve();
+        });
+      }));
+    } else {
+      await ganachePromise;
+    }
+  }
+  let Ganache = null;
   async function run(e, editor, consoleDiv, outputDiv) {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!Ganache) {
+      // ganache is lazy
+      await downloadGanacheIfNeeded();
+    }
 
     // clean up our user's code
     const code = editor.getValue().replace(/^export \{\/\*magic\*\/\};\n/, "");
@@ -304,8 +324,12 @@ require(["vs/editor/editor.main"], function () {
     runButton.title = `${modifierKey}+Enter`;
     runButton.classList.add("run-button");
     let running = false;
+    if (!ganachePromise) {
+      runButton.addEventListener("mouseover", e => {
+        downloadGanacheIfNeeded();
+      });
+    }
     runButton.addEventListener("click", async e => {
-      console.log(e);
       if (running) {
         return;
       }
