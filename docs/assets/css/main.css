@@ -245,6 +245,9 @@ header > label[for="sidebar-switch"] a {
   background-repeat: no-repeat;
   background-position: center;
 }
+.ganache-link:focus {
+  text-decoration: none;
+}
 .ganache-link img {
   height: 3em;
   display: inline-block;
