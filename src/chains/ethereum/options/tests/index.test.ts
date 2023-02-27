@@ -1,6 +1,5 @@
 import assert from "assert";
 import { EthereumDefaults, EthereumOptionsConfig } from "../src";
-import sinon from "sinon";
 
 describe("EthereumOptionsConfig", () => {
   describe(".normalize", () => {

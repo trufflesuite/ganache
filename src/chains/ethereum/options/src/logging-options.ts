@@ -1,8 +1,6 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { promises, writeFileSync } from "fs";
-const open = promises.open;
-import { format } from "util";
+import { writeFileSync } from "fs";
 
 export type LogFunc = (message?: any, ...optionalParams: any[]) => void;
 
@@ -137,67 +135,10 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     disableInCLI: true,
     // disable the default logger if `quiet` is `true`
     default: config => {
-      // don't just return the response from createLogger(), because it includes
-      // getWaitHandle
-      const { log } = createLogger(config);
       return {
-        log
+        log: config.quiet ? () => {} : console.log
       };
     },
     legacyName: "logger"
   }
 };
-
-/**
- * Create a logger function based on the provided config.
- *
- * @param config specifying the configuration for the logger
- * @returns an object containing a `log` function and optional `getWaitHandle`
- * function returning a `Promise<void>` that resolves when any asyncronous
- * activies are completed.
- */
-export function createLogger(config: { quiet?: boolean; file?: string }): {
-  log: LogFunc;
-  getWaitHandle?: () => Promise<void>;
-} {
-  const logToConsole = config.quiet
-    ? async () => {}
-    : async (message: any, ...optionalParams: any[]) =>
-        console.log(message, ...optionalParams);
-
-  if ("file" in config) {
-    const diskLogFormatter = (message: any) => {
-      const linePrefix = `${new Date().toISOString()} `;
-      return message.toString().replace(/^/gm, linePrefix);
-    };
-
-    // we never close this handle, which is only ever problematic if we create a
-    // _lot_ of handles. This can't happen, except (potentially) in tests,
-    // because we only ever create one logger per Ganache instance.
-    const whenHandle = open(config.file, "a");
-
-    let writing = Promise.resolve<void>(null);
-
-    const log = (message: any, ...optionalParams: any[]) => {
-      const formattedMessage = format(message, ...optionalParams);
-      // we are logging to a file, but we still need to log to console
-      logToConsole(formattedMessage);
-
-      const currentWriting = writing;
-      writing = whenHandle.then(async handle => {
-        await currentWriting;
-
-        return handle.appendFile(diskLogFormatter(formattedMessage) + "\n");
-      });
-    };
-
-    return {
-      log,
-      getWaitHandle: () => writing
-    };
-  } else {
-    return {
-      log: logToConsole
-    };
-  }
-}
