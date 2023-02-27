@@ -7,12 +7,14 @@ import { ForkConfig, ForkOptions } from "./fork-options";
 import {
   Base,
   Defaults,
+  Definitions,
   ExternalConfig,
   InternalConfig,
   Legacy,
   LegacyOptions,
   OptionName,
   OptionRawType,
+  Options,
   OptionsConfig
 } from "@ganache/options";
 import { UnionToIntersection } from "./helper-types";
@@ -43,9 +45,11 @@ export type EthereumLegacyProviderOptions = Partial<
     MakeLegacyOptions<ForkConfig>
 >;
 
-export type EthereumProviderOptions = Partial<{
-  [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
-}>;
+export type EthereumProviderOptions = Partial<
+  {
+    [K in keyof EthereumConfig]: ExternalConfig<EthereumConfig[K]>;
+  }
+>;
 
 export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;

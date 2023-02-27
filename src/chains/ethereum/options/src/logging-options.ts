@@ -1,6 +1,6 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { writeFileSync } from "fs";
+import { appendFileSync } from "fs";
 
 export type LogFunc = (message?: any, ...optionalParams: any[]) => void;
 
@@ -103,31 +103,6 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliAliases: ["q", "quiet"],
     cliType: "boolean"
   },
-  verbose: {
-    normalize,
-    cliDescription: "Set to `true` to log detailed RPC requests.",
-    default: () => false,
-    legacyName: "verbose",
-    cliAliases: ["v", "verbose"],
-    cliType: "boolean"
-  },
-  file: {
-    normalize: rawInput => {
-      // this will throw if the file is not writable, and creates the log file for later appending
-      try {
-        writeFileSync(rawInput, Buffer.alloc(0));
-      } catch (err) {
-        throw new Error(
-          `Failed to write logs to ${rawInput}. Please check if the file path is valid and if the process has write permissions to the directory.`
-        );
-      }
-
-      return rawInput;
-    },
-    cliDescription:
-      "If set, Ganache will write logs to a file located at the specified path.",
-    cliType: "string"
-  },
   logger: {
     normalize,
     cliDescription:
@@ -140,5 +115,30 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
       };
     },
     legacyName: "logger"
+  },
+  verbose: {
+    normalize,
+    cliDescription: "Set to `true` to log detailed RPC requests.",
+    default: () => false,
+    legacyName: "verbose",
+    cliAliases: ["v", "verbose"],
+    cliType: "boolean"
+  },
+  file: {
+    normalize: rawInput => {
+      // this will throw if the file is not writable, and creates the log file for later appending
+      try {
+        appendFileSync(rawInput, Buffer.alloc(0));
+      } catch (err) {
+        throw new Error(
+          `Failed to write logs to ${rawInput}. Please check if the file path is valid and if the process has write permissions to the directory.`
+        );
+      }
+
+      return rawInput;
+    },
+    cliDescription:
+      "If set, Ganache will write logs to a file located at the specified path.",
+    cliType: "string"
   }
 };

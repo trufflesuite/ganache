@@ -58,8 +58,11 @@ if (argv.action === "start") {
   const loggingOptions = (argv as any).logging;
   let closeLogHandle = null;
   if (loggingOptions.file) {
-    const { log, close } = createLogger((argv as any).logging);
-    (argv as any).logging.logger = { log };
+    const { log, close } = createLogger({
+      baseLog: console.log,
+      file: loggingOptions.file
+    });
+    loggingOptions.logger = { log };
     closeLogHandle = close;
   }
 
