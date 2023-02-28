@@ -365,9 +365,13 @@ require(["vs/editor/editor.main"], function () {
     codeNode.parentNode.remove();
   };
   function renderNodeAndFriends(codeNode) {
-    insertEditor(codeNode);
+    if (!codeNode.isConnected) return;
+
+    observer.unobserve(codeNode);
     const parent =
       codeNode.parentElement.parentElement.parentElement.parentElement;
+    insertEditor(codeNode);
+
     // always load the sibling nodes when there's an intersection
     // this is to try to minimize the flicker that happens when the editor
     // is created while visible
@@ -375,13 +379,13 @@ require(["vs/editor/editor.main"], function () {
       if (parentNode) {
         const node = parentNode.querySelector(".monaco");
         if (node) {
+          observer.unobserve(node);
           insertEditor(node);
         }
       }
     };
     loadNode(parent.previousElementSibling);
     loadNode(parent.nextElementSibling);
-    observer.unobserve(codeNode);
   }
   const observer = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
