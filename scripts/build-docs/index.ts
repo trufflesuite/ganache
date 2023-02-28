@@ -234,15 +234,14 @@ function renderTag(method: Method, tag: Tag, i: number) {
               ${x(tag.tag)}
             </div>
             <div class="monaco-outer-container">
-              <div class="monaco-inner-container">
-                <div style="height:${height}px" class="monaco-height"></div>
+              <div style="height:${height}px" class="monaco-inner-container">
                 <div class="monaco" data-method="${x(
                   method.name
                 )}_${i}" data-language="${x(lang)}" style="height:${height}px">
                   ${code}
                 </div>
               </div>
-              </div>
+            </div>
           </div>
         `;
       break;
@@ -459,14 +458,14 @@ const html = `
     <script src="./assets/js/preload.js"></script>
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 
-    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:300i,300,400|Oswald:200,400,700|Share+Tech+Mono|Varela+Round&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.12.0/css/all.css" integrity="sha384-ekOryaXPbeCpWQNxMwSWVvQ0+1VrStoPJq54shlYhR8HzQgig1v5fas6YgOqLoKz" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,300,400|Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel&text=Ganache" rel="stylesheet" />
     <link rel="stylesheet" href="./assets/css/main.css" />
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
+    <input type="checkbox" id="sidebar-switch" tabindex="1">
     <input type="checkbox" id="theme-switch" tabindex="2">
-    <input type="checkbox" id="sidebar-switch" tabindex="3">
     <div class="container" id="page">
       <header>
         <svg style="position:absolute;pointer-events:none;opacity:0;" width="10" height="10" viewBox="0 0 10 10">
@@ -478,9 +477,7 @@ const html = `
             />
           </clipPath>
         </svg>
-        <label id="sidebar-switch-button" for="sidebar-switch" title="Toggle menu">
-          <i class="fas fa-bars"></i>
-        </label>
+        <label id="sidebar-switch-button" for="sidebar-switch" title="Toggle menu"></label>
         <a class="ganache-link" tabindex="1" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
           <img src="./assets/img/ganache-logomark.svg" alt="ganache logo"/>
           <h1>Ganache</h1>

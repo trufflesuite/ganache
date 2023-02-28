@@ -248,8 +248,7 @@ require(["vs/editor/editor.main"], function () {
   const isMacLike = /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
   const modifierKey = isMacLike ? "⌘" : "Ctrl";
 
-  const hasInsertedEditor = codeNode =>
-    codeNode.classList.contains("hide-monaco");
+  const hasInsertedEditor = codeNode => codeNode.dataset.displayed === "true";
 
   const insertEditor = codeNode => {
     // we've already processed this node, so back out
@@ -316,7 +315,7 @@ require(["vs/editor/editor.main"], function () {
     });
 
     container.style.display = "";
-    codeNode.classList.add("hide-monaco");
+    codeNode.dataset.displayed = "true";
 
     const runButton = document.createElement("button");
     runButton.type = "button";
@@ -363,7 +362,7 @@ require(["vs/editor/editor.main"], function () {
       runButton,
       codeNode.parentNode.nextSibling
     );
-    codeNode.previousElementSibling.style.display = "none";
+    codeNode.parentNode.remove();
   };
   function renderNodeAndFriends(codeNode) {
     insertEditor(codeNode);
