@@ -745,7 +745,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3193,
+							"line": 3177,
 							"character": 8
 						}
 					],
@@ -762,7 +762,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst initialTxHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst {contractAddress} = await provider.request({ method: \"eth_getTransactionReceipt\", params: [initialTxHash] });\n\n// set value to 19\nconst data = \"0x552410770000000000000000000000000000000000000000000000000000000000000019\";\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to: contractAddress, data }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storage = await provider.request({ method: \"debug_storageRangeAt\", params: [blockHash, transactionIndex, contractAddress, \"0x01\", 1] });\nconsole.log(storage);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst initialTxHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\n\nconst {contractAddress} = await provider.request({ method: \"eth_getTransactionReceipt\", params: [initialTxHash] });\n\n// set value to 19\nconst data = \"0x552410770000000000000000000000000000000000000000000000000000000000000019\";\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to: contractAddress, data }] });\n\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storage = await provider.request({ method: \"debug_storageRangeAt\", params: [blockHash, transactionIndex, contractAddress, \"0x01\", 1] });\nconsole.log(storage);\n```\n"
 									}
 								]
 							},
@@ -860,7 +860,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3142,
+							"line": 3128,
 							"character": 8
 						}
 					],
@@ -878,7 +878,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst transactionTrace = await provider.request({ method: \"debug_traceTransaction\", params: [txHash] });\nconsole.log(transactionTrace);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nconst transactionTrace = await provider.request({ method: \"debug_traceTransaction\", params: [txHash] });\nconsole.log(transactionTrace);\n```\n"
 									}
 								]
 							},
@@ -948,7 +948,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1634,
+							"line": 1630,
 							"character": 8
 						}
 					],
@@ -1006,7 +1006,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1648,
+							"line": 1644,
 							"character": 8
 						}
 					],
@@ -1062,7 +1062,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2786,
+							"line": 2773,
 							"character": 8
 						}
 					],
@@ -1164,7 +1164,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1665,
+							"line": 1661,
 							"character": 8
 						}
 					],
@@ -1223,7 +1223,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1015,
+							"line": 1016,
 							"character": 8
 						}
 					],
@@ -1279,7 +1279,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 907,
+							"line": 908,
 							"character": 8
 						}
 					],
@@ -1366,7 +1366,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2924,
+							"line": 2911,
 							"character": 8
 						}
 					],
@@ -1379,7 +1379,7 @@
 							"flags": {},
 							"comment": {
 								"shortText": "Returns a collection of historical block gas data and optional effective fee spent per unit of gas for a given percentile of block gas usage.",
-								"returns": "transaction base fee per gas and effective priority fee per gas for the requested/supported block range\n\n* `oldestBlock`:  - Lowest number block of the returned range.\n* `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,\nbecause this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.\n* `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.\n* `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the\nblock is empty.\n",
+								"returns": "Transaction base fee per gas and effective priority fee per gas for the requested/supported block range\n\n* `oldestBlock`:  - Lowest number block of the returned range.\n* `baseFeePerGas`:  - An array of block base fees per gas. This includes the next block after the newest of the returned range,\nbecause this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.\n* `gasUsedRatio`:  - An array of block gas used ratios. These are calculated as the ratio of `gasUsed` and `gasLimit`.\n* `reward`:  - An array of effective priority fee per gas data points from a single block. All zeroes are returned if the\nblock is empty.\n",
 								"tags": [
 									{
 										"tag": "eip",
@@ -1472,7 +1472,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1606,
+							"line": 1602,
 							"character": 8
 						}
 					],
@@ -1528,7 +1528,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1685,
+							"line": 1681,
 							"character": 8
 						}
 					],
@@ -1615,7 +1615,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1211,
+							"line": 1210,
 							"character": 8
 						}
 					],
@@ -1632,7 +1632,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst block = await provider.request({ method: \"eth_getBlockByHash\", params: [txReceipt.blockHash, true] });\nconsole.log(block);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst block = await provider.request({ method: \"eth_getBlockByHash\", params: [txReceipt.blockHash, true] });\nconsole.log(block);\n```\n"
 									}
 								]
 							},
@@ -1870,7 +1870,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1055,
+							"line": 1056,
 							"character": 8
 						}
 					],
@@ -2124,7 +2124,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1275,
+							"line": 1273,
 							"character": 8
 						}
 					],
@@ -2141,7 +2141,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst txCount = await provider.request({ method: \"eth_getBlockTransactionCountByHash\", params: [txReceipt.blockHash] });\nconsole.log(txCount);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst txCount = await provider.request({ method: \"eth_getBlockTransactionCountByHash\", params: [txReceipt.blockHash] });\nconsole.log(txCount);\n```\n"
 									}
 								]
 							},
@@ -2195,7 +2195,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1236,
+							"line": 1235,
 							"character": 8
 						}
 					],
@@ -2264,7 +2264,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1724,
+							"line": 1719,
 							"character": 8
 						}
 					],
@@ -2281,7 +2281,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst code = await provider.request({ method: \"eth_getCode\", params: [txReceipt.contractAddress, \"latest\"] });\nconsole.log(code);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst code = await provider.request({ method: \"eth_getCode\", params: [txReceipt.contractAddress, \"latest\"] });\nconsole.log(code);\n```\n"
 									}
 								]
 							},
@@ -2350,7 +2350,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1297,
+							"line": 1295,
 							"character": 8
 						}
 					],
@@ -2408,7 +2408,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2578,
+							"line": 2568,
 							"character": 8
 						}
 					],
@@ -2425,7 +2425,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nconst subscriptionId = await provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst changes = await provider.request({ method: \"eth_getFilterChanges\", params: [filterId] });\nconsole.log(changes);\n\nawait provider.send(\"eth_unsubscribe\", [subscriptionId]);\n```\n"
+										"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nconst subscriptionId = await provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\n\nconst changes = await provider.request({ method: \"eth_getFilterChanges\", params: [filterId] });\nconsole.log(changes);\n\nawait provider.send(\"eth_unsubscribe\", [subscriptionId]);\n```\n"
 									}
 								]
 							},
@@ -2482,7 +2482,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2648,
+							"line": 2637,
 							"character": 8
 						}
 					],
@@ -2499,7 +2499,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst logs = await provider.request({ method: \"eth_getFilterLogs\", params: [filterId] });\nconsole.log(logs);\n```\n"
+										"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\nconst filterId = await provider.send(\"eth_newFilter\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nawait provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\n\nconst logs = await provider.request({ method: \"eth_getFilterLogs\", params: [filterId] });\nconsole.log(logs);\n```\n"
 									}
 								]
 							},
@@ -2553,7 +2553,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2705,
+							"line": 2693,
 							"character": 8
 						}
 					],
@@ -2571,7 +2571,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nconst txHash = await provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\nawait provider.once(\"message\");\n\nconst { contractAddress } = await provider.send(\"eth_getTransactionReceipt\", [txHash] );\n\nconst logs = await provider.request({ method: \"eth_getLogs\", params: [{ address: contractAddress }] });\nconsole.log(logs);\n```\n"
+										"text": "\n```javascript\n// Logs.sol\n// // SPDX-License-Identifier: MIT\n// pragma solidity ^0.7.4;\n// contract Logs {\n//   event Event(uint256 indexed first, uint256 indexed second);\n//   constructor() {\n//     emit Event(1, 2);\n//   }\n//\n//   function logNTimes(uint8 n) public {\n//     for (uint8 i = 0; i < n; i++) {\n//       emit Event(i, i);\n//     }\n//   }\n// }\n\nconst logsContract = \"0x608060405234801561001057600080fd5b50600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a360e58061004f6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80635e19e69f14602d575b600080fd5b605960048036036020811015604157600080fd5b81019080803560ff169060200190929190505050605b565b005b60005b8160ff168160ff16101560ab578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a38080600101915050605e565b505056fea26469706673582212201af9c13c7b00e2b628c1258d45f9f62d2aad8cd32fc32fd9515d8ad1e792679064736f6c63430007040033\";\nconst [from] = await provider.send(\"eth_accounts\");\n\nawait provider.send(\"eth_subscribe\", [\"newHeads\"]);\nconst txHash = await provider.send(\"eth_sendTransaction\", [{ from, data: logsContract, gas: \"0x5b8d80\" }] );\n\nconst { contractAddress } = await provider.send(\"eth_getTransactionReceipt\", [txHash] );\n\nconst logs = await provider.request({ method: \"eth_getLogs\", params: [{ address: contractAddress }] });\nconsole.log(logs);\n```\n"
 									}
 								]
 							},
@@ -2643,7 +2643,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst proof = await provider.request({ method: \"eth_getProof\", params: [txReceipt.contractAddress, [\"0x0\", \"0x1\"], \"latest\"] });\nconsole.log(proof);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst proof = await provider.request({ method: \"eth_getProof\", params: [txReceipt.contractAddress, [\"0x0\", \"0x1\"], \"latest\"] });\nconsole.log(proof);\n```\n"
 									}
 								]
 							},
@@ -2730,7 +2730,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1762,
+							"line": 1756,
 							"character": 8
 						}
 					],
@@ -2747,7 +2747,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storageValue = await provider.request({ method: \"eth_getStorageAt\", params: [txReceipt.contractAddress, \"0x0\", \"latest\"] });\nconsole.log(storageValue);\n```\n"
+										"text": "\n```javascript\n// Simple.sol\n// // SPDX-License-Identifier: MIT\n//  pragma solidity ^0.7.4;\n//\n//  contract Simple {\n//      uint256 public value;\n//      constructor() payable {\n//          value = 5;\n//      }\n//  }\nconst simpleSol = \"0x6080604052600560008190555060858060196000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c80633fa4f24514602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000548156fea26469706673582212200897f7766689bf7a145227297912838b19bcad29039258a293be78e3bf58e20264736f6c63430007040033\";\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", data: simpleSol }] });\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\nconst storageValue = await provider.request({ method: \"eth_getStorageAt\", params: [txReceipt.contractAddress, \"0x0\", \"latest\"] });\nconsole.log(storageValue);\n```\n"
 									}
 								]
 							},
@@ -2830,7 +2830,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1335,
+							"line": 1332,
 							"character": 8
 						}
 					],
@@ -2847,7 +2847,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockHashAndIndex\", params: [ blockHash, transactionIndex ] });\nconsole.log(tx);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nconst { blockHash, transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockHashAndIndex\", params: [ blockHash, transactionIndex ] });\nconsole.log(tx);\n```\n"
 									}
 								]
 							},
@@ -2928,7 +2928,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1382,
+							"line": 1378,
 							"character": 8
 						}
 					],
@@ -2945,7 +2945,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconst { transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockNumberAndIndex\", params: [ \"latest\", transactionIndex ] });\nconsole.log(tx);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nconst { transactionIndex } = await provider.request({ method: \"eth_getTransactionReceipt\", params: [txHash] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByBlockNumberAndIndex\", params: [ \"latest\", transactionIndex ] });\nconsole.log(tx);\n```\n"
 									}
 								]
 							},
@@ -3026,7 +3026,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1835,
+							"line": 1828,
 							"character": 8
 						}
 					],
@@ -3043,7 +3043,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst tx = await provider.request({ method: \"eth_getTransactionByHash\", params: [ txHash ] });\nconsole.log(tx);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\n\nconst tx = await provider.request({ method: \"eth_getTransactionByHash\", params: [ txHash ] });\nconsole.log(tx);\n```\n"
 									}
 								]
 							},
@@ -3121,7 +3121,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2728,
+							"line": 2715,
 							"character": 8
 						}
 					],
@@ -3138,7 +3138,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nawait provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txCount = await provider.request({ method: \"eth_getTransactionCount\", params: [ from, \"latest\" ] });\nconsole.log(txCount);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nawait provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\n\nconst txCount = await provider.request({ method: \"eth_getTransactionCount\", params: [ from, \"latest\" ] });\nconsole.log(txCount);\n```\n"
 									}
 								]
 							},
@@ -3207,7 +3207,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1878,
+							"line": 1870,
 							"character": 8
 						}
 					],
@@ -3225,7 +3225,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [ txHash ] });\nconsole.log(txReceipt);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\n\nconst txReceipt = await provider.request({ method: \"eth_getTransactionReceipt\", params: [ txHash ] });\nconsole.log(txReceipt);\n```\n"
 									}
 								]
 							},
@@ -3279,7 +3279,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1462,
+							"line": 1458,
 							"character": 8
 						}
 					],
@@ -3814,7 +3814,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1503,
+							"line": 1499,
 							"character": 8
 						}
 					],
@@ -4349,7 +4349,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1405,
+							"line": 1401,
 							"character": 8
 						}
 					],
@@ -4420,7 +4420,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1420,
+							"line": 1416,
 							"character": 8
 						}
 					],
@@ -4491,7 +4491,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1523,
+							"line": 1519,
 							"character": 8
 						}
 					],
@@ -4567,7 +4567,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1592,
+							"line": 1588,
 							"character": 8
 						}
 					],
@@ -4622,7 +4622,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1620,
+							"line": 1616,
 							"character": 8
 						}
 					],
@@ -4677,7 +4677,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1577,
+							"line": 1573,
 							"character": 8
 						}
 					],
@@ -4732,7 +4732,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2414,
+							"line": 2405,
 							"character": 8
 						}
 					],
@@ -4788,7 +4788,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2500,
+							"line": 2491,
 							"character": 8
 						}
 					],
@@ -4862,7 +4862,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2441,
+							"line": 2432,
 							"character": 8
 						}
 					],
@@ -4917,7 +4917,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 980,
+							"line": 981,
 							"character": 8
 						}
 					],
@@ -4972,7 +4972,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2039,
+							"line": 2030,
 							"character": 8
 						}
 					],
@@ -4989,7 +4989,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst signedTx = await provider.request({ method: \"eth_signTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx] );\nconsole.log(txHash);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst signedTx = await provider.request({ method: \"eth_signTransaction\", params: [{ from, to, gas: \"0x5b8d80\", maxFeePerGas: \"0xffffffff\" }] });\nconst txHash = await provider.send(\"eth_sendRawTransaction\", [signedTx] );\nconsole.log(txHash);\n```\n"
 									}
 								]
 							},
@@ -5043,7 +5043,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1944,
+							"line": 1935,
 							"character": 8
 						}
 					],
@@ -5061,7 +5061,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\nconsole.log(txHash);\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.request({ method: \"eth_subscribe\", params: [\"newHeads\"] });\nconst txHash = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, to, gas: \"0x5b8d80\" }] });\nconsole.log(txHash);\n```\n"
 									}
 								]
 							},
@@ -5115,7 +5115,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2072,
+							"line": 2063,
 							"character": 8
 						}
 					],
@@ -5201,7 +5201,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2000,
+							"line": 1991,
 							"character": 8
 						}
 					],
@@ -5273,7 +5273,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2142,
+							"line": 2133,
 							"character": 8
 						}
 					],
@@ -5368,7 +5368,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2202,
+							"line": 2193,
 							"character": 8
 						}
 					],
@@ -5462,7 +5462,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1563,
+							"line": 1559,
 							"character": 8
 						}
 					],
@@ -5547,7 +5547,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1544,
+							"line": 1540,
 							"character": 8
 						}
 					],
@@ -5634,7 +5634,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2250,
+							"line": 2241,
 							"character": 2
 						}
 					],
@@ -5756,7 +5756,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 1001,
+							"line": 1002,
 							"character": 8
 						}
 					],
@@ -5811,7 +5811,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2604,
+							"line": 2594,
 							"character": 8
 						}
 					],
@@ -5882,7 +5882,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 2390,
+							"line": 2381,
 							"character": 8
 						}
 					],
@@ -5941,7 +5941,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 666,
+							"line": 667,
 							"character": 8
 						}
 					],
@@ -6199,7 +6199,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 689,
+							"line": 690,
 							"character": 8
 						}
 					],
@@ -6217,7 +6217,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst passphrase = \"passphrase\"\nconst result = await provider.send(\"evm_removeAccount\", [address, passphrase] );\nconsole.log(result);\n```\n"
+										"text": "\n```javascript\nconst [address] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst passphrase = \"\";\nconst result = await provider.send(\"evm_removeAccount\", [address, passphrase] );\nconsole.log(result);\n```\n"
 									}
 								]
 							},
@@ -6285,7 +6285,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 601,
+							"line": 603,
 							"character": 8
 						}
 					],
@@ -6302,7 +6302,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\nconsole.log({isReverted: isReverted});\n\n// ensure balance has reverted\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nconst isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);\nconsole.log({isBalanceReverted: isBalanceReverted});\n```\n"
+										"text": "\n```javascript\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\nconsole.log({isReverted: isReverted});\n\n// ensure balance has reverted\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nconst isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);\nconsole.log({isBalanceReverted: isBalanceReverted});\n```\n"
 									}
 								]
 							},
@@ -6715,7 +6715,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 544,
+							"line": 547,
 							"character": 8
 						}
 					],
@@ -6733,7 +6733,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst currentDate = Date.now();\nsetTimeout(async () => {\n  const time = await provider.send(\"evm_setTime\", [currentDate] );\n  console.log(time); // should be about two seconds ago\n}, 1000);\n```\n"
+										"text": "\n```javascript\nconst currentDate = Date.now();\nawait new Promise(resolve => {\n  setTimeout(async () => {\n    const time = await provider.send(\"evm_setTime\", [currentDate]);\n    console.log(time); // should be about two seconds ago\n    resolve();\n  }, 1000);\n});\n```\n"
 									}
 								]
 							},
@@ -6788,7 +6788,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 642,
+							"line": 643,
 							"character": 8
 						}
 					],
@@ -6805,7 +6805,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\nawait provider.once(\"message\"); // Note: `await provider.once` is non-standard\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\n\n// ensure balance has reverted\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nconst isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);\nconsole.log({isBalanceReverted: isBalanceReverted});\n```\n"
+										"text": "\n```javascript\nconst provider = ganache.provider();\nconst [from, to] = await provider.send(\"eth_accounts\");\nconst startingBalance = BigInt(await provider.send(\"eth_getBalance\", [from] ));\n\n// take a snapshot\nconst snapshotId = await provider.send(\"evm_snapshot\");\n\n// send value to another account (over-simplified example)\nawait provider.send(\"eth_subscribe\", [\"newHeads\"] );\nawait provider.send(\"eth_sendTransaction\", [{from, to, value: \"0xffff\"}] );\n\n// ensure balance has updated\nconst newBalance = await provider.send(\"eth_getBalance\", [from] );\nassert(BigInt(newBalance) < startingBalance);\n\n// revert the snapshot\nconst isReverted = await provider.send(\"evm_revert\", [snapshotId] );\nassert(isReverted);\n\n// ensure balance has reverted\nconst endingBalance = await provider.send(\"eth_getBalance\", [from] );\nconst isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);\nconsole.log({isBalanceReverted: isBalanceReverted});\n```\n"
 									}
 								]
 							},
@@ -6843,7 +6843,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 777,
+							"line": 778,
 							"character": 8
 						}
 					],
@@ -6914,7 +6914,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 792,
+							"line": 793,
 							"character": 8
 						}
 					],
@@ -6985,7 +6985,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 761,
+							"line": 762,
 							"character": 8
 						}
 					],
@@ -7057,7 +7057,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 714,
+							"line": 715,
 							"character": 8
 						}
 					],
@@ -7130,7 +7130,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 744,
+							"line": 745,
 							"character": 8
 						}
 					],
@@ -7185,7 +7185,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 858,
+							"line": 859,
 							"character": 8
 						}
 					],
@@ -7240,7 +7240,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 871,
+							"line": 872,
 							"character": 8
 						}
 					],
@@ -7295,7 +7295,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 845,
+							"line": 846,
 							"character": 8
 						}
 					],
@@ -7350,7 +7350,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3270,
+							"line": 3254,
 							"character": 8
 						}
 					],
@@ -7435,7 +7435,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3222,
+							"line": 3206,
 							"character": 8
 						}
 					],
@@ -7493,7 +7493,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3300,
+							"line": 3284,
 							"character": 8
 						}
 					],
@@ -7564,7 +7564,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3239,
+							"line": 3223,
 							"character": 8
 						}
 					],
@@ -7635,7 +7635,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3369,
+							"line": 3355,
 							"character": 8
 						}
 					],
@@ -7653,7 +7653,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to, gasLimit: \"0x5b8d80\" }, passphrase] );\nconsole.log(txHash);\n```\n"
+										"text": "\n```javascript\nconst passphrase = \"passphrase\";\nconst newAccount = await provider.send(\"personal_newAccount\", [passphrase] );\n// fund the new account\nawait provider.send(\"evm_setAccountBalance\", [newAccount,\"0xffffffffffffff\"])\nconst [to] = await provider.send(\"personal_listAccounts\");\n\n// use account and passphrase to send the transaction\nconst txHash = await provider.send(\"personal_sendTransaction\", [{ from: newAccount, to, gasLimit: \"0x5b8d80\" }, passphrase] );\nconsole.log(txHash);\n```\n"
 									}
 								]
 							},
@@ -7718,7 +7718,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3428,
+							"line": 3414,
 							"character": 8
 						}
 					],
@@ -7802,7 +7802,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3328,
+							"line": 3312,
 							"character": 8
 						}
 					],
@@ -7903,7 +7903,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3459,
+							"line": 3445,
 							"character": 8
 						}
 					],
@@ -8052,7 +8052,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3516,
+							"line": 3502,
 							"character": 8
 						}
 					],
@@ -8123,7 +8123,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3564,
+							"line": 3550,
 							"character": 8
 						}
 					],
@@ -8193,7 +8193,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3579,
+							"line": 3565,
 							"character": 8
 						}
 					],
@@ -8264,7 +8264,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3491,
+							"line": 3477,
 							"character": 8
 						}
 					],
@@ -8335,7 +8335,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3533,
+							"line": 3519,
 							"character": 8
 						}
 					],
@@ -8423,7 +8423,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3501,
+							"line": 3487,
 							"character": 8
 						}
 					],
@@ -8472,7 +8472,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3476,
+							"line": 3462,
 							"character": 8
 						}
 					],
@@ -8527,7 +8527,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3594,
+							"line": 3580,
 							"character": 8
 						}
 					],
@@ -8598,7 +8598,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3549,
+							"line": 3535,
 							"character": 8
 						}
 					],
@@ -8669,7 +8669,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3608,
+							"line": 3594,
 							"character": 8
 						}
 					],
@@ -8724,7 +8724,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 3629,
+							"line": 3616,
 							"character": 8
 						}
 					],
@@ -8741,7 +8741,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nconst pendingTx = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", nonce:\"0x0\" }] });\nconst queuedTx = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", nonce:\"0x2\" }] });\nconst pool = await provider.send(\"txpool_content\");\nconsole.log(pool);\n```\n"
+										"text": "\n```javascript\nconst [from] = await provider.request({ method: \"eth_accounts\", params: [] });\nawait provider.send(\"miner_stop\")\nconst pendingTx = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", nonce:\"0x0\" }] });\nconst queuedTx = await provider.request({ method: \"eth_sendTransaction\", params: [{ from, gas: \"0x5b8d80\", nonce:\"0x2\" }] });\nconst pool = await provider.send(\"txpool_content\");\nconsole.log(pool);\n```\n"
 									}
 								]
 							},
@@ -8785,7 +8785,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 813,
+							"line": 814,
 							"character": 8
 						}
 					],
@@ -8840,7 +8840,7 @@
 					"sources": [
 						{
 							"fileName": "ethereum/src/api.ts",
-							"line": 829,
+							"line": 830,
 							"character": 8
 						}
 					],
@@ -8857,7 +8857,7 @@
 								"tags": [
 									{
 										"tag": "example",
-										"text": "\n```javascript\nconst data = \"hello trufflers\";\nconst sha3 = await provider.send(\"web3_sha3\", [data] );\nconsole.log(sha3);\n```\n"
+										"text": "\n```javascript\nconst data = \"0xabcdef0123456789\";\nconst sha3 = await provider.send(\"web3_sha3\", [data] );\nconsole.log(sha3);\n```\n"
 									}
 								]
 							},

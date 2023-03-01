@@ -139,7 +139,7 @@ function g(): ${returnType}
 
 function renderArgs(method: Method) {
   const signature = method.signatures[0];
-  let params = [];
+  let params: string[] = [];
   if (signature.parameters) {
     params = signature.parameters.map(param => {
       const name = param.name + (param.flags.isOptional ? "?" : "");
@@ -176,17 +176,15 @@ function (${name}: ${type})
 
 function renderMethodLink(method: Method) {
   const title = x(method.name);
-  return `<div>---</div><a href="#${e(
-    x(method.name)
-  )}" onclick="toggleSidebar()" title="${title}">${title}</a>`;
+  return `<a href="#${e(title)}">${title}</a>`;
 }
 
 function renderMethodDocs(method: Method) {
   return `
   <div class="doc-section">
-    <a name="${x(method.name)}"></a>
+    <a id="${x(method.name)}"></a>
     <h3 class="signature">
-      ${renderSignature(method)}
+      <a href="#${x(method.name)}">${renderSignature(method)}</a>
     </h3>
     <div class="content small">
       ${renderSource(method)}
@@ -229,15 +227,20 @@ function renderTag(method: Method, tag: Tag, i: number) {
       const h = highlight();
       const code = marked(tag.text, { highlight: h.fn });
       const lang = h.raw.language || "javascript";
+      const height = Math.max(100, code.split(/\n/).length * 19 + 20);
       return `
           <div class="content wide-content example_container" style="position: relative">
             <div class="tag content tag_${x(tag.tag)}">
               ${x(tag.tag)}
             </div>
-            <div class="monaco" data-method="${x(
-              method.name
-            )}_${i}" data-language="${x(lang)}">
-              ${code}
+            <div class="monaco-outer-container">
+              <div style="height:${height}px" class="monaco-inner-container">
+                <div class="monaco" data-method="${x(
+                  method.name
+                )}_${i}" data-language="${x(lang)}" style="height:${height}px">
+                  ${code}
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -265,7 +268,11 @@ function renderSource(method: Method) {
         encoding: "utf8"
       }).trim() || "master";
   } catch (e) {}
-  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${source.fileName}#L${source.line}" target="_blank" rel="noopener" title="Source Code">source</a>`;
+  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${encodeURIComponent(
+    source.fileName
+  )}#L${
+    source.line
+  }" target="_blank" rel="noopener" title="View the source code on GitHub (Opens in a new tab)">source</a>`;
 }
 
 function renderTags(method: Method) {
@@ -424,7 +431,7 @@ for (const namespace of orderedNamespaces) {
     methodListByGroup.push(
       `<details open>
         <summary>
-          <img src="./assets/img/chevron.svg" alt="chevron"/>
+          <img src="./assets/img/chevron.svg" alt="" />
           ${namespace}
         </summary>
         <ul>
@@ -438,7 +445,7 @@ for (const namespace of orderedNamespaces) {
 const preamble =
   marked(`This reference describes all Ganache JSON-RPC methods and provides interactive examples for each method. The interactive examples are powered by [Ganache in the Browser](https://github.com/trufflesuite/ganache/#browser-use) and demonstrate using Ganache programmatically [as an EIP-1193 provider](https://github.com/trufflesuite/ganache/#as-an-eip-1193-provider-only). Try running these examples to see Ganache in action! Each editor can be changed to further test Ganache features.
 
-**Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in some [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
+**Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in your [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
 const html = `
 <!DOCTYPE html>
@@ -447,37 +454,52 @@ const html = `
     <title>Ganache Ethereum JSON-RPC Documentation</title>
     <meta name="description" content="Ganache Ethereum JSON-RPC Documentation" />
     <meta name="author" content="David Murdoch" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="./assets/js/preload.js"></script>
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 
-    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:300i,300,400|Oswald:200,400,700|Share+Tech+Mono|Varela+Round&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.12.0/css/all.css" integrity="sha384-ekOryaXPbeCpWQNxMwSWVvQ0+1VrStoPJq54shlYhR8HzQgig1v5fas6YgOqLoKz" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,300,400|Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel&text=Ganache" rel="stylesheet" />
     <link rel="stylesheet" href="./assets/css/main.css" />
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
-    <input type="checkbox" id="theme-switch" tabIndex="-1">
+    <input type="checkbox" id="sidebar-switch" tabindex="1">
+    <input type="checkbox" id="theme-switch" tabindex="2">
     <div class="container" id="page">
       <header>
-        <span onclick="toggleSidebar()">
-          <i class="fas fa-bars"></i>
-        </span>
-        <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
+        <svg style="position:absolute;pointer-events:none;opacity:0;" width="10" height="10" viewBox="0 0 10 10">
+          <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
+            <path
+              fill="red"
+              stroke="none"
+              d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"
+            />
+          </clipPath>
+        </svg>
+        <label id="sidebar-switch-button" for="sidebar-switch" title="Toggle menu"></label>
+        <a class="ganache-link" tabindex="1" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
           <img src="./assets/img/ganache-logomark.svg" alt="ganache logo"/>
           <h1>Ganache</h1>
         </a>
-        <div class="header-action" id="color-switcher">
-        <label for="theme-switch" class="logo" title="Change Color Theme" tabIndex="0">
-          <img src="./assets/img/sun.svg" id="sun"/>
-          <img src="./assets/img/moon.svg" id="moon"/>
-        </label>
+        <div class="header-actions">
+          <label class="header-action" id="color-switcher" for="theme-switch">
+            <div>
+              <img src="./assets/img/sun.svg" id="sun" class="logo" title="Change color theme to light mode" />
+              <img src="./assets/img/moon.svg" id="moon" class="logo" title="Change color theme dark mode" />
+            </div>
+          </label>
+          <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
+            <div>
+              <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
+            </div>
+          </a>
+          <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
+            <div>
+              <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
+            </div>
+          </a>
         </div>
-        <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
-          <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
-        </a>
-        <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
-          <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
-        </a>
       </header>
       <main>
         <aside class="hide">
@@ -487,10 +509,10 @@ const html = `
         </aside>
         <article>
           <div class="content preamble">
-          <h2>Ganache JSON-RPC Documentation</h2>
+            <h2>Ganache JSON-RPC Documentation</h2>
             <p>${preamble}</p>
           </div>
-            ${methodDocs.join("")}
+          ${methodDocs.join("")}
         </article>
       </main>
     </div>
@@ -501,17 +523,9 @@ const html = `
         document.querySelector("#theme-switch").checked = checked;
       })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/ganache@latest/dist/web/ganache.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
     <script src="./assets/js/inject-editor.js"></script>
-    <script>
-      function toggleSidebar() {
-        const toggleSidebarBtn = document.querySelector("aside");
-        const main = document.querySelector("article");
-        toggleSidebarBtn.classList.toggle("hide");
-        main.classList.toggle("sidebar-open");
-      }
-    </script>
   </body>
 </html>
 `;
