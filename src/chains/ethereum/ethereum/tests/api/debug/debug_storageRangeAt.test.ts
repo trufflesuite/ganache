@@ -2,33 +2,76 @@ import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
 import compile from "../../helpers/compile";
-import path from "path";
+import { join } from "path";
+
+const VALUE1_KEY = {
+  hashKey: "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563",
+  key: "0x0000000000000000000000000000000000000000000000000000000000000000"
+};
+const VALUE2_KEY = {
+  hashKey: "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6",
+  key: "0x0000000000000000000000000000000000000000000000000000000000000001"
+};
+const VALUE3_KEY = {
+  hashKey: "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace",
+  key: "0x0000000000000000000000000000000000000000000000000000000000000002"
+};
+const VALUE4_KEY = {
+  hashKey: "0xc2575a0e9e593c00f959f8c92f12db2869c3395a3b0502d05e2516446f71f85b",
+  key: "0x0000000000000000000000000000000000000000000000000000000000000003"
+};
 
 describe("api", () => {
   describe("storageRangeAt", () => {
+    let provider: EthereumProvider;
+    let contractAddress: string;
+    let from: string;
+    let methods: {
+      [methodName: string]: string;
+    };
+
+    const updateValue = async (method: string, hexValue: string) =>
+      await provider.send("eth_sendTransaction", [
+        {
+          from,
+          to: contractAddress,
+          gas: "0x2fefd8",
+          data: `0x${methods[method]}${hexValue.padStart(64, "0")}`
+        }
+      ]);
+
+    const debugStorage = async (
+      blockHash: string,
+      transactionIndex: number,
+      maxResults: number = 5,
+      start: string = "0x00"
+    ) =>
+      await provider.send("debug_storageRangeAt", [
+        blockHash,
+        transactionIndex,
+        contractAddress,
+        start,
+        maxResults
+      ]);
+
+    const compileContract = (contractName: string) =>
+      compile(join(__dirname, "..", "..", "contracts", contractName));
+
     describe("DebugStorage", () => {
-      let provider: EthereumProvider;
-      let accounts: string[];
-      let contractAddress: string;
       let blockHash: string;
       let deploymentBlockHash: string;
-      let methods: {
-        [methodName: string]: string;
-      };
 
-      before(async () => {
+      before("set up provider and contract", async () => {
         provider = await getProvider();
-        accounts = await provider.send("eth_accounts");
-        const contract = compile(
-          path.join(__dirname, "..", "..", "contracts", "DebugStorage.sol")
-        );
+        [from] = await provider.send("eth_accounts");
+        const contract = compileContract("DebugStorage.sol");
 
         const subscriptionId = await provider.send("eth_subscribe", [
           "newHeads"
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          { from: accounts[0], data: contract.code, gas: "0x2fefd8" }
+          { from, data: contract.code, gas: "0x2fefd8" }
         ]);
         await provider.once("message");
 
@@ -40,92 +83,62 @@ describe("api", () => {
         deploymentBlockHash = deploymentTxReceipt.blockHash;
 
         methods = contract.contract.evm.methodIdentifiers;
-        const initialValue =
-          "0000000000000000000000000000000000000000000000000000000000000019";
 
-        const transactionHash = await provider.send("eth_sendTransaction", [
-          {
-            from: accounts[0],
-            to: contractAddress,
-            gas: "0x2fefd8",
-            data: `0x${methods["setValue(uint256)"]}${initialValue}`
-          }
-        ]);
+        const transactionHash = await updateValue("setValue(uint256)", "19");
         await provider.once("message");
 
-        const txReceipt = await provider.send("eth_getTransactionReceipt", [
+        ({ blockHash } = await provider.send("eth_getTransactionReceipt", [
           transactionHash
-        ]);
-        blockHash = txReceipt.blockHash;
+        ]));
 
         await provider.send("eth_unsubscribe", [subscriptionId]);
       });
 
-      after(async () => {
+      after("shut down provider", async () => {
         provider && (await provider.disconnect());
       });
 
       it("should return the storage for the given range", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x00",
-          2
-        ]);
+        const result = await debugStorage(blockHash, 0, 2);
 
         const storage = {
-          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000000",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000005"
-            },
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-              value:
-                "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
-            }
+          [VALUE1_KEY.hashKey]: {
+            key: VALUE1_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000005"
+          },
+          [VALUE3_KEY.hashKey]: {
+            key: VALUE3_KEY.key,
+            value:
+              "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+          }
         };
 
         assert.deepStrictEqual(result.storage, storage);
-        assert.strictEqual(
-          result.nextKey,
-          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
-        );
+        assert.strictEqual(result.nextKey, VALUE2_KEY.hashKey);
       });
 
       it("should return only the filled storage slots", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x00",
-          4 // give me 4 entries
-        ]);
+        const result = await debugStorage(blockHash, 0, 4); // give me 4 entries
 
         // although we asked for a total number of 4 entries, we only have 3
         // and should return the 3 we have
         const storage = {
-          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000000",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000005"
-            },
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-              value:
-                "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
-            },
-          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000001"
-            }
+          [VALUE1_KEY.hashKey]: {
+            key: VALUE1_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000005"
+          },
+          [VALUE2_KEY.hashKey]: {
+            key: VALUE2_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+          },
+          [VALUE3_KEY.hashKey]: {
+            key: VALUE3_KEY.key,
+            value:
+              "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+          }
         };
 
         assert.deepStrictEqual(result.storage, storage);
@@ -134,40 +147,25 @@ describe("api", () => {
 
       it("should return account doesn't exist error when debugging a deployment transaction", async () => {
         const message = `account ${contractAddress} doesn't exist`;
-        await assert.rejects(
-          provider.send("debug_storageRangeAt", [
-            deploymentBlockHash,
-            0,
-            contractAddress,
-            "0x00",
-            2
-          ]),
-          { message }
-        );
+        await assert.rejects(debugStorage(deploymentBlockHash, 0, 2), {
+          message
+        });
       });
 
       it("should accept a nextKey as the startKey for the given range", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace",
-          2
-        ]);
+        const result = await debugStorage(blockHash, 0, 2, VALUE3_KEY.hashKey);
 
         const storage = {
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-              value:
-                "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
-            },
-          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000001"
-            }
+          [VALUE3_KEY.hashKey]: {
+            key: VALUE3_KEY.key,
+            value:
+              "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+          },
+          [VALUE2_KEY.hashKey]: {
+            key: VALUE2_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+          }
         };
 
         assert.deepStrictEqual(result.storage, storage);
@@ -175,100 +173,82 @@ describe("api", () => {
       });
 
       it("should accept a nextKey as the startKey for the given range AND provide correct nextKey", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace",
-          1
-        ]);
+        const result = await debugStorage(blockHash, 0, 1, VALUE3_KEY.hashKey);
 
         const storage = {
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-              value:
-                "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
-            }
+          [VALUE3_KEY.hashKey]: {
+            key: VALUE3_KEY.key,
+            value:
+              "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+          }
         };
 
         assert.deepStrictEqual(result.storage, storage);
-        assert.strictEqual(
-          result.nextKey,
-          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6"
-        );
+        // value2.raw sorts _after_ value3.raw, so it is the `nextKey`
+        assert.strictEqual(result.nextKey, VALUE2_KEY.hashKey);
       });
 
       it("should return correct storage given an arbitrary hexadecimal value for startKey", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x290f",
-          3
-        ]);
+        // the start key, 0x290f, sorts _after_ value1.raw, so value1 is _not_ included in the result.
+        const result = await debugStorage(blockHash, 0, 3, "0x290f");
 
         const storage = {
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-              value:
-                "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
-            },
-          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000001"
-            }
+          [VALUE3_KEY.hashKey]: {
+            key: VALUE3_KEY.key,
+            value:
+              "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+          },
+          [VALUE2_KEY.hashKey]: {
+            key: VALUE2_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+          }
         };
         assert.deepStrictEqual(result.storage, storage);
         assert.strictEqual(result.nextKey, null);
       });
 
       it("should return correct storage given a different arbitrary hexadecimal value for startKey", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x290c",
-          3
-        ]);
+        // the start key, 0x290c, sorts _before_ value1.raw, so value1 _is_ still included in the result.
+        const result = await debugStorage(blockHash, 0, 3, "0x290c");
 
         const storage = {
-          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000000",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000005"
-            },
-          "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-              value:
-                "0x68656c6c6f207270647200000000000000000000000000000000000000000014"
-            },
-          "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000001"
-            }
+          [VALUE1_KEY.hashKey]: {
+            key: VALUE1_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000005"
+          },
+          [VALUE3_KEY.hashKey]: {
+            key: VALUE3_KEY.key,
+            value:
+              "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+          },
+          [VALUE2_KEY.hashKey]: {
+            key: VALUE2_KEY.key,
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+          }
         };
 
         assert.deepStrictEqual(result.storage, storage);
         assert.strictEqual(result.nextKey, null);
       });
 
-      it("should return correct storage given different transaction indexes", async () => {
+      it("should return correct storage given different storage slot changes at different transaction indexes in same block", async () => {
         /* 
           Strategy for this test:
             1. Create snapshot
             2. Call miner.stop() so we can send a few transactions
-            3. Call miner.start() so we can mine all of the txs in a single block
-            4. Call debug_storageRangeAt for each transaction using the transaction index
-            5. Assert that the result will be the value we think it is in storage
-            6. Revert snapshot
+            3. Send a transaction that changes an existing value.
+            4. Send a transaction that sets a value for the first time.
+            5. Send a transaction that changes an existing value again.
+            6. Call miner.start() so we can mine all of the txs in a single block
+            7. Call debug_storageRangeAt for each transaction using the transaction index
+            8. Assert that the results will return the correct values:
+              * storageRange at 1st transaction should not return its own changes.
+              * storageRange at 2nd transaction returns 1st transaction's changes, but not its own.
+              * storageRange at 3rd transaction returns 1st and 2nd transaction's changes, but not its own.
+            9. Revert snapshot
         */
 
         const snapshotId = await provider.send("evm_snapshot");
@@ -278,30 +258,12 @@ describe("api", () => {
           await provider.send("miner_stop");
 
           const [tx1, tx2, tx3] = await Promise.all([
-            provider.send("eth_sendTransaction", [
-              {
-                from: accounts[0],
-                to: contractAddress,
-                gas: "0x2fefd8",
-                data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000001`
-              }
-            ]),
-            provider.send("eth_sendTransaction", [
-              {
-                from: accounts[0],
-                to: contractAddress,
-                gas: "0x2fefd8",
-                data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000002`
-              }
-            ]),
-            provider.send("eth_sendTransaction", [
-              {
-                from: accounts[0],
-                to: contractAddress,
-                gas: "0x2fefd8",
-                data: `0x${methods["setValue(uint256)"]}0000000000000000000000000000000000000000000000000000000000000003`
-              }
-            ])
+            // change an existing value (at value1)
+            updateValue("setValue(uint256)", "1"),
+            // set a value for the first time (at *value4*)
+            updateValue("setValue4(uint256)", "1337"),
+            // change an existing value (at value1)
+            updateValue("setValue(uint256)", "2")
           ]);
 
           await provider.send("miner_start");
@@ -317,54 +279,78 @@ describe("api", () => {
           assert.strictEqual(txReceipt1.blockHash, txReceipt2.blockHash);
           assert.strictEqual(txReceipt1.blockHash, txReceipt3.blockHash);
 
-          const [resultForTx1, resultForTx2, resultForTx3] = await Promise.all([
-            provider.send("debug_storageRangeAt", [
-              txReceipt1.blockHash,
-              parseInt(txReceipt1.transactionIndex), // 0
-              contractAddress,
-              "0x00",
-              1
-            ]),
-            await provider.send("debug_storageRangeAt", [
-              txReceipt2.blockHash,
-              parseInt(txReceipt2.transactionIndex), // 1
-              contractAddress,
-              "0x00",
-              1
-            ]),
-            provider.send("debug_storageRangeAt", [
-              txReceipt3.blockHash,
-              parseInt(txReceipt3.transactionIndex), // 2
-              contractAddress,
-              "0x00",
-              1
-            ])
+          const [storageAtTx1, storageAtTx2, storageAtTx3] = await Promise.all([
+            debugStorage(txReceipt1.blockHash, +txReceipt1.transactionIndex),
+            debugStorage(txReceipt2.blockHash, +txReceipt2.transactionIndex),
+            debugStorage(txReceipt3.blockHash, +txReceipt3.transactionIndex)
           ]);
 
-          assert.deepStrictEqual(resultForTx1.storage, {
-            "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563":
-              {
-                key: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          assert.deepStrictEqual(
+            storageAtTx1.storage,
+            {
+              [VALUE1_KEY.hashKey]: {
+                key: VALUE1_KEY.key,
+                value: `0x${"19".padStart(64, "0")}`
+              },
+              [VALUE2_KEY.hashKey]: {
+                key: VALUE2_KEY.key,
+                value: `0x${"1".padStart(64, "0")}`
+              },
+              [VALUE3_KEY.hashKey]: {
+                key: VALUE3_KEY.key,
                 value:
-                  "0x0000000000000000000000000000000000000000000000000000000000000019"
+                  "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
               }
-          });
-          assert.deepStrictEqual(resultForTx2.storage, {
-            "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563":
-              {
-                key: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            },
+            "transaction at index 0 produced incorrect trace"
+          );
+          assert.deepStrictEqual(
+            storageAtTx2.storage,
+            {
+              [VALUE1_KEY.hashKey]: {
+                key: VALUE1_KEY.key,
                 value:
                   "0x0000000000000000000000000000000000000000000000000000000000000001"
-              }
-          });
-          assert.deepStrictEqual(resultForTx3.storage, {
-            "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563":
-              {
-                key: "0x0000000000000000000000000000000000000000000000000000000000000000",
+              },
+              [VALUE2_KEY.hashKey]: {
+                key: VALUE2_KEY.key,
                 value:
-                  "0x0000000000000000000000000000000000000000000000000000000000000002"
+                  "0x0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              [VALUE3_KEY.hashKey]: {
+                key: VALUE3_KEY.key,
+                value:
+                  "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
               }
-          });
+            },
+            "transaction at index 1 produced incorrect trace"
+          );
+          assert.deepStrictEqual(
+            storageAtTx3.storage,
+            {
+              [VALUE1_KEY.hashKey]: {
+                key: VALUE1_KEY.key,
+                value:
+                  "0x0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              [VALUE2_KEY.hashKey]: {
+                key: VALUE2_KEY.key,
+                value:
+                  "0x0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              [VALUE3_KEY.hashKey]: {
+                key: VALUE3_KEY.key,
+                value:
+                  "0x68656c6c6f20776f726c64000000000000000000000000000000000000000016"
+              },
+              [VALUE4_KEY.hashKey]: {
+                key: VALUE4_KEY.key,
+                value:
+                  "0x0000000000000000000000000000000000000000000000000000000000001337"
+              }
+            },
+            "transaction at index 2 produces incorrect trace"
+          );
         } finally {
           await provider.send("evm_revert", [snapshotId]);
         }
@@ -372,91 +358,72 @@ describe("api", () => {
 
       it("should throw an error for transaction indexes out of range", async () => {
         const message = `transaction index 3 is out of range for block ${blockHash}`;
+        // txIndex out of range
+        await assert.rejects(debugStorage(blockHash, 3, 2), { message });
+      });
+
+      it("throws with a forked network", async () => {
+        const fakeMainnet = await getProvider();
+        const forkedProvider = await getProvider({
+          fork: { provider: fakeMainnet as any }
+        });
+        const error = new Error(
+          "debug_storageRangeAt is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3488 for details."
+        );
+
         await assert.rejects(
-          provider.send("debug_storageRangeAt", [
+          forkedProvider.send("debug_storageRangeAt", [
             blockHash,
-            3, // txIndex out of range
+            0,
             contractAddress,
             "0x00",
-            2
+            1
           ]),
-          { message }
+          error
         );
       });
     });
 
     describe("DebugComplexStorage", () => {
-      let provider: EthereumProvider;
-      let accounts: string[];
-      let contractAddress: string;
       let blockHash: string;
 
-      before(async () => {
+      before("set up provider and contract", async () => {
         provider = await getProvider();
-        accounts = await provider.send("eth_accounts", []);
-        const contract = compile(
-          path.join(
-            __dirname,
-            "..",
-            "..",
-            "contracts",
-            "DebugComplexStorage.sol"
-          )
-        );
+        [from] = await provider.send("eth_accounts");
+        const contract = compileContract("DebugComplexStorage.sol");
 
         const subscriptionId = await provider.send("eth_subscribe", [
           "newHeads"
         ]);
 
         const deploymentHash = await provider.send("eth_sendTransaction", [
-          {
-            from: accounts[0],
-            data: contract.code,
-            gas: `0x${(3141592).toString(16)}`
-          }
+          { from, data: contract.code, gas: "0x2fefd8" }
         ]);
         await provider.once("message");
 
-        const deploymentTxReceipt = await provider.send(
+        ({ contractAddress } = await provider.send(
           "eth_getTransactionReceipt",
-          [deploymentHash.toString()]
-        );
-        contractAddress = deploymentTxReceipt.contractAddress;
+          [deploymentHash]
+        ));
 
-        const methods = contract.contract.evm.methodIdentifiers;
-        const initialValue =
-          "0000000000000000000000000000000000000000000000000000000000000019";
+        methods = contract.contract.evm.methodIdentifiers;
 
-        const transactionHash = await provider.send("eth_sendTransaction", [
-          {
-            from: accounts[0],
-            to: contractAddress,
-            gas: "0x2fefd8",
-            data: `0x${methods["setValue(uint256)"]}${initialValue}`
-          }
-        ]);
+        const transactionHash = await updateValue("setValue(uint256)", "19");
         await provider.once("message");
 
-        const txReceipt = await provider.send("eth_getTransactionReceipt", [
+        ({ blockHash } = await provider.send("eth_getTransactionReceipt", [
           transactionHash
-        ]);
-        blockHash = txReceipt.blockHash;
+        ]));
 
         await provider.send("eth_unsubscribe", [subscriptionId]);
       });
 
-      after(async () => {
+      after("shut down provider", async () => {
         provider && (await provider.disconnect());
       });
 
       it("should return the storage for the given range", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0x00",
-          2
-        ]);
+        const result = await debugStorage(blockHash, 0, 2);
 
         const storage = {
           "0x0175b7a638427703f0dbe7bb9bbf987a2551717b34e79f33b5b1008d1fa01db9":
@@ -474,30 +441,23 @@ describe("api", () => {
         };
 
         assert.deepStrictEqual(result.storage, storage);
-        assert.strictEqual(
-          result.nextKey,
-          "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
-        );
+        assert.strictEqual(result.nextKey, VALUE1_KEY.hashKey);
       });
 
       it("should return only the filled storage slots", async () => {
-        const result = await provider.send("debug_storageRangeAt", [
-          blockHash,
-          0,
-          contractAddress,
-          "0xf3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3",
-          4 // give me 4 entries
-        ]);
+        const startKey =
+          "0xf3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3";
+        // give me 4 entries
+        const result = await debugStorage(blockHash, 0, 4, startKey);
 
         // although we asked for a total number of 4 entries, we only have 1
         // left at this point so that's the only one we should see
         const storage = {
-          "0xf3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee3":
-            {
-              key: "0x0000000000000000000000000000000000000000000000000000000000000008",
-              value:
-                "0x0000000000000000000000000000000000000000000000000000000000000002"
-            }
+          [startKey]: {
+            key: "0x0000000000000000000000000000000000000000000000000000000000000008",
+            value:
+              "0x0000000000000000000000000000000000000000000000000000000000000002"
+          }
         };
 
         assert.deepStrictEqual(result.storage, storage);

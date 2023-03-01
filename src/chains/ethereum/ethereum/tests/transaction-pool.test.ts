@@ -92,7 +92,13 @@ describe("transaction pool", async () => {
       },
       common,
       blocks: {
-        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
+        latest: {
+          header: {
+            baseFeePerGas: Quantity.from(875000000),
+            gasLimit: Quantity.from(30000000),
+            gasUsed: Quantity.from(0)
+          }
+        }
       }
     };
   });
@@ -147,9 +153,7 @@ describe("transaction pool", async () => {
         }
       },
       common,
-      blocks: {
-        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
-      }
+      blocks: blockchain.blocks
     } as any;
     const txPool = new TransactionPool(options.miner, fakeNonceChain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);

@@ -825,31 +825,52 @@ describe("forking", function () {
           ); //sanity check
         }
       }
+
+      /**
+       *  - Initializes `localProvider` as a fork of `remoteProvider`.
+       *  - Sets `value1` to `localInitialValue` (if it is not null).
+       *  - Creates a snapshot .
+       *  - Iterates `snapshotValues`, setting `value1` to each of those values.
+       *  - Reverts.
+       *  - Ensures that `value1` has reverted to either `localInitialValue` or
+       *    `remoteInitialValue` (if the `localInitialValue` was not provided).
+       */
       async function initializeSnapshotSetRevertThenTest(
-        initialValue: number,
+        remoteInitialValue: number,
+        localInitialValue: number | null,
         snapshotValues: number[]
       ) {
+        const expectedValueAfterRevert =
+          localInitialValue == null ? remoteInitialValue : localInitialValue;
+
         const { localProvider } = await startLocalChain(PORT, {
           disableCache: true
         });
         const subId = await localProvider.send("eth_subscribe", ["newHeads"]);
 
-        // set value1 to {initialValue} (delete it)
-        await set(localProvider, 1, initialValue);
-        const message = await localProvider.once("message");
-        const initialBlockNumber = parseInt(
-          (message.data.result as any).number,
-          16
-        );
-        assert.strictEqual(
-          Quantity.from(
-            await get(localProvider, "value1", initialBlockNumber)
-          ).toNumber(),
-          initialValue
-        ); // sanity check
+        if (localInitialValue !== null) {
+          // set value1 to {initialValue} (note: if the value is `0` it actually deletes it from the state)
+          await set(localProvider, 1, localInitialValue);
+          await localProvider.once("message");
+
+          assert.strictEqual(
+            +(await get(
+              localProvider,
+              "value1",
+              await getBlockNumber(localProvider)
+            )),
+            localInitialValue
+          ); // sanity check
+        }
+
+        const initialBlockNumber = await getBlockNumber(localProvider);
 
         const snapId = await localProvider.send("evm_snapshot");
-        await testPermutations(localProvider, initialValue, snapshotValues);
+        await testPermutations(
+          localProvider,
+          expectedValueAfterRevert,
+          snapshotValues
+        );
         await localProvider.send("evm_revert", [snapId]);
 
         assert.strictEqual(
@@ -858,21 +879,23 @@ describe("forking", function () {
         ); // sanity check
 
         assert.strictEqual(
-          Quantity.from(
-            await get(localProvider, "value1", initialBlockNumber)
-          ).toNumber(),
-          initialValue,
+          +(await get(localProvider, "value1", initialBlockNumber)),
+          expectedValueAfterRevert,
           "value was not reverted to `initialValue` after evm_revert"
         );
 
         // Finally, check all permutations outside of the snapshot/revert to
         // make sure deleted state was properly reverted
-        await testPermutations(localProvider, initialValue, snapshotValues);
+        await testPermutations(
+          localProvider,
+          expectedValueAfterRevert,
+          snapshotValues
+        );
 
         await localProvider.send("eth_unsubscribe", [subId]);
       }
 
-      const initialValues = [0, 1];
+      const initialValues = [null, 0, 1]; // null means to _not_ set an initial value
       // test all permutations of values: 0, 1, 2
       const permutations = [
         [0],
@@ -900,20 +923,30 @@ describe("forking", function () {
               const subId = await remoteProvider.send("eth_subscribe", [
                 "newHeads"
               ]);
-              // set the remoteProvider's value1 initialValue to {remoteInitialValue}
-              await set(remoteProvider, 1, remoteInitialValue);
-              const message = await remoteProvider.once("message");
-              await remoteProvider.send("eth_unsubscribe", [subId]);
-              const blockNumber = parseInt(
-                (message.data.result as any).number,
-                16
+              // set the remoteProvider's value1 initialValue to {remoteInitialValue} (only if not null)
+              if (remoteInitialValue !== null) {
+                await set(remoteProvider, 1, remoteInitialValue);
+                await remoteProvider.once("message");
+                await remoteProvider.send("eth_unsubscribe", [subId]);
+                const blockNumber = await getBlockNumber(remoteProvider);
+                assert.strictEqual(
+                  parseInt(
+                    await get(remoteProvider, "value1", blockNumber),
+                    16
+                  ),
+                  remoteInitialValue
+                ); // sanity check to make sure our initial conditions are correct
+              }
+
+              const blockNumber = await getBlockNumber(remoteProvider);
+              const startValue = await get(
+                remoteProvider,
+                "value1",
+                blockNumber
               );
-              assert.strictEqual(
-                parseInt(await get(remoteProvider, "value1", blockNumber), 16),
-                remoteInitialValue
-              ); // sanity check to make sure our initial conditions are correct
 
               await initializeSnapshotSetRevertThenTest(
+                +startValue,
                 initialValue,
                 permutation
               );

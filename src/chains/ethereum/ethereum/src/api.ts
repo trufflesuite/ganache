@@ -1281,14 +1281,12 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
     const { blocks } = this.#blockchain;
-    const blockNum = await blocks.getNumberFromHash(hash);
-    if (!blockNum) return null;
-
-    const rawBlock = await blocks.getRawByBlockNumber(Quantity.from(blockNum));
-    if (!rawBlock) return null;
-
-    const [, rawTransactions] = decode<GanacheRawBlock>(rawBlock);
-    return Quantity.from(rawTransactions.length);
+    const block = await blocks
+      .getByHash(hash)
+      .catch<Block>(_ => null);
+    if (!block) return null;
+    const transactions = block.getTransactions();
+    return Quantity.from(transactions.length);
   }
 
   /**
@@ -1892,16 +1890,12 @@ export default class EthereumApi implements Api {
 
     const transactionPromise = transactions.get(txHash);
     const receiptPromise = transactionReceipts.get(txHash);
-    const blockPromise = transactionPromise.then(t =>
-      t ? blocks.get(t.blockNumber.toBuffer()) : null
-    );
-    const [transaction, receipt, block] = await Promise.all([
+    const [transaction, receipt] = await Promise.all([
       transactionPromise,
-      receiptPromise,
-      blockPromise
+      receiptPromise
     ]);
     if (transaction) {
-      return receipt.toJSON(block, transaction, common);
+      return receipt.toJSON(transaction, common);
     }
 
     // if we are performing "strict" instamining, then check to see if the
@@ -3161,11 +3155,12 @@ export default class EthereumApi implements Api {
    * console.log(transactionTrace);
    * ```
    */
+  @assertArgLength(1, 2)
   async debug_traceTransaction(
     transactionHash: DATA,
-    options?: Ethereum.TraceTransactionOptions
+    options: Ethereum.TraceTransactionOptions = {}
   ): Promise<Ethereum.TraceTransactionResult<"private">> {
-    return this.#blockchain.traceTransaction(transactionHash, options || {});
+    return this.#blockchain.traceTransaction(transactionHash, options);
   }
 
   // TODO: example doesn't return correct value
@@ -3213,6 +3208,7 @@ export default class EthereumApi implements Api {
    * console.log(storage);
    * ```
    */
+  @assertArgLength(5)
   async debug_storageRangeAt(
     blockHash: DATA,
     transactionIndex: number,
@@ -3220,7 +3216,14 @@ export default class EthereumApi implements Api {
     startKey: DATA,
     maxResult: number
   ): Promise<Ethereum.StorageRangeAtResult<"private">> {
-    return this.#blockchain.storageRangeAt(
+    const blockchain = this.#blockchain;
+    if (blockchain.fallback) {
+      throw new Error(
+        "debug_storageRangeAt is not supported on a forked network. See https://github.com/trufflesuite/ganache/issues/3488 for details."
+      );
+    }
+
+    return blockchain.storageRangeAt(
       blockHash,
       Quantity.toNumber(transactionIndex),
       contractAddress,

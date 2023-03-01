@@ -165,11 +165,11 @@ const ganache = require("ganache");
 
 const options = {};
 const server = ganache.server(options);
-const PORT = 8545;
+const PORT = 0; // 0 means any available port
 server.listen(PORT, async err => {
   if (err) throw err;
 
-  console.log(`ganache listening on port ${PORT}...`);
+  console.log(`ganache listening on port ${server.address().port}...`);
   const provider = server.provider;
   const accounts = await provider.request({
     method: "eth_accounts",
@@ -608,14 +608,14 @@ To pass options to Ganache through Docker simply add the arguments to the end of
 
 ```console
 $ docker run --detach --publish 8545:8545 trufflesuite/ganache:latest --accounts 10 --debug
-                                                                    ^^^^^^^^^^^^^^^^^^^^^
+                                                                      ^^^^^^^^^^^^^^^^^^^^^
 ```
 
 The Docker container adds an environment variable `DOCKER=true`; when this variable is set to `true` (case insensitive), Ganache uses a default hostname IP of `0.0.0.0` instead of the normal default `127.0.0.1`. You can still specify a custom hostname however:
 
 ```console
 $ docker run --detach --publish 8545:8545 trufflesuite/ganache:latest --host XXX.XXX.XXX.XXX
-                                                                    ^^^^^^^^^^^^^^^^^^^^^^
+                                                                      ^^^^^^^^^^^^^^^^^^^^^^
 ```
 
 To build and run the Docker container from source:

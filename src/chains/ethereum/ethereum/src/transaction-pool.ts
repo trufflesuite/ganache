@@ -14,6 +14,7 @@ import {
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
+import { Block } from "@ganache/ethereum-block";
 
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -188,7 +189,10 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       !transaction.effectiveGasPrice &&
       this.#blockchain.common.isActivatedEIP(1559)
     ) {
-      const baseFeePerGas = this.#blockchain.blocks.latest.header.baseFeePerGas;
+      const baseFeePerGas = Block.calcNextBaseFee(
+        this.#blockchain.blocks.latest
+      );
+
       transaction.updateEffectiveGasPrice(baseFeePerGas);
     }
 
