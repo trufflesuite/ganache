@@ -1107,7 +1107,7 @@ export default class EthereumApi implements Api {
    * //  contract Simple {
    * //      uint256 public value;
    * //      constructor() payable {
-   * //          console.log("Called Simple contract constructor. Setting value to 5.");
+   * //          console.log("Called Simple contract constructor. Setting `value` to 5.");
    * //          value = 5;
    * //      }
    * //  }
