@@ -365,7 +365,7 @@ require(["vs/editor/editor.main"], function () {
     codeNode.parentNode.remove();
   };
   function renderNodeAndFriends(codeNode) {
-    if (!codeNode.isConnected) return;
+    if (!codeNode || !codeNode.isConnected) return;
 
     observer.unobserve(codeNode);
     const parent =
