@@ -84,5 +84,12 @@ describe("forking", function () {
       const block = await provider.send("eth_getBlockByNumber", ["0x0", true]);
       assert.deepStrictEqual(block, block0);
     });
+
+    it("should get transaction count by hash from the original chain", async () => {
+      const block = await provider.send("eth_getBlockByNumber", ["0xB443", true]);
+      const blockTransactionCountByHash = await provider.send("eth_getBlockTransactionCountByHash", [block.hash]);
+      assert.deepStrictEqual(block.transactions.length, parseInt(blockTransactionCountByHash));
+    });
+
   });
 });
