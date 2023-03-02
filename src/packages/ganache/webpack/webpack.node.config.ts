@@ -51,6 +51,10 @@ const config: webpack.Configuration = merge({}, base, {
     chunkIds: "total-size"
   },
   externals: [
+    //#region things that are just huge, that we don't want to bundle because of our
+    // CDN bundle-size limitation of 1000MB:
+    "@trufflesuite/uws-js-unofficial",
+    //#endregion
     //#region dependencies that have the potential to compile something at install time
     "@trufflesuite/bigint-buffer",
     "leveldown",
