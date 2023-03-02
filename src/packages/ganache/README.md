@@ -628,7 +628,11 @@ $ git clone https://github.com/trufflesuite/ganache.git && cd ganache
 then:
 
 ```console
-$ docker build --tag trufflesuite/ganache --file ./src/packages/ganache/Dockerfile .
+$ docker build \
+        --build-arg INFURA_KEY=<32-chars-hexadecimal> \
+        --tag trufflesuite/ganache \
+        --file ./src/packages/ganache/Dockerfile \
+    .
 $ docker run --publish 8545:8545 trufflesuite/ganache
 ```
 
