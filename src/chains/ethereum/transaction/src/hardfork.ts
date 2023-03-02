@@ -8,4 +8,5 @@ export type Hardfork =
   | "london"
   | "arrowGlacier"
   | "grayGlacier"
-  | "merge";
+  | "merge"
+  | "shanghai";
