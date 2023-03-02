@@ -116,6 +116,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
+      common: this.common,
       nonce: this.nonce.toBigInt(),
       gasPrice: this.gasPrice.toBigInt(),
       gasLimit: this.gas.toBigInt(),

@@ -143,6 +143,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     return {
       hash: () => BUFFER_32_ZERO,
       nonce: this.nonce.toBigInt(),
+      common: this.common,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas.toBigInt(),
       maxFeePerGas: this.maxFeePerGas.toBigInt(),
       gasLimit: this.gas.toBigInt(),

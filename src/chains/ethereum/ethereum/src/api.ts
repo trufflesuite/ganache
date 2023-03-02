@@ -939,6 +939,7 @@ export default class EthereumApi implements Api {
       }
 
       const block = new RuntimeBlock(
+        blockchain.common,
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
         new Address(parentHeader.miner.toBuffer()),
@@ -1274,9 +1275,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
     const { blocks } = this.#blockchain;
-    const block = await blocks
-      .getByHash(hash)
-      .catch<Block>(_ => null);
+    const block = await blocks.getByHash(hash).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
     return Quantity.from(transactions.length);
@@ -2854,6 +2853,7 @@ export default class EthereumApi implements Api {
     }
 
     const block = new RuntimeBlock(
+      blockchain.common,
       parentHeader.number,
       parentHeader.parentHash,
       blockchain.coinbase,

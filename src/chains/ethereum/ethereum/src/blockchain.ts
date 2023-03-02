@@ -586,6 +586,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
 
     return new RuntimeBlock(
+      this.common,
       Quantity.from(previousNumber + 1n),
       previousBlock.hash(),
       this.coinbase,
@@ -754,6 +755,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       }
       const genesis = new RuntimeBlock(
+        this.common,
         Quantity.from(fallbackBlock.header.number.toBigInt() + 1n),
         fallbackBlock.hash(),
         this.coinbase,
@@ -802,6 +804,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       : undefined;
 
     const genesis = new RuntimeBlock(
+      this.common,
       rawBlockNumber,
       Data.from(BUFFER_32_ZERO),
       this.coinbase,
@@ -1471,6 +1474,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     targetBlock.header.parentHash;
     // Prepare the "next" block with necessary transactions
     const newBlock = new RuntimeBlock(
+      this.common,
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
       Address.from(parentBlock.header.miner.toString()),

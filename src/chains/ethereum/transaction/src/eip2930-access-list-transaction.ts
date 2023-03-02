@@ -139,6 +139,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     return {
       hash: () => BUFFER_32_ZERO,
       nonce: this.nonce.toBigInt(),
+      common: this.common,
       gasPrice: this.gasPrice.toBigInt(),
       gasLimit: this.gas.toBigInt(),
       to: this.to,

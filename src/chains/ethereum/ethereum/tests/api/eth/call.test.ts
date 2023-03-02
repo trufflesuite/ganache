@@ -873,6 +873,7 @@ describe("api", () => {
           const parentHeader = parentBlock.header;
           gas = Quantity.from("0xfffff");
           const block = new RuntimeBlock(
+            blockchain.common,
             parentHeader.number,
             parentHeader.parentHash,
             blockchain.coinbase,

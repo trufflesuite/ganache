@@ -9,6 +9,7 @@ import {
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
+import { Common } from "@ethereumjs/common";
 
 export type BlockHeader = {
   parentHash: Data;
@@ -73,6 +74,7 @@ export function makeHeader(
  */
 export class RuntimeBlock {
   private serializeBaseFeePerGas: boolean = true;
+  public _common: Common;
   public readonly header: {
     parentHash: Buffer;
     difficulty: bigint;
@@ -90,6 +92,7 @@ export class RuntimeBlock {
   };
 
   constructor(
+    common: Common,
     number: Quantity,
     parentHash: Data,
     coinbase: Address,
@@ -101,6 +104,7 @@ export class RuntimeBlock {
     mixHash: Buffer,
     baseFeePerGas: bigint | undefined
   ) {
+    this._common = common;
     const coinbaseBuffer = coinbase.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
