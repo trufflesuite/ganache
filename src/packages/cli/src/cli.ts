@@ -55,17 +55,6 @@ if (argv.action === "start") {
   const flavor = argv.flavor;
   const cliSettings = argv.server;
 
-  const loggingOptions = (argv as any).logging;
-  let closeLogHandle = null;
-  if (loggingOptions?.file) {
-    const { log, close } = createLogger({
-      baseLog: console.log,
-      file: loggingOptions.file
-    });
-    loggingOptions.logger = { log };
-    closeLogHandle = close;
-  }
-
   console.log(detailedVersion);
 
   let server: ReturnType<typeof Ganache.server>;
@@ -100,12 +89,8 @@ if (argv.action === "start") {
           return;
         case ServerStatus.open:
           console.log("Shutting down…");
+          await server.close();
 
-          if (closeLogHandle) {
-            await Promise.all([server.close(), closeLogHandle()]);
-          } else {
-            await server.close();
-          }
           console.log("Server has been shut down");
           break;
       }

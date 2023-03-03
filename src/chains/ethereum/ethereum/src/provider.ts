@@ -432,6 +432,13 @@ export class EthereumProvider
     this.#executor.stop();
     await this.#blockchain.stop();
 
+    // only call close on the logger if it's an instance of AsyncronousLogger
+    if ("getCompletionHandle" in this.#options.logging.logger) {
+      //todo: maybe need to stop the logger from accepting new logs. This should work as is, because it's only await _current_ logs to complete.
+      await this.#options.logging.logger.getCompletionHandle();
+      await this.#options.logging.logger.close();
+    }
+
     this.#executor.end();
     this.emit("disconnect");
   };

@@ -2,12 +2,17 @@ import assert from "assert";
 import { EthereumOptionsConfig } from "../src";
 import sinon from "sinon";
 import { resolve } from "path";
+import { promises } from "fs";
+const unlink = promises.unlink;
+import { closeSync, openSync } from "fs";
+import { URL } from "url";
 
 describe("EthereumOptionsConfig", () => {
   describe("logging", () => {
     // resolve absolute path of current working directory, which is clearly an
     // invalid file path (because it's a directory).
     const invalidFilePath = resolve("");
+    const validFilePath = resolve("./tests/test-file.log");
 
     describe("options", () => {
       let spy: any;
@@ -19,30 +24,107 @@ describe("EthereumOptionsConfig", () => {
         spy.restore();
       });
 
-      it("logs via console.log by default", () => {
-        const message = "message";
-        const options = EthereumOptionsConfig.normalize({});
-        options.logging.logger.log(message);
-        assert.strictEqual(spy.withArgs(message).callCount, 1);
-      });
-
-      it("disables the logger when the quiet flag is used", () => {
-        const message = "message";
-        const options = EthereumOptionsConfig.normalize({
-          logging: { quiet: true }
+      describe("logger", () => {
+        it("uses console.log by default", () => {
+          const message = "message";
+          const options = EthereumOptionsConfig.normalize({});
+          options.logging.logger.log(message);
+          assert.strictEqual(spy.withArgs(message).callCount, 1);
         });
-        options.logging.logger.log(message);
-        assert.strictEqual(spy.withArgs(message).callCount, 0);
-      });
 
-      it("fails if an invalid file path is provided", () => {
-        const message = `Failed to write logs to ${invalidFilePath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
-
-        assert.throws(() => {
-          EthereumOptionsConfig.normalize({
-            logging: { file: invalidFilePath }
+        it("disables the logger when the quiet flag is used", () => {
+          const message = "message";
+          const options = EthereumOptionsConfig.normalize({
+            logging: { quiet: true }
           });
-        }, new Error(message));
+          options.logging.logger.log(message);
+          assert.strictEqual(spy.withArgs(message).callCount, 0);
+        });
+
+        it("resolves a file path to descriptor", async () => {
+          const options = EthereumOptionsConfig.normalize({
+            logging: { file: validFilePath }
+          });
+          try {
+            assert(typeof options.logging.file === "number");
+            assert.doesNotThrow(() =>
+              closeSync(options.logging.file as number)
+            );
+          } finally {
+            await unlink(validFilePath);
+          }
+        });
+
+        it("resolves a file path as Buffer to descriptor", async () => {
+          const options = EthereumOptionsConfig.normalize({
+            logging: { file: Buffer.from(validFilePath, "utf8") }
+          });
+          try {
+            assert(typeof options.logging.file === "number");
+            assert.doesNotThrow(() =>
+              closeSync(options.logging.file as number)
+            );
+          } finally {
+            await unlink(validFilePath);
+          }
+        });
+
+        it("resolves a file URL as Buffer to descriptor", async () => {
+          const options = EthereumOptionsConfig.normalize({
+            logging: { file: new URL(`file://${validFilePath}`) }
+          });
+          try {
+            assert(typeof options.logging.file === "number");
+            assert.doesNotThrow(() =>
+              closeSync(options.logging.file as number)
+            );
+          } finally {
+            await unlink(validFilePath);
+          }
+        });
+
+        it("uses an existing file handle if passed in", async () => {
+          const fd = openSync(validFilePath, "a");
+
+          const options = EthereumOptionsConfig.normalize({
+            logging: { file: fd }
+          });
+
+          try {
+            assert.strictEqual(options.logging.file, fd);
+            assert(typeof options.logging.file === "number");
+            assert.doesNotThrow(() =>
+              closeSync(options.logging.file as number)
+            );
+          } finally {
+            await unlink(validFilePath);
+          }
+        });
+
+        it("fails if an invalid file path is provided", () => {
+          const message = `Failed to open log file ${invalidFilePath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
+
+          assert.throws(() => {
+            EthereumOptionsConfig.normalize({
+              logging: { file: invalidFilePath }
+            });
+          }, new Error(message));
+        });
+
+        it("fails if both `logger` and `file` is provided", async () => {
+          try {
+            assert.throws(() =>
+              EthereumOptionsConfig.normalize({
+                logging: {
+                  logger: { log: (message, ...params) => {} },
+                  file: validFilePath
+                }
+              })
+            );
+          } finally {
+            await unlink(validFilePath);
+          }
+        });
       });
     });
   });

@@ -1,12 +1,7 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-import { openSync, closeSync } from "fs";
-
-export type LogFunc = (message?: any, ...optionalParams: any[]) => void;
-
-type Logger = {
-  log: LogFunc;
-};
+import { openSync, PathLike } from "fs";
+import { Logger, createLogger } from "@ganache/utils";
 
 export type LoggingConfig = {
   options: {
@@ -80,10 +75,10 @@ export type LoggingConfig = {
 
     /**
      * If you set this option, Ganache will write logs to a file located at the
-     * specified path.
+     * specified path. You can provide a path, or numerical file descriptor.
      */
     readonly file: {
-      type: string;
+      type: number | PathLike;
     };
   };
 };
@@ -103,19 +98,6 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliAliases: ["q", "quiet"],
     cliType: "boolean"
   },
-  logger: {
-    normalize,
-    cliDescription:
-      "An object, like `console`, that implements a `log` function.",
-    disableInCLI: true,
-    // disable the default logger if `quiet` is `true`
-    default: config => {
-      return {
-        log: config.quiet ? () => {} : console.log
-      };
-    },
-    legacyName: "logger"
-  },
   verbose: {
     normalize,
     cliDescription: "Set to `true` to log detailed RPC requests.",
@@ -125,21 +107,33 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliType: "boolean"
   },
   file: {
-    normalize: rawInput => {
-      // this will throw if the file is not writable, and creates the log file for later appending
-      try {
-        const descriptor = openSync(rawInput, "w");
-        closeSync(descriptor);
-      } catch (err) {
-        throw new Error(
-          `Failed to write logs to ${rawInput}. Please check if the file path is valid and if the process has write permissions to the directory.`
-        );
+    normalize: (raw: number | PathLike) => {
+      let descriptor: number;
+      if (typeof raw === "number") {
+        descriptor = raw as number;
+      } else {
+        try {
+          descriptor = openSync(raw as PathLike, "a");
+        } catch (err) {
+          throw new Error(
+            `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.`
+          );
+        }
       }
-
-      return rawInput;
+      return descriptor;
     },
+
     cliDescription:
       "If set, Ganache will write logs to a file located at the specified path.",
     cliType: "string"
+  },
+  logger: {
+    normalize,
+    cliDescription:
+      "An object, like `console`, that implements a `log` function.",
+    disableInCLI: true,
+    // disable the default logger if `quiet` is `true`
+    default: raw => createLogger(raw),
+    legacyName: "logger"
   }
 };
