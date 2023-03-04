@@ -16,7 +16,9 @@ import {
   StructLog,
   TraceTransactionOptions,
   EthereumRawAccount,
-  TraceTransactionResult
+  TraceTransactionResult,
+  QUANTITY,
+  Tag
 } from "@ganache/ethereum-utils";
 import type { InterpreterStep } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
@@ -49,7 +51,10 @@ import {
   calculateIntrinsicGas,
   InternalTransactionReceipt,
   VmTransaction,
-  TypedTransaction
+  TypedTransaction,
+  LegacyTransaction,
+  EIP2930AccessListTransaction,
+  EIP1559FeeMarketTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import {
@@ -77,6 +82,7 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
+import { Ethereum } from "./api-types";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -576,6 +582,40 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   };
 
   coinbase: Address;
+
+  gasEstimateBlock = async (
+    tx:
+      | LegacyTransaction
+      | EIP2930AccessListTransaction
+      | EIP1559FeeMarketTransaction,
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
+  ) => {
+    const previousBlock = await this.blocks.get(blockNumber);
+    const previousHeader = previousBlock.header;
+    const options = this.#options;
+
+    let timestamp = previousHeader.timestamp;
+    if (blockNumber === "latest")
+      timestamp = Quantity.from(this.#adjustedTime(previousHeader.timestamp));
+
+    let gas = tx.gas;
+    if (gas.isNull())
+      // eth_estimateGas isn't subject to regular transaction gas limits
+      gas = options.miner.callGasLimit;
+
+    return new RuntimeBlock(
+      Quantity.from((previousHeader.number.toBigInt() || 0n) + 1n),
+      previousHeader.parentHash,
+      new Address(previousHeader.miner.toBuffer()),
+      gas,
+      previousHeader.gasUsed,
+      timestamp,
+      this.isPostMerge ? Quantity.Zero : options.miner.difficulty,
+      previousHeader.totalDifficulty,
+      this.getMixHash(previousHeader.parentHash.toBuffer()),
+      0n // no baseFeePerGas for estimates
+    );
+  };
 
   #readyNextBlock = (previousBlock: Block, timestamp?: number) => {
     const previousHeader = previousBlock.header;
