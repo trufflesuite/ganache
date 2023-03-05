@@ -1,14 +1,12 @@
-import { appendFile, close, PathLike } from "fs";
+import { appendFile } from "fs";
 import { promisify, format } from "util";
 const appendFilePromise = promisify(appendFile);
-const closePromise = promisify(close);
 export type LogFunc = (message?: any, ...optionalParams: any[]) => void;
 
 type SyncronousLogger = {
   log: LogFunc;
 };
 type AsyncronousLogger = SyncronousLogger & {
-  close: () => Promise<void>;
   getCompletionHandle: () => Promise<void>;
 };
 
@@ -18,20 +16,20 @@ export function createLogger(config: {
   file: number;
   quiet?: boolean;
   verbose?: boolean;
-  baseLog?: LogFunc;
+  baseLog: LogFunc;
 }): AsyncronousLogger;
 export function createLogger(config: {
   quiet?: boolean;
   verbose?: boolean;
-  baseLog?: LogFunc;
+  baseLog: LogFunc;
 }): SyncronousLogger;
 export function createLogger(config: {
   quiet?: boolean;
   file?: number;
   verbose?: boolean;
-  baseLog?: LogFunc;
+  baseLog: LogFunc;
 }): Logger {
-  const baseLog = config.quiet ? () => {} : config.baseLog || console.log;
+  const baseLog = config.quiet ? () => {} : config.baseLog;
   if (config.file === undefined) {
     return {
       log: baseLog
@@ -66,7 +64,6 @@ export function createLogger(config: {
     };
     return {
       log,
-      close: () => closePromise(descriptor),
       getCompletionHandle: () => writing
     };
   }

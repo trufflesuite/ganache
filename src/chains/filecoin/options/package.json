@@ -66,6 +66,7 @@
     "webpack-cli": "4.9.1"
   },
   "dependencies": {
-    "keccak": "3.0.2"
+    "keccak": "3.0.2",
+    "@ganache/utils": "0.7.0"
   }
 }

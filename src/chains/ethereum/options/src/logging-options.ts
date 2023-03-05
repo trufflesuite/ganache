@@ -81,6 +81,7 @@ export type LoggingConfig = {
       type: number | PathLike;
     };
   };
+  exclusiveGroups: [["logger", "file"]];
 };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
@@ -107,7 +108,9 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliType: "boolean"
   },
   file: {
-    normalize: (raw: number | PathLike) => {
+    // always normalizes to a file descriptor
+    // todo: it would be nice if the accessor for file was a number type
+    normalize: (raw: number | PathLike): number => {
       let descriptor: number;
       if (typeof raw === "number") {
         descriptor = raw as number;
@@ -125,7 +128,8 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
 
     cliDescription:
       "If set, Ganache will write logs to a file located at the specified path.",
-    cliType: "string"
+    cliType: "string",
+    conflicts: ["logger"]
   },
   logger: {
     normalize,
@@ -133,7 +137,8 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
     // disable the default logger if `quiet` is `true`
-    default: raw => createLogger(raw),
-    legacyName: "logger"
+    default: raw => createLogger({ ...raw, baseLog: console.log }),
+    legacyName: "logger",
+    conflicts: ["file"]
   }
 };

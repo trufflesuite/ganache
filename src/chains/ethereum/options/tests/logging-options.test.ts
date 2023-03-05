@@ -40,7 +40,9 @@ describe("EthereumOptionsConfig", () => {
           options.logging.logger.log(message);
           assert.strictEqual(spy.withArgs(message).callCount, 0);
         });
+      });
 
+      describe("file", () => {
         it("resolves a file path to descriptor", async () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { file: validFilePath }
@@ -83,7 +85,7 @@ describe("EthereumOptionsConfig", () => {
           }
         });
 
-        it("uses an existing file handle if passed in", async () => {
+        it("uses an existing descriptor if passed in", async () => {
           const fd = openSync(validFilePath, "a");
 
           const options = EthereumOptionsConfig.normalize({
@@ -104,26 +106,28 @@ describe("EthereumOptionsConfig", () => {
         it("fails if an invalid file path is provided", () => {
           const message = `Failed to open log file ${invalidFilePath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
 
-          assert.throws(() => {
-            EthereumOptionsConfig.normalize({
-              logging: { file: invalidFilePath }
-            });
-          }, new Error(message));
+          assert.throws(
+            () => {
+              EthereumOptionsConfig.normalize({
+                logging: { file: invalidFilePath }
+              });
+            },
+            { message }
+          );
         });
 
         it("fails if both `logger` and `file` is provided", async () => {
-          try {
-            assert.throws(() =>
-              EthereumOptionsConfig.normalize({
-                logging: {
-                  logger: { log: (message, ...params) => {} },
-                  file: validFilePath
-                }
-              })
-            );
-          } finally {
-            await unlink(validFilePath);
-          }
+          // this needs to be of type any, because it's an invalid config (both logger and file specified)
+          const config = {
+            logging: {
+              logger: { log: (message, ...params) => {} },
+              file: 1
+            }
+          } as any;
+
+          assert.throws(() => EthereumOptionsConfig.normalize(config), {
+            message: `Values for both "logging.logger" and "logging.file" cannot be specified; they are mutually exclusive.`
+          });
         });
       });
     });

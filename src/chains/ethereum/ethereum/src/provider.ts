@@ -35,7 +35,7 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-
+import { closeSync } from "fs";
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
 function parseCoinbase(
@@ -434,9 +434,10 @@ export class EthereumProvider
 
     // only call close on the logger if it's an instance of AsyncronousLogger
     if ("getCompletionHandle" in this.#options.logging.logger) {
-      //todo: maybe need to stop the logger from accepting new logs. This should work as is, because it's only await _current_ logs to complete.
+      // todo: maybe need to stop the logger from accepting new logs. This should work as is, because we wait for
+      // any logs created before we call getCompletionHandle().
       await this.#options.logging.logger.getCompletionHandle();
-      await this.#options.logging.logger.close();
+      closeSync(+this.#options.logging.file);
     }
 
     this.#executor.end();
