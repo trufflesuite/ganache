@@ -18,6 +18,7 @@ contract EthCall {
 
     function getCoinbase() public view virtual returns (uint256) {
         address cb = block.coinbase;
+        require(cb != address(0), "coinbase is zero");
         return gasleft();
     }
 }
