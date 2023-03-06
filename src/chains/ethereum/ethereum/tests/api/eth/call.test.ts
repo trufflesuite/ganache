@@ -250,7 +250,11 @@ describe("api", () => {
           // shanghai as it is treated as a "warm" address nt
           assert(
             BigInt(preShanghaiGasLeft) > BigInt(postShanghaiGasLeft),
-            "postShanghaiGasLeft should be larger than preShanghaiGasLeft"
+            `postShanghaiGasLeft ${BigInt(
+              postShanghaiGasLeft
+            )} should be smaller than preShanghaiGasLeft ${BigInt(
+              preShanghaiGasLeft
+            )}`
           );
         }).timeout(0);
       });
