@@ -1,5 +1,5 @@
 import assert from "assert";
-import { EthereumOptionsConfig } from "../src";
+import { FilecoinOptionsConfig } from "../src";
 import sinon from "sinon";
 import { resolve } from "path";
 import { promises } from "fs";
@@ -7,7 +7,7 @@ const unlink = promises.unlink;
 import { closeSync, openSync } from "fs";
 import { URL } from "url";
 
-describe("EthereumOptionsConfig", () => {
+describe("FilecoinOptionsConfig", () => {
   describe("logging", () => {
     // resolve absolute path of current working directory, which is clearly an
     // invalid file path (because it's a directory).
@@ -27,41 +27,15 @@ describe("EthereumOptionsConfig", () => {
       describe("logger", () => {
         it("uses console.log by default", () => {
           const message = "message";
-          const options = EthereumOptionsConfig.normalize({});
+          const options = FilecoinOptionsConfig.normalize({});
           options.logging.logger.log(message);
           assert.strictEqual(spy.withArgs(message).callCount, 1);
-        });
-
-        it("disables the logger when the quiet flag is used", () => {
-          const message = "message";
-          const options = EthereumOptionsConfig.normalize({
-            logging: { quiet: true }
-          });
-          options.logging.logger.log(message);
-          assert.strictEqual(spy.withArgs(message).callCount, 0);
-        });
-
-        it("calls the provided logger, even when quiet flag is used", () => {
-          let callCount = 0;
-
-          const options = EthereumOptionsConfig.normalize({
-            logging: {
-              quiet: true,
-              logger: {
-                log: (message: any, ...params: any[]) => callCount++
-              }
-            }
-          });
-
-          options.logging.logger.log("message");
-
-          assert.strictEqual(callCount, 1);
         });
       });
 
       describe("file", () => {
         it("resolves a file path to descriptor", async () => {
-          const options = EthereumOptionsConfig.normalize({
+          const options = FilecoinOptionsConfig.normalize({
             logging: { file: validFilePath }
           });
           try {
@@ -75,7 +49,7 @@ describe("EthereumOptionsConfig", () => {
         });
 
         it("resolves a file path as Buffer to descriptor", async () => {
-          const options = EthereumOptionsConfig.normalize({
+          const options = FilecoinOptionsConfig.normalize({
             logging: { file: Buffer.from(validFilePath, "utf8") }
           });
           try {
@@ -89,7 +63,7 @@ describe("EthereumOptionsConfig", () => {
         });
 
         it("resolves a file URL as Buffer to descriptor", async () => {
-          const options = EthereumOptionsConfig.normalize({
+          const options = FilecoinOptionsConfig.normalize({
             logging: { file: new URL(`file://${validFilePath}`) }
           });
           try {
@@ -105,7 +79,7 @@ describe("EthereumOptionsConfig", () => {
         it("uses an existing descriptor if passed in", async () => {
           const fd = openSync(validFilePath, "a");
 
-          const options = EthereumOptionsConfig.normalize({
+          const options = FilecoinOptionsConfig.normalize({
             logging: { file: fd }
           });
 
@@ -125,7 +99,7 @@ describe("EthereumOptionsConfig", () => {
 
           assert.throws(
             () => {
-              EthereumOptionsConfig.normalize({
+              FilecoinOptionsConfig.normalize({
                 logging: { file: invalidFilePath }
               });
             },
@@ -143,7 +117,7 @@ describe("EthereumOptionsConfig", () => {
           const descriptor = openSync(validFilePath, "a");
 
           try {
-            const options = EthereumOptionsConfig.normalize({
+            const options = FilecoinOptionsConfig.normalize({
               logging: {
                 logger,
                 file: descriptor

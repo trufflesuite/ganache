@@ -81,7 +81,6 @@ export type LoggingConfig = {
       type: number | PathLike;
     };
   };
-  exclusiveGroups: [["logger", "file"]];
 };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
@@ -128,17 +127,18 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
 
     cliDescription:
       "If set, Ganache will write logs to a file located at the specified path.",
-    cliType: "string",
-    conflicts: ["logger"]
+    cliType: "string"
   },
   logger: {
-    normalize,
+    normalize: raw =>
+      createLogger({
+        ...raw,
+        baseLog: (message: any, ...params: any[]) => raw.log(message, params)
+      }),
     cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
-    // disable the default logger if `quiet` is `true`
-    default: raw => createLogger({ ...raw, baseLog: console.log }),
-    legacyName: "logger",
-    conflicts: ["file"]
+    default: config => (config.quiet ? { log: () => {} } : console),
+    legacyName: "logger"
   }
 };

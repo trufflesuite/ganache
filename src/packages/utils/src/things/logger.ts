@@ -14,30 +14,21 @@ export type Logger = SyncronousLogger | AsyncronousLogger;
 
 export function createLogger(config: {
   file: number;
-  quiet?: boolean;
-  verbose?: boolean;
   baseLog: LogFunc;
 }): AsyncronousLogger;
+export function createLogger(config: { baseLog: LogFunc }): SyncronousLogger;
 export function createLogger(config: {
-  quiet?: boolean;
-  verbose?: boolean;
-  baseLog: LogFunc;
-}): SyncronousLogger;
-export function createLogger(config: {
-  quiet?: boolean;
   file?: number;
-  verbose?: boolean;
   baseLog: LogFunc;
 }): Logger {
-  const baseLog = config.quiet ? () => {} : config.baseLog;
   if (config.file === undefined) {
     return {
-      log: baseLog
+      log: config.baseLog
     };
   } else {
     if (typeof config.file !== "number") {
       throw new Error(
-        `We didn't normalize the config.file to a descriptor correctly. Got ${config.file}.`
+        "`config.file` was not correctly noramlized to a file descriptor. This should not happen."
       );
     }
     const descriptor = config.file as number;
@@ -51,7 +42,7 @@ export function createLogger(config: {
 
     const log = (message: any, ...optionalParams: any[]) => {
       // we are logging to a file, but we still need to writing to console
-      baseLog(message, ...optionalParams);
+      config.baseLog(message, ...optionalParams);
 
       const formattedMessage: string = format(message, ...optionalParams);
 

@@ -36,7 +36,9 @@ export type LoggingConfig = {
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   file: {
-    normalize: (raw: number | PathLike) => {
+    // always normalizes to a file descriptor
+    // todo: it would be nice if the accessor for file was a number type
+    normalize: (raw: number | PathLike): number => {
       let descriptor: number;
       if (typeof raw === "number") {
         descriptor = raw as number;
@@ -57,12 +59,14 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliType: "string"
   },
   logger: {
-    normalize,
+    normalize: raw =>
+      createLogger({
+        ...raw,
+        baseLog: (message: any, ...params: any[]) => raw.log(message, params)
+      }),
     cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
-    //todo: why is this type conversion required here but not in Ethereum options?
-    default: raw =>
-      createLogger({ ...raw, file: +raw.file, baseLog: console.log })
+    default: config => console
   }
 };

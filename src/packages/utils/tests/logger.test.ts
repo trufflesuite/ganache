@@ -26,7 +26,7 @@ describe("createLogger()", () => {
 
   const message = "test message";
 
-  describe("createLogger()", () => {
+  describe("log()", () => {
     it("should create a baseLog() logger", () => {
       const { baseLog, calls } = createBaseLogger();
       const { log } = createLogger({ baseLog });
@@ -101,73 +101,6 @@ describe("createLogger()", () => {
         closeSync(descriptor);
         await unlink(path);
       }
-
-      const logLines = fileContents.split("\n");
-
-      // 4, because there's a \n at the end of each line
-      assert.strictEqual(logLines.length, 4);
-      assert.strictEqual(logLines[3], "");
-
-      logLines.slice(0, 3).forEach((logLine, lineNumber) => {
-        const timestampPart = logLine.slice(0, 24);
-        const messagePart = logLine.slice(25);
-        const delimiter = logLine[24];
-
-        assert(timestampRegex.test(timestampPart), "Unexpected timestamp.");
-        assert.strictEqual(delimiter, " ", "Unexpected delimiter.");
-        assert.strictEqual(
-          messagePart,
-          `${message} ${lineNumber}`,
-          "Unexpected message."
-        );
-      });
-    });
-
-    it("should not call baseLog() when `quiet`", async () => {
-      const { baseLog, calls } = createBaseLogger();
-
-      const { log } = createLogger({
-        baseLog,
-        quiet: true
-      });
-
-      log(message);
-
-      assert.strictEqual(
-        calls.length,
-        0,
-        "Expected baselogger to not have been called when `quiet` is specified"
-      );
-    });
-
-    it("should write to the file, but not call baseLog() when `quiet`", async () => {
-      const { descriptor, path } = getFileDescriptor("quiet-logger");
-      const { baseLog, calls } = createBaseLogger();
-
-      const { log, getCompletionHandle } = createLogger({
-        file: descriptor,
-        baseLog,
-        quiet: true
-      });
-
-      let fileContents: string;
-      try {
-        log(`${message} 0`);
-        log(`${message} 1`);
-        log(`${message} 2`);
-        await getCompletionHandle();
-
-        fileContents = await readFile(path, "utf8");
-      } finally {
-        closeSync(descriptor);
-        await unlink(path);
-      }
-
-      assert.strictEqual(
-        calls.length,
-        0,
-        "Expected baselogger to not have been called when `quiet` is specified"
-      );
 
       const logLines = fileContents.split("\n");
 
