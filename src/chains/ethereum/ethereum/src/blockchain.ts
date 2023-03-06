@@ -1162,6 +1162,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         warmPrecompiles(eei);
         eei.addWarmedAddress(caller);
         if (to) eei.addWarmedAddress(to.buf);
+
+        // shanghai hardfork warm coinbase address
+        if (common.isActivatedEIP(3651) === true) {
+          eei.addWarmedAddress(transaction.block.header.coinbase.buf);
+        }
       }
 
       // If there are any overrides requested for eth_call, apply
@@ -1434,6 +1439,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionEventContext
     });
     await vm.runTx({
+      skipHardForkValidation: true,
       tx: transaction as any,
       block: newBlock as any
     });
