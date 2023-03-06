@@ -205,7 +205,7 @@ describe("api", () => {
           });
         });
 
-        it.only("warms coinbase when shanghai is active", async () => {
+        it("warms coinbase when shanghai is active", async () => {
           // eth_call uses evm.runCall which doesn't warm addreses, so we handle it
           // ourselves
 
