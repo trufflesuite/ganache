@@ -204,6 +204,55 @@ describe("api", () => {
             data: revertString
           });
         });
+
+        it.only("warms coinbase when shanghai is active", async () => {
+          // eth_call uses evm.runCall which doesn't warm addreses, so we handle it
+          // ourselves
+
+          const preShanghaiProvider = await getProvider({
+            wallet: { deterministic: true },
+            chain: { hardfork: "merge" }
+          });
+          const [from] = await preShanghaiProvider.send("eth_accounts");
+          const preShanghaiContractAddress = await deployContract(
+            preShanghaiProvider,
+            from,
+            contract.code
+          );
+          const tx = {
+            from,
+            to: preShanghaiContractAddress,
+            data: "0xd1a82a9d", // getCoinbase, which actually returns gasleft after reading the coinbase address
+            gasLimit: "0xfffffff"
+          };
+          const preShanghaiGasLeft = await preShanghaiProvider.send(
+            "eth_call",
+            [tx, "latest"]
+          );
+
+          const postShanghaiProvider = await getProvider({
+            wallet: { deterministic: true },
+            chain: { hardfork: "shanghai" }
+          });
+          const postShanghaiContractAddress = await deployContract(
+            postShanghaiProvider,
+            from,
+            contract.code
+          );
+          tx.to = postShanghaiContractAddress;
+
+          const postShanghaiGasLeft = await postShanghaiProvider.send(
+            "eth_call",
+            [tx, "latest"]
+          );
+
+          // reading the coinbase address from the block is cheaper after
+          // shanghai as it is treated as a "warm" address nt
+          assert(
+            BigInt(preShanghaiGasLeft) > BigInt(postShanghaiGasLeft),
+            "postShanghaiGasLeft should be larger than preShanghaiGasLeft"
+          );
+        }).timeout(0);
       });
 
       describe("vm state overrides", () => {
