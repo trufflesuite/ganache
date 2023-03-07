@@ -264,7 +264,7 @@ describe("api", () => {
               preShanghaiGasLeft
             )}`
           );
-        }).timeout(0);
+        });
       });
 
       describe("vm state overrides", () => {
