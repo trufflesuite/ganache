@@ -211,7 +211,11 @@ describe("api", () => {
 
           const preShanghaiProvider = await getProvider({
             wallet: { deterministic: true },
-            chain: { hardfork: "merge" }
+            chain: { hardfork: "merge" },
+            miner: {
+              coinbase:
+                "0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B" /*a random address*/
+            }
           });
           const [from] = await preShanghaiProvider.send("eth_accounts");
           const preShanghaiContractAddress = await deployContract(
@@ -222,8 +226,8 @@ describe("api", () => {
           const tx = {
             from,
             to: preShanghaiContractAddress,
-            data: "0xd1a82a9d", // getCoinbase, which actually returns gasleft after reading the coinbase address
-            gasLimit: "0xfffffff"
+            data: "0xd1a82a9d", // getCoinbase, which actually returns gasleft after using the coinbase address
+            gasLimit: "0xffffff"
           };
           const preShanghaiGasLeft = await preShanghaiProvider.send(
             "eth_call",
@@ -232,7 +236,11 @@ describe("api", () => {
 
           const postShanghaiProvider = await getProvider({
             wallet: { deterministic: true },
-            chain: { hardfork: "shanghai" }
+            chain: { hardfork: "shanghai" },
+            miner: {
+              coinbase:
+                "0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B" /*a random address*/
+            }
           });
           const postShanghaiContractAddress = await deployContract(
             postShanghaiProvider,
@@ -249,10 +257,10 @@ describe("api", () => {
           // reading the coinbase address from the block is cheaper after
           // shanghai as it is treated as a "warm" address nt
           assert(
-            BigInt(preShanghaiGasLeft) > BigInt(postShanghaiGasLeft),
+            BigInt(preShanghaiGasLeft) < BigInt(postShanghaiGasLeft),
             `postShanghaiGasLeft ${BigInt(
               postShanghaiGasLeft
-            )} should be smaller than preShanghaiGasLeft ${BigInt(
+            )} should be greater than preShanghaiGasLeft ${BigInt(
               preShanghaiGasLeft
             )}`
           );
