@@ -125,7 +125,7 @@ describe("FilecoinOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
-            assert.deepStrictEqual(calls, [["message", ["param1", "param2"]]]);
+            assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
           } finally {
             await unlink(validFilePath);
           }

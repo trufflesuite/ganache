@@ -14,17 +14,15 @@ export type Logger = SyncronousLogger | AsyncronousLogger;
 
 export function createLogger(config: {
   file: number;
-  baseLog: LogFunc;
+  baseLogger: Logger;
 }): AsyncronousLogger;
-export function createLogger(config: { baseLog: LogFunc }): SyncronousLogger;
+export function createLogger(config: { baseLogger: Logger }): SyncronousLogger;
 export function createLogger(config: {
   file?: number;
-  baseLog: LogFunc;
+  baseLogger: Logger;
 }): Logger {
   if (config.file === undefined) {
-    return {
-      log: config.baseLog
-    };
+    return config.baseLogger;
   } else {
     if (typeof config.file !== "number") {
       throw new Error(
@@ -42,7 +40,7 @@ export function createLogger(config: {
 
     const log = (message: any, ...optionalParams: any[]) => {
       // we are logging to a file, but we still need to writing to console
-      config.baseLog(message, ...optionalParams);
+      config.baseLogger.log(message, ...optionalParams);
 
       const formattedMessage: string = format(message, ...optionalParams);
 

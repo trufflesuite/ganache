@@ -14,11 +14,13 @@ const getFileDescriptor = (slug: string) => {
 describe("createLogger()", () => {
   const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
 
-  const createBaseLogger = () => {
+  const createbaseLoggerger = () => {
     const calls: any[][] = [];
     return {
-      baseLog: (message, ...params) => {
-        calls.push([message, ...params]);
+      baseLogger: {
+        log: (message, ...params) => {
+          calls.push([message, ...params]);
+        }
       },
       calls
     };
@@ -27,34 +29,34 @@ describe("createLogger()", () => {
   const message = "test message";
 
   describe("log()", () => {
-    it("should create a baseLog() logger", () => {
-      const { baseLog, calls } = createBaseLogger();
-      const { log } = createLogger({ baseLog });
+    it("should create a baseLogger() logger", () => {
+      const { baseLogger, calls } = createbaseLoggerger();
+      const { log } = createLogger({ baseLogger });
 
       log(message);
 
       assert.strictEqual(
         calls.length,
         1,
-        "baseLog() was called unexpected number of times."
+        "baseLogger() was called unexpected number of times."
       );
 
-      const baseLogArgs = calls[0];
+      const baseLoggerArgs = calls[0];
 
       assert.deepStrictEqual(
-        baseLogArgs,
+        baseLoggerArgs,
         [message],
-        "baseLog() called with unexpected arguments."
+        "baseLogger() called with unexpected arguments."
       );
     });
 
-    it("should still call baseLog() when a file is specified", async () => {
+    it("should still call baseLogger() when a file is specified", async () => {
       const { descriptor, path } = getFileDescriptor("write-to-console");
-      const { baseLog, calls } = createBaseLogger();
+      const { baseLogger, calls } = createbaseLoggerger();
 
       const { log, getCompletionHandle } = createLogger({
         file: descriptor,
-        baseLog
+        baseLogger
       });
 
       try {
@@ -68,7 +70,7 @@ describe("createLogger()", () => {
       assert.strictEqual(
         calls.length,
         1,
-        "baseLog() was called unexpected number of times."
+        "baseLogger() was called unexpected number of times."
       );
 
       const args = calls[0];
@@ -76,17 +78,17 @@ describe("createLogger()", () => {
       assert.deepStrictEqual(
         args,
         [message],
-        "baseLog() called with unexpected arguments."
+        "baseLogger() called with unexpected arguments."
       );
     });
 
     it("should write to the file provided", async () => {
       const { descriptor, path } = getFileDescriptor("write-to-file-provided");
-      const { baseLog } = createBaseLogger();
+      const { baseLogger } = createbaseLoggerger();
 
       const { log, getCompletionHandle } = createLogger({
         file: descriptor,
-        baseLog
+        baseLogger
       });
 
       let fileContents: string;
@@ -125,11 +127,11 @@ describe("createLogger()", () => {
 
     it("should timestamp each line on multi-line log messages", async () => {
       const { descriptor, path } = getFileDescriptor("timestamp-each-line");
-      const { baseLog } = createBaseLogger();
+      const { baseLogger } = createbaseLoggerger();
 
       const { log, getCompletionHandle } = createLogger({
         file: descriptor,
-        baseLog
+        baseLogger
       });
 
       const expectedLines = ["multi", "line", "message"];
@@ -165,11 +167,11 @@ describe("createLogger()", () => {
     it("should throw if the file descriptor is invalid", async () => {
       // unlikely that this will be a valid file descriptor
       const descriptor = 1234567890;
-      const { baseLog } = createBaseLogger();
+      const { baseLogger } = createbaseLoggerger();
 
       const { log, getCompletionHandle } = createLogger({
         file: descriptor,
-        baseLog
+        baseLogger
       });
 
       log("descriptor is invalid");

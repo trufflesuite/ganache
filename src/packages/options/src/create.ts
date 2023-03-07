@@ -6,11 +6,9 @@ import { hasOwn } from "@ganache/utils";
 
 export type NamespacedOptions = { [key: string]: Base.Config };
 
-export type ProviderOptions<O extends NamespacedOptions> = Partial<
-  {
-    [K in keyof O]: ExternalConfig<O[K]>;
-  }
->;
+export type ProviderOptions<O extends NamespacedOptions> = Partial<{
+  [K in keyof O]: ExternalConfig<O[K]>;
+}>;
 
 export type InternalOptions<O extends NamespacedOptions> = {
   [K in keyof O]: InternalConfig<O[K]>;
@@ -53,7 +51,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       const propDefinition = def[key];
       let value = namespaceOptions[key];
       if (value !== undefined) {
-        const normalized = propDefinition.normalize(namespaceOptions[key]);
+        const normalized = propDefinition.normalize(value, namespaceOptions);
         if (normalized !== undefined) {
           checkForConflicts(
             key,
@@ -68,7 +66,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         const legacyName = propDefinition.legacyName || key;
         value = options[legacyName];
         if (value !== undefined) {
-          const normalized = propDefinition.normalize(value);
+          const normalized = propDefinition.normalize(value, options);
           if (normalized !== undefined) {
             checkForConflicts(
               key,
@@ -92,7 +90,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       const legacyName = propDefinition.legacyName || key;
       const value = options[legacyName];
       if (value !== undefined) {
-        const normalized = propDefinition.normalize(value);
+        const normalized = propDefinition.normalize(value, options);
         if (normalized !== undefined) {
           checkForConflicts(
             key,

@@ -29,15 +29,14 @@ export type LoggingConfig = {
      * specified path. You can provide a path, or numerical file descriptor.
      */
     readonly file: {
-      type: number | PathLike;
+      type: number;
+      rawType: number | PathLike;
     };
   };
 };
 
 export const LoggingOptions: Definitions<LoggingConfig> = {
   file: {
-    // always normalizes to a file descriptor
-    // todo: it would be nice if the accessor for file was a number type
     normalize: (raw: number | PathLike): number => {
       let descriptor: number;
       if (typeof raw === "number") {
@@ -62,11 +61,16 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     normalize: raw =>
       createLogger({
         ...raw,
-        baseLog: (message: any, ...params: any[]) => raw.log(message, params)
+        baseLogger: raw
       }),
     cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
-    default: config => console
+    default: config => {
+      return createLogger({
+        ...config,
+        baseLogger: console
+      });
+    }
   }
 };

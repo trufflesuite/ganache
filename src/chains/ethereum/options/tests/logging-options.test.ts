@@ -3,7 +3,7 @@ import { EthereumOptionsConfig } from "../src";
 import sinon from "sinon";
 import { resolve } from "path";
 import { promises } from "fs";
-const unlink = promises.unlink;
+const { unlink, readFile } = promises;
 import { closeSync, openSync } from "fs";
 import { URL } from "url";
 
@@ -41,21 +41,21 @@ describe("EthereumOptionsConfig", () => {
           assert.strictEqual(spy.withArgs(message).callCount, 0);
         });
 
-        it("calls the provided logger, even when quiet flag is used", () => {
-          let callCount = 0;
-
+        it("calls the provided logger when quiet flag is used", () => {
+          const logLines: string[][] = [];
           const options = EthereumOptionsConfig.normalize({
             logging: {
               quiet: true,
               logger: {
-                log: (message: any, ...params: any[]) => callCount++
+                log: (message: any, ...params: any[]) =>
+                  logLines.push([message, ...params])
               }
             }
           });
 
-          options.logging.logger.log("message");
+          options.logging.logger.log("message", "param1", "param2");
 
-          assert.strictEqual(callCount, 1);
+          assert.deepStrictEqual(logLines, [["message", "param1", "param2"]]);
         });
       });
 
@@ -133,7 +133,7 @@ describe("EthereumOptionsConfig", () => {
           );
         });
 
-        it("uses the provided logger when both `logger` and `file` are provided", async () => {
+        it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
           const calls: any[] = [];
           const logger = {
             log: (message: any, ...params: any[]) => {
@@ -151,7 +151,23 @@ describe("EthereumOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
-            assert.deepStrictEqual(calls, [["message", ["param1", "param2"]]]);
+            assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
+
+            const fromFile = await readFile(validFilePath, "utf8");
+            assert(fromFile !== "", "Nothing written to the log file");
+
+            const timestampPart = fromFile.substring(0, 24);
+
+            const timestampRegex =
+              /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+            assert(
+              timestampPart.match(timestampRegex),
+              `Unexpected timestamp from file ${timestampPart}`
+            );
+
+            const messagePart = fromFile.substring(25);
+
+            assert.strictEqual(messagePart, "message param1 param2\n");
           } finally {
             await unlink(validFilePath);
           }
