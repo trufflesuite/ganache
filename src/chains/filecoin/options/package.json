@@ -69,6 +69,6 @@
   },
   "dependencies": {
     "keccak": "3.0.2",
-    "@ganache/utils": "0.7.0"
+    "@ganache/utils": "0.7.1"
   }
 }
