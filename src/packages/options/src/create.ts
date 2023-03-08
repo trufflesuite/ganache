@@ -51,7 +51,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       const propDefinition = def[key];
       let value = namespaceOptions[key];
       if (value !== undefined) {
-        const normalized = propDefinition.normalize(value, namespaceOptions);
+        const normalized = propDefinition.normalize(value, config);
         if (normalized !== undefined) {
           checkForConflicts(
             key,
@@ -66,7 +66,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
         const legacyName = propDefinition.legacyName || key;
         value = options[legacyName];
         if (value !== undefined) {
-          const normalized = propDefinition.normalize(value, options);
+          const normalized = propDefinition.normalize(value, config);
           if (normalized !== undefined) {
             checkForConflicts(
               key,
@@ -90,7 +90,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       const legacyName = propDefinition.legacyName || key;
       const value = options[legacyName];
       if (value !== undefined) {
-        const normalized = propDefinition.normalize(value, options);
+        const normalized = propDefinition.normalize(value, config);
         if (normalized !== undefined) {
           checkForConflicts(
             key,

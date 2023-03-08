@@ -75,11 +75,11 @@ export type LoggingConfig = {
 
     /**
      * If you set this option, Ganache will write logs to a file located at the
-     * specified path. You can provide a path, or numerical file descriptor.
+     * specified path.
      */
     readonly file: {
       type: number;
-      rawType: number | PathLike;
+      rawType: PathLike;
     };
   };
 };
@@ -108,18 +108,15 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliType: "boolean"
   },
   file: {
-    normalize: (raw: number | PathLike): number => {
+    normalize: (raw: PathLike): number => {
       let descriptor: number;
-      if (typeof raw === "number") {
-        descriptor = raw as number;
-      } else {
-        try {
-          descriptor = openSync(raw as PathLike, "a");
-        } catch (err) {
-          throw new Error(
-            `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.`
-          );
-        }
+
+      try {
+        descriptor = openSync(raw, "a");
+      } catch (err) {
+        throw new Error(
+          `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.`
+        );
       }
       return descriptor;
     },

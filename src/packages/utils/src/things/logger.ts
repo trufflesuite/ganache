@@ -26,10 +26,12 @@ export function createLogger(config: {
   } else {
     if (typeof config.file !== "number") {
       throw new Error(
-        "`config.file` was not correctly noramlized to a file descriptor. This should not happen."
+        `'config.file' was not correctly noramlized to a file descriptor. This should not happen. ${
+          config.file
+        }: ${typeof config.file}`
       );
     }
-    const descriptor = config.file as number;
+    const descriptor = config.file;
 
     const diskLogFormatter = (message: any) => {
       const linePrefix = `${new Date().toISOString()} `;

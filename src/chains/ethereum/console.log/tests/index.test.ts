@@ -21,7 +21,7 @@ import {
   CONTRACT_NAME
 } from "./helpers";
 
-describe.skip("@ganache/console.log", () => {
+describe("@ganache/console.log", () => {
   const logger = {
     log: () => {}
   };

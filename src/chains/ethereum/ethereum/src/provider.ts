@@ -432,12 +432,10 @@ export class EthereumProvider
     this.#executor.stop();
     await this.#blockchain.stop();
 
-    // only call close on the logger if it's an instance of AsyncronousLogger
+    // only need to do this if it's an `AsyncronousLogger`
     if ("getCompletionHandle" in this.#options.logging.logger) {
-      // todo: maybe need to stop the logger from accepting new logs. This should work as is, because we wait for
-      // any logs created before we call getCompletionHandle().
       await this.#options.logging.logger.getCompletionHandle();
-      closeSync(+this.#options.logging.file);
+      closeSync(this.#options.logging.file);
     }
 
     this.#executor.end();

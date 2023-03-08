@@ -66,9 +66,7 @@ describe("EthereumOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() =>
-              closeSync(options.logging.file as number)
-            );
+            assert.doesNotThrow(() => closeSync(options.logging.file));
           } finally {
             await unlink(validFilePath);
           }
@@ -80,9 +78,7 @@ describe("EthereumOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() =>
-              closeSync(options.logging.file as number)
-            );
+            assert.doesNotThrow(() => closeSync(options.logging.file));
           } finally {
             await unlink(validFilePath);
           }
@@ -94,27 +90,7 @@ describe("EthereumOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() =>
-              closeSync(options.logging.file as number)
-            );
-          } finally {
-            await unlink(validFilePath);
-          }
-        });
-
-        it("uses an existing descriptor if passed in", async () => {
-          const fd = openSync(validFilePath, "a");
-
-          const options = EthereumOptionsConfig.normalize({
-            logging: { file: fd }
-          });
-
-          try {
-            assert.strictEqual(options.logging.file, fd);
-            assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() =>
-              closeSync(options.logging.file as number)
-            );
+            assert.doesNotThrow(() => closeSync(options.logging.file));
           } finally {
             await unlink(validFilePath);
           }
@@ -140,13 +116,12 @@ describe("EthereumOptionsConfig", () => {
               calls.push([message, ...params]);
             }
           };
-          const descriptor = openSync(validFilePath, "a");
 
           try {
             const options = EthereumOptionsConfig.normalize({
               logging: {
                 logger,
-                file: descriptor
+                file: validFilePath
               }
             });
 
