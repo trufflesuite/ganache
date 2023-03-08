@@ -42,6 +42,21 @@ export type ChainConfig = {
     };
 
     /**
+     * Allows unlimited initcode (`transaction.data`) while debugging. By
+     * setting this to `true`, the check within the EVM for a initcode size
+     * limit of 48KB (see [EIP-3860](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-3860.md))
+     * is bypassed. Setting this to `true` will cause ganache to behave
+     * differently than production environments. You should only set this to
+     * `true` during local debugging.
+     *
+     * @defaultValue false
+     */
+    readonly allowUnlimitedInitCodeSize: {
+      type: boolean;
+      hasDefault: true;
+    };
+
+    /**
      * When set to `false` only one request will be processed at a time.
      *
      * @defaultValue true
@@ -150,6 +165,13 @@ export const ChainOptions: Definitions<ChainConfig> = {
       "Allows unlimited contract sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
     default: () => false,
     legacyName: "allowUnlimitedContractSize",
+    cliType: "boolean"
+  },
+  allowUnlimitedInitCodeSize: {
+    normalize,
+    cliDescription:
+      "Allows unlimited initcode (`transaction.data`) sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
+    default: () => false,
     cliType: "boolean"
   },
   asyncRequestProcessing: {

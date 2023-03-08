@@ -264,7 +264,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       this.blockLogs = new BlockLogManager(database.blockLogs, this);
       this.transactions = new TransactionManager(
-        options.miner,
+        options,
         common,
         this,
         database.transactions

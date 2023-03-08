@@ -224,7 +224,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    *
    * Note: it is possible to be confirmed AND have an error
    *
-   * @param event - "finalized"
+   * @param _event - "finalized"
    */
   public once(_event: "finalized") {
     return this.finalized;

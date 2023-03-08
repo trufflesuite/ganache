@@ -1,13 +1,14 @@
 import assert from "assert";
 import { join } from "path";
 import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
-import { Data, JsonRpcRequest } from "@ganache/utils";
+import { Data, JsonRpcErrorCode, JsonRpcRequest } from "@ganache/utils";
 import { Common } from "@ethereumjs/common";
 import { EthereumProvider } from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import Web3 from "web3";
+import { INITCODE_TOO_LARGE } from "@ganache/ethereum-utils";
 
 describe("provider", () => {
   describe("options", () => {
@@ -337,6 +338,42 @@ describe("provider", () => {
       );
       await provider.disconnect();
     }).timeout(10000);
+
+    it("allows unlimited init code when the allowUnlimitedInitCodeSize option is set", async () => {
+      const largeInitCode = "0x" + "0".repeat(49000); // larger than init code allowance
+
+      // allowUnlimitedInitCodeSize only affects Shanghai and later
+      const preShanghairProvider = await getProvider({
+        wallet: { seed: "temet nosce" },
+        chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
+      });
+      const accounts = await preShanghairProvider.send("eth_accounts");
+      const tx = {
+        from: accounts[0],
+        gas: "0xffffffff",
+        data: largeInitCode
+      };
+
+      // sanity check; it should fail without the allowUnlimitedInitCodeSize option
+      await assert.rejects(
+        preShanghairProvider.send("eth_sendTransaction", [tx]),
+        {
+          message: INITCODE_TOO_LARGE,
+          code: JsonRpcErrorCode.INVALID_INPUT
+        }
+      );
+
+      const postShanghairProvider = await getProvider({
+        wallet: { seed: "temet nosce" },
+        chain: { allowUnlimitedInitCodeSize: true, hardfork: "shanghai" }
+      });
+      await assert.doesNotReject(
+        postShanghairProvider.send("eth_sendTransaction", [tx])
+      );
+      // TODO: once EthereumJS supports the `allowUnlimitedInitCodeSize` we need to deploy a valid contract
+      // and make sure it works. Right now this deployment fails because there is no way to disable this
+      // check in EthereumJS.
+    });
   });
 
   describe("interface", () => {
