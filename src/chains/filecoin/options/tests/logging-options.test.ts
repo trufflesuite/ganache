@@ -37,7 +37,10 @@ describe("FilecoinOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() => closeSync(options.logging.file));
+            assert.doesNotThrow(
+              () => closeSync(options.logging.file),
+              "File descriptor not valid"
+            );
           } finally {
             await unlink(validFilePath);
           }
@@ -49,7 +52,10 @@ describe("FilecoinOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() => closeSync(options.logging.file));
+            assert.doesNotThrow(
+              () => closeSync(options.logging.file),
+              "File descriptor not valid"
+            );
           } finally {
             await unlink(validFilePath);
           }
@@ -61,7 +67,10 @@ describe("FilecoinOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() => closeSync(options.logging.file));
+            assert.doesNotThrow(
+              () => closeSync(options.logging.file),
+              "File descriptor not valid"
+            );
           } finally {
             await unlink(validFilePath);
           }
@@ -75,21 +84,48 @@ describe("FilecoinOptionsConfig", () => {
             await handle.chmod(0);
             await handle.close();
 
-            const error = { message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.` };
+            const error = {
+              message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.`
+            };
 
             assert.throws(
               () =>
                 FilecoinOptionsConfig.normalize({
                   logging: { file }
-                })
-              , error
+                }),
+              error
             );
-
           } finally {
             await unlink(file);
           }
         });
-        it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
+
+        it("should append to the specified file", async () => {
+          const message = "message";
+          const handle = await open(validFilePath, "w");
+          try {
+            await handle.write("existing content");
+            handle.close();
+
+            const options = FilecoinOptionsConfig.normalize({
+              logging: { file: validFilePath }
+            });
+            options.logging.logger.log(message);
+            closeSync(options.logging.file);
+
+            const readHandle = await open(validFilePath, "r");
+            const content = await readHandle.readFile({ encoding: "utf8" });
+            await readHandle.close();
+            assert(
+              content.startsWith("existing content"),
+              "Existing content was overwritten by the logger"
+            );
+          } finally {
+            await unlink(validFilePath);
+          }
+        });
+
+       it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
           const calls: any[] = [];
           const logger = {
             log: (message: any, ...params: any[]) => {

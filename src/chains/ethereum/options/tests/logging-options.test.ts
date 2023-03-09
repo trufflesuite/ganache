@@ -63,7 +63,10 @@ describe("EthereumOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() => closeSync(options.logging.file));
+            assert.doesNotThrow(
+              () => closeSync(options.logging.file),
+              "File descriptor not valid"
+            );
           } finally {
             await unlink(validFilePath);
           }
@@ -75,7 +78,10 @@ describe("EthereumOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() => closeSync(options.logging.file));
+            assert.doesNotThrow(
+              () => closeSync(options.logging.file),
+              "File descriptor not valid"
+            );
           } finally {
             await unlink(validFilePath);
           }
@@ -87,7 +93,10 @@ describe("EthereumOptionsConfig", () => {
           });
           try {
             assert(typeof options.logging.file === "number");
-            assert.doesNotThrow(() => closeSync(options.logging.file));
+            assert.doesNotThrow(
+              () => closeSync(options.logging.file),
+              "File descriptor not valid"
+            );
           } finally {
             await unlink(validFilePath);
           }
@@ -101,18 +110,44 @@ describe("EthereumOptionsConfig", () => {
             await handle.chmod(0);
             await handle.close();
 
-            const error = { message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.` };
+            const error = {
+              message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.`
+            };
 
             assert.throws(
               () =>
                 EthereumOptionsConfig.normalize({
                   logging: { file }
-                })
-              , error
+                }),
+              error
             );
-
           } finally {
             await unlink(file);
+          }
+        });
+
+        it("should append to the specified file", async () => {
+          const message = "message";
+          const handle = await open(validFilePath, "w");
+          try {
+            await handle.write("existing content");
+            await handle.close();
+
+            const options = EthereumOptionsConfig.normalize({
+              logging: { file: validFilePath }
+            });
+            options.logging.logger.log(message);
+            closeSync(options.logging.file);
+
+            const readHandle = await open(validFilePath, "r");
+            const content = await readHandle.readFile({ encoding: "utf8" });
+            await readHandle.close();
+            assert(
+              content.startsWith("existing content"),
+              "Existing content was overwritten by the logger"
+            );
+          } finally {
+            await unlink(validFilePath);
           }
         });
 
