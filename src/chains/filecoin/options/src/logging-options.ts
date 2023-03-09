@@ -38,16 +38,12 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   file: {
     normalize: (raw: PathLike): number => {
       let descriptor: number;
-      if (typeof raw === "number") {
-        descriptor = raw as number;
-      } else {
-        try {
-          descriptor = openSync(raw, "a");
-        } catch (err) {
-          throw new Error(
-            `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.`
-          );
-        }
+      try {
+        descriptor = openSync(raw, "a");
+      } catch (err) {
+        throw new Error(
+          `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.`
+        );
       }
       return descriptor;
     },
@@ -57,17 +53,18 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     cliType: "string"
   },
   logger: {
-    normalize: raw =>
-      createLogger({
-        ...raw,
-        baseLogger: raw
-      }),
+    normalize: (logger: Logger, config) => {
+      return createLogger({
+        file: (config as any).file,
+        baseLogger: logger
+      });
+    },
     cliDescription:
       "An object, like `console`, that implements a `log` function.",
     disableInCLI: true,
     default: config => {
       return createLogger({
-        ...config,
+        file: config.file,
         baseLogger: console
       });
     }

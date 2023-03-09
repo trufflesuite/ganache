@@ -3,7 +3,7 @@ import { FilecoinOptionsConfig } from "../src";
 import sinon from "sinon";
 import { resolve } from "path";
 import { promises } from "fs";
-const { unlink, open } = promises;
+const { unlink, open, readFile } = promises;
 import { closeSync } from "fs";
 
 import { URL } from "url";
@@ -67,7 +67,7 @@ describe("FilecoinOptionsConfig", () => {
           }
         });
 
-        it("fails if an invalid file path is provided", async () => {
+        it("fails if the process doesn't have write access to the file path provided", async () => {
           const file = resolve("./eperm-file.log");
           try {
             const handle = await open(file, "w");
@@ -89,8 +89,7 @@ describe("FilecoinOptionsConfig", () => {
             await unlink(file);
           }
         });
-
-        it("uses the provided logger when both `logger` and `file` are provided", async () => {
+        it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
           const calls: any[] = [];
           const logger = {
             log: (message: any, ...params: any[]) => {
@@ -107,7 +106,31 @@ describe("FilecoinOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
+            if ("getCompletionHandle" in options.logging.logger) {
+              //wait for the logs to be written to disk
+              await options.logging.logger.getCompletionHandle();
+            } else {
+              throw new Error("Expected options.logging.logger to be AsyncronousLogger");
+            }
+            closeSync(options.logging.file);
+
             assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
+
+            const fromFile = await readFile(validFilePath, "utf8");
+            assert(fromFile !== "", "Nothing written to the log file");
+
+            const timestampPart = fromFile.substring(0, 24);
+
+            const timestampRegex =
+              /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+            assert(
+              timestampPart.match(timestampRegex),
+              `Unexpected timestamp from file ${timestampPart}`
+            );
+
+            const messagePart = fromFile.substring(25);
+
+            assert.strictEqual(messagePart, "message param1 param2\n");
           } finally {
             await unlink(validFilePath);
           }

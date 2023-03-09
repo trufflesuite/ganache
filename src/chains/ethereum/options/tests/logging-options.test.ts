@@ -93,7 +93,7 @@ describe("EthereumOptionsConfig", () => {
           }
         });
 
-        it("fails if an invalid file path is provided", async () => {
+        it("fails if the process doesn't have write access to the file path provided", async () => {
           const file = resolve("./eperm-file.log");
           try {
             const handle = await open(file, "w");
@@ -133,6 +133,14 @@ describe("EthereumOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
+            if ("getCompletionHandle" in options.logging.logger) {
+              //wait for the logs to be written to disk
+              await options.logging.logger.getCompletionHandle();
+            } else {
+              throw new Error("Expected options.logging.logger to be AsyncronousLogger");
+            }
+            closeSync(options.logging.file);
+
             assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
 
             const fromFile = await readFile(validFilePath, "utf8");
