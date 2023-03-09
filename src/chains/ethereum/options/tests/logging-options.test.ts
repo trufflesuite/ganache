@@ -3,15 +3,12 @@ import { EthereumOptionsConfig } from "../src";
 import sinon from "sinon";
 import { resolve } from "path";
 import { promises } from "fs";
-const { unlink, readFile } = promises;
-import { closeSync, openSync } from "fs";
+const { unlink, readFile, open } = promises;
+import { closeSync } from "fs";
 import { URL } from "url";
 
 describe("EthereumOptionsConfig", () => {
   describe("logging", () => {
-    // resolve absolute path of current working directory, which is clearly an
-    // invalid file path (because it's a directory).
-    const invalidFilePath = resolve("");
     const validFilePath = resolve("./tests/test-file.log");
 
     describe("options", () => {
@@ -96,17 +93,27 @@ describe("EthereumOptionsConfig", () => {
           }
         });
 
-        it("fails if an invalid file path is provided", () => {
-          const message = `Failed to open log file ${invalidFilePath}. Please check if the file path is valid and if the process has write permissions to the directory.`;
+        it("fails if an invalid file path is provided", async () => {
+          const file = resolve("./eperm-file.log");
+          try {
+            const handle = await open(file, "w");
+            // set no permissions on the file
+            await handle.chmod(0);
+            await handle.close();
 
-          assert.throws(
-            () => {
-              EthereumOptionsConfig.normalize({
-                logging: { file: invalidFilePath }
-              });
-            },
-            { message }
-          );
+            const error = { message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.` };
+
+            assert.throws(
+              () =>
+                EthereumOptionsConfig.normalize({
+                  logging: { file }
+                })
+              , error
+            );
+
+          } finally {
+            await unlink(file);
+          }
         });
 
         it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
