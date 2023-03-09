@@ -8,6 +8,8 @@ import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import Web3 from "web3";
+import { promises, closeSync } from "fs";
+const { stat, unlink } = promises;
 
 describe("provider", () => {
   describe("options", () => {
@@ -642,6 +644,34 @@ describe("provider", () => {
           );
         });
       });
+    });
+
+    it("closes the logging fileDescriptor", async () => {
+      const filePath = "./closes-logging-descriptor.log";
+      const provider = await getProvider({ logging: { file: filePath } });
+
+      try {
+        const descriptor = (await provider).getOptions().logging.file;
+        assert.strictEqual(
+          typeof descriptor,
+          "number",
+          `File descriptor has unexepected value ${typeof descriptor}`
+        );
+
+        assert(
+          (await stat(filePath)).isFile(),
+          `log file: ${filePath} was not created`
+        );
+
+        await provider.disconnect();
+
+        assert.throws(
+          () => closeSync(descriptor),
+          "File descriptor is still valid after disconnect() called"
+        );
+      } finally {
+        await unlink(filePath);
+      }
     });
 
     // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
