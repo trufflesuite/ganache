@@ -1,1 +1,1 @@
-See our [Interactive Docs](https://trufflesuite.github.io/ganache/) for a full list of Ganache's RPC methods.
+See our [Interactive Docs](https://ganache.dev/) for a full list of Ganache's RPC methods.
