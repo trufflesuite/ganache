@@ -16,7 +16,7 @@ export function getLogsStream(
   if (options.follow) {
     logsStream = createFollowReadStream(path);
   } else {
-    logsStream = createReadStream(path, { encoding: "utf8" });
+    logsStream = createReadStream(path);
   }
   if (options.since != null || options.until != null) {
     return filterLogsStream({
@@ -90,8 +90,7 @@ export function createFollowReadStream(filename: string): Readable {
 
   function createStream() {
     directFileStream = createReadStream(filename, {
-      start: currentSize,
-      encoding: "utf8"
+      start: currentSize
     })
       .on("data", data => {
         currentSize += data.length;

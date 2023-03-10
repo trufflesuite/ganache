@@ -8,11 +8,21 @@ import { Readable } from "stream";
 import { appendFile, writeFile } from "fs/promises";
 import { readFileSync } from "fs";
 
-describe("logs-stream", () => {
-  const fixturePath = "./tests/logs.fixture.log";
-  describe("createFollowReadStream()", () => {
-    const fixtureContents = readFileSync(fixturePath, "utf8");
+function readFromStream(stream: Readable): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream
+      .on("data", chunk => chunks.push(chunk))
+      .on("end", () => resolve(Buffer.concat(chunks).toString("utf8")))
+      .on("error", reject);
+  });
+}
 
+const fixturePath = "./tests/logs.fixture.log";
+const fixtureContents = readFileSync(fixturePath, "utf8");
+
+describe("logs-stream", () => {
+  describe("createFollowReadStream()", () => {
     it("should load all of the data from the file", async () => {
       const logStream = createFollowReadStream(fixturePath);
 
@@ -36,36 +46,39 @@ describe("logs-stream", () => {
 
       const logStream = createFollowReadStream(fixturePath);
 
-      // don't `await`, because we need to write the file back to it's original state
-      const loadingLogs = await new Promise<string>((resolve, reject) => {
-        const logLines: Buffer[] = [];
-
-        logStream
-          // start reading log lines immediately, otherwise the file contents are buffered
-          .on("data", () => {})
-          .once("eof", () => {
-            logStream
-              .on("data", data => logLines.push(data))
-              .once("eof", () => {
-                logStream.destroy();
-                const logs = Buffer.concat(logLines).toString("utf8");
-                resolve(logs);
-              });
-            appendFile(fixturePath, newLogLine);
-          })
-          .on("error", reject);
-      });
-
       try {
-        assert.deepStrictEqual(await loadingLogs, newLogLine);
+        const logsReadAfterEOF = await new Promise<string>(
+          (resolve, reject) => {
+            const logLines: Buffer[] = [];
+
+            logStream
+              // start reading log lines immediately, otherwise the file contents are buffered
+              .on("data", () => {})
+              // we wait until eof, so that we can ignore everything that's already in the file
+              .once("eof", () => {
+                logStream
+                  .on("data", data => logLines.push(data))
+                  .once("eof", () => {
+                    const logs = Buffer.concat(logLines).toString("utf8");
+                    resolve(logs);
+                  });
+                appendFile(fixturePath, newLogLine);
+              })
+              .on("error", reject);
+          }
+        );
+
+        assert.deepStrictEqual(logsReadAfterEOF, newLogLine);
       } finally {
+        logStream.destroy();
+        // rewrite the contents back to the fixture file, removing the additional data that we appended
         writeFile(fixturePath, fixtureContents);
       }
     });
   });
 
   describe("filterLogsStream()", () => {
-    // First log stamped at epoch
+    // First log stamped at "epoch"
     const epoch = Date.parse("2020-01-01 00:00:00 UTC");
     // subsequent logs are each incremented by 1 minute
     const timestampFromLineNumber = i => epoch + i * 60000;
@@ -91,24 +104,16 @@ describe("logs-stream", () => {
       const since = timestampFromLineNumber(logLinesToSkip);
 
       const input = Readable.from(logLines);
-      const expected = Buffer.from(
-        logLines.slice(logLinesToSkip).join(""),
-        "utf8"
-      );
+      const expected = logLines.slice(logLinesToSkip).join("");
 
       const filteredStream = filterLogsStream({ input, since });
 
-      const result = await new Promise<Buffer>((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        filteredStream
-          .on("data", chunk => chunks.push(chunk))
-          .on("end", () => resolve(Buffer.concat(chunks)))
-          .on("error", reject);
-      });
+      const result = await readFromStream(filteredStream);
 
-      assert(
-        result.equals(expected),
-        `filterLogsStream() didn't correctly skip first ${logLinesToSkip} lines from the input log stream. Expected ${expected.length} bytes. Got ${result.length} bytes`
+      assert.strictEqual(
+        result,
+        expected,
+        `filterLogsStream() didn't correctly skip first ${logLinesToSkip} lines from the input log stream. Expected ${expected.length} bytes. Got ${result.length} bytes.`
       );
     });
 
@@ -118,31 +123,161 @@ describe("logs-stream", () => {
       const until = timestampFromLineNumber(logLinesToReturn - 1);
 
       const input = Readable.from(logLines);
-      const expected = Buffer.from(
-        logLines.slice(0, logLinesToReturn).join(""),
-        "utf8"
-      );
+      const expected = logLines.slice(0, logLinesToReturn).join("");
 
       const filteredStream = filterLogsStream({ input, until });
+      const result = await readFromStream(filteredStream);
 
-      const result = await new Promise<Buffer>((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        filteredStream
-          .on("data", chunk => chunks.push(chunk))
-          .on("end", () => resolve(Buffer.concat(chunks)))
-          .on("error", reject);
-      });
-
-      assert(
-        result.equals(expected),
-        `filterLogsStream() didn't correctly return first ${logLinesToReturn} lines from the input log stream. Expected ${expected.length} bytes. Got ${result.length} bytes`
+      assert.strictEqual(
+        result,
+        expected,
+        `filterLogsStream() didn't correctly return first ${logLinesToReturn} lines from the input log stream. Expected ${expected.length} bytes. Got ${result.length} bytes.`
       );
     });
   });
 
   describe("getLogsStream()", () => {
-    it("must be tested", () => {
-      throw new Error("todo: implement getLogsStream() tests");
+    it("should read the specified file", async () => {
+      const logsStream = getLogsStream(fixturePath, {});
+      const result = await readFromStream(logsStream);
+      logsStream.destroy();
+
+      assert.strictEqual(result, fixtureContents);
+    });
+
+    it("should filter the specified date range", async () => {
+      const fixtureLines = fixtureContents.split("\n");
+      const skipFromFront = 2;
+      const skipFromBack = 2;
+
+      const matchingLines = fixtureLines.slice(
+        skipFromFront,
+        fixtureLines.length - skipFromBack - 1 // -1 because 0-based index
+      );
+
+      const since = Date.parse(matchingLines[0].slice(0, 24));
+      const until = Date.parse(
+        matchingLines[matchingLines.length - 1].slice(0, 24)
+      );
+
+      const logsStream = getLogsStream(fixturePath, {
+        since,
+        until
+      });
+
+      const result = await readFromStream(logsStream);
+      logsStream.destroy();
+
+      assert.strictEqual(
+        result,
+        matchingLines.join("\n") + "\n",
+        `expected only long lines since ${new Date(
+          since
+        ).toISOString()} and until ${new Date(until).toISOString()}`
+      );
+    });
+
+    it("should follow the specified file", async () => {
+      const newLogLine = `${new Date().toISOString()} new log line\n`;
+
+      const logStream = getLogsStream(fixturePath, {
+        follow: true
+      });
+
+      try {
+        const logsReadAfterEOF = await new Promise<string>(
+          (resolve, reject) => {
+            const logLines: Buffer[] = [];
+
+            logStream
+              // start reading log lines immediately, otherwise the file contents are buffered
+              .on("data", () => {})
+              // we wait until eof, so that we can ignore everything that's already in the file
+              .once("eof", () => {
+                logStream
+                  .on("data", data => logLines.push(data))
+                  .once("eof", () => {
+                    const logs = Buffer.concat(logLines).toString("utf8");
+                    resolve(logs);
+                  });
+                appendFile(fixturePath, newLogLine);
+              })
+              .on("error", reject);
+          }
+        );
+
+        assert.deepStrictEqual(logsReadAfterEOF, newLogLine);
+      } finally {
+        logStream.destroy();
+        // rewrite the contents back to the fixture file, removing the additional data that we appended
+        writeFile(fixturePath, fixtureContents);
+      }
+    });
+
+    it("should follow the specified file, returning the filtered results", async () => {
+      const fixtureLines = fixtureContents.split("\n");
+      const skipFromFront = 2;
+      const skipFromBack = 2;
+
+      const matchingLines = fixtureLines.slice(
+        skipFromFront,
+        fixtureLines.length - skipFromBack - 1 // -1 because 0-based index
+      );
+
+      const since = Date.parse(matchingLines[0].slice(0, 24));
+      const until = Date.parse(
+        matchingLines[matchingLines.length - 1].slice(0, 24)
+      );
+
+      const tooEarlyLogLine = `${new Date(
+        since - 10
+      ).toISOString()} non-matching log line\n`;
+
+      const matchingLogLine = `${new Date(
+        since
+      ).toISOString()} matching log line\n`;
+
+      const tooLateLogLine = `${new Date(
+        until + 10
+      ).toISOString()} non-matching log line\n`;
+
+      const logStream = getLogsStream(fixturePath, {
+        since,
+        until,
+        follow: true
+      });
+
+      try {
+        const logsReadAfterEOF = await new Promise<string>(
+          (resolve, reject) => {
+            const logLines: Buffer[] = [];
+
+            logStream
+              // start reading log lines immediately, otherwise the file contents are buffered
+              .on("data", () => {})
+              // we wait until eof, so that we can ignore everything that's already in the file
+              .once("eof", () => {
+                logStream
+                  .on("data", data => logLines.push(data))
+                  .once("eof", () => {
+                    const logs = Buffer.concat(logLines).toString("utf8");
+                    resolve(logs);
+                  });
+                appendFile(
+                  fixturePath,
+                  [tooEarlyLogLine, matchingLogLine, tooLateLogLine].join("\n")
+                );
+              })
+              .on("error", reject);
+          }
+        );
+
+        assert.deepStrictEqual(logsReadAfterEOF, matchingLogLine);
+      } finally {
+        logStream.destroy();
+        // rewrite the contents back to the fixture file, removing the additional data that we appended
+        writeFile(fixturePath, fixtureContents);
+      }
     });
   });
 });
