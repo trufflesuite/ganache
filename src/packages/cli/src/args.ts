@@ -274,23 +274,32 @@ export default function (
             }
           )
           .command(
-            "logs <name>",
-            "fetch logs for the instance specified by <name>",
+            chalk(
+              `logs <name> [--follow] [--since <timestamp>] [--until <timestamp>]`
+            ),
+            highlight(
+              "Fetch logs for the instance specified by <name>\n\n" +
+                "<timestamp> can be a linux timestamp e.g., `759927600000`,\n" +
+                "an ISO formatted timestamp `1994-01-30T11:00:00.000Z`\n" +
+                "or relative e.g., `60 seconds`."
+            ),
             logsArgs => {
               logsArgs.positional("name", { type: "string" });
               logsArgs
                 .options("follow", {
                   type: "boolean",
                   alias: ["f"],
-                  description: "continue streaming the instances logs"
+                  description: "Continue streaming the instance's logs"
                 })
-                .options("since", {
+                .options("since <timestamp>", {
                   type: "string",
-                  alias: ["s"]
+                  alias: ["s"],
+                  description: highlight("Show logs since <timestamp>")
                 })
-                .options("until", {
+                .options("until <timestamp>", {
                   type: "string",
-                  alias: ["u"]
+                  alias: ["u"],
+                  description: highlight("Show logs up until <timestamp>")
                 });
             },
             logsArgs => {
