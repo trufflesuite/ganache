@@ -113,7 +113,7 @@ const binSearch = async (
   const range = { lo: startingGas, hi: startingGas };
   const isEnoughGas = async (gas: BN) => {
     const vm = await generateVM(); // Generate fresh VM
-    runArgs.tx.gasLimit = Quantity.toBigInt(gas.toBuffer());
+    runArgs.tx.gasLimit = Quantity.toBigInt(gas.toArrayLike(Buffer));
     await vm.stateManager.checkpoint();
     const result = await vm
       .runTx(runArgs as unknown as RunTxOpts)
@@ -145,7 +145,7 @@ const binSearch = async (
     }
   }
 
-  result.gasEstimate = Quantity.toBigInt(range.hi.toBuffer());
+  result.gasEstimate = Quantity.toBigInt(range.hi.toArrayLike(Buffer));
   callback(null, result);
 };
 
@@ -321,7 +321,8 @@ const exactimate = async (
       const actualUsed = bigIntToBN(gasLeftStart - gasLeftEnd);
       const sixtyFloorths = getTotal().sub(actualUsed);
       ret.gasEstimate =
-        result.totalGasSpent + Quantity.toBigInt(sixtyFloorths.toBuffer());
+        result.totalGasSpent +
+        Quantity.toBigInt(sixtyFloorths.toArrayLike(Buffer));
     }
     callback(null, ret);
   }

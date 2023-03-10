@@ -40,7 +40,7 @@
   top: 0;
   border-radius: 10%/40%;
   font-size: 0.8em;
-  background: var(--dark-porsche);
+  background: var(--editor-text-8);
   font-family: "Open sans";
   transform: translate(-3vw, calc(-100% + 3.05vw));
   padding: 0.5vw 1vw 3vw;
@@ -55,7 +55,7 @@
 .code pre {
   overflow: hidden;
   border-radius: 5%/50%;
-  border: solid var(--dark-porsche);
+  border: solid var(--editor-text-8);
   border-width: 0 0.5vw;
 
   box-shadow: 0 5px 50px rgba(0, 0, 0, 0.2), 0 -1px 1px rgba(224, 191, 168, 1),
@@ -76,7 +76,7 @@
   background: var(--dark-chocolate);
   color: var(--very-light-porsche);
   border-radius: 50%/5%;
-  border: solid var(--dark-porsche);
+  border: solid var(--editor-text-8);
   border-width: 0.5vw 0;
   position: relative;
   transition: box-shadow 3s ease-in-out;
@@ -91,47 +91,43 @@
 .hljs-comment,
 .hljs-quote,
 .hljs-meta {
-  color: var(--light-pink);
+  color: var(--editor-text-9);
 }
 
 .hljs-keyword,
 .hljs-selector-tag,
 .hljs-tag,
 .hljs-name {
-  color: var(--porsche);
+  color: var(--editor-text-6);
 }
 
 .hljs-attr,
 .hljs-attribute,
 .hljs-selector-id {
-  color: var(--light-turquoise);
+  color: var(--body-text);
 }
 
 .hljs-string,
 .hljs-selector-attr,
 .hljs-selector-pseudo,
 .hljs-addition {
-  color: var(--dark-turquoise);
+  color: var(--editor-text-4);
 }
 
 .hljs-subst {
-  color: var(--turquoise);
+  color: var(--editor-text-2);
 }
 
 .hljs-regexp,
 .hljs-link {
-  color: var(--medium-dark-porsche);
+  color: var(--editor-text-7);
 }
 
 .hljs-title,
 .hljs-section,
 .hljs-type,
 .hljs-doctag {
-  color: var(--light-turquoise);
-}
-
-.hljs-built_in {
-  color: var(--medium-dark-turquoise);
+  color: var(--editor-text-1);
 }
 
 .hljs-symbol,
@@ -139,16 +135,16 @@
 .hljs-variable,
 .hljs-template-variable,
 .hljs-literal {
-  color: var(--light-pink);
+  color: var(--editor-text-9);
 }
 
 .hljs-params {
-  color: var(--light-porsche);
+  color: var(--editor-text-5);
 }
 
 .hljs-number,
 .hljs-deletion {
-  color: var(--pink);
+  color: var(--editor-text-10);
 }
 
 .hljs-emphasis {

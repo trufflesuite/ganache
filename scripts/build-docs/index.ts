@@ -1,5 +1,6 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
+const { execSync } = require("child_process");
 const marked = require("marked");
 const hljs = require("highlight.js");
 
@@ -19,9 +20,19 @@ const highlight = () => {
 const markedOptions = {
   highlight: highlight().fn
 };
-
+type Category = {
+  title: string;
+  children: number[];
+};
+type Group = {
+  title: string;
+  kind: number;
+  children: Child[];
+  categories: Category[];
+};
 type Child = {
   children: Child[];
+  groups: Group[];
 } & Method;
 const api = JSON.parse(
   readFileSync(join(__dirname, "../../docs/typedoc/api.json"), "utf8")
@@ -41,11 +52,6 @@ function x(unsafe: string) {
 function e(s: string) {
   return encodeURIComponent(s);
 }
-
-const methods = ethereum.children.filter(
-  (method: Method) =>
-    method.name !== "constructor" && method.kindString === "Method"
-) as Method[];
 
 type Tag = {
   tag: string;
@@ -71,6 +77,7 @@ type Comment = {
 };
 
 type Method = {
+  id: number;
   name: string;
   signatures: {
     name: string;
@@ -115,7 +122,7 @@ function g(): ${returnType}
     )
     .replace(/<\/?pre>/g, "");
   let returnHtml =
-    returnTypeHtml.replace(/\n$/, "") +
+    returnTypeHtml.replace(/\n/g, "") +
     (comment ? marked.parse(": " + comment, markedOptions) : "");
 
   return `
@@ -132,7 +139,7 @@ function g(): ${returnType}
 
 function renderArgs(method: Method) {
   const signature = method.signatures[0];
-  let params = [];
+  let params: string[] = [];
   if (signature.parameters) {
     params = signature.parameters.map(param => {
       const name = param.name + (param.flags.isOptional ? "?" : "");
@@ -168,17 +175,16 @@ function (${name}: ${type})
 }
 
 function renderMethodLink(method: Method) {
-  return `<a href="#${e(x(method.name))}" onclick="toggleSidebar()">${x(
-    method.name
-  )}</a>`;
+  const title = x(method.name);
+  return `<a href="#${e(title)}">${title}</a>`;
 }
 
 function renderMethodDocs(method: Method) {
   return `
-  <div>
-    <a name="${x(method.name)}"></a>
+  <div class="doc-section">
+    <a id="${x(method.name)}"></a>
     <h3 class="signature">
-      ${renderSignature(method)}
+      <a href="#${x(method.name)}">${renderSignature(method)}</a>
     </h3>
     <div class="content small">
       ${renderSource(method)}
@@ -221,15 +227,20 @@ function renderTag(method: Method, tag: Tag, i: number) {
       const h = highlight();
       const code = marked(tag.text, { highlight: h.fn });
       const lang = h.raw.language || "javascript";
+      const height = Math.max(100, code.split(/\n/).length * 19 + 20);
       return `
           <div class="content wide-content example_container" style="position: relative">
             <div class="tag content tag_${x(tag.tag)}">
               ${x(tag.tag)}
             </div>
-            <div class="monaco" data-method="${x(
-              method.name
-            )}_${i}" data-language="${x(lang)}">
-              ${code}
+            <div class="monaco-outer-container">
+              <div style="height:${height}px" class="monaco-inner-container">
+                <div class="monaco" data-method="${x(
+                  method.name
+                )}_${i}" data-language="${x(lang)}" style="height:${height}px">
+                  ${code}
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -250,7 +261,18 @@ function renderTag(method: Method, tag: Tag, i: number) {
 
 function renderSource(method: Method) {
   const source = method.sources[0];
-  return `<a href="https://github.com/trufflesuite/ganache/blob/next/src/${source.fileName}#L${source.line}" target="_blank" rel="noopener">source</a>`;
+  let branchOrCommitHash = "master";
+  try {
+    branchOrCommitHash =
+      execSync("git rev-parse HEAD", {
+        encoding: "utf8"
+      }).trim() || "master";
+  } catch (e) {}
+  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${encodeURIComponent(
+    source.fileName
+  )}#L${
+    source.line
+  }" target="_blank" rel="noopener" title="View the source code on GitHub (Opens in a new tab)">source</a>`;
 }
 
 function renderTags(method: Method) {
@@ -337,12 +359,93 @@ function renderSignature(method: Method) {
     .value.replace('<span class="hljs-keyword">function</span>', "");
 }
 
-const methodList: string[] = [];
+/**
+ * Array of api method namespaces in the order they should appear on the page.
+ */
+const orderedNamespaces = [
+  "eth",
+  "debug",
+  "evm",
+  "miner",
+  "personal",
+  "txpool",
+  "web3",
+  "db",
+  "rpc",
+  "net",
+  "bzz",
+  "shh",
+  "other"
+];
+
+const groupedMethods: { [group: string]: Method[] } = {};
+for (const child of ethereum.children) {
+  const { name } = child;
+  if (name === "constructor" || child.kindString !== "Method") continue;
+
+  const parts = name.split("_");
+  let namespace = "other";
+  if (parts.length > 1) {
+    if (!parts[1]) {
+      console.warn(`method name is only namespace ${name}`);
+      // we can't put this one on the page and have it look right, so skip
+      continue;
+    }
+    if (parts[0]) {
+      namespace = parts[0];
+    }
+  }
+  if (namespace === "other") {
+    console.warn(`method does not have namespace prefix: ${name}`);
+  }
+  if (!orderedNamespaces.includes(namespace)) {
+    console.warn(
+      `method namespace is not included in set of namespaces for ordering: ${name}`
+    );
+    orderedNamespaces.push(namespace);
+  }
+  const methodsInGroup = groupedMethods[namespace];
+  if (methodsInGroup) {
+    methodsInGroup.push(child);
+  } else {
+    groupedMethods[namespace] = [child];
+  }
+}
+
+const methodListByGroup: string[] = [];
 const methodDocs: string[] = [];
-methods.forEach(method => {
-  methodList.push(renderMethodLink(method));
-  methodDocs.push(renderMethodDocs(method));
-});
+
+for (const namespace of orderedNamespaces) {
+  const methodsInGroup = groupedMethods[namespace];
+  if (methodsInGroup) {
+    const methodListForGroup: string[] = [];
+    methodDocs.push(
+      `<div class="content category-header"><h2>${namespace} namespace</h2></div>`
+    );
+    for (const method of methodsInGroup) {
+      if (method) {
+        methodListForGroup.push(renderMethodLink(method));
+        methodDocs.push(renderMethodDocs(method));
+      }
+    }
+    methodListByGroup.push(
+      `<details open>
+        <summary>
+          <img src="./assets/img/chevron.svg" alt="" />
+          ${namespace}
+        </summary>
+        <ul>
+          <li>${methodListForGroup.join("</li><li>")}</li>
+        </ul>
+      </details>`
+    );
+  }
+}
+
+const preamble =
+  marked(`This reference describes all Ganache JSON-RPC methods and provides interactive examples for each method. The interactive examples are powered by [Ganache in the Browser](https://github.com/trufflesuite/ganache/#browser-use) and demonstrate using Ganache programmatically [as an EIP-1193 provider](https://github.com/trufflesuite/ganache/#as-an-eip-1193-provider-only). Try running these examples to see Ganache in action! Each editor can be changed to further test Ganache features.
+
+**Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in your [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
 const html = `
 <!DOCTYPE html>
@@ -351,50 +454,78 @@ const html = `
     <title>Ganache Ethereum JSON-RPC Documentation</title>
     <meta name="description" content="Ganache Ethereum JSON-RPC Documentation" />
     <meta name="author" content="David Murdoch" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./assets/js/preload.js"></script>
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 
-    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel|Open+Sans:300i,300,400|Oswald:200,400,700|Share+Tech+Mono|Varela+Round&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.12.0/css/all.css" integrity="sha384-ekOryaXPbeCpWQNxMwSWVvQ0+1VrStoPJq54shlYhR8HzQgig1v5fas6YgOqLoKz" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,300,400|Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel&text=Ganache" rel="stylesheet" />
     <link rel="stylesheet" href="./assets/css/main.css" />
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
   </head>
   <body>
-    <div class="container">
+    <input type="checkbox" id="sidebar-switch" tabindex="1">
+    <input type="checkbox" id="theme-switch" tabindex="2">
+    <div class="container" id="page">
       <header>
-        <span onclick="toggleSidebar()">
-          <i class="fas fa-bars"></i>
-        </span>
-        <h1>Ganache</h1>
+        <svg style="position:absolute;pointer-events:none;opacity:0;" width="10" height="10" viewBox="0 0 10 10">
+          <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
+            <path
+              fill="red"
+              stroke="none"
+              d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"
+            />
+          </clipPath>
+        </svg>
+        <label id="sidebar-switch-button" for="sidebar-switch" title="Toggle menu"></label>
+        <a class="ganache-link" tabindex="1" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
+          <img src="./assets/img/ganache-logomark.svg" alt="ganache logo"/>
+          <h1>Ganache</h1>
+        </a>
+        <div class="header-actions">
+          <label class="header-action" id="color-switcher" for="theme-switch">
+            <div>
+              <img src="./assets/img/sun.svg" id="sun" class="logo" title="Change color theme to light mode" />
+              <img src="./assets/img/moon.svg" id="moon" class="logo" title="Change color theme dark mode" />
+            </div>
+          </label>
+          <a class="header-action" href="https://twitter.com/trufflesuite/" target="_blank" rel="noopener noreferrer" title="Twitter">
+            <div>
+              <img src="./assets/img/twitter.svg" class="logo" alt="twitter logo"/>
+            </div>
+          </a>
+          <a class="header-action" href="https://github.com/trufflesuite/ganache#readme" target="_blank" rel="noopener noreferrer" title="Ganache Github README" >
+            <div>
+              <img src="./assets/img/github-logo.svg" class="logo" alt="github logo"/>
+            </div>
+          </a>
+        </div>
       </header>
       <main>
-        <aside>
-          <nav class="sidebar hide">
-            <ul>
-              <li>
-              ${methodList.join("</li><li>")}
-              </li>
-            </ul>
+        <aside class="hide">
+          <nav class="sidebar">
+              ${methodListByGroup.join("")}
           </nav>
         </aside>
         <article>
-          <div class="content">
-            <p>Ganache Ethereum JSON-RPC documentation.</p>
+          <div class="content preamble">
+            <h2>Ganache JSON-RPC Documentation</h2>
+            <p>${preamble}</p>
           </div>
-            ${methodDocs.join("")}
+          ${methodDocs.join("")}
         </article>
       </main>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
-    <script src="./assets/js/inject-editor.js"></script>
-    <script>
-      function toggleSidebar() {
-        const toggleSidebarBtn = document.querySelector(".sidebar");
-        const main = document.querySelector("article");
-        toggleSidebarBtn.classList.toggle("hide");
-        main.classList.toggle("sidebar-open");
-      }
+    <script> 
+      (function initColorTheme() {
+        const theme = getUserColorTheme();
+        const checked = theme === "light" ? true : false;
+        document.querySelector("#theme-switch").checked = checked;
+      })();
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+    <script src="./assets/js/inject-editor.js"></script>
   </body>
 </html>
 `;
