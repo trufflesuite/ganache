@@ -184,7 +184,7 @@ describe("EthereumOptionsConfig", () => {
             const timestampPart = fromFile.substring(0, 24);
 
             const timestampRegex =
-              /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+              /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
             assert(
               timestampPart.match(timestampRegex),
               `Unexpected timestamp from file ${timestampPart}`
