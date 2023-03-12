@@ -12,7 +12,7 @@ const getFileDescriptor = (slug: string) => {
 };
 
 describe("createLogger()", () => {
-  const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+  const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
   const createbaseLoggerger = () => {
     const calls: any[][] = [];
