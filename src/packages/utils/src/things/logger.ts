@@ -34,6 +34,7 @@ export function createLogger(config: {
     const descriptor = config.file;
 
     const diskLogFormatter = (message: any) => {
+      // trailing space after date is delimiter between date and message
       const linePrefix = `${new Date().toISOString()} `;
       return message.toString().replace(/^/gm, linePrefix);
     };

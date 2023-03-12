@@ -11,6 +11,23 @@ const getFileDescriptor = (slug: string) => {
   };
 };
 
+const splitLogLine = (logLine: string) => {
+  // The log line is in the format:
+  // `<timestamp> <message>`
+  // where the timestamp is 24 characters long
+  // the delimiting space is at index 24
+  // and the message starts at index 25  const timestampPart = logLine.slice(0, 24);
+  const timestampPart = logLine.slice(0, 24);
+  const delimiter = logLine[24];
+  const messagePart = logLine.slice(25);
+
+  return {
+    timestampPart,
+    delimiter,
+    messagePart
+  };
+};
+
 describe("createLogger()", () => {
   const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
@@ -106,14 +123,12 @@ describe("createLogger()", () => {
 
       const logLines = fileContents.split("\n");
 
-      // 4, because there's a \n at the end of each line
+      // 4, because there's a \n at the end of each line, creating an empty entry
       assert.strictEqual(logLines.length, 4);
       assert.strictEqual(logLines[3], "");
 
       logLines.slice(0, 3).forEach((logLine, lineNumber) => {
-        const timestampPart = logLine.slice(0, 24);
-        const messagePart = logLine.slice(25);
-        const delimiter = logLine[24];
+        const { timestampPart, delimiter, messagePart } = splitLogLine(logLine);
 
         assert(timestampRegex.test(timestampPart), "Unexpected timestamp.");
         assert.strictEqual(delimiter, " ", "Unexpected delimiter.");
@@ -148,15 +163,12 @@ describe("createLogger()", () => {
         await unlink(path);
       }
 
-      // length == 4, because there's a \n at the end (string.split() results
-      // in each log line, follwed by an empty string)
+      // 4, because there's a \n at the end of each line, creating an empty entry
       assert.strictEqual(loggedLines.length, 4);
       assert.strictEqual(loggedLines[3], "");
 
       loggedLines.slice(0, 3).forEach((logLine, lineNumber) => {
-        const timestampPart = logLine.slice(0, 24);
-        const messagePart = logLine.slice(25);
-        const delimiter = logLine[24];
+        const { timestampPart, delimiter, messagePart } = splitLogLine(logLine);
 
         assert(timestampRegex.test(timestampPart), "Unexpected timestamp");
         assert.strictEqual(delimiter, " ", "Unexpected delimiter");

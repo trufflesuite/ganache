@@ -220,7 +220,14 @@ const toNumberOrString = (str: string) => {
     return parseInt(str);
   }
 };
+
+// The `normalize` property expects a function with a signature of
+// `normalize(value, config)`, but `Quantity.from(value, nullable)` doesn't
+// match, so we wrap the `from` method in a function that matches the signature.
+// We only instantiate the wrapper function once to avoid unnecessary function
+// allocations.
 const normalizeQuantity = value => Quantity.from(value);
+
 export const MinerOptions: Definitions<MinerConfig> = {
   blockTime: {
     normalize: rawInput => {

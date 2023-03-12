@@ -432,7 +432,7 @@ export class EthereumProvider
     this.#executor.stop();
     await this.#blockchain.stop();
 
-    // only need to do this if it's an `AsyncronousLogger`
+    // only need to do this if it's an `AsyncronousLogger`, implied by the existence of `getCompletionHandle` function/
     if ("getCompletionHandle" in this.#options.logging.logger) {
       await this.#options.logging.logger.getCompletionHandle();
       closeSync(this.#options.logging.file);

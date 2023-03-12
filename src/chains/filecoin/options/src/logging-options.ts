@@ -26,6 +26,7 @@ export type LoggingConfig = {
     /**
      * If you set this option, Ganache will write logs to a file located at the
      * specified path.
+     * Note: If you provide a `URL` it must use the `path://` protocol.
      */
     readonly file: {
       type: number;
