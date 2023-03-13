@@ -910,9 +910,6 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ): Promise<Quantity> {
     const blockchain = this.#blockchain;
-    const blocks = blockchain.blocks;
-    const parentBlock = await blocks.get(blockNumber);
-    const parentHeader = parentBlock.header;
     const options = this.#options;
 
     const generateVM = async () => {
@@ -925,38 +922,26 @@ export default class EthereumApi implements Api {
       );
       return vm;
     };
+    const { coinbase } = blockchain;
+    const tx = TransactionFactory.fromRpc(
+      transaction as Transaction,
+      blockchain.common
+    );
+    if (tx.from == null) {
+      tx.from = coinbase;
+    }
+    if (tx.gas.isNull()) {
+      // eth_estimateGas isn't subject to regular transaction gas limits
+      tx.gas = options.miner.callGasLimit;
+    }
+    const block = await blockchain.gasEstimateBlock(tx, blockNumber);
+    const runArgs: EstimateGasRunArgs = {
+      tx: tx.toVmTransaction(),
+      block,
+      skipBalance: true,
+      skipNonce: true
+    };
     return new Promise((resolve, reject) => {
-      const { coinbase } = blockchain;
-      const tx = TransactionFactory.fromRpc(
-        transaction as Transaction,
-        blockchain.common
-      );
-      if (tx.from == null) {
-        tx.from = coinbase;
-      }
-      if (tx.gas.isNull()) {
-        // eth_estimateGas isn't subject to regular transaction gas limits
-        tx.gas = options.miner.callGasLimit;
-      }
-
-      const block = new RuntimeBlock(
-        Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
-        parentHeader.parentHash,
-        new Address(parentHeader.miner.toBuffer()),
-        tx.gas,
-        parentHeader.gasUsed,
-        parentHeader.timestamp,
-        options.miner.difficulty,
-        parentHeader.totalDifficulty,
-        blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
-        0n // no baseFeePerGas for estimates
-      );
-      const runArgs: EstimateGasRunArgs = {
-        tx: tx.toVmTransaction(),
-        block,
-        skipBalance: true,
-        skipNonce: true
-      };
       estimateGas(
         generateVM,
         runArgs,
@@ -1281,9 +1266,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
     const { blocks } = this.#blockchain;
-    const block = await blocks
-      .getByHash(hash)
-      .catch<Block>(_ => null);
+    const block = await blocks.getByHash(hash).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
     return Quantity.from(transactions.length);
