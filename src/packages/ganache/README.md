@@ -250,6 +250,10 @@ Chain:
                                         will cause ganache to behave differently than production environments.
                                                                                     [boolean] [default: false]
 
+  --chain.allowUnlimitedInitCodeSize    Allows unlimited initcode sizes while debugging. Setting this to true
+                                        will cause ganache to behave differently than production environments.
+                                                                                    [boolean] [default: false]
+
   --chain.asyncRequestProcessing        When set to false only one request will be processed at a time.
                                                                                      [boolean] [default: true]
 

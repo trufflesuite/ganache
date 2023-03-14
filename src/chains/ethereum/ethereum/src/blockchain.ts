@@ -77,6 +77,7 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
+import { disableCommonEip } from "./helpers/disable-common-eip";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -115,6 +116,7 @@ export type BlockchainOptions = {
   initialAccounts?: Account[];
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
+  allowUnlimitedInitCodeSize?: boolean;
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
@@ -164,8 +166,8 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
     },
     // if we were given a chain id that matches a real chain, use it
     // NOTE: I don't think Common serves a purpose other than instructing the
-    // VM what hardfork is in use. But just incase things change in the future
-    // its configured "more correctly" here.
+    // VM what hardfork is in use (and what EIPs are active). But just incase
+    // things change in the future its configured "more correctly" here.
     { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
   );
 
@@ -251,6 +253,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.networkId,
           options.chain.hardfork
         );
+
+        if (options.chain.allowUnlimitedInitCodeSize) {
+          disableCommonEip(common, 3860);
+        }
       }
 
       this.isPostMerge = this.common.gteHardfork("merge");

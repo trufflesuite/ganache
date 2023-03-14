@@ -13,6 +13,7 @@ import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
+import { disableCommonEip } from "../helpers/disable-common-eip";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -128,6 +129,9 @@ export class Fork {
       },
       { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
     );
+    if (this.#options.chain.allowUnlimitedInitCodeSize) {
+      disableCommonEip(this.common, 3860);
+    }
     // disable listeners to common since we don't actually cause any `emit`s,
     // but other EVM parts to listen and will make node complain about too
     // many listeners.
@@ -285,6 +289,7 @@ export class Fork {
     if (blockNumber <= this.blockNumber.toBigInt()) {
       // we are at or before our fork block
 
+      let forkCommon: Common;
       if (KNOWN_CHAINIDS.has(this.chainId)) {
         // we support this chain id, so let's use its rules
         let hardfork;
@@ -297,18 +302,22 @@ export class Fork {
             break;
           }
         }
-        return new Common({ chain: this.chainId, hardfork });
+        forkCommon = new Common({ chain: this.chainId, hardfork });
+      } else {
+        // we don't know about this chain or hardfork, so just carry on per usual,
+        // but with the fork's chainId (instead of our local chainId)
+        forkCommon = Common.custom(
+          {
+            chainId: this.chainId,
+            defaultHardfork: common.hardfork()
+          },
+          { baseChain: 1 }
+        );
       }
-
-      // we don't know about this chain or hardfork, so just carry on per usual,
-      // but with the fork's chainId (instead of our local chainId)
-      return Common.custom(
-        {
-          chainId: this.chainId,
-          defaultHardfork: common.hardfork()
-        },
-        { baseChain: 1 }
-      );
+      if (this.#options.chain.allowUnlimitedInitCodeSize) {
+        disableCommonEip(forkCommon, 3860);
+      }
+      return forkCommon;
     } else {
       return common;
     }
