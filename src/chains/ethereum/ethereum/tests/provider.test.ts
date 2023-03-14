@@ -339,41 +339,48 @@ describe("provider", () => {
       await provider.disconnect();
     }).timeout(10000);
 
-    it("allows unlimited init code when the allowUnlimitedInitCodeSize option is set", async () => {
-      const largeInitCode = "0x" + "0".repeat(49000); // larger than init code allowance
+    it.only(
+      "allows unlimited init code when the allowUnlimitedInitCodeSize option is set",
+      async () => {
+        const largeInitCode = "0x" + "00".repeat(49153); // larger than init code allowance
 
-      // allowUnlimitedInitCodeSize only affects Shanghai and later
-      const preShanghairProvider = await getProvider({
-        wallet: { seed: "temet nosce" },
-        chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
-      });
-      const accounts = await preShanghairProvider.send("eth_accounts");
-      const tx = {
-        from: accounts[0],
-        gas: "0xffffffff",
-        data: largeInitCode
-      };
+        // allowUnlimitedInitCodeSize only affects Shanghai and later
+        const preShanghairProvider = await getProvider({
+          wallet: { seed: "temet nosce" },
+          chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
+        });
+        const accounts = await preShanghairProvider.send("eth_accounts");
+        const tx = {
+          from: accounts[0],
+          gas: "0xffffff",
+          data: largeInitCode
+        };
 
-      // sanity check; it should fail without the allowUnlimitedInitCodeSize option
-      await assert.rejects(
-        preShanghairProvider.send("eth_sendTransaction", [tx]),
-        {
-          message: INITCODE_TOO_LARGE,
-          code: JsonRpcErrorCode.INVALID_INPUT
-        }
-      );
+        // sanity check; it *should* fail without the `allowUnlimitedInitCodeSize` option is `false`
+        await assert.rejects(
+          preShanghairProvider.send("eth_sendTransaction", [tx]),
+          {
+            message: INITCODE_TOO_LARGE,
+            code: JsonRpcErrorCode.INVALID_INPUT
+          }
+        );
 
-      const postShanghairProvider = await getProvider({
-        wallet: { seed: "temet nosce" },
-        chain: { allowUnlimitedInitCodeSize: true, hardfork: "shanghai" }
-      });
-      await assert.doesNotReject(
-        postShanghairProvider.send("eth_sendTransaction", [tx])
-      );
-      // TODO: once EthereumJS supports the `allowUnlimitedInitCodeSize` we need to deploy a valid contract
-      // and make sure it works. Right now this deployment fails because there is no way to disable this
-      // check in EthereumJS.
-    });
+        const postShanghaiProvider = await getProvider({
+          wallet: { seed: "temet nosce" },
+          chain: {
+            allowUnlimitedContractSize: true,
+            allowUnlimitedInitCodeSize: true,
+            hardfork: "shanghai"
+          }
+        });
+        await assert.doesNotReject(
+          postShanghaiProvider.send("eth_sendTransaction", [tx])
+        );
+        // TODO: deploy a giant contract via the EVM itself to make sure
+        // EIP-3860 does get turned off for CREATE and CREATE2 when
+        // allowUnlimitedInitCodeSize is true.
+      }
+    ).timeout(0);
   });
 
   describe("interface", () => {

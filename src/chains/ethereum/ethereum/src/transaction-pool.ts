@@ -480,19 +480,15 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     }
 
     if (
-      this.#options.chain.allowUnlimitedContractSize === false &&
       transaction.to == null &&
       transaction.data &&
-      this.#blockchain.common.isActivatedEIP(3860)
-    ) {
+      this.#options.chain.allowUnlimitedInitCodeSize === false &&
+      this.#blockchain.common.isActivatedEIP(3860) &&
       // this is contract creation transaction and it is subject to EIP-3860
       // which limits the size of initcode to 49152
-      if (transaction.data.valueOf().length > 49152) {
-        return new CodedError(
-          INITCODE_TOO_LARGE,
-          JsonRpcErrorCode.INVALID_INPUT
-        );
-      }
+      transaction.data.valueOf().length > 49152
+    ) {
+      return new CodedError(INITCODE_TOO_LARGE, JsonRpcErrorCode.INVALID_INPUT);
     }
 
     return null;
