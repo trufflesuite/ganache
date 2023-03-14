@@ -1955,13 +1955,22 @@ export default class EthereumApi implements Api {
 
     const wallet = this.#wallet;
     const isKnownAccount = wallet.knownAccounts.has(fromString);
-    const privateKey = wallet.unlockedAccounts.get(fromString);
+    let privateKey = wallet.unlockedAccounts.get(fromString);
 
     if (privateKey === undefined) {
-      const msg = isKnownAccount
-        ? "authentication needed: passphrase or unlock"
-        : "sender account not recognized";
-      throw new Error(msg);
+      // if unlock all option is set to true
+      // then create a fake private key for unknown account
+      if(this.#options.wallet.unlockAll)
+      {
+        privateKey = wallet.createFakePrivateKey(fromString)
+      }
+      else
+      {
+        const msg = isKnownAccount
+          ? "authentication needed: passphrase or unlock"
+          : "sender account not recognized";
+        throw new Error(msg);
+      }
     }
 
     await autofillDefaultTransactionValues(

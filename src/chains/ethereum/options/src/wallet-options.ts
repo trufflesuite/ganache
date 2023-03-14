@@ -202,6 +202,16 @@ export type WalletConfig = {
         hd_path: string;
       };
     };
+
+    /**
+     * Unlock all accounts irrespective of known or unknown status.
+     *
+     * @defaultValue false
+     */
+     unlockAll: {
+      type: boolean;
+      hasDefault: true;
+    };
   };
   exclusiveGroups: [
     ["accounts", "totalAccounts"],
@@ -326,5 +336,13 @@ export const WalletOptions: Definitions<WalletConfig> = {
     default: () => ["m", "44'", "60'", "0'", "0"],
     legacyName: "hd_path",
     cliType: "string"
-  }
+  },
+  unlockAll: {
+    normalize,
+    cliDescription:
+      "Unlock all accounts irrespective of known or unknown status.",
+    default: () => false,
+    cliAliases: ["unlockAll"],
+    cliType: "boolean"
+  },
 };
