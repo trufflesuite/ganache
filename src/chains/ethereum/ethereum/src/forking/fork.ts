@@ -130,7 +130,7 @@ export class Fork {
       { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
     );
     if (this.#options.chain.allowUnlimitedInitCodeSize) {
-      disableCommonEip(this.common, 3860);
+      disableCommonEip(this.common, "shanghai", 3860);
     }
     // disable listeners to common since we don't actually cause any `emit`s,
     // but other EVM parts to listen and will make node complain about too
@@ -315,7 +315,7 @@ export class Fork {
         );
       }
       if (this.#options.chain.allowUnlimitedInitCodeSize) {
-        disableCommonEip(forkCommon, 3860);
+        disableCommonEip(forkCommon, "shanghai", 3860);
       }
       return forkCommon;
     } else {

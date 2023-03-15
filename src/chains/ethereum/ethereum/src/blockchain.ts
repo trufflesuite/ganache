@@ -255,7 +255,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         );
 
         if (options.chain.allowUnlimitedInitCodeSize) {
-          disableCommonEip(common, 3860);
+          disableCommonEip(common, "shanghai", 3860);
         }
       }
 
