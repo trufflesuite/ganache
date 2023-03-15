@@ -1,5 +1,4 @@
-import { Common } from "@ethereumjs/common";
-
+import type { Common } from "@ethereumjs/common";
 import type { hardforks as HARDFORK_SPECS } from "@ethereumjs/common/dist/hardforks";
 
 type HardforkSpecKeys = keyof typeof HARDFORK_SPECS;
