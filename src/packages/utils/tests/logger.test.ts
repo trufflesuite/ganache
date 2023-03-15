@@ -16,7 +16,7 @@ const splitLogLine = (logLine: string) => {
   // `<timestamp> <message>`
   // where the timestamp is 24 characters long
   // the delimiting space is at index 24
-  // and the message starts at index 25  const timestampPart = logLine.slice(0, 24);
+  // and the message starts at index 25
   const timestampPart = logLine.slice(0, 24);
   const delimiter = logLine[24];
   const messagePart = logLine.slice(25);
