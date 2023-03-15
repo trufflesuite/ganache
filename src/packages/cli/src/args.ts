@@ -29,6 +29,8 @@ marked.setOptions({
 const wrapWidth = Math.min(120, yargs.terminalWidth());
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.io/support";
+const OR_DOCS = "or check out our docs at";
+const DOCS_LINK = "https://ganache.dev";
 
 function unescapeEntities(html: string) {
   return html
@@ -40,8 +42,8 @@ function unescapeEntities(html: string) {
     .replace(/\*\#COLON\|\*/g, ":");
 }
 const highlight = (t: string) => unescapeEntities(marked.parseInline(t));
-const center = (str: string) =>
-  " ".repeat(Math.max(0, Math.floor((wrapWidth - str.length) / 2))) + str;
+const center = (str: string, length: number) =>
+  " ".repeat(Math.max(0, Math.floor((wrapWidth - length) / 2))) + str;
 
 const addAliases = (args: yargs.Argv<{}>, aliases: string[], key: string) => {
   const options = { hidden: true, alias: key };
@@ -156,7 +158,7 @@ export default function (
 ) {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
-  }").bold ${center(version)}}`;
+  }").bold ${center(version, version.length)}}`;
 
   // disable dot-notation because yargs just can't coerce args properly...
   // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
@@ -168,9 +170,15 @@ export default function (
       versionUsageOutputText +
         EOL +
         EOL +
-        chalk`{hex("${TruffleColors.porsche}").bold ${center(NEED_HELP)}}` +
+        center(
+          chalk`{hex("${TruffleColors.porsche}").bold ${NEED_HELP}} {hex("${TruffleColors.turquoise}") ${COMMUNITY_LINK}}`,
+          (NEED_HELP + " " + COMMUNITY_LINK).length
+        ) +
         EOL +
-        chalk`{hex("${TruffleColors.turquoise}") ${center(COMMUNITY_LINK)}}`
+        center(
+          chalk`{hex("${TruffleColors.porsche}").bold ${OR_DOCS}} {hex("${TruffleColors.turquoise}") ${DOCS_LINK}}`,
+          (OR_DOCS + " " + DOCS_LINK).length
+        )
     );
 
   let flavor: keyof typeof DefaultOptionsByName;

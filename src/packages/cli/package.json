@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/cli#readme",
@@ -53,7 +53,7 @@
     "truffle"
   ],
   "devDependencies": {
-    "@ganache/ethereum": "0.8.5",
+    "@ganache/ethereum": "0.8.6",
     "@ganache/filecoin": "0.7.1",
     "@types/mocha": "9.0.0",
     "cross-env": "7.0.3",
@@ -64,8 +64,8 @@
   "dependencies": {
     "@ethereumjs/util": "8.0.5",
     "@ganache/colors": "0.4.0",
-    "@ganache/core": "0.8.5",
-    "@ganache/flavors": "0.8.5",
+    "@ganache/core": "0.8.6",
+    "@ganache/flavors": "0.8.6",
     "@ganache/options": "0.7.1",
     "@ganache/utils": "0.7.1",
     "@trufflesuite/ps-list": "0.0.3",
