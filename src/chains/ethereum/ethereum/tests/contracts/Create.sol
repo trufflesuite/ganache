@@ -13,7 +13,7 @@ contract Create {
         }
         // make sure addr is not the zero address:
         // if EIP-3860 is triggered, the contract will not be created and addr will be the zero address
-        require(addr != address(0), "Create: failed to create contract");
+        assert(addr != address(0));
     }
 
     function concatenate(

@@ -18,11 +18,12 @@ export function disableCommonEip(
     if (name === hardfork) {
       if (spec.eips) {
         // remove the EIP from the list of EIPs for the hardfork
-        const index = spec.eips.lastIndexOf(eipToRemove);
-        if (index !== -1) {
-          // splice the EIP out of the list
-          spec.eips.splice(index, 1);
+        const newEips = [];
+        for (let i = 0, l = spec.eips.length; i < l; i++) {
+          const eip = spec.eips[i];
+          if (eip !== eipToRemove) newEips.push(eip);
         }
+        spec.eips = newEips;
       }
       // we found the hardfork, so we can stop iterating
       break;
