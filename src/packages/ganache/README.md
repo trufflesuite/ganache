@@ -479,22 +479,37 @@ Server:
 
 ### Detached Instances
 
-Ganache can be started as a background instance via the CLI by providing the following argument (along with any valid combination
-of the Ganache startup arguments above):
+Ganache can be started as a background instance via the CLI by providing the `--detach` argument (along with any valid combination
+of the Ganache startup arguments above).
+
+Ganache will generate a friendly name, or you can private a name for the instance with the `--name` argument.
 
 ```console
-  -D, --detach, --😈                     Run Ganache in detached (daemon) mode.                       [boolean]
+  -D, --detach, --😈                    Run Ganache in detached (daemon) mode.                       [boolean]
+  --name, --tag                         The name of the instance - only works for detached instances  [string]
 ```
 
 This will start Ganache as a background process, and return to the console as soon as Ganache has started and is ready to
-receive requests. A friendly name will be returned to STDOUT which can then be used to interact with the instance via
-the `ganache instances` command with the following arguments:
+receive requests. The instance's name will be returned to STDOUT which can then be used to interact with the instance via
+the `ganache instances` (or `ganache i`) command with the following arguments:
 
 ```console
 Commands:
-  ganache instances list         List instances running in detached mode
-  ganache instances stop <name>  Stop the instance specified by <name>
+  ganache instances list                            List instances running in detached mode
+  ganache instances stop <name>                     Stop the instance specified by <name>
+  ganache instances logs <name>  [--follow]         Fetch logs for the instance specified by <name>
+  [--since <timestamp>] [--until <timestamp>]       <timestamp> can be a linux timestamp e.g., 759927600000,
+                                                    an ISO formatted timestamp 1994-01-30T11:00:00.000Z or
+                                                    relative e.g., 60 seconds.
+
+Options:
+  -?, --help  Show help                                                                              [boolean]
 ```
+
+> **Note**
+> You don't have to type the entire instance \<name\> - use its minimum unique prefix by specifying only the start of the name that doesn't also match another instance.
+
+#### Using detached mode in scripts
 
 E.g., start Ganache on port 8544, with a block time of 10 seconds, and then stop the instance.
 
