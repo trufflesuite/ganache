@@ -482,7 +482,7 @@ Server:
 Ganache can be started as a background instance via the CLI by providing the `--detach` argument (along with any valid combination
 of the Ganache startup arguments above).
 
-Ganache will generate a friendly name, or you can private a name for the instance with the `--name` argument.
+Ganache will generate a friendly name, or you can provide a name for the instance with the `--name` argument.
 
 ```console
   -D, --detach, --😈                    Run Ganache in detached (daemon) mode.                       [boolean]
