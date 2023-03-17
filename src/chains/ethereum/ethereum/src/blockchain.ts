@@ -77,7 +77,7 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import { disableCommonEip } from "./helpers/disable-common-eip";
+import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/disable-common-eip";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -255,7 +255,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         );
 
         if (options.chain.allowUnlimitedInitCodeSize) {
-          disableCommonEip(common, "shanghai", 3860);
+          removeEIP3860InitCodeSizeLimitCheck(common);
         }
       }
 
