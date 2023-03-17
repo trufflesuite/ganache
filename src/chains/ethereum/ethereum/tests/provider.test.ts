@@ -374,7 +374,7 @@ describe("provider", () => {
       await assert.doesNotReject(
         unlimitedInitCodeProvider.send("eth_sendTransaction", [tx])
       );
-    }).timeout(0);
+    });
     it("allows unlimited init code in CREATE opcode when the allowUnlimitedInitCodeSize option is set", async () => {
       const contract = compile(join(__dirname, "./contracts/Create.sol"));
 
@@ -459,7 +459,7 @@ describe("provider", () => {
           "It failed when it should work"
         );
       }
-    }).timeout(0);
+    });
   });
 
   describe("interface", () => {
