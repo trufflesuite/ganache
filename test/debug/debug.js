@@ -46,7 +46,7 @@ function test(forked) {
         contractSubdirectory: "debug"
       };
 
-      const forkedServer = Ganache.server({ legacyInstamine: true, mnemonic });
+      const forkedServer = Ganache.server({ instamine: "eager", mnemonic });
       await forkedServer.listen(targetPort);
       mainContext = await bootstrap(contractRef, {
         provider: forkedServer.provider,

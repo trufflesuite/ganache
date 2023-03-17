@@ -11,7 +11,7 @@ describe("Mining", function() {
     Ganache.provider({
       gasLimit: 6721975,
       vmErrorsOnRPCResponse: true,
-      legacyInstamine: true
+      instamine: "eager"
       // logger: console,
     })
   );
@@ -382,7 +382,7 @@ describe("Mining", function() {
       const provider = Ganache.provider({
         gasLimit: 6721975,
         vmErrorsOnRPCResponse: true,
-        legacyInstamine: true,
+        instamine: "eager",
         blockTime
       });
       let closed = false;

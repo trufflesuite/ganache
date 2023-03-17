@@ -331,7 +331,7 @@ const tests = function(web3) {
         Ganache.provider({
           hardfork: "berlin",
           gasLimit: 6721975,
-          legacyInstamine: true,
+          instamine: "eager",
           vmErrorsOnRPCResponse: true,
           accounts: [acc],
           chainId: 1
@@ -402,7 +402,7 @@ const tests = function(web3) {
         Ganache.provider({
           hardfork: "berlin",
           gasLimit: 6721975,
-          legacyInstamine: true,
+          instamine: "eager",
           vmErrorsOnRPCResponse: true,
           accounts: [acc],
           chainId: 1
@@ -1715,7 +1715,7 @@ describe("Provider:", function() {
     Ganache.provider({
       hardfork: "berlin",
       gasLimit: 6721975,
-      legacyInstamine: true,
+      instamine: "eager",
       vmErrorsOnRPCResponse: true,
       logger: logger,
       seed: "1337",
@@ -1742,7 +1742,7 @@ describe("HTTP Server:", function() {
     server = Ganache.server({
       hardfork: "berlin",
       gasLimit: 6721975,
-      legacyInstamine: true,
+      instamine: "eager",
       vmErrorsOnRPCResponse: true,
       logger: logger,
       seed: "1337",
@@ -1771,7 +1771,7 @@ describe("WebSockets Server:", function() {
     server = Ganache.server({
       hardfork: "berlin",
       gasLimit: 6721975,
-      legacyInstamine: true,
+      instamine: "eager",
       vmErrorsOnRPCResponse: true,
       logger: logger,
       seed: "1337",

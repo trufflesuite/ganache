@@ -75,7 +75,7 @@ describe("Forking", function() {
   before("Initialize Fallback Ganache server", async () => {
     forkedServer = Ganache.server({
       hardfork: "berlin",
-      legacyInstamine: true,
+      instamine: "eager",
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
       ws: true,
@@ -210,7 +210,7 @@ describe("Forking", function() {
           hardfork: "berlin",
           gasLimit: 6721975,
           vmErrorsOnRPCResponse: true,
-          legacyInstamine: true,
+          instamine: "eager",
           fork: forkedTargetUrl.replace("ws", "http"),
           forkCacheSize
         });
@@ -265,7 +265,7 @@ describe("Forking", function() {
       hardfork: "berlin",
       gasLimit: 6721975,
       vmErrorsOnRPCResponse: true,
-      legacyInstamine: true,
+      instamine: "eager",
       fork: forkedTargetUrl,
       seed: forkedServer.provider.getOptions().wallet.seed
     });
@@ -682,7 +682,7 @@ describe("Forking", function() {
       const provider = Ganache.provider({
         hardfork: "berlin",
         gasLimit: 6721975,
-        legacyInstamine: true,
+        instamine: "eager",
         vmErrorsOnRPCResponse: true,
         fork: forkedTargetUrl.replace("ws", "http"),
         fork_block_number: forkBlockNumber

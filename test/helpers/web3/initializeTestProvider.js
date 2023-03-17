@@ -13,8 +13,8 @@ const initializeTestProvider = async(options = {}, provider = null) => {
     // throw new Error("THIS SHOULD ONLY TEST TS GANACHE!!!");
   }
   options.gasLimit = options.gasLimit || 6721975;
-  options.legacyInstamine = true;
-  // options.legacyInstamine = options.miner.legacyInstamine;
+  options.instamine = "eager";
+  // options.instamine = options.miner.instamine;
   options.chain = options.chain || {};
   options.chainId = options.chain.chainId = options.chainId || 1;
   provider = provider || options.provider || Ganache.provider(options);

@@ -7,7 +7,7 @@ const StateManager = require("../lib/statemanager.js");
 
 describe.skip("server", () => {
   it("should return instance of StateManager on start", async() => {
-    const server = Ganache.server({ legacyInstamine: true });
+    const server = Ganache.server({ instamine: "eager" });
     try {
       const stateManager = await pify(server.listen.bind(server))(8945);
       assert(stateManager instanceof StateManager, "server.listen must return instance of StateManager");

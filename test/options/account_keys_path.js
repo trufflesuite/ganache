@@ -20,7 +20,7 @@ describe("options:account_keys_path", function() {
     Ganache.provider({
       gasLimit: 6721975,
       vmErrorsOnRPCResponse: true,
-      legacyInstamine: true,
+      instamine: "eager",
       account_keys_path: fileName
     });
     assert.strictEqual(fs.existsSync(fileName), true, "The account_keys file doesn't exist.");

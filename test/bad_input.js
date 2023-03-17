@@ -187,7 +187,7 @@ var tests = function(web3) {
 
 describe("Provider:", function() {
   var web3 = new Web3();
-  web3.setProvider(Ganache.provider({ gasLimit: 6721975, legacyInstamine: true, vmErrorsOnRPCResponse: true }));
+  web3.setProvider(Ganache.provider({ gasLimit: 6721975, instamine: "eager", vmErrorsOnRPCResponse: true }));
   tests(web3);
 });
 
@@ -197,7 +197,7 @@ describe("Server:", function(done) {
   var server;
 
   before("Initialize Ganache server", function(done) {
-    server = Ganache.server({ legacyInstamine: true, vmErrorsOnRPCResponse: true });
+    server = Ganache.server({ instamine: "eager", vmErrorsOnRPCResponse: true });
     server.listen(port, function(err) {
       if (err) {
         throw err;

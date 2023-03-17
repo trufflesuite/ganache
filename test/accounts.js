@@ -212,7 +212,7 @@ describe("Accounts", () => {
     const getTransactionByHash = (payload) => send("eth_getTransactionByHash", payload);
 
     beforeEach("set up provider", async function() {
-      provider = Ganache.provider({ gasLimit: 6721975, legacyInstamine: true, vmErrorsOnRPCResponse: true });
+      provider = Ganache.provider({ gasLimit: 6721975, instamine: "eager", vmErrorsOnRPCResponse: true });
       send = genSend(provider);
       const { result: _accounts } = await send("eth_accounts");
       accounts = _accounts;

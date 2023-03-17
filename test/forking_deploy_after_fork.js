@@ -60,7 +60,7 @@ describe("Contract Deployed on Main Chain After Fork", function() {
   before("Initialize Fallback Ganache server", function(done) {
     this.timeout(10000);
     forkedServer = Ganache.server({
-      legacyInstamine: true,
+      instamine: "eager",
       // Do not change seed. Determinism matters for these tests.
       seed: "let's make this deterministic",
       ws: true,
@@ -82,7 +82,7 @@ describe("Contract Deployed on Main Chain After Fork", function() {
   before("Set main web3 provider, forking from forked chain at this point", function() {
     mainWeb3.setProvider(
       Ganache.provider({
-        legacyInstamine: true,
+        instamine: "eager",
         vmErrorsOnRPCResponse: true,
         fork: forkedTargetUrl.replace("ws", "http"),
         logger,
