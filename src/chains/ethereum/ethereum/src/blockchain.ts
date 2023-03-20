@@ -1348,15 +1348,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
       gas += gasUsedPreviousStep;
 
-      const memory: ITraceData[] = [];
-      if (options.disableMemory !== true) {
+      let memory: ITraceData[];
+      if (options.disableMemory === true) {
+        memory = [];
+      } else {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
+        const limit = Number(event.memoryWordCount);
+        const memory = Array(limit);
         let index = 0;
-        while (index < event.memory.length) {
-          const slice = event.memory.slice(index, index + 32);
-          memory.push(TraceData.from(Buffer.from(slice)));
-          index += 32;
+        while (index < limit) {
+          const offset = index * 32;
+          const slice = event.memory.subarray(offset, offset + 32);
+          memory[index++] = TraceData.from(slice);
         }
       }
 
