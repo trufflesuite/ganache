@@ -1,6 +1,9 @@
 require.config({
   paths: {
     vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs"
+  },
+  onNodeCreated: function (node) {
+    node.setAttribute("crossorigin", "anonymous");
   }
 });
 
@@ -55,7 +58,7 @@ function getTheme() {
     { token: "string", foreground: text4 },
     { token: "keyword", foreground: text6 }
   ];
-  const base = getUserColorTheme() === "light" ? "vs" : "vs-dark";
+  const base = userColorTheme === "light" ? "vs" : "vs-dark";
   return {
     base,
     colors: {
