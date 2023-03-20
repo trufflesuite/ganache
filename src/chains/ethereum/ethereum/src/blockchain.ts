@@ -1355,7 +1355,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
         const limit = Number(event.memoryWordCount);
-        const memory = Array(limit);
+        memory = Array(limit);
         let index = 0;
         while (index < limit) {
           const offset = index * 32;
