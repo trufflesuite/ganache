@@ -1298,7 +1298,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.emit("ganache:vm:tx:before", {
         context: transactionEventContext
       });
-      await vm.runTx({ tx, block: block as any });
+      await vm.runTx({
+        skipHardForkValidation: true,
+        skipNonce: true,
+        skipBalance: true,
+        skipBlockGasLimitValidation: true,
+        tx,
+        block: block as any
+      });
       this.emit("ganache:vm:tx:after", {
         context: transactionEventContext
       });
@@ -1450,6 +1457,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     });
     await vm.runTx({
       skipHardForkValidation: true,
+      skipNonce: true,
+      skipBalance: true,
+      skipBlockGasLimitValidation: true,
       tx: transaction as any,
       block: newBlock as any
     });
