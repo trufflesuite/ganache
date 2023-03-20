@@ -13,7 +13,7 @@ import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
-import { removeEIP3860InitCodeSizeLimitCheck } from "../helpers/disable-common-eip";
+import { removeEIP3860InitCodeSizeLimitCheck } from "../helpers/common-helpers";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);

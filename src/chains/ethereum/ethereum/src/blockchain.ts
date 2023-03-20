@@ -77,7 +77,7 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/disable-common-eip";
+import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
