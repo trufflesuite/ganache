@@ -151,8 +151,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
-        const fee = this.calculateIntrinsicGas();
-        return fee + this.accessListDataFee;
+        return this.calculateIntrinsicGas();
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
@@ -162,6 +161,9 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
         return CAPABILITIES.includes(capability);
       }
     };
+  }
+  public calculateIntrinsicGas(): bigint {
+    return super.calculateIntrinsicGas() + this.accessListDataFee;
   }
   /**
    * sign a transaction with a given private key, then compute and set the `hash`.

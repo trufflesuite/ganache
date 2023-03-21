@@ -22,11 +22,15 @@ export const calculateIntrinsicGas = (
   common: Common
 ) => {
   const hardfork = common.hardfork() as Hardfork;
-  // Set the starting gas for the raw transaction
-  let gas = Params.TRANSACTION_GAS;
-  // if it doesn't have a "to" address this is a contract creation and it costs
-  // `TRANSACTION_CREATION` more gas.
-  if (!hasToAddress) gas += Params.TRANSACTION_CREATION;
+  let gas: bigint;
+  // set the starting gas for the transaction
+  if (hasToAddress) {
+    gas = Params.TRANSACTION_GAS;
+  } else {
+    // if it doesn't have a "to" address this is a contract creation and it costs
+    // `TRANSACTION_CREATION` gas.
+    gas = Params.TRANSACTION_CREATION_GAS;
+  }
   if (data) {
     const input = data.toBuffer();
     // Bump the required gas by the amount of transactional data
@@ -61,7 +65,8 @@ export const calculateIntrinsicGas = (
       }
       gas += nonZeroBytes * TRANSACTION_DATA_NON_ZERO_GAS;
 
-      const zeroBytes = BigInt(dataLength) - nonZeroBytes;
+      const bigDataLength = BigInt(dataLength);
+      const zeroBytes = bigDataLength - nonZeroBytes;
       // explanation:
       // `(MAX_UINT64 - gas) / TRANSACTION_DATA_ZERO_GAS` is the maximum number
       // of "zero bytes" geth can handle after subtracting out the cost of
@@ -70,6 +75,12 @@ export const calculateIntrinsicGas = (
         return -1n;
       }
       gas += zeroBytes * TRANSACTION_DATA_ZERO_GAS;
+
+      // after shanghai contract creation costs a little more
+      if (!hasToAddress && common.isActivatedEIP(3860)) {
+        const lenWords = (bigDataLength + 31n) / 32n;
+        gas += lenWords * Params.INITCODE_WORD_GAS;
+      }
     }
   }
   return gas;

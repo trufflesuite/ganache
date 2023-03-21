@@ -58,7 +58,14 @@ export const Params = {
   /**
    * Fee for creation a transaction
    */
-  TRANSACTION_CREATION: 32000n,
+  TRANSACTION_CREATION_GAS: 53000n,
+
+  /**
+   * Only used after shanghai hardFork, `initcode` per byte cost is 0.0625.
+   * While fractional gas costs are not permitted in the EVM, we can approximate
+   * it by charging per-word.
+   */
+  INITCODE_WORD_GAS: 2n,
 
   /**
    * Gas cost per address in an EIP-2930 Access List transaction
