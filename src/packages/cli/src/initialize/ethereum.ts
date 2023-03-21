@@ -16,21 +16,21 @@ export default function (provider: EthereumProvider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
-  const addresses = Object.keys(accounts);
+  const addresses = Object.entries(accounts);
   const logs = [];
   logs.push("");
   logs.push("Available Accounts");
   logs.push("==================");
   if (addresses.length > 0) {
-    addresses.forEach(function (address, index) {
-      const balance = accounts[address].balance;
+    addresses.forEach(([address, account], index) => {
+      const balance = account.balance;
       const strBalance = balance / WEI;
       const about = balance % WEI === 0n ? "" : "~";
       let line = `(${index}) ${toChecksumAddress(
         address
       )} (${about}${strBalance} ETH)`;
 
-      if (!accounts[address].unlocked) {
+      if (!account.unlocked) {
         line += " 🔒";
       }
 
@@ -41,8 +41,8 @@ export default function (provider: EthereumProvider, cliSettings: CliSettings) {
     logs.push("Private Keys");
     logs.push("==================");
 
-    addresses.forEach(function (address, index) {
-      logs.push(`(${index}) ${accounts[address].secretKey}`);
+    addresses.forEach(([_, account], index) => {
+      logs.push(`(${index}) ${account.secretKey}`);
     });
 
     if (liveOptions.wallet.accountKeysPath != null) {
