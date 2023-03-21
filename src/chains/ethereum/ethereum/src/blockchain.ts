@@ -116,7 +116,7 @@ export type BlockchainOptions = {
   initialAccounts?: Account[];
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
-  allowUnlimitedInitCodeSize?: boolean;
+  allowUnlimitedInitcodeSize?: boolean;
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
@@ -254,7 +254,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.hardfork
         );
 
-        if (options.chain.allowUnlimitedInitCodeSize) {
+        if (options.chain.allowUnlimitedInitcodeSize) {
           removeEIP3860InitCodeSizeLimitCheck(common);
         }
       }

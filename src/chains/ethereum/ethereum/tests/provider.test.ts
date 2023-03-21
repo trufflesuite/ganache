@@ -339,13 +339,13 @@ describe("provider", () => {
       await provider.disconnect();
     }).timeout(10000);
 
-    it("allows unlimited init code in transaction when the allowUnlimitedInitCodeSize option is set", async () => {
+    it("allows unlimited init code in transaction when the allowUnlimitedInitcodeSize option is set", async () => {
       const largeInitCode = "0x" + "00".repeat(49153); // larger than init code allowance
 
-      // allowUnlimitedInitCodeSize only affects Shanghai and later
+      // allowUnlimitedInitcodeSize only affects Shanghai and later
       const limitInitCodeProvider = await getProvider({
         wallet: { seed: "temet nosce" },
-        chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
+        chain: { allowUnlimitedInitcodeSize: false, hardfork: "shanghai" }
       });
       const accounts = await limitInitCodeProvider.send("eth_accounts");
       const tx = {
@@ -354,7 +354,7 @@ describe("provider", () => {
         data: largeInitCode
       };
 
-      // sanity check; it *should* fail when `allowUnlimitedInitCodeSize` option is `false`
+      // sanity check; it *should* fail when `allowUnlimitedInitcodeSize` option is `false`
       await assert.rejects(
         limitInitCodeProvider.send("eth_sendTransaction", [tx]),
         {
@@ -367,7 +367,7 @@ describe("provider", () => {
         wallet: { seed: "temet nosce" },
         chain: {
           allowUnlimitedContractSize: true,
-          allowUnlimitedInitCodeSize: true,
+          allowUnlimitedInitcodeSize: true,
           hardfork: "shanghai"
         }
       });
@@ -375,13 +375,13 @@ describe("provider", () => {
         unlimitedInitCodeProvider.send("eth_sendTransaction", [tx])
       );
     });
-    it("allows unlimited init code in CREATE opcode when the allowUnlimitedInitCodeSize option is set", async () => {
+    it("allows unlimited init code in CREATE opcode when the allowUnlimitedInitcodeSize option is set", async () => {
       const contract = compile(join(__dirname, "./contracts/Create.sol"));
 
-      // allowUnlimitedInitCodeSize only affects Shanghai and later
+      // allowUnlimitedInitcodeSize only affects Shanghai and later
       const limitInitCodeProvider = await getProvider({
         wallet: { seed: "temet nosce" },
-        chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
+        chain: { allowUnlimitedInitcodeSize: false, hardfork: "shanghai" }
       });
       const accounts = await limitInitCodeProvider.send("eth_accounts");
 
@@ -397,7 +397,7 @@ describe("provider", () => {
         data: "0x" + contract.contract.evm.methodIdentifiers["create()"]
       };
       {
-        // sanity check.... it *should* fail when `allowUnlimitedInitCodeSize` option is `false`
+        // sanity check.... it *should* fail when `allowUnlimitedInitcodeSize` option is `false`
         const limitInitCodeHash = await limitInitCodeProvider.send(
           "eth_sendTransaction",
           [deployTx]
@@ -431,7 +431,7 @@ describe("provider", () => {
         const unlimitedInitCodeProvider = await getProvider({
           wallet: { seed: "temet nosce" },
           chain: {
-            allowUnlimitedInitCodeSize: true,
+            allowUnlimitedInitcodeSize: true,
             hardfork: "shanghai"
           }
         });
