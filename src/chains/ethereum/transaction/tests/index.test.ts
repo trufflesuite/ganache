@@ -65,6 +65,12 @@ describe("@ganache/ethereum-transaction", async () => {
     gasPrice: "0xffff",
     nonce: "0x0"
   };
+  const contractDeploymentTx: Transaction = {
+    from: from,
+    gasPrice: "0xffff",
+    nonce: "0x0",
+    data: "0x608060405234801561001057600080fd5b5061010e806100206000396000f3fe608060405234801561001057600080fd5b506004361061004c5760003560e01c806360fe47b1146100515780636d4ce63c1461006c575b600080fd5b61005a61008a565b6040518082815260200191505060405180910390f35b61007a6004803603602081101561008057600080fd5b81019080803590602001909291905050506100a6565b005b60005481565b8060008190555050565b600080"
+  }
 
   const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 
@@ -419,6 +425,22 @@ describe("@ganache/ethereum-transaction", async () => {
       it("has a function to check capability support", () => {
         assert.strictEqual(vmTx.supports(2930), false);
       });
+      describe("EIP-3860", () => {
+        it("computes intrinstic gas correctly pre-shanghai (EIP-3860)", () => {
+          const common= new Common({chain: "mainnet", hardfork: "london"});
+          const legacyDeployTx = Object.assign({...contractDeploymentTx}, {type: "0x0"});
+          const tx = TransactionFactory.fromRpc(legacyDeployTx, common);
+          const vmTx = tx.toVmTransaction();
+          assert.strictEqual(vmTx.getBaseFee(), 55728n);
+        });
+        it("computes intrinstic gas correctly post-shanghai (EIP-3860)", () => {
+          const common= new Common({chain: "mainnet", hardfork: "shanghai"});
+          const legacyDeployTx = Object.assign({...contractDeploymentTx}, {type: "0x0"});
+          const tx = TransactionFactory.fromRpc(legacyDeployTx, common);
+          const vmTx = tx.toVmTransaction();
+          assert.strictEqual(vmTx.getBaseFee(), 55740n);
+        });
+      });
     });
     it("can be converted to JSON", () => {
       const jsonTx = tx.toJSON();
@@ -493,6 +515,22 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("has a function to check capability support", () => {
         assert.strictEqual(vmTx.supports(2930), true);
+      });
+      describe("EIP-3860", () => {
+        it("computes intrinstic gas correctly pre-shanghai (EIP-3860)", () => {
+          const common= new Common({chain: "mainnet", hardfork: "london"});
+          const eip2930DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x2"});
+          const tx = TransactionFactory.fromRpc(eip2930DeployTx, common);
+          const vmTx = tx.toVmTransaction();
+          assert.strictEqual(vmTx.getBaseFee(), 55728n);
+        });
+        it("computes intrinstic gas correctly post-shanghai (EIP-3860)", () => {
+          const common= new Common({chain: "mainnet", hardfork: "shanghai"});
+          const eip2930DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x2"});
+          const tx = TransactionFactory.fromRpc(eip2930DeployTx, common);
+          const vmTx = tx.toVmTransaction();
+          assert.strictEqual(vmTx.getBaseFee(), 55740n);
+        });
       });
     });
     it("can be converted to JSON", () => {
@@ -572,6 +610,20 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("has a function to check capability support", () => {
         assert.strictEqual(vmTx.supports(1559), true);
+      });
+      describe("EIP-3860", () => {
+        it("computes intrinstic gas correctly pre-shanghai (EIP-3860)", () => {
+          const common= new Common({chain: "mainnet", hardfork: "london"});
+          const eip1559DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x1"});
+          const vmTx = TransactionFactory.fromRpc(eip1559DeployTx, common).toVmTransaction();
+          assert.strictEqual(vmTx.getBaseFee(), 55728n);
+        });
+        it("computes intrinstic gas correctly post-shanghai (EIP-3860)", () => {
+          const common= new Common({chain: "mainnet", hardfork: "shanghai"});
+          const eip1559DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x1"});
+          const vmTx = TransactionFactory.fromRpc(eip1559DeployTx, common).toVmTransaction();
+          assert.strictEqual(vmTx.getBaseFee(), 55740n);
+        });
       });
     });
     it("can be converted to JSON", () => {
