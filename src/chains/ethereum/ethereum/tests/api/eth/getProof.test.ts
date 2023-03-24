@@ -73,6 +73,9 @@ describe("api", () => {
         );
       });
 
+      // note: these tests may fail if a hardfork or other change changes the
+      // gas used/costs required to deploy the contract. If this happens, the
+      // expected values will need to be updated.
       it("gets the proof without supplying `blockNumber`", async () => {
         const result = await provider.send("eth_getProof", [ownerAddress, []]);
 
