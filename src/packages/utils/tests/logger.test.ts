@@ -1,37 +1,16 @@
 import assert from "assert";
 import { createLogger } from "../src/things/logger";
-import { openSync, promises, closeSync } from "fs";
+import { openSync, promises, closeSync, writeSync } from "fs";
 const { readFile, unlink } = promises;
 
-const getFileDescriptor = (slug: string) => {
-  const path = `./tests/test-${slug}.log`;
-  return {
-    path,
-    descriptor: openSync(path, "a")
-  };
-};
-
-const splitLogLine = (logLine: string) => {
-  // The log line is in the format:
-  // `<timestamp> <message>`
-  // where the timestamp is 24 characters long
-  // the delimiting space is at index 24
-  // and the message starts at index 25
-  const timestampPart = logLine.slice(0, 24);
-  const delimiter = logLine[24];
-  const messagePart = logLine.slice(25);
-
-  return {
-    timestampPart,
-    delimiter,
-    messagePart
-  };
-};
-
 describe("createLogger()", () => {
-  const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+  const fixturePath = `./tests/logger-test-fixture.log`;
+  const getFixtureDescriptor = () => openSync(fixturePath, "a");
+  const onError = (err: Error) => {};
 
-  const createbaseLoggerger = () => {
+  afterEach(() => unlink(fixturePath).catch(err => {}));
+
+  const createBaseLogger = () => {
     const calls: any[][] = [];
     return {
       baseLogger: {
@@ -43,45 +22,112 @@ describe("createLogger()", () => {
     };
   };
 
-  const message = "test message";
+  describe("baseLogger", () => {
+    it("binds the log function to the baseLogger", () => {
+      const baseLogger = {
+        log: function () {
+          assert.strictEqual(
+            this,
+            baseLogger,
+            "`this` does not reference the baseLogger"
+          );
+        }
+      };
+
+      const logger = createLogger({ baseLogger });
+
+      logger.log("test message");
+    });
+
+    it("binds the log function to the baseLogger, when a file is specified", async () => {
+      const baseLogger = {
+        log: function () {
+          assert.strictEqual(
+            this,
+            baseLogger,
+            "`this` does not reference the baseLogger"
+          );
+        }
+      };
+
+      const file = getFixtureDescriptor();
+      const logger = createLogger({ baseLogger, file });
+
+      logger.log("test message");
+    });
+
+    it("uses the reassigned log function", () => {
+      const baseLogger = {
+        log: (message: any, ...optionalArgs: any[]) => {}
+      };
+
+      const logger = createLogger({ baseLogger });
+
+      baseLogger.log = (message: any, ...optionalArgs: any[]) => {
+        assert.strictEqual(message, "test message");
+        assert.deepStrictEqual(optionalArgs, ["param1", "param2"]);
+      };
+
+      logger.log("test message", "param1", "param2");
+    });
+  });
 
   describe("log()", () => {
-    it("should create a baseLogger() logger", () => {
-      const { baseLogger, calls } = createbaseLoggerger();
+    const splitLogLine = (logLine: string) => {
+      // The log line is in the format:
+      // `<timestamp> <message>`
+      // where the timestamp is 24 characters long
+      // the delimiting space is at index 24
+      // and the message starts at index 25
+      const timestampPart = logLine.slice(0, 24);
+      const delimiter = logLine[24];
+      const messagePart = logLine.slice(25);
+
+      return {
+        timestampPart,
+        delimiter,
+        messagePart
+      };
+    };
+
+    const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+    const message = "test message";
+
+    it("creates a baseLogger() logger", () => {
+      const { baseLogger, calls } = createBaseLogger();
       const { log } = createLogger({ baseLogger });
 
       log(message);
 
-      assert.strictEqual(
+      assert.deepStrictEqual(
         calls.length,
         1,
         "baseLogger() was called unexpected number of times."
       );
 
-      const baseLoggerArgs = calls[0];
-
-      assert.deepStrictEqual(
-        baseLoggerArgs,
-        [message],
-        "baseLogger() called with unexpected arguments."
-      );
+      assert.deepStrictEqual(calls, [[message]]);
     });
 
-    it("should still call baseLogger() when a file is specified", async () => {
-      const { descriptor, path } = getFileDescriptor("write-to-console");
-      const { baseLogger, calls } = createbaseLoggerger();
+    it("still calls baseLogger() when a file is specified", async () => {
+      const fd = getFixtureDescriptor();
 
-      const { log, getCompletionHandle } = createLogger({
-        file: descriptor,
-        baseLogger
+      const { baseLogger, calls } = createBaseLogger();
+
+      const { log, close } = createLogger({
+        file: fd,
+        baseLogger,
+        onError
       });
 
       try {
         log(message);
-        await getCompletionHandle();
-      } finally {
-        closeSync(descriptor);
-        await unlink(path);
+        await close();
+      } catch (err) {
+        // logger.close() will close the underlying descriptor, so this only needs to
+        // happen if it fails
+        closeSync(fd);
+        throw err;
       }
 
       assert.strictEqual(
@@ -90,37 +136,33 @@ describe("createLogger()", () => {
         "baseLogger() was called unexpected number of times."
       );
 
-      const args = calls[0];
-
-      assert.deepStrictEqual(
-        args,
-        [message],
-        "baseLogger() called with unexpected arguments."
-      );
+      assert.deepStrictEqual(calls, [[message]]);
     });
 
-    it("should write to the file provided", async () => {
-      const { descriptor, path } = getFileDescriptor("write-to-file-provided");
-      const { baseLogger } = createbaseLoggerger();
+    it("writes to the file provided", async () => {
+      const fd = getFixtureDescriptor();
 
-      const { log, getCompletionHandle } = createLogger({
-        file: descriptor,
-        baseLogger
+      const { baseLogger } = createBaseLogger();
+
+      const { log, close } = createLogger({
+        file: fd,
+        baseLogger,
+        onError
       });
 
-      let fileContents: string;
       try {
         log(`${message} 0`);
         log(`${message} 1`);
         log(`${message} 2`);
-        await getCompletionHandle();
-
-        fileContents = await readFile(path, "utf8");
-      } finally {
-        closeSync(descriptor);
-        await unlink(path);
+        await close();
+      } catch (err) {
+        // logger.close() will close the underlying descriptor, so only need to
+        // explicitly close the descriptor if it fails to close
+        closeSync(fd);
+        throw err;
       }
 
+      const fileContents = await readFile(fixturePath, "utf8");
       const logLines = fileContents.split("\n");
 
       // 4, because there's a \n at the end of each line, creating an empty entry
@@ -140,13 +182,15 @@ describe("createLogger()", () => {
       });
     });
 
-    it("should timestamp each line on multi-line log messages", async () => {
-      const { descriptor, path } = getFileDescriptor("timestamp-each-line");
-      const { baseLogger } = createbaseLoggerger();
+    it("timestamps each line on multi-line log messages", async () => {
+      const fd = getFixtureDescriptor();
 
-      const { log, getCompletionHandle } = createLogger({
-        file: descriptor,
-        baseLogger
+      const { baseLogger } = createBaseLogger();
+
+      const { log, close } = createLogger({
+        file: fd,
+        baseLogger,
+        onError
       });
 
       const expectedLines = ["multi", "line", "message"];
@@ -154,14 +198,16 @@ describe("createLogger()", () => {
       let loggedLines: string[];
       try {
         log(expectedLines.join("\n"));
-        await getCompletionHandle();
-
-        const fileContents = await readFile(path, "utf8");
-        loggedLines = fileContents.split("\n");
-      } finally {
-        closeSync(descriptor);
-        await unlink(path);
+        await close();
+      } catch (err) {
+        // logger.close() will close the underlying descriptor, so only need to
+        // explicitly close the descriptor if it fails to close
+        closeSync(fd);
+        throw err;
       }
+
+      const fileContents = await readFile(fixturePath, "utf8");
+      loggedLines = fileContents.split("\n");
 
       // 4, because there's a \n at the end of each line, creating an empty entry
       assert.strictEqual(loggedLines.length, 4);
@@ -176,19 +222,75 @@ describe("createLogger()", () => {
       });
     });
 
-    it("should throw if the file descriptor is invalid", async () => {
+    it("throws if the file descriptor is invalid", async () => {
       // unlikely that this will be a valid file descriptor
-      const descriptor = 1234567890;
-      const { baseLogger } = createbaseLoggerger();
+      const fd = 1234567890;
+      const { baseLogger } = createBaseLogger();
 
-      const { log, getCompletionHandle } = createLogger({
-        file: descriptor,
+      // this is a strange kinda promise, because it *resolves* to an Error
+      const errorRaised: NodeJS.ErrnoException = await new Promise<Error>(
+        resolve => {
+          const { log, close } = createLogger({
+            file: fd,
+            baseLogger,
+            onError: err => resolve(err)
+          });
+
+          log("Invalid descriptor");
+
+          close();
+        }
+      );
+
+      assert.strictEqual(errorRaised.code, "EBADF");
+    });
+
+    it("continues to log to baseLogger after file descriptor is closed", async () => {
+      const { baseLogger, calls } = createBaseLogger();
+      const fd = getFixtureDescriptor();
+
+      const { log, close } = createLogger({
+        file: fd,
+        baseLogger,
+        onError
+      });
+
+      closeSync(fd);
+
+      log("Oh noes!");
+      log("The descriptor is cloes[d]!");
+
+      await close();
+
+      assert.deepStrictEqual(calls, [
+        ["Oh noes!"],
+        ["The descriptor is cloes[d]!"]
+      ]);
+    });
+  });
+
+  describe("close()", () => {
+    it("closes the underlying descriptor", async () => {
+      const fd = getFixtureDescriptor();
+      const { baseLogger } = createBaseLogger();
+      const { close } = createLogger({
+        file: fd,
+        onError,
         baseLogger
       });
 
-      log("descriptor is invalid");
+      try {
+        await close();
+      } catch (err) {
+        // logger.close() will close the underlying descriptor, so only need to
+        // explicitly close the descriptor if it fails to close
+        closeSync(fd);
+        throw err;
+      }
 
-      await assert.rejects(getCompletionHandle(), { code: "EBADF" });
+      assert.throws(() => writeSync(fd, "Descriptor is closed"), {
+        code: "EBADF"
+      });
     });
   });
 });

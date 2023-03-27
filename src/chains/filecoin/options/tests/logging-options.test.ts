@@ -111,7 +111,6 @@ describe("FilecoinOptionsConfig", () => {
               logging: { file: validFilePath }
             });
             options.logging.logger.log(message);
-            closeSync(options.logging.file);
 
             const readHandle = await open(validFilePath, "r");
             const content = await readHandle.readFile({ encoding: "utf8" });
@@ -125,7 +124,7 @@ describe("FilecoinOptionsConfig", () => {
           }
         });
 
-       it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
+        it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
           const calls: any[] = [];
           const logger = {
             log: (message: any, ...params: any[]) => {
@@ -142,13 +141,9 @@ describe("FilecoinOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
-            if ("getCompletionHandle" in options.logging.logger) {
-              //wait for the logs to be written to disk
-              await options.logging.logger.getCompletionHandle();
-            } else {
-              throw new Error("Expected options.logging.logger to be AsyncronousLogger");
+            if (options.logging.logger.close) {
+              await options.logging.logger.close();
             }
-            closeSync(options.logging.file);
 
             assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
 

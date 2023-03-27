@@ -1,7 +1,7 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { openSync, PathLike } from "fs";
-import { Logger, createLogger } from "@ganache/utils";
+import { Logger, InternalLogger, createLogger } from "@ganache/utils";
 
 export type LoggingConfig = {
   options: {
@@ -36,7 +36,8 @@ export type LoggingConfig = {
      * ```
      */
     readonly logger: {
-      type: Logger;
+      rawType: Logger;
+      type: InternalLogger;
       hasDefault: true;
       legacy: {
         /**

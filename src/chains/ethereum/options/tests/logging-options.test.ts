@@ -22,6 +22,49 @@ describe("EthereumOptionsConfig", () => {
       });
 
       describe("logger", () => {
+        it("uses a reassigned log function", async () => {
+          const logger = {
+            log: (message: any, ...optionalParams: any[]) => {}
+          };
+
+          const options = EthereumOptionsConfig.normalize({
+            logging: { logger }
+          });
+
+          let called = false;
+
+          // reassign log function
+          logger.log = (message: any, ...optionalParams: any[]) => {
+            called = true;
+            assert.strictEqual(message, "Test message");
+            assert.deepStrictEqual(optionalParams, ["param1", "param2"]);
+          };
+
+          options.logging.logger.log("Test message", "param1", "param2");
+          assert(called);
+        });
+
+        it("uses a reassigned log function, when a file is specified", async () => {
+          const logger = {
+            log: (message: any, ...optionalParams: any[]) => {}
+          };
+
+          const options = EthereumOptionsConfig.normalize({
+            logging: { logger, file: validFilePath }
+          });
+
+          let called = false;
+          // reassign log function
+          logger.log = (message: any, ...optionalParams: any[]) => {
+            called = true;
+            assert.strictEqual(message, "Test message");
+            assert.deepStrictEqual(optionalParams, ["param1", "param2"]);
+          };
+
+          options.logging.logger.log("Test message", "param1", "param2");
+          assert(called);
+        });
+
         it("uses console.log by default", () => {
           const message = "message";
           const options = EthereumOptionsConfig.normalize({});
@@ -137,7 +180,6 @@ describe("EthereumOptionsConfig", () => {
               logging: { file: validFilePath }
             });
             options.logging.logger.log(message);
-            closeSync(options.logging.file);
 
             const readHandle = await open(validFilePath, "r");
             const content = await readHandle.readFile({ encoding: "utf8" });
@@ -168,13 +210,9 @@ describe("EthereumOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
-            if ("getCompletionHandle" in options.logging.logger) {
-              //wait for the logs to be written to disk
-              await options.logging.logger.getCompletionHandle();
-            } else {
-              throw new Error("Expected options.logging.logger to be AsyncronousLogger");
+            if (options.logging.logger.close) {
+              await options.logging.logger.close();
             }
-            closeSync(options.logging.file);
 
             assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
 

@@ -1,37 +1,33 @@
-import { appendFile } from "fs";
-import { promisify, format } from "util";
-const appendFilePromise = promisify(appendFile);
+import { createWriteStream } from "fs";
+import { format } from "util";
 export type LogFunc = (message?: any, ...optionalParams: any[]) => void;
 
-type SyncronousLogger = {
+export type Logger = {
   log: LogFunc;
 };
-type AsyncronousLogger = SyncronousLogger & {
-  getCompletionHandle: () => Promise<void>;
+
+export type InternalLogger = Logger & {
+  close?: () => Promise<void>;
 };
 
-export type Logger = SyncronousLogger | AsyncronousLogger;
-
-export function createLogger(config: {
-  file: number;
+type LoggerConfig = {
   baseLogger: Logger;
-}): AsyncronousLogger;
-export function createLogger(config: { baseLogger: Logger }): SyncronousLogger;
-export function createLogger(config: {
   file?: number;
-  baseLogger: Logger;
-}): Logger {
-  if (config.file === undefined) {
-    return config.baseLogger;
-  } else {
+  onError?: (err: Error) => void;
+};
+
+export function createLogger(config: LoggerConfig): InternalLogger {
+  const baseLog = (...params: any[]) => config.baseLogger.log(...params);
+
+  if ("file" in config && config.file !== undefined) {
     if (typeof config.file !== "number") {
       throw new Error(
-        `'config.file' was not correctly noramlized to a file descriptor. This should not happen. ${
+        `'config.file' was not correctly normalized to a file descriptor. This should not happen. Value: ${
           config.file
-        }: ${typeof config.file}`
+        } of type ${typeof config.file}`
       );
     }
-    const descriptor = config.file;
+    const fd = config.file;
 
     const diskLogFormatter = (message: any) => {
       // trailing space after date is delimiter between date and message
@@ -39,24 +35,38 @@ export function createLogger(config: {
       return message.toString().replace(/^/gm, linePrefix);
     };
 
-    let writing = Promise.resolve<void>(null);
+    const writeStream = createWriteStream(null, { fd });
+
+    const onError =
+      config.onError ||
+      (err => console.error(`Error writing to log file: ${err.message}`));
+    writeStream.on("error", onError);
 
     const log = (message: any, ...optionalParams: any[]) => {
       // we are logging to a file, but we still need to writing to console
-      config.baseLogger.log(message, ...optionalParams);
+      baseLog(message, ...optionalParams);
 
       const formattedMessage: string = format(message, ...optionalParams);
-
-      writing = writing.then(() => {
-        return appendFilePromise(
-          descriptor,
-          diskLogFormatter(formattedMessage) + "\n"
-        );
-      });
+      writeStream.write(diskLogFormatter(formattedMessage) + "\n");
     };
+
     return {
       log,
-      getCompletionHandle: () => writing
+      close: () =>
+        new Promise<void>((resolve, reject) => {
+          writeStream.close(err => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        })
+    };
+  } else {
+    return {
+      log: baseLog,
+      close: async () => {}
     };
   }
 }
