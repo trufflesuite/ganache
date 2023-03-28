@@ -51,9 +51,16 @@ describe("createLogger()", () => {
       };
 
       const file = getFixtureDescriptor();
-      const logger = createLogger({ baseLogger, file });
+      try {
+        const logger = createLogger({ baseLogger, file });
 
-      logger.log("test message");
+        logger.log("test message");
+        await logger.close();
+      } catch {
+        // logger.close() will close the underlying descriptor, so this only needs to
+        // happen if it fails
+        closeSync(file);
+      }
     });
 
     it("uses the reassigned log function", () => {
@@ -110,12 +117,12 @@ describe("createLogger()", () => {
     });
 
     it("still calls baseLogger() when a file is specified", async () => {
-      const fd = getFixtureDescriptor();
+      const file = getFixtureDescriptor();
 
       const { baseLogger, calls } = createBaseLogger();
 
       const { log, close } = createLogger({
-        file: fd,
+        file,
         baseLogger
       });
 
@@ -125,7 +132,7 @@ describe("createLogger()", () => {
       } catch (err) {
         // logger.close() will close the underlying descriptor, so this only needs to
         // happen if it fails
-        closeSync(fd);
+        closeSync(file);
         throw err;
       }
 
@@ -139,12 +146,12 @@ describe("createLogger()", () => {
     });
 
     it("writes to the file provided", async () => {
-      const fd = getFixtureDescriptor();
+      const file = getFixtureDescriptor();
 
       const { baseLogger } = createBaseLogger();
 
       const { log, close } = createLogger({
-        file: fd,
+        file,
         baseLogger
       });
 
@@ -156,7 +163,7 @@ describe("createLogger()", () => {
       } catch (err) {
         // logger.close() will close the underlying descriptor, so only need to
         // explicitly close the descriptor if it fails to close
-        closeSync(fd);
+        closeSync(file);
         throw err;
       }
 
@@ -181,12 +188,12 @@ describe("createLogger()", () => {
     });
 
     it("timestamps each line on multi-line log messages", async () => {
-      const fd = getFixtureDescriptor();
+      const file = getFixtureDescriptor();
 
       const { baseLogger } = createBaseLogger();
 
       const { log, close } = createLogger({
-        file: fd,
+        file,
         baseLogger
       });
 
@@ -199,7 +206,7 @@ describe("createLogger()", () => {
       } catch (err) {
         // logger.close() will close the underlying descriptor, so only need to
         // explicitly close the descriptor if it fails to close
-        closeSync(fd);
+        closeSync(file);
         throw err;
       }
 
@@ -245,14 +252,14 @@ describe("createLogger()", () => {
 
     it("continues to log to baseLogger after file descriptor is closed", async () => {
       const { baseLogger, calls } = createBaseLogger();
-      const fd = getFixtureDescriptor();
+      const file = getFixtureDescriptor();
 
       const { log, close } = createLogger({
-        file: fd,
+        file,
         baseLogger
       });
 
-      closeSync(fd);
+      closeSync(file);
 
       log("Oh noes!");
       log("The descriptor is cloes[d]!");
@@ -268,10 +275,10 @@ describe("createLogger()", () => {
 
   describe("close()", () => {
     it("closes the underlying descriptor", async () => {
-      const fd = getFixtureDescriptor();
+      const file = getFixtureDescriptor();
       const { baseLogger } = createBaseLogger();
       const { close } = createLogger({
-        file: fd,
+        file,
         baseLogger
       });
 
@@ -280,11 +287,11 @@ describe("createLogger()", () => {
       } catch (err) {
         // logger.close() will close the underlying descriptor, so only need to
         // explicitly close the descriptor if it fails to close
-        closeSync(fd);
+        closeSync(file);
         throw err;
       }
 
-      assert.throws(() => writeSync(fd, "Descriptor is closed"), {
+      assert.throws(() => writeSync(file, "Descriptor is closed"), {
         code: "EBADF"
       });
     });
