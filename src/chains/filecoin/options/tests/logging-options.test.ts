@@ -141,9 +141,7 @@ describe("FilecoinOptionsConfig", () => {
             });
 
             options.logging.logger.log("message", "param1", "param2");
-            if (options.logging.logger.close) {
-              await options.logging.logger.close();
-            }
+            await options.logging.logger.close();
 
             assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
 

@@ -7,13 +7,12 @@ export type Logger = {
 };
 
 export type InternalLogger = Logger & {
-  close?: () => Promise<void>;
+  close: () => Promise<void>;
 };
 
 type LoggerConfig = {
   baseLogger: Logger;
   file?: number;
-  onError?: (err: Error) => void;
 };
 
 export function createLogger(config: LoggerConfig): InternalLogger {
@@ -37,9 +36,8 @@ export function createLogger(config: LoggerConfig): InternalLogger {
 
     const writeStream = createWriteStream(null, { fd });
 
-    const onError =
-      config.onError ||
-      (err => console.error(`Error writing to log file: ${err.message}`));
+    const onError = err =>
+      console.error(`Error writing to log file: ${err.message}`);
     writeStream.on("error", onError);
 
     const log = (message: any, ...optionalParams: any[]) => {

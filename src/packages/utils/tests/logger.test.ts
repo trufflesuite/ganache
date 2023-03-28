@@ -1,4 +1,5 @@
 import assert from "assert";
+import sinon from "sinon";
 import { createLogger } from "../src/things/logger";
 import { openSync, promises, closeSync, writeSync } from "fs";
 const { readFile, unlink } = promises;
@@ -6,7 +7,6 @@ const { readFile, unlink } = promises;
 describe("createLogger()", () => {
   const fixturePath = `./tests/logger-test-fixture.log`;
   const getFixtureDescriptor = () => openSync(fixturePath, "a");
-  const onError = (err: Error) => {};
 
   afterEach(() => unlink(fixturePath).catch(err => {}));
 
@@ -116,8 +116,7 @@ describe("createLogger()", () => {
 
       const { log, close } = createLogger({
         file: fd,
-        baseLogger,
-        onError
+        baseLogger
       });
 
       try {
@@ -146,8 +145,7 @@ describe("createLogger()", () => {
 
       const { log, close } = createLogger({
         file: fd,
-        baseLogger,
-        onError
+        baseLogger
       });
 
       try {
@@ -189,8 +187,7 @@ describe("createLogger()", () => {
 
       const { log, close } = createLogger({
         file: fd,
-        baseLogger,
-        onError
+        baseLogger
       });
 
       const expectedLines = ["multi", "line", "message"];
@@ -222,27 +219,28 @@ describe("createLogger()", () => {
       });
     });
 
-    it("throws if the file descriptor is invalid", async () => {
+    it("writes to stderr if the file descriptor is invalid", async () => {
       // unlikely that this will be a valid file descriptor
       const fd = 1234567890;
       const { baseLogger } = createBaseLogger();
+      const spy = sinon.spy(console, "error");
 
-      // this is a strange kinda promise, because it *resolves* to an Error
-      const errorRaised: NodeJS.ErrnoException = await new Promise<Error>(
-        resolve => {
-          const { log, close } = createLogger({
-            file: fd,
-            baseLogger,
-            onError: err => resolve(err)
-          });
+      const { log, close } = createLogger({
+        file: fd,
+        baseLogger
+      });
 
-          log("Invalid descriptor");
+      log("Invalid descriptor");
 
-          close();
-        }
+      await close();
+
+      assert.strictEqual(
+        spy.withArgs(
+          "Error writing to log file: EBADF: bad file descriptor, close"
+        ).callCount,
+        1
       );
-
-      assert.strictEqual(errorRaised.code, "EBADF");
+      spy.restore();
     });
 
     it("continues to log to baseLogger after file descriptor is closed", async () => {
@@ -251,8 +249,7 @@ describe("createLogger()", () => {
 
       const { log, close } = createLogger({
         file: fd,
-        baseLogger,
-        onError
+        baseLogger
       });
 
       closeSync(fd);
@@ -275,7 +272,6 @@ describe("createLogger()", () => {
       const { baseLogger } = createBaseLogger();
       const { close } = createLogger({
         file: fd,
-        onError,
         baseLogger
       });
 

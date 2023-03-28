@@ -432,9 +432,7 @@ export class EthereumProvider
     this.#executor.stop();
     await this.#blockchain.stop();
 
-    if (this.#options.logging.logger.close) {
-      await this.#options.logging.logger.close();
-    }
+    await this.#options.logging.logger.close();
 
     this.#executor.end();
     this.emit("disconnect");
