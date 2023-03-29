@@ -67,7 +67,7 @@ describe("FilecoinOptionsConfig", () => {
         });
 
         it("fails if the process doesn't have write access to the file path provided", async () => {
-          const file = resolve("./eperm-file.log");
+          const file = resolve("./tests/eperm-file.log");
           const handle = await open(file, "w");
           // set no permissions on the file
           await handle.chmod(0);
@@ -77,13 +77,17 @@ describe("FilecoinOptionsConfig", () => {
             message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.`
           };
 
-          assert.throws(
-            () =>
-              FilecoinOptionsConfig.normalize({
-                logging: { file }
-              }),
-            error
-          );
+          try {
+            assert.throws(
+              () =>
+                FilecoinOptionsConfig.normalize({
+                  logging: { file }
+                }),
+              error
+            );
+          } finally {
+            unlink(file);
+          }
         });
 
         it("should append to the specified file", async () => {
@@ -95,15 +99,20 @@ describe("FilecoinOptionsConfig", () => {
           const options = FilecoinOptionsConfig.normalize({
             logging: { file: validFilePath }
           });
-          options.logging.logger.log(message);
 
-          const readHandle = await open(validFilePath, "r");
-          const content = await readHandle.readFile({ encoding: "utf8" });
-          await readHandle.close();
-          assert(
-            content.startsWith("existing content"),
-            "Existing content was overwritten by the logger"
-          );
+          try {
+            options.logging.logger.log(message);
+
+            const readHandle = await open(validFilePath, "r");
+            const content = await readHandle.readFile({ encoding: "utf8" });
+            await readHandle.close();
+            assert(
+              content.startsWith("existing content"),
+              "Existing content was overwritten by the logger"
+              );
+            } finally {
+              await options.logging.logger.close();
+            }
         });
 
         it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
@@ -120,9 +129,11 @@ describe("FilecoinOptionsConfig", () => {
               file: validFilePath
             }
           });
-
-          options.logging.logger.log("message", "param1", "param2");
-          await options.logging.logger.close();
+          try {
+            options.logging.logger.log("message", "param1", "param2");
+          } finally {
+            await options.logging.logger.close();
+          }
 
           assert.deepStrictEqual(calls, [["message", "param1", "param2"]]);
 

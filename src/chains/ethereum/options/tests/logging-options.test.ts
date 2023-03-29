@@ -56,15 +56,19 @@ describe("EthereumOptionsConfig", () => {
           });
 
           let called = false;
-          // reassign log function
-          logger.log = (message: any, ...optionalParams: any[]) => {
-            called = true;
-            assert.strictEqual(message, "Test message");
-            assert.deepStrictEqual(optionalParams, ["param1", "param2"]);
-          };
+          try {
+            // reassign log function
+            logger.log = (message: any, ...optionalParams: any[]) => {
+              called = true;
+              assert.strictEqual(message, "Test message");
+              assert.deepStrictEqual(optionalParams, ["param1", "param2"]);
+            };
 
-          options.logging.logger.log("Test message", "param1", "param2");
-          assert(called);
+            options.logging.logger.log("Test message", "param1", "param2");
+            assert(called);
+          } finally {
+            await options.logging.logger.close();
+          }
         });
 
         it("uses console.log by default", () => {
@@ -145,14 +149,17 @@ describe("EthereumOptionsConfig", () => {
           const error = {
             message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.`
           };
-
-          assert.throws(
-            () =>
-              EthereumOptionsConfig.normalize({
-                logging: { file }
-              }),
-            error
-          );
+          try {
+            assert.throws(
+              () =>
+                EthereumOptionsConfig.normalize({
+                  logging: { file }
+                }),
+              error
+            );
+          } finally {
+            await unlink(file);
+          }
         });
 
         it("should append to the specified file", async () => {
@@ -164,15 +171,19 @@ describe("EthereumOptionsConfig", () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { file: validFilePath }
           });
-          options.logging.logger.log(message);
+          try {
+            options.logging.logger.log(message);
 
-          const readHandle = await open(validFilePath, "r");
-          const content = await readHandle.readFile({ encoding: "utf8" });
-          await readHandle.close();
-          assert(
-            content.startsWith("existing content"),
-            "Existing content was overwritten by the logger"
-          );
+            const readHandle = await open(validFilePath, "r");
+            const content = await readHandle.readFile({ encoding: "utf8" });
+            await readHandle.close();
+            assert(
+              content.startsWith("existing content"),
+              "Existing content was overwritten by the logger"
+            );
+          } finally {
+            await options.logging.logger.close();
+          }
         });
 
         it("uses the provided logger, and file when both `logger` and `file` are provided", async () => {
