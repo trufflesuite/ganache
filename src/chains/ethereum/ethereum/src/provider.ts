@@ -35,7 +35,6 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-import { closeSync } from "fs";
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
 function parseCoinbase(
