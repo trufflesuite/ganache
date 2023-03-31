@@ -4,11 +4,11 @@ import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
 import { Transaction } from "./rpc-transaction";
 import {
-  EIP1559FeeMarketDatabasePayload,
-  EIP2930AccessListDatabasePayload,
+  EIP1559FeeMarketRawTransaction,
+  EIP2930AccessListRawTransaction,
   GanacheRawExtraTx,
-  LegacyDatabasePayload,
-  TypedDatabasePayload,
+  LegacyRawTransaction,
+  TypedRawTransaction,
   TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
@@ -54,7 +54,7 @@ export class TransactionFactory {
     this.tx = TransactionFactory.fromDatabaseTx(txData, common, extra);
   }
   private static _fromData(
-    txData: Transaction | TypedDatabasePayload,
+    txData: Transaction | TypedRawTransaction,
     txType: TransactionType,
     common: Common,
     extra?: GanacheRawExtraTx
@@ -63,7 +63,7 @@ export class TransactionFactory {
     // return legacy txs as is and convert typed txs to legacy
     if (!common.isActivatedEIP(2718)) {
       return LegacyTransaction.fromTxData(
-        <LegacyDatabasePayload | Transaction>txData,
+        <LegacyRawTransaction | Transaction>txData,
         common,
         extra
       );
@@ -73,7 +73,7 @@ export class TransactionFactory {
       } else if (txType === TransactionType.EIP2930AccessList) {
         if (common.isActivatedEIP(2930)) {
           return EIP2930AccessListTransaction.fromTxData(
-            <EIP2930AccessListDatabasePayload | Transaction>txData,
+            <EIP2930AccessListRawTransaction | Transaction>txData,
             common,
             extra
           );
@@ -100,19 +100,19 @@ export class TransactionFactory {
       if (Array.isArray(txData)) {
         if (txType === TransactionType.Legacy) {
           return LegacyTransaction.fromTxData(
-            <LegacyDatabasePayload>txData,
+            <LegacyRawTransaction>txData,
             common,
             extra
           );
         } else if (txType === TransactionType.EIP2930AccessList) {
           return EIP2930AccessListTransaction.fromTxData(
-            <EIP2930AccessListDatabasePayload>txData,
+            <EIP2930AccessListRawTransaction>txData,
             common,
             extra
           );
         } else if (txType === TransactionType.EIP1559AccessList) {
           return EIP1559FeeMarketTransaction.fromTxData(
-            <EIP1559FeeMarketDatabasePayload>txData,
+            <EIP1559FeeMarketRawTransaction>txData,
             common,
             extra
           );
@@ -193,19 +193,19 @@ export class TransactionFactory {
     switch (txType) {
       case TransactionType.EIP1559AccessList:
         return EIP1559FeeMarketTransaction.fromTxData(
-          txData.slice(1) as EIP1559FeeMarketDatabasePayload,
+          txData.slice(1) as EIP1559FeeMarketRawTransaction,
           common,
           extra
         );
       case TransactionType.Legacy:
         return LegacyTransaction.fromTxData(
-          txData as LegacyDatabasePayload,
+          txData as LegacyRawTransaction,
           common,
           extra
         );
       case TransactionType.EIP2930AccessList:
         return EIP2930AccessListTransaction.fromTxData(
-          txData.slice(1) as EIP2930AccessListDatabasePayload,
+          txData.slice(1) as EIP2930AccessListRawTransaction,
           common,
           extra
         );
@@ -234,9 +234,9 @@ export class TransactionFactory {
     const txType = this.typeOf(type);
     let tx: TypedTransaction;
     if (common.isActivatedEIP(2718)) {
-      let raw: TypedDatabasePayload;
+      let raw: TypedRawTransaction;
       try {
-        raw = decode<TypedDatabasePayload>(
+        raw = decode<TypedRawTransaction>(
           txType === TransactionType.Legacy ? data : data.slice(1)
         );
       } catch (e: any) {
@@ -244,9 +244,9 @@ export class TransactionFactory {
       }
       tx = this._fromData(raw, txType, common);
     } else {
-      let raw: TypedDatabasePayload;
+      let raw: TypedRawTransaction;
       try {
-        raw = decode<LegacyDatabasePayload>(data);
+        raw = decode<LegacyRawTransaction>(data);
       } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }

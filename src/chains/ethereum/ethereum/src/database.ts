@@ -1,4 +1,8 @@
-import type { AbstractLevelDOWN, AbstractIterator } from "abstract-leveldown";
+import type {
+  AbstractLevelDOWN,
+  AbstractIterator,
+  AbstractBatch
+} from "abstract-leveldown";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import Blockchain from "./blockchain";
@@ -8,6 +12,8 @@ import encode from "encoding-down";
 import leveldown from "leveldown";
 import type { LevelUp } from "levelup";
 import { TrieDB } from "./trie-db";
+import { BUFFER_ZERO, VERSION_KEY } from "@ganache/utils";
+import { Block } from "@ganache/ethereum-block";
 const levelup = require("levelup");
 
 export type GanacheLevelUp = LevelUp<
@@ -54,6 +60,51 @@ export default class Database extends Emittery {
     this.blockchain = blockchain;
   }
 
+  /**
+   * Handles migrating the db from one version to another.
+   * @returns
+   */
+  private async migrate() {
+    let version: Buffer;
+    try {
+      version = await this.db.get(VERSION_KEY);
+    } catch {
+      /* not found */
+    }
+    // we've shipped two versions:
+    //  * no version at all (referred to as "version `null`")
+    //  * and version: `BUFFER_ZERO` (the first versioned version)
+    // Since we only have the one version we can be lazy right now and just
+    // check if it exists
+    // if (version) return;
+
+    // this migration fixes a bug in version `null` that caused us to compute the `size`
+    // of blocks incorrectly. We save the size to the db, so we need to
+    // recompute it and re-save for all blocks:
+
+    // update the db with the version
+    const ops: AbstractBatch<Buffer, Buffer>[] = [
+      { type: "put", key: VERSION_KEY, value: BUFFER_ZERO }
+    ];
+
+    // read all blocks from the db and re-encode them with the correct `size`
+    const stream = this.blocks.createReadStream();
+    const prefix = Buffer.from((this.blocks as any).db.db.prefix);
+    for await (const data of stream) {
+      const { key, value } = data as unknown as {
+        key: Buffer;
+        value: Buffer;
+      };
+      ops.push({
+        type: "put",
+        key: Buffer.concat([prefix, key]),
+        value: Block.migrate(value)
+      });
+    }
+
+    // save all in one atomic operation:
+    await this.db.batch(ops);
+  }
   initialize = async () => {
     const levelupOptions: any = {
       keyEncoding: "binary",
@@ -61,9 +112,12 @@ export default class Database extends Emittery {
     };
     const store = this.#options.db;
     let db: GanacheLevelUp;
+
+    let shouldTryMigrate = false;
     if (store) {
       this.#rootStore = encode(store as AbstractLevelDOWN, levelupOptions);
       db = levelup(this.#rootStore, {});
+      shouldTryMigrate = true;
     } else {
       let directory = this.#options.dbPath;
       if (!directory) {
@@ -73,6 +127,8 @@ export default class Database extends Emittery {
 
         // don't continue if we closed while we were waiting for the dir
         if (this.#closed) return this.#cleanup();
+      } else {
+        shouldTryMigrate = true;
       }
       this.directory = directory;
 
@@ -102,6 +158,11 @@ export default class Database extends Emittery {
     this.transactions = sub(db, "t", levelupOptions);
     this.transactionReceipts = sub(db, "r", levelupOptions);
     this.storageKeys = sub(db, "s", levelupOptions);
+
+    if (shouldTryMigrate) {
+      await this.migrate();
+    }
+
     return this.emit("ready");
   };
 

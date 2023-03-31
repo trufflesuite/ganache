@@ -129,7 +129,7 @@ export class Fork {
       },
       { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
     );
-    if (this.#options.chain.allowUnlimitedInitcodeSize) {
+    if (this.#options.chain.allowUnlimitedInitCodeSize) {
       removeEIP3860InitCodeSizeLimitCheck(this.common);
     }
     // disable listeners to common since we don't actually cause any `emit`s,
@@ -314,7 +314,7 @@ export class Fork {
           { baseChain: 1 }
         );
       }
-      if (this.#options.chain.allowUnlimitedInitcodeSize) {
+      if (this.#options.chain.allowUnlimitedInitCodeSize) {
         removeEIP3860InitCodeSizeLimitCheck(forkCommon);
       }
       return forkCommon;

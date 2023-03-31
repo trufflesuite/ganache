@@ -7,7 +7,7 @@ type Concat<T extends unknown[], U extends unknown[]> = [...T, ...U];
 
 type TxType = [type: Buffer];
 
-export type LegacyDatabasePayload = [
+export type LegacyRawTransaction = [
   nonce: Buffer,
   gasPrice: Buffer,
   gas: Buffer,
@@ -19,7 +19,7 @@ export type LegacyDatabasePayload = [
   s: Buffer
 ];
 
-export type EIP2930AccessListDatabasePayload = [
+export type EIP2930AccessListRawTransaction = [
   chainId: Buffer,
   nonce: Buffer,
   gasPrice: Buffer,
@@ -33,7 +33,7 @@ export type EIP2930AccessListDatabasePayload = [
   s: Buffer
 ];
 
-export type EIP1559FeeMarketDatabasePayload = [
+export type EIP1559FeeMarketRawTransaction = [
   chainId: Buffer,
   nonce: Buffer,
   maxPriorityFeePerGas: Buffer,
@@ -50,22 +50,22 @@ export type EIP1559FeeMarketDatabasePayload = [
 
 export type EIP2930AccessListDatabaseTx = Concat<
   TxType,
-  EIP2930AccessListDatabasePayload
+  EIP2930AccessListRawTransaction
 >;
 
 export type EIP1559FeeMarketDatabaseTx = Concat<
   TxType,
-  EIP1559FeeMarketDatabasePayload
+  EIP1559FeeMarketRawTransaction
 >;
 
 export type TypedDatabaseTransaction =
-  | LegacyDatabasePayload
+  | LegacyRawTransaction
   | EIP2930AccessListDatabaseTx
   | EIP1559FeeMarketDatabaseTx;
-export type TypedDatabasePayload =
-  | LegacyDatabasePayload
-  | EIP2930AccessListDatabasePayload
-  | EIP1559FeeMarketDatabasePayload;
+export type TypedRawTransaction =
+  | LegacyRawTransaction
+  | EIP2930AccessListRawTransaction
+  | EIP1559FeeMarketRawTransaction;
 
 /**
  * Extra data Ganache stores as part of a transaction in order to support

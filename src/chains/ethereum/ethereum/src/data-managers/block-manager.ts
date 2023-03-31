@@ -5,17 +5,22 @@ import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
 import {
   Block,
+  EthereumRawBlock,
   EthereumRawBlockHeader,
-  serialize
+  Head,
+  serialize,
+  WithdrawalRaw
 } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawBlockTransactionMetaData,
   TransactionFactory,
+  TypedRawTransaction,
   TypedDatabaseTransaction
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
 import { Ethereum } from "../api-types";
+import { encode } from "@ganache/rlp";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -68,6 +73,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   static rawFromJSON(json: any, common: Common) {
+    const hasWithdrawals = json.withdrawalsRoot != null;
     const header: EthereumRawBlockHeader = [
       Data.toBuffer(json.parentHash),
       Data.toBuffer(json.sha3Uncles),
@@ -85,14 +91,21 @@ export default class BlockManager extends Manager<Block> {
       Data.toBuffer(json.mixHash),
       Data.toBuffer(json.nonce)
     ];
-    // only add baseFeePerGas if the block's JSON already has it
-    if (json.baseFeePerGas !== undefined) {
-      header[15] = Data.toBuffer(json.baseFeePerGas);
+    // We can't include the _slots_ for these values in the `header` array
+    // (i.e., set them to `undefined`), when the values are `undefined`, as the
+    // `length` of the array is encoded by the rlp process.
+    if (json.baseFeePerGas) {
+      header[15] = Quantity.toBuffer(json.baseFeePerGas);
+      if (hasWithdrawals) {
+        header[16] = Data.toBuffer(json.withdrawalsRoot);
+      }
     }
     const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
-    const txs: TypedDatabaseTransaction[] = [];
-    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
-    json.transactions.forEach((tx, index) => {
+    const txs: TypedDatabaseTransaction[] = Array(json.transactions.length);
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
+      json.transactions.length
+    );
+    json.transactions.forEach((tx: any, index: number) => {
       const blockExtra = [
         Address.toBuffer(tx.from),
         Quantity.toBuffer(tx.hash)
@@ -104,16 +117,51 @@ export default class BlockManager extends Manager<Block> {
         index
       ] as any;
       const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
-      const raw = typedTx.toEthRawTransaction(
-        typedTx.v.toBuffer(),
-        typedTx.r.toBuffer(),
-        typedTx.s.toBuffer()
-      );
-      txs.push(<TypedDatabaseTransaction>raw);
-      extraTxs.push(blockExtra);
+      let raw: Buffer | TypedRawTransaction;
+      const type = typedTx.type.toBuffer();
+      // type 0
+      if (type.length === 0) {
+        raw = typedTx.toEthRawTransaction(
+          typedTx.v.toBuffer(),
+          typedTx.r.toBuffer(),
+          typedTx.s.toBuffer()
+        );
+      } else {
+        // type 1 and 2:
+        raw = Buffer.concat([
+          typedTx.type.toBuffer(),
+          encode(
+            typedTx.toEthRawTransaction(
+              typedTx.v.toBuffer(),
+              typedTx.r.toBuffer(),
+              typedTx.s.toBuffer()
+            )
+          )
+        ]);
+      }
+      txs[index] = <TypedDatabaseTransaction>raw;
+      extraTxs[index] = blockExtra;
     });
 
-    return serialize([header, txs, [], totalDifficulty, extraTxs]).serialized;
+    let start: EthereumRawBlock | Head<EthereumRawBlock>;
+
+    if (hasWithdrawals) {
+      const extraWithdrawals = Array(json.withdrawals.length);
+      for (let i = 0; i < json.withdrawals.length; i++) {
+        const withdrawal = json.withdrawals[i];
+        extraWithdrawals[i] = [
+          Quantity.toBuffer(withdrawal.index),
+          Quantity.toBuffer(withdrawal.validatorIndex),
+          Address.toBuffer(withdrawal.address),
+          Quantity.toBuffer(withdrawal.amount)
+        ];
+      }
+      start = [header, txs, [], extraWithdrawals];
+    } else {
+      start = [header, txs, []];
+    }
+
+    return serialize(start, [totalDifficulty, extraTxs]).serialized;
   }
 
   fromFallback = async (

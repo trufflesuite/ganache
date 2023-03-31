@@ -116,7 +116,7 @@ export type BlockchainOptions = {
   initialAccounts?: Account[];
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
-  allowUnlimitedInitcodeSize?: boolean;
+  allowUnlimitedInitCodeSize?: boolean;
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
@@ -254,7 +254,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.hardfork
         );
 
-        if (options.chain.allowUnlimitedInitcodeSize) {
+        if (options.chain.allowUnlimitedInitCodeSize) {
           removeEIP3860InitCodeSizeLimitCheck(common);
         }
       }
@@ -602,7 +602,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
       previousHeader.totalDifficulty,
       this.getMixHash(previousBlock.hash().toBuffer()),
-      Block.calcNextBaseFee(previousBlock)
+      Block.calcNextBaseFee(previousBlock),
+      KECCAK256_RLP
     );
   };
 
@@ -771,7 +772,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
         fallbackBlock.header.totalDifficulty,
         this.getMixHash(fallbackBlock.hash().toBuffer()),
-        baseFeePerGas
+        baseFeePerGas,
+        KECCAK256_RLP
       );
 
       // store the genesis block in the database
@@ -822,7 +824,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we use the initial trie root as the genesis block's mixHash as it
       // is deterministic based on initial wallet conditions
       this.isPostMerge ? keccak(this.trie.root()) : BUFFER_32_ZERO,
-      baseFeePerGas
+      baseFeePerGas,
+      KECCAK256_RLP
     );
 
     // store the genesis block in the database
@@ -1511,7 +1514,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
       this.getMixHash(parentBlock.hash().toBuffer()),
-      Block.calcNextBaseFee(parentBlock)
+      Block.calcNextBaseFee(parentBlock),
+      KECCAK256_RLP
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];

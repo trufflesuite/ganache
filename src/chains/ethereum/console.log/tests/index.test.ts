@@ -36,7 +36,7 @@ describe("@ganache/console.log", () => {
       logging: { logger },
       chain: {
         allowUnlimitedContractSize: true,
-        allowUnlimitedInitcodeSize: true
+        allowUnlimitedInitCodeSize: true
       },
       // using memdown for performance
       database: { db: memdown() }

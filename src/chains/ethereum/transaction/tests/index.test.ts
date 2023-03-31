@@ -1,12 +1,12 @@
 import assert from "assert";
 import {
-  EIP1559FeeMarketDatabasePayload,
+  EIP1559FeeMarketRawTransaction,
   EIP1559FeeMarketDatabaseTx,
   EIP1559FeeMarketTransaction,
-  EIP2930AccessListDatabasePayload,
+  EIP2930AccessListRawTransaction,
   EIP2930AccessListDatabaseTx,
   EIP2930AccessListTransaction,
-  LegacyDatabasePayload,
+  LegacyRawTransaction,
   LegacyTransaction,
   TransactionFactory,
   TransactionType,
@@ -70,7 +70,7 @@ describe("@ganache/ethereum-transaction", async () => {
     gasPrice: "0xffff",
     nonce: "0x0",
     data: "0x608060405234801561001057600080fd5b5061010e806100206000396000f3fe608060405234801561001057600080fd5b506004361061004c5760003560e01c806360fe47b1146100515780636d4ce63c1461006c575b600080fd5b61005a61008a565b6040518082815260200191505060405180910390f35b61007a6004803603602081101561008057600080fd5b81019080803590602001909291905050506100a6565b005b60005481565b8060008190555050565b600080"
-  }
+  };
 
   const UNTYPED_TX_START_BYTE = 0xc0; // all txs with first byte >= 0xc0 are untyped
 
@@ -79,7 +79,7 @@ describe("@ganache/ethereum-transaction", async () => {
   const rawLegacyStrTxChainId1234 =
     "0xf8618082ffff80945a17650be84f28ed583e93e6ed0c99b1d1fc1b3480808209c8a0c5e728f25ba7e771865291d91fe50945190d81ed2e240a4755370fb87dff349ea014e6102d81eb9a66307c487e662b0f9f91e78b203e06ba853fcf246fa49145db";
 
-  const rawLegacyDbTx = decode<LegacyDatabasePayload>(
+  const rawLegacyDbTx = decode<LegacyRawTransaction>(
     Buffer.from(rawLegacyStrTx.slice(2), "hex")
   );
   // #endregion legacy transaction
@@ -108,7 +108,7 @@ describe("@ganache/ethereum-transaction", async () => {
   const eip2930Buf = Buffer.from(rawEIP2930StringData.slice(2), "hex");
   const rawEIP2930DBData: EIP2930AccessListDatabaseTx = [
     eip2930Buf.slice(0, 1),
-    ...decode<EIP2930AccessListDatabasePayload>(eip2930Buf.slice(1))
+    ...decode<EIP2930AccessListRawTransaction>(eip2930Buf.slice(1))
   ];
   // #endregion access list transactions
 
@@ -135,7 +135,7 @@ describe("@ganache/ethereum-transaction", async () => {
   const eip1559Buf = Buffer.from(rawEIP1559StringData.slice(2), "hex");
   const rawEIP1559DBData: EIP1559FeeMarketDatabaseTx = [
     eip1559Buf.slice(0, 1),
-    ...decode<EIP1559FeeMarketDatabasePayload>(eip1559Buf.slice(1))
+    ...decode<EIP1559FeeMarketRawTransaction>(eip1559Buf.slice(1))
   ];
   // #endregion fee market transactions
   // #endregion configure transaction constants
@@ -427,15 +427,21 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       describe("EIP-3860", () => {
         it("computes intrinstic gas correctly pre-shanghai (EIP-3860)", () => {
-          const common= new Common({chain: "mainnet", hardfork: "london"});
-          const legacyDeployTx = Object.assign({...contractDeploymentTx}, {type: "0x0"});
+          const common = new Common({ chain: "mainnet", hardfork: "london" });
+          const legacyDeployTx = Object.assign(
+            { ...contractDeploymentTx },
+            { type: "0x0" }
+          );
           const tx = TransactionFactory.fromRpc(legacyDeployTx, common);
           const vmTx = tx.toVmTransaction();
           assert.strictEqual(vmTx.getBaseFee(), 55728n);
         });
         it("computes intrinstic gas correctly post-shanghai (EIP-3860)", () => {
-          const common= new Common({chain: "mainnet", hardfork: "shanghai"});
-          const legacyDeployTx = Object.assign({...contractDeploymentTx}, {type: "0x0"});
+          const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+          const legacyDeployTx = Object.assign(
+            { ...contractDeploymentTx },
+            { type: "0x0" }
+          );
           const tx = TransactionFactory.fromRpc(legacyDeployTx, common);
           const vmTx = tx.toVmTransaction();
           assert.strictEqual(vmTx.getBaseFee(), 55740n);
@@ -518,15 +524,21 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       describe("EIP-3860", () => {
         it("computes intrinstic gas correctly pre-shanghai (EIP-3860)", () => {
-          const common= new Common({chain: "mainnet", hardfork: "london"});
-          const eip2930DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x2"});
+          const common = new Common({ chain: "mainnet", hardfork: "london" });
+          const eip2930DeployTx = Object.assign(
+            { ...contractDeploymentTx },
+            { type: "0x2" }
+          );
           const tx = TransactionFactory.fromRpc(eip2930DeployTx, common);
           const vmTx = tx.toVmTransaction();
           assert.strictEqual(vmTx.getBaseFee(), 55728n);
         });
         it("computes intrinstic gas correctly post-shanghai (EIP-3860)", () => {
-          const common= new Common({chain: "mainnet", hardfork: "shanghai"});
-          const eip2930DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x2"});
+          const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+          const eip2930DeployTx = Object.assign(
+            { ...contractDeploymentTx },
+            { type: "0x2" }
+          );
           const tx = TransactionFactory.fromRpc(eip2930DeployTx, common);
           const vmTx = tx.toVmTransaction();
           assert.strictEqual(vmTx.getBaseFee(), 55740n);
@@ -613,15 +625,27 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       describe("EIP-3860", () => {
         it("computes intrinstic gas correctly pre-shanghai (EIP-3860)", () => {
-          const common= new Common({chain: "mainnet", hardfork: "london"});
-          const eip1559DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x1"});
-          const vmTx = TransactionFactory.fromRpc(eip1559DeployTx, common).toVmTransaction();
+          const common = new Common({ chain: "mainnet", hardfork: "london" });
+          const eip1559DeployTx = Object.assign(
+            { ...contractDeploymentTx },
+            { type: "0x1" }
+          );
+          const vmTx = TransactionFactory.fromRpc(
+            eip1559DeployTx,
+            common
+          ).toVmTransaction();
           assert.strictEqual(vmTx.getBaseFee(), 55728n);
         });
         it("computes intrinstic gas correctly post-shanghai (EIP-3860)", () => {
-          const common= new Common({chain: "mainnet", hardfork: "shanghai"});
-          const eip1559DeployTx = Object.assign({...contractDeploymentTx}, {type: "0x1"});
-          const vmTx = TransactionFactory.fromRpc(eip1559DeployTx, common).toVmTransaction();
+          const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+          const eip1559DeployTx = Object.assign(
+            { ...contractDeploymentTx },
+            { type: "0x1" }
+          );
+          const vmTx = TransactionFactory.fromRpc(
+            eip1559DeployTx,
+            common
+          ).toVmTransaction();
           assert.strictEqual(vmTx.getBaseFee(), 55740n);
         });
       });

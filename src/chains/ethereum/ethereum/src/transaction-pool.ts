@@ -482,7 +482,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     if (
       transaction.to == null &&
       transaction.data &&
-      this.#options.chain.allowUnlimitedInitcodeSize === false &&
+      this.#options.chain.allowUnlimitedInitCodeSize === false &&
       this.#blockchain.common.isActivatedEIP(3860) &&
       // this is contract creation transaction and it is subject to EIP-3860
       // which limits the size of initcode to 49152

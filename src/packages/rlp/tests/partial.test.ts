@@ -34,6 +34,23 @@ describe("partial", function () {
       const encodedNull = RLP.digest([start.output], start.length);
       assert(encodedNull.equals(RLP.encode(source)));
     });
+
+    it("should use a provided `offset` value and `alloc` function", function () {
+      const source = [Buffer.from("dog")] as const;
+      const start = RLP.encodeRange(source, 0, 1);
+      const expected = Buffer.from([1, 2, 3]);
+      const offset = expected.length;
+      function alloc(size: number) {
+        const buf = Buffer.allocUnsafe(size + offset);
+        buf[0] = expected[0];
+        buf[1] = expected[1];
+        buf[2] = expected[2];
+        return buf;
+      }
+      const encoded = RLP.digest([start.output], start.length, offset, alloc);
+      assert(encoded.subarray(0, offset).equals(expected));
+      assert(encoded.subarray(offset).equals(RLP.encode(source)));
+    });
   });
   describe("nested", () => {
     const source = [

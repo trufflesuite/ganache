@@ -11,7 +11,15 @@ import type { Common } from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
-import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
+import {
+  EthereumRawBlock,
+  EthereumRawBlockHeader,
+  GanacheRawBlock,
+  GanacheRawBlockExtras,
+  Head,
+  serialize,
+  WithdrawalRaw
+} from "./serialize";
 import { BlockParams } from "./block-params";
 
 export type BaseFeeHeader = BlockHeader &
@@ -30,6 +38,8 @@ export class Block {
   protected _rawTransactions: TypedDatabaseTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
+  protected _rawWithdrawals: WithdrawalRaw[] | null;
+
   public header: BlockHeader;
 
   constructor(serialized: Buffer, common: Common) {
@@ -41,11 +51,40 @@ export class Block {
       // TODO: support actual uncle data (needed for forking!)
       // Issue: https://github.com/trufflesuite/ganache/issues/786
       // const uncles = deserialized[2];
-      const totalDifficulty = deserialized[3];
+
+      let totalDifficulty: Buffer;
+      // if there are 7 serialized fields we are after shanghai
+      // as in shanghai we added `withdrawals` to the block data
+      if (deserialized.length === 7) {
+        this._rawWithdrawals = deserialized[3] || []; // added in Shanghai
+        totalDifficulty = deserialized[4];
+        this._rawTransactionMetaData = deserialized[5] || [];
+        this._size = Quantity.toNumber(deserialized[6]);
+      } else {
+        this._rawWithdrawals = null;
+        totalDifficulty = deserialized[3] as any;
+        this._rawTransactionMetaData = (deserialized[4] || []) as any;
+        this._size = Quantity.toNumber(deserialized[5] as any);
+      }
       this.header = makeHeader(this._raw, totalDifficulty);
-      this._rawTransactionMetaData = deserialized[4] || [];
-      this._size = Quantity.toNumber(deserialized[5]);
     }
+  }
+
+  /**
+   * Migrates a serialized Block to the latest version
+   * @param serialized
+   * @returns
+   */
+  static migrate(serialized: Buffer) {
+    // this migration updates the `size` value of the block to the correct value
+    // by re-serializing the block for storage in the db
+
+    const deserialized = decode<GanacheRawBlock>(serialized);
+    const { serialized: reSerialized } = serialize(
+      deserialized.slice(0, 3) as Head<EthereumRawBlock>,
+      deserialized.slice(3, 5) as Head<GanacheRawBlockExtras>
+    );
+    return reSerialized;
   }
 
   private _hash: Data;
@@ -102,7 +141,18 @@ export class Block {
       ...header,
       size: Quantity.from(this._size),
       transactions: jsonTxs,
-      uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+      uncles: [] as Data[], // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+      withdrawals:
+        this._rawWithdrawals?.map(
+          ([index, validatorIndex, address, amount]) => {
+            return {
+              index: Quantity.from(index),
+              validatorIndex: Quantity.from(validatorIndex),
+              address: Data.from(address),
+              amount: Quantity.from(amount)
+            };
+          }
+        ) || undefined
     };
   }
 
@@ -114,23 +164,6 @@ export class Block {
     } else {
       return (tx: TypedTransaction) => tx.hash;
     }
-  }
-
-  static fromParts(
-    rawHeader: EthereumRawBlockHeader,
-    txs: TypedDatabaseTransaction[],
-    totalDifficulty: Buffer,
-    extraTxs: GanacheRawBlockTransactionMetaData[],
-    size: number,
-    common: Common
-  ): Block {
-    const block = new Block(null, common);
-    block._raw = rawHeader;
-    block._rawTransactions = txs;
-    block.header = makeHeader(rawHeader, totalDifficulty);
-    block._rawTransactionMetaData = extraTxs;
-    block._size = size;
-    return block;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {

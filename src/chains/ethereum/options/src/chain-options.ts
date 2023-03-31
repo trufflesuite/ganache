@@ -51,7 +51,7 @@ export type ChainConfig = {
      *
      * @defaultValue false
      */
-    readonly allowUnlimitedInitcodeSize: {
+    readonly allowUnlimitedInitCodeSize: {
       type: boolean;
       hasDefault: true;
     };
@@ -167,7 +167,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
     legacyName: "allowUnlimitedContractSize",
     cliType: "boolean"
   },
-  allowUnlimitedInitcodeSize: {
+  allowUnlimitedInitCodeSize: {
     normalize,
     cliDescription:
       "Allows unlimited initcode (`transaction.data`) sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",

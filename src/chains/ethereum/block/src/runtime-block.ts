@@ -1,6 +1,11 @@
 import { Data, Quantity, BUFFER_EMPTY, BUFFER_8_ZERO } from "@ganache/utils";
 import { KECCAK256_RLP_ARRAY } from "@ethereumjs/util";
-import { EthereumRawBlockHeader, serialize } from "./serialize";
+import {
+  EthereumRawBlock,
+  EthereumRawBlockHeader,
+  Head,
+  serialize
+} from "./serialize";
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
@@ -10,6 +15,13 @@ import {
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 import { Common } from "@ethereumjs/common";
+
+export type Withdrawal = {
+  index: Quantity;
+  validatorIndex: Quantity;
+  address: Data;
+  amount: Quantity;
+};
 
 export type BlockHeader = {
   parentHash: Data;
@@ -29,6 +41,7 @@ export type BlockHeader = {
   mixHash: Data;
   nonce: Data;
   baseFeePerGas?: Quantity;
+  withdrawalsRoot?: Data;
 };
 
 /**
@@ -65,7 +78,8 @@ export function makeHeader(
     nonce: Data.from(raw[14], 8),
     totalDifficulty: Quantity.from(totalDifficulty, false),
     baseFeePerGas:
-      raw[15] === undefined ? undefined : Quantity.from(raw[15], false)
+      raw[15] === undefined ? undefined : Quantity.from(raw[15], false),
+    withdrawalsRoot: raw[16] === undefined ? undefined : Data.from(raw[16], 32)
   };
 }
 
@@ -73,7 +87,6 @@ export function makeHeader(
  * A minimal block that can be used by the EVM to run transactions.
  */
 export class RuntimeBlock {
-  private serializeBaseFeePerGas: boolean = true;
   public _common: Common;
   public readonly header: {
     parentHash: Buffer;
@@ -89,6 +102,7 @@ export class RuntimeBlock {
     // given to the VM this way
     prevRandao: Buffer;
     baseFeePerGas: bigint | undefined;
+    withdrawalsRoot: Buffer | undefined; // added in shanghai
   };
 
   constructor(
@@ -102,7 +116,8 @@ export class RuntimeBlock {
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity,
     mixHash: Buffer,
-    baseFeePerGas: bigint | undefined
+    baseFeePerGas: bigint | undefined,
+    withdrawalsRoot: Buffer | undefined
   ) {
     this._common = common;
     const coinbaseBuffer = coinbase.toBuffer();
@@ -119,13 +134,9 @@ export class RuntimeBlock {
       timestamp: timestamp.toBigInt(),
       baseFeePerGas: baseFeePerGas ?? 0n,
       mixHash,
-      prevRandao: mixHash
+      prevRandao: mixHash,
+      withdrawalsRoot
     };
-    // When forking we might get a block that doesn't have a baseFeePerGas value,
-    // but EIP-1559 might be active on our chain. We need to keep track on if
-    // we should serialize the baseFeePerGas value or not based on that info.
-    // this will be removed as part of https://github.com/trufflesuite/ganache/pull/1537
-    if (baseFeePerGas === undefined) this.serializeBaseFeePerGas = false;
   }
 
   /**
@@ -160,21 +171,33 @@ export class RuntimeBlock {
       header.mixHash,
       BUFFER_8_ZERO // nonce
     ];
-    if (this.serializeBaseFeePerGas && header.baseFeePerGas !== undefined) {
-      rawHeader[15] = Quantity.toBuffer(header.baseFeePerGas);
+    const isEip4895 = this._common.isActivatedEIP(4895);
+    // baseFeePerGas was added in London
+    if (header.baseFeePerGas !== undefined) {
+      rawHeader[15] = Quantity.toBuffer(header.baseFeePerGas, false);
+      // withdrawalsRoot was added in Shanghai
+      if (isEip4895) {
+        rawHeader[16] = Data.toBuffer(header.withdrawalsRoot);
+      }
     }
 
     const { totalDifficulty } = header;
-    const txs: TypedDatabaseTransaction[] = [];
-    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
-    transactions.forEach(tx => {
+    const txs: TypedDatabaseTransaction[] = Array(transactions.length);
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
+      transactions.length
+    );
+    for (let i = 0; i < transactions.length; i++) {
+      const tx = transactions[i];
       txs.push(<TypedDatabaseTransaction>tx.raw);
       extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
-    });
-    const { serialized, size } = serialize([
-      rawHeader,
-      txs,
-      [],
+    }
+    let rawBlock: EthereumRawBlock | Head<EthereumRawBlock>;
+    if (isEip4895) {
+      rawBlock = [rawHeader, txs, [], []];
+    } else {
+      rawBlock = [rawHeader, txs, []];
+    }
+    const { serialized, size } = serialize(rawBlock, [
       totalDifficulty,
       extraTxs
     ]);
@@ -191,7 +214,7 @@ export class RuntimeBlock {
     (block as any)._raw = rawHeader;
     (block as any)._rawTransactions = txs;
     (block as any).header = makeHeader(rawHeader, totalDifficulty);
-    (block as any).serializeBaseFeePerGas = rawHeader[15] === undefined;
+    (block as any)._rawWithdrawals = [];
     (block as any)._rawTransactionMetaData = extraTxs;
     (block as any)._size = size;
 

@@ -14,13 +14,14 @@ import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import {
-  EIP1559FeeMarketDatabasePayload,
+  EIP1559FeeMarketRawTransaction,
   EIP1559FeeMarketDatabaseTx,
   GanacheRawExtraTx,
+  TypedRawTransaction,
   TypedDatabaseTransaction
 } from "./raw";
 import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
-import { computeIntrinsicsFeeMarketTx } from "./signing";
+import { allocUnsafe, computeIntrinsicsFeeMarketTx } from "./signing";
 import {
   Capability,
   EIP1559FeeMarketTransactionJSON
@@ -42,7 +43,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x2");
 
   public constructor(
-    data: EIP1559FeeMarketDatabasePayload | Transaction,
+    data: EIP1559FeeMarketRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -63,7 +64,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.v = Quantity.from(data[9]);
       this.r = Quantity.from(data[10]);
       this.s = Quantity.from(data[11]);
-      this.raw = [this.type.toBuffer(), ...data];
+      this.raw = data;
 
       if (!extra) {
         // TODO(hack): we use the presence of `extra` to determine if this data
@@ -131,7 +132,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: EIP1559FeeMarketDatabasePayload | Transaction,
+    data: EIP1559FeeMarketRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -194,37 +195,30 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     }
 
     const typeBuf = this.type.toBuffer();
-    const raw: EIP1559FeeMarketDatabaseTx = this.toEthRawTransaction(
-      BUFFER_ZERO,
-      BUFFER_ZERO,
-      BUFFER_ZERO
-    );
-    const data = encodeRange(raw, 1, 9);
+    const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
+    const data = encodeRange(raw, 0, 8);
     const dataLength = data.length;
 
-    const msgHash = keccak(
-      Buffer.concat([typeBuf, digest([data.output], dataLength)])
-    );
+    const rlp = digest([data.output], dataLength, 1, allocUnsafe);
+    rlp[0] = 2;
+    const msgHash = keccak(rlp);
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[10] = this.v.toBuffer();
-    raw[11] = this.r.toBuffer();
-    raw[12] = this.s.toBuffer();
+    raw[9] = this.v.toBuffer();
+    raw[10] = this.r.toBuffer();
+    raw[11] = this.s.toBuffer();
 
     this.raw = raw;
 
-    const encodedSignature = encodeRange(raw, 10, 3);
+    const encodedSignature = encodeRange(raw, 9, 3);
     // raw data is type concatenated with the rest of the data rlp encoded
-    this.serialized = Buffer.concat([
-      typeBuf,
-      digest(
-        [data.output, encodedSignature.output],
-        dataLength + encodedSignature.length
-      )
-    ]);
+    this.serialized = digest(
+      [data.output, encodedSignature.output],
+      dataLength + encodedSignature.length
+    );
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;
@@ -234,9 +228,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): EIP1559FeeMarketDatabaseTx {
+  ): EIP1559FeeMarketRawTransaction {
     return [
-      this.type.toBuffer(),
       this.chainId.toBuffer(),
       this.nonce.toBuffer(),
       this.maxPriorityFeePerGas.toBuffer(),
@@ -252,8 +245,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
-    return computeIntrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
+  public computeIntrinsics(v: Quantity, raw: EIP1559FeeMarketRawTransaction) {
+    return computeIntrinsicsFeeMarketTx(v, raw);
   }
 
   public updateEffectiveGasPrice(baseFeePerGas: bigint) {

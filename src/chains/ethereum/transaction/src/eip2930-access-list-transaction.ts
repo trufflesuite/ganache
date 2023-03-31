@@ -14,13 +14,12 @@ import { Transaction } from "./rpc-transaction";
 import { encodeRange, digest } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import {
-  EIP2930AccessListDatabasePayload,
+  EIP2930AccessListRawTransaction,
   EIP2930AccessListDatabaseTx,
-  GanacheRawExtraTx,
-  TypedDatabaseTransaction
+  GanacheRawExtraTx
 } from "./raw";
 import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
-import { computeIntrinsicsAccessListTx } from "./signing";
+import { computeIntrinsicsAccessListTx, digestWithPrefix } from "./signing";
 import {
   Capability,
   EIP2930AccessListTransactionJSON
@@ -38,7 +37,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x1");
 
   public constructor(
-    data: EIP2930AccessListDatabasePayload | Transaction,
+    data: EIP2930AccessListRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -127,7 +126,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     };
   }
   public static fromTxData(
-    data: EIP2930AccessListDatabasePayload | Transaction,
+    data: EIP2930AccessListRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -177,38 +176,30 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       );
     }
 
-    const typeBuf = this.type.toBuffer();
-    const raw: EIP2930AccessListDatabaseTx = this.toEthRawTransaction(
-      BUFFER_ZERO,
-      BUFFER_ZERO,
-      BUFFER_ZERO
-    );
+    const type = this.type.toBuffer()[0];
+    const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
     const data = encodeRange(raw, 1, 8);
     const dataLength = data.length;
 
-    const msgHash = keccak(
-      Buffer.concat([typeBuf, digest([data.output], dataLength)])
-    );
+    const msgHash = digestWithPrefix(type, [data.output], dataLength);
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[9] = this.v.toBuffer();
-    raw[10] = this.r.toBuffer();
-    raw[11] = this.s.toBuffer();
+    raw[8] = this.v.toBuffer();
+    raw[9] = this.r.toBuffer();
+    raw[10] = this.s.toBuffer();
 
     this.raw = raw;
 
-    const encodedSignature = encodeRange(raw, 9, 3);
+    const encodedSignature = encodeRange(raw, 8, 3);
     // raw data is type concatenated with the rest of the data rlp encoded
-    this.serialized = Buffer.concat([
-      typeBuf,
-      digest(
-        [data.output, encodedSignature.output],
-        dataLength + encodedSignature.length
-      )
-    ]);
+    this.serialized = digestWithPrefix(
+      type,
+      [data.output, encodedSignature.output],
+      dataLength + encodedSignature.length
+    );
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;
@@ -218,9 +209,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): EIP2930AccessListDatabaseTx {
+  ): EIP2930AccessListRawTransaction {
     return [
-      this.type.toBuffer(),
       this.chainId.toBuffer(),
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
@@ -235,8 +225,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
-    return computeIntrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
+  public computeIntrinsics(v: Quantity, raw: EIP2930AccessListDatabaseTx) {
+    return computeIntrinsicsAccessListTx(v, raw);
   }
 
   public updateEffectiveGasPrice() {}

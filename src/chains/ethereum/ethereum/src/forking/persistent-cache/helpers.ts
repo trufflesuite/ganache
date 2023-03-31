@@ -1,5 +1,5 @@
 import { Tag } from "@ganache/ethereum-utils";
-import { BUFFER_EMPTY, Data, Quantity } from "@ganache/utils";
+import { BUFFER_EMPTY, Data, Quantity, VERSION_KEY } from "@ganache/utils";
 import { GanacheLevelUp } from "../../database";
 import { Tree } from "./tree";
 
@@ -56,7 +56,6 @@ export function getBlockNumberFromParams(method: string, params: any[]) {
   }
 }
 
-const VERSION_KEY = Buffer.from("version", "utf-8");
 export async function setDbVersion(db: GanacheLevelUp, version: Buffer) {
   // set the version if the DB was just created, or error if we already have
   // a version, but it isn't what we expected

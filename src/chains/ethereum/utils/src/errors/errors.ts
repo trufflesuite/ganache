@@ -25,10 +25,10 @@ export const INTRINSIC_GAS_TOO_LOW = "intrinsic gas too low";
 
 /**
  * Returned if the transaction's `to` address is empty and its `data`/`input` field is greater than the EIP-3860 limit of
- * 49152 bytes. Can be bypassed by setting the `--chain.allowUnlimitedInitcodeSize` flag to `true`.
+ * 49152 bytes. Can be bypassed by setting the `--chain.allowUnlimitedInitCodeSize` flag to `true`.
  */
 export const INITCODE_TOO_LARGE =
-  "Transaction's `data`/`input` field is greater than 49152 bytes, which isn't allowed as of EIP-3860. To bypass this restriction set the `--chain.allowUnlimitedInitcodeSize` flag to `true`.";
+  "Transaction's `data`/`input` field is greater than 49152 bytes, which isn't allowed as of EIP-3860. To bypass this restriction set the `--chain.allowUnlimitedInitCodeSize` flag to `true`.";
 
 /**
  * Returned if a transaction's requested gas limit exceeds the maximum allowance of the current block.

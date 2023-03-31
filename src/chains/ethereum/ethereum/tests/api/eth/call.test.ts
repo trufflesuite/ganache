@@ -17,6 +17,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { KECCAK256_RLP } from "@ethereumjs/util";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -944,7 +945,8 @@ describe("api", () => {
             Quantity.One, // difficulty
             parentHeader.totalDifficulty,
             BUFFER_32_ZERO,
-            parentHeader.baseFeePerGas.toBigInt()
+            parentHeader.baseFeePerGas.toBigInt(),
+            KECCAK256_RLP
           );
           vmFromAddress = Address.from(from);
           vmToAddress = Address.from(to);

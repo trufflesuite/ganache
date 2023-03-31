@@ -8,7 +8,7 @@ import { Transaction } from "./rpc-transaction";
 import type { Common } from "@ethereumjs/common";
 import {
   GanacheRawExtraTx,
-  TypedDatabasePayload,
+  TypedRawTransaction,
   TypedDatabaseTransaction
 } from "./raw";
 import type { RunTxResult } from "@ethereumjs/vm";
@@ -61,7 +61,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public receipt: InternalTransactionReceipt;
   public execException: RuntimeError;
 
-  public raw: TypedDatabaseTransaction | null;
+  public raw: TypedRawTransaction | null;
   public serialized: Buffer;
   public encodedData: EncodedPart;
   public encodedSignature: EncodedPart;
@@ -69,7 +69,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   private finalized: Promise<TransactionFinalization>;
 
   constructor(
-    data: TypedDatabasePayload | Transaction,
+    data: TypedRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -109,7 +109,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     transactionIndex: Quantity
   ): Buffer {
     // todo(perf):make this work with encodeRange and digest
-    const txAndExtraData: [TypedDatabaseTransaction, GanacheRawExtraTx] = [
+    const txAndExtraData: [TypedRawTransaction, GanacheRawExtraTx] = [
       this.raw,
       [
         this.from.toBuffer(),
@@ -184,7 +184,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.s = Quantity.from(data.s, true);
 
       // compute the `hash` and the `from` address
-      const raw: TypedDatabaseTransaction = this.toEthRawTransaction(
+      const raw: TypedRawTransaction = this.toEthRawTransaction(
         this.v.toBuffer(),
         this.r.toBuffer(),
         this.s.toBuffer()
@@ -247,11 +247,11 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): TypedDatabaseTransaction;
+  ): TypedRawTransaction;
 
   protected abstract computeIntrinsics(
     v: Quantity,
-    raw: TypedDatabaseTransaction,
+    raw: TypedRawTransaction,
     chainId: bigint
   );
 

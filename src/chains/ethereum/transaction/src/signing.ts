@@ -6,9 +6,10 @@ import {
   bigIntToBuffer
 } from "@ganache/utils";
 import {
+  EIP1559FeeMarketRawTransaction,
   EIP1559FeeMarketDatabaseTx,
   EIP2930AccessListDatabaseTx,
-  LegacyDatabasePayload
+  LegacyRawTransaction
 } from "./raw";
 import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
@@ -166,7 +167,7 @@ export const computeFromAddress = (
 
 export const computeIntrinsicsLegacyTx = (
   v: Quantity,
-  raw: LegacyDatabasePayload,
+  raw: LegacyRawTransaction,
   chainId: bigint
 ) => {
   const encodedData = encodeRange(raw, 0, 6);
@@ -190,25 +191,44 @@ export const computeIntrinsicsLegacyTx = (
   };
 };
 
+/**
+ * Allocates a buffer of size + 1, to be used by `digest`.
+ * The extra byte is used to store the transaction type.
+ * The tx type is stored in the first byte of the buffer.
+ * @param size
+ * @returns
+ */
+export const allocUnsafe = (size: number) => Buffer.allocUnsafe(size + 1);
+/**
+ * Digests the rlp `ranges` and prepends the `prefix` to the output Buffer.
+ * @param prefix
+ * @param ranges
+ * @param length
+ * @returns
+ */
+export const digestWithPrefix = (
+  prefix: number,
+  ranges: (readonly Buffer[])[],
+  length: number
+) => {
+  const output = digest(ranges, length, 1, allocUnsafe);
+  output[0] = prefix;
+  return output;
+};
+
 export const computeIntrinsicsAccessListTx = (
   v: Quantity,
   raw: EIP2930AccessListDatabaseTx
 ) => {
-  const typeBuf = raw[0];
-  const encodedData = encodeRange(raw, 1, 8);
+  const encodedData = encodeRange(raw, 0, 8);
   const encodedSignature = encodeRange(raw, 9, 3);
-  const serialized = Buffer.concat([
-    typeBuf,
-    digest(
-      [encodedData.output, encodedSignature.output],
-      encodedData.length + encodedSignature.length
-    )
-  ]);
+  const serialized = digestWithPrefix(
+    1,
+    [encodedData.output, encodedSignature.output],
+    encodedData.length + encodedSignature.length
+  );
 
-  const data = Buffer.concat([
-    typeBuf,
-    digest([encodedData.output], encodedData.length)
-  ]);
+  const data = digestWithPrefix(1, [encodedData.output], encodedData.length);
   const senderPubKey = _ecdsaRecover(
     data,
     SHARED_BUFFER,
@@ -218,7 +238,7 @@ export const computeIntrinsicsAccessListTx = (
   );
 
   const publicKey = publicKeyConvert(SHARED_BUFFER, senderPubKey);
-  const from = Address.from(keccak(publicKey.slice(1)).slice(-20));
+  const from = Address.from(keccak(publicKey.subarray(1)).subarray(-20));
 
   return {
     from: from,
@@ -231,28 +251,20 @@ export const computeIntrinsicsAccessListTx = (
 
 export const computeIntrinsicsFeeMarketTx = (
   v: Quantity,
-  raw: EIP1559FeeMarketDatabaseTx
+  raw: EIP1559FeeMarketRawTransaction
 ) => {
-  const typeBuf = raw[0];
-  const encodedData = encodeRange(raw, 1, 9);
-  const encodedSignature = encodeRange(raw, 10, 3);
-  const serialized = Buffer.concat([
-    typeBuf,
-    digest(
-      [encodedData.output, encodedSignature.output],
-      encodedData.length + encodedSignature.length
-    )
-  ]);
+  const encodedData = encodeRange(raw, 0, 9);
+  const encodedSignature = encodeRange(raw, 9, 3);
+  const ranges = [encodedData.output, encodedSignature.output];
+  const length = encodedData.length + encodedSignature.length;
+  const serialized = digestWithPrefix(2, ranges, length);
 
-  const data = Buffer.concat([
-    typeBuf,
-    digest([encodedData.output], encodedData.length)
-  ]);
+  const data = digestWithPrefix(2, [encodedData.output], encodedData.length);
   const senderPubKey = _ecdsaRecover(
     data,
     SHARED_BUFFER,
+    raw[10],
     raw[11],
-    raw[12],
     v.toNumber()
   );
 

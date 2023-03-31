@@ -5,6 +5,13 @@ import {
 import { digest, encodeLength, encodeRange, encode } from "@ganache/rlp";
 import { uintToBuffer } from "@ganache/utils";
 
+export type WithdrawalRaw = [
+  index: Buffer,
+  validatorIndex: Buffer,
+  address: Buffer,
+  amount: Buffer
+];
+
 export type GanacheRawBlockExtras = [
   totalDifficulty: Buffer,
   transactionMetaData: GanacheRawBlockTransactionMetaData[],
@@ -26,24 +33,38 @@ export type EthereumRawBlockHeader = [
   extraData: Buffer,
   mixHash: Buffer,
   nonce: Buffer,
-  baseFeePerGas?: Buffer
+  baseFeePerGas?: Buffer,
+  withdrawalsRoot?: Buffer // added in shanghai
 ];
 export type EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,
   rawTransactions: TypedDatabaseTransaction[],
-  uncles: []
+  uncles: [],
+  withdrawals: WithdrawalRaw[] | null
 ];
-type Head<T extends any[]> = T extends [...infer Head, any] ? Head : any[];
+export type Head<T extends any[]> = T extends [...infer Head, any]
+  ? Head
+  : any[];
 
 export type GanacheRawBlock = [...EthereumRawBlock, ...GanacheRawBlockExtras];
+/**
+ * Serializes a block to compute its size and store it in the database.
+ * @param start
+ * @param end
+ * @returns
+ */
 export function serialize(
-  raw: Head<GanacheRawBlock>
-): { serialized: Buffer; size: number } {
-  const serializedStart = encodeRange(raw, 0, 3);
+  start: Head<EthereumRawBlock> | EthereumRawBlock,
+  end: Head<GanacheRawBlockExtras>
+): {
+  serialized: Buffer;
+  size: number;
+} {
+  const serializedStart = encodeRange(start, 0, start.length);
   const serializedLength = serializedStart.length;
   const ethereumRawBlockSize = encodeLength(serializedLength, 192).length;
   const size = ethereumRawBlockSize + serializedLength;
-  const middle = encodeRange(raw, 3, 2);
+  const middle = encodeRange(end, 0, end.length);
   const ending = encode(uintToBuffer(size));
   return {
     serialized: digest(
