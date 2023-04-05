@@ -197,14 +197,13 @@ export const computeIntrinsicsLegacyTx = (
  * @param size
  * @returns
  */
-export const allocUnsafe = (size: number) => Buffer.allocUnsafe(size + 1);
+const allocUnsafePrefix = (size: number) => Buffer.allocUnsafe(size + 1);
 
 /**
- * ENcodes the given raw data with a prefix in the form of
- * `[prefix, encode(raw)]`, just like the digest with prefix function.
- * @param prefix
- * @param raw 
- * @returns 
+ * Encodes the given `raw` data and prepends the `prefix` to the output Buffer.
+ * @param prefix must be smaller than 0x7f https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
+ * @param raw
+ * @returns
  */
 export const encodeWithPrefix = (
   prefix: number,
@@ -218,7 +217,10 @@ export const encodeWithPrefix = (
 
 /**
  * Digests the rlp `ranges` and prepends the `prefix` to the output Buffer.
- * @param prefix
+ *
+ * This function avoids the need to copy the output of `digest` into a new
+ * prefixed buffer by over provisioning the initial output buffer.
+ * @param prefix must be smaller than 0x7f https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
  * @param ranges
  * @param length
  * @returns
@@ -228,7 +230,9 @@ export const digestWithPrefix = (
   ranges: (readonly Buffer[])[],
   length: number
 ) => {
-  const output = digest(ranges, length, 1, allocUnsafe);
+  // digest the ranges using the provided allocUnsafe function at an offset of `1`
+  const output = digest(ranges, length, 1, allocUnsafePrefix);
+  // set the first byte to the prefix
   output[0] = prefix;
   return output;
 };
