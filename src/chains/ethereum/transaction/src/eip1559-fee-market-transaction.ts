@@ -188,12 +188,11 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       );
     }
 
-    const type = this.type.toBuffer()[0];
     const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
     const data = encodeRange(raw, 0, 9);
     const dataLength = data.length;
 
-    const msgHash = keccak(digestWithPrefix(type, [data.output], dataLength));
+    const msgHash = keccak(digestWithPrefix(2, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
@@ -206,12 +205,10 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     this.raw = raw;
 
     const encodedSignature = encodeRange(raw, 9, 3);
-    // raw data is type concatenated with the rest of the data rlp encoded
-    this.serialized = digestWithPrefix(
-      type,
-      [data.output, encodedSignature.output],
-      dataLength + encodedSignature.length
-    );
+    const ranges = [data.output, encodedSignature.output];
+    const length = dataLength + encodedSignature.length;
+    // serialized is type concatenated with the rest of the data rlp encoded
+    this.serialized = digestWithPrefix(2, ranges, length);
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;

@@ -8,6 +8,7 @@ import {
 import {
   EIP1559FeeMarketRawTransaction,
   EIP2930AccessListDatabaseTx,
+  EIP2930AccessListRawTransaction,
   LegacyRawTransaction
 } from "./raw";
 import { digest, encodeRange } from "@ganache/rlp";
@@ -171,10 +172,10 @@ export const computeIntrinsicsLegacyTx = (
 ) => {
   const encodedData = encodeRange(raw, 0, 6);
   const encodedSignature = encodeRange(raw, 6, 3);
-  const serialized = digest(
-    [encodedData.output, encodedSignature.output],
-    encodedData.length + encodedSignature.length
-  );
+  const ranges = [encodedData.output, encodedSignature.output];
+  const length = encodedData.length + encodedSignature.length;
+  const serialized = digest(ranges, length);
+
   return {
     from: computeFromAddress(
       encodedData,
@@ -239,10 +240,10 @@ export const digestWithPrefix = (
 
 export const computeIntrinsicsAccessListTx = (
   v: Quantity,
-  raw: EIP2930AccessListDatabaseTx
+  raw: EIP2930AccessListRawTransaction
 ) => {
   const encodedData = encodeRange(raw, 0, 8);
-  const encodedSignature = encodeRange(raw, 9, 3);
+  const encodedSignature = encodeRange(raw, 8, 3);
   const ranges = [encodedData.output, encodedSignature.output];
   const length = encodedData.length + encodedSignature.length;
   const serialized = digestWithPrefix(1, ranges, length);
@@ -251,8 +252,8 @@ export const computeIntrinsicsAccessListTx = (
   const senderPubKey = _ecdsaRecover(
     data,
     SHARED_BUFFER,
+    raw[9],
     raw[10],
-    raw[11],
     v.toNumber()
   );
 

@@ -187,10 +187,10 @@ export class LegacyTransaction extends RuntimeTransaction {
 
     this.raw = raw;
     const encodedSignature = encodeRange(raw, 6, 3);
-    this.serialized = digest(
-      [data.output, encodedSignature.output],
-      dataLength + encodedSignature.length
-    );
+    const ranges = [data.output, encodedSignature.output];
+    const length = dataLength + encodedSignature.length;
+    // serialized is the rlp encoded raw data
+    this.serialized = digest(ranges, length);
     this.hash = Data.from(keccak(this.serialized));
     this.encodedData = data;
     this.encodedSignature = encodedSignature;
