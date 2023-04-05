@@ -243,11 +243,9 @@ export const computeIntrinsicsAccessListTx = (
 ) => {
   const encodedData = encodeRange(raw, 0, 8);
   const encodedSignature = encodeRange(raw, 9, 3);
-  const serialized = digestWithPrefix(
-    1,
-    [encodedData.output, encodedSignature.output],
-    encodedData.length + encodedSignature.length
-  );
+  const ranges = [encodedData.output, encodedSignature.output];
+  const length = encodedData.length + encodedSignature.length;
+  const serialized = digestWithPrefix(1, ranges, length);
 
   const data = digestWithPrefix(1, [encodedData.output], encodedData.length);
   const senderPubKey = _ecdsaRecover(
