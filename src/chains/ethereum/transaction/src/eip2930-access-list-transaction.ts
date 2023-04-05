@@ -10,14 +10,10 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
-import { Transaction } from "./rpc-transaction";
-import { encodeRange, digest } from "@ganache/rlp";
+import { EIP2930AccessListRpcTransaction } from "./rpc-transaction";
+import { encodeRange } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
-import {
-  EIP2930AccessListRawTransaction,
-  EIP2930AccessListDatabaseTx,
-  GanacheRawExtraTx
-} from "./raw";
+import { EIP2930AccessListRawTransaction, GanacheRawExtraTx } from "./raw";
 import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
 import { computeIntrinsicsAccessListTx, digestWithPrefix } from "./signing";
 import {
@@ -37,7 +33,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x1");
 
   public constructor(
-    data: EIP2930AccessListRawTransaction | Transaction,
+    data: EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -57,7 +53,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.v = Quantity.from(data[8]);
       this.r = Quantity.from(data[9]);
       this.s = Quantity.from(data[10]);
-      this.raw = [this.type.toBuffer(), ...data];
+      this.raw = data;
 
       if (!extra) {
         // TODO(hack): we use the presence of `extra` to determine if this data
@@ -69,6 +65,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
+
         const { from, serialized, hash, encodedData, encodedSignature } =
           this.computeIntrinsics(this.v, this.raw);
 
@@ -126,7 +123,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     };
   }
   public static fromTxData(
-    data: EIP2930AccessListRawTransaction | Transaction,
+    data: EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -222,7 +219,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(v: Quantity, raw: EIP2930AccessListDatabaseTx) {
+  public computeIntrinsics(v: Quantity, raw: EIP2930AccessListRawTransaction) {
     return computeIntrinsicsAccessListTx(v, raw);
   }
 

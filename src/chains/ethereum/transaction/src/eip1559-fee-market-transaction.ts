@@ -10,7 +10,7 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
-import { Transaction } from "./rpc-transaction";
+import { EIP1559FeeMarketRpcTransaction } from "./rpc-transaction";
 import { encodeRange } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { EIP1559FeeMarketRawTransaction, GanacheRawExtraTx } from "./raw";
@@ -20,7 +20,6 @@ import {
   Capability,
   EIP1559FeeMarketTransactionJSON
 } from "./transaction-types";
-import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
 
 const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
@@ -37,7 +36,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x2");
 
   public constructor(
-    data: EIP1559FeeMarketRawTransaction | Transaction,
+    data: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -126,7 +125,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: EIP1559FeeMarketRawTransaction | Transaction,
+    data: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
