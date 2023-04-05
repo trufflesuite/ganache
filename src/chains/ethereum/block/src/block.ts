@@ -2,8 +2,8 @@ import { Data, Quantity } from "@ganache/utils";
 import {
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
+  LegacyRawTransaction,
   TransactionFactory,
-  TypedDatabaseTransaction,
   TypedRawTransaction,
   TypedTransaction,
   TypedTransactionJSON
@@ -27,20 +27,20 @@ export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;
 
 function convertBlockRawTx(
-  raw: Buffer,
+  raw: Buffer | LegacyRawTransaction,
   common: Common,
   extra: GanacheRawExtraTx
 ) {
   let txData: TypedRawTransaction;
   let type: number;
-  if (raw.length === 9) {
+  if (TransactionFactory.isLegacyRawTransaction(raw)) {
     // legacy txs
     type == 0;
-    raw = raw;
+    txData = raw;
   } else {
     // type 1 and 2 txs
     type = raw[0];
-    raw = raw.subarray(1);
+    txData = decode(raw.subarray(1));
   }
   return TransactionFactory.fromTypeAndTxData(type, txData, common, extra);
 }
@@ -55,7 +55,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: Buffer[];
+  protected _rawTransactions: (Buffer | LegacyRawTransaction)[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   protected _rawWithdrawals: WithdrawalRaw[] | null;

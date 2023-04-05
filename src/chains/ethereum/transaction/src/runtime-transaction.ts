@@ -57,7 +57,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public receipt: InternalTransactionReceipt;
   public execException: RuntimeError;
 
-  public raw: TypedRawTransaction | null;
+  public raw: TypedRawTransaction;
   public serialized: Buffer;
   public encodedData: EncodedPart;
   public encodedSignature: EncodedPart;

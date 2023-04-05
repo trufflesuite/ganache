@@ -53,6 +53,13 @@ export class TransactionFactory {
     ];
     this.tx = TransactionFactory.fromDatabaseTx(txData, common, extra);
   }
+
+  public static isLegacyRawTransaction(
+    raw: Buffer | LegacyRawTransaction
+  ): raw is LegacyRawTransaction {
+    return raw.length === 9;
+  }
+
   private static _fromData(
     txData: Transaction | TypedRawTransaction,
     txType: TransactionType,

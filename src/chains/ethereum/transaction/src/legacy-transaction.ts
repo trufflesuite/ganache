@@ -15,8 +15,7 @@ import { Transaction } from "./rpc-transaction";
 import {
   EIP2930AccessListRawTransaction,
   GanacheRawExtraTx,
-  LegacyRawTransaction,
-  TypedDatabaseTransaction
+  LegacyRawTransaction
 } from "./raw";
 import { computeIntrinsicsLegacyTx } from "./signing";
 import { Capability, LegacyTransactionJSON } from "./transaction-types";

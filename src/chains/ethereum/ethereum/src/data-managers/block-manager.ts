@@ -14,9 +14,8 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawBlockTransactionMetaData,
-  TransactionFactory,
-  TypedRawTransaction,
-  TypedDatabaseTransaction
+  GanacheRawExtraTx,
+  TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
 import { Ethereum } from "../api-types";
@@ -73,6 +72,7 @@ export default class BlockManager extends Manager<Block> {
   }
 
   static rawFromJSON(json: any, common: Common) {
+    const blockNumber = Quantity.toBuffer(json.number);
     const hasWithdrawals = json.withdrawalsRoot != null;
     const header: EthereumRawBlockHeader = [
       Data.toBuffer(json.parentHash),
@@ -83,7 +83,7 @@ export default class BlockManager extends Manager<Block> {
       Data.toBuffer(json.receiptsRoot),
       Data.toBuffer(json.logsBloom),
       Quantity.toBuffer(json.difficulty),
-      Quantity.toBuffer(json.number),
+      blockNumber,
       Quantity.toBuffer(json.gasLimit),
       Quantity.toBuffer(json.gasUsed),
       Quantity.toBuffer(json.timestamp),
@@ -101,34 +101,27 @@ export default class BlockManager extends Manager<Block> {
       }
     }
     const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
-    const txs: any | Buffer[] = Array(json.transactions.length);
+    const txs: (Buffer | Buffer[])[] = Array(json.transactions.length);
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       json.transactions.length
     );
-    json.transactions.forEach((tx: any, index: number) => {
-      const blockExtra = [
-        Address.toBuffer(tx.from),
-        Quantity.toBuffer(tx.hash)
-      ] as any;
-      const txExtra = [
+    const blockHash = Data.toBuffer(json.hash);
+    for (let index = 0; index < json.transactions.length; index++) {
+      const txJson = json.transactions[index];
+      const blockExtra: GanacheRawBlockTransactionMetaData = [
+        Address.toBuffer(txJson.from),
+        Quantity.toBuffer(txJson.hash)
+      ];
+      const txExtra: GanacheRawExtraTx = [
         ...blockExtra,
-        Data.toBuffer(json.hash),
-        Quantity.toBuffer(json.number),
-        index
-      ] as any;
-      const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
-      let raw: Buffer | TypedRawTransaction;
-      const type = typedTx.type.toBuffer();
-      if (type.length === 0) {
-        // type 0
-        raw = typedTx.raw;
-      } else {
-        // type 1 and 2:
-        raw = Buffer.concat([type, encode(typedTx.raw)]);
-      }
-      txs[index] = raw;
+        blockHash,
+        blockNumber,
+        Quantity.toBuffer(index)
+      ];
+      const tx = TransactionFactory.fromRpc(txJson, common, txExtra);
+      txs[index] = tx.raw.length === 9 ? tx.raw : tx.serialized;
       extraTxs[index] = blockExtra;
-    });
+    }
 
     let start: EthereumRawBlock | Head<EthereumRawBlock>;
 

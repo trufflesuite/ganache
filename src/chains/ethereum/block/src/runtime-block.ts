@@ -10,6 +10,7 @@ import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
   GanacheRawBlockTransactionMetaData,
+  LegacyRawTransaction,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
@@ -182,22 +183,13 @@ export class RuntimeBlock {
     }
 
     const { totalDifficulty } = header;
-    const txs: Buffer[] = Array(transactions.length);
+    const txs: (LegacyRawTransaction | Buffer)[] = Array(transactions.length);
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       transactions.length
     );
     for (let i = 0; i < transactions.length; i++) {
       const tx = transactions[i];
-      let raw: any | Buffer | Buffer[];
-      const type = tx.type.toBuffer();
-      if (type.length === 0) {
-        // type 0
-        raw = tx.raw;
-      } else {
-        // type 1 and 2:
-        raw = Buffer.concat([type, encode(tx.raw)]);
-      }
-      txs[i] = raw;
+      txs[i] = tx.raw.length === 9 ? tx.raw : tx.serialized;
       extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
     }
     let rawBlock: EthereumRawBlock | Head<EthereumRawBlock>;

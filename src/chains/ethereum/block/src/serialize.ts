@@ -1,6 +1,6 @@
 import {
-  TypedDatabaseTransaction,
-  GanacheRawBlockTransactionMetaData
+  GanacheRawBlockTransactionMetaData,
+  LegacyRawTransaction
 } from "@ganache/ethereum-transaction";
 import { digest, encodeLength, encodeRange, encode } from "@ganache/rlp";
 import { uintToBuffer } from "@ganache/utils";
@@ -38,7 +38,7 @@ export type EthereumRawBlockHeader = [
 ];
 export type EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,
-  rawTransactions: Buffer[],
+  rawTransactions: (Buffer | LegacyRawTransaction)[],
   uncles: [],
   withdrawals: WithdrawalRaw[] | null
 ];
