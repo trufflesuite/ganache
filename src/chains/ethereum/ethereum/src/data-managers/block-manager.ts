@@ -15,6 +15,7 @@ import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
+  LegacyRawTransaction,
   TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
@@ -101,7 +102,9 @@ export default class BlockManager extends Manager<Block> {
       }
     }
     const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
-    const txs: (Buffer | Buffer[])[] = Array(json.transactions.length);
+    const txs: (Buffer | LegacyRawTransaction)[] = Array(
+      json.transactions.length
+    );
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       json.transactions.length
     );
