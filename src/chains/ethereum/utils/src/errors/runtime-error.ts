@@ -41,8 +41,8 @@ export class RuntimeError extends CodedError {
       hash: hash,
       // in some failure scenarios, like when the initcode is too large,
       // `runState` is undefined. In that case, we'll just use 0 for the
-      // programCounter. Maybe `undefined` is a better value here?
-      programCounter: execResult.runState?.programCounter || 0,
+      // programCounter.
+      programCounter: execResult.runState?.programCounter || undefined,
       result:
         returnType === RETURN_TYPES.TRANSACTION_HASH
           ? hash
