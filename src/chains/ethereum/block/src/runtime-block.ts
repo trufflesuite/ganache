@@ -3,7 +3,6 @@ import { KECCAK256_RLP_ARRAY } from "@ethereumjs/util";
 import {
   EthereumRawBlock,
   EthereumRawBlockHeader,
-  Head,
   serialize
 } from "./serialize";
 import { Address } from "@ganache/ethereum-address";
@@ -15,7 +14,6 @@ import {
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 import { Common } from "@ethereumjs/common";
-import { encode } from "@ganache/rlp";
 
 export type Withdrawal = {
   index: Quantity;
@@ -102,8 +100,8 @@ export class RuntimeBlock {
     // prevRandao is mixHash, but for the merge and it must be
     // given to the VM this way
     prevRandao: Buffer;
-    baseFeePerGas: bigint | undefined;
-    withdrawalsRoot: Buffer | undefined; // added in shanghai
+    baseFeePerGas?: bigint;
+    withdrawalsRoot?: Buffer; // added in shanghai
   };
 
   constructor(
@@ -117,8 +115,8 @@ export class RuntimeBlock {
     difficulty: Quantity,
     previousBlockTotalDifficulty: Quantity,
     mixHash: Buffer,
-    baseFeePerGas: bigint | undefined,
-    withdrawalsRoot: Buffer | undefined
+    baseFeePerGas?: bigint,
+    withdrawalsRoot?: Buffer
   ) {
     this._common = common;
     const coinbaseBuffer = coinbase.toBuffer();
@@ -177,9 +175,7 @@ export class RuntimeBlock {
     if (header.baseFeePerGas !== undefined) {
       rawHeader[15] = Quantity.toBuffer(header.baseFeePerGas, false);
       // withdrawalsRoot was added in Shanghai
-      if (isEip4895) {
-        rawHeader[16] = Data.toBuffer(header.withdrawalsRoot);
-      }
+      if (isEip4895) rawHeader[16] = Data.toBuffer(header.withdrawalsRoot);
     }
 
     const { totalDifficulty } = header;
@@ -192,12 +188,8 @@ export class RuntimeBlock {
       txs[i] = tx.raw.length === 9 ? tx.raw : tx.serialized;
       extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
     }
-    let rawBlock: EthereumRawBlock | Head<EthereumRawBlock>;
-    if (isEip4895) {
-      rawBlock = [rawHeader, txs, [], []];
-    } else {
-      rawBlock = [rawHeader, txs, []];
-    }
+    let rawBlock: EthereumRawBlock;
+    rawBlock = isEip4895 ? [rawHeader, txs, [], []] : [rawHeader, txs, []];
     const { serialized, size } = serialize(rawBlock, [
       totalDifficulty,
       extraTxs
@@ -207,20 +199,16 @@ export class RuntimeBlock {
     // deserialization work since we already have everything in a deserialized
     // state here. We'll just set it ourselves by reaching into the "_private"
     // fields.
-    const block = new Block(
-      null,
-      // TODO(hack)!
-      transactions.length > 0 ? transactions[0].common : null
-    );
-    (block as any)._raw = rawHeader;
-    (block as any)._rawTransactions = txs;
-    (block as any).header = makeHeader(rawHeader, totalDifficulty);
-    (block as any)._rawWithdrawals = [];
-    (block as any)._rawTransactionMetaData = extraTxs;
-    (block as any)._size = size;
+    const block: any = new Block(null, this._common);
+    block._raw = rawHeader;
+    block._rawTransactions = txs;
+    block.header = makeHeader(rawHeader, totalDifficulty);
+    block._rawWithdrawals = [];
+    block._rawTransactionMetaData = extraTxs;
+    block._size = size;
 
     return {
-      block,
+      block: block as Block,
       serialized,
       storageKeys,
       transactions

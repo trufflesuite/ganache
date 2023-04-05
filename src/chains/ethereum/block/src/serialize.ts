@@ -36,12 +36,19 @@ export type EthereumRawBlockHeader = [
   baseFeePerGas?: Buffer,
   withdrawalsRoot?: Buffer // added in shanghai
 ];
-export type EthereumRawBlock = [
+
+type _EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,
   rawTransactions: (Buffer | LegacyRawTransaction)[],
   uncles: [],
-  withdrawals: WithdrawalRaw[] | null
+  withdrawals: WithdrawalRaw[]
 ];
+
+export type EthereumRawBlock = _EthereumRawBlock | Head<_EthereumRawBlock>;
+
+/**
+ * Omits the last element from a Tuple
+ */
 export type Head<T extends any[]> = T extends [...infer Head, any]
   ? Head
   : any[];
@@ -64,7 +71,7 @@ export function serialize(
   const serializedLength = serializedStart.length;
   const ethereumRawBlockSize = encodeLength(serializedLength, 192).length;
   const size = ethereumRawBlockSize + serializedLength;
-  const middle = encodeRange(end, 0, end.length);
+  const middle = encodeRange(end, 0, 2);
   const ending = encode(uintToBuffer(size));
   return {
     serialized: digest(
