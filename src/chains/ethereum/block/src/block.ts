@@ -144,6 +144,8 @@ export class Block {
       size: Quantity.from(this._size),
       transactions,
       uncles: [] as Data[], // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+      // if `this._rawWithdrawals` is not set we should not include it in the
+      // JSON response ()`undefined` gets stripped when JSON.stringify is called).
       withdrawals: this._rawWithdrawals?.map(convertRawWithdrawals) || undefined
     };
   }
