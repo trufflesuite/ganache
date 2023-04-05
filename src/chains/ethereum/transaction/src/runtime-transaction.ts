@@ -12,6 +12,7 @@ import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
+import { encodeWithPrefix } from "./signing";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
   const buffer = Data.toBuffer(address);
@@ -210,6 +211,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.hash = hash;
         this.encodedData = encodedData;
         this.encodedSignature = encodedSignature;
+      } else {
+        this.serialized = encodeWithPrefix(this.type.toNumber(), raw as any);
       }
     } else if (data.from != null) {
       // we don't have a signature yet, so we just need to record the `from`

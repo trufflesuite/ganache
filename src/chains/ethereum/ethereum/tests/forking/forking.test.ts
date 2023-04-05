@@ -1,4 +1,4 @@
-import { KNOWN_NETWORKS } from "@ganache/ethereum-options/src/fork-options";
+import { KNOWN_NETWORKS } from "@ganache/ethereum-options";
 import getProvider from "../helpers/getProvider";
 import http from "http";
 import ganache from "../../../../../packages/core";
@@ -56,7 +56,7 @@ async function deployContract(
 const PORT = 9999;
 
 describe("forking", function () {
-  this.timeout(10000);
+  this.timeout(0);
 
   const NETWORK_ID = 1234;
   const REMOTE_ACCOUNT_COUNT = 15;

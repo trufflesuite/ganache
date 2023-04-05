@@ -7,7 +7,6 @@ import {
 } from "@ganache/utils";
 import {
   EIP1559FeeMarketRawTransaction,
-  EIP1559FeeMarketDatabaseTx,
   EIP2930AccessListDatabaseTx,
   LegacyRawTransaction
 } from "./raw";
@@ -199,6 +198,24 @@ export const computeIntrinsicsLegacyTx = (
  * @returns
  */
 export const allocUnsafe = (size: number) => Buffer.allocUnsafe(size + 1);
+
+/**
+ * ENcodes the given raw data with a prefix in the form of
+ * `[prefix, encode(raw)]`, just like the digest with prefix function.
+ * @param prefix
+ * @param raw 
+ * @returns 
+ */
+export const encodeWithPrefix = (
+  prefix: number,
+  raw: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRawTransaction
+) => {
+  const encodedData = encodeRange(raw, 0, raw.length);
+  const ranges = [encodedData.output];
+  const length = encodedData.length;
+  return digestWithPrefix(prefix, ranges, length);
+};
+
 /**
  * Digests the rlp `ranges` and prepends the `prefix` to the output Buffer.
  * @param prefix
