@@ -8,8 +8,8 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  GanacheRawBlockTransactionMetaData,
   LegacyRawTransaction,
+  GanacheRawBlockTransactionMetaData,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
