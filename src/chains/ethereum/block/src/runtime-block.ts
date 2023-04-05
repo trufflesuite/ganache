@@ -190,8 +190,8 @@ export class RuntimeBlock {
       const tx = transactions[i];
       let raw: any | Buffer | Buffer[];
       const type = tx.type.toBuffer();
-      // type 0
       if (type.length === 0) {
+        // type 0
         raw = tx.raw;
       } else {
         // type 1 and 2:

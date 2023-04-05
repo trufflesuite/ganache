@@ -119,25 +119,12 @@ export default class BlockManager extends Manager<Block> {
       const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
       let raw: Buffer | TypedRawTransaction;
       const type = typedTx.type.toBuffer();
-      // type 0
       if (type.length === 0) {
-        raw = typedTx.toEthRawTransaction(
-          typedTx.v.toBuffer(),
-          typedTx.r.toBuffer(),
-          typedTx.s.toBuffer()
-        );
+        // type 0
+        raw = typedTx.raw;
       } else {
         // type 1 and 2:
-        raw = Buffer.concat([
-          type,
-          encode(
-            typedTx.toEthRawTransaction(
-              typedTx.v.toBuffer(),
-              typedTx.r.toBuffer(),
-              typedTx.s.toBuffer()
-            )
-          )
-        ]);
+        raw = Buffer.concat([type, encode(typedTx.raw)]);
       }
       txs[index] = raw;
       extraTxs[index] = blockExtra;
