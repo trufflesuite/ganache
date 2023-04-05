@@ -5,6 +5,7 @@ import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
 import {
   Block,
+  BlockRawTransaction,
   EthereumRawBlock,
   EthereumRawBlockHeader,
   Head,
@@ -102,9 +103,7 @@ export default class BlockManager extends Manager<Block> {
       }
     }
     const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
-    const txs: (Buffer | LegacyRawTransaction)[] = Array(
-      json.transactions.length
-    );
+    const txs: BlockRawTransaction[] = Array(json.transactions.length);
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       json.transactions.length
     );

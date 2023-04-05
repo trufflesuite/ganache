@@ -2,9 +2,6 @@ import { Data, Quantity } from "@ganache/utils";
 import {
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
-  LegacyRawTransaction,
-  TransactionFactory,
-  TypedRawTransaction,
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
@@ -13,6 +10,9 @@ import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
 import {
+  BlockRawTransaction,
+  convertRawBlockTransaction,
+  convertRawWithdrawals,
   EthereumRawBlock,
   EthereumRawBlockHeader,
   GanacheRawBlock,
@@ -26,42 +26,6 @@ import { BlockParams } from "./block-params";
 export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;
 
-/**
- * Converts a raw transaction encoded for use in a raw block into a `Transaction`
- *
- * @param raw the raw transaction data after the block has been rlp decoded.
- * @param common
- * @param extra
- * @returns
- */
-function convertRawBlockTransaction(
-  raw: Buffer | LegacyRawTransaction,
-  common: Common,
-  extra: GanacheRawExtraTx
-) {
-  let txData: TypedRawTransaction;
-  let type: number;
-  if (TransactionFactory.isLegacyRawTransaction(raw)) {
-    // legacy txs
-    type = 0;
-    txData = raw;
-  } else {
-    // type 1 and 2 txs
-    type = raw[0];
-    txData = decode(raw.subarray(1));
-  }
-  return TransactionFactory.fromTypeAndTxData(type, txData, common, extra);
-}
-
-function convertRawWithdrawals([index, validatorIndex, address, amount]) {
-  return {
-    index: Quantity.from(index),
-    validatorIndex: Quantity.from(validatorIndex),
-    address: Data.from(address),
-    amount: Quantity.from(amount)
-  };
-}
-
 export class Block {
   /**
    *  Base fee per gas for blocks without a parent containing a base fee per gas.
@@ -72,7 +36,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: (Buffer | LegacyRawTransaction)[];
+  protected _rawTransactions: BlockRawTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   protected _rawWithdrawals: WithdrawalRaw[] | null;

@@ -1,9 +1,19 @@
+import { Common } from "@ethereumjs/common";
 import {
   GanacheRawBlockTransactionMetaData,
-  LegacyRawTransaction
+  GanacheRawExtraTx,
+  LegacyRawTransaction,
+  TransactionFactory,
+  TypedRawTransaction
 } from "@ganache/ethereum-transaction";
-import { digest, encodeLength, encodeRange, encode } from "@ganache/rlp";
-import { uintToBuffer } from "@ganache/utils";
+import {
+  digest,
+  encodeLength,
+  encodeRange,
+  encode,
+  decode
+} from "@ganache/rlp";
+import { Data, Quantity, uintToBuffer } from "@ganache/utils";
 
 export type WithdrawalRaw = [
   index: Buffer,
@@ -37,9 +47,11 @@ export type EthereumRawBlockHeader = [
   withdrawalsRoot?: Buffer // added in shanghai
 ];
 
+export type BlockRawTransaction = Buffer | LegacyRawTransaction;
+
 type _EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,
-  rawTransactions: (Buffer | LegacyRawTransaction)[],
+  rawTransactions: BlockRawTransaction[],
   uncles: [],
   withdrawals: WithdrawalRaw[]
 ];
@@ -54,6 +66,7 @@ export type Head<T extends any[]> = T extends [...infer Head, any]
   : any[];
 
 export type GanacheRawBlock = [...EthereumRawBlock, ...GanacheRawBlockExtras];
+
 /**
  * Serializes a block to compute its size and store it in the database.
  * @param start
@@ -79,5 +92,52 @@ export function serialize(
       serializedLength + middle.length + ending.length
     ),
     size
+  };
+}
+
+function isLegacyRawTransaction(
+  raw: Buffer | LegacyRawTransaction
+): raw is LegacyRawTransaction {
+  return raw.length === 9;
+}
+
+/**
+ * Converts a raw transaction encoded for use in a raw block into a `Transaction`
+ *
+ * @param raw the raw transaction data after the block has been rlp decoded.
+ * @param common
+ * @param extra
+ * @returns
+ */
+export function convertRawBlockTransaction(
+  raw: BlockRawTransaction,
+  common: Common,
+  extra: GanacheRawExtraTx
+) {
+  let txData: TypedRawTransaction;
+  let type: number;
+  if (isLegacyRawTransaction(raw)) {
+    // legacy txs
+    type = 0;
+    txData = raw;
+  } else {
+    // type 1 and 2 txs
+    type = raw[0];
+    txData = decode(raw.subarray(1));
+  }
+  return TransactionFactory.fromTypeAndTxData(type, txData, common, extra);
+}
+
+export function convertRawWithdrawals([
+  index,
+  validatorIndex,
+  address,
+  amount
+]) {
+  return {
+    index: Quantity.from(index),
+    validatorIndex: Quantity.from(validatorIndex),
+    address: Data.from(address),
+    amount: Quantity.from(amount)
   };
 }
