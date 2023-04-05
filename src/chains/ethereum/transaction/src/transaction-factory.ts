@@ -217,6 +217,44 @@ export class TransactionFactory {
     }
   }
   /**
+   * Create a transaction from a `txData` object without the type field in the first position (for type 1 and 2 txs)
+   *
+   * @param txData - The raw transaction data. The `type` field will determine which transaction type is returned (if undefined, creates a legacy transaction)
+   * @param common - Options to pass on to the constructor of the transaction
+   */
+  public static fromTypeAndTxData(
+    txType: number,
+    txData: TypedRawTransaction,
+    common: Common,
+    extra?: GanacheRawExtraTx
+  ) {
+    switch (txType) {
+      case TransactionType.EIP1559AccessList:
+        return EIP1559FeeMarketTransaction.fromTxData(
+          txData as EIP1559FeeMarketRawTransaction,
+          common,
+          extra
+        );
+      case TransactionType.Legacy:
+        return LegacyTransaction.fromTxData(
+          txData as LegacyRawTransaction,
+          common,
+          extra
+        );
+      case TransactionType.EIP2930AccessList:
+        return EIP2930AccessListTransaction.fromTxData(
+          txData as EIP2930AccessListRawTransaction,
+          common,
+          extra
+        );
+      default:
+        throw new CodedError(
+          `Transactions with supplied type ${txType} not supported`,
+          JsonRpcErrorCode.METHOD_NOT_FOUND
+        );
+    }
+  }
+  /**
    * Create a transaction from a `txData` object
    *
    * When transaction types are activated (EIP 2718) the txData will be checked

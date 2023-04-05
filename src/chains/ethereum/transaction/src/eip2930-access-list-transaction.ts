@@ -178,10 +178,10 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
 
     const type = this.type.toBuffer()[0];
     const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
-    const data = encodeRange(raw, 1, 8);
+    const data = encodeRange(raw, 0, 8);
     const dataLength = data.length;
 
-    const msgHash = digestWithPrefix(type, [data.output], dataLength);
+    const msgHash = keccak(digestWithPrefix(type, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);

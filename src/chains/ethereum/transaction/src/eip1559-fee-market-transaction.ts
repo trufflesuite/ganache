@@ -11,17 +11,11 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
 import { Transaction } from "./rpc-transaction";
-import { encodeRange, digest } from "@ganache/rlp";
+import { encodeRange } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
-import {
-  EIP1559FeeMarketRawTransaction,
-  EIP1559FeeMarketDatabaseTx,
-  GanacheRawExtraTx,
-  TypedRawTransaction,
-  TypedDatabaseTransaction
-} from "./raw";
+import { EIP1559FeeMarketRawTransaction, GanacheRawExtraTx } from "./raw";
 import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
-import { allocUnsafe, computeIntrinsicsFeeMarketTx } from "./signing";
+import { computeIntrinsicsFeeMarketTx, digestWithPrefix } from "./signing";
 import {
   Capability,
   EIP1559FeeMarketTransactionJSON
@@ -194,14 +188,12 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       );
     }
 
-    const typeBuf = this.type.toBuffer();
+    const type = this.type.toBuffer()[0];
     const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
-    const data = encodeRange(raw, 0, 8);
+    const data = encodeRange(raw, 0, 9);
     const dataLength = data.length;
 
-    const rlp = digest([data.output], dataLength, 1, allocUnsafe);
-    rlp[0] = 2;
-    const msgHash = keccak(rlp);
+    const msgHash = keccak(digestWithPrefix(type, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
@@ -215,7 +207,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
 
     const encodedSignature = encodeRange(raw, 9, 3);
     // raw data is type concatenated with the rest of the data rlp encoded
-    this.serialized = digest(
+    this.serialized = digestWithPrefix(
+      type,
       [data.output, encodedSignature.output],
       dataLength + encodedSignature.length
     );

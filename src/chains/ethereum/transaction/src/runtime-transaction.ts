@@ -6,11 +6,7 @@ import {
 import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
 import type { Common } from "@ethereumjs/common";
-import {
-  GanacheRawExtraTx,
-  TypedRawTransaction,
-  TypedDatabaseTransaction
-} from "./raw";
+import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
 import type { RunTxResult } from "@ethereumjs/vm";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
@@ -108,9 +104,14 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     blockNumber: Quantity,
     transactionIndex: Quantity
   ): Buffer {
+    const legacy = this.raw.length === 9;
     // todo(perf):make this work with encodeRange and digest
     const txAndExtraData: [TypedRawTransaction, GanacheRawExtraTx] = [
-      this.raw,
+      // todo: this is encoded differently in the tx table than it is in the
+      // block table. we should migrate the tx table to use the same format as
+      // the block (`Buffer.concat([type, encode(raw)])`) so that we can avoid
+      // block it twice for each block save step.
+      legacy ? this.raw : ([this.type.toBuffer(), ...this.raw] as any),
       [
         this.from.toBuffer(),
         this.hash.toBuffer(),

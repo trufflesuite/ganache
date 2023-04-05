@@ -101,7 +101,7 @@ export default class BlockManager extends Manager<Block> {
       }
     }
     const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
-    const txs: TypedDatabaseTransaction[] = Array(json.transactions.length);
+    const txs: any | Buffer[] = Array(json.transactions.length);
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       json.transactions.length
     );
@@ -129,7 +129,7 @@ export default class BlockManager extends Manager<Block> {
       } else {
         // type 1 and 2:
         raw = Buffer.concat([
-          typedTx.type.toBuffer(),
+          type,
           encode(
             typedTx.toEthRawTransaction(
               typedTx.v.toBuffer(),
@@ -139,7 +139,7 @@ export default class BlockManager extends Manager<Block> {
           )
         ]);
       }
-      txs[index] = <TypedDatabaseTransaction>raw;
+      txs[index] = raw;
       extraTxs[index] = blockExtra;
     });
 

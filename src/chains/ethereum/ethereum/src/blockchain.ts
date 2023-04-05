@@ -442,6 +442,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const index = Quantity.from(i);
 
         // save transaction to the database
+        // TODO: the block has already done most of the work serializing the tx
+        // we should reuse it, if possible
         const serialized = tx.serializeForDb(blockHash, blockNumberQ, index);
         this.transactions.set(hash, serialized);
 

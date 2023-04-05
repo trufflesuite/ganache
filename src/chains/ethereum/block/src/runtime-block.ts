@@ -9,12 +9,12 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  TypedDatabaseTransaction,
   GanacheRawBlockTransactionMetaData,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 import { Common } from "@ethereumjs/common";
+import { encode } from "@ganache/rlp";
 
 export type Withdrawal = {
   index: Quantity;
@@ -182,14 +182,23 @@ export class RuntimeBlock {
     }
 
     const { totalDifficulty } = header;
-    const txs: TypedDatabaseTransaction[] = Array(transactions.length);
+    const txs: Buffer[] = Array(transactions.length);
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       transactions.length
     );
     for (let i = 0; i < transactions.length; i++) {
       const tx = transactions[i];
-      txs.push(<TypedDatabaseTransaction>tx.raw);
-      extraTxs.push([tx.from.toBuffer(), tx.hash.toBuffer()]);
+      let raw: any | Buffer | Buffer[];
+      const type = tx.type.toBuffer();
+      // type 0
+      if (type.length === 0) {
+        raw = tx.raw;
+      } else {
+        // type 1 and 2:
+        raw = Buffer.concat([type, encode(tx.raw)]);
+      }
+      txs[i] = raw;
+      extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
     }
     let rawBlock: EthereumRawBlock | Head<EthereumRawBlock>;
     if (isEip4895) {

@@ -38,7 +38,7 @@ export type EthereumRawBlockHeader = [
 ];
 export type EthereumRawBlock = [
   rawHeader: EthereumRawBlockHeader,
-  rawTransactions: TypedDatabaseTransaction[],
+  rawTransactions: Buffer[],
   uncles: [],
   withdrawals: WithdrawalRaw[] | null
 ];

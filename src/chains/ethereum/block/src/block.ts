@@ -4,6 +4,7 @@ import {
   GanacheRawExtraTx,
   TransactionFactory,
   TypedDatabaseTransaction,
+  TypedRawTransaction,
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
@@ -25,6 +26,25 @@ import { BlockParams } from "./block-params";
 export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;
 
+function convertBlockRawTx(
+  raw: Buffer,
+  common: Common,
+  extra: GanacheRawExtraTx
+) {
+  let txData: TypedRawTransaction;
+  let type: number;
+  if (raw.length === 9) {
+    // legacy txs
+    type == 0;
+    raw = raw;
+  } else {
+    // type 1 and 2 txs
+    type = raw[0];
+    raw = raw.subarray(1);
+  }
+  return TransactionFactory.fromTypeAndTxData(type, txData, common, extra);
+}
+
 export class Block {
   /**
    *  Base fee per gas for blocks without a parent containing a base fee per gas.
@@ -35,7 +55,7 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: TypedDatabaseTransaction[];
+  protected _rawTransactions: Buffer[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
 
   protected _rawWithdrawals: WithdrawalRaw[] | null;
@@ -105,7 +125,7 @@ export class Block {
         this.header.number.toBuffer(),
         Quantity.toBuffer(index)
       ];
-      return TransactionFactory.fromDatabaseTx(raw, common, extra);
+      return convertBlockRawTx(raw, common, extra);
     });
   }
 
@@ -127,7 +147,7 @@ export class Block {
         number,
         Quantity.toBuffer(index)
       ];
-      const tx = TransactionFactory.fromDatabaseTx(raw, common, extra);
+      const tx = convertBlockRawTx(raw, common, extra);
       // we could either parse the raw data to check if the tx is type 2,
       // get the maxFeePerGas and maxPriorityFeePerGas, use those to calculate
       // the effectiveGasPrice and add it to `extra` above, or we can just

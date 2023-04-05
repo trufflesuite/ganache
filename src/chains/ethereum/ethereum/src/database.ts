@@ -76,7 +76,7 @@ export default class Database extends Emittery {
     //  * and version: `BUFFER_ZERO` (the first versioned version)
     // Since we only have the one version we can be lazy right now and just
     // check if it exists
-    // if (version) return;
+    if (version) return;
 
     // this migration fixes a bug in version `null` that caused us to compute the `size`
     // of blocks incorrectly. We save the size to the db, so we need to
