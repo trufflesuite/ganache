@@ -88,7 +88,7 @@ export function makeHeader(
  * A minimal block that can be used by the EVM to run transactions.
  */
 export class RuntimeBlock {
-  public _common: Common;
+  private readonly _common: Common;
   public readonly header: {
     parentHash: Buffer;
     difficulty: bigint;
