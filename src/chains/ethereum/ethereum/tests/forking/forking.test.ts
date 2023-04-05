@@ -56,7 +56,7 @@ async function deployContract(
 const PORT = 9999;
 
 describe("forking", function () {
-  this.timeout(0);
+  this.timeout(10000);
 
   const NETWORK_ID = 1234;
   const REMOTE_ACCOUNT_COUNT = 15;
