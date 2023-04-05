@@ -1,6 +1,7 @@
 import { Data, Quantity, BUFFER_EMPTY, BUFFER_8_ZERO } from "@ganache/utils";
 import { KECCAK256_RLP_ARRAY } from "@ethereumjs/util";
 import {
+  BlockRawTransaction,
   EthereumRawBlock,
   EthereumRawBlockHeader,
   serialize
@@ -179,7 +180,7 @@ export class RuntimeBlock {
     }
 
     const { totalDifficulty } = header;
-    const txs: (LegacyRawTransaction | Buffer)[] = Array(transactions.length);
+    const txs: BlockRawTransaction[] = Array(transactions.length);
     const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
       transactions.length
     );
