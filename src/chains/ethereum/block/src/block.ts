@@ -35,7 +35,7 @@ function convertBlockRawTx(
   let type: number;
   if (TransactionFactory.isLegacyRawTransaction(raw)) {
     // legacy txs
-    type == 0;
+    type = 0;
     txData = raw;
   } else {
     // type 1 and 2 txs
