@@ -45,6 +45,15 @@ function convertBlockRawTx(
   return TransactionFactory.fromTypeAndTxData(type, txData, common, extra);
 }
 
+function convertRawWithdrawals([index, validatorIndex, address, amount]) {
+  return {
+    index: Quantity.from(index),
+    validatorIndex: Quantity.from(validatorIndex),
+    address: Data.from(address),
+    amount: Quantity.from(amount)
+  };
+}
+
 export class Block {
   /**
    *  Base fee per gas for blocks without a parent containing a base fee per gas.
@@ -138,7 +147,7 @@ export class Block {
     const header = this.header;
     const number = header.number.toBuffer();
     const common = this._common;
-    const jsonTxs = this._rawTransactions.map((raw, index) => {
+    const transactions = this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
         from,
@@ -160,19 +169,9 @@ export class Block {
       hash,
       ...header,
       size: Quantity.from(this._size),
-      transactions: jsonTxs,
+      transactions,
       uncles: [] as Data[], // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
-      withdrawals:
-        this._rawWithdrawals?.map(
-          ([index, validatorIndex, address, amount]) => {
-            return {
-              index: Quantity.from(index),
-              validatorIndex: Quantity.from(validatorIndex),
-              address: Data.from(address),
-              amount: Quantity.from(amount)
-            };
-          }
-        ) || undefined
+      withdrawals: this._rawWithdrawals?.map(convertRawWithdrawals) || undefined
     };
   }
 
