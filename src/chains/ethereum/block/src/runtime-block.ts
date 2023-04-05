@@ -9,19 +9,11 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
-  LegacyRawTransaction,
   GanacheRawBlockTransactionMetaData,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { StorageKeys } from "@ganache/ethereum-utils";
 import { Common } from "@ethereumjs/common";
-
-export type Withdrawal = {
-  index: Quantity;
-  validatorIndex: Quantity;
-  address: Data;
-  amount: Quantity;
-};
 
 export type BlockHeader = {
   parentHash: Data;

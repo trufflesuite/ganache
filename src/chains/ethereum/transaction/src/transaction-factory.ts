@@ -2,7 +2,11 @@ import { Data, JsonRpcErrorCode, Quantity } from "@ganache/utils";
 import type { Common } from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
-import { Transaction } from "./rpc-transaction";
+import {
+  EIP1559FeeMarketRpcTransaction,
+  EIP2930AccessListRpcTransaction,
+  Transaction
+} from "./rpc-transaction";
 import {
   EIP1559FeeMarketRawTransaction,
   EIP2930AccessListRawTransaction,
@@ -74,7 +78,9 @@ export class TransactionFactory {
       } else if (txType === TransactionType.EIP2930AccessList) {
         if (common.isActivatedEIP(2930)) {
           return EIP2930AccessListTransaction.fromTxData(
-            <EIP2930AccessListRawTransaction | Transaction>txData,
+            <EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction>(
+              txData
+            ),
             common,
             extra
           );
@@ -125,7 +131,7 @@ export class TransactionFactory {
           txData.gasPrice === undefined;
         if (txType === TransactionType.EIP1559AccessList || toEIP1559) {
           const tx = EIP1559FeeMarketTransaction.fromTxData(
-            txData,
+            <EIP1559FeeMarketRpcTransaction>txData,
             common,
             extra
           );
@@ -149,7 +155,7 @@ export class TransactionFactory {
             return LegacyTransaction.fromTxData(txData, common, extra);
           } else {
             return EIP2930AccessListTransaction.fromTxData(
-              txData,
+              <EIP2930AccessListRpcTransaction>txData,
               common,
               extra
             );

@@ -22,6 +22,13 @@ export type WithdrawalRaw = [
   amount: Buffer
 ];
 
+export type Withdrawal = {
+  index: Quantity;
+  validatorIndex: Quantity;
+  address: Data;
+  amount: Quantity;
+};
+
 export type GanacheRawBlockExtras = [
   totalDifficulty: Buffer,
   transactionMetaData: GanacheRawBlockTransactionMetaData[],
@@ -133,7 +140,7 @@ export function convertRawWithdrawals([
   validatorIndex,
   address,
   amount
-]) {
+]: WithdrawalRaw): Withdrawal {
   return {
     index: Quantity.from(index),
     validatorIndex: Quantity.from(validatorIndex),
