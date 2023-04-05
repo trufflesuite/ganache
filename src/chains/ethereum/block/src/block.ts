@@ -26,7 +26,15 @@ import { BlockParams } from "./block-params";
 export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;
 
-function convertBlockRawTx(
+/**
+ * Converts a raw transaction encoded for use in a raw block into a `Transaction`
+ *
+ * @param raw the raw transaction data after the block has been rlp decoded.
+ * @param common
+ * @param extra
+ * @returns
+ */
+function convertRawBlockTransaction(
   raw: Buffer | LegacyRawTransaction,
   common: Common,
   extra: GanacheRawExtraTx
@@ -125,16 +133,18 @@ export class Block {
 
   getTransactions() {
     const common = this._common;
+    const hashBuffer = this.hash().toBuffer();
+    const number = this.header.number.toBuffer();
     return this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
         from,
         hash,
-        this.hash().toBuffer(),
-        this.header.number.toBuffer(),
+        hashBuffer,
+        number,
         Quantity.toBuffer(index)
       ];
-      return convertBlockRawTx(raw, common, extra);
+      return convertRawBlockTransaction(raw, common, extra);
     });
   }
 
@@ -156,7 +166,7 @@ export class Block {
         number,
         Quantity.toBuffer(index)
       ];
-      const tx = convertBlockRawTx(raw, common, extra);
+      const tx = convertRawBlockTransaction(raw, common, extra);
       // we could either parse the raw data to check if the tx is type 2,
       // get the maxFeePerGas and maxPriorityFeePerGas, use those to calculate
       // the effectiveGasPrice and add it to `extra` above, or we can just
