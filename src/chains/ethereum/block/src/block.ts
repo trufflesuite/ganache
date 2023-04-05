@@ -38,7 +38,6 @@ export class Block {
   protected _common: Common;
   protected _rawTransactions: BlockRawTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
-
   protected _rawWithdrawals: WithdrawalRaw[] | null;
 
   public header: BlockHeader;
