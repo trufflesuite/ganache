@@ -71,20 +71,20 @@ export class Block {
   }
 
   /**
-   * Migrates a serialized Block to the latest version
+   * Migrates a serialized Block to the latest version. This should only be
+   * called on serialized data from blocks created before v7.8.0.
+   *
+   * This migration updates the `size` value of the block to the correct value
+   * by re-serializing the block for storage in the db.
    * @param serialized
    * @returns
    */
   static migrate(serialized: Buffer) {
-    // this migration updates the `size` value of the block to the correct value
-    // by re-serializing the block for storage in the db
-
     const deserialized = decode<GanacheRawBlock>(serialized);
-    const { serialized: reSerialized } = serialize(
+    return serialize(
       deserialized.slice(0, 3) as Head<EthereumRawBlock>,
       deserialized.slice(3, 5) as Head<GanacheRawBlockExtras>
-    );
-    return reSerialized;
+    ).serialized;
   }
 
   private _hash: Data;
