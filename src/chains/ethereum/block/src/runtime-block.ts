@@ -100,7 +100,7 @@ export class RuntimeBlock {
     // prevRandao is mixHash, but for the merge and it must be
     // given to the VM this way
     prevRandao: Buffer;
-    baseFeePerGas?: bigint;
+    baseFeePerGas?: bigint; // added in london
     withdrawalsRoot?: Buffer; // added in shanghai
   };
 
