@@ -64,9 +64,10 @@ export default class Database extends Emittery {
    * Handles migrating the db from one version to another.
    * @returns
    */
-  private async migrate() {
+  private async runMigrations() {
     let version: Buffer;
     try {
+      // note: we only add a version
       version = await this.db.get(VERSION_KEY);
     } catch {
       /* not found */
@@ -75,19 +76,26 @@ export default class Database extends Emittery {
     //  * no version at all (referred to as "version `null`")
     //  * and version: `BUFFER_ZERO` (the first versioned version)
     // Since we only have the one version we can be lazy right now and just
-    // check if it exists
+    // check if it exists.
     if (version) return;
 
-    // this migration fixes a bug in version `null` that caused us to compute the `size`
-    // of blocks incorrectly. We save the size to the db, so we need to
-    // recompute it and re-save for all blocks:
-
-    // update the db with the version
     const ops: AbstractBatch<Buffer, Buffer>[] = [
+      //#region MIGRATION 0a
+      // update the db with the version.
+      // since this was not an original field, adding a version if a migration in
+      // and of itself. Future migrations will need conditionally check the
+      // version to apply relevant migrations.
       { type: "put", key: VERSION_KEY, value: BUFFER_ZERO }
+      //#endregion MIGRATION 0a
     ];
 
-    // read all blocks from the db and re-encode them with the correct `size`
+    //#region MIGRATION 0b
+    // ============
+    // Fix the `size` field of blocks.
+    //
+    // This migration fixes a bug in version `null` that caused us to compute
+    // the `size` of blocks incorrectly. We save the size to the db, so we need
+    // to recompute it and re-save for all blocks:
     const stream = this.blocks.createReadStream();
     const prefix = Buffer.from((this.blocks as any).db.db.prefix);
     for await (const data of stream) {
@@ -101,6 +109,7 @@ export default class Database extends Emittery {
         value: Block.migrate(value)
       });
     }
+    //#endregion MIGRATION 0b
 
     // save all in one atomic operation:
     await this.db.batch(ops);
@@ -159,8 +168,9 @@ export default class Database extends Emittery {
     this.transactionReceipts = sub(db, "r", levelupOptions);
     this.storageKeys = sub(db, "s", levelupOptions);
 
+    // only migrate if we were given a dbPath or a user-defined db
     if (shouldTryMigrate) {
-      await this.migrate();
+      await this.runMigrations();
     }
 
     return this.emit("ready");
