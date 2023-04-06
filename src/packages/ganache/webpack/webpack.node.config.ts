@@ -22,8 +22,9 @@ const config: webpack.Configuration = merge({}, base, {
       debug: require.resolve("./polyfills/debug"),
       // the `setimmediate` package is only used in the browser
       setimmediate: false,
-      // TODO: remove once https://github.com/trufflesuite/ganache/issues/3899 is resolved
-      ethers: false
+      // TODO: remove these ethers related aliases once https://github.com/trufflesuite/ganache/issues/3899 is resolved
+      ethers: false,
+      "@ethersproject/providers": false
     }
   },
   plugins: [
