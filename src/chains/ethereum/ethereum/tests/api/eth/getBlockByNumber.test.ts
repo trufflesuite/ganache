@@ -108,6 +108,27 @@ describe("api", () => {
           });
         });
       });
+
+      describe("shanghai", () => {
+        beforeEach(async () => {
+          provider = await getProvider({ chain: { hardfork: "shanghai" } });
+        });
+        afterEach(async () => {
+          provider && (await provider.disconnect());
+        });
+        it("returns the withdrawals and withdrawalsRoot", async () => {
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          // always an empty array when not forking (see the forking tests for
+          // forked withdrawals)
+          assert.deepStrictEqual(block.withdrawals, []);
+          // always the empty tree root when there are no withdrawals
+          assert.strictEqual(
+            block.withdrawalsRoot,
+            // keccak256 hash of an empty Merkle trie
+            "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+          );
+        });
+      });
     });
   });
 });
