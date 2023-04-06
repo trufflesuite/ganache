@@ -444,6 +444,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // save transaction to the database
         // TODO: the block has already done most of the work serializing the tx
         // we should reuse it, if possible
+        // https://github.com/trufflesuite/ganache/issues/4341
         const serialized = tx.serializeForDb(blockHash, blockNumberQ, index);
         this.transactions.set(hash, serialized);
 
