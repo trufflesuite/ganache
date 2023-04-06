@@ -56,7 +56,7 @@ export const Params = {
   TRANSACTION_DATA_ZERO_GAS: 4n,
 
   /**
-   * Fee for creation a transaction
+   * Fee for creation a transaction (includes base fee of `TRANSACTION_GAS`)
    */
   TRANSACTION_CREATION_GAS: 53000n,
 
