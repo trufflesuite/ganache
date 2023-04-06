@@ -128,7 +128,7 @@ export default class BlockManager extends Manager<Block> {
     let start: EthereumRawBlock | Head<EthereumRawBlock>;
 
     if (hasWithdrawals) {
-      const extraWithdrawals = Array(json.withdrawals.length);
+      const extraWithdrawals: WithdrawalRaw[] = Array(json.withdrawals.length);
       for (let i = 0; i < json.withdrawals.length; i++) {
         const withdrawal = json.withdrawals[i];
         extraWithdrawals[i] = [
