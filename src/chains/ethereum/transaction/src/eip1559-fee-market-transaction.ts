@@ -70,14 +70,14 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
           );
         }
 
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, this.raw);
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          this.raw
+        );
 
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
       }
     } else {
       if (data.chainId) {
@@ -209,8 +209,6 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     // serialized is type concatenated with the rest of the data rlp encoded
     this.serialized = digestWithPrefix(2, ranges, length);
     this.hash = Data.from(keccak(this.serialized));
-    this.encodedData = data;
-    this.encodedSignature = encodedSignature;
   }
 
   public toEthRawTransaction(

@@ -9,6 +9,7 @@ import {
 import { Address } from "@ganache/ethereum-address";
 import { Block } from "./block";
 import {
+  encodeWithPrefix,
   GanacheRawBlockTransactionMetaData,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
@@ -178,7 +179,10 @@ export class RuntimeBlock {
     );
     for (let i = 0; i < transactions.length; i++) {
       const tx = transactions[i];
-      txs[i] = tx.raw.length === 9 ? tx.raw : tx.serialized;
+      txs[i] =
+        tx.raw.length === 9
+          ? tx.raw
+          : tx.serialized ?? encodeWithPrefix(tx.type.toNumber(), tx.raw);
       extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
     }
     let rawBlock: EthereumRawBlock;

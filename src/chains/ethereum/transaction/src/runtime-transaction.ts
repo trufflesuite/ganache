@@ -60,8 +60,6 @@ export abstract class RuntimeTransaction extends BaseTransaction {
 
   public raw: TypedRawTransaction;
   public serialized: Buffer;
-  public encodedData: EncodedPart;
-  public encodedSignature: EncodedPart;
   private finalizer: (eventData: TransactionFinalization) => void;
   private finalized: Promise<TransactionFinalization>;
 
@@ -193,8 +191,11 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       );
       this.raw = raw;
       if (!this.from) {
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, raw, this.common.chainId());
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          raw,
+          this.common.chainId()
+        );
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches
@@ -209,10 +210,6 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
-      } else {
-        this.serialized = encodeWithPrefix(this.type.toNumber(), raw as any);
       }
     } else if (data.from != null) {
       // we don't have a signature yet, so we just need to record the `from`

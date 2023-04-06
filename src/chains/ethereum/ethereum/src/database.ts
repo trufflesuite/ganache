@@ -27,7 +27,7 @@ const noop = () => Promise.resolve();
 
 export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
-  readonly #options: EthereumInternalOptions["database"];
+  readonly #options: EthereumInternalOptions;
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
@@ -50,10 +50,7 @@ export default class Database extends Emittery {
    * store instance) or `dbPath` (the path to store/read the db instance)
    * @param blockchain -
    */
-  constructor(
-    options: EthereumInternalOptions["database"],
-    blockchain: Blockchain
-  ) {
+  constructor(options: EthereumInternalOptions, blockchain: Blockchain) {
     super();
 
     this.#options = options;
@@ -78,6 +75,9 @@ export default class Database extends Emittery {
     // Since we only have the one version we can be lazy right now and just
     // check if it exists.
     if (version) return;
+
+    const logger = this.#options.logging.logger;
+    logger.log("Migrating database from version `null` to `0`…");
 
     const ops: AbstractBatch<Buffer, Buffer>[] = [
       //#region MIGRATION 0a
@@ -113,13 +113,15 @@ export default class Database extends Emittery {
 
     // save all in one atomic operation:
     await this.db.batch(ops);
+    logger.log("Migration complete");
   }
   initialize = async () => {
     const levelupOptions: any = {
       keyEncoding: "binary",
       valueEncoding: "binary"
     };
-    const store = this.#options.db;
+    const databaseOptions = this.#options.database;
+    const store = databaseOptions.db;
     let db: GanacheLevelUp;
 
     let shouldTryMigrate = false;
@@ -128,7 +130,7 @@ export default class Database extends Emittery {
       db = levelup(this.#rootStore, {});
       shouldTryMigrate = true;
     } else {
-      let directory = this.#options.dbPath;
+      let directory = databaseOptions.dbPath;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
         directory = dirInfo.path;

@@ -14,9 +14,9 @@ import {
 } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import {
+  encodeWithPrefix,
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
-  LegacyRawTransaction,
   TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
@@ -121,7 +121,10 @@ export default class BlockManager extends Manager<Block> {
         Quantity.toBuffer(index)
       ];
       const tx = TransactionFactory.fromRpc(txJson, common, txExtra);
-      txs[index] = tx.raw.length === 9 ? tx.raw : tx.serialized;
+      txs[index] =
+        tx.raw.length === 9
+          ? tx.raw
+          : tx.serialized ?? encodeWithPrefix(tx.type.toNumber(), tx.raw);
       extraTxs[index] = blockExtra;
     }
 

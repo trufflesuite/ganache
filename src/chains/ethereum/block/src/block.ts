@@ -1,5 +1,6 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
+  encodeWithPrefix,
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
   TypedTransaction,
@@ -81,8 +82,23 @@ export class Block {
    */
   static migrate(serialized: Buffer) {
     const deserialized = decode<GanacheRawBlock>(serialized);
+    const start = deserialized.slice(0, 3) as EthereumRawBlock;
+    start[1] = start[1].map((oldRawTx: any) => {
+      if (oldRawTx.length === 9) {
+        return oldRawTx; // legacy transactions are fine
+      } else {
+        // `type` is always `< 0x27`, so we can yank the first byte from the
+        // Buffer without having to think about conversion.
+        // https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
+        const type = oldRawTx[0][0];
+        const raw = oldRawTx.slice(1);
+        // type 1 and 2 transactions were encoded within the black as:
+        // `[type, ...rawTx]` when they should have been `[type, encode(rawTx)]`
+        return encodeWithPrefix(type, raw);
+      }
+    });
     return serialize(
-      deserialized.slice(0, 3) as Head<EthereumRawBlock>,
+      start,
       deserialized.slice(3, 5) as Head<GanacheRawBlockExtras>
     ).serialized;
   }

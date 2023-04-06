@@ -45,14 +45,15 @@ export class LegacyTransaction extends RuntimeTransaction {
       if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          this.raw,
+          this.common.chainId()
+        );
 
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
       }
     } else {
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
@@ -192,8 +193,6 @@ export class LegacyTransaction extends RuntimeTransaction {
     // serialized is the rlp encoded raw data
     this.serialized = digest(ranges, length);
     this.hash = Data.from(keccak(this.serialized));
-    this.encodedData = data;
-    this.encodedSignature = encodedSignature;
   }
 
   public toEthRawTransaction(

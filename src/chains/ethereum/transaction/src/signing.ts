@@ -7,9 +7,9 @@ import {
 } from "@ganache/utils";
 import {
   EIP1559FeeMarketRawTransaction,
-  EIP2930AccessListDatabaseTx,
   EIP2930AccessListRawTransaction,
-  LegacyRawTransaction
+  LegacyRawTransaction,
+  TypedRawTransaction
 } from "./raw";
 import { digest, encodeRange } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
@@ -185,9 +185,7 @@ export const computeIntrinsicsLegacyTx = (
       chainId
     ),
     hash: Data.from(keccak(serialized), 32),
-    serialized,
-    encodedData,
-    encodedSignature
+    serialized
   };
 };
 
@@ -206,10 +204,7 @@ const allocUnsafePrefix = (size: number) => Buffer.allocUnsafe(size + 1);
  * @param raw
  * @returns
  */
-export const encodeWithPrefix = (
-  prefix: number,
-  raw: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRawTransaction
-) => {
+export const encodeWithPrefix = (prefix: number, raw: TypedRawTransaction) => {
   const encodedData = encodeRange(raw, 0, raw.length);
   const ranges = [encodedData.output];
   const length = encodedData.length;
@@ -263,9 +258,7 @@ export const computeIntrinsicsAccessListTx = (
   return {
     from: from,
     hash: Data.from(keccak(serialized), 32),
-    serialized,
-    encodedData,
-    encodedSignature
+    serialized
   };
 };
 
@@ -294,8 +287,6 @@ export const computeIntrinsicsFeeMarketTx = (
   return {
     from: from,
     hash: Data.from(keccak(serialized), 32),
-    serialized,
-    encodedData,
-    encodedSignature
+    serialized
   };
 };

@@ -228,7 +228,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     this.fallback = fallback;
     this.coinbase = coinbase;
     this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0;
-    this.#database = new Database(options.database, this);
+    this.#database = new Database(options, this);
   }
 
   async initialize(initialAccounts: Account[]) {

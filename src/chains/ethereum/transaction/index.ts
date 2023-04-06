@@ -12,6 +12,7 @@ export * from "./src/hardfork";
 export * from "./src/legacy-transaction";
 export * from "./src/params";
 export * from "./src/raw";
+export * from "./src/signing";
 export * from "./src/rpc-transaction";
 export * from "./src/runtime-transaction";
 export * from "./src/transaction-receipt";
