@@ -1,10 +1,9 @@
 import assert from "assert";
-import { copySync, readdir } from "fs-extra";
+import { copySync, readdir, remove } from "fs-extra";
 import tmp from "tmp-promise";
 import getProvider from "./helpers/getProvider";
 import { EthereumProvider } from "../src/provider";
 import { join } from "path";
-import { rm } from "fs/promises";
 
 describe("database", () => {
   describe("resumption", () => {
@@ -246,7 +245,7 @@ describe("database", () => {
           "Migration message found when it should not be"
         );
       } finally {
-        await rm(dbPath, { recursive: true, force: true });
+        await remove(dbPath);
       }
     });
   });
