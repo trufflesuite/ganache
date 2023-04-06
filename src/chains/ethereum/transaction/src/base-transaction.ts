@@ -28,7 +28,7 @@ export const calculateIntrinsicGas = (
     gas = Params.TRANSACTION_GAS;
   } else {
     // if it doesn't have a "to" address this is a contract creation and it costs
-    // `TRANSACTION_CREATION` gas.
+    // `TRANSACTION_CREATION_GAS`.
     gas = Params.TRANSACTION_CREATION_GAS;
   }
   if (data) {
