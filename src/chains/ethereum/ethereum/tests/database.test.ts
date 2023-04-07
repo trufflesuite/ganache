@@ -3,7 +3,7 @@ import { copySync, readdir, remove } from "fs-extra";
 import tmp from "tmp-promise";
 import getProvider from "./helpers/getProvider";
 import { EthereumProvider } from "../src/provider";
-import { join } from "path";
+import { join, normalize } from "path";
 
 describe("database", () => {
   describe("resumption", () => {
@@ -135,8 +135,8 @@ describe("database", () => {
       // blocks with type 1 and type 2 transactions encoded as `[type, ...raw]`
       // instead, of `[type, rlp.encode(rlp)]`. A side effect of this is that
       // the block's `size` property is computed incorrectly.
-      const originalDbPath = join(__dirname, "./databases/vNull/");
-      const dbPath = (await tmp.dir()).path;
+      const originalDbPath = join(__dirname, "databases", "vNull");
+      const dbPath = normalize((await tmp.dir()).path);
       console.log("2");
       copySync(originalDbPath, dbPath); // use a copy of the test db
       console.log("2b");
