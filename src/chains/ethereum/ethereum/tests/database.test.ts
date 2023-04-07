@@ -128,15 +128,18 @@ describe("database", () => {
   });
 
   describe("migration", () => {
-    it("migrates blocks from version `null` to version `0`", async () => {
+    it.only("migrates blocks from version `null` to version `0`", async () => {
       tmp.setGracefulCleanup();
+      console.log("1");
       // the `vNull` database was created using ganache v7.7.7 and encodes
       // blocks with type 1 and type 2 transactions encoded as `[type, ...raw]`
       // instead, of `[type, rlp.encode(rlp)]`. A side effect of this is that
       // the block's `size` property is computed incorrectly.
       const originalDbPath = join(__dirname, "./databases/vNull/");
       const dbPath = (await tmp.dir()).path;
+      console.log("2");
       copySync(originalDbPath, dbPath); // use a copy of the test db
+      console.log("2b");
       let provider: EthereumProvider;
 
       let foundMigrationMessage = false;
@@ -156,11 +159,14 @@ describe("database", () => {
             }
           }
         };
+        console.log("7");
         provider = await getProvider(options);
+        console.log("8");
         const block = await provider.request({
           method: "eth_getBlockByNumber",
           params: ["0x1", true]
         });
+        console.log("9");
         // size is tested here and again below, but this one is explicit.
         // If this number needs to change due to a future hardfork or bug fix
         // I want you to _really_ think about why:
@@ -226,19 +232,24 @@ describe("database", () => {
           "Migrated block is not as expected"
         );
 
+        console.log("10");
         await provider.disconnect();
       }
       // first time we run the tests a migration occurs, this tests that a)
       // the migration happens and the provider can be used right away.
+      console.log("3");
       await runTests();
+      console.log("4");
       assert(
         foundMigrationMessage,
         "Migration message not found when it should be"
       );
 
+      console.log("5");
       // the second time we run the tests we are testing that the migration
       // actually persisted, and that we don't migrate a second time.
       await runTests();
+      console.log("6");
       assert(
         !foundMigrationMessage,
         "Migration message found when it should not be"
