@@ -314,16 +314,25 @@ export class TransactionFactory {
     }
   }
 
-  public static typeOfRaw(raw: TypedDatabaseTransaction) {
+  /**
+   * Pulls the type out of the raw transaction data, which is the first byte of
+   * the raw data, unless the data is a legacy transaction (raw.length === 9),
+   * in which case the type is `0`.
+   *
+   * This does not validate the type, it just returns it.
+   *
+   * @param raw
+   * @returns
+   */
+  private static typeOfRaw(raw: TypedDatabaseTransaction) {
     // LegacyTransactions won't have the type up front to parse
     if (raw.length === 9) {
       return TransactionType.Legacy;
     }
-    const type = raw[0][0];
-    return this.typeOf(type);
+    return raw[0][0];
   }
 
-  public static typeOfRPC(rpc: Transaction) {
+  private static typeOfRPC(rpc: Transaction) {
     if (!("type" in rpc) || rpc.type === undefined) {
       return TransactionType.Legacy;
     } else {

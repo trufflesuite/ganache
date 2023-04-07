@@ -11,7 +11,9 @@ import {
   TransactionFactory,
   TransactionType,
   TypedDatabaseTransaction,
-  Transaction
+  Transaction,
+  encodeWithPrefix,
+  TypedRawTransaction
 } from "../../transaction";
 import { Common } from "@ethereumjs/common";
 import Wallet from "../../ethereum/src/wallet";
@@ -140,6 +142,16 @@ describe("@ganache/ethereum-transaction", async () => {
   // #endregion fee market transactions
   // #endregion configure transaction constants
 
+  describe("encodeWithPrefix", () => {
+    it("encodes correctly", () => {
+      const type = rawEIP1559DBData[0][0];
+      const raw = rawEIP1559DBData.slice(1) as EIP1559FeeMarketRawTransaction;
+      const result = encodeWithPrefix(type, raw);
+      assert.strictEqual(result[0], type);
+      assert.deepStrictEqual(decode(result.subarray(1)), raw);
+    });
+  });
+
   describe("TransactionFactory", () => {
     describe("LegacyTransaction type from factory", () => {
       let txFromRpc: LegacyTransaction;
@@ -207,6 +219,14 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         assert.strictEqual(txFromDb.type.toString(), "0x0");
       });
+      it("generates legacy transactions from type and raw data", async () => {
+        const txFromDb = TransactionFactory.fromTypeAndTxData(
+          0,
+          rawLegacyDbTx as TypedRawTransaction,
+          common
+        );
+        assert.strictEqual(txFromDb.type.toString(), "0x0");
+      });
       it("generates legacy transactions from raw string", async () => {
         const txFromString = TransactionFactory.fromString(
           rawLegacyStrTx,
@@ -249,10 +269,10 @@ describe("@ganache/ethereum-transaction", async () => {
           // See: https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
 
           // flip the `v` value:
-          tx.v = Quantity.from(tx.v.toBigInt() === 28n ? 27n : 28n);
+          tx.v = Quantity.from(tx.v!.toBigInt() === 28n ? 27n : 28n);
 
           // flip the `s` value:
-          tx.s = Quantity.from(SECP256K1_N - tx.s.toBigInt());
+          tx.s = Quantity.from(SECP256K1_N - tx.s!.toBigInt()!);
 
           // convert to a JSON-RPC transaction:
           const flipTx = JSON.parse(JSON.stringify(tx.toJSON(genesis)));
@@ -313,6 +333,18 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(txFromDb.type.toString(), "0x1");
         assert.strictEqual(key, accessListStorageKey);
       });
+      it("generates eip2930 access list transactions from type and raw data", async () => {
+        const txFromDb = <EIP2930AccessListTransaction>(
+          TransactionFactory.fromTypeAndTxData(
+            rawEIP2930DBData[0][0],
+            rawEIP2930DBData.slice(1) as TypedRawTransaction,
+            common
+          )
+        );
+        const key = txFromDb.accessListJSON[0].storageKeys[0];
+        assert.strictEqual(txFromDb.type.toString(), "0x1");
+        assert.strictEqual(key, accessListStorageKey);
+      });
 
       it("generates eip2930 access list transactions from raw string", async () => {
         const txFromString = <EIP2930AccessListTransaction>(
@@ -331,6 +363,7 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         const key = txFromRpc.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromRpc.type.toString(), "0x2");
+        assert.strictEqual(key, accessListStorageKey);
       });
       it("generates eip1559 fee market transactions from raw buffer data", async () => {
         const txFromDb = <EIP1559FeeMarketTransaction>(
@@ -338,7 +371,21 @@ describe("@ganache/ethereum-transaction", async () => {
         );
         const key = txFromDb.accessListJSON[0].storageKeys[0];
         assert.strictEqual(txFromDb.type.toString(), "0x2");
+        assert.strictEqual(key, accessListStorageKey);
       });
+      it("generates eip1559 fee market transactions from type and raw data", async () => {
+        const txFromDb = <EIP1559FeeMarketTransaction>(
+          TransactionFactory.fromTypeAndTxData(
+            rawEIP1559DBData[0][0],
+            rawEIP1559DBData.slice(1) as TypedRawTransaction,
+            common
+          )
+        );
+        const key = txFromDb.accessListJSON[0].storageKeys[0];
+        assert.strictEqual(txFromDb.type.toString(), "0x2");
+        assert.strictEqual(key, accessListStorageKey);
+      });
+
       it("fails to parse EIP-1559 transaction with wrong chainId", async () => {
         assert.throws(
           () =>
@@ -383,6 +430,7 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(tx.hash, undefined);
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
+        //@ts-ignore
         tx.hash.toString(),
         "0x35886e9379da43140070da4b4d39e0e6fa246cc3dec7b5b51107e5dd722f671b"
       );
@@ -479,6 +527,7 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(tx.hash, undefined);
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
+        //@ts-ignore
         tx.hash.toString(),
         "0x078395f79508111c9061f9983d387c8b7bfed990dfa098497aa4d34b0e47b265"
       );
@@ -577,6 +626,7 @@ describe("@ganache/ethereum-transaction", async () => {
       assert.strictEqual(tx.hash, undefined);
       tx.signAndHash(privKeyBuf);
       assert.strictEqual(
+        //@ts-ignore
         tx.hash.toString(),
         "0xabe11ba446440bd0ea9b9e9de9eb479ae4555455ec2244a80ef7a72eddf6fe17"
       );
@@ -678,8 +728,10 @@ describe("@ganache/ethereum-transaction", async () => {
 
   describe("Error and helper cases", () => {
     it("does not allow unsupported tx types from raw buffer data", async () => {
-      const db = [
-        Buffer.from("0x55"),
+      // using 128 because max allowed type ever is 127
+      const type = 128;
+      const db: TypedDatabaseTransaction = [
+        Buffer.from([type]),
         BUFFER_EMPTY,
         BUFFER_EMPTY,
         BUFFER_EMPTY,
@@ -687,34 +739,30 @@ describe("@ganache/ethereum-transaction", async () => {
         BUFFER_EMPTY,
         BUFFER_EMPTY,
         BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY
-      ];
-      assert.throws(() => {
-        TransactionFactory.fromDatabaseTx(
-          db as TypedDatabaseTransaction,
-          common
-        );
-      });
-    });
-    it("gets tx type from raw data", async () => {
-      const db = [
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
-        BUFFER_EMPTY,
+        [[BUFFER_EMPTY, [BUFFER_EMPTY]]],
         BUFFER_EMPTY,
         BUFFER_EMPTY,
         BUFFER_EMPTY
       ];
-      assert.strictEqual(
-        TransactionFactory.typeOfRaw(db as TypedDatabaseTransaction),
-        TransactionType.Legacy
+      assert.throws(
+        () => {
+          TransactionFactory.fromDatabaseTx(db, common);
+        },
+        {
+          message: `Transactions with supplied type ${type} not supported`
+        }
+      );
+      assert.throws(
+        () => {
+          TransactionFactory.fromTypeAndTxData(
+            db[0][0],
+            db.slice(1) as TypedRawTransaction,
+            common
+          );
+        },
+        {
+          message: `Transactions with supplied type ${type} not supported`
+        }
       );
     });
 

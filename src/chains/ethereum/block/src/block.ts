@@ -92,7 +92,7 @@ export class Block {
         // https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
         const type = oldRawTx[0][0];
         const raw = oldRawTx.slice(1);
-        // type 1 and 2 transactions were encoded within the black as:
+        // type 1 and 2 transactions were encoded within the block as:
         // `[type, ...rawTx]` when they should have been `[type, encode(rawTx)]`
         return encodeWithPrefix(type, raw);
       }
