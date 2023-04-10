@@ -134,9 +134,9 @@ describe("database", () => {
       // instead, of `[type, rlp.encode(rlp)]`. A side effect of this is that
       // the block's `size` property is computed incorrectly.
       const originalDbPath = join(__dirname, "databases", "vNull");
-      const dbPath = normalize((await tmp.dir()).path);
+      const dbPath = originalDbPath || normalize((await tmp.dir()).path);
 
-      copySync(originalDbPath, dbPath); // use a copy of the test db
+      //copySync(originalDbPath, dbPath); // use a copy of the test db
       let provider: EthereumProvider;
 
       let foundMigrationMessage = false;
