@@ -1176,7 +1176,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         if (to) eei.addWarmedAddress(to.buf);
 
         // shanghai hardfork warm coinbase address
-        if (common.isActivatedEIP(3651) === true) {
+        if (common.isActivatedEIP(3651)) {
           eei.addWarmedAddress(transaction.block.header.coinbase.buf);
         }
       }
