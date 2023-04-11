@@ -129,7 +129,9 @@ describe("api", () => {
               {
                 from,
                 data,
-                gas: `0x${(54400).toString(16)}` // 54400 is not quite enough gas for this tx
+                // 55555 is enough gas to cover intrinsic gas, but not enough
+                // to actually deploy the contract.
+                gas: `0x${(55555).toString(16)}`
               }
             ]);
 
