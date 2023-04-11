@@ -12,7 +12,7 @@ import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
 import {
   BlockRawTransaction,
-  convertRawBlockTransaction,
+  blockTransactionFromRaw,
   convertRawWithdrawals,
   EthereumRawBlock,
   EthereumRawBlockHeader,
@@ -123,7 +123,7 @@ export class Block {
         number,
         Quantity.toBuffer(index)
       ];
-      return convertRawBlockTransaction(raw, common, extra);
+      return blockTransactionFromRaw(raw, common, extra);
     });
   }
 
@@ -145,7 +145,7 @@ export class Block {
         number,
         Quantity.toBuffer(index)
       ];
-      const tx = convertRawBlockTransaction(raw, common, extra);
+      const tx = blockTransactionFromRaw(raw, common, extra);
       // we could either parse the raw data to check if the tx is type 2,
       // get the maxFeePerGas and maxPriorityFeePerGas, use those to calculate
       // the effectiveGasPrice and add it to `extra` above, or we can just

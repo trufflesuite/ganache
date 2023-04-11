@@ -104,7 +104,7 @@ export function serialize(
 }
 
 function isLegacyRawTransaction(
-  raw: Buffer | LegacyRawTransaction
+  raw: BlockRawTransaction
 ): raw is LegacyRawTransaction {
   return raw.length === 9;
 }
@@ -117,7 +117,7 @@ function isLegacyRawTransaction(
  * @param extra
  * @returns
  */
-export function convertRawBlockTransaction(
+export function blockTransactionFromRaw(
   raw: BlockRawTransaction,
   common: Common,
   extra: GanacheRawExtraTx
