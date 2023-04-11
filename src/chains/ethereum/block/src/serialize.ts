@@ -1,4 +1,5 @@
 import { Common } from "@ethereumjs/common";
+import { Address } from "@ganache/ethereum-address";
 import {
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
@@ -25,7 +26,7 @@ export type WithdrawalRaw = [
 export type Withdrawal = {
   index: Quantity;
   validatorIndex: Quantity;
-  address: Data;
+  address: Address;
   amount: Quantity;
 };
 
@@ -144,7 +145,7 @@ export function convertRawWithdrawals([
   return {
     index: Quantity.from(index),
     validatorIndex: Quantity.from(validatorIndex),
-    address: Data.from(address),
+    address: Address.from(address),
     amount: Quantity.from(amount)
   };
 }
