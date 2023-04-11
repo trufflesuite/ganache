@@ -1175,7 +1175,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         eei.addWarmedAddress(caller);
         if (to) eei.addWarmedAddress(to.buf);
 
-        // shanghai hardfork warm coinbase address
+        // shanghai hardfork requires that we warm the coinbase address
         if (common.isActivatedEIP(3651)) {
           eei.addWarmedAddress(transaction.block.header.coinbase.buf);
         }
