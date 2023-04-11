@@ -128,7 +128,7 @@ export default class BlockManager extends Manager<Block> {
       extraTxs[index] = blockExtra;
     }
 
-    let start: EthereumRawBlock | Head<EthereumRawBlock>;
+    let start: EthereumRawBlock;
 
     if (hasWithdrawals) {
       const extraWithdrawals: WithdrawalRaw[] = Array(json.withdrawals.length);
