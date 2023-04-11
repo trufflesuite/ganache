@@ -11,6 +11,7 @@ import type { Common } from "@ethereumjs/common";
  * @returns
  */
 export function removeEIP3860InitCodeSizeLimitCheck(common: Common) {
+  // this is a hack until EJS ships `allowUnlimitedInitCodeSize` option https://github.com/ethereumjs/ethereumjs-monorepo/issues/2588
   return changeCommonParamValue(
     common,
     3860,
