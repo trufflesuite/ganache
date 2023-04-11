@@ -2303,6 +2303,9 @@ export default class EthereumApi implements Api {
           if (header.baseFeePerGas !== undefined) {
             (result as any).baseFeePerGas = header.baseFeePerGas;
           }
+          if (header.withdrawalsRoot !== undefined) {
+            (result as any).withdrawalsRoot = header.withdrawalsRoot;
+          }
           promiEvent.emit("message", {
             type: "eth_subscription",
             data: {
