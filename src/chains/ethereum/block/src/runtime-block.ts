@@ -185,8 +185,9 @@ export class RuntimeBlock {
           : tx.serialized ?? encodeWithPrefix(tx.type.toNumber(), tx.raw);
       extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
     }
-    let rawBlock: EthereumRawBlock;
-    rawBlock = isEip4895 ? [rawHeader, txs, [], []] : [rawHeader, txs, []];
+    const rawBlock: EthereumRawBlock = isEip4895
+      ? [rawHeader, txs, [], []]
+      : [rawHeader, txs, []];
     const { serialized, size } = serialize(rawBlock, [
       totalDifficulty,
       extraTxs
