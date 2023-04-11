@@ -112,14 +112,14 @@ export class Block {
 
   getTransactions() {
     const common = this._common;
-    const hashBuffer = this.hash().toBuffer();
+    const blockHash = this.hash().toBuffer();
     const number = this.header.number.toBuffer();
     return this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
         from,
         hash,
-        hashBuffer,
+        blockHash,
         number,
         Quantity.toBuffer(index)
       ];
