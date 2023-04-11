@@ -87,7 +87,7 @@ export class Block {
       if (oldRawTx.length === 9) {
         return oldRawTx; // legacy transactions are fine
       } else {
-        // `type` is always `< 0x27`, so we can yank the first byte from the
+        // `type` is always `< 0x7F`, so we can yank the first byte from the
         // Buffer without having to think about conversion.
         // https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
         const type = oldRawTx[0][0];
@@ -161,7 +161,7 @@ export class Block {
       transactions,
       uncles: [] as Data[], // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
       // if `this._rawWithdrawals` is not set we should not include it in the
-      // JSON response ()`undefined` gets stripped when JSON.stringify is called).
+      // JSON response (`undefined` gets stripped when JSON.stringify is called).
       withdrawals: this._rawWithdrawals?.map(convertRawWithdrawals) || undefined
     };
   }
