@@ -87,7 +87,7 @@ export class Block {
       if (oldRawTx.length === 9) {
         return oldRawTx; // legacy transactions are fine
       } else {
-        // `type` is always `< 0x27`, so we can yank the first byte from the
+        // `type` is always `< 0x7F`, so we can yank the first byte from the
         // Buffer without having to think about conversion.
         // https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
         const type = oldRawTx[0][0];
