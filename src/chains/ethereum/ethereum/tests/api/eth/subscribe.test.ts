@@ -3,7 +3,6 @@ import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import { Data, Quantity } from "@ganache/utils";
 import { Trie } from "@ethereumjs/trie";
-import { encode } from "@ganache/rlp";
 
 describe("api", () => {
   describe("eth", () => {
@@ -12,9 +11,7 @@ describe("api", () => {
       let accounts: string[];
       const gasLimit = "0x6691b7";
       const time = new Date("2019/03/15 GMT");
-      const rlpEncodedEmptyMerkleRoot = Data.toString(
-        encode(new Trie().root())
-      );
+      const emptyMerkleRoot = Data.toString(new Trie().root());
 
       beforeEach(async () => {
         provider = await getProvider({
@@ -97,7 +94,7 @@ describe("api", () => {
                 timestamp: Quantity.toString(timestamp),
                 transactionsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-                withdrawalsRoot: rlpEncodedEmptyMerkleRoot
+                withdrawalsRoot: emptyMerkleRoot
               },
               subscription: subscriptionId
             }
