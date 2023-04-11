@@ -181,7 +181,7 @@ export class RuntimeBlock {
       const tx = transactions[i];
       txs[i] =
         tx.raw.length === 9
-          ? tx.raw
+          ? tx.raw // legacy transactions don't have their own encoding
           : tx.serialized ?? encodeWithPrefix(tx.type.toNumber(), tx.raw);
       extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
     }
