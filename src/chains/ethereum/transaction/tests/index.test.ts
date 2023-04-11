@@ -220,7 +220,7 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(txFromDb.type.toString(), "0x0");
       });
       it("generates legacy transactions from type and raw data", async () => {
-        const txFromDb = TransactionFactory.fromTypeAndTxData(
+        const txFromDb = TransactionFactory.fromSafeTypeAndTxData(
           0,
           rawLegacyDbTx as TypedRawTransaction,
           common
@@ -335,7 +335,7 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("generates eip2930 access list transactions from type and raw data", async () => {
         const txFromDb = <EIP2930AccessListTransaction>(
-          TransactionFactory.fromTypeAndTxData(
+          TransactionFactory.fromSafeTypeAndTxData(
             rawEIP2930DBData[0][0],
             rawEIP2930DBData.slice(1) as TypedRawTransaction,
             common
@@ -375,7 +375,7 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("generates eip1559 fee market transactions from type and raw data", async () => {
         const txFromDb = <EIP1559FeeMarketTransaction>(
-          TransactionFactory.fromTypeAndTxData(
+          TransactionFactory.fromSafeTypeAndTxData(
             rawEIP1559DBData[0][0],
             rawEIP1559DBData.slice(1) as TypedRawTransaction,
             common
@@ -754,7 +754,7 @@ describe("@ganache/ethereum-transaction", async () => {
       );
       assert.throws(
         () => {
-          TransactionFactory.fromTypeAndTxData(
+          TransactionFactory.fromSafeTypeAndTxData(
             db[0][0],
             db.slice(1) as TypedRawTransaction,
             common

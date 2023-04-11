@@ -58,7 +58,19 @@ export class TransactionFactory {
     this.tx = TransactionFactory.fromDatabaseTx(txData, common, extra);
   }
 
-  private static _fromData(
+  /**
+   * Validates the txType against active hardforks and EIPs. May
+   * coerce transactions to a transaction type that differs from the specified
+   * txType. For example, if the txType is EIP2930AccessList but the hardfork
+   * is before EIP-2930 is activated, the txType will be coerced to Legacy.
+   *
+   * @param txData
+   * @param txType
+   * @param common
+   * @param extra
+   * @returns
+   */
+  private static _fromUnsafeUserData(
     txData: Transaction | TypedRawTransaction,
     txType: TransactionType,
     common: Common,
@@ -181,7 +193,7 @@ export class TransactionFactory {
   ) {
     const txType = this.typeOfRPC(txData);
 
-    const tx = this._fromData(txData, txType, common, extra);
+    const tx = this._fromUnsafeUserData(txData, txType, common, extra);
     assertValidTransactionSValue(common, tx);
     return tx;
   }
@@ -226,11 +238,16 @@ export class TransactionFactory {
   /**
    * Create a transaction from a `txData` object without the type field in the first position (for type 1 and 2 txs)
    *
+   * This method should only be used with "safe" data that doesn't need to be validated against the active hardforks or
+   * EIPs. In other words: it should come from a fork, or from the database.
+   *
+   * @tparam txTYpe - The type of txData. Throws if the the type is not supported.
    * @param txData - The raw transaction data. The `type` field will determine which transaction type is returned (if undefined, creates a legacy transaction)
    * @param common - Options to pass on to the constructor of the transaction
+   * @param extra
    */
-  public static fromTypeAndTxData(
-    txType: number,
+  public static fromSafeTypeAndTxData(
+    txType: TransactionType,
     txData: TypedRawTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
@@ -287,7 +304,7 @@ export class TransactionFactory {
       } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }
-      tx = this._fromData(raw, txType, common);
+      tx = this._fromUnsafeUserData(raw, txType, common);
     } else {
       let raw: TypedRawTransaction;
       try {
@@ -295,7 +312,7 @@ export class TransactionFactory {
       } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }
-      tx = this._fromData(raw, TransactionType.Legacy, common);
+      tx = this._fromUnsafeUserData(raw, TransactionType.Legacy, common);
     }
 
     assertValidTransactionSValue(common, tx);

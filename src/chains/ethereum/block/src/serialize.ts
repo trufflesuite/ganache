@@ -132,7 +132,7 @@ export function convertRawBlockTransaction(
     type = raw[0];
     txData = decode(raw.subarray(1));
   }
-  return TransactionFactory.fromTypeAndTxData(type, txData, common, extra);
+  return TransactionFactory.fromSafeTypeAndTxData(type, txData, common, extra);
 }
 
 export function convertRawWithdrawals([
