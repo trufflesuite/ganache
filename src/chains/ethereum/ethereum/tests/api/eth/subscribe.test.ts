@@ -80,14 +80,14 @@ describe("api", () => {
                 extraData: "0x",
                 gasLimit: gasLimit,
                 gasUsed: "0x0",
-                hash: "0x0a3bf0d3d562e68ddc812326b211fe58a8588e1eb95036b4923b4e9409789d16",
+                hash: "0x548b9d34fb6a972c525f60e292b4aabdcf907dacc3fb76f018c203eb697e9f9c",
                 logsBloom: `0x${"0".repeat(512)}`,
                 miner: `0x${"0".repeat(40)}`,
-                mixHash: `0x6f438fe6b58a0609352177feeb0778f565c25278ee5f57f1c8cd5956c7f3c135`,
+                mixHash: `0x2bd9f1766b1a7ab9afa3abb765ca14029555829f94b1291f1bfa30836b61fe37`,
                 nonce: "0x0000000000000000",
                 number: Quantity.toString(startingBlockNumber + 1),
                 parentHash:
-                  "0xb91c9423168fe40d5723ac86489a29b157653254622d9509be2674987df4fad6",
+                  "0x0dd5c379f5e304374c4b9ba07da88618f3c29ac28c6a53711d7f34250686284c",
                 receiptsRoot:
                   "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
                 sha3Uncles:
