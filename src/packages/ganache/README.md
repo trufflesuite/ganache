@@ -269,7 +269,7 @@ Chain:
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
           [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
-                              "london", "arrowGlacier", "grayGlacier", "merge", "shanghai"] [default: "merge"]
+                           "london", "arrowGlacier", "grayGlacier", "merge", "shanghai"] [default: "shanghai"]
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]

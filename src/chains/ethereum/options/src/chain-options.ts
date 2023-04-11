@@ -127,7 +127,7 @@ export type ChainConfig = {
 
     /**
      * Set the hardfork rules for the EVM.
-     * @defaultValue "merge"
+     * @defaultValue "shanghai"
      */
     readonly hardfork: {
       type: Hardfork;
@@ -220,7 +220,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   hardfork: {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
-    default: () => "merge",
+    default: () => "shanghai",
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",
