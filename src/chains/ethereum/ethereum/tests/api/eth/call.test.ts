@@ -227,7 +227,7 @@ describe("api", () => {
           const tx = {
             from,
             to: preShanghaiContractAddress,
-            data: "0xd1a82a9d", // getCoinbase, which actually returns gasleft after using the coinbase address
+            data: "0x779c0854", // accessCoinBase, which actually returns gasleft after using the coinbase address
             gasLimit: "0xffffff"
           };
           const preShanghaiGasLeft = await preShanghaiProvider.send(

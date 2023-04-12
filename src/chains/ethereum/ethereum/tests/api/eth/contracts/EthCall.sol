@@ -16,7 +16,7 @@ contract EthCall {
         revert("you are a failure");
     }
 
-    function getCoinbase() public view virtual returns (uint256) {
+    function accessCoinBase() public view virtual returns (uint256) {
         uint256 balance = address(block.coinbase).balance;
         require(balance != 0, "coinbase balance is not zero");
         return gasleft();

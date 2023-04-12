@@ -162,7 +162,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedContractSize: {
     normalize,
     cliDescription:
-      "Allows unlimited contract sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
+      "Allows unlimited contract sizes. Setting this to `true` will cause ganache to behave differently than production environments.",
     default: () => false,
     legacyName: "allowUnlimitedContractSize",
     cliType: "boolean"
@@ -170,7 +170,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedInitCodeSize: {
     normalize,
     cliDescription:
-      "Allows unlimited initcode (`transaction.data`) sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
+      "Allows unlimited initcode (`transaction.data`) sizes. Setting this to `true` will cause ganache to behave differently than production environments.",
     default: () => false,
     cliType: "boolean"
   },

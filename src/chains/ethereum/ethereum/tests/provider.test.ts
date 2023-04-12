@@ -340,7 +340,7 @@ describe("provider", () => {
     }).timeout(10000);
 
     it("allows unlimited init code in transaction when the allowUnlimitedInitCodeSize option is set", async () => {
-      const largeInitCode = "0x" + "00".repeat(49153); // larger than init code allowance
+      const largeInitCode = Data.toString("0x00", 49153); // larger than init code allowance
 
       // allowUnlimitedInitCodeSize only affects Shanghai and later
       const limitInitCodeProvider = await getProvider({

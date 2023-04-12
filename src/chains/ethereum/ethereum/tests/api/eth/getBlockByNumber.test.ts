@@ -1,8 +1,12 @@
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
+import { Trie } from "@ethereumjs/trie";
+import { Data } from "@ganache/utils";
+
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
+const emptyTrieRoot = Data.toString(new Trie().root());
 
 describe("api", () => {
   describe("eth", () => {
@@ -122,11 +126,7 @@ describe("api", () => {
           // forked withdrawals)
           assert.deepStrictEqual(block.withdrawals, []);
           // always the empty tree root when there are no withdrawals
-          assert.strictEqual(
-            block.withdrawalsRoot,
-            // keccak256 hash of an empty Merkle trie
-            "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
-          );
+          assert.strictEqual(block.withdrawalsRoot, emptyTrieRoot);
         });
       });
     });

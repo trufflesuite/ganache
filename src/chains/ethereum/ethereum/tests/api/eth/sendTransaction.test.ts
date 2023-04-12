@@ -225,7 +225,7 @@ describe("api", () => {
 
       describe("unlocked accounts", () => {
         it("can send transactions from an unlocked 0x0 address", async () => {
-          const ZERO_ADDRESS = "0x" + "0".repeat(40);
+          const ZERO_ADDRESS = Data.toString("0x00", 20);
           const provider = await getProvider({
             miner: {
               defaultGasPrice: 0
