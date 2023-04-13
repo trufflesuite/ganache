@@ -193,7 +193,9 @@ describe("server", () => {
       // skip this test unless in CI, as this test iterates over all available network interfaces
       // and network interfaces on user machines are unpredictible and may behave in ways that
       // we don't care about.
-      if (process.env.CI) this.skip();
+      if (process.env.CI !== "true") {
+        this.skip();
+      }
 
       const interfaces = networkInterfaces();
       assert(Object.keys(interfaces).length > 0);
