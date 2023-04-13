@@ -651,7 +651,7 @@ describe("provider", () => {
       const provider = await getProvider({ logging: { file: filePath } });
 
       try {
-        const descriptor = (await provider).getOptions().logging.file;
+        const descriptor = provider.getOptions().logging.file;
         assert.strictEqual(
           typeof descriptor,
           "number",
