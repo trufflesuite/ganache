@@ -62,7 +62,7 @@
     "typescript": "4.7.4"
   },
   "dependencies": {
-    "@ethereumjs/util": "8.0.2",
+    "@ethereumjs/util": "8.0.5",
     "@ganache/colors": "0.4.0",
     "@ganache/core": "0.8.6",
     "@ganache/flavors": "0.8.6",

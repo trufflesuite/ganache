@@ -2,13 +2,17 @@ import { Data, JsonRpcErrorCode, Quantity } from "@ganache/utils";
 import type { Common } from "@ethereumjs/common";
 import { LegacyTransaction } from "./legacy-transaction";
 import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction";
-import { Transaction } from "./rpc-transaction";
 import {
-  EIP1559FeeMarketDatabasePayload,
-  EIP2930AccessListDatabasePayload,
+  EIP1559FeeMarketRpcTransaction,
+  EIP2930AccessListRpcTransaction,
+  Transaction
+} from "./rpc-transaction";
+import {
+  EIP1559FeeMarketRawTransaction,
+  EIP2930AccessListRawTransaction,
   GanacheRawExtraTx,
-  LegacyDatabasePayload,
-  TypedDatabasePayload,
+  LegacyRawTransaction,
+  TypedRawTransaction,
   TypedDatabaseTransaction
 } from "./raw";
 import { decode } from "@ganache/rlp";
@@ -53,8 +57,21 @@ export class TransactionFactory {
     ];
     this.tx = TransactionFactory.fromDatabaseTx(txData, common, extra);
   }
-  private static _fromData(
-    txData: Transaction | TypedDatabasePayload,
+
+  /**
+   * Validates the txType against active hardforks and EIPs. May
+   * coerce transactions to a transaction type that differs from the specified
+   * txType. For example, if the txType is EIP2930AccessList but the hardfork
+   * is before EIP-2930 is activated, the txType will be coerced to Legacy.
+   *
+   * @param txData
+   * @param txType
+   * @param common
+   * @param extra
+   * @returns
+   */
+  private static _fromUnsafeUserData(
+    txData: Transaction | TypedRawTransaction,
     txType: TransactionType,
     common: Common,
     extra?: GanacheRawExtraTx
@@ -63,7 +80,7 @@ export class TransactionFactory {
     // return legacy txs as is and convert typed txs to legacy
     if (!common.isActivatedEIP(2718)) {
       return LegacyTransaction.fromTxData(
-        <LegacyDatabasePayload | Transaction>txData,
+        <LegacyRawTransaction | Transaction>txData,
         common,
         extra
       );
@@ -73,7 +90,9 @@ export class TransactionFactory {
       } else if (txType === TransactionType.EIP2930AccessList) {
         if (common.isActivatedEIP(2930)) {
           return EIP2930AccessListTransaction.fromTxData(
-            <EIP2930AccessListDatabasePayload | Transaction>txData,
+            <EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction>(
+              txData
+            ),
             common,
             extra
           );
@@ -100,19 +119,19 @@ export class TransactionFactory {
       if (Array.isArray(txData)) {
         if (txType === TransactionType.Legacy) {
           return LegacyTransaction.fromTxData(
-            <LegacyDatabasePayload>txData,
+            <LegacyRawTransaction>txData,
             common,
             extra
           );
         } else if (txType === TransactionType.EIP2930AccessList) {
           return EIP2930AccessListTransaction.fromTxData(
-            <EIP2930AccessListDatabasePayload>txData,
+            <EIP2930AccessListRawTransaction>txData,
             common,
             extra
           );
         } else if (txType === TransactionType.EIP1559AccessList) {
           return EIP1559FeeMarketTransaction.fromTxData(
-            <EIP1559FeeMarketDatabasePayload>txData,
+            <EIP1559FeeMarketRawTransaction>txData,
             common,
             extra
           );
@@ -124,7 +143,7 @@ export class TransactionFactory {
           txData.gasPrice === undefined;
         if (txType === TransactionType.EIP1559AccessList || toEIP1559) {
           const tx = EIP1559FeeMarketTransaction.fromTxData(
-            txData,
+            <EIP1559FeeMarketRpcTransaction>txData,
             common,
             extra
           );
@@ -148,7 +167,7 @@ export class TransactionFactory {
             return LegacyTransaction.fromTxData(txData, common, extra);
           } else {
             return EIP2930AccessListTransaction.fromTxData(
-              txData,
+              <EIP2930AccessListRpcTransaction>txData,
               common,
               extra
             );
@@ -174,7 +193,7 @@ export class TransactionFactory {
   ) {
     const txType = this.typeOfRPC(txData);
 
-    const tx = this._fromData(txData, txType, common, extra);
+    const tx = this._fromUnsafeUserData(txData, txType, common, extra);
     assertValidTransactionSValue(common, tx);
     return tx;
   }
@@ -193,19 +212,62 @@ export class TransactionFactory {
     switch (txType) {
       case TransactionType.EIP1559AccessList:
         return EIP1559FeeMarketTransaction.fromTxData(
-          txData.slice(1) as EIP1559FeeMarketDatabasePayload,
+          txData.slice(1) as EIP1559FeeMarketRawTransaction,
           common,
           extra
         );
       case TransactionType.Legacy:
         return LegacyTransaction.fromTxData(
-          txData as LegacyDatabasePayload,
+          txData as LegacyRawTransaction,
           common,
           extra
         );
       case TransactionType.EIP2930AccessList:
         return EIP2930AccessListTransaction.fromTxData(
-          txData.slice(1) as EIP2930AccessListDatabasePayload,
+          txData.slice(1) as EIP2930AccessListRawTransaction,
+          common,
+          extra
+        );
+      default:
+        throw new CodedError(
+          `Transactions with supplied type ${txType} not supported`,
+          JsonRpcErrorCode.METHOD_NOT_FOUND
+        );
+    }
+  }
+  /**
+   * Create a transaction from a `txData` object without the type field in the first position (for type 1 and 2 txs)
+   *
+   * This method should only be used with "safe" data that doesn't need to be validated against the active hardforks or
+   * EIPs. In other words: it should come from a fork, or from the database.
+   *
+   * @tparam txTYpe - The type of txData. Throws if the the type is not supported.
+   * @param txData - The raw transaction data. The `type` field will determine which transaction type is returned (if undefined, creates a legacy transaction)
+   * @param common - Options to pass on to the constructor of the transaction
+   * @param extra
+   */
+  public static fromSafeTypeAndTxData(
+    txType: TransactionType,
+    txData: TypedRawTransaction,
+    common: Common,
+    extra?: GanacheRawExtraTx
+  ) {
+    switch (txType) {
+      case TransactionType.EIP1559AccessList:
+        return EIP1559FeeMarketTransaction.fromTxData(
+          txData as EIP1559FeeMarketRawTransaction,
+          common,
+          extra
+        );
+      case TransactionType.Legacy:
+        return LegacyTransaction.fromTxData(
+          txData as LegacyRawTransaction,
+          common,
+          extra
+        );
+      case TransactionType.EIP2930AccessList:
+        return EIP2930AccessListTransaction.fromTxData(
+          txData as EIP2930AccessListRawTransaction,
           common,
           extra
         );
@@ -234,23 +296,23 @@ export class TransactionFactory {
     const txType = this.typeOf(type);
     let tx: TypedTransaction;
     if (common.isActivatedEIP(2718)) {
-      let raw: TypedDatabasePayload;
+      let raw: TypedRawTransaction;
       try {
-        raw = decode<TypedDatabasePayload>(
+        raw = decode<TypedRawTransaction>(
           txType === TransactionType.Legacy ? data : data.slice(1)
         );
       } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }
-      tx = this._fromData(raw, txType, common);
+      tx = this._fromUnsafeUserData(raw, txType, common);
     } else {
-      let raw: TypedDatabasePayload;
+      let raw: TypedRawTransaction;
       try {
-        raw = decode<LegacyDatabasePayload>(data);
+        raw = decode<LegacyRawTransaction>(data);
       } catch (e: any) {
         throw new Error("Could not decode transaction: " + e.message);
       }
-      tx = this._fromData(raw, TransactionType.Legacy, common);
+      tx = this._fromUnsafeUserData(raw, TransactionType.Legacy, common);
     }
 
     assertValidTransactionSValue(common, tx);
@@ -269,16 +331,25 @@ export class TransactionFactory {
     }
   }
 
-  public static typeOfRaw(raw: TypedDatabaseTransaction) {
+  /**
+   * Pulls the type out of the raw transaction data, which is the first byte of
+   * the raw data, unless the data is a legacy transaction (raw.length === 9),
+   * in which case the type is `0`.
+   *
+   * This does not validate the type, it just returns it.
+   *
+   * @param raw
+   * @returns
+   */
+  private static typeOfRaw(raw: TypedDatabaseTransaction) {
     // LegacyTransactions won't have the type up front to parse
     if (raw.length === 9) {
       return TransactionType.Legacy;
     }
-    const type = raw[0][0];
-    return this.typeOf(type);
+    return raw[0][0];
   }
 
-  public static typeOfRPC(rpc: Transaction) {
+  private static typeOfRPC(rpc: Transaction) {
     if (!("type" in rpc) || rpc.type === undefined) {
       return TransactionType.Legacy;
     } else {

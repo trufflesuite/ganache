@@ -1,13 +1,14 @@
 import assert from "assert";
 import { join } from "path";
 import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
-import { Data, JsonRpcRequest } from "@ganache/utils";
+import { Data, JsonRpcErrorCode, JsonRpcRequest } from "@ganache/utils";
 import { Common } from "@ethereumjs/common";
 import { EthereumProvider } from "../src/provider";
 import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import Web3 from "web3";
+import { INITCODE_TOO_LARGE } from "@ganache/ethereum-utils";
 
 describe("provider", () => {
   describe("options", () => {
@@ -337,6 +338,128 @@ describe("provider", () => {
       );
       await provider.disconnect();
     }).timeout(10000);
+
+    it("allows unlimited init code in transaction when the allowUnlimitedInitCodeSize option is set", async () => {
+      const largeInitCode = Data.toString("0x00", 49153); // larger than init code allowance
+
+      // allowUnlimitedInitCodeSize only affects Shanghai and later
+      const limitInitCodeProvider = await getProvider({
+        wallet: { seed: "temet nosce" },
+        chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
+      });
+      const accounts = await limitInitCodeProvider.send("eth_accounts");
+      const tx = {
+        from: accounts[0],
+        gas: "0xffffff",
+        data: largeInitCode
+      };
+
+      // sanity check; it *should* fail when `allowUnlimitedInitCodeSize` option is `false`
+      await assert.rejects(
+        limitInitCodeProvider.send("eth_sendTransaction", [tx]),
+        {
+          message: INITCODE_TOO_LARGE,
+          code: JsonRpcErrorCode.INVALID_INPUT
+        }
+      );
+
+      const unlimitedInitCodeProvider = await getProvider({
+        wallet: { seed: "temet nosce" },
+        chain: {
+          allowUnlimitedContractSize: true,
+          allowUnlimitedInitCodeSize: true,
+          hardfork: "shanghai"
+        }
+      });
+      await assert.doesNotReject(
+        unlimitedInitCodeProvider.send("eth_sendTransaction", [tx])
+      );
+    });
+    it("allows unlimited init code in CREATE opcode when the allowUnlimitedInitCodeSize option is set", async () => {
+      const contract = compile(join(__dirname, "./contracts/Create.sol"));
+
+      // allowUnlimitedInitCodeSize only affects Shanghai and later
+      const limitInitCodeProvider = await getProvider({
+        wallet: { seed: "temet nosce" },
+        chain: { allowUnlimitedInitCodeSize: false, hardfork: "shanghai" }
+      });
+      const accounts = await limitInitCodeProvider.send("eth_accounts");
+
+      const deployTx = {
+        from: accounts[0],
+        gas: "0xffffff",
+        data: contract.code
+      };
+      const createTx = {
+        from: accounts[0],
+        gas: "0xffffff",
+        to: "0x",
+        data: "0x" + contract.contract.evm.methodIdentifiers["create()"]
+      };
+      {
+        // sanity check.... it *should* fail when `allowUnlimitedInitCodeSize` option is `false`
+        const limitInitCodeHash = await limitInitCodeProvider.send(
+          "eth_sendTransaction",
+          [deployTx]
+        );
+        const { contractAddress: limitInitCodeContractAddress } =
+          await limitInitCodeProvider.send("eth_getTransactionReceipt", [
+            limitInitCodeHash
+          ]);
+
+        createTx.to = limitInitCodeContractAddress;
+
+        const limitInitCodeCreateHash = await limitInitCodeProvider.send(
+          "eth_sendTransaction",
+          [createTx]
+        );
+        const { status: limitedStatus } = await limitInitCodeProvider.send(
+          "eth_getTransactionReceipt",
+          [limitInitCodeCreateHash]
+        );
+
+        // it should fail
+        assert.strictEqual(
+          limitedStatus,
+          "0x0",
+          "It worked when it should fail"
+        );
+      }
+
+      {
+        // actual test, it should not fail, even though the init code is too large
+        const unlimitedInitCodeProvider = await getProvider({
+          wallet: { seed: "temet nosce" },
+          chain: {
+            allowUnlimitedInitCodeSize: true,
+            hardfork: "shanghai"
+          }
+        });
+        const unlimitedInitCodeHash = await unlimitedInitCodeProvider.send(
+          "eth_sendTransaction",
+          [deployTx]
+        );
+        const { contractAddress: unlimitedInitCodeContractAddress } =
+          await unlimitedInitCodeProvider.send("eth_getTransactionReceipt", [
+            unlimitedInitCodeHash
+          ]);
+        createTx.to = unlimitedInitCodeContractAddress;
+
+        const unlimitedInitCodeCreateHash =
+          await unlimitedInitCodeProvider.send("eth_sendTransaction", [
+            createTx
+          ]);
+        const { status: unlimitedStatus } =
+          await unlimitedInitCodeProvider.send("eth_getTransactionReceipt", [
+            unlimitedInitCodeCreateHash
+          ]);
+        assert.strictEqual(
+          unlimitedStatus,
+          "0x1",
+          "It failed when it should work"
+        );
+      }
+    });
   });
 
   describe("interface", () => {

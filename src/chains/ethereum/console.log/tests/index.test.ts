@@ -34,7 +34,10 @@ describe("@ganache/console.log", () => {
       wallet: { deterministic: true, totalAccounts: 1 },
       miner: { blockGasLimit: "0xfffffffff" },
       logging: { logger },
-      chain: { allowUnlimitedContractSize: true },
+      chain: {
+        allowUnlimitedContractSize: true,
+        allowUnlimitedInitCodeSize: true
+      },
       // using memdown for performance
       database: { db: memdown() }
     });

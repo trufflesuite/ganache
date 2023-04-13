@@ -10,17 +10,12 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
-import { Transaction } from "./rpc-transaction";
-import { encodeRange, digest } from "@ganache/rlp";
+import { EIP2930AccessListRpcTransaction } from "./rpc-transaction";
+import { encodeRange } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
-import {
-  EIP2930AccessListDatabasePayload,
-  EIP2930AccessListDatabaseTx,
-  GanacheRawExtraTx,
-  TypedDatabaseTransaction
-} from "./raw";
+import { EIP2930AccessListRawTransaction, GanacheRawExtraTx } from "./raw";
 import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
-import { computeIntrinsicsAccessListTx } from "./signing";
+import { computeIntrinsicsAccessListTx, digestWithPrefix } from "./signing";
 import {
   Capability,
   EIP2930AccessListTransactionJSON
@@ -38,7 +33,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x1");
 
   public constructor(
-    data: EIP2930AccessListDatabasePayload | Transaction,
+    data: EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -58,7 +53,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.v = Quantity.from(data[8]);
       this.r = Quantity.from(data[9]);
       this.s = Quantity.from(data[10]);
-      this.raw = [this.type.toBuffer(), ...data];
+      this.raw = data;
 
       if (!extra) {
         // TODO(hack): we use the presence of `extra` to determine if this data
@@ -70,14 +65,15 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
             JsonRpcErrorCode.INVALID_INPUT
           );
         }
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, this.raw);
+
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          this.raw
+        );
 
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
       }
     } else {
       if (data.chainId) {
@@ -127,7 +123,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     };
   }
   public static fromTxData(
-    data: EIP2930AccessListDatabasePayload | Transaction,
+    data: EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -139,6 +135,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     return {
       hash: () => BUFFER_32_ZERO,
       nonce: this.nonce.toBigInt(),
+      common: this.common,
       gasPrice: this.gasPrice.toBigInt(),
       gasLimit: this.gas.toBigInt(),
       to: this.to,
@@ -150,8 +147,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
-        const fee = this.calculateIntrinsicGas();
-        return fee + this.accessListDataFee;
+        return this.calculateIntrinsicGas();
       },
       getUpfrontCost: () => {
         const { gas, gasPrice, value } = this;
@@ -161,6 +157,9 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
         return CAPABILITIES.includes(capability);
       }
     };
+  }
+  public calculateIntrinsicGas(): bigint {
+    return super.calculateIntrinsicGas() + this.accessListDataFee;
   }
   /**
    * sign a transaction with a given private key, then compute and set the `hash`.
@@ -174,50 +173,36 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       );
     }
 
-    const typeBuf = this.type.toBuffer();
-    const raw: EIP2930AccessListDatabaseTx = this.toEthRawTransaction(
-      BUFFER_ZERO,
-      BUFFER_ZERO,
-      BUFFER_ZERO
-    );
-    const data = encodeRange(raw, 1, 8);
+    const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
+    const data = encodeRange(raw, 0, 8);
     const dataLength = data.length;
 
-    const msgHash = keccak(
-      Buffer.concat([typeBuf, digest([data.output], dataLength)])
-    );
+    const msgHash = keccak(digestWithPrefix(1, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[9] = this.v.toBuffer();
-    raw[10] = this.r.toBuffer();
-    raw[11] = this.s.toBuffer();
+    raw[8] = this.v.toBuffer();
+    raw[9] = this.r.toBuffer();
+    raw[10] = this.s.toBuffer();
 
     this.raw = raw;
 
-    const encodedSignature = encodeRange(raw, 9, 3);
-    // raw data is type concatenated with the rest of the data rlp encoded
-    this.serialized = Buffer.concat([
-      typeBuf,
-      digest(
-        [data.output, encodedSignature.output],
-        dataLength + encodedSignature.length
-      )
-    ]);
+    const encodedSignature = encodeRange(raw, 8, 3);
+    const ranges = [data.output, encodedSignature.output];
+    const length = dataLength + encodedSignature.length;
+    // serialized is type concatenated with the rest of the data rlp encoded
+    this.serialized = digestWithPrefix(1, ranges, length);
     this.hash = Data.from(keccak(this.serialized));
-    this.encodedData = data;
-    this.encodedSignature = encodedSignature;
   }
 
   public toEthRawTransaction(
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): EIP2930AccessListDatabaseTx {
+  ): EIP2930AccessListRawTransaction {
     return [
-      this.type.toBuffer(),
       this.chainId.toBuffer(),
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
@@ -232,8 +217,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
-    return computeIntrinsicsAccessListTx(v, <EIP2930AccessListDatabaseTx>raw);
+  public computeIntrinsics(v: Quantity, raw: EIP2930AccessListRawTransaction) {
+    return computeIntrinsicsAccessListTx(v, raw);
   }
 
   public updateEffectiveGasPrice() {}

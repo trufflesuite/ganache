@@ -20,7 +20,8 @@ import {
 import {
   toRpcSig,
   hashPersonalMessage,
-  KECCAK256_NULL
+  KECCAK256_NULL,
+  KECCAK256_RLP
 } from "@ethereumjs/util";
 import { signTypedData_v4 } from "eth-sig-util";
 import {
@@ -940,6 +941,7 @@ export default class EthereumApi implements Api {
       }
 
       const block = new RuntimeBlock(
+        blockchain.common,
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
         new Address(parentHeader.miner.toBuffer()),
@@ -949,7 +951,8 @@ export default class EthereumApi implements Api {
         options.miner.difficulty,
         parentHeader.totalDifficulty,
         blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
-        0n // no baseFeePerGas for estimates
+        0n, // no baseFeePerGas for estimates
+        KECCAK256_RLP
       );
       const runArgs: EstimateGasRunArgs = {
         tx: tx.toVmTransaction(),
@@ -1281,9 +1284,7 @@ export default class EthereumApi implements Api {
   @assertArgLength(1)
   async eth_getBlockTransactionCountByHash(hash: DATA) {
     const { blocks } = this.#blockchain;
-    const block = await blocks
-      .getByHash(hash)
-      .catch<Block>(_ => null);
+    const block = await blocks.getByHash(hash).catch<Block>(_ => null);
     if (!block) return null;
     const transactions = block.getTransactions();
     return Quantity.from(transactions.length);
@@ -2302,6 +2303,9 @@ export default class EthereumApi implements Api {
           if (header.baseFeePerGas !== undefined) {
             (result as any).baseFeePerGas = header.baseFeePerGas;
           }
+          if (header.withdrawalsRoot !== undefined) {
+            (result as any).withdrawalsRoot = header.withdrawalsRoot;
+          }
           promiEvent.emit("message", {
             type: "eth_subscription",
             data: {
@@ -2874,6 +2878,7 @@ export default class EthereumApi implements Api {
     }
 
     const block = new RuntimeBlock(
+      blockchain.common,
       parentHeader.number,
       parentHeader.parentHash,
       blockchain.coinbase,
@@ -2883,7 +2888,8 @@ export default class EthereumApi implements Api {
       options.miner.difficulty,
       parentHeader.totalDifficulty,
       blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
-      baseFeePerGasBigInt
+      baseFeePerGasBigInt,
+      KECCAK256_RLP
     );
 
     const simulatedTransaction = {

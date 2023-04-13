@@ -82,7 +82,7 @@ describe("api", () => {
                   value: `0x${(balance - approximateGasCost).toString(16)}`
                 }),
                 new RegExp(
-                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=merge -> block -> tx\\)`
+                  `VM Exception while processing transaction: sender doesn't have enough funds to send tx\\. The upfront cost is: \\d+ and the sender's account \\(${from}\\) only has: \\d+ \\(vm hf=shanghai -> block -> tx\\)`
                 )
               );
             } finally {
@@ -129,7 +129,9 @@ describe("api", () => {
               {
                 from,
                 data,
-                gas: `0x${(54400).toString(16)}` // 54400 is not quite enough gas for this tx
+                // 55555 is enough gas to cover intrinsic gas, but not enough
+                // to actually deploy the contract.
+                gas: `0x${(55555).toString(16)}`
               }
             ]);
 
@@ -223,7 +225,7 @@ describe("api", () => {
 
       describe("unlocked accounts", () => {
         it("can send transactions from an unlocked 0x0 address", async () => {
-          const ZERO_ADDRESS = "0x" + "0".repeat(40);
+          const ZERO_ADDRESS = Data.toString("0x00", 20);
           const provider = await getProvider({
             miner: {
               defaultGasPrice: 0
