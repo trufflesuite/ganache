@@ -1,5 +1,5 @@
 function skipIfNoInfuraKey() {
-  before("gotta have an infura key", function () {
+  before("skip if no INFURA_KEY (unless in CI)", function () {
     // If there is no INFURA_KEY provided, the test should be skipped. Unless running
     // in CI, where there should _always_ be a key provided.
     if (!process.env.INFURA_KEY) {
