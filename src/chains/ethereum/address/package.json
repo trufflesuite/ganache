@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/address#readme",
@@ -57,6 +57,6 @@
   },
   "dependencies": {
     "@ethereumjs/util": "8.0.5",
-    "@ganache/utils": "0.7.1"
+    "@ganache/utils": "0.8.0"
   }
 }
