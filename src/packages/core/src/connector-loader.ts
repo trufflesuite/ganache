@@ -1,5 +1,6 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
-import { Flavor, load } from "@ganache/flavor";
+import type { Flavor } from "@ganache/flavor";
+import { load } from "@ganache/flavor";
 import EthereumFlavor from "@ganache/ethereum";
 
 function getConnector<F extends Flavor>(
@@ -23,7 +24,9 @@ function getConnector<F extends Flavor>(
  * @returns
  */
 export const loadConnector = <F extends Flavor = EthereumFlavor>(
-  options: Record<string, any> & {flavor?: F["flavor"]} = {flavor: EthereumFlavor.flavor}
+  options: Record<string, any> & { flavor?: F["flavor"] } = {
+    flavor: EthereumFlavor.flavor
+  }
 ) => {
   const flavor = (options.flavor || EthereumFlavor.flavor) as F["flavor"];
 

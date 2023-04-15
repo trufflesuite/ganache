@@ -11,8 +11,13 @@ import { Executor, WEI } from "@ganache/utils";
 import { toChecksumAddress } from "ethereumjs-util";
 import { EthereumProvider } from "./src/provider";
 import { Connector } from "./src/connector";
-import { EthereumLegacyProviderOptions, EthereumOptionsConfig, EthereumProviderOptions } from "@ganache/ethereum-options";
-import { CliOptionsConfig, Flavor, ServerOptionsConfig } from "@ganache/flavor";
+import {
+  EthereumLegacyProviderOptions,
+  EthereumOptionsConfig,
+  EthereumProviderOptions
+} from "@ganache/ethereum-options";
+import type { Flavor } from "@ganache/flavor";
+import { CliOptionsConfig, ServerOptionsConfig } from "@ganache/flavor";
 
 export * from "./src/connector";
 export * from "./src/api-types";
@@ -24,10 +29,19 @@ function color(str: string) {
   return chalk`{hex("${TruffleColors.porsche}") ${str}}`;
 }
 
-type EthereumFlavor =  Flavor<"ethereum", Connector, EthereumOptionsConfig, ServerOptionsConfig, CliOptionsConfig>;
+type EthereumFlavor = Flavor<
+  "ethereum",
+  Connector,
+  EthereumOptionsConfig,
+  ServerOptionsConfig,
+  CliOptionsConfig
+>;
 const EthereumFlavor: EthereumFlavor = {
   flavor: "ethereum",
-  connect: (options: EthereumProviderOptions | EthereumLegacyProviderOptions, executor: Executor) => new Connector(options, executor),
+  connect: (
+    options: EthereumProviderOptions | EthereumLegacyProviderOptions,
+    executor: Executor
+  ) => new Connector(options, executor),
   options: {
     provider: EthereumOptionsConfig,
     server: ServerOptionsConfig,

@@ -1,5 +1,5 @@
 import { normalize } from "./helpers";
-import { Definitions } from "@ganache/flavor";
+import type { Definitions } from "@ganache/flavor";
 
 export type LoggingConfig = {
   options: {

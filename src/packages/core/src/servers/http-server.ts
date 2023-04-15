@@ -6,7 +6,7 @@ import {
 } from "@trufflesuite/uws-js-unofficial";
 import ContentTypes from "./utils/content-types";
 import HttpResponseCodes from "./utils/http-response-codes";
-import { Connector } from "@ganache/flavor";
+import type { Connector } from "@ganache/flavor";
 import { InternalServerOptions } from "../types";
 import { types } from "util";
 import { getFragmentGenerator } from "./utils/fragment-generator";

@@ -3,7 +3,8 @@
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
-import { CliOptionsConfig, Flavor, load } from "@ganache/flavor";
+import type { Flavor } from "@ganache/flavor";
+import { load, CliOptionsConfig } from "@ganache/flavor";
 import {
   notifyDetachedInstanceReady,
   stopDetachedInstance,

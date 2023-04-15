@@ -1,5 +1,5 @@
 import type EthereumFlavor from "@ganache/ethereum";
-import {
+import type {
   Flavor,
   ServerConfig
 } from "@ganache/flavor";

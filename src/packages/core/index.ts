@@ -1,4 +1,4 @@
-import { Flavor } from "@ganache/flavor";
+import type { Flavor } from "@ganache/flavor";
 import EthereumFlavor from "@ganache/ethereum";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import { loadConnector } from "./src/connector-loader";

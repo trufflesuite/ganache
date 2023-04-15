@@ -3,6 +3,12 @@ import { TruffleColors } from "@ganache/colors";
 import { Flavor } from "./flavor";
 import { hasOwn } from "@ganache/utils";
 
+/**
+ * Load the given package using node's `require` function. This is used to load
+ * flavors plugins.
+ * @param flavor
+ * @returns
+ */
 export function load<F extends Flavor>(flavor: F["flavor"]): F {
   // `@ganache/filecoin` used to be named just `filecoin`, we we need to
   // preserve this alias for backwards compatibility

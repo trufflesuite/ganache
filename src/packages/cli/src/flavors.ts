@@ -1,6 +1,6 @@
+import type { Flavor } from "@ganache/flavor";
 import {
   cliDefaults,
-  Flavor,
   load,
   OptionsConfig,
   serverDefaults

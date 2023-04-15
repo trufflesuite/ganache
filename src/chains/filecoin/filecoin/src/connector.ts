@@ -1,5 +1,5 @@
 import FilecoinApi from "./api";
-import {
+import type {
   Executor,
   Connector as IConnector,
   RecognizedString,

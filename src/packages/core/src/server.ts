@@ -15,12 +15,11 @@ import {
 setUwsGlobalConfig &&
   setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
 
-import {
+import type {
   Flavor,
-  load,
-  ServerOptionsConfig,
   WebsocketConnector
 } from "@ganache/flavor";
+import { load, ServerOptionsConfig } from "@ganache/flavor";
 import { loadConnector } from "./connector-loader";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";

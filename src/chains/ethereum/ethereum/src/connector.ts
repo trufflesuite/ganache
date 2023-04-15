@@ -10,7 +10,7 @@ import {
 } from "@ganache/utils";
 export type { EthereumProvider } from "./provider";
 import { EthereumProvider } from "./provider";
-import {
+import type {
   RecognizedString,
   WebSocket,
   HttpRequest,

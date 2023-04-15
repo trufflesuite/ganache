@@ -1,11 +1,5 @@
-import {
-  OptionsConfig,
-  Defaults,
-  ServerConfig,
-  ServerOptions,
-  CliOptions,
-  CliConfig
-} from "@ganache/flavor";
+import { OptionsConfig, ServerOptions, CliOptions } from "@ganache/flavor";
+import type { Defaults, ServerConfig, CliConfig } from "@ganache/flavor";
 
 export type ServerDefaults = Defaults<{
   server: ServerConfig;
