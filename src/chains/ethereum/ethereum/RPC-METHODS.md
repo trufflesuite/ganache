@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-See our [Interactive Docs](https://ganache.dev/) for a full list of Ganache's RPC methods.
-=======
 ### RPC Methods
 
 Ganache Ethereum JSON-RPC documentation.
@@ -1318,4 +1315,3 @@ Returns Keccak-256 (not the standardized SHA3-256) of the given data.
 `Promise<DATA>` : The SHA3 result of the given string.
 
 ---
->>>>>>> f56bf1da (delete tezos and refactor plugins)
