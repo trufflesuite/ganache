@@ -34,7 +34,7 @@ export class FilecoinProvider<
 
   static readonly Schema: Schema = GanacheSchema;
 
-  constructor(options: FilecoinProviderOptions = {}, executor: Executor) {
+  constructor(options: FilecoinProviderOptions | null = {}, executor: Executor) {
     super();
     const providerOptions = (this.#options = FilecoinOptionsConfig.normalize(
       options as FilecoinProviderOptions
