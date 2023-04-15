@@ -74,7 +74,7 @@ describe("args", () => {
         "--😈=false"
       ];
 
-      it("defaults to false when no arg provided", () => {
+      it.only("defaults to false when no arg provided", () => {
         const rawArgs = [];
         const options = parseArgs(versionString, rawArgs);
 

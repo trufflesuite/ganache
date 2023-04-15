@@ -25,7 +25,7 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version, version.length)}}`;
-
+  console.log("yargs");
   // disable dot-notation because yargs just can't coerce args properly...
   // ...on purpose! https://github.com/yargs/yargs/issues/1021#issuecomment-352324693
   yargs
@@ -46,10 +46,11 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
           (OR_DOCS + " " + DOCS_LINK).length
         )
     );
-
+    console.log("loadFlavorFromArgs");
   const { flavor, options: flavorOptions } = loadFlavorFromArgs(rawArgs);
-
+  console.log(flavor, flavorOptions);
   configureFlavorOptions(yargs, flavor, flavorOptions);
+  console.log(":configured");
 
   yargs.command(
     "instances",
@@ -82,19 +83,20 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
     }
   );
 
+  console.log("show");
   yargs
     .showHelpOnFail(false, "Specify -? or --help for available options")
     .alias("help", "?")
     .wrap(wrapWidth)
     .version(version);
-
+  console.log(rawArgs);
   const parsedArgs = yargs.parse(rawArgs);
-
+  console.log("parsedArgs", parsedArgs);
   let finalArgs: GanacheArgs;
   if (parsedArgs.action === "stop") {
     finalArgs = {
       action: "stop",
-      name: parsedArgs.name as string
+      flavor: parsedArgs.flavor as string
     };
   } else if (parsedArgs.action === "list") {
     finalArgs = { action: "list" };
@@ -103,13 +105,14 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
     parsedArgs.action === "start-detached"
   ) {
     const action = parsedArgs.action;
-    const flavor = parsedArgs.flavor || "ethereum";
-
+    const flavor = (parsedArgs.flavor || "ethereum") as string | "ethereum";
+    console.log("expand");
     finalArgs = {
       flavor,
       action,
       ...(expandArgs(parsedArgs) as Omit<StartArgs<any>, "flavor" | "action">)
-    } as any;
+    };
+    console.log(finalArgs);
   } else {
     throw new Error(`Unknown action: ${parsedArgs.action}`);
   }
