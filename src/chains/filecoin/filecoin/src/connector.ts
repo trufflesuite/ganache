@@ -35,7 +35,7 @@ export class Connector<
   }
 
   constructor(
-    providerOptions: FilecoinProviderOptions | null = {},
+    providerOptions: FilecoinProviderOptions | null = null,
     executor: Executor
   ) {
     this.#provider = new FilecoinProvider(providerOptions, executor);
