@@ -23,7 +23,7 @@ export type StartArgs<
 } & AbstractArgs<"start" | "start-detached">;
 
 export type GanacheArgs =
-  | (AbstractArgs<"stop"> & { flavor: string })
+  | (AbstractArgs<"stop"> & { name: string })
   | AbstractArgs<"list">
   | StartArgs<"ethereum" | string>;
 

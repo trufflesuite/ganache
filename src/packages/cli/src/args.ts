@@ -96,7 +96,7 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
   if (parsedArgs.action === "stop") {
     finalArgs = {
       action: "stop",
-      flavor: parsedArgs.flavor as string
+      name: parsedArgs.name as string
     };
   } else if (parsedArgs.action === "list") {
     finalArgs = { action: "list" };
