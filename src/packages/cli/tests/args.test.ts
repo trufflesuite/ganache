@@ -76,7 +76,9 @@ describe("args", () => {
 
       it.only("defaults to false when no arg provided", () => {
         const rawArgs = [];
+        console.log("rawArgs", rawArgs)
         const options = parseArgs(versionString, rawArgs);
+        console.log("options", options);
 
         assert.strictEqual(
           options.action,
