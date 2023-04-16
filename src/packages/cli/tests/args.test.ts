@@ -1,5 +1,10 @@
 import assert from "assert";
 import { parseArgs, expandArgs } from "../src/args";
+// pre import "@ganache/ethereum" so that the first test that is run doesn't
+// take a long time (CI might time out). The reason we do this is because cli
+// lazy-loads `require("@ganache/ethereum");`, and "@ganache/ethereum" is a
+// chonker.
+require("@ganache/ethereum");
 
 describe("args", () => {
   describe("expandArgs()", () => {
@@ -74,11 +79,9 @@ describe("args", () => {
         "--😈=false"
       ];
 
-      it.only("defaults to false when no arg provided", () => {
+      it("defaults to false when no arg provided", () => {
         const rawArgs = [];
-        console.log("rawArgs", rawArgs)
         const options = parseArgs(versionString, rawArgs);
-        console.log("options", options);
 
         assert.strictEqual(
           options.action,
