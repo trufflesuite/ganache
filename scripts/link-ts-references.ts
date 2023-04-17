@@ -5,6 +5,7 @@
 
 import { readFileSync, existsSync, writeFileSync } from "fs-extra";
 import { resolve, join, relative, sep } from "path";
+import { EOL } from "os";
 
 // using `require` because everything in scripts uses typescript's default
 // compiler settings, and these two modules require enabling `esModuleInterop`
@@ -93,12 +94,12 @@ function updateConfig(config: PackageInfo) {
   // add package.json deps to tsconfig references:
   references.forEach(name => {
     const referenceConfig = getConfigByName(name);
-    if(!referenceConfig) throw new Error(`missing config ${name}`);
+    if (!referenceConfig) throw new Error(`missing config ${name}`);
 
     // projects that are referenced by other projects must have the `composite: true` in their tsconfig compileOptions
     if (
-      (!referenceConfig.tsConfig.compilerOptions ||
-      !referenceConfig.tsConfig.compilerOptions.composite)
+      !referenceConfig.tsConfig.compilerOptions ||
+      !referenceConfig.tsConfig.compilerOptions.composite
     ) {
       if (!referenceConfig.tsConfig.compilerOptions)
         referenceConfig.tsConfig.compilerOptions = {};
@@ -137,7 +138,8 @@ function saveConfigs(configs: PackageInfo[]) {
   configs.forEach(({ modified, path, tsConfig }) => {
     if (modified) {
       const tsConfigFile = join(path, "tsconfig.json");
-      writeFileSync(tsConfigFile, JSON5.stringify(tsConfig, null, 2));
+      const body = JSON5.stringify(tsConfig, null, 2) + EOL;
+      writeFileSync(tsConfigFile, body);
     }
   });
 }
