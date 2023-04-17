@@ -2,14 +2,23 @@ import assert from "assert";
 import sinon from "sinon";
 import { createLogger } from "../src/things/logger";
 import { openSync, promises, closeSync, writeSync } from "fs";
+const { unlink, readFile } = promises;
 import { EOL } from "os";
-const { readFile, unlink } = promises;
+import tmp from "tmp-promise";
+import { resolve } from "path";
 
-describe("createLogger()", () => {
-  const fixturePath = `./tests/logger-test-fixture.log`;
-  const getFixtureDescriptor = () => openSync(fixturePath, "a");
+describe("createLogger()", async () => {
+  tmp.setGracefulCleanup();
+  // we use tmp.dir() rather than tmp.file() here, because we don't want the file to exist
+  const tempFileDir = (await tmp.dir()).path;
+  const logfilePath = resolve(tempFileDir, "log-file.log");
 
-  afterEach(() => unlink(fixturePath).catch(err => {}));
+  const getFixtureDescriptor = () => openSync(logfilePath, "a");
+
+  afterEach(async () => {
+    // tmp should clean up after itself, but we don't want the logfile to exist for the next test
+    await unlink(logfilePath).catch(() => {});
+  });
 
   const createBaseLogger = () => {
     const calls: any[][] = [];
@@ -168,7 +177,7 @@ describe("createLogger()", () => {
         throw err;
       }
 
-      const fileContents = await readFile(fixturePath, "utf8");
+      const fileContents = await readFile(logfilePath, "utf8");
       const logLines = fileContents.split(EOL);
 
       // 4, because there's a \n at the end of each line, creating an empty entry
@@ -211,7 +220,7 @@ describe("createLogger()", () => {
         throw err;
       }
 
-      const fileContents = await readFile(fixturePath, "utf8");
+      const fileContents = await readFile(logfilePath, "utf8");
       loggedLines = fileContents.split(EOL);
 
       // 4, because there's a \n at the end of each line, creating an empty entry

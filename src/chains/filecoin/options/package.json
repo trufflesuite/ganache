@@ -69,6 +69,7 @@
   },
   "dependencies": {
     "@ganache/utils": "0.7.1",
-    "keccak": "3.0.2"
+    "keccak": "3.0.2",
+    "tmp-promise": "3.0.2"
   }
 }

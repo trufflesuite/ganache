@@ -53,7 +53,8 @@
     "@ganache/options": "0.7.1",
     "@ganache/utils": "0.7.1",
     "bip39": "3.0.4",
-    "seedrandom": "3.0.5"
+    "seedrandom": "3.0.5",
+    "tmp-promise": "3.0.2"
   },
   "devDependencies": {
     "@types/mocha": "9.0.0",
