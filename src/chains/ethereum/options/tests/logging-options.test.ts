@@ -41,7 +41,6 @@ describe("EthereumOptionsConfig", () => {
       afterEach(async () => {
         spy.restore();
 
-        // tmp should clean up after itself, but we don't want the logfile to exist for the next test
         await unlink(logfilePath).catch(() => {});
       });
 

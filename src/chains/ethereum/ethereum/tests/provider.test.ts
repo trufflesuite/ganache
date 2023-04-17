@@ -794,6 +794,8 @@ describe("provider", () => {
           () => closeSync(descriptor),
           "File descriptor is still valid after disconnect() called"
         );
+
+        await unlink(filePath);
       });
     });
 

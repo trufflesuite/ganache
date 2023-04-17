@@ -16,7 +16,6 @@ describe("createLogger()", async () => {
   const getFixtureDescriptor = () => openSync(logfilePath, "a");
 
   afterEach(async () => {
-    // tmp should clean up after itself, but we don't want the logfile to exist for the next test
     await unlink(logfilePath).catch(() => {});
   });
 
@@ -197,9 +196,12 @@ describe("createLogger()", async () => {
       });
     });
 
-    const endsOfLine = [{ eol: "\r\n", identifier: "CRLF"}, {eol: "\n", name: "LF"}];
+    const endsOfLine = [
+      { eol: "\r\n", identifier: "CRLF" },
+      { eol: "\n", name: "LF" }
+    ];
 
-    endsOfLine.forEach(({eol, identifier}) => {
+    endsOfLine.forEach(({ eol, identifier }) => {
       it(`timestamps each line on multi-line log messages split by ${identifier}`, async () => {
         const file = getFixtureDescriptor();
 
@@ -226,11 +228,16 @@ describe("createLogger()", async () => {
         const fileContents = await readFile(logfilePath, "utf8");
         loggedLines = fileContents.split(/\n|\r\n/);
         // 4, because there's a \n at the end of each line, creating an empty entry
-        assert.strictEqual(loggedLines.length, 4, "Unexpected number of lines in the log file");
+        assert.strictEqual(
+          loggedLines.length,
+          4,
+          "Unexpected number of lines in the log file"
+        );
         assert.strictEqual(loggedLines[3], "");
 
         loggedLines.slice(0, 3).forEach((logLine, lineNumber) => {
-          const { timestampPart, delimiter, messagePart } = splitLogLine(logLine);
+          const { timestampPart, delimiter, messagePart } =
+            splitLogLine(logLine);
 
           assert(timestampRegex.test(timestampPart), "Unexpected timestamp");
           assert.strictEqual(delimiter, " ", "Unexpected delimiter");
@@ -238,7 +245,6 @@ describe("createLogger()", async () => {
         });
       });
     });
-
 
     it("writes to stderr if the file descriptor is invalid", async () => {
       // unlikely that this will be a valid file descriptor
