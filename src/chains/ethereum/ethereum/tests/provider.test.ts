@@ -11,6 +11,8 @@ import Web3 from "web3";
 import { promises, closeSync } from "fs";
 const { stat, unlink } = promises;
 import { INITCODE_TOO_LARGE } from "@ganache/ethereum-utils";
+import tmp from "tmp-promise";
+import { resolve } from "path";
 
 describe("provider", () => {
   describe("options", () => {
@@ -770,15 +772,15 @@ describe("provider", () => {
     });
 
     it("closes the logging fileDescriptor", async () => {
-      const filePath = "./closes-logging-descriptor.log";
-      const provider = await getProvider({ logging: { file: filePath } });
+      tmp.withDir(async ({ path }) => {
+        const filePath = resolve(path, "closes-logging-descriptor.log");
+        const provider = await getProvider({ logging: { file: filePath } });
 
-      try {
         const descriptor = provider.getOptions().logging.file;
         assert.strictEqual(
           typeof descriptor,
           "number",
-          `File descriptor has unexepected value ${typeof descriptor}`
+          `File descriptor has unexpected type`
         );
 
         assert(
@@ -792,9 +794,7 @@ describe("provider", () => {
           () => closeSync(descriptor),
           "File descriptor is still valid after disconnect() called"
         );
-      } finally {
-        await unlink(filePath);
-      }
+      });
     });
 
     // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
