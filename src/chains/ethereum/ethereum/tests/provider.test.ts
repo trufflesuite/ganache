@@ -772,31 +772,34 @@ describe("provider", () => {
     });
 
     it("closes the logging fileDescriptor", async () => {
-      await tmp.withDir(async ({ path }) => {
-        const filePath = resolve(path, "closes-logging-descriptor.log");
-        const provider = await getProvider({ logging: { file: filePath } });
+      await tmp.withDir(
+        async ({ path }) => {
+          const filePath = resolve(path, "closes-logging-descriptor.log");
+          const provider = await getProvider({ logging: { file: filePath } });
 
-        const descriptor = provider.getOptions().logging.file;
-        assert.strictEqual(
-          typeof descriptor,
-          "number",
-          `File descriptor has unexpected type`
-        );
+          const descriptor = provider.getOptions().logging.file;
+          assert.strictEqual(
+            typeof descriptor,
+            "number",
+            `File descriptor has unexpected type`
+          );
 
-        assert(
-          (await stat(filePath)).isFile(),
-          `log file: ${filePath} was not created`
-        );
+          assert(
+            (await stat(filePath)).isFile(),
+            `log file: ${filePath} was not created`
+          );
 
-        await provider.disconnect();
+          await provider.disconnect();
 
-        assert.throws(
-          () => closeSync(descriptor),
-          "File descriptor is still valid after disconnect() called"
-        );
+          assert.throws(
+            () => closeSync(descriptor),
+            "File descriptor is still valid after disconnect() called"
+          );
 
-        await unlink(filePath);
-      });
+          await unlink(filePath);
+        },
+        { unsafeCleanup: true }
+      );
     });
 
     // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed
