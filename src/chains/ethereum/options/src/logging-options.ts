@@ -2,6 +2,7 @@ import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
 import { openSync, PathLike } from "fs";
 import { Logger, InternalLogger, createLogger } from "@ganache/utils";
+import { EOL } from "os";
 
 export type LoggingConfig = {
   options: {
@@ -64,8 +65,8 @@ export type LoggingConfig = {
     };
 
     /**
-     * Set to `true` to disable logging. This option overrides
-     * logging.logger and option.verbose.
+     * Set to `true` to disable writing logs to stdout (or logging.logger if specified).
+     * This option does not impact writing logs to a file (with logging.file).
      *
      * @defaultValue false
      */
@@ -75,9 +76,12 @@ export type LoggingConfig = {
     };
 
     /**
-     * If you set this option, Ganache will write logs to a file located at the
-     * specified path.
-     * Note: If you provide a `URL` it must use the `path://` protocol.
+     * The file to append logs to.
+     *
+     * Can be a filename, or an instance of URL.
+     * note: the URL scheme must be `file`, e.g., `file://path/to/file.log`.
+     *
+     * By default no log file is created.
      */
     readonly file: {
       type: number;
@@ -96,7 +100,7 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   quiet: {
     normalize,
-    cliDescription: "Set to `true` to disable logging.",
+    cliDescription: "Set to `true` to disable writing logs to the terminal.",
     default: () => false,
     cliAliases: ["q", "quiet"],
     cliType: "boolean"
@@ -116,14 +120,14 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
       try {
         descriptor = openSync(raw, "a");
       } catch (err) {
+        const details = (err as Error).message;
         throw new Error(
-          `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.`
+          `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.${EOL}${details}`
         );
       }
       return descriptor;
     },
-    cliDescription:
-      "If set, Ganache will write logs to a file located at the specified path.",
+    cliDescription: "The file to append logs to.",
     cliType: "string"
   },
   logger: {

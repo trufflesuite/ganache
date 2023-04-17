@@ -27,7 +27,7 @@ describe("connector", () => {
     );
 
     // clear the logLines
-    logLines.splice(0, logLines.length);
+    logLines.length = 0;
 
     const message = `0x${Buffer.from("Tim is a swell guy.").toString("hex")}`;
     await p.send("web3_sha3", [message]);

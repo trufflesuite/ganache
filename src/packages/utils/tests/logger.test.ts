@@ -2,6 +2,7 @@ import assert from "assert";
 import sinon from "sinon";
 import { createLogger } from "../src/things/logger";
 import { openSync, promises, closeSync, writeSync } from "fs";
+import { EOL } from "os";
 const { readFile, unlink } = promises;
 
 describe("createLogger()", () => {
@@ -168,7 +169,7 @@ describe("createLogger()", () => {
       }
 
       const fileContents = await readFile(fixturePath, "utf8");
-      const logLines = fileContents.split("\n");
+      const logLines = fileContents.split(EOL);
 
       // 4, because there's a \n at the end of each line, creating an empty entry
       assert.strictEqual(logLines.length, 4);
@@ -201,7 +202,7 @@ describe("createLogger()", () => {
 
       let loggedLines: string[];
       try {
-        log(expectedLines.join("\n"));
+        log(expectedLines.join(EOL));
         await close();
       } catch (err) {
         // logger.close() will close the underlying descriptor, so only need to
@@ -211,7 +212,7 @@ describe("createLogger()", () => {
       }
 
       const fileContents = await readFile(fixturePath, "utf8");
-      loggedLines = fileContents.split("\n");
+      loggedLines = fileContents.split(EOL);
 
       // 4, because there's a \n at the end of each line, creating an empty entry
       assert.strictEqual(loggedLines.length, 4);

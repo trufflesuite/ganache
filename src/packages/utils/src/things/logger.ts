@@ -1,5 +1,7 @@
 import { createWriteStream } from "fs";
 import { format } from "util";
+import { EOL } from "os";
+
 export type LogFunc = (message?: any, ...optionalParams: any[]) => void;
 
 export type Logger = {
@@ -16,22 +18,16 @@ type LoggerConfig = {
 };
 
 export function createLogger(config: LoggerConfig): InternalLogger {
-  const baseLog = (...params: any[]) => config.baseLogger.log(...params);
+  const baseLog = (message: any, ...optionalParams: any[]) =>
+    config.baseLogger.log(message, ...optionalParams);
 
   if ("file" in config && config.file !== undefined) {
-    if (typeof config.file !== "number") {
-      throw new Error(
-        `'config.file' was not correctly normalized to a file descriptor. This should not happen. Value: ${
-          config.file
-        } of type ${typeof config.file}`
-      );
-    }
     const fd = config.file;
 
-    const diskLogFormatter = (message: any) => {
+    const diskLogFormatter = (message: string) => {
       // trailing space after date is delimiter between date and message
       const linePrefix = `${new Date().toISOString()} `;
-      return message.toString().replace(/^/gm, linePrefix);
+      return message.replace(/^/gm, linePrefix);
     };
 
     const writeStream = createWriteStream(null, { fd });
@@ -45,7 +41,7 @@ export function createLogger(config: LoggerConfig): InternalLogger {
       baseLog(message, ...optionalParams);
 
       const formattedMessage: string = format(message, ...optionalParams);
-      writeStream.write(diskLogFormatter(formattedMessage) + "\n");
+      writeStream.write(diskLogFormatter(formattedMessage) + EOL);
     };
 
     return {

@@ -89,7 +89,6 @@ if (argv.action === "start") {
         case ServerStatus.open:
           console.log("Shutting down…");
           await server.close();
-
           console.log("Server has been shut down");
           break;
       }
