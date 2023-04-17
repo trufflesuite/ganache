@@ -197,44 +197,48 @@ describe("createLogger()", async () => {
       });
     });
 
-    it("timestamps each line on multi-line log messages", async () => {
-      const file = getFixtureDescriptor();
+    const endsOfLine = [{ eol: "\r\n", identifier: "CRLF"}, {eol: "\n", name: "LF"}];
 
-      const { baseLogger } = createBaseLogger();
+    endsOfLine.forEach(({eol, identifier}) => {
+      it(`timestamps each line on multi-line log messages split by ${identifier}`, async () => {
+        const file = getFixtureDescriptor();
 
-      const { log, close } = createLogger({
-        file,
-        baseLogger
-      });
+        const { baseLogger } = createBaseLogger();
 
-      const expectedLines = ["multi", "line", "message"];
+        const { log, close } = createLogger({
+          file,
+          baseLogger
+        });
 
-      let loggedLines: string[];
-      try {
-        log(expectedLines.join(EOL));
-        await close();
-      } catch (err) {
-        // logger.close() will close the underlying descriptor, so only need to
-        // explicitly close the descriptor if it fails to close
-        closeSync(file);
-        throw err;
-      }
+        const expectedLines = ["multi", "line", "message"];
 
-      const fileContents = await readFile(logfilePath, "utf8");
-      loggedLines = fileContents.split(EOL);
+        let loggedLines: string[];
+        try {
+          log(expectedLines.join(eol));
+          await close();
+        } catch (err) {
+          // logger.close() will close the underlying descriptor, so only need to
+          // explicitly close the descriptor if it fails to close
+          closeSync(file);
+          throw err;
+        }
 
-      // 4, because there's a \n at the end of each line, creating an empty entry
-      assert.strictEqual(loggedLines.length, 4);
-      assert.strictEqual(loggedLines[3], "");
+        const fileContents = await readFile(logfilePath, "utf8");
+        loggedLines = fileContents.split(/\n|\r\n/);
+        // 4, because there's a \n at the end of each line, creating an empty entry
+        assert.strictEqual(loggedLines.length, 4, "Unexpected number of lines in the log file");
+        assert.strictEqual(loggedLines[3], "");
 
-      loggedLines.slice(0, 3).forEach((logLine, lineNumber) => {
-        const { timestampPart, delimiter, messagePart } = splitLogLine(logLine);
+        loggedLines.slice(0, 3).forEach((logLine, lineNumber) => {
+          const { timestampPart, delimiter, messagePart } = splitLogLine(logLine);
 
-        assert(timestampRegex.test(timestampPart), "Unexpected timestamp");
-        assert.strictEqual(delimiter, " ", "Unexpected delimiter");
-        assert.strictEqual(messagePart, expectedLines[lineNumber]);
+          assert(timestampRegex.test(timestampPart), "Unexpected timestamp");
+          assert.strictEqual(delimiter, " ", "Unexpected delimiter");
+          assert.strictEqual(messagePart, expectedLines[lineNumber]);
+        });
       });
     });
+
 
     it("writes to stderr if the file descriptor is invalid", async () => {
       // unlikely that this will be a valid file descriptor

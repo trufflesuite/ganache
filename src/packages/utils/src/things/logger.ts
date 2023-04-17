@@ -17,6 +17,9 @@ type LoggerConfig = {
   file?: number;
 };
 
+// this needs to match start of line with both CRLF and LF encoding (^ matches after _both_ CR and LF)
+const START_OF_LINE = /^|(?<=\r?\n)/g;
+
 export function createLogger(config: LoggerConfig): InternalLogger {
   const baseLog = (...params: any[]) => config.baseLogger.log(...params);
 
@@ -26,7 +29,7 @@ export function createLogger(config: LoggerConfig): InternalLogger {
     const diskLogFormatter = (message: string) => {
       // trailing space after date is delimiter between date and message
       const linePrefix = `${new Date().toISOString()} `;
-      return message.replace(/^/gm, linePrefix);
+      return message.replace(START_OF_LINE, linePrefix);
     };
 
     const writeStream = createWriteStream(null, { fd });
