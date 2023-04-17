@@ -1,6 +1,6 @@
 <!-- Using h2 instead of h1 because npm doesn't support align=center on h1 tags -->
 <h2 align="center">
-  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://trufflesuite.github.io/ganache/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
+  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://ganache.dev/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
 </h2>
 
 <h3 align="center">
@@ -222,8 +222,7 @@ const provider = Ganache.provider(options);
 
 ## Documentation
 
-New interactive RPC documentation coming soon!
-In the meantime, check out our [Ethereum JSON-RPC documentation](/src/chains/ethereum/ethereum/RPC-METHODS.md).
+See our [Interactive Docs](https:///ganache.dev/) for a full list of Ganache's RPC methods.
 
 ### Startup Options
 
@@ -250,6 +249,10 @@ Chain:
                                         will cause ganache to behave differently than production environments.
                                                                                     [boolean] [default: false]
 
+  --chain.allowUnlimitedInitCodeSize    Allows unlimited initcode sizes while debugging. Setting this to true
+                                        will cause ganache to behave differently than production environments.
+                                                                                    [boolean] [default: false]
+
   --chain.asyncRequestProcessing        When set to false only one request will be processed at a time.
                                                                                      [boolean] [default: true]
 
@@ -266,7 +269,7 @@ Chain:
   -k, --chain.hardfork                  Set the hardfork rules for the EVM.
                                         deprecated aliases: --hardfork
           [string] [choices: "constantinople", "byzantium", "petersburg", "istanbul", "muirGlacier", "berlin",
-                                         "london", "arrowGlacier", "grayGlacier", "merge"] [default: "merge"]
+                           "london", "arrowGlacier", "grayGlacier", "merge", "shanghai"] [default: "shanghai"]
 
   --chain.vmErrorsOnRPCResponse         Whether to report runtime errors from EVM code as RPC errors.
                                                                                     [boolean] [default: false]
@@ -647,5 +650,5 @@ See [CONTRIBUTING.md](https://github.com/trufflesuite/ganache/blob/develop/CONTR
 ---
 
 <h4 align="center">
-  <a href="https://www.trufflesuite.com" title="Brought to you by Truffle"><img alt="Truffle" src="https://trufflesuite.github.io/ganache/assets/img/truffle-logo-dark.svg" width="60"/></a>
+  <a href="https://www.trufflesuite.com" title="Brought to you by Truffle"><img alt="Truffle" src="https://ganache.dev/assets/img/truffle-logo-dark.svg" width="60"/></a>
 </h4>

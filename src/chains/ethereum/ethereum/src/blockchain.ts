@@ -78,6 +78,7 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
+import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -112,6 +113,7 @@ export type BlockchainOptions = {
   initialAccounts?: Account[];
   hardfork?: string;
   allowUnlimitedContractSize?: boolean;
+  allowUnlimitedInitCodeSize?: boolean;
   gasLimit?: Quantity;
   time?: Date;
   blockTime?: number;
@@ -161,8 +163,8 @@ function createCommon(chainId: number, networkId: number, hardfork: Hardfork) {
     },
     // if we were given a chain id that matches a real chain, use it
     // NOTE: I don't think Common serves a purpose other than instructing the
-    // VM what hardfork is in use. But just incase things change in the future
-    // its configured "more correctly" here.
+    // VM what hardfork is in use (and what EIPs are active). But just incase
+    // things change in the future its configured "more correctly" here.
     { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
   );
 
@@ -223,7 +225,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     this.fallback = fallback;
     this.coinbase = coinbase;
     this.#instamine = !options.miner.blockTime || options.miner.blockTime <= 0;
-    this.#database = new Database(options.database, this);
+    this.#database = new Database(options, this);
   }
 
   async initialize(initialAccounts: Account[]) {
@@ -248,6 +250,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.networkId,
           options.chain.hardfork
         );
+
+        if (options.chain.allowUnlimitedInitCodeSize) {
+          removeEIP3860InitCodeSizeLimitCheck(common);
+        }
       }
 
       this.isPostMerge = this.common.gteHardfork("merge");
@@ -261,7 +267,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       this.blockLogs = new BlockLogManager(database.blockLogs, this);
       this.transactions = new TransactionManager(
-        options.miner,
+        options,
         common,
         this,
         database.transactions
@@ -433,6 +439,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const index = Quantity.from(i);
 
         // save transaction to the database
+        // TODO: the block has already done most of the work serializing the tx
+        // we should reuse it, if possible
+        // https://github.com/trufflesuite/ganache/issues/4341
         const serialized = tx.serializeForDb(blockHash, blockNumberQ, index);
         this.transactions.set(hash, serialized);
 
@@ -583,6 +592,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
 
     return new RuntimeBlock(
+      this.common,
       Quantity.from(previousNumber + 1n),
       previousBlock.hash(),
       this.coinbase,
@@ -592,7 +602,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
       previousHeader.totalDifficulty,
       this.getMixHash(previousBlock.hash().toBuffer()),
-      Block.calcNextBaseFee(previousBlock)
+      Block.calcNextBaseFee(previousBlock),
+      KECCAK256_RLP
     );
   };
 
@@ -751,6 +762,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       }
       const genesis = new RuntimeBlock(
+        this.common,
         Quantity.from(fallbackBlock.header.number.toBigInt() + 1n),
         fallbackBlock.hash(),
         this.coinbase,
@@ -760,7 +772,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
         fallbackBlock.header.totalDifficulty,
         this.getMixHash(fallbackBlock.hash().toBuffer()),
-        baseFeePerGas
+        baseFeePerGas,
+        KECCAK256_RLP
       );
 
       // store the genesis block in the database
@@ -799,6 +812,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       : undefined;
 
     const genesis = new RuntimeBlock(
+      this.common,
       rawBlockNumber,
       Data.from(BUFFER_32_ZERO),
       this.coinbase,
@@ -810,7 +824,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we use the initial trie root as the genesis block's mixHash as it
       // is deterministic based on initial wallet conditions
       this.isPostMerge ? keccak(this.trie.root()) : BUFFER_32_ZERO,
-      baseFeePerGas
+      baseFeePerGas,
+      KECCAK256_RLP
     );
 
     // store the genesis block in the database
@@ -1156,6 +1171,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         warmPrecompiles(eei);
         eei.addWarmedAddress(caller);
         if (to) eei.addWarmedAddress(to.buf);
+
+        // shanghai hardfork requires that we warm the coinbase address
+        if (common.isActivatedEIP(3651)) {
+          eei.addWarmedAddress(transaction.block.header.coinbase.buf);
+        }
       }
 
       // If there are any overrides requested for eth_call, apply
@@ -1281,7 +1301,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.emit("ganache:vm:tx:before", {
         context: transactionEventContext
       });
-      await vm.runTx({ tx, block: block as any });
+      await vm.runTx({
+        skipHardForkValidation: true,
+        skipNonce: true,
+        skipBalance: true,
+        skipBlockGasLimitValidation: true,
+        tx,
+        block: block as any
+      });
       this.emit("ganache:vm:tx:after", {
         context: transactionEventContext
       });
@@ -1331,15 +1358,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const gasUsedPreviousStep = totalGasUsedAfterThisStep - gas;
       gas += gasUsedPreviousStep;
 
-      const memory: ITraceData[] = [];
-      if (options.disableMemory !== true) {
+      let memory: ITraceData[];
+      if (options.disableMemory === true) {
+        memory = [];
+      } else {
         // We get the memory as one large array.
         // Let's cut it up into 32 byte chunks as required by the spec.
+        const limit = Number(event.memoryWordCount);
+        memory = Array(limit);
         let index = 0;
-        while (index < event.memory.length) {
-          const slice = event.memory.slice(index, index + 32);
-          memory.push(TraceData.from(Buffer.from(slice)));
-          index += 32;
+        while (index < limit) {
+          const offset = index * 32;
+          const slice = event.memory.subarray(offset, offset + 32);
+          memory[index++] = TraceData.from(slice);
         }
       }
 
@@ -1428,6 +1459,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       context: transactionEventContext
     });
     await vm.runTx({
+      skipHardForkValidation: true,
+      skipNonce: true,
+      skipBalance: true,
+      skipBlockGasLimitValidation: true,
       tx: transaction as any,
       block: newBlock as any
     });
@@ -1468,6 +1503,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     targetBlock.header.parentHash;
     // Prepare the "next" block with necessary transactions
     const newBlock = new RuntimeBlock(
+      this.common,
       Quantity.from((parentBlock.header.number.toBigInt() || 0n) + 1n),
       parentBlock.hash(),
       Address.from(parentBlock.header.miner.toString()),
@@ -1478,7 +1514,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
       this.getMixHash(parentBlock.hash().toBuffer()),
-      Block.calcNextBaseFee(parentBlock)
+      Block.calcNextBaseFee(parentBlock),
+      KECCAK256_RLP
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];

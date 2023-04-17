@@ -5,17 +5,23 @@ import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
 import {
   Block,
+  BlockRawTransaction,
+  EthereumRawBlock,
   EthereumRawBlockHeader,
-  serialize
+  Head,
+  serialize,
+  WithdrawalRaw
 } from "@ganache/ethereum-block";
 import { Address } from "@ganache/ethereum-address";
 import {
+  encodeWithPrefix,
   GanacheRawBlockTransactionMetaData,
-  TransactionFactory,
-  TypedDatabaseTransaction
+  GanacheRawExtraTx,
+  TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
 import { Ethereum } from "../api-types";
+import { encode } from "@ganache/rlp";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -68,6 +74,8 @@ export default class BlockManager extends Manager<Block> {
   }
 
   static rawFromJSON(json: any, common: Common) {
+    const blockNumber = Quantity.toBuffer(json.number);
+    const hasWithdrawals = json.withdrawalsRoot != null;
     const header: EthereumRawBlockHeader = [
       Data.toBuffer(json.parentHash),
       Data.toBuffer(json.sha3Uncles),
@@ -77,7 +85,7 @@ export default class BlockManager extends Manager<Block> {
       Data.toBuffer(json.receiptsRoot),
       Data.toBuffer(json.logsBloom),
       Quantity.toBuffer(json.difficulty),
-      Quantity.toBuffer(json.number),
+      blockNumber,
       Quantity.toBuffer(json.gasLimit),
       Quantity.toBuffer(json.gasUsed),
       Quantity.toBuffer(json.timestamp),
@@ -85,35 +93,60 @@ export default class BlockManager extends Manager<Block> {
       Data.toBuffer(json.mixHash),
       Data.toBuffer(json.nonce)
     ];
-    // only add baseFeePerGas if the block's JSON already has it
-    if (json.baseFeePerGas !== undefined) {
-      header[15] = Data.toBuffer(json.baseFeePerGas);
+    // We can't include the _slots_ for these values in the `header` array
+    // (i.e., set them to `undefined`), when the values are `undefined`, as the
+    // `length` of the array is encoded by the rlp process.
+    if (json.baseFeePerGas) {
+      header[15] = Quantity.toBuffer(json.baseFeePerGas);
+      if (hasWithdrawals) {
+        header[16] = Data.toBuffer(json.withdrawalsRoot);
+      }
     }
     const totalDifficulty = Quantity.toBuffer(json.totalDifficulty);
-    const txs: TypedDatabaseTransaction[] = [];
-    const extraTxs: GanacheRawBlockTransactionMetaData[] = [];
-    json.transactions.forEach((tx, index) => {
-      const blockExtra = [
-        Address.toBuffer(tx.from),
-        Quantity.toBuffer(tx.hash)
-      ] as any;
-      const txExtra = [
+    const txs: BlockRawTransaction[] = Array(json.transactions.length);
+    const extraTxs: GanacheRawBlockTransactionMetaData[] = Array(
+      json.transactions.length
+    );
+    const blockHash = Data.toBuffer(json.hash);
+    for (let index = 0; index < json.transactions.length; index++) {
+      const txJson = json.transactions[index];
+      const blockExtra: GanacheRawBlockTransactionMetaData = [
+        Address.toBuffer(txJson.from),
+        Quantity.toBuffer(txJson.hash)
+      ];
+      const txExtra: GanacheRawExtraTx = [
         ...blockExtra,
-        Data.toBuffer(json.hash),
-        Quantity.toBuffer(json.number),
-        index
-      ] as any;
-      const typedTx = TransactionFactory.fromRpc(tx, common, txExtra);
-      const raw = typedTx.toEthRawTransaction(
-        typedTx.v.toBuffer(),
-        typedTx.r.toBuffer(),
-        typedTx.s.toBuffer()
-      );
-      txs.push(<TypedDatabaseTransaction>raw);
-      extraTxs.push(blockExtra);
-    });
+        blockHash,
+        blockNumber,
+        Quantity.toBuffer(index)
+      ];
+      const tx = TransactionFactory.fromRpc(txJson, common, txExtra);
+      txs[index] =
+        tx.raw.length === 9
+          ? tx.raw
+          : tx.serialized ?? encodeWithPrefix(tx.type.toNumber(), tx.raw);
+      extraTxs[index] = blockExtra;
+    }
 
-    return serialize([header, txs, [], totalDifficulty, extraTxs]).serialized;
+    let start: EthereumRawBlock;
+
+    if (hasWithdrawals) {
+      const extraWithdrawals: WithdrawalRaw[] = Array(json.withdrawals.length);
+      for (let i = 0; i < json.withdrawals.length; i++) {
+        const withdrawal = json.withdrawals[i];
+        extraWithdrawals[i] = [
+          Quantity.toBuffer(withdrawal.index),
+          Quantity.toBuffer(withdrawal.validatorIndex),
+          Address.toBuffer(withdrawal.address),
+          Quantity.toBuffer(withdrawal.amount)
+        ];
+      }
+      start = [header, txs, [], extraWithdrawals];
+    } else {
+      start = [header, txs, []];
+    }
+
+    return serialize(start, [totalDifficulty, extraTxs]).serialized;
   }
 
   fromFallback = async (

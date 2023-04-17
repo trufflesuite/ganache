@@ -112,14 +112,18 @@ describe("api", () => {
       }
 
       // Check formatting of memory
+      const expectedMemoryWordsLength = 593;
+      let actualMemoryWordsLength = 0;
       for (const [, { memory }] of structLogs.entries()) {
+        actualMemoryWordsLength += memory.length;
+        assert(memory != null);
         if (memory.length > 0) {
           // check formatting of memory
-          assert.strictEqual(memory[0].length, 64);
-          assert.notStrictEqual(memory[0].substr(0, 2), "0x");
-          break;
+          assert.strictEqual(memory[0].length, 64); // one word
+          assert.notStrictEqual(memory[0].substring(0, 2), "0x"); // 0x prefixed
         }
       }
+      assert.strictEqual(actualMemoryWordsLength, expectedMemoryWordsLength);
 
       const lastop = structLogs[structLogs.length - 1];
 

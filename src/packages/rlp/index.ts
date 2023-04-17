@@ -51,12 +51,17 @@ export function encodeRange<
  * @param ranges -
  * @returns returns a Buffer of encoded data
  */
-export function digest(ranges: Readonly<Buffer[]>[], length: number) {
+export function digest(
+  ranges: Readonly<Buffer[]>[],
+  length: number,
+  offset: number = 0,
+  alloc: typeof Buffer.allocUnsafe = Buffer.allocUnsafe
+) {
   const encodedLength = encodeLength(length, 192);
   const lengthEncodedLength = encodedLength.length;
-  const buf = Buffer.allocUnsafe(lengthEncodedLength + length);
-  encodedLength.copy(buf, 0, 0, lengthEncodedLength);
-  let offset = lengthEncodedLength;
+  const buf = alloc(lengthEncodedLength + length);
+  encodedLength.copy(buf, offset, 0, lengthEncodedLength);
+  offset += lengthEncodedLength;
   for (let i = 0, l = ranges.length; i < l; i++) {
     const range = ranges[i];
     for (let j = 0, m = range.length; j < m; j++) {
