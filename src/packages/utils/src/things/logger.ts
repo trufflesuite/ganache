@@ -18,8 +18,7 @@ type LoggerConfig = {
 };
 
 export function createLogger(config: LoggerConfig): InternalLogger {
-  const baseLog = (message: any, ...optionalParams: any[]) =>
-    config.baseLogger.log(message, ...optionalParams);
+  const baseLog = (...params: any[]) => config.baseLogger.log(...params);
 
   if ("file" in config && config.file !== undefined) {
     const fd = config.file;
