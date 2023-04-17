@@ -132,7 +132,7 @@ describe("EthereumOptionsConfig", () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { file: logfilePath }
           });
-          assert(typeof options.logging.file === "number");
+          assert.strictEqual(typeof options.logging.file, "number");
           assert.doesNotThrow(
             () => closeSync(options.logging.file),
             "File descriptor not valid"
@@ -143,18 +143,18 @@ describe("EthereumOptionsConfig", () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { file: Buffer.from(logfilePath, "utf8") }
           });
-          assert(typeof options.logging.file === "number");
+          assert.strictEqual(typeof options.logging.file, "number");
           assert.doesNotThrow(
             () => closeSync(options.logging.file),
             "File descriptor not valid"
           );
         });
 
-        it("resolves a file URL as Buffer to descriptor", async () => {
+        it("resolves a file URL to descriptor", async () => {
           const options = EthereumOptionsConfig.normalize({
             logging: { file: new URL(`file://${logfilePath}`) }
           });
-          assert(typeof options.logging.file === "number");
+          assert.strictEqual(typeof options.logging.file, "number");
           assert.doesNotThrow(
             () => closeSync(options.logging.file),
             "File descriptor not valid"
@@ -162,14 +162,13 @@ describe("EthereumOptionsConfig", () => {
         });
 
         it("fails if the process doesn't have write access to the file path provided", async () => {
-          tmp.withFile(async ({ path }) => {
+          await tmp.withFile(async ({ path }) => {
             const handle = await open(path, "w");
             // set no permissions on the file
             await handle.chmod(0);
             await handle.close();
 
             const errorMessage = `Failed to open log file ${path}. Please check if the file path is valid and if the process has write permissions to the directory.${EOL}`; // the specific error that follows this is OS dependent
-            throw new Error("nah");
             assert.throws(
               () =>
                 EthereumOptionsConfig.normalize({

@@ -88,7 +88,7 @@ describe("FilecoinOptionsConfig", () => {
         });
 
         it("fails if the process doesn't have write access to the file path provided", async () => {
-          tmp.withFile(async ({ path }) => {
+          await tmp.withFile(async ({ path }) => {
             const handle = await open(path, "w");
             // set no permissions on the file
             await handle.chmod(0);

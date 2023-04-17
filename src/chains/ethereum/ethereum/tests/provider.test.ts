@@ -772,7 +772,7 @@ describe("provider", () => {
     });
 
     it("closes the logging fileDescriptor", async () => {
-      tmp.withDir(async ({ path }) => {
+      await tmp.withDir(async ({ path }) => {
         const filePath = resolve(path, "closes-logging-descriptor.log");
         const provider = await getProvider({ logging: { file: filePath } });
 
