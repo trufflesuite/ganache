@@ -6,10 +6,26 @@ import { promises } from "fs";
 const { unlink, readFile, open } = promises;
 import { closeSync } from "fs";
 import { URL } from "url";
+import { EOL } from "os";
 
 describe("EthereumOptionsConfig", () => {
   describe("logging", () => {
     describe("options", () => {
+      function assertLogLine(logLine: string, message: string) {
+        const timestampPart = logLine.substring(0, 24);
+
+        const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+        assert(
+          timestampPart.match(timestampRegex),
+          `Unexpected timestamp from file ${timestampPart}`
+        );
+
+        const messagePart = logLine.substring(25);
+
+        assert.strictEqual(messagePart, message, "Message does not match");
+      }
+
       const validFilePath = resolve("./tests/test-file.log");
       let spy: any;
 
@@ -146,16 +162,15 @@ describe("EthereumOptionsConfig", () => {
           await handle.chmod(0);
           await handle.close();
 
-          const error = {
-            message: `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.`
-          };
+          const errorMessage = `Failed to open log file ${file}. Please check if the file path is valid and if the process has write permissions to the directory.${EOL}`; // the specific error that follows this is OS dependent
+
           try {
             assert.throws(
               () =>
                 EthereumOptionsConfig.normalize({
                   logging: { file }
                 }),
-              error
+              (error: Error) => error.message.startsWith(errorMessage)
             );
           } finally {
             await unlink(file);
@@ -165,7 +180,7 @@ describe("EthereumOptionsConfig", () => {
         it("should append to the specified file", async () => {
           const message = "message";
           const handle = await open(validFilePath, "w");
-          await handle.write("existing content");
+          await handle.write(`existing content${EOL}`);
           await handle.close();
 
           const options = EthereumOptionsConfig.normalize({
@@ -177,10 +192,13 @@ describe("EthereumOptionsConfig", () => {
             const readHandle = await open(validFilePath, "r");
             const content = await readHandle.readFile({ encoding: "utf8" });
             await readHandle.close();
-            assert(
-              content.startsWith("existing content"),
-              "Existing content was overwritten by the logger"
-            );
+
+            const lines = content.split(EOL);
+
+            assert.strictEqual(lines.length, 3); // 2 lines + empty line at the end
+            assert.strictEqual(lines[0], "existing content");
+
+            assertLogLine(lines[1], message);
           } finally {
             await options.logging.logger.close();
           }
@@ -208,18 +226,10 @@ describe("EthereumOptionsConfig", () => {
           const fromFile = await readFile(validFilePath, "utf8");
           assert(fromFile !== "", "Nothing written to the log file");
 
-          const timestampPart = fromFile.substring(0, 24);
-
-          const timestampRegex =
-            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-          assert(
-            timestampPart.match(timestampRegex),
-            `Unexpected timestamp from file ${timestampPart}`
-          );
-
-          const messagePart = fromFile.substring(25);
-
-          assert.strictEqual(messagePart, "message param1 param2\n");
+          const lines = fromFile.split(EOL);
+          assert.strictEqual(lines.length, 2); // 1 line + empty line at the end
+          assertLogLine(lines[0], "message param1 param2");
+          assert.strictEqual(lines[1], "");
         });
       });
     });
