@@ -41,7 +41,7 @@ export function createLogger(config: LoggerConfig): InternalLogger {
     writeStream.on("error", onError);
 
     const log = (message: any, ...optionalParams: any[]) => {
-      // we are logging to a file, but we still need to writing to console
+      // we are logging to a file, but we still need to write to console
       baseLog(message, ...optionalParams);
 
       const formattedMessage: string = format(message, ...optionalParams);
