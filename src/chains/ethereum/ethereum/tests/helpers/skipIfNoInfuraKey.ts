@@ -5,7 +5,7 @@ function skipIfNoInfuraKey() {
     if (!process.env.INFURA_KEY) {
       if (process.env.CI === "true") {
         throw new Error(
-          "No INFURA_KEY was provided. When CI is true, an INFURA_KEY must be provided."
+          `No INFURA_KEY environment variable was provided. When process.env.CI is "true", an INFURA_KEY must be provided.`
         );
       } else {
         this.skip();
