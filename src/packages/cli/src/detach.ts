@@ -41,8 +41,9 @@ export function notifyDetachedInstanceReady(port: number) {
 
 /**
  * Attempt to find and remove the instance file for a detached instance.
- * @param  {string} instanceName the name of the instance to be removed
- * @returns boolean indicating whether the instance file was cleaned up successfully
+ * @param instanceName the name of the instance to be removed
+ * @returns resolves to a boolean indicating whether the instance file was
+ * cleaned up successfully
  */
 export async function removeDetachedInstanceFile(
   instanceName: string
@@ -68,8 +69,8 @@ type InstanceOrSuggestions =
  * corresponding instance file will be removed.
  *
  * Note: This does not guarantee that the instance actually stops.
- * @param  {string} instanceName
- * @returns {InstanceOrSuggestions} an object containing either the stopped
+ * @param instanceName
+ * @returns an object containing either the stopped
  * `instance`, or `suggestions` for similar instance names
  */
 export async function stopDetachedInstance(
@@ -194,8 +195,8 @@ async function getSimilarInstanceNames(
 
 /**
  * Start an instance of Ganache in detached mode.
- * @param  {string[]} argv arguments to be passed to the new instance.
- * @returns {Promise<DetachedInstance>} resolves to the DetachedInstance once it
+ * @param argv arguments to be passed to the new instance.
+ * @returns resolves to the DetachedInstance once it
  * is started and ready to receive requests.
  */
 export async function startDetachedInstance(
@@ -310,7 +311,7 @@ export async function startDetachedInstance(
 /**
  * Fetch all instance of Ganache running in detached mode. Cleans up any
  * instance files for processes that are no longer running.
- * @returns {Promise<DetachedInstance[]>} resolves with an array of instances
+ * @returns resolves with an array of instances
  */
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   let dirEntries: Dirent[];
@@ -402,7 +403,7 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
 /**
  * Attempts to load data for the instance specified by instanceName. Throws if
  * the instance file is not found or cannot be parsed
- * @param  {string} instanceName
+ * @param instanceName
  */
 async function getDetachedInstanceByName(
   instanceName: string
@@ -440,9 +441,9 @@ export function formatUptime(ms: number) {
  * defined as the minimum number of edits (insertions, deletions or substitutions)
  * required to transform one string into another.
  *
- * @param {string} a - The first string to compare.
- * @param {string} b - The second string to compare.
- * @return {number} The Levenshtein distance between the two strings.
+ * @param a - The first string to compare.
+ * @param b - The second string to compare.
+ * @return The Levenshtein distance between the two strings.
  */
 export function levenshteinDistance(a: string, b: string): number {
   if (a.length === 0) return b.length;

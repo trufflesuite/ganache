@@ -170,16 +170,23 @@ if (argv.action === "start") {
       console.log(`${highlightedName} stopped.`);
     } else {
       process.exitCode = 1;
-      console.log(`${porscheColor(instanceName)} not found.`);
+      console.log(`We couldn't find '${porscheColor(instanceName)}'.`);
       if (instanceOrSuggestions.suggestions?.length > 0) {
         console.log();
-        console.log("Did you mean:");
+        console.log("But here's some instances with similar names:");
         console.log(
           instanceOrSuggestions.suggestions
             .map(name => " - " + porscheColor(name))
             .join("\n")
         );
       }
+
+      console.log();
+      console.log(
+        `Try ${porscheColor(
+          "ganache instances list"
+        )} to see all running instances.`
+      );
     }
   });
 } else if (argv.action === "start-detached") {
