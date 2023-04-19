@@ -1,4 +1,4 @@
-import { Quantity } from "@ganache/utils";
+import { Quantity, Data } from "@ganache/utils";
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider, { mnemonic } from "../../helpers/getProvider";
@@ -24,7 +24,7 @@ describe("api", () => {
     describe("eth_coinbase", () => {
       it("should return correct address", async () => {
         const coinbase = await provider.send("eth_coinbase");
-        assert.strictEqual(coinbase, "0x" + "0".repeat(40));
+        assert.strictEqual(coinbase, Data.toString("0x00", 20));
       });
     });
 

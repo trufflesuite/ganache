@@ -12,7 +12,8 @@ const HARDFORKS = [
   "london",
   "arrowGlacier",
   "grayGlacier",
-  "merge"
+  "merge",
+  "shanghai"
 ] as const;
 
 export type Hardfork = Writeable<ArrayToTuple<typeof HARDFORKS>>;
@@ -38,6 +39,21 @@ export type ChainConfig = {
          */
         allowUnlimitedContractSize: boolean;
       };
+    };
+
+    /**
+     * Allows unlimited initcode (`transaction.data`) while debugging. By
+     * setting this to `true`, the check within the EVM for a initcode size
+     * limit of 48KB (see [EIP-3860](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-3860.md))
+     * is bypassed. Setting this to `true` will cause ganache to behave
+     * differently than production environments. You should only set this to
+     * `true` during local debugging.
+     *
+     * @defaultValue false
+     */
+    readonly allowUnlimitedInitCodeSize: {
+      type: boolean;
+      hasDefault: true;
     };
 
     /**
@@ -111,7 +127,7 @@ export type ChainConfig = {
 
     /**
      * Set the hardfork rules for the EVM.
-     * @defaultValue "merge"
+     * @defaultValue "shanghai"
      */
     readonly hardfork: {
       type: Hardfork;
@@ -146,9 +162,16 @@ export const ChainOptions: Definitions<ChainConfig> = {
   allowUnlimitedContractSize: {
     normalize,
     cliDescription:
-      "Allows unlimited contract sizes while debugging. Setting this to `true` will cause ganache to behave differently than production environments.",
+      "Allows unlimited contract sizes. Setting this to `true` will cause ganache to behave differently than production environments.",
     default: () => false,
     legacyName: "allowUnlimitedContractSize",
+    cliType: "boolean"
+  },
+  allowUnlimitedInitCodeSize: {
+    normalize,
+    cliDescription:
+      "Allows unlimited initcode (`transaction.data`) sizes. Setting this to `true` will cause ganache to behave differently than production environments.",
+    default: () => false,
     cliType: "boolean"
   },
   asyncRequestProcessing: {
@@ -197,7 +220,7 @@ export const ChainOptions: Definitions<ChainConfig> = {
   hardfork: {
     normalize,
     cliDescription: "Set the hardfork rules for the EVM.",
-    default: () => "merge",
+    default: () => "shanghai",
     legacyName: "hardfork",
     cliAliases: ["k", "hardfork"],
     cliType: "string",

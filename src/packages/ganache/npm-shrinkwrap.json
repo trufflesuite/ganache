@@ -211,6 +211,16 @@
 				}
 			}
 		},
+		"@trufflesuite/uws-js-unofficial": {
+			"version": "20.10.0-unofficial.2",
+			"resolved": "https://registry.npmjs.org/@trufflesuite/uws-js-unofficial/-/uws-js-unofficial-20.10.0-unofficial.2.tgz",
+			"integrity": "sha512-oQQlnS3oNeGsgS4K3KCSSavJgSb0W9D5ktZs4FacX9VbM7b+NlhjH96d6/G4fMrz+bc5MXRyco419on0X0dvRA==",
+			"requires": {
+				"bufferutil": "4.0.5",
+				"utf-8-validate": "5.0.7",
+				"ws": "8.2.3"
+			}
+		},
 		"@tsconfig/node10": {
 			"version": "1.0.9",
 			"resolved": "https://registry.npmjs.org/@tsconfig/node10/-/node10-1.0.9.tgz",
@@ -2959,6 +2969,11 @@
 			"resolved": "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz",
 			"integrity": "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==",
 			"dev": true
+		},
+		"ws": {
+			"version": "8.2.3",
+			"resolved": "https://registry.npmjs.org/ws/-/ws-8.2.3.tgz",
+			"integrity": "sha512-wBuoj1BDpC6ZQ1B7DWQBYVLphPWkm8i9Y0/3YdHjHKHiohOJ1ws+3OccDWtH+PoC9DZD5WOTrJvNbWvjS6JWaA=="
 		},
 		"xtend": {
 			"version": "4.0.2",
