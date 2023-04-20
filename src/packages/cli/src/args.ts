@@ -17,6 +17,7 @@ import { EOL } from "os";
 import marked from "marked";
 import TerminalRenderer from "marked-terminal";
 import { _DefaultServerOptions } from "@ganache/core";
+import parseDuration from "parse-duration";
 
 marked.setOptions({
   renderer: new TerminalRenderer({
@@ -280,6 +281,39 @@ export default function (
               stopArgs.action = "stop";
             }
           )
+          .command(
+            chalk(
+              `logs <name> [--follow] [--since <timestamp>] [--until <timestamp>]`
+            ),
+            highlight(
+              "Fetch logs for the instance specified by <name>\n\n" +
+                "<timestamp> can be a linux timestamp e.g., `759927600000`,\n" +
+                "an ISO formatted timestamp `1994-01-30T11:00:00.000Z`\n" +
+                "or relative e.g., `60 seconds`."
+            ),
+            logsArgs => {
+              logsArgs.positional("name", { type: "string" });
+              logsArgs
+                .options("follow", {
+                  type: "boolean",
+                  alias: ["f"],
+                  description: "Continue streaming the instance's logs"
+                })
+                .options("since <timestamp>", {
+                  type: "string",
+                  alias: ["s"],
+                  description: highlight("Show logs since <timestamp>")
+                })
+                .options("until <timestamp>", {
+                  type: "string",
+                  alias: ["u"],
+                  description: highlight("Show logs up until <timestamp>")
+                });
+            },
+            logsArgs => {
+              logsArgs.action = "logs";
+            }
+          )
           .version(false);
       }
     )
@@ -315,11 +349,37 @@ export default function (
         "flavor" | "action"
       >)
     };
+  } else if (parsedArgs.action === "logs") {
+    finalArgs = {
+      action: "logs",
+      name: parsedArgs.name as string,
+      follow: parsedArgs.follow as boolean,
+      since: getTimestampFromInput(parsedArgs.since as string),
+      until: getTimestampFromInput(parsedArgs.until as string)
+    };
   } else {
     throw new Error(`Unknown action: ${parsedArgs.action}`);
   }
 
   return finalArgs;
+}
+
+function getTimestampFromInput(input: string): number | null {
+  if (input == null) {
+    return null;
+  }
+
+  const parsedDate = Date.parse(input);
+  if (!Number.isNaN(parsedDate)) {
+    return parsedDate;
+  }
+
+  const duration = parseDuration(input, "ms");
+  if (duration == null) {
+    throw new Error(`Invalid duration ${input}`);
+  }
+
+  return Date.now() - duration;
 }
 
 /**

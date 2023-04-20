@@ -20,6 +20,12 @@ export type StartArgs<TFlavorName extends FlavorName> =
 
 export type GanacheArgs =
   | (AbstractArgs<"stop"> & { name: string })
+  | (AbstractArgs<"logs"> & {
+      name: string;
+      follow?: boolean;
+      since?: number;
+      until?: number;
+    })
   | AbstractArgs<"list">
   | StartArgs<FlavorName>;
 

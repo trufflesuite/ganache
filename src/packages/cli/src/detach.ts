@@ -4,9 +4,10 @@ import envPaths from "env-paths";
 import psList, { ProcessDescriptor } from "@trufflesuite/ps-list";
 import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
-const { readFile, mkdir, readdir, rmdir, writeFile, unlink } = fsPromises;
+const { readFile, mkdir, readdir, rmdir, open, unlink } = fsPromises;
 import path from "path";
 import { FlavorName } from "@ganache/flavors";
+import { FileHandle } from "fs/promises";
 
 export type DetachedInstance = {
   name: string;
@@ -28,6 +29,10 @@ function getInstanceFilePath(instanceName: string): string {
   return path.join(dataPath, `${instanceName}.json`);
 }
 
+export function getInstanceLogsPath(instanceName: string): string {
+  return path.join(dataPath, `${instanceName}.log`);
+}
+
 /**
  * Notify that the detached instance has started and is ready to receive requests.
  */
@@ -42,12 +47,18 @@ export function notifyDetachedInstanceReady(port: number) {
  * @param  {string} instanceName the name of the instance to be removed
  * @returns boolean indicating whether the instance file was cleaned up successfully
  */
-export async function removeDetachedInstanceFile(
+export async function removeDetachedInstanceFiles(
   instanceName: string
 ): Promise<boolean> {
   const instanceFilename = getInstanceFilePath(instanceName);
+  const instanceLogFilename = getInstanceLogsPath(instanceName);
   try {
-    await unlink(instanceFilename);
+    await Promise.all([
+      unlink(instanceFilename),
+      unlink(instanceLogFilename).catch(err => {
+        if (err.code !== "ENOENT") throw err;
+      })
+    ]);
     return true;
   } catch {}
   return false;
@@ -77,7 +88,7 @@ export async function stopDetachedInstance(
   } catch (err) {
     return false;
   } finally {
-    await removeDetachedInstanceFile(instanceName);
+    await removeDetachedInstanceFiles(instanceName);
   }
   return true;
 }
@@ -98,10 +109,40 @@ export async function startDetachedInstance(
 ): Promise<DetachedInstance> {
   const [bin, module, ...args] = argv;
 
+  let instanceName = createInstanceName();
+  let filehandle: FileHandle;
+  while (true) {
+    const instanceFilename = getInstanceFilePath(instanceName);
+    try {
+      filehandle = await open(instanceFilename, "wx");
+      break;
+    } catch (err) {
+      switch ((err as NodeJS.ErrnoException).code) {
+        case "EEXIST":
+          // an instance already exists with this name
+          instanceName = createInstanceName();
+          break;
+        case "ENOENT":
+          // we don't check whether the folder exists before writing, as that's
+          // a very uncommon case. Catching the exception and subsequently
+          // creating the directory is faster in the majority of cases.
+          await mkdir(dataPath, { recursive: true });
+          break;
+        default:
+          throw err;
+      }
+    }
+  }
+
   // append `--no-detach` argument to cancel out --detach and aliases (must be
   // the last argument). See test "is false, when proceeded with --no-detach" in
   // args.test.ts
-  const childArgs = [...args, "--no-detach"];
+  const childArgs = [
+    ...args,
+    "--no-detach",
+    "--logging.file",
+    getInstanceLogsPath(instanceName)
+  ];
 
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
@@ -158,7 +199,7 @@ export async function startDetachedInstance(
   const instance: DetachedInstance = {
     startTime,
     pid,
-    name: createInstanceName(),
+    name: instanceName,
     host,
     port,
     flavor,
@@ -166,33 +207,8 @@ export async function startDetachedInstance(
     version
   };
 
-  while (true) {
-    const instanceFilename = getInstanceFilePath(instance.name);
-    try {
-      await writeFile(instanceFilename, JSON.stringify(instance), {
-        // wx means "Open file for writing, but fail if the path exists". see
-        // https://nodejs.org/api/fs.html#file-system-flags
-        flag: "wx",
-        encoding: FILE_ENCODING
-      });
-      break;
-    } catch (err) {
-      switch ((err as NodeJS.ErrnoException).code) {
-        case "EEXIST":
-          // an instance already exists with this name
-          instance.name = createInstanceName();
-          break;
-        case "ENOENT":
-          // we don't check whether the folder exists before writing, as that's
-          // a very uncommon case. Catching the exception and subsequently
-          // creating the directory is faster in the majority of cases.
-          await mkdir(dataPath, { recursive: true });
-          break;
-        default:
-          throw err;
-      }
-    }
-  }
+  await filehandle.write(JSON.stringify(instance), 0, FILE_ENCODING);
+  await filehandle.close();
 
   return instance;
 }
@@ -221,62 +237,70 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   }
   const instances: DetachedInstance[] = [];
 
-  const loadingInstancesInfos = dirEntries.map(async dirEntry => {
-    const filename = dirEntry.name;
-    const { name: instanceName, ext } = path.parse(filename);
+  const loadingInstancesInfos = dirEntries
+    .map(dirEntry => {
+      const { name: instanceName, ext } = path.parse(dirEntry.name);
+      return {
+        instanceName,
+        ext,
+        filename: dirEntry.name,
+        isDirectory: dirEntry.isDirectory
+      };
+    })
+    .filter(({ ext }) => ext !== ".log")
+    .map(async ({ ext, instanceName, filename, isDirectory }) => {
+      let failureReason: string;
 
-    let failureReason: string;
-
-    if (ext !== ".json") {
-      failureReason = `"${filename}" does not have a .json extension`;
-    } else {
-      let instance: DetachedInstance;
-      try {
-        // getDetachedInstanceByName() throws if the instance file is not found or
-        // cannot be parsed
-        instance = await getDetachedInstanceByName(instanceName);
-      } catch (err: any) {
-        failureReason = err.message;
-      }
-      if (instance) {
-        const matchingProcess = processes.find(p => p.pid === instance.pid);
-        if (!matchingProcess) {
-          failureReason = `Process with PID ${instance.pid} could not be found`;
-        } else if (matchingProcess.cmd !== instance.cmd) {
-          failureReason = `Process with PID ${instance.pid} does not match ${instanceName}`;
-        } else {
-          instances.push(instance);
-        }
-      }
-    }
-
-    if (failureReason !== undefined) {
-      someInstancesFailed = true;
-      const fullPath = path.join(dataPath, filename);
-      let resolution: string;
-      if (dirEntry.isDirectory()) {
-        const reason = `"${filename}" is a directory`;
-        try {
-          await rmdir(fullPath, { recursive: true });
-          failureReason = reason;
-        } catch {
-          resolution = `"${filename}" could not be removed`;
-        }
+      if (ext !== ".json") {
+        failureReason = `"${filename}" does not have a .json extension`;
       } else {
+        let instance: DetachedInstance;
         try {
-          await unlink(fullPath);
-        } catch {
-          resolution = `"${filename}" could not be removed`;
+          // getDetachedInstanceByName() throws if the instance file is not found or
+          // cannot be parsed
+          instance = await getDetachedInstanceByName(instanceName);
+        } catch (err: any) {
+          failureReason = err.message;
+        }
+        if (instance) {
+          const matchingProcess = processes.find(p => p.pid === instance.pid);
+          if (!matchingProcess) {
+            failureReason = `Process with PID ${instance.pid} could not be found`;
+          } else if (matchingProcess.cmd !== instance.cmd) {
+            failureReason = `Process with PID ${instance.pid} does not match ${instanceName}`;
+          } else {
+            instances.push(instance);
+          }
         }
       }
 
-      console.warn(
-        `Failed to load instance data. ${failureReason}. ${
-          resolution || `"${filename}" has been removed`
-        }.`
-      );
-    }
-  });
+      if (failureReason !== undefined) {
+        someInstancesFailed = true;
+        const fullPath = path.join(dataPath, filename);
+        let resolution: string;
+        if (isDirectory()) {
+          const reason = `"${filename}" is a directory`;
+          try {
+            await rmdir(fullPath, { recursive: true });
+            failureReason = reason;
+          } catch {
+            resolution = `"${filename}" could not be removed`;
+          }
+        } else {
+          try {
+            await unlink(fullPath);
+          } catch {
+            resolution = `"${filename}" could not be removed`;
+          }
+        }
+
+        console.warn(
+          `Failed to load instance data. ${failureReason}. ${
+            resolution || `"${filename}" has been removed`
+          }.`
+        );
+      }
+    });
 
   await Promise.all(loadingInstancesInfos);
 
@@ -294,7 +318,7 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
  * the instance file is not found or cannot be parsed
  * @param  {string} instanceName
  */
-async function getDetachedInstanceByName(
+export async function getDetachedInstanceByName(
   instanceName: string
 ): Promise<DetachedInstance> {
   const filepath = getInstanceFilePath(instanceName);
