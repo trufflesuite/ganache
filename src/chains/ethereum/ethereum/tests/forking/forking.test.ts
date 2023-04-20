@@ -1,5 +1,6 @@
 import { KNOWN_NETWORKS } from "@ganache/ethereum-options";
 import getProvider from "../helpers/getProvider";
+import skipIfNoInfuraKey from "../helpers/skipIfNoInfuraKey";
 import http from "http";
 import ganache from "../../../../../packages/core";
 import assert from "assert";
@@ -1047,9 +1048,7 @@ describe("forking", () => {
       let remoteProvider: EthereumProvider;
       let remoteAccounts: string[];
 
-      before("skip if we don't have the INFURA_KEY", function () {
-        if (!process.env.INFURA_KEY) this.skip();
-      });
+      skipIfNoInfuraKey();
 
       before("configure mainnet", async function () {
         // we fork from mainnet, but configure our fork such that it looks like
@@ -1171,9 +1170,7 @@ describe("forking", () => {
       let provider: EthereumProvider;
       const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
 
-      before("skip if we don't have the INFURA_KEY", function () {
-        if (!process.env.INFURA_KEY) this.skip();
-      });
+      skipIfNoInfuraKey();
 
       before("configure provider", async () => {
         provider = await getProvider({
@@ -1247,11 +1244,8 @@ describe("forking", function () {
       }
     };
     let localProvider: EthereumProvider;
-    before("check conditions", function () {
-      if (!process.env.INFURA_KEY) {
-        this.skip();
-      }
-    });
+
+    skipIfNoInfuraKey();
 
     KNOWN_NETWORKS.forEach(network => {
       describe(network, () => {
@@ -1383,12 +1377,12 @@ describe("forking", function () {
         validatorIndex: "0x3a995"
       }
     ];
-    before("skip if we don't have the INFURA_KEY", function () {
-      // this test uses the `network: "goerli"` option, which requires an
-      // infura key; when run our tests it must be provided as an environment
-      // variable.
-      if (!process.env.INFURA_KEY) this.skip();
-    });
+
+    // this test uses the `network: "goerli"` option, which requires an
+    // infura key; when run our tests it must be provided as an environment
+    // variable.
+    skipIfNoInfuraKey();
+
     describe("shanghai", () => {
       let provider: EthereumProvider;
       const blockNumber = 8765432;
