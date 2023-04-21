@@ -120,9 +120,10 @@ export default function (provider: EthereumProvider, cliSettings: CliSettings) {
   }
 
   logs.push("");
-  logs.push("Chain Id");
+  logs.push("Chain");
   logs.push("==================");
-  logs.push(color(liveOptions.chain.chainId.toString()));
+  logs.push(`Hardfork: ${color(liveOptions.chain.hardfork)}`);
+  logs.push(`Id:       ${color(liveOptions.chain.chainId.toString())}`);
 
   logs.push("");
   logs.push("RPC Listening on " + cliSettings.host + ":" + cliSettings.port);
