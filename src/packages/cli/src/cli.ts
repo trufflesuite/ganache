@@ -3,7 +3,7 @@
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import { parseArgs } from "./args";
-import type { Flavor } from "@ganache/flavor";
+import type { AnyFlavor } from "@ganache/flavor";
 import { load, CliOptionsConfig } from "@ganache/flavor";
 import {
   notifyDetachedInstanceReady,
@@ -50,7 +50,7 @@ if (argv.action === "start") {
 
   let { server: cliSettings } = CliOptionsConfig.normalize(argv);
 
-  let flavor: Flavor;
+  let flavor: AnyFlavor;
   if (flavorName === "ethereum") {
     flavor = require("@ganache/ethereum").default;
   } else {

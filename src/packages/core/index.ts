@@ -1,4 +1,4 @@
-import type { Flavor } from "@ganache/flavor";
+import type { AnyFlavor, Flavor } from "@ganache/flavor";
 import EthereumFlavor from "@ganache/ethereum";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import { loadConnector } from "./src/connector-loader";
@@ -43,7 +43,7 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  server: <F extends Flavor = EthereumFlavor>(options?: any): Server<F> =>
+  server: <F extends AnyFlavor = EthereumFlavor>(options?: any): Server<F> =>
     new Server<F>(options),
 
   /**
@@ -60,7 +60,7 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  provider: <F extends Flavor = EthereumFlavor>(
+  provider: <F extends AnyFlavor = EthereumFlavor>(
     options?: ProviderOptions<F>
   ): ReturnType<F["connect"]>["provider"] => {
     const loader = loadConnector<F>(options);

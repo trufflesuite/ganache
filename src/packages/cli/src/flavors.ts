@@ -1,4 +1,4 @@
-import type { Flavor } from "@ganache/flavor";
+import type { AnyFlavor } from "@ganache/flavor";
 import {
   cliDefaults,
   load,
@@ -9,7 +9,7 @@ import chalk from "chalk";
 import { Argv } from "yargs";
 import { applyDefaults } from "./helpers";
 
-export function loadFlavorFromArgs(args: string[]): Flavor {
+export function loadFlavorFromArgs(args: string[]): AnyFlavor {
   // the next entry after `--flavor` is treated as a flavor name, if it isn't a
   // valid npm package we'll throw an error via `load` or
   const flavorArgIndex = args.indexOf("--flavor") + 1;

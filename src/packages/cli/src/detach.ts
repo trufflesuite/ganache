@@ -6,13 +6,14 @@ import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
 const { readFile, mkdir, readdir, rmdir, writeFile, unlink } = fsPromises;
 import path from "path";
+import { CliSettings } from "@ganache/flavor";
 
 export type DetachedInstance = {
   name: string;
   pid: number;
   startTime: number;
-  host: string;
-  port: number;
+  host: CliSettings["host"];
+  port: CliSettings["port"];
   flavor: "ethereum" | string;
   cmd: string;
   version: string;
@@ -30,7 +31,7 @@ function getInstanceFilePath(instanceName: string): string {
 /**
  * Notify that the detached instance has started and is ready to receive requests.
  */
-export function notifyDetachedInstanceReady(port: number) {
+export function notifyDetachedInstanceReady(port: CliSettings["port"]) {
   // in "detach" mode, the parent will wait until the port is
   // received before disconnecting from the child process.
   process.send(port);
@@ -91,7 +92,7 @@ export async function startDetachedInstance(
   argv: string[],
   instanceInfo: {
     flavor?: "ethereum" | string;
-    server: { host: string; port: number };
+    server: CliSettings;
   },
   version: string
 ): Promise<DetachedInstance> {

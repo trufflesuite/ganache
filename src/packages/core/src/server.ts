@@ -16,7 +16,8 @@ setUwsGlobalConfig &&
   setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
 
 import type {
-  Flavor,
+  AnyFlavor,
+  CliSettings,
   WebsocketConnector
 } from "@ganache/flavor";
 import { load, ServerOptionsConfig } from "@ganache/flavor";
@@ -90,7 +91,7 @@ export enum ServerStatus {
 /**
  * @public
  */
-export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
+export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
   open: undefined;
   close: undefined;
 }> {
@@ -99,7 +100,7 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer<ReturnType<F["connect"]>> | null = null;
   #listenSocket: us_listen_socket | null = null;
-  #host: string | null = null;
+  #host: CliSettings["host"] | null = null;
   #connector: ReturnType<F["connect"]>;
   #websocketServer: WebsocketServer | null = null;
 
@@ -168,13 +169,13 @@ export class Server<F extends Flavor = EthereumFlavor> extends Emittery<{
     this.#initializer = loader.promise;
   }
 
-  listen(port: number): Promise<void>;
-  listen(port: number, host: string): Promise<void>;
-  listen(port: number, callback: Callback): void;
-  listen(port: number, host: string, callback: Callback): void;
+  listen(port: CliSettings["port"]): Promise<void>;
+  listen(port: CliSettings["port"], host: CliSettings["host"]): Promise<void>;
+  listen(port: CliSettings["port"], callback: Callback): void;
+  listen(port: CliSettings["port"], host: CliSettings["host"], callback: Callback): void;
   listen(
-    port: number,
-    host?: string | Callback,
+    port: CliSettings["port"],
+    host?: CliSettings["host"] | Callback,
     callback?: Callback
   ): void | Promise<void> {
     if (typeof host === "function") {

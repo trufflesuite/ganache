@@ -2,27 +2,32 @@ import type { OptionsConfig } from "@ganache/options";
 import { Executor } from "..";
 import { Connector } from "./connector";
 
-export type CliSettings = Partial<{
-  ws: boolean;
-  wsBinary: boolean | "auto";
-  rpcEndpoint: string;
-  chunkSize: number;
-}> & { host: string; port: number };
+export type CliSettings = { host: string; port: number };
 
-export type FlavorOptions<ProviderOptions extends OptionsConfig<any>,
-ServerOptions extends OptionsConfig<any>,
-CliOptions extends OptionsConfig<any>> = {
-  provider: ProviderOptions extends void ? never : ProviderOptions;
-  server: ServerOptions extends void ? never : ServerOptions;
-  cli: CliOptions extends void ? never : CliOptions;
-};
+type RemovePropertiesOfType<A, B> = {
+  [K in keyof A as A[K] extends B ? never : K]: A[K]
+}
+
+export type FlavorOptions<ProviderOptions extends OptionsConfig<any> | never,
+ServerOptions extends OptionsConfig<any> | never,
+CliOptions extends OptionsConfig<any> | never> = RemovePropertiesOfType<{
+  provider: ProviderOptions;
+  server: ServerOptions;
+  cli: CliOptions;
+}, never>;
+
+/**
+ * A type to represent any flavor. Used internally to generalize flavors.
+ * @internal
+ */
+export type AnyFlavor = Flavor<string, Connector<any, any, any>, OptionsConfig<any> | null, OptionsConfig<any> | null, OptionsConfig<any> | null>;
 
 export type Flavor<
-  Name extends string = any,
-  C extends Connector<any, any, any> = Connector<any, any, any>,
-  ProviderOptions extends OptionsConfig<any> = any,
-  ServerOptions extends OptionsConfig<any> = any,
-  CliOptions extends OptionsConfig<any> = any
+  Name extends string,
+  C extends Connector<any, any, any>,
+  ProviderOptions extends OptionsConfig<any> = never,
+  ServerOptions extends OptionsConfig<any> = never,
+  CliOptions extends OptionsConfig<any> = never
 > = {
   flavor: Name;
   connect: (providerOptions: Parameters<ProviderOptions["normalize"]>[0] | null, executor: Executor) => C;

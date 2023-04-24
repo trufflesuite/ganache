@@ -20,6 +20,6 @@ export { CliOptionsConfig } from "./src/options/cli/cli-options-config";
 export { CliOptions } from "./src/options/cli/cli-options";
 export { cliDefaults } from "./src/options/cli/cli-defaults";
 
-export type { Flavor, FlavorOptions } from "./src/flavor";
+export type { AnyFlavor, Flavor, FlavorOptions, CliSettings } from "./src/flavor";
 export { Defaults, OptionsConfig, Definitions } from "@ganache/options";
 export { load } from "./src/load";

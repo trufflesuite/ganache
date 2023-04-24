@@ -1066,7 +1066,6 @@ export default class EthereumApi implements Api {
     const block = await this.#blockchain.blocks
       .get(number)
       .catch<Block>(_ => null);
-    // @ts-ignore
     return block ? block.toJSON<IncludeTransactions>(transactions) : null;
   }
 

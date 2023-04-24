@@ -18,6 +18,7 @@ import {
 } from "@ganache/ethereum-options";
 import type { Flavor } from "@ganache/flavor";
 import { CliOptionsConfig, ServerOptionsConfig } from "@ganache/flavor";
+import { CliSettings } from "@ganache/flavor";
 
 export * from "./src/connector";
 export * from "./src/api-types";
@@ -54,7 +55,7 @@ export default EthereumFlavor;
 
 function initialize(
   provider: EthereumProvider,
-  cliSettings: { host: string; port: number }
+  cliSettings: CliSettings
 ) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();

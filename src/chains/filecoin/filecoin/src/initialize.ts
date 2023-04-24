@@ -1,10 +1,11 @@
+import { CliSettings } from "@ganache/flavor";
 import { FilecoinProvider } from "./provider";
 
 export type initialize = typeof initialize;
 
 export async function initialize(
   provider: FilecoinProvider,
-  serverSettings: { host: string; port: number }
+  serverSettings: CliSettings
 ) {
   const liveOptions = provider.getOptions();
   const accounts = await provider.getInitialAccounts();

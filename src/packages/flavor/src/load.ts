@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { TruffleColors } from "@ganache/colors";
-import { Flavor } from "./flavor";
+import { AnyFlavor } from "./flavor";
 import { hasOwn } from "@ganache/utils";
 
 /**
@@ -9,7 +9,7 @@ import { hasOwn } from "@ganache/utils";
  * @param flavor
  * @returns
  */
-export function load<F extends Flavor>(flavor: F["flavor"]): F {
+export function load<F extends AnyFlavor>(flavor: F["flavor"]): F {
   // `@ganache/filecoin` used to be named just `filecoin`, we we need to
   // preserve this alias for backwards compatibility
   if (flavor === "filecoin") flavor = "@ganache/filecoin";

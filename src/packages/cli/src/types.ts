@@ -1,11 +1,6 @@
-import type { Flavor } from "@ganache/flavor";
+import type { AnyFlavor, CliSettings, Flavor } from "@ganache/flavor";
 import type { ServerOptions } from "@ganache/core";
 import type EthereumFlavor from "@ganache/ethereum";
-
-type CliServerOptions = {
-  host: string;
-  port: number;
-};
 
 type Action = "start" | "start-detached" | "list" | "stop";
 
@@ -15,10 +10,10 @@ type AbstractArgs<TAction = Action> = {
 
 export type StartArgs<
   TFlavorName extends "ethereum" | string,
-  F extends Flavor = TFlavorName extends "ethereum" ? EthereumFlavor : Flavor<TFlavorName>
+  F extends AnyFlavor = TFlavorName extends "ethereum" ? EthereumFlavor : Flavor<TFlavorName, any, any, any, any>
 > = ServerOptions<F> & {
   _: [TFlavorName];
-  server: CliServerOptions;
+  server: CliSettings;
   flavor: TFlavorName
 } & AbstractArgs<"start" | "start-detached">;
 
@@ -27,8 +22,6 @@ export type GanacheArgs =
   | AbstractArgs<"list">
   | StartArgs<"ethereum" | string>;
 
-export type CliSettings = CliServerOptions;
-
-export type Argv<F extends Flavor> = ServerOptions<F> & {
+export type Argv<F extends AnyFlavor> = ServerOptions<F> & {
   _: [F["flavor"]];
 };
