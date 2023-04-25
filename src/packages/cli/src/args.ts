@@ -285,7 +285,7 @@ export default function (
       function () {
         // this handler executes when `ganache instances` is called without a subcommand
         const command = chalk`{hex("${TruffleColors.porsche}") ganache instances}`;
-        console.log(`${command} requires a subcommand:`);
+        console.log(`${command} requires a subcommand.`);
         console.log();
         yargs.showHelp();
         yargs.exit(1, new Error("No subcommand provided"));
