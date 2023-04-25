@@ -1,5 +1,5 @@
 {
-  "name": "my-chain",
+  "name": "not-a-blockchain-chain",
   "publishConfig": {
     "access": "public"
   },
@@ -18,7 +18,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "pre-publish": "npm run build",
+    "postinstall": "npm run build",
+    "prepublish": "npm run build",
     "test": "ts-mocha"
   },
   "keywords": [

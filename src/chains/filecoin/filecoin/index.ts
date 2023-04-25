@@ -7,7 +7,7 @@
 
 import type { Flavor } from "@ganache/flavor";
 import { Connector } from "./src/connector";
-import { initialize } from "./src/initialize";
+import { ready } from "./src/ready";
 import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
 import { CliOptionsConfig, ServerOptionsConfig } from "./src/defaults";
 
@@ -16,7 +16,13 @@ export {
   StorageDealStatus
 } from "./src/connector";
 
-type FilecoinFlavor = Flavor<"filecoin", Connector, FilecoinOptionsConfig, ServerOptionsConfig, CliOptionsConfig>;
+type FilecoinFlavor = Flavor<
+  "filecoin",
+  Connector,
+  FilecoinOptionsConfig,
+  ServerOptionsConfig,
+  CliOptionsConfig
+>;
 const FilecoinFlavor: FilecoinFlavor = {
   flavor: "filecoin",
   connect: (options, executor) => new Connector(options, executor),
@@ -25,7 +31,7 @@ const FilecoinFlavor: FilecoinFlavor = {
     server: ServerOptionsConfig,
     cli: CliOptionsConfig
   },
-  initialize
+  ready
 };
 
 export default FilecoinFlavor;

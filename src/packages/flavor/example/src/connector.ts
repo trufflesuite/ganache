@@ -1,5 +1,5 @@
 import type { Connector, Executor, HttpRequest } from "@ganache/flavor";
-import { MyChainProviderOptions } from "./options";
+import { NotABlockchainChainProviderOptions } from "./options";
 import { Provider } from "./provider";
 
 export type RequestFormat = {
@@ -14,11 +14,14 @@ export type ResponseFormat = {
   params: any[];
 };
 
-export class MyChainConnector
+export class NotABlockchainChainConnector
   implements Connector<Provider, RequestFormat, ResponseFormat>
 {
   public provider: Provider;
-  constructor(options: MyChainProviderOptions, _executor: Executor) {
+  constructor(
+    options: NotABlockchainChainProviderOptions,
+    _executor: Executor
+  ) {
     this.provider = new Provider(options);
   }
   public async connect() {}

@@ -1,7 +1,10 @@
 import type { CliSettings, Executor, Flavor } from "../../";
 import type { Provider } from "./provider";
-import { MyChainConnector } from "./connector";
-import { MyChainOptionsConfig, MyChainProviderOptions } from "./options";
+import { NotABlockchainChainConnector } from "./connector";
+import {
+  NotABlockchainChainOptionsConfig,
+  NotABlockchainChainProviderOptions
+} from "./options";
 
 /**
  * It can be useful to create a type for your Flavor that extends Ganache's
@@ -13,29 +16,45 @@ import { MyChainOptionsConfig, MyChainProviderOptions } from "./options";
  * It is useful for the end user because they can import your Flavor type when
  * using Ganache programmatically, e.g.,
  * ```
- * const provider: Ganache.provider<MyChainFlavor>(options)`
+ * const provider: Ganache.provider<NotABlockchainChainFlavor>(options)`
  * ```
  */
-type MyChainFlavor = Flavor<
-"my-chain", MyChainConnector, MyChainOptionsConfig
+type NotABlockchainChainFlavor = Flavor<
+  "not-a-blockchain-chain",
+  NotABlockchainChainConnector,
+  NotABlockchainChainOptionsConfig
 >;
 
-const MyChainFlavor: MyChainFlavor = {
-  flavor: "my-chain",
-  connect: (options: MyChainProviderOptions, executor: Executor) => new MyChainConnector(options, executor),
+const NotABlockchainChainFlavor: NotABlockchainChainFlavor = {
+  flavor: "not-a-blockchain-chain",
+  connect: (options: NotABlockchainChainProviderOptions, executor: Executor) =>
+    new NotABlockchainChainConnector(options, executor),
   options: {
-    provider: MyChainOptionsConfig
+    provider: NotABlockchainChainOptionsConfig
   },
-  initialize
+  ready
 };
 /**
  * Your flavor needs to be exported as `default` so Ganache can find it.
  */
-export default MyChainFlavor;
+export default NotABlockchainChainFlavor;
 
-async function initialize(provider: Provider, cliArgs: CliSettings) {
+async function ready(provider: Provider, cliArgs: CliSettings) {
+  console.log(`*********************************`);
+  console.log(`Welcome to Not-a-Blockchain-Chain`);
+  console.log(`*********************************`);
+  console.log();
   console.log(`Server is running at ${cliArgs.host}:${cliArgs.port}`);
+  console.log();
 
   const blockNumber = await provider.send("blockNumber", ["latest"]);
   console.log(`The current block number is ${blockNumber}`);
+  console.log();
+  console.log(`Try a command:`);
+  console.log(
+    `curl -X POST --data '${JSON.stringify({
+      method: "sendFunds",
+      params: [provider.getAccounts()[0], "<a different account>", 99]
+    })}' http://${cliArgs.host}:${cliArgs.port}`
+  );
 }

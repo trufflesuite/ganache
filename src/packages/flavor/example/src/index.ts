@@ -1,12 +1,12 @@
-import MyChainFlavor from "./flavor";
+import NotABlockchainChainFlavor from "./flavor";
 
 /**
  * Exporting your Provider type directly can be useful to end users when using
  * your plugin programmatically:
  *
  * ```
- * import { MyChainFlavor, Provider } from "my-chain";
- * const provider: Provider = Ganache.provider({ flavor: "my-chain" });`
+ * import { NotABlockchainChainFlavor, Provider } from "not-a-blockchain-chain";
+ * const provider: Provider = Ganache.provider({ flavor: "not-a-blockchain-chain" });`
  * ```
  */
 export type { Provider } from "./provider";
@@ -16,11 +16,11 @@ export type { Provider } from "./provider";
  * your plugin programmatically:
  *
  * ```
- * import { MyChainFlavor, Options } from "my-chain";
+ * import { NotABlockchainChainFlavor, Options } from "not-a-blockchain-chain";
  * const options: Options = { ... };
- * const provider = Ganache.provider({ flavor: "my-chain" });`
+ * const provider = Ganache.provider({ flavor: "not-a-blockchain-chain" });`
  * ```
  */
-export type { MyChainProviderOptions as Options } from "./options";
+export type { NotABlockchainChainProviderOptions as Options } from "./options";
 
-export default MyChainFlavor;
+export default NotABlockchainChainFlavor;

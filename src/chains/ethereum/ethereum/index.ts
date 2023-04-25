@@ -48,15 +48,12 @@ const EthereumFlavor: EthereumFlavor = {
     server: ServerOptionsConfig,
     cli: CliOptionsConfig
   },
-  initialize
+  ready
 };
 // flavors are exported as a default export
 export default EthereumFlavor;
 
-function initialize(
-  provider: EthereumProvider,
-  cliSettings: CliSettings
-) {
+function ready(provider: EthereumProvider, cliSettings: CliSettings) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 

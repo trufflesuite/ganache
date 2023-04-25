@@ -1,9 +1,9 @@
 import { CliSettings } from "@ganache/flavor";
 import { FilecoinProvider } from "./provider";
 
-export type initialize = typeof initialize;
+export type ready = typeof ready;
 
-export async function initialize(
+export async function ready(
   provider: FilecoinProvider,
   serverSettings: CliSettings
 ) {

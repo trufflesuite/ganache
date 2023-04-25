@@ -1,7 +1,7 @@
 import {
-  MyChainInternalOptions,
-  MyChainOptionsConfig,
-  MyChainProviderOptions
+  NotABlockchainChainInternalOptions,
+  NotABlockchainChainOptionsConfig,
+  NotABlockchainChainProviderOptions
 } from "./options";
 
 type Account = {
@@ -33,10 +33,14 @@ function copyState(latest: Block) {
 export class Provider {
   #blockchain: Map<bigint, Block> = new Map();
   #latestBlock: bigint;
-  #options: MyChainInternalOptions;
+  #options: NotABlockchainChainInternalOptions;
 
-  constructor(options: MyChainProviderOptions) {
-    this.#options = MyChainOptionsConfig.normalize(options);
+  getAccounts() {
+    return this.#options.wallet.accounts.map(address => address);
+  }
+
+  constructor(options: NotABlockchainChainProviderOptions) {
+    this.#options = NotABlockchainChainOptionsConfig.normalize(options);
 
     const genesisBlock: Map<string, Account> = new Map();
     this.#options.wallet.accounts.forEach(address =>

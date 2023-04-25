@@ -50,24 +50,29 @@ export const WalletOptions: Definitions<WalletDefinition> = {
   }
 };
 
-export type MyChainDefinition = {
+export type NotABlockchainChainDefinition = {
   wallet: WalletDefinition;
 };
 
-export type MyChainDefaults = Defaults<MyChainDefinition>;
-export const MyChainDefaults: MyChainDefaults = {
+export type NotABlockchainChainDefaults =
+  Defaults<NotABlockchainChainDefinition>;
+export const NotABlockchainChainDefaults: NotABlockchainChainDefaults = {
   wallet: WalletOptions
 };
 
-export type MyChainOptionsConfig = OptionsConfig<MyChainDefinition>;
-export const MyChainOptionsConfig: MyChainOptionsConfig = new OptionsConfig(
-  MyChainDefaults
-);
+export type NotABlockchainChainOptionsConfig =
+  OptionsConfig<NotABlockchainChainDefinition>;
+export const NotABlockchainChainOptionsConfig: NotABlockchainChainOptionsConfig =
+  new OptionsConfig(NotABlockchainChainDefaults);
 
-export type MyChainProviderOptions = Partial<{
-  [K in keyof MyChainDefinition]: ExternalConfig<MyChainDefinition[K]>;
+export type NotABlockchainChainProviderOptions = Partial<{
+  [K in keyof NotABlockchainChainDefinition]: ExternalConfig<
+    NotABlockchainChainDefinition[K]
+  >;
 }>;
 
-export type MyChainInternalOptions = {
-  [K in keyof MyChainDefinition]: InternalConfig<MyChainDefinition[K]>;
+export type NotABlockchainChainInternalOptions = {
+  [K in keyof NotABlockchainChainDefinition]: InternalConfig<
+    NotABlockchainChainDefinition[K]
+  >;
 };
