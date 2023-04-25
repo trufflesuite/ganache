@@ -8,7 +8,7 @@ Ganache's `--flavor` flag.
 
 ### Warnings and Gotchas
 
-Ganache flavors are experiemental, incomplete, and subject to change without
+Ganache flavors are experimental, incomplete, and subject to change without
 notice.
 
 Ganache flavors are Ethereum JSON-RPC (2.0) inspired, and we are still working
@@ -30,7 +30,7 @@ flavor is a JavaScript object that implements the `Flavor` TypeScript interface.
 
 A hello-world flavor in TypeScript:
 
-````typescript
+```typescript
 import type { Flavor } from "@ganache/flavor";
 
 const helloConnector: Connector = {
@@ -119,9 +119,9 @@ const HelloFlavor: HelloFlavor = {
   options: {
     // see the `example/` directory for how Options work
   },
-  connect: (options: {}, executor: Executor) => {
+  connect: (options: {}, executor: Executor) {
     // NOTE: about the `Executor`
-    // The `executor` is an helper class that can be used to coordinate request
+    // The `executor` is a helper class that can be used to coordinate request
     // execution. This help is an internal abstraction that might be useful, so
     // it has been provided as part of this flavor interface.
     //
