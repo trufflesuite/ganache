@@ -18,6 +18,14 @@ export class Quantity extends BaseJsonRpcType {
     return new Quantity(value, nullable);
   }
 
+  public static min(a: Quantity, b: Quantity) {
+    return a.toBigInt() < b.toBigInt() ? a : b;
+  }
+
+  public static max(a: Quantity, b: Quantity) {
+    return a.toBigInt() < b.toBigInt() ? b : a;
+  }
+
   constructor(value: JsonRpcInputArg, nullable?: boolean) {
     super(value);
     if (value === "0x") {

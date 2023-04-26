@@ -210,37 +210,56 @@ export default class BlockManager extends Manager<Block> {
   }
 
   async getNumberFromHash(hash: string | Buffer | Tag) {
-    return this.#blockIndexes.get(Data.toBuffer(hash)).catch(e => {
-      if (e.status === NOTFOUND) return null;
-      throw e;
-    }) as Promise<Buffer | null>;
+    const number = await this.#blockIndexes
+      .get(Data.toBuffer(hash))
+      .catch(e => {
+        if (e.status === NOTFOUND) return null;
+        throw e;
+      });
+    if (number !== null) {
+      return Quantity.from(number);
+    }
+    const fallback = this.#blockchain.fallback;
+    if (fallback) {
+      const json = await fallback.request<any>("eth_getBlockByHash", [
+        Data.from(hash),
+        true
+      ]);
+      if (json) {
+        return Quantity.from(json.number);
+      }
+    }
+    return null;
   }
 
   async getByHash(hash: string | Buffer | Tag) {
-    const number = await this.getNumberFromHash(hash);
-    if (number === null) {
-      const fallback = this.#blockchain.fallback;
-      if (fallback) {
-        const json = await fallback.request<any>("eth_getBlockByHash", [
-          Data.from(hash),
-          true
-        ]);
-        if (json) {
-          const blockNumber = BigInt(json.number);
-          if (blockNumber <= fallback.blockNumber.toBigInt()) {
-            const common = fallback.getCommonForBlockNumber(
-              this.#common,
-              blockNumber
-            );
-            return new Block(BlockManager.rawFromJSON(json, common), common);
-          }
-        }
-      }
-
-      return null;
-    } else {
+    const number = await this.#blockIndexes
+      .get(Data.toBuffer(hash))
+      .catch(e => {
+        if (e.status === NOTFOUND) return null;
+        throw e;
+      });
+    if (number !== null) {
       return this.get(number);
     }
+    const fallback = this.#blockchain.fallback;
+    if (fallback) {
+      const json = await fallback.request<any>("eth_getBlockByHash", [
+        Data.from(hash),
+        true
+      ]);
+      if (json) {
+        const blockNumber = BigInt(json.number);
+        if (blockNumber <= fallback.blockNumber.toBigInt()) {
+          const common = fallback.getCommonForBlockNumber(
+            this.#common,
+            blockNumber
+          );
+          return new Block(BlockManager.rawFromJSON(json, common), common);
+        }
+      }
+    }
+    return null;
   }
 
   async getRawByBlockNumber(blockNumber: Quantity): Promise<Buffer> {
