@@ -65,13 +65,19 @@ type TransactionSimulationArgs = {
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
-
+type StateChange = {
+  key: Data;
+  contractAddress: Address;
+  from: Data;
+  to: Data;
+};
 type TransactionSimulationResult = {
   returnValue: Data;
   gas: Quantity;
   logs: Log[];
   receipts?: Data[];
   trace?: [];
+  stateChanges: StateChange[];
 };
 
 async function simulateTransaction(
@@ -80,7 +86,10 @@ async function simulateTransaction(
   transaction: Ethereum.Call.Transaction,
   blockNumber: QUANTITY | Ethereum.Tag = Tag.latest,
   overrides: Ethereum.Call.Overrides = {}
-): Promise<any> {
+): Promise<{
+  result: any;
+  stateChanges: Map<Buffer, [Buffer, Buffer, Buffer]>;
+}> {
   // EVMResult
   const common = blockchain.common;
   const blocks = blockchain.blocks;
@@ -185,6 +194,7 @@ async function simulateTransaction(
     parentBlock,
     overrides
   );
+
   return result;
 }
 
@@ -2893,11 +2903,12 @@ export default class EthereumApi implements Api {
   async evm_simulateTransaction(
     args: TransactionSimulationArgs
   ): Promise<TransactionSimulationResult> {
+    // todo: need to be able to pass in multiple transactions
     const transaction = args.transactions[0];
     const blockNumber = args.block || "latest";
     const overrides = args.overrides;
 
-    const result = await simulateTransaction(
+    const { result, stateChanges } = await simulateTransaction(
       this.#blockchain,
       this.#options,
       transaction,
@@ -2905,11 +2916,22 @@ export default class EthereumApi implements Api {
       overrides
     );
 
+    const changes = [];
+    for (const key of stateChanges.keys()) {
+      const [contractAddress, from, to] = stateChanges.get(key);
+      changes.push({
+        key: Data.from(key),
+        contractAddress: Address.from(contractAddress),
+        from: Data.from(from, 32),
+        to: Data.from(to, 32)
+      });
+    }
+
     const returnValue = Data.from(result.returnValue || "0x");
     const gas = Quantity.from(result.gas);
     const logs = result.logs?.map(([addr, topics, data]) => ({
       address: Data.from(addr),
-      topics: topics?.map(Data.from),
+      topics: topics?.map(t => Data.from(t)),
       data: Data.from(data)
     }));
 
@@ -2917,8 +2939,11 @@ export default class EthereumApi implements Api {
       returnValue,
       gas,
       logs,
+      //todo: populate receipts
       receipts: undefined,
-      trace: undefined
+      //todo: populate trace
+      trace: undefined,
+      stateChanges: changes
     };
   }
 
@@ -2978,7 +3003,7 @@ export default class EthereumApi implements Api {
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest,
     overrides: Ethereum.Call.Overrides = {}
   ): Promise<Data> {
-    const result = await simulateTransaction(
+    const { result } = await simulateTransaction(
       this.#blockchain,
       this.#options,
       transaction,
