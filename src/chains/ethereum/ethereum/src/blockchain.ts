@@ -78,6 +78,7 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
+import { bigIntToBuffer } from "@ganache/utils";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1107,6 +1108,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     overrides: CallOverrides
   ) {
     let result: EVMResult;
+    const stateChanges = new Map<Buffer, [Buffer, Buffer, Buffer]>();
 
     const data = transaction.data;
     let gasLimit = transaction.gas.toBigInt();
@@ -1145,12 +1147,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         false, // precompiles have already been initialized in the stateTrie
         common
       );
+      const stateManager = vm.stateManager as GanacheStateManager;
+      let storageTrieByAddress = new Map<any, Trie>();
 
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
-
-      vm.evm.events.on("step", (event: InterpreterStep) => {
+      vm.evm.events.on("step", async (event: InterpreterStep) => {
         const logs = maybeGetLogs(event);
         if (logs) {
           options.logging.logger.log(...logs);
@@ -1158,6 +1161,25 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             context: transactionContext,
             logs
           });
+        }
+
+        if (event.opcode.name === "SSTORE") {
+          const stackLength = event.stack.length;
+          const key = bigIntToBuffer(event.stack[stackLength - 1]);
+          const value = bigIntToBuffer(event.stack[stackLength - 2]);
+          let storageTrie: Trie;
+          if (storageTrieByAddress.has(event.codeAddress)) {
+            storageTrie = storageTrieByAddress.get(event.codeAddress);
+          } else {
+            storageTrie = await stateManager.getStorageTrie(
+              event.codeAddress.toBuffer()
+            );
+            storageTrieByAddress.set(event.codeAddress, storageTrie);
+          }
+
+          // this might not need to await, if we can get the storage trie from the original stateTrie, rather than the copy
+          const from = await storageTrie.get(key);
+          stateChanges.set(key, [event.codeAddress.toBuffer(), from, value]);
         }
 
         if (!this.#emitStepEvent) return;
@@ -1195,7 +1217,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // TODO: should we throw if insufficient funds?
       fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
       await vm.eei.putAccount(callerAddress, fromAccount);
-
       // finally, run the call
       result = await vm.evm.runCall({
         caller: callerAddress,
@@ -1221,7 +1242,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
-      return result.execResult;
+      return { result: result.execResult, stateChanges };
     }
   }
 
