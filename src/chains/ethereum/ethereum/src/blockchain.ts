@@ -1221,7 +1221,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
-      return Data.from(result.execResult.returnValue || "0x");
+      return result.execResult;
     }
   }
 
