@@ -65,7 +65,7 @@ type TransactionSimulationArgs = {
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
-type StateChange = {
+type StorageChange = {
   key: Data;
   address: Address;
   from: Data;
@@ -77,7 +77,7 @@ type TransactionSimulationResult = {
   logs: Log[];
   receipts?: Data[];
   trace?: [];
-  stateChanges: StateChange[];
+  storageChanges: StorageChange[];
 };
 
 async function simulateTransaction(
@@ -88,7 +88,7 @@ async function simulateTransaction(
   overrides: Ethereum.Call.Overrides = {}
 ): Promise<{
   result: any;
-  stateChanges: Map<Buffer, [Buffer, Buffer, Buffer]>;
+  storageChange: Map<Buffer, [Buffer, Buffer, Buffer]>;
 }> {
   // EVMResult
   const common = blockchain.common;
@@ -2908,7 +2908,7 @@ export default class EthereumApi implements Api {
     const blockNumber = args.block || "latest";
     const overrides = args.overrides;
 
-    const { result, stateChanges } = await simulateTransaction(
+    const { result, storageChange } = await simulateTransaction(
       this.#blockchain,
       this.#options,
       transaction,
@@ -2917,8 +2917,8 @@ export default class EthereumApi implements Api {
     );
 
     const changes = [];
-    for (const key of stateChanges.keys()) {
-      const [contractAddress, from, to] = stateChanges.get(key);
+    for (const key of storageChange.keys()) {
+      const [contractAddress, from, to] = storageChange.get(key);
       changes.push({
         key: Data.from(key),
         address: Address.from(contractAddress),
@@ -2943,7 +2943,7 @@ export default class EthereumApi implements Api {
       receipts: undefined,
       //todo: populate trace
       trace: undefined,
-      stateChanges: changes
+      storageChanges: changes
     };
   }
 

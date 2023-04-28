@@ -1108,7 +1108,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     overrides: CallOverrides
   ) {
     let result: EVMResult;
-    const stateChanges = new Map<Buffer, [Buffer, Buffer, Buffer]>();
+    const storageChange = new Map<Buffer, [Buffer, Buffer, Buffer]>();
 
     const data = transaction.data;
     let gasLimit = transaction.gas.toBigInt();
@@ -1165,9 +1165,25 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         if (event.opcode.name === "SSTORE") {
           const stackLength = event.stack.length;
-          const key = bigIntToBuffer(event.stack[stackLength - 1]);
+          const keyBigInt = event.stack[stackLength - 1];
+          const key =
+            keyBigInt === 0n
+              ? Buffer.alloc(32)
+              : // todo: this isn't super efficient, but :shrug: we probably don't do it often
+                Data.toBuffer(bigIntToBuffer(keyBigInt), 32);
           const value = bigIntToBuffer(event.stack[stackLength - 2]);
-          let storageTrie: Trie;
+
+          // todo: DELEGATE_CALL might impact the address context from which the `before` value should be fetched
+          const storageTrie = await stateManager.getStorageTrie(
+            event.codeAddress.toBuffer()
+          );
+
+          /*
+          // if the value of a given address and slot has it's value changed multiple times,
+          // the "from" value will return the stale data in subsequent state changes we may
+          // be able to just change it's root, but maybe it's more efficient just to get a
+          // new trie
+
           if (storageTrieByAddress.has(event.codeAddress)) {
             storageTrie = storageTrieByAddress.get(event.codeAddress);
           } else {
@@ -1175,11 +1191,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               event.codeAddress.toBuffer()
             );
             storageTrieByAddress.set(event.codeAddress, storageTrie);
-          }
+          }*/
 
-          // this might not need to await, if we can get the storage trie from the original stateTrie, rather than the copy
           const from = await storageTrie.get(key);
-          stateChanges.set(key, [event.codeAddress.toBuffer(), from, value]);
+          storageChange.set(key, [event.codeAddress.toBuffer(), from, value]);
         }
 
         if (!this.#emitStepEvent) return;
@@ -1242,7 +1257,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
-      return { result: result.execResult, stateChanges };
+      return { result: result.execResult, storageChange };
     }
   }
 
