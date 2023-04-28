@@ -82,7 +82,45 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
   );
 
   yargs
-    .showHelpOnFail(false, "Specify -? or --help for available options")
+    .command(
+      "instances",
+      highlight(
+        "Manage instances of Ganache running in detached mode." +
+          EOL +
+          "(Ganache can be run in detached mode by providing the `--detach` flag)"
+      ),
+      _yargs => {
+        _yargs
+          .command(
+            "list",
+            "List instances running in detached mode",
+            _ => {},
+            listArgs => {
+              listArgs.action = "list";
+            }
+          )
+          .command(
+            "stop <name>",
+            "Stop the instance specified by <name>",
+            stopArgs => {
+              stopArgs.positional("name", { type: "string" });
+            },
+            stopArgs => {
+              stopArgs.action = "stop";
+            }
+          )
+          .version(false);
+      },
+      function () {
+        // this handler executes when `ganache instances` is called without a subcommand
+        const command = chalk`{hex("${TruffleColors.porsche}") ganache instances}`;
+        console.log(`Missing subcommand for ${command}.`);
+        console.log();
+        yargs.showHelp();
+        yargs.exit(1, new Error("No subcommand provided"));
+      }
+    )
+    .showHelpOnFail(false)
     .alias("help", "?")
     .wrap(wrapWidth)
     .version(version);

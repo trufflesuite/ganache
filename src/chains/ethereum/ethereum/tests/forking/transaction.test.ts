@@ -1,5 +1,6 @@
 import assert from "assert";
 import getProvider from "../helpers/getProvider";
+import skipIfNoInfuraKey from "../helpers/skipIfNoInfuraKey";
 import { EthereumProvider } from "../../src/provider";
 import request from "superagent";
 
@@ -10,10 +11,10 @@ describe("forking", () => {
     const blockNumber = 0xcb6169;
     const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
     let provider: EthereumProvider;
-    before(async function () {
-      if (!process.env.INFURA_KEY) {
-        this.skip();
-      }
+
+    skipIfNoInfuraKey();
+
+    before(async () => {
       provider = await getProvider({
         fork: {
           url: URL,

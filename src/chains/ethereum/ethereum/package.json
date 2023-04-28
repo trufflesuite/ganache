@@ -27,7 +27,7 @@
   "scripts": {
     "docs.build": "npx shx rm -rf ./lib/docs ./lib/api.json && npm run docs.typedoc",
     "docs.typedoc": "typedoc --options ./typedoc.json --readme ./README.md --out ../../../../docs/typedoc --json ../../../../docs/typedoc/api.json src/api.ts",
-    "docs.preview": "ws --open --port 3010 --directory ../../../../docs",
+    "docs.preview": "ws --open --hostname localhost --port 3010 --directory ../../../../docs",
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
