@@ -43,19 +43,19 @@ export interface Connector<Provider, RequestFormat, ResponseFormat> {
     | ((
         payload: RequestFormat,
         connection: HttpRequest
-      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>)
+      ) => Promise<{ value: unknown }>)
     | ((
         payload: RequestFormat[],
         connection: HttpRequest
-      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]>[] }>)
+      ) => Promise<{ value: unknown[] }>)
     | ((
         payload: RequestFormat,
         connection: WebSocket
-      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>)
+      ) => Promise<{ value: unknown }>)
     | ((
         payload: RequestFormat[],
         connection: WebSocket
-      ) => Promise<{ value: ReturnType<Api[KnownKeys<Api>]>[] }>);
+      ) => Promise<{ value: unknown[] }>);
 
   /**
    * Formats the response (returned from `handle`)
