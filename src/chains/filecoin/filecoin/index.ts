@@ -19,9 +19,11 @@ export {
 type FilecoinFlavor = Flavor<
   "filecoin",
   Connector,
-  FilecoinOptionsConfig,
-  ServerOptionsConfig,
-  CliOptionsConfig
+  {
+    provider: FilecoinOptionsConfig;
+    server: ServerOptionsConfig;
+    cli: CliOptionsConfig;
+  }
 >;
 const FilecoinFlavor: FilecoinFlavor = {
   flavor: "filecoin",

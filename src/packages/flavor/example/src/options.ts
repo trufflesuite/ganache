@@ -60,9 +60,9 @@ export const NotABlockchainChainDefaults: NotABlockchainChainDefaults = {
   wallet: WalletOptions
 };
 
-export type NotABlockchainChainOptionsConfig =
+export type NotABlockchainChainProviderOptionsConfig =
   OptionsConfig<NotABlockchainChainDefinition>;
-export const NotABlockchainChainOptionsConfig: NotABlockchainChainOptionsConfig =
+export const NotABlockchainChainProviderOptionsConfig: NotABlockchainChainProviderOptionsConfig =
   new OptionsConfig(NotABlockchainChainDefaults);
 
 export type NotABlockchainChainProviderOptions = Partial<{

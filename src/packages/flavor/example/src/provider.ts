@@ -1,6 +1,6 @@
 import {
   NotABlockchainChainInternalOptions,
-  NotABlockchainChainOptionsConfig,
+  NotABlockchainChainProviderOptionsConfig,
   NotABlockchainChainProviderOptions
 } from "./options";
 
@@ -40,7 +40,7 @@ export class Provider {
   }
 
   constructor(options: NotABlockchainChainProviderOptions) {
-    this.#options = NotABlockchainChainOptionsConfig.normalize(options);
+    this.#options = NotABlockchainChainProviderOptionsConfig.normalize(options);
 
     const genesisBlock: Map<string, Account> = new Map();
     this.#options.wallet.accounts.forEach(address =>

@@ -10,11 +10,13 @@ type AbstractArgs<TAction = Action> = {
 
 export type StartArgs<
   TFlavorName extends "ethereum" | string,
-  F extends AnyFlavor = TFlavorName extends "ethereum" ? EthereumFlavor : Flavor<TFlavorName, any, any, any, any>
+  F extends AnyFlavor = TFlavorName extends "ethereum"
+    ? EthereumFlavor
+    : Flavor<TFlavorName, any, any>
 > = ServerOptions<F> & {
   _: [TFlavorName];
   server: CliSettings;
-  flavor: TFlavorName
+  flavor: TFlavorName;
 } & AbstractArgs<"start" | "start-detached">;
 
 export type GanacheArgs =

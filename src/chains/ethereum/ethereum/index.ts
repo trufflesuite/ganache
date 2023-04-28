@@ -33,9 +33,11 @@ function color(str: string) {
 type EthereumFlavor = Flavor<
   "ethereum",
   Connector,
-  EthereumOptionsConfig,
-  ServerOptionsConfig,
-  CliOptionsConfig
+  {
+    provider: EthereumOptionsConfig;
+    server: ServerOptionsConfig;
+    cli: CliOptionsConfig;
+  }
 >;
 const EthereumFlavor: EthereumFlavor = {
   flavor: "ethereum",

@@ -1,8 +1,8 @@
-import type { CliSettings, Executor, Flavor } from "../../";
+import type { CliSettings, Executor, Flavor, AnyFlavor } from "../../";
 import type { Provider } from "./provider";
 import { NotABlockchainChainConnector } from "./connector";
 import {
-  NotABlockchainChainOptionsConfig,
+  NotABlockchainChainProviderOptionsConfig,
   NotABlockchainChainProviderOptions
 } from "./options";
 
@@ -22,7 +22,9 @@ import {
 type NotABlockchainChainFlavor = Flavor<
   "not-a-blockchain-chain",
   NotABlockchainChainConnector,
-  NotABlockchainChainOptionsConfig
+  {
+    provider: NotABlockchainChainProviderOptionsConfig;
+  }
 >;
 
 const NotABlockchainChainFlavor: NotABlockchainChainFlavor = {
@@ -30,10 +32,11 @@ const NotABlockchainChainFlavor: NotABlockchainChainFlavor = {
   connect: (options: NotABlockchainChainProviderOptions, executor: Executor) =>
     new NotABlockchainChainConnector(options, executor),
   options: {
-    provider: NotABlockchainChainOptionsConfig
+    provider: NotABlockchainChainProviderOptionsConfig
   },
   ready
 };
+
 /**
  * Your flavor needs to be exported as `default` so Ganache can find it.
  */

@@ -174,6 +174,6 @@ async function ready(provider: Provider, cliArgs: CliSettings) {
   console.log(`Hello server is running at ${cliArgs.host}:${cliArgs.port}`);
 }
 
-````
+```
 
 Check out the [example implementation](./example) for a more-in-depth example.

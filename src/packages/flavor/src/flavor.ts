@@ -5,21 +5,19 @@ import { Connector } from "./connector";
 export type CliSettings = { host: string; port: number };
 
 type RemovePropertiesOfType<A, B> = {
-  [K in keyof A as A[K] extends B ? never : K]: A[K];
+  [K in keyof A as A[K] extends B ? never | null : K]: A[K];
 };
+type Clean<T> = RemovePropertiesOfType<T, never>;
 
 export type FlavorOptions<
   ProviderOptions extends OptionsConfig<any> | never,
   ServerOptions extends OptionsConfig<any> | never,
   CliOptions extends OptionsConfig<any> | never
-> = RemovePropertiesOfType<
-  {
-    provider: ProviderOptions;
-    server: ServerOptions;
-    cli: CliOptions;
-  },
-  never
->;
+> = Clean<{
+  provider?: ProviderOptions;
+  server?: ServerOptions;
+  cli?: CliOptions;
+}>;
 
 /**
  * A type to represent any flavor. Used internally to generalize flavors.
@@ -28,26 +26,30 @@ export type FlavorOptions<
 export type AnyFlavor = Flavor<
   string,
   Connector<any, any, any>,
-  OptionsConfig<any> | null,
-  OptionsConfig<any> | null,
-  OptionsConfig<any> | null
+  {
+    provider?: OptionsConfig<any>;
+    server?: OptionsConfig<any>;
+    cli?: OptionsConfig<any>;
+  }
 >;
 
 export type Flavor<
-  Name extends string,
+  F extends string,
   C extends Connector<any, any, any>,
-  ProviderOptions extends OptionsConfig<any> = never,
-  ServerOptions extends OptionsConfig<any> = never,
-  CliOptions extends OptionsConfig<any> = never
+  O extends FlavorOptions<
+    OptionsConfig<any>,
+    OptionsConfig<any>,
+    OptionsConfig<any>
+  > = FlavorOptions<never, never, never>
 > = {
-  flavor: Name;
+  flavor: F;
   connect: (
-    providerOptions: Parameters<ProviderOptions["normalize"]>[0] | null,
+    providerOptions: Parameters<O["provider"]["normalize"]>[0],
     executor: Executor
   ) => C;
   ready: (
     provider: C["provider"],
     settings: CliSettings
   ) => void | Promise<void>;
-  options: FlavorOptions<ProviderOptions, ServerOptions, CliOptions>;
+  options: O;
 };

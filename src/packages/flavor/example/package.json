@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@types/mocha": "10.0.0",
+    "ganache": "file:../../ganache",
     "mocha": "10.2.0",
     "ts-mocha": "10.0.0",
     "typescript": "5.0.4"
