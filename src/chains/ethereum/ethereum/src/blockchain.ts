@@ -1148,7 +1148,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         common
       );
       const stateManager = vm.stateManager as GanacheStateManager;
-      let storageTrieByAddress = new Map<any, Trie>();
 
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
