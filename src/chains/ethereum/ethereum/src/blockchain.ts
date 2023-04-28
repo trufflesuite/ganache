@@ -1170,9 +1170,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               ? Buffer.alloc(32)
               : // todo: this isn't super efficient, but :shrug: we probably don't do it often
                 Data.toBuffer(bigIntToBuffer(keyBigInt), 32);
-          const value = bigIntToBuffer(event.stack[stackLength - 2]);
+          const valueBigInt = event.stack[stackLength - 2];
 
+          const value = Data.toBuffer(bigIntToBuffer(valueBigInt), 32);
           // todo: DELEGATE_CALL might impact the address context from which the `before` value should be fetched
+
           const storageTrie = await stateManager.getStorageTrie(
             event.codeAddress.toBuffer()
           );
@@ -1192,8 +1194,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             storageTrieByAddress.set(event.codeAddress, storageTrie);
           }*/
 
-          const from = await storageTrie.get(key);
-          storageChange.set(key, [event.codeAddress.toBuffer(), from, value]);
+          const from = decode<Buffer>(await storageTrie.get(key));
+          storageChange.set(key, [
+            event.codeAddress.toBuffer(),
+            Data.toBuffer(from, 32),
+            value
+          ]);
         }
 
         if (!this.#emitStepEvent) return;

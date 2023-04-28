@@ -1947,8 +1947,10 @@ export default class EthereumApi implements Api {
     const addressData = await trie.get(addressBuf);
     // An address's stateRoot is stored in the 3rd rlp entry
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
+
     trie.setContext(addressStateRoot, addressBuf, blockNum);
     const value = await trie.get(paddedPosBuff);
+
     return Data.from(decode<Buffer>(value), 32);
   }
 
@@ -2922,8 +2924,8 @@ export default class EthereumApi implements Api {
       changes.push({
         key: Data.from(key),
         address: Address.from(contractAddress),
-        from: Data.from(from, 32),
-        to: Data.from(to, 32)
+        from: Data.from(from),
+        to: Data.from(to)
       });
     }
 
