@@ -1197,7 +1197,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           const from = decode<Buffer>(await storageTrie.get(key));
           storageChange.set(key, [
             event.codeAddress.toBuffer(),
-            Data.toBuffer(from, 32),
+            from.length === 0 ? Buffer.alloc(32) : Data.toBuffer(from, 32),
             value
           ]);
         }
