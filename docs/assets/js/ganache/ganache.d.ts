@@ -3054,7 +3054,7 @@ declare class Common extends EventEmitter {
     /**
      * Static method to load and set common from a geth genesis json
      * @param genesisJson json of geth configuration
-     * @param { chain, genesisHash, hardfork } to futher configure the common instance
+     * @param { chain, genesisHash, hardfork } to further configure the common instance
          * @returns Common
          */
      static fromGethGenesis(genesisJson: any, { chain, genesisHash, hardfork }: GethConfigOpts): Common;
