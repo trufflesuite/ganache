@@ -106,13 +106,15 @@ export class Connector<
 
   format(
     result: any,
-    payload: R
+    payload: R,
+    durationMs?: number
   ): RecognizedString | Generator<RecognizedString>;
-  format(result: any, payload: R): RecognizedString;
-  format(results: any[], payloads: R[]): RecognizedString;
+  format(result: any, payload: R, durationMs?: number): RecognizedString;
+  format(results: any[], payloads: R[], durationMs?: number): RecognizedString;
   format(
     results: any | any[],
-    payload: R | R[]
+    payload: R | R[],
+    durationMs?: number
   ): RecognizedString | Generator<RecognizedString> {
     if (Array.isArray(payload)) {
       return JSON.stringify(
@@ -121,12 +123,12 @@ export class Connector<
           if (result instanceof Error) {
             return makeError(payload.id, result as any);
           } else {
-            return makeResponse(payload.id, result);
+            return makeResponse(payload.id, result, durationMs);
           }
         })
       );
     } else {
-      const json = makeResponse(payload.id, results);
+      const json = makeResponse(payload.id, results, durationMs);
       if (
         payload.method === "debug_traceTransaction" &&
         typeof results === "object" &&

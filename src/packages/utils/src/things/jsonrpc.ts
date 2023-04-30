@@ -17,6 +17,7 @@ export type JsonRpcRequest<
 };
 export type JsonRpcResponse = JsonRpc & {
   readonly result: any;
+  readonly durationMs: number;
 };
 export type JsonRpcError = JsonRpc & {
   readonly error: {
@@ -41,11 +42,16 @@ export const makeRequest = <
     params: json.params
   };
 };
-export const makeResponse = (id: string, result: any): JsonRpcResponse => {
+export const makeResponse = (
+  id: string,
+  result: any,
+  durationMs: number
+): JsonRpcResponse => {
   return {
     id,
     jsonrpc,
-    result
+    result,
+    durationMs
   };
 };
 export const makeError = <T extends JSError & { code: number }>(
