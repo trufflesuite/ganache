@@ -59,7 +59,7 @@ type TransactionSimulationTransaction = Ethereum.Transaction & {
 };
 
 type TransactionSimulationArgs = {
-  transactions: TransactionSimulationTransaction[];
+  transactions: [TransactionSimulationTransaction[]];
   overrides?: Ethereum.Call.Overrides;
   block?: QUANTITY | Ethereum.Tag;
 };
@@ -2902,11 +2902,11 @@ export default class EthereumApi implements Api {
    * @param  {TransactionSimulationArgs} args
    * @returns Promise
    */
-  async evm_simulateTransaction(
+  async evm_simulateTransactions(
     args: TransactionSimulationArgs
   ): Promise<TransactionSimulationResult> {
     // todo: need to be able to pass in multiple transactions
-    const transaction = args.transactions[0];
+    const transaction = args.transactions[0][0];
     const blockNumber = args.block || "latest";
     const overrides = args.overrides;
 
