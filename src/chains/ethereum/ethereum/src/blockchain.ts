@@ -76,7 +76,7 @@ import { maybeGetLogs } from "@ganache/console.log";
 import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
-import { Trie } from "@ethereumjs/trie";
+import { LeafNode, Trie } from "@ethereumjs/trie";
 import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
 import { bigIntToBuffer } from "@ganache/utils";
 
@@ -1108,8 +1108,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     overrides: CallOverrides
   ) {
     let result: EVMResult;
-    const storageChange = new Map<Buffer, [Buffer, Buffer, Buffer]>();
-
+    const storageChanges = new Map<Buffer, [Buffer, Buffer, Buffer]>();
+    const stateChanges = new Map<
+      Buffer,
+      [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
+    >();
     const data = transaction.data;
     let gasLimit = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
@@ -1148,7 +1151,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         common
       );
       const stateManager = vm.stateManager as GanacheStateManager;
-
+      const originalStateRoot = await stateManager.getStateRoot();
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
@@ -1195,7 +1198,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }*/
 
           const from = decode<Buffer>(await storageTrie.get(key));
-          storageChange.set(key, [
+          storageChanges.set(key, [
             event.codeAddress.toBuffer(),
             from.length === 0 ? Buffer.alloc(32) : Data.toBuffer(from, 32),
             value
@@ -1247,6 +1250,48 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         value: transaction.value == null ? 0n : transaction.value.toBigInt(),
         block: transaction.block as any
       });
+
+      const cache = stateManager["_cache"]["_cache"] as any;
+      let addresses = new Map<Buffer, EthereumRawAccount>();
+      cache.forEach(i => {
+        const addr = Buffer.from(i[0], "hex");
+        const value = decode<EthereumRawAccount>(i[1].val);
+        addresses.set(addr, value);
+      });
+
+      await stateManager.setStateRoot(originalStateRoot);
+      const keys = Array.from(addresses.keys());
+      const accounts = await Promise.all(
+        keys.map(async address => {
+          const after = addresses.get(address);
+          const beforeAccount = await stateManager.getAccount(
+            Address.from(address)
+          );
+          const before = [
+            Quantity.toBuffer(beforeAccount.nonce),
+            Quantity.toBuffer(beforeAccount.balance),
+            Quantity.toBuffer(beforeAccount.storageRoot),
+            Quantity.toBuffer(beforeAccount.codeHash)
+          ] as [Buffer, Buffer, Buffer, Buffer];
+
+          return {
+            address,
+            before,
+            after
+          };
+        })
+      );
+      accounts.forEach(account => {
+        const isChanged = !(
+          account.after[0].equals(account.before[0]) &&
+          account.after[1].equals(account.before[1]) &&
+          account.after[2].equals(account.before[2]) &&
+          account.after[3].equals(account.before[3])
+        );
+        if (isChanged) {
+          stateChanges.set(account.address, [account.before, account.after]);
+        }
+      });
     } else {
       result = {
         execResult: {
@@ -1256,13 +1301,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       } as EVMResult;
     }
+
     this.emit("ganache:vm:tx:after", {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
-      return { result: result.execResult, storageChange };
+      return {
+        result: result.execResult,
+        storageChanges,
+        stateChanges
+      };
     }
   }
 

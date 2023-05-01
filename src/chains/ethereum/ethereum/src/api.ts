@@ -71,6 +71,21 @@ type StorageChange = {
   from: Data;
   to: Data;
 };
+type StateChange = {
+  address: Data;
+  from: {
+    nonce: Quantity;
+    balance: Quantity;
+    storageRoot: Data;
+    codeHash: Data;
+  };
+  to: {
+    nonce: Quantity;
+    balance: Quantity;
+    storageRoot: Data;
+    codeHash: Data;
+  };
+};
 type TransactionSimulationResult = {
   returnValue: Data;
   gas: Quantity;
@@ -78,6 +93,7 @@ type TransactionSimulationResult = {
   receipts?: Data[];
   trace?: [];
   storageChanges: StorageChange[];
+  stateChanges: StateChange[];
 };
 
 async function simulateTransaction(
@@ -88,7 +104,11 @@ async function simulateTransaction(
   overrides: Ethereum.Call.Overrides = {}
 ): Promise<{
   result: any;
-  storageChange: Map<Buffer, [Buffer, Buffer, Buffer]>;
+  storageChanges: Map<Buffer, [Buffer, Buffer, Buffer]>;
+  stateChanges: Map<
+    Buffer,
+    [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
+  >;
 }> {
   // EVMResult
   const common = blockchain.common;
@@ -2910,7 +2930,7 @@ export default class EthereumApi implements Api {
     const blockNumber = args.block || "latest";
     const overrides = args.overrides;
 
-    const { result, storageChange } = await simulateTransaction(
+    const { result, storageChanges, stateChanges } = await simulateTransaction(
       this.#blockchain,
       this.#options,
       transaction,
@@ -2918,14 +2938,34 @@ export default class EthereumApi implements Api {
       overrides
     );
 
-    const changes = [];
-    for (const key of storageChange.keys()) {
-      const [contractAddress, from, to] = storageChange.get(key);
-      changes.push({
+    const parsedStorageChanges = [];
+    for (const key of storageChanges.keys()) {
+      const [contractAddress, from, to] = storageChanges.get(key);
+      parsedStorageChanges.push({
         key: Data.from(key),
         address: Address.from(contractAddress),
         from: Data.from(from),
         to: Data.from(to)
+      });
+    }
+
+    const parsedStateChanges = [];
+    for (const address of stateChanges.keys()) {
+      const [before, after] = stateChanges.get(address);
+      parsedStateChanges.push({
+        address: Data.from(address),
+        before: {
+          nonce: Quantity.from(before[0]),
+          balance: Quantity.from(before[1]),
+          storageRoot: Data.from(before[2]),
+          codeHash: Data.from(before[3])
+        },
+        after: {
+          nonce: Quantity.from(after[0]),
+          balance: Quantity.from(after[1]),
+          storageRoot: Data.from(after[2]),
+          codeHash: Data.from(after[3])
+        }
       });
     }
 
@@ -2945,7 +2985,8 @@ export default class EthereumApi implements Api {
       receipts: undefined,
       //todo: populate trace
       trace: undefined,
-      storageChanges: changes
+      storageChanges: parsedStorageChanges,
+      stateChanges: parsedStateChanges
     };
   }
 
