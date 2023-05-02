@@ -164,18 +164,17 @@ export class BaseHandler {
     method: string,
     params: any[],
     key: string,
-    send: (
-      ...args: unknown[]
-    ) => Promise<{
+    send: (...args: unknown[]) => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
     }>,
     options = { disableCache: false }
   ): Promise<T> {
+    const memCached = this.getFromMemCache<T>(key);
+    if (memCached !== undefined) {
+      return memCached;
+    }
     if (!options.disableCache) {
-      const memCached = this.getFromMemCache<T>(key);
-      if (memCached !== undefined) return memCached;
-
       const diskCached = await this.getFromSlowCache<T>(method, params, key);
       if (diskCached !== undefined) {
         this.valueCache.set(key, Buffer.from(diskCached.raw));
@@ -189,33 +188,30 @@ export class BaseHandler {
         if (this.abortSignal.aborted) return Promise.reject(new AbortError());
 
         if (hasOwn(response, "result")) {
-          if (!options.disableCache) {
-            // cache non-error responses only
-            this.valueCache.set(key, raw);
-
+          // cache non-error responses only
+          this.valueCache.set(key, raw);
+          if (!options.disableCache && this.persistentCache) {
             // swallow errors for the persistentCache, since it's not vital that
             // it always works
-            if (this.persistentCache) {
-              const prom = this.persistentCache
-                .put(
-                  method,
-                  params,
-                  key,
-                  typeof raw === "string" ? Buffer.from(raw) : raw
-                )
-                .catch(_ => {
-                  // the cache.put may fail if the db is closed while a request
-                  // is in flight. This is a "fire and forget" method.
-                });
-
-              // track these unawaited `puts`
-              this.fireForget.add(prom);
-
-              // clean up once complete
-              prom.finally(() => {
-                this.fireForget.delete(prom);
+            const prom = this.persistentCache
+              .put(
+                method,
+                params,
+                key,
+                typeof raw === "string" ? Buffer.from(raw) : raw
+              )
+              .catch(_ => {
+                // the cache.put may fail if the db is closed while a request
+                // is in flight. This is a "fire and forget" method.
               });
-            }
+
+            // track these unawaited `puts`
+            this.fireForget.add(prom);
+
+            // clean up once complete
+            prom.finally(() => {
+              this.fireForget.delete(prom);
+            });
           }
 
           return response.result as T;
