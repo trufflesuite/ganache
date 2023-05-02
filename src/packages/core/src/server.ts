@@ -172,7 +172,11 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
   listen(port: CliSettings["port"]): Promise<void>;
   listen(port: CliSettings["port"], host: CliSettings["host"]): Promise<void>;
   listen(port: CliSettings["port"], callback: Callback): void;
-  listen(port: CliSettings["port"], host: CliSettings["host"], callback: Callback): void;
+  listen(
+    port: CliSettings["port"],
+    host: CliSettings["host"],
+    callback: Callback
+  ): void;
   listen(
     port: CliSettings["port"],
     host?: CliSettings["host"] | Callback,
