@@ -1,4 +1,4 @@
-import type { CliSettings, Executor, Flavor, AnyFlavor } from "../../";
+import type { CliSettings, Flavor } from "../../";
 import type { Provider } from "./provider";
 import { NotABlockchainChainConnector } from "./connector";
 import {
@@ -29,8 +29,8 @@ type NotABlockchainChainFlavor = Flavor<
 
 const NotABlockchainChainFlavor: NotABlockchainChainFlavor = {
   flavor: "not-a-blockchain-chain",
-  connect: (options: NotABlockchainChainProviderOptions, executor: Executor) =>
-    new NotABlockchainChainConnector(options, executor),
+  connect: (options: NotABlockchainChainProviderOptions) =>
+    new NotABlockchainChainConnector(options),
   options: {
     provider: NotABlockchainChainProviderOptionsConfig
   },
@@ -50,7 +50,7 @@ async function ready(provider: Provider, cliArgs: CliSettings) {
   console.log(`Server is running at ${cliArgs.host}:${cliArgs.port}`);
   console.log();
 
-  const blockNumber = await provider.send("blockNumber", ["latest"]);
+  const blockNumber = await provider.send("blockNumber", []);
   console.log(`The current block number is ${blockNumber}`);
   console.log();
   console.log(`Try a command:`);

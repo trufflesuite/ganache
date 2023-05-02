@@ -1,4 +1,4 @@
-import { Flavor, Connector, CliSettings, Executor } from "./";
+import { Flavor, Connector, CliSettings } from "./";
 
 export type Provider = { sayHi: (name: string) => string };
 export type RequestPayload = { name: string };
@@ -18,8 +18,9 @@ const helloConnector: Connector<Provider, RequestPayload, ResponsePayload> = {
 
   async connect(): Promise<void> {
     // ganache will `await` the return of your `connect` method before
-    // forwarding any requests to your connector. If your connector doesn't need
-    // to do any async work to initialize you can leave this function as a noop.
+    // forwarding any requests to your connector.
+    // if your connector doesn't need to do any async work to initialize you
+    // can leave this empty.
   },
 
   parse(message: Buffer) {
@@ -69,10 +70,10 @@ const helloConnector: Connector<Provider, RequestPayload, ResponsePayload> = {
     );
     // You don't have to return a string here, you can also return a Buffer
     // and the serialization doesn't have to be JSON. However...
-    // ATTENTION: ganache flavors don't support changing the `content-type` header
-    // so it always returns `content-type: application/json`. This will change
-    // in the future and flavors will be able to specify their own content-type
-    // and other HTTP headers.
+    // ATTENTION: ganache flavors don't yet support changing the `content-type`
+    // header so it always returns `content-type: application/json`. This will
+    // change in the future and flavors will be able to specify their own
+    // content-type and other HTTP headers.
     //
     // You can also return a Generator (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator)
     // which will cause ganache to send the response in chunks (one chunk for
@@ -106,50 +107,13 @@ const HelloFlavor: HelloFlavor = {
   options: {
     // see the `example/` directory for how Options work
   },
-  connect(providerOptions: never, executor: Executor) {
-    // # About the `Executor`
-    // The `executor` is a helper class that can be used to coordinate request
-    // execution. This help is an internal abstraction that might be useful, so
-    // it has been provided as part of this flavor interface.
-    //
-    // You can use it by calling `executor.execute(api, functionToCall, params)`
-    // from your `handle` function instead of calling the function itself
-    // directly.
-    //
-    // If a function with the name `functionToCall` exists on the
-    // `api` it will be called with the given `params`, otherwise it will error
-    // with `The method ${String(methodName)} does not exist/is not available`.
-    //
-    // If your provider options includes a boolean option named
-    // `asyncRequestProcessing` or `chain.asyncRequestProcessing` then the
-    // executor will allow only 1 request to be processed at a time (only useful
-    // if you want to ignore race conditions that can arise from attempting to
-    // handle multiple simultaneous requests).
-    //
-    // Lastly, if you use the executor to process your requests you can use it
-    // in your `close` function to safely coordinate shutdown as follows:
-    // ```
-    // async close() {
-    //   // prevent new requests from being passed to the api, requests that
-    //   // have already started are not rejected.
-    //   executor.stop();
-    //
-    //   await closeDatabaseAndOtherThings();
-    //
-    //   // alternatively, or additionally, you can use `executor.end()` to
-    //   // reject any requests that have started processing but haven't yet
-    //   // finished:
-    //   // executor.stop();
-    //   // await closeDatabaseAndOtherThings();
-    //   // executor.end();
-    // }
-    //
-
+  connect(providerOptions: never) {
     return helloConnector;
   },
   ready: (provider: Provider, cliArgs: CliSettings) => {
-    // this function is only after ganache CLI (and only CLI) has fully
-    // initialized (it is not used if your flavor is used progamatically)
+    // this function is only called after ganache has fully initialized, and is
+    // only called when used via ganache cli (it is not used when your flavor is
+    // used programatically)
     console.log(`Hello server is running at ${cliArgs.host}:${cliArgs.port}`);
   }
 };

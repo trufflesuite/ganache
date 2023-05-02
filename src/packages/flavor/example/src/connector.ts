@@ -1,4 +1,4 @@
-import type { Connector, Executor, HttpRequest } from "@ganache/flavor";
+import type { Connector, HttpRequest } from "@ganache/flavor";
 import { NotABlockchainChainProviderOptions } from "./options";
 import { Provider } from "./provider";
 
@@ -18,10 +18,7 @@ export class NotABlockchainChainConnector
   implements Connector<Provider, RequestFormat, ResponseFormat>
 {
   public provider: Provider;
-  constructor(
-    options: NotABlockchainChainProviderOptions,
-    _executor: Executor
-  ) {
+  constructor(options: NotABlockchainChainProviderOptions) {
     this.provider = new Provider(options);
   }
   public async connect() {}
