@@ -1126,9 +1126,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
-
-    const gasLeft =
-      gasLimit - calculateIntrinsicGas(data, hasToAddress, common);
+    const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
+    const gasLeft = gasLimit - intrinsicGas;
 
     const transactionContext = {};
     this.emit("ganache:vm:tx:before", {
@@ -1208,7 +1207,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const ganacheStepEvent = makeStepEvent(transactionContext, event);
         this.emit("ganache:vm:tx:step", ganacheStepEvent);
       });
-
       const caller = transaction.from.toBuffer();
       const callerAddress = new Address(caller);
 
@@ -1233,11 +1231,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
       const fromAccount = await vm.eei.getAccount(callerAddress);
-      fromAccount.nonce += 1n;
-      const txCost = gasLimit * transaction.gasPrice.toBigInt();
+
+      // todo: re previous comment, incrementing the nonce here results in a double
+      // incremented nonce in the result :/ Need to validate whether this is required.
+      //fromAccount.nonce += 1n;
+      const intrinsicTxCost = intrinsicGas * transaction.gasPrice.toBigInt();
+      //todo: does the execution gas get subtracted from the balance?
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
-      fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
+      fromAccount.balance =
+        intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
       await vm.eei.putAccount(callerAddress, fromAccount);
       // finally, run the call
       result = await vm.evm.runCall({
@@ -1280,6 +1283,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         })
       );
       accounts.forEach(account => {
+        // nonce, balance, storageRoot, codeHash
         const isChanged = !(
           account.after[0].equals(account.before[0]) &&
           account.after[1].equals(account.before[1]) &&
@@ -1306,6 +1310,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
+      result.execResult.gas = (result.execResult.gas || 0n) + intrinsicGas;
       return {
         result: result.execResult,
         storageChanges,

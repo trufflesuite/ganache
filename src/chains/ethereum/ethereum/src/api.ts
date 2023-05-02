@@ -151,7 +151,9 @@ async function simulateTransaction(
   // is undefined) then EIP-1559 was not active on that block and we can't use
   // type 2 fee values (as they rely on the baseFee)
   if (!common.isActivatedEIP(1559) || baseFeePerGasBigInt === undefined) {
-    gasPrice = Quantity.from(hasGasPrice ? 0 : transaction.gasPrice);
+    gasPrice = hasGasPrice
+      ? Quantity.Zero
+      : Quantity.from(transaction.gasPrice);
   } else {
     const hasMaxFeePerGas = typeof transaction.maxFeePerGas !== "undefined";
     const hasMaxPriorityFeePerGas =
@@ -176,8 +178,7 @@ async function simulateTransaction(
       const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
       gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
     } else {
-      //todo: this used to be 0 - need to validate this change
-      gasPrice = Quantity.from(baseFeePerGasBigInt);
+      gasPrice = Quantity.Zero;
     }
   }
 
