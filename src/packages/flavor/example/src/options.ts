@@ -35,7 +35,7 @@ export const WalletOptions: Definitions<WalletDefinition> = {
     cliDescription: "The accounts to use when creating the blockchain",
     cliType: "array:string",
     cliAliases: ["a", "accounts"],
-    default: () => []
+    default: () => ["me", "you"]
   },
   defaultBalance: {
     normalize: userInput => {

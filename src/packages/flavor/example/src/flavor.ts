@@ -54,7 +54,7 @@ async function ready(provider: Provider, cliArgs: CliSettings) {
   console.log(`The current block number is ${blockNumber}`);
   console.log();
   console.log(`Try a command:`);
-  // Note: ganache doesn't currently provide a away for a flavor to access its
+  // Note: ganache doesn't currently provide a way for a flavor to access the
   // `server` or its `options`, so there is no way to know if the user has
   // set a non-standard `server.rpcEndpoint` option.
   console.log(
