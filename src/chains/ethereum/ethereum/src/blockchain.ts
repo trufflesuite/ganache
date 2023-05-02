@@ -1151,7 +1151,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         common
       );
       const stateManager = vm.stateManager as GanacheStateManager;
-      const originalStateRoot = await stateManager.getStateRoot();
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
@@ -1259,12 +1258,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         addresses.set(addr, value);
       });
 
-      await stateManager.setStateRoot(originalStateRoot);
       const keys = Array.from(addresses.keys());
       const accounts = await Promise.all(
         keys.map(async address => {
           const after = addresses.get(address);
-          const beforeAccount = await stateManager.getAccount(
+          const beforeAccount = await this.vm.stateManager.getAccount(
             Address.from(address)
           );
           const before = [

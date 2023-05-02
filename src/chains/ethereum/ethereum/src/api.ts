@@ -176,7 +176,8 @@ async function simulateTransaction(
       const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
       gasPrice = Quantity.from(baseFeePerGasBigInt + tip);
     } else {
-      gasPrice = Quantity.from(0);
+      //todo: this used to be 0 - need to validate this change
+      gasPrice = Quantity.from(baseFeePerGasBigInt);
     }
   }
 
@@ -2929,7 +2930,6 @@ export default class EthereumApi implements Api {
     const transaction = args.transactions[0][0];
     const blockNumber = args.block || "latest";
     const overrides = args.overrides;
-
     const { result, storageChanges, stateChanges } = await simulateTransaction(
       this.#blockchain,
       this.#options,
