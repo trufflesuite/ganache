@@ -7,18 +7,17 @@
 
 import chalk from "chalk";
 import { TruffleColors } from "@ganache/colors";
-import { Executor, WEI } from "@ganache/utils";
+import { WEI } from "@ganache/utils";
 import { toChecksumAddress } from "ethereumjs-util";
-import { EthereumProvider } from "./src/provider";
-import { Connector } from "./src/connector";
-import {
+import type {
   EthereumLegacyProviderOptions,
-  EthereumOptionsConfig,
   EthereumProviderOptions
 } from "@ganache/ethereum-options";
-import type { Flavor } from "@ganache/flavor";
+import { EthereumOptionsConfig } from "@ganache/ethereum-options";
+import type { CliSettings, Executor, Flavor } from "@ganache/flavor";
 import { CliOptionsConfig, ServerOptionsConfig } from "@ganache/flavor";
-import { CliSettings } from "@ganache/flavor";
+import type { EthereumProvider } from "./src/provider";
+import { Connector } from "./src/connector";
 
 export * from "./src/connector";
 export * from "./src/api-types";
