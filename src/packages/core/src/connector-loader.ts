@@ -4,17 +4,28 @@ import { load } from "@ganache/flavor";
 import EthereumFlavor from "@ganache/ethereum";
 
 function getConnector<F extends AnyFlavor>(
-  flavor: F["flavor"],
+  flavorName: F["flavor"],
   providerOptions: Parameters<F["connect"]>[0],
   executor: Executor
 ): ReturnType<F["connect"]> {
-  if (flavor === EthereumFlavor.flavor) {
+  if (flavorName === EthereumFlavor.flavor) {
     return <ReturnType<F["connect"]>>(
       EthereumFlavor.connect(providerOptions, executor)
     );
   }
-  const connector = load(flavor).connect(providerOptions, executor);
-  return connector as ReturnType<F["connect"]>;
+  const flavor = load(flavorName);
+
+  let connector: ReturnType<F["connect"]>;
+  if (flavorName === "filecoin" && "Connector" in flavor) {
+    // @ts-ignore filecoin used to use "new Connector", we still do this for
+    // backwards compatibility reasons
+    connector = new flavor.Connector(providerOptions, executor);
+  } else {
+    connector = <ReturnType<F["connect"]>>(
+      flavor.connect(providerOptions, executor)
+    );
+  }
+  return connector;
 }
 
 /**
