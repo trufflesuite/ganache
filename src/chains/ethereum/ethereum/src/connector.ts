@@ -121,7 +121,7 @@ export class Connector<
         payload.map((payload, i) => {
           const result = results[i];
           if (result instanceof Error) {
-            return makeError(payload.id, result as any);
+            return makeError(payload.id, result as any, durationMs);
           } else {
             return makeResponse(payload.id, result, durationMs);
           }
@@ -161,8 +161,18 @@ export class Connector<
     }
   }
 
-  formatError(error: Error & { code: number }, payload: R): RecognizedString {
-    const json = makeError(payload && payload.id ? payload.id : null, error);
+  formatError(
+    error: Error & { code: number },
+    payload: R,
+    durationMs?: number
+  ): RecognizedString {
+    console.log("Formatting error", durationMs);
+    const json = makeError(
+      payload && payload.id ? payload.id : null,
+      error,
+      undefined,
+      durationMs
+    );
     return JSON.stringify(json);
   }
 

@@ -276,7 +276,13 @@ export default class HttpServer {
               // cause an `Unhandled promise rejection` if we try)
               return;
             }
-            const data = connector.formatError(error, payload);
+            const endTime = performance.now();
+
+            const data = connector.formatError(
+              error,
+              payload,
+              Math.floor(endTime - startTime)
+            );
             sendResponse(
               response,
               this.#isClosing,

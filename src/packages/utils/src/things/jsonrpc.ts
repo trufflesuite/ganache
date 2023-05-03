@@ -26,6 +26,7 @@ export type JsonRpcError = JsonRpc & {
     readonly message: any;
   };
   readonly result?: any;
+  readonly durationMs: number;
 };
 
 const jsonrpc = "2.0" as const;
@@ -57,7 +58,8 @@ export const makeResponse = (
 export const makeError = <T extends JSError & { code: number }>(
   id: string | undefined,
   error: T,
-  result?: unknown
+  result?: unknown,
+  durationMs?: number
 ): JsonRpcError => {
   type E = { [K in keyof T]: K extends string ? T[K] : never };
   // Error objects are weird, `message` isn't included in the property names,
@@ -76,13 +78,15 @@ export const makeError = <T extends JSError & { code: number }>(
       id,
       jsonrpc,
       error: details,
-      result
+      result,
+      durationMs: durationMs
     };
   } else {
     return {
       id,
       jsonrpc,
-      error: details
+      error: details,
+      durationMs: durationMs
     };
   }
 };
