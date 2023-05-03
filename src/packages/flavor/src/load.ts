@@ -15,7 +15,19 @@ export function load<F extends AnyFlavor>(flavor: F["flavor"]): F {
   if (flavor === "filecoin") flavor = "@ganache/filecoin";
   try {
     // we use `eval` to prevent webpack from resolving the `require` statement.
-    return eval("require")(flavor).default as F;
+    const flavorImport = eval("require")(flavor);
+
+    // @ganache/filecoin used to not have a `default` export and it missing
+    // many properties we need.
+    if (flavor === "@ganache/filecoin" && !flavorImport.default) {
+      // avoid printing stack trace as it's webpacked and is not helpful
+      console.error(
+        "Your version of @ganache/filecoin is outdated. Please install the latest version by running `npm install @ganache/filecoin --global`."
+      );
+      process.exit(1);
+    }
+
+    return flavorImport.default;
   } catch (e: any) {
     if (
       hasOwn(e, "message") &&

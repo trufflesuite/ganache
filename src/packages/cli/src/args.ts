@@ -22,6 +22,15 @@ const OR_DOCS = "or check out our docs at";
 const DOCS_LINK = "https://ganache.dev";
 
 export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
+  if (rawArgs[0] === "filecoin" || rawArgs[0] === "ethereum") {
+    // we used to allow the comand `ganache filecoin` and `ganache ethereum`
+    // but this is weird and confusing since they aren't ""commands", per say.
+    // so for backwards compatibility we'll still allow it for these two flavors
+    // only, all other flavors must use the `--flavor` option.
+    // replace the flavor arg with `--flavor <flavor>`
+    rawArgs[1] === rawArgs[0];
+    rawArgs.unshift("--flavor");
+  }
   const versionUsageOutputText = chalk`{hex("${
     TruffleColors.porsche
   }").bold ${center(version, version.length)}}`;

@@ -15,17 +15,7 @@ function getConnector<F extends AnyFlavor>(
   }
   const flavor = load(flavorName);
 
-  let connector: ReturnType<F["connect"]>;
-  if (flavorName === "filecoin" && "Connector" in flavor) {
-    // @ts-ignore filecoin used to use "new Connector", we still do this for
-    // backwards compatibility reasons
-    connector = new flavor.Connector(providerOptions, executor);
-  } else {
-    connector = <ReturnType<F["connect"]>>(
-      flavor.connect(providerOptions, executor)
-    );
-  }
-  return connector;
+  return <ReturnType<F["connect"]>>flavor.connect(providerOptions, executor);
 }
 
 /**
