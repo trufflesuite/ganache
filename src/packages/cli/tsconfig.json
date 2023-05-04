@@ -33,10 +33,6 @@
     {
       "name": "@ganache/flavor",
       "path": "../flavor"
-    },
-    {
-      "name": "@ganache/filecoin",
-      "path": "../../chains/filecoin/filecoin"
     }
   ]
 }
