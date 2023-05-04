@@ -55,13 +55,15 @@ describe("Blockchain", () => {
     });
 
     it("creates multiple accounts", async () => {
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager!.getControllableAccounts();
       assert.strictEqual(accounts.length, 10);
       assert.notStrictEqual(accounts[0].address, accounts[1].address);
     });
 
     it("creates a configurable amount of accounts", async () => {
-      const accounts = await blockchain2.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain2.accountManager!.getControllableAccounts();
       assert.strictEqual(accounts.length, 2);
     });
 
@@ -189,7 +191,8 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager!.getControllableAccounts();
       const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -211,14 +214,14 @@ describe("Blockchain", () => {
       );
 
       // First state should be validating
-      assert.strictEqual(currentDeal.state, StorageDealStatus.Validating);
+      assert.strictEqual(currentDeal!.state, StorageDealStatus.Validating);
 
       await blockchain.mineTipset();
 
       currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
       // Next state should be Staged
-      assert.strictEqual(currentDeal.state, StorageDealStatus.Staged);
+      assert.strictEqual(currentDeal!.state, StorageDealStatus.Staged);
 
       await blockchain.mineTipset();
 
@@ -226,20 +229,20 @@ describe("Blockchain", () => {
 
       // Next state should be ReserveProviderFunds
       assert.strictEqual(
-        currentDeal.state,
+        currentDeal!.state,
         StorageDealStatus.ReserveProviderFunds
       );
 
       // ... and on and on
 
       // Let's mine all the way to the Sealing state
-      while (currentDeal.state != StorageDealStatus.Sealing) {
+      while (currentDeal!.state != StorageDealStatus.Sealing) {
         await blockchain.mineTipset();
         currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
       }
 
       // The deal should still be considered in process, since it's still sealing
-      let deals = await blockchain.dealInfoManager.getDeals();
+      let deals = await blockchain.dealInfoManager!.getDeals();
       let inProcessDeals = deals.filter(deal => dealIsInProcess(deal.state));
       assert.strictEqual(inProcessDeals.length, 1);
       assert.strictEqual(
@@ -253,9 +256,9 @@ describe("Blockchain", () => {
 
       currentDeal = await blockchain.dealInfoManager!.get(proposalCid.value);
 
-      assert.strictEqual(currentDeal.state, StorageDealStatus.Active);
+      assert.strictEqual(currentDeal!.state, StorageDealStatus.Active);
 
-      deals = await blockchain.dealInfoManager.getDeals();
+      deals = await blockchain.dealInfoManager!.getDeals();
       inProcessDeals = deals.filter(deal => dealIsInProcess(deal.state));
       assert.strictEqual(inProcessDeals.length, 0);
     });
@@ -280,7 +283,8 @@ describe("Blockchain", () => {
         content: "some data"
       });
 
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager!.getControllableAccounts();
       const proposal = new StartDealParams({
         data: new StorageMarketDataRef({
           transferType: "graphsync",
@@ -301,10 +305,10 @@ describe("Blockchain", () => {
 
       // Since we're automining, starting the deal will trigger
       // the state to be state to be set to active.
-      assert.strictEqual(deal.state, StorageDealStatus.Active);
+      assert.strictEqual(deal!.state, StorageDealStatus.Active);
 
       // We create 1 tipset per state change. Let's make sure that occurred.
-      assert.strictEqual(blockchain.tipsetManager.latest.height, 11);
+      assert.strictEqual(blockchain.tipsetManager!.latest!.height, 11);
     });
   });
 
@@ -334,7 +338,8 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.initialize();
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager!.getControllableAccounts();
 
       assert.strictEqual(accounts[0].address.value, expectedAddress);
     });
@@ -353,7 +358,8 @@ describe("Blockchain", () => {
         })
       );
       await blockchain.initialize();
-      const accounts = await blockchain.accountManager.getControllableAccounts();
+      const accounts =
+        await blockchain.accountManager!.getControllableAccounts();
 
       assert.notStrictEqual(accounts[0].address.value, expectedAddress);
     });

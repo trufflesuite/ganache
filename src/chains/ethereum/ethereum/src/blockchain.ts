@@ -58,7 +58,7 @@ import {
   CallOverrides
 } from "./helpers/run-call";
 import { ForkStateManager } from "./forking/state-manager";
-import { DefaultStateManager } from "@ethereumjs/statemanager";
+import type { DefaultStateManager } from "@ethereumjs/statemanager";
 import { GanacheTrie } from "./helpers/trie";
 import { ForkTrie } from "./forking/trie";
 import { activatePrecompiles, warmPrecompiles } from "./helpers/precompiles";

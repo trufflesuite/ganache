@@ -30,7 +30,7 @@ describe("api", () => {
       provider = await getProvider();
       client = new LotusRPC(provider, { schema: FilecoinProvider.Schema });
       accounts =
-        await provider.blockchain.accountManager.getControllableAccounts();
+        await provider.blockchain.accountManager!.getControllableAccounts();
     });
 
     after(async () => {
@@ -1564,7 +1564,7 @@ describe("api", () => {
         });
         client2 = new LotusRPC(provider2, { schema: FilecoinProvider.Schema });
         accounts2 =
-          await provider2.blockchain.accountManager.getControllableAccounts();
+          await provider2.blockchain.accountManager!.getControllableAccounts();
       });
 
       after(async () => {

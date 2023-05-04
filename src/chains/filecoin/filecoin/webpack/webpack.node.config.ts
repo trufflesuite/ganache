@@ -13,7 +13,7 @@ const config: webpack.Configuration = merge({}, base, {
     "ipfs-http-client",
     "ipfs-http-server",
     "ipld-dag-cbor",
-    "bigint-buffer",
+    "@trufflesuite/bigint-buffer",
     "leveldown",
     "secp256k1",
     "keccak"

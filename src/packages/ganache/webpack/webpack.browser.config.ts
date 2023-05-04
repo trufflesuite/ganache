@@ -26,7 +26,6 @@ const config: webpack.Configuration = merge({}, base, {
     },
     alias: {
       "tmp-promise": require.resolve("./polyfills/browser-tmp-promise"),
-      "bigint-buffer": require.resolve("./polyfills/browser-bigint-buffer"),
       crypto: require.resolve("./polyfills/browser-crypto"),
       // replace leveldown with a browser version
       leveldown: require.resolve("level-js/"),

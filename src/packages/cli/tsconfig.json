@@ -23,10 +23,6 @@
       "path": "../../chains/ethereum/ethereum"
     },
     {
-      "name": "@ganache/utils",
-      "path": "../utils"
-    },
-    {
       "name": "@ganache/colors",
       "path": "../colors"
     },

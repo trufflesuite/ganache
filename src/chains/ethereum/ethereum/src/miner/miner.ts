@@ -16,7 +16,7 @@ import {
 import { encode } from "@ganache/rlp";
 import { Trie } from "@ethereumjs/trie";
 import Emittery from "emittery";
-import { DefaultStateManager } from "@ethereumjs/statemanager";
+import type { DefaultStateManager } from "@ethereumjs/statemanager";
 import { VM } from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";

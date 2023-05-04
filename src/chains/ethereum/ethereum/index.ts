@@ -8,7 +8,7 @@
 import chalk from "chalk";
 import { TruffleColors } from "@ganache/colors";
 import { WEI } from "@ganache/utils";
-import { toChecksumAddress } from "ethereumjs-util";
+import { toChecksumAddress } from "@ethereumjs/util";
 import type {
   EthereumLegacyProviderOptions,
   EthereumProviderOptions

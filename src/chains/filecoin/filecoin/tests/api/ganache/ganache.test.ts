@@ -108,7 +108,7 @@ describe("api", () => {
         assert.strictEqual(head2.Height, head1.Height);
 
         const accounts =
-          await provider.blockchain.accountManager.getControllableAccounts();
+          await provider.blockchain.accountManager!.getControllableAccounts();
         const From = accounts[0].address.value;
         const To = accounts[1].address.value;
         const message: SerializedMessage = {
@@ -155,7 +155,7 @@ describe("api", () => {
         assert(head2.Height > head1.Height);
 
         const accounts =
-          await provider.blockchain.accountManager.getControllableAccounts();
+          await provider.blockchain.accountManager!.getControllableAccounts();
         const From = accounts[0].address.value;
         const To = accounts[1].address.value;
         const message: SerializedMessage = {
