@@ -163,8 +163,8 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
     }
     this.#httpServer = new HttpServer(_app, connector, this.#options.server);
 
-    // Since the ConnectorLoader starts an async promise that we intentionally
-    // don't await yet we keep the promise around for something else to handle
+    // Since `loadConnector` starts an async promise that we intentionally
+    // don't await yet we keep the promise around for `listen` to handle
     // later.
     this.#initializer = loader.promise;
   }
