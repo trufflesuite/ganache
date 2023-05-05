@@ -42,12 +42,20 @@ const NotABlockchainChainFlavor: NotABlockchainChainFlavor = {
  */
 export default NotABlockchainChainFlavor;
 
-async function ready(provider: Provider, cliArgs: CliSettings) {
+async function ready({
+  provider,
+  options
+}: {
+  provider: Provider;
+  options: { server: CliSettings };
+}) {
   console.log(`*********************************`);
   console.log(`Welcome to Not-a-Blockchain-Chain`);
   console.log(`*********************************`);
   console.log();
-  console.log(`Server is running at ${cliArgs.host}:${cliArgs.port}`);
+  console.log(
+    `Server is running at ${options.server.host}:${options.server.port}`
+  );
   console.log();
 
   const blockNumber = await provider.send("blockNumber", []);
@@ -61,6 +69,6 @@ async function ready(provider: Provider, cliArgs: CliSettings) {
     `curl -X POST --data '${JSON.stringify({
       method: "sendFunds",
       params: [provider.getAccounts()[0], "<a different account>", 99]
-    })}' http://${cliArgs.host}:${cliArgs.port}`
+    })}' http://${options.server.host}:${options.options.port}`
   );
 }

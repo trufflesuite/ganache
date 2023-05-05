@@ -3,10 +3,13 @@ import { FilecoinProvider } from "./provider";
 
 export type ready = typeof ready;
 
-export async function ready(
-  provider: FilecoinProvider,
-  serverSettings: CliSettings
-) {
+export async function ready({
+  provider,
+  options
+}: {
+  provider: FilecoinProvider;
+  options: { server: CliSettings };
+}) {
   const liveOptions = provider.getOptions();
   const accounts = await provider.getInitialAccounts();
 
@@ -40,7 +43,7 @@ export async function ready(
 
   console.log("");
   console.log(
-    `Lotus RPC listening on ${serverSettings.host}:${serverSettings.port}`
+    `Lotus RPC listening on ${options.server.host}:${options.server.port}`
   );
   console.log(
     `IPFS RPC listening on ${liveOptions.chain.ipfsHost}:${liveOptions.chain.ipfsPort}`

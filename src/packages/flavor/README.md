@@ -145,11 +145,19 @@ const HelloFlavor: HelloFlavor = {
   },
   // the `ready` function is required for your flavor to work with ganache on
   // the CLI
-  ready: (provider: Provider, cliArgs: CliSettings) => {
+  ready: ({
+    provider,
+    options
+  }: {
+    provider: Provider;
+    options: { server: CliSettings };
+  }) => {
     // this function is only called after ganache has fully initialized, and is
     // only called when used via ganache cli (it is not used when your flavor is
     // used programatically)
-    console.log(`Hello server is running at ${cliArgs.host}:${cliArgs.port}`);
+    console.log(
+      `Hello Chain server is running at http://${options.server.host}:${options.server.port}`
+    );
   }
 };
 

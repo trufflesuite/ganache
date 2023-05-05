@@ -54,7 +54,13 @@ const EthereumFlavor: EthereumFlavor = {
 // flavors are exported as a default export
 export default EthereumFlavor;
 
-function ready(provider: EthereumProvider, cliSettings: CliSettings) {
+function ready({
+  provider,
+  options
+}: {
+  provider: EthereumProvider;
+  options: { server: CliSettings };
+}) {
   const liveOptions = provider.getOptions();
   const accounts = provider.getInitialAccounts();
 
@@ -168,6 +174,8 @@ function ready(provider: EthereumProvider, cliSettings: CliSettings) {
   logs.push(`Id:       ${color(liveOptions.chain.chainId.toString())}`);
 
   logs.push("");
-  logs.push("RPC Listening on " + cliSettings.host + ":" + cliSettings.port);
+  logs.push(
+    "RPC Listening on " + options.server.host + ":" + options.server.port
+  );
   console.log(logs.join("\n"));
 }

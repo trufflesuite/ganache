@@ -47,9 +47,11 @@ export type Flavor<
     providerOptions: Parameters<O["provider"]["normalize"]>[0],
     executor: Executor
   ) => C;
-  ready: (
-    provider: C["provider"],
-    settings: CliSettings
-  ) => void | Promise<void>;
+  ready: (config: {
+    provider: C["provider"];
+    options: {
+      server: CliSettings;
+    };
+  }) => void | Promise<void>;
   options: O;
 };
