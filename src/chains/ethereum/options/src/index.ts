@@ -17,7 +17,7 @@ import {
 } from "@ganache/options";
 import { UnionToIntersection } from "./helper-types";
 
-export type EthereumConfig = {
+type EthereumConfig = {
   chain: ChainConfig;
   database: DatabaseConfig;
   logging: LoggingConfig;
