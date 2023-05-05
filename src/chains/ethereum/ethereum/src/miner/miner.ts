@@ -1,4 +1,4 @@
-import type { InterpreterStep } from "@ethereumjs/evm";
+import type { EVMResult, InterpreterStep } from "@ethereumjs/evm";
 import {
   RuntimeError,
   RETURN_TYPES,
@@ -20,7 +20,6 @@ import type { DefaultStateManager } from "@ethereumjs/statemanager";
 import { VM } from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
-import { EVMResult } from "@ethereumjs/evm";
 import { Params, TypedTransaction } from "@ganache/ethereum-transaction";
 import { Executables } from "./executables";
 import { Block, RuntimeBlock } from "@ganache/ethereum-block";

@@ -18,7 +18,7 @@ import {
   EthereumRawAccount,
   TraceTransactionResult
 } from "@ganache/ethereum-utils";
-import type { InterpreterStep } from "@ethereumjs/evm";
+import type { InterpreterStep, EVMResult } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
@@ -26,7 +26,6 @@ import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult,
   EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
