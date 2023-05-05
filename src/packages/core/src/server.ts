@@ -129,15 +129,12 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
     const { flavor, connector, promise } = initializeFlavor(options);
     this.#connector = connector;
 
-    // etheruem flavor options are the defaults
     let serverOptions = ServerOptionsConfig.normalize(options);
-    if (flavor.flavor !== "ethereum") {
-      const flavorOptions = flavor.options.server
-        ? flavor.options.server.normalize(options)
-        : {};
+    // etheruem flavor options are the defaults, so only merge for non-ethereum
+    if (flavor.flavor !== "ethereum" && flavor.options.server) {
       serverOptions = {
         ...serverOptions,
-        ...flavorOptions
+        ...flavor.options.server.normalize(options)
       };
     }
     this.#options = serverOptions;
