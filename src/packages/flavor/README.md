@@ -143,6 +143,8 @@ const HelloFlavor: HelloFlavor = {
   connect(providerOptions: never) {
     return helloConnector;
   },
+  // the `ready` function is required for your flavor to work with ganache on
+  // the CLI
   ready: (provider: Provider, cliArgs: CliSettings) => {
     // this function is only called after ganache has fully initialized, and is
     // only called when used via ganache cli (it is not used when your flavor is
