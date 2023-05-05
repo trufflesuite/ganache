@@ -116,16 +116,16 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
 
   constructor(
     providerAndServerOptions: ServerOptions<F> & { flavor?: F["flavor"] } = {
-      flavor: EthereumFlavor.flavor
+      flavor: "ethereum"
     } as ServerOptions<F>
   ) {
     super();
     let flavor: F;
     if (
       !providerAndServerOptions.flavor ||
-      providerAndServerOptions.flavor === EthereumFlavor.flavor
+      providerAndServerOptions.flavor === "ethereum"
     ) {
-      flavor = EthereumFlavor as unknown as F;
+      flavor = "ethereum" as unknown as F;
       this.#options = ServerOptionsConfig.normalize(
         providerAndServerOptions
       ) as any;
