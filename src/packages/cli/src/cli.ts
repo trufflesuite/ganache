@@ -149,7 +149,10 @@ if (argv.action === "start") {
     }
     started = true;
 
-    await flavor.ready(server.provider, cliSettings);
+    await flavor.ready({
+      provider: server.provider,
+      options: { server: cliSettings }
+    });
 
     // if process.send is defined, this is a child_process (we assume a detached
     // instance), so we need to notify that we are ready.
