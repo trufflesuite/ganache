@@ -16,8 +16,8 @@ setUwsGlobalConfig &&
   setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
 
 import type { AnyFlavor, WebsocketConnector } from "@ganache/flavor";
-import { load, ServerOptionsConfig } from "@ganache/flavor";
-import { loadConnector } from "./connector-loader";
+import { ServerOptionsConfig } from "@ganache/flavor";
+import { initializeFlavor } from "./connector-loader";
 import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
@@ -111,50 +111,44 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
   }
 
   constructor(
-    providerAndServerOptions: ServerOptions<F> & { flavor?: F["flavor"] } = {
+    options: ServerOptions<F> & { flavor?: F["flavor"] } = {
       flavor: "ethereum"
     } as ServerOptions<F>
   ) {
     super();
-    let flavor: F;
-    if (
-      !providerAndServerOptions.flavor ||
-      providerAndServerOptions.flavor === "ethereum"
-    ) {
-      flavor = "ethereum" as unknown as F;
-      this.#options = ServerOptionsConfig.normalize(
-        providerAndServerOptions
-      ) as any;
-    } else {
-      // load the flavor!
-      flavor = load<F>(providerAndServerOptions.flavor);
+    this.#status = ServerStatus.ready;
+
+    // we need to start initializing now because the connector's `#provider
+    // property must be available to the server immediately... someone might
+    // want to do:
+    // ```
+    // const server = Ganache.server();
+    // const provider = server.provider; // this needs to exist
+    // await server.listen(8545)
+    // ```
+    const { flavor, connector, promise } = initializeFlavor(options);
+    this.#connector = connector;
+
+    // etheruem flavor options are the defaults
+    let serverOptions = ServerOptionsConfig.normalize(options);
+    if (flavor.flavor !== "ethereum") {
       const flavorOptions = flavor.options.server
-        ? flavor.options.server.normalize(providerAndServerOptions)
+        ? flavor.options.server.normalize(options)
         : {};
-      this.#options = {
-        ...ServerOptionsConfig.normalize(providerAndServerOptions),
+      serverOptions = {
+        ...serverOptions,
         ...flavorOptions
       };
     }
-    this.#status = ServerStatus.ready;
-
-    // we need to start initializing now because `initialize` sets the
-    // `provider` property... and someone might want to do:
-    //   const server = Ganache.server();
-    //   const provider = server.provider;
-    //   await server.listen(8545)
-    const loader = loadConnector(providerAndServerOptions);
-    const connector = (this.#connector = loader.connector as ReturnType<
-      F["connect"]
-    >);
+    this.#options = serverOptions;
 
     const _app = (this.#app = App());
 
-    if (this.#options.server.ws) {
+    if (serverOptions.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
-        connector as WebsocketConnector<any, any, any>,
-        this.#options.server
+        <WebsocketConnector<any, any, any>>connector,
+        serverOptions.server
       );
     }
     this.#httpServer = new HttpServer(_app, connector, this.#options.server);
@@ -162,7 +156,7 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
     // Since `loadConnector` starts an async promise that we intentionally
     // don't await yet we keep the promise around for `listen` to handle
     // later.
-    this.#initializer = loader.promise;
+    this.#initializer = promise;
   }
 
   listen(port: number): Promise<void>;

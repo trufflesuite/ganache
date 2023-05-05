@@ -75,7 +75,7 @@ export interface Connector<Provider, RequestFormat, ResponseFormat> {
    */
   formatError(error: Error, payload: RequestFormat): RecognizedString;
 
-  close(): void;
+  close(): void | Promise<void>;
 }
 
 export interface WebsocketConnector<Provider, RequestFormat, ResponseFormat>

@@ -3,20 +3,21 @@ import type { AnyFlavor } from "@ganache/flavor";
 import { load } from "@ganache/flavor";
 import type EthereumFlavor from "@ganache/ethereum";
 
-function getConnector<F extends AnyFlavor>(
-  flavorName: F["flavor"],
-  providerOptions: Parameters<F["connect"]>[0],
-  executor: Executor
-): ReturnType<F["connect"]> {
+function loadFlavorByName<F extends AnyFlavor>(flavorName: F["flavor"]): F {
   if (flavorName === "ethereum") {
     // lazy load the ethereum flavor to avoid start up overhead for
     // other flavors.
-    return <ReturnType<F["connect"]>>(
-      require("@ganache/ethereum").default.connect(providerOptions, executor)
-    );
+    return require("@ganache/ethereum").default;
   }
 
-  const flavor = load(flavorName);
+  return load(flavorName);
+}
+
+function getConnector<F extends AnyFlavor>(
+  flavor: F,
+  providerOptions: Parameters<F["connect"]>[0],
+  executor: Executor
+): ReturnType<F["connect"]> {
   return <ReturnType<F["connect"]>>flavor.connect(providerOptions, executor);
 }
 
@@ -26,12 +27,12 @@ function getConnector<F extends AnyFlavor>(
  * @param options
  * @returns
  */
-export const loadConnector = <F extends AnyFlavor = EthereumFlavor>(
+export const initializeFlavor = <F extends AnyFlavor = EthereumFlavor>(
   options: Record<string, any> & { flavor?: F["flavor"] } = {
     flavor: "ethereum"
   }
 ) => {
-  const flavor = (options.flavor || "ethereum") as F["flavor"];
+  const flavorName = (options.flavor || "ethereum") as F["flavor"];
 
   // Set up our request coordinator to either use FIFO or or async request
   // processing. The RequestCoordinator _can_ be used to coordinate the number
@@ -58,6 +59,7 @@ export const loadConnector = <F extends AnyFlavor = EthereumFlavor>(
   //  execution before passing it to a RequestCoordinator.
   const executor = new Executor(requestCoordinator);
 
+  const flavor = loadFlavorByName(flavorName);
   const connector = getConnector(flavor, options, executor);
 
   // Purposely not awaiting on this to prevent a breaking change
@@ -72,6 +74,7 @@ export const loadConnector = <F extends AnyFlavor = EthereumFlavor>(
   // requestCoordinator.stop() is called. Ensure that no references to the
   // function are held, otherwise internal errors may be surfaced.
   return {
+    flavor,
     connector,
     promise: connectPromise.then(() => requestCoordinator.resume())
   };
