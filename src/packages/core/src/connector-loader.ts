@@ -1,6 +1,7 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
 import type { AnyFlavor } from "@ganache/flavor";
 import { load } from "@ganache/flavor";
+import type EthereumFlavor from "@ganache/ethereum";
 
 function getConnector<F extends AnyFlavor>(
   flavorName: F["flavor"],
@@ -14,8 +15,8 @@ function getConnector<F extends AnyFlavor>(
       require("@ganache/ethereum").default.connect(providerOptions, executor)
     );
   }
-  const flavor = load(flavorName);
 
+  const flavor = load(flavorName);
   return <ReturnType<F["connect"]>>flavor.connect(providerOptions, executor);
 }
 
@@ -27,10 +28,10 @@ function getConnector<F extends AnyFlavor>(
  */
 export const loadConnector = <F extends AnyFlavor = EthereumFlavor>(
   options: Record<string, any> & { flavor?: F["flavor"] } = {
-    flavor: EthereumFlavor.flavor
+    flavor: "ethereum"
   }
 ) => {
-  const flavor = (options.flavor || EthereumFlavor.flavor) as F["flavor"];
+  const flavor = (options.flavor || "ethereum") as F["flavor"];
 
   // Set up our request coordinator to either use FIFO or or async request
   // processing. The RequestCoordinator _can_ be used to coordinate the number
