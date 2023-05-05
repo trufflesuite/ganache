@@ -149,12 +149,7 @@ if (argv.action === "start") {
     }
     started = true;
 
-    if (flavor.ready) {
-      await flavor.ready(server.provider, cliSettings);
-    } else if ("initialized" in flavor) {
-      // @ts-ignore old filecoin used `initialized` instead of `ready`
-      await flavor.initialized(server.provider, cliSettings);
-    }
+    await flavor.ready(server.provider, cliSettings);
 
     // if process.send is defined, this is a child_process (we assume a detached
     // instance), so we need to notify that we are ready.
