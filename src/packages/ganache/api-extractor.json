@@ -89,7 +89,10 @@
     "abstract-leveldown",
     "async-eventemitter",
     "levelup",
-    "ethereum-cryptography"
+    "ethereum-cryptography",
+    "@chainsafe/ssz",
+    "@chainsafe/persistent-merkle-tree",
+    "@chainsafe/as-sha256"
   ],
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.

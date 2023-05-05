@@ -1,8 +1,8 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
-const { execSync } = require("child_process");
-const marked = require("marked");
-const hljs = require("highlight.js");
+import { execSync } from "child_process";
+import { marked } from "marked";
+import hljs from "highlight.js";
 
 const highlight = () => {
   const raw = {} as any;
@@ -516,7 +516,7 @@ const html = `
         </article>
       </main>
     </div>
-    <script> 
+    <script>
       (function initColorTheme() {
         const theme = getUserColorTheme();
         const checked = theme === "light" ? true : false;

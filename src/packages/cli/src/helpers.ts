@@ -1,8 +1,23 @@
-import marked from "marked";
-import yargs, { Options } from "yargs";
-import { Base, Defaults, Definitions, YargsPrimitiveCliTypeStrings } from "@ganache/options";
-import { EOL } from "os";
+import { marked } from "marked";
+import TerminalRenderer from "marked-terminal";
 import chalk from "chalk";
+import yargs, { Options } from "yargs";
+import {
+  Base,
+  Defaults,
+  Definitions,
+  YargsPrimitiveCliTypeStrings
+} from "@ganache/options";
+import { EOL } from "os";
+import { TruffleColors } from "@ganache/colors";
+
+marked.setOptions({
+  renderer: new TerminalRenderer({
+    codespan: chalk.hex(TruffleColors.porsche),
+    // Disable `unescape` since doesn't work for everything (we just do it ourselves)
+    unescape: false
+  })
+});
 
 export const wrapWidth = Math.min(120, yargs.terminalWidth());
 

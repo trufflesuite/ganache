@@ -3,18 +3,8 @@ import yargs from "yargs";
 import { StartArgs, GanacheArgs } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
-import marked from "marked";
-import TerminalRenderer from "marked-terminal";
 import { configureFlavorOptions, loadFlavorFromArgs } from "./flavors";
 import { center, highlight, wrapWidth } from "./helpers";
-
-marked.setOptions({
-  renderer: new TerminalRenderer({
-    codespan: chalk.hex(TruffleColors.porsche),
-    // Disable `unescape` since doesn't work for everything (we just do it ourselves)
-    unescape: false
-  })
-});
 
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
 const COMMUNITY_LINK = "https://trfl.io/support";
