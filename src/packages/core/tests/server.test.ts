@@ -116,11 +116,7 @@ describe("server", () => {
     return deferred;
   }
 
-  // skip this test unless in GitHub Actions, as this test iterates over
-  // all available network interfaces and network interfaces on user
-  // machines are unpredictible and may behave in ways that we don't care
-  // about.
-  (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
+  describe("listen", function () {
     function isIPv6(
       info: NetworkInterfaceInfo
     ): info is NetworkInterfaceInfoIPv6 {
@@ -132,7 +128,7 @@ describe("server", () => {
     function getHost(info: NetworkInterfaceInfo, interfaceName: string) {
       // a link-local ipv6 address starts with fe80:: and _must_ include a "zone_id"
       if (isIPv6(info) && info.address.startsWith("fe80::")) {
-        if (process.platform == "win32") {
+        if (IS_WINDOWS) {
           // on windows the zone_id is the scopeid
           return `${info.address}%${info.scopeid}`;
         } else {
@@ -159,7 +155,13 @@ describe("server", () => {
       return validInterfaces;
     }
 
-    it("listens on all interfaces by default", async () => {
+    it("listens on all interfaces by default", async function () {
+      // This test iterates over all available network interfaces. This can be problematic on user
+      // machines (which may be configured in unsupported ways), so we skip it in this case.
+      if (process.env.CI !== "true") {
+        this.skip();
+      }
+
       await setup();
       try {
         const interfaces = getNetworkInterfaces();
@@ -190,10 +192,12 @@ describe("server", () => {
     });
 
     it("listens on given interface only", async function () {
-      // skip this test unless in CI, as this test iterates over all available network interfaces
-      // and network interfaces on user machines are unpredictible and may behave in ways that
-      // we don't care about.
-      if (process.env.CI) this.skip();
+      // This test iterates over all available network interfaces. This can be problematic on user
+      // machines (which may be configured in unsupported ways), and also in macOS (which exposes
+      // unsupported interfaces). In these cases, we skip this test.
+      if (process.env.CI !== "true" || process.platform === "darwin") {
+        this.skip();
+      }
 
       const interfaces = networkInterfaces();
       assert(Object.keys(interfaces).length > 0);

@@ -1,5 +1,6 @@
-import { KNOWN_NETWORKS } from "@ganache/ethereum-options/src/fork-options";
+import { KNOWN_NETWORKS } from "@ganache/ethereum-options";
 import getProvider from "../helpers/getProvider";
+import skipIfNoInfuraKey from "../helpers/skipIfNoInfuraKey";
 import http from "http";
 import ganache from "../../../../../packages/core";
 import assert from "assert";
@@ -1047,9 +1048,7 @@ describe("forking", () => {
       let remoteProvider: EthereumProvider;
       let remoteAccounts: string[];
 
-      before("skip if we don't have the INFURA_KEY", function () {
-        if (!process.env.INFURA_KEY) this.skip();
-      });
+      skipIfNoInfuraKey();
 
       before("configure mainnet", async function () {
         // we fork from mainnet, but configure our fork such that it looks like
@@ -1171,9 +1170,7 @@ describe("forking", () => {
       let provider: EthereumProvider;
       const URL = "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY;
 
-      before("skip if we don't have the INFURA_KEY", function () {
-        if (!process.env.INFURA_KEY) this.skip();
-      });
+      skipIfNoInfuraKey();
 
       before("configure provider", async () => {
         provider = await getProvider({
@@ -1247,11 +1244,8 @@ describe("forking", function () {
       }
     };
     let localProvider: EthereumProvider;
-    before("check conditions", function () {
-      if (!process.env.INFURA_KEY) {
-        this.skip();
-      }
-    });
+
+    skipIfNoInfuraKey();
 
     KNOWN_NETWORKS.forEach(network => {
       describe(network, () => {
@@ -1274,6 +1268,156 @@ describe("forking", function () {
           });
           assert.strictEqual(balance, testData[network].balance);
         });
+      });
+    });
+  });
+
+  describe("shanghai withdrawals", () => {
+    // We don't fetch the block directly from goerli here and just compare
+    // the two responses with `deepStrictEqual` because the fields returned
+    // by a node change over time. This can result in a passing test one
+    // minute and failing the next.
+    const expectedWithdrawalsRoot =
+      "0x15f562646ecde763d5015bc12ee93ed00b0d76991002594840b3d45f38d498d4";
+    const expectedWithdrawals = [
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1bcf80",
+        index: "0x1a9eb6",
+        validatorIndex: "0x3a986"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c28a0",
+        index: "0x1a9eb7",
+        validatorIndex: "0x3a987"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c95fc",
+        index: "0x1a9eb8",
+        validatorIndex: "0x3a988"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c1166",
+        index: "0x1a9eb9",
+        validatorIndex: "0x3a989"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c60d7",
+        index: "0x1a9eba",
+        validatorIndex: "0x3a98a"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c1884",
+        index: "0x1a9ebb",
+        validatorIndex: "0x3a98b"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1bb7f4",
+        index: "0x1a9ebc",
+        validatorIndex: "0x3a98c"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1bde0f",
+        index: "0x1a9ebd",
+        validatorIndex: "0x3a98d"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c2649",
+        index: "0x1a9ebe",
+        validatorIndex: "0x3a98e"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1bd422",
+        index: "0x1a9ebf",
+        validatorIndex: "0x3a98f"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1afb42",
+        index: "0x1a9ec0",
+        validatorIndex: "0x3a990"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1bc0ab",
+        index: "0x1a9ec1",
+        validatorIndex: "0x3a991"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c4ceb",
+        index: "0x1a9ec2",
+        validatorIndex: "0x3a992"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1ccc3c",
+        index: "0x1a9ec3",
+        validatorIndex: "0x3a993"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1c4026",
+        index: "0x1a9ec4",
+        validatorIndex: "0x3a994"
+      },
+      {
+        address: "0x8f0844fd51e31ff6bf5babe21dccf7328e19fd9f",
+        amount: "0x1b7227",
+        index: "0x1a9ec5",
+        validatorIndex: "0x3a995"
+      }
+    ];
+
+    // this test uses the `network: "goerli"` option, which requires an
+    // infura key; when run our tests it must be provided as an environment
+    // variable.
+    skipIfNoInfuraKey();
+
+    describe("shanghai", () => {
+      let provider: EthereumProvider;
+      const blockNumber = 8765432;
+      afterEach(async () => {
+        provider && (await provider.disconnect());
+      });
+      it("returns the withdrawals and withdrawalsRoot", async () => {
+        provider = await getProvider({
+          chain: { hardfork: "merge" },
+          fork: { network: "goerli", blockNumber }
+        });
+        const block = await provider.send("eth_getBlockByNumber", [
+          `0x${blockNumber.toString(16)}`,
+          false
+        ]);
+
+        assert.deepStrictEqual(block.withdrawals, expectedWithdrawals);
+        assert.strictEqual(block.withdrawalsRoot, expectedWithdrawalsRoot);
+      });
+
+      it("should still return withdrawals and withdrawalsRoot when the hardfork is before shanghai", async () => {
+        // When the block happened shanghai was active, so just because it isn't
+        // active now doesn't change the fact that it was before. This test
+        // tests this.
+        provider = await getProvider({
+          // the blockNumber is after shanghai, but the hardfork is before:
+          chain: { hardfork: "merge" },
+          fork: { network: "goerli", blockNumber }
+        });
+        const block = await provider.send("eth_getBlockByNumber", [
+          `0x${blockNumber.toString(16)}`,
+          false
+        ]);
+        assert.deepStrictEqual(block.withdrawals, expectedWithdrawals);
+        assert.strictEqual(block.withdrawalsRoot, expectedWithdrawalsRoot);
       });
     });
   });

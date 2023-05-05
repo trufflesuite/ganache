@@ -1,4 +1,8 @@
-import type { AbstractLevelDOWN, AbstractIterator } from "abstract-leveldown";
+import type {
+  AbstractLevelDOWN,
+  AbstractIterator,
+  AbstractBatch
+} from "abstract-leveldown";
 import Emittery from "emittery";
 import { dir, setGracefulCleanup } from "tmp-promise";
 import Blockchain from "./blockchain";
@@ -8,6 +12,8 @@ import encode from "encoding-down";
 import leveldown from "leveldown";
 import type { LevelUp } from "levelup";
 import { TrieDB } from "./trie-db";
+import { BUFFER_ZERO, VERSION_KEY } from "@ganache/utils";
+import { Block } from "@ganache/ethereum-block";
 const levelup = require("levelup");
 
 export type GanacheLevelUp = LevelUp<
@@ -21,7 +27,7 @@ const noop = () => Promise.resolve();
 
 export default class Database extends Emittery {
   public readonly blockchain: Blockchain;
-  readonly #options: EthereumInternalOptions["database"];
+  readonly #options: EthereumInternalOptions;
   #cleanupDirectory = noop;
   #closed = false;
   public directory: string = null;
@@ -44,28 +50,87 @@ export default class Database extends Emittery {
    * store instance) or `dbPath` (the path to store/read the db instance)
    * @param blockchain -
    */
-  constructor(
-    options: EthereumInternalOptions["database"],
-    blockchain: Blockchain
-  ) {
+  constructor(options: EthereumInternalOptions, blockchain: Blockchain) {
     super();
 
     this.#options = options;
     this.blockchain = blockchain;
   }
 
+  /**
+   * Handles migrating the db from one version to another.
+   * @returns
+   */
+  private async runMigrations() {
+    let version: Buffer;
+    try {
+      // note: we only add a version
+      version = await this.db.get(VERSION_KEY);
+    } catch {
+      /* not found */
+    }
+    // we've shipped two versions:
+    //  * no version at all (referred to as "version `null`")
+    //  * and version: `BUFFER_ZERO` (the first versioned version)
+    // Since we only have the one version we can be lazy right now and just
+    // check if it exists.
+    if (version) return;
+
+    const logger = this.#options.logging.logger;
+    logger.log("Migrating database from version `null` to `0`…");
+
+    const ops: AbstractBatch<Buffer, Buffer>[] = [
+      //#region MIGRATION 0a
+      // update the db with the version.
+      // since this was not an original field, adding a version if a migration in
+      // and of itself. Future migrations will need conditionally check the
+      // version to apply relevant migrations.
+      { type: "put", key: VERSION_KEY, value: BUFFER_ZERO }
+      //#endregion MIGRATION 0a
+    ];
+
+    //#region MIGRATION 0b
+    // ============
+    // Fix the `size` field of blocks.
+    //
+    // This migration fixes a bug in version `null` that caused us to compute
+    // the `size` of blocks incorrectly. We save the size to the db, so we need
+    // to recompute it and re-save for all blocks:
+    const stream = this.blocks.createReadStream();
+    const prefix = Buffer.from((this.blocks as any).db.db.prefix);
+    for await (const data of stream) {
+      const { key, value } = data as unknown as {
+        key: Buffer;
+        value: Buffer;
+      };
+      ops.push({
+        type: "put",
+        key: Buffer.concat([prefix, key]),
+        value: Block.migrate(value)
+      });
+    }
+    //#endregion MIGRATION 0b
+
+    // save all in one atomic operation:
+    await this.db.batch(ops);
+    logger.log("Migration complete");
+  }
   initialize = async () => {
     const levelupOptions: any = {
       keyEncoding: "binary",
       valueEncoding: "binary"
     };
-    const store = this.#options.db;
+    const databaseOptions = this.#options.database;
+    const store = databaseOptions.db;
     let db: GanacheLevelUp;
+
+    let shouldTryMigrate = false;
     if (store) {
       this.#rootStore = encode(store as AbstractLevelDOWN, levelupOptions);
       db = levelup(this.#rootStore, {});
+      shouldTryMigrate = true;
     } else {
-      let directory = this.#options.dbPath;
+      let directory = databaseOptions.dbPath;
       if (!directory) {
         const dirInfo = await dir(tmpOptions);
         directory = dirInfo.path;
@@ -73,6 +138,8 @@ export default class Database extends Emittery {
 
         // don't continue if we closed while we were waiting for the dir
         if (this.#closed) return this.#cleanup();
+      } else {
+        shouldTryMigrate = true;
       }
       this.directory = directory;
 
@@ -102,6 +169,12 @@ export default class Database extends Emittery {
     this.transactions = sub(db, "t", levelupOptions);
     this.transactionReceipts = sub(db, "r", levelupOptions);
     this.storageKeys = sub(db, "s", levelupOptions);
+
+    // only migrate if we were given a dbPath or a user-defined db
+    if (shouldTryMigrate) {
+      await this.runMigrations();
+    }
+
     return this.emit("ready");
   };
 
