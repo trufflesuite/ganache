@@ -21,12 +21,6 @@ import {
   CONTRACT_NAME
 } from "./helpers";
 
-// pre import "@ganache/ethereum" so that the first test that is run doesn't
-// take a long time (CI might time out). The reason we do this is because cli
-// lazy-loads `require("@ganache/ethereum");`, and "@ganache/ethereum" is a
-// chonker.
-require("@ganache/ethereum");
-
 describe("@ganache/console.log", () => {
   const logger = {
     log: () => {}
@@ -36,6 +30,7 @@ describe("@ganache/console.log", () => {
   let from: string;
 
   before("set up a ganache provider", function () {
+    this.timeout(10000);
     provider = Ganache.provider({
       wallet: { deterministic: true, totalAccounts: 1 },
       miner: { blockGasLimit: "0xfffffffff" },
