@@ -7,15 +7,6 @@ import {
 
 export type { WebSocket, HttpRequest } from "@trufflesuite/uws-js-unofficial";
 
-export interface ConnectorConstructor<Provider, RequestFormat, ResponseFormat> {
-  new (
-    providerOptions: Partial<
-      Record<string, unknown | Partial<Record<string, unknown>>>
-    > | null,
-    executor: Executor
-  ): Connector<Provider, RequestFormat, ResponseFormat>;
-}
-
 /**
  * Connects an arbitrary public chain provider to ganache
  */

@@ -44,7 +44,7 @@ const Ganache = {
    * `options.flavor` which defaults to `ethereum`.
    */
   server: <F extends AnyFlavor = EthereumFlavor>(
-    options?: ServerOptions<F> & ProviderOptions<F>
+    options?: ServerOptions<F>
   ): Server<F> => new Server<F>(options),
 
   /**

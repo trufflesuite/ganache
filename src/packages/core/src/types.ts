@@ -14,14 +14,19 @@ export type ProviderOptions<F extends AnyFlavor> =
     : {
         flavor: F["flavor"];
       }) &
-    Parameters<F["connect"]>[0];
+    Parameters<F["options"]["provider"]["normalize"]>[0];
 
+/**
+ * The server options include the default server optoins, the flavor's server
+ * options, and ProviderOptions<F>
+ */
 export type ServerOptions<F extends AnyFlavor = EthereumFlavor> = Partial<{
   [K in keyof NamespacedServerConfigOptions]: ExternalConfig<
     NamespacedServerConfigOptions[K]
   >;
 }> &
-  Parameters<F["connect"]>[0];
+  ProviderOptions<F> &
+  Parameters<F["options"]["server"]["normalize"]>[0];
 
 export type InternalServerOptions =
   InternalOptions<NamespacedServerConfigOptions>;

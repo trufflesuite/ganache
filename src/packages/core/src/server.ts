@@ -111,7 +111,7 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
   }
 
   constructor(
-    options: ServerOptions<F> & { flavor?: F["flavor"] } = {
+    options: ServerOptions<F> = {
       flavor: "ethereum"
     } as ServerOptions<F>
   ) {
@@ -126,7 +126,7 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
     // const provider = server.provider; // this needs to exist
     // await server.listen(8545)
     // ```
-    const { flavor, connector, promise } = initializeFlavor(options);
+    const { flavor, connector, promise } = initializeFlavor<F>(options);
     this.#connector = connector;
 
     let serverOptions = ServerOptionsConfig.normalize(options);

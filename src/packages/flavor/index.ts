@@ -3,11 +3,7 @@ export type {
   HttpRequest,
   WebSocket
 } from "@trufflesuite/uws-js-unofficial";
-export type {
-  Connector,
-  ConnectorConstructor,
-  WebsocketConnector
-} from "./src/connector";
+export type { Connector, WebsocketConnector } from "./src/connector";
 export type { Executor } from "@ganache/utils";
 
 export type { ServerConfig } from "./src/options/server/server-config";

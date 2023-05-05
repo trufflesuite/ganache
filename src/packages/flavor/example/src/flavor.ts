@@ -69,6 +69,6 @@ async function ready({
     `curl -X POST --data '${JSON.stringify({
       method: "sendFunds",
       params: [provider.getAccounts()[0], "<a different account>", 99]
-    })}' http://${options.server.host}:${options.options.port}`
+    })}' http://${options.server.host}:${options.server.port}`
   );
 }
