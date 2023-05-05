@@ -4,7 +4,7 @@
     "access": "public"
   },
   "version": "0.6.0",
-  "description": "Ganache flavor plugin for the fictional chain \"My Chain\"",
+  "description": "Ganache flavor plugin for the fictional chain \"Not-a-Blockchain-Chain\"",
   "license": "MIT",
   "main": "lib/index.js",
   "source": "src/index.ts",

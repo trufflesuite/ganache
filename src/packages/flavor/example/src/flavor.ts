@@ -54,7 +54,7 @@ async function ready({
   console.log(`*********************************`);
   console.log();
   console.log(
-    `Server is running at ${options.server.host}:${options.server.port}`
+    `Server is running at http://${options.server.host}:${options.server.port}`
   );
   console.log();
 

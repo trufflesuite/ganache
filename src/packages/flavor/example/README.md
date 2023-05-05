@@ -1,7 +1,7 @@
-# My Chain
+# Not-a-Blockchain-Chain
 
 This is an example implementation of a ganache `flavor` plugin for a fictional
-chain called "Not a BlockChain Chain".
+chain called "Not-a-Blockchain-Chain".
 
 To play with this example (which isn't published to npm). You'll need to
 download this repository, run `npm i`, then `cd` to this `example/` directory,
