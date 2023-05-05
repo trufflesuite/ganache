@@ -62,7 +62,9 @@ export const EthereumDefaults: EthereumDefaults = {
 };
 
 export type EthereumOptionsConfig = OptionsConfig<EthereumConfig>;
-export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
+export const EthereumOptionsConfig: EthereumOptionsConfig = new OptionsConfig(
+  EthereumDefaults
+);
 
 export * from "./chain-options";
 export * from "./database-options";
