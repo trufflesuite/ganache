@@ -23,6 +23,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+          cache: "npm"
+          cache-dependency-path: |
+            **/package-lock.json
+            **/npm-shrinkwrap.json
       - run: npm ci
       - run: npm run tsc
       - run: npm test
@@ -49,6 +53,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+          cache: "npm"
+          cache-dependency-path: |
+            **/package-lock.json
+            **/npm-shrinkwrap.json
+            package-lock.json
 
       - name: Add msbuild to PATH
         # we need msbuild tools for the `bigint-buffer` module
