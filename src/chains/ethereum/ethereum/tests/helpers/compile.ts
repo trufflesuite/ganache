@@ -29,14 +29,28 @@ type Sources = {
   [globalName: string]: CompilerInputSourceFile | CompilerInputSourceCode;
 };
 
+// https://docs.soliditylang.org/en/v0.8.11/using-the-compiler.html#target-options
+export type EVMVersion =
+  | "homestead"
+  | "tangerineWhistle"
+  | "spuriousDragon"
+  | "byzantium"
+  | "constantinople"
+  | "petersburg"
+  | "istanbul"
+  | "berlin"
+  | "london";
+
 export default function compile(
   contractPath: ContractPath,
   {
     contractName = null,
-    imports = []
+    imports = [],
+    evmVersion = "london"
   }: {
     contractName?: string;
     imports?: Imports;
+    evmVersion?: EVMVersion;
   } = {}
 ): CompileOutput {
   const parsedPath = parse(contractPath);
@@ -63,7 +77,8 @@ export default function compile(
             "*": {
               "*": ["*"]
             }
-          }
+          },
+          evmVersion
         }
       } as solc.CompilerInput)
     )
