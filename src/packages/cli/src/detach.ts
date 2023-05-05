@@ -12,8 +12,8 @@ export type DetachedInstance = {
   name: string;
   pid: number;
   startTime: number;
-  host: CliSettings["host"];
-  port: CliSettings["port"];
+  host: string;
+  port: number;
   flavor: "ethereum" | string;
   cmd: string;
   version: string;
@@ -31,7 +31,7 @@ function getInstanceFilePath(instanceName: string): string {
 /**
  * Notify that the detached instance has started and is ready to receive requests.
  */
-export function notifyDetachedInstanceReady(port: CliSettings["port"]) {
+export function notifyDetachedInstanceReady(port: number) {
   // in "detach" mode, the parent will wait until the port is
   // received before disconnecting from the child process.
   process.send(port);
