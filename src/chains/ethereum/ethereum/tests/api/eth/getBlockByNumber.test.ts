@@ -1,8 +1,12 @@
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
 import getProvider from "../../helpers/getProvider";
+import { Trie } from "@ethereumjs/trie";
+import { Data } from "@ganache/utils";
+
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
+const emptyTrieRoot = Data.toString(new Trie().root());
 
 describe("api", () => {
   describe("eth", () => {
@@ -106,6 +110,23 @@ describe("api", () => {
               `Mined total difficulty, ${block.totalDifficulty} differs from sum of preceding block's difficulties.`
             );
           });
+        });
+      });
+
+      describe("shanghai", () => {
+        beforeEach(async () => {
+          provider = await getProvider({ chain: { hardfork: "shanghai" } });
+        });
+        afterEach(async () => {
+          provider && (await provider.disconnect());
+        });
+        it("returns the withdrawals and withdrawalsRoot", async () => {
+          const block = await provider.send("eth_getBlockByNumber", ["latest"]);
+          // always an empty array when not forking (see the forking tests for
+          // forked withdrawals)
+          assert.deepStrictEqual(block.withdrawals, []);
+          // always the empty tree root when there are no withdrawals
+          assert.strictEqual(block.withdrawalsRoot, emptyTrieRoot);
         });
       });
     });

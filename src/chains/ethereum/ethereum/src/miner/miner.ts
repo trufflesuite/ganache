@@ -457,6 +457,7 @@ export default class Miner extends Emittery<{
     vm.evm.events.on("step", stepListener);
     try {
       return await vm.runTx({
+        skipHardForkValidation: true,
         tx: tx.toVmTransaction() as any,
         block: block as any
       });

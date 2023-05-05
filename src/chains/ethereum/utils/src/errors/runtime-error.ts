@@ -39,7 +39,10 @@ export class RuntimeError extends CodedError {
 
     this.data = {
       hash: hash,
-      programCounter: execResult.runState.programCounter,
+      // in some failure scenarios, like when the initcode is too large,
+      // `runState` is undefined. In that case, we'll use `undefined` for the
+      // programCounter.
+      programCounter: execResult.runState?.programCounter,
       result:
         returnType === RETURN_TYPES.TRANSACTION_HASH
           ? hash

@@ -31,7 +31,7 @@ export default class TransactionManager extends Manager<NoOp> {
   #blockchain: Blockchain;
 
   constructor(
-    options: EthereumInternalOptions["miner"],
+    options: EthereumInternalOptions,
     common: Common,
     blockchain: Blockchain,
     base: GanacheLevelUp
