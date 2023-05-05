@@ -21,6 +21,12 @@ import {
   CONTRACT_NAME
 } from "./helpers";
 
+// pre import "@ganache/ethereum" so that the first test that is run doesn't
+// take a long time (CI might time out). The reason we do this is because cli
+// lazy-loads `require("@ganache/ethereum");`, and "@ganache/ethereum" is a
+// chonker.
+require("@ganache/ethereum");
+
 describe("@ganache/console.log", () => {
   const logger = {
     log: () => {}
