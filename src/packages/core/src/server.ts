@@ -34,7 +34,7 @@ const IPv4Reg = new RegExp(`^(${v4Seg}[.]){3}${v4Seg}$`);
 const isIPv4 = (s: string) => IPv4Reg.test(s);
 
 export type { Provider } from "..";
-import EthereumFlavor from "@ganache/ethereum";
+import type EthereumFlavor from "@ganache/ethereum";
 import { InternalServerOptions, ServerOptions } from "./types";
 
 const DEFAULT_HOST = "127.0.0.1";

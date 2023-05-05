@@ -1,16 +1,17 @@
 import { Executor, RequestCoordinator } from "@ganache/utils";
 import type { AnyFlavor } from "@ganache/flavor";
 import { load } from "@ganache/flavor";
-import EthereumFlavor from "@ganache/ethereum";
 
 function getConnector<F extends AnyFlavor>(
   flavorName: F["flavor"],
   providerOptions: Parameters<F["connect"]>[0],
   executor: Executor
 ): ReturnType<F["connect"]> {
-  if (flavorName === EthereumFlavor.flavor) {
+  if (flavorName === "ethereum") {
+    // lazy load the ethereum flavor to avoid start up overhead for
+    // other flavors.
     return <ReturnType<F["connect"]>>(
-      EthereumFlavor.connect(providerOptions, executor)
+      require("@ganache/ethereum").default.connect(providerOptions, executor)
     );
   }
   const flavor = load(flavorName);

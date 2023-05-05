@@ -1,5 +1,5 @@
 import type { AnyFlavor } from "@ganache/flavor";
-import EthereumFlavor from "@ganache/ethereum";
+import type EthereumFlavor from "@ganache/ethereum";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
 import { loadConnector } from "./src/connector-loader";
 import Server from "./src/server";
