@@ -1245,17 +1245,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
 
-      const asyncAccounts: Promise<{
-        address: Buffer;
-        before: EthereumRawAccount;
-        after: EthereumRawAccount;
-      } | null>[] = [];
+      const asyncAccounts: Promise<void>[] = [];
 
       afterCache.forEach(i => {
         asyncAccounts.push(
-          new Promise(async resolve => {
+          new Promise<void>(async resolve => {
+            const addressBuf = Buffer.from(i[0], "hex");
             const beforeAccount = await this.vm.stateManager.getAccount(
-              Address.from(`0x${i[0]}`)
+              Address.from(addressBuf)
             );
 
             // todo: it's a shame to serialize here - should get the raw address directly.
@@ -1270,16 +1267,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                 beforeAccount.storageRoot,
                 beforeAccount.codeHash
               ] as EthereumRawAccount;
-              console.log({ before, after });
               stateChanges.set(address, [before, after]);
-              resolve({
-                address,
-                before,
-                after
-              });
-            } else {
-              resolve(null);
             }
+            resolve();
           })
         );
       });
