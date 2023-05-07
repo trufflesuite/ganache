@@ -1108,16 +1108,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     overrides: CallOverrides
   ) {
     const { header } = transaction.block;
-    console.log({
-      number: Quantity.from(header.number),
-      timestamp: Quantity.from(header.timestamp),
-      parentHash: Data.from(header.parentHash),
-      coinbase: header.coinbase,
-      gasLimit: Quantity.from(header.gasLimit),
-      gasUsed: Quantity.from(header.gasUsed),
-      difficulty: Quantity.from(header.difficulty),
-      mixHash: Data.from(header.mixHash)
-    });
+
     const timings: { time: number; label: string }[] = [];
 
     timings.push({ time: performance.now(), label: "start" });
@@ -1137,6 +1128,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const common = this.fallback.common;
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
+    // this won't work as expected if simulating on blocks before shanghai.
     /*const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
@@ -1145,7 +1137,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       : this.common;
     common.setHardfork("shanghai");
 */
-    //const common = this.vm._common;
     const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
     const gasLeft = gasLimit - intrinsicGas;
 
@@ -1174,15 +1165,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
       vm.evm.events.on("step", async (event: InterpreterStep) => {
-        const logs = maybeGetLogs(event);
-        if (logs) {
-          options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", {
-            context: transactionContext,
-            logs
-          });
-        }
-
         if (event.opcode.name === "SSTORE") {
           const stackLength = event.stack.length;
           const keyBigInt = event.stack[stackLength - 1];
@@ -1199,21 +1181,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           const storageTrie = await stateManager.getStorageTrie(
             event.codeAddress.toBuffer()
           );
-
-          /*
-                  // if the value of a given address and slot has it's value changed multiple times,
-                  // the "from" value will return the stale data in subsequent state changes we may
-                  // be able to just change it's root, but maybe it's more efficient just to get a
-                  // new trie
-        
-                  if (storageTrieByAddress.has(event.codeAddress)) {
-                    storageTrie = storageTrieByAddress.get(event.codeAddress);
-                  } else {
-                    storageTrie = await stateManager.getStorageTrie(
-                      event.codeAddress.toBuffer()
-                    );
-                    storageTrieByAddress.set(event.codeAddress, storageTrie);
-                  }*/
 
           const from = decode<Buffer>(await storageTrie.get(key));
           storageChanges.set(key, [
@@ -1276,58 +1243,48 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         label: "finished running transaction"
       });
 
-      const afterCache = stateManager["_cache"]["_cache"] as any;
-      let addressToAccount = new Map<Buffer, EthereumRawAccount>();
+      const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
+
+      const asyncAccounts: Promise<{
+        address: Buffer;
+        before: EthereumRawAccount;
+        after: EthereumRawAccount;
+      } | null>[] = [];
+
       afterCache.forEach(i => {
-        const addr = Buffer.from(i[0], "hex");
-        const value = decode<EthereumRawAccount>(i[1].val);
-        addressToAccount.set(addr, value);
-      });
+        asyncAccounts.push(
+          new Promise(async resolve => {
+            const beforeAccount = await this.vm.stateManager.getAccount(
+              Address.from(`0x${i[0]}`)
+            );
 
-      timings.push({
-        time: performance.now(),
-        label: "finished getting addresses"
-      });
-
-      const keys = Array.from(addressToAccount.keys());
-      const accounts = await Promise.all(
-        keys.map(async address => {
-          const after = addressToAccount.get(address);
-          const beforeAccount = await this.vm.stateManager.getAccount(
-            Address.from(address)
-          );
-
-          const before = [
-            Quantity.toBuffer(beforeAccount.nonce),
-            Quantity.toBuffer(beforeAccount.balance),
-            Quantity.toBuffer(beforeAccount.storageRoot),
-            Quantity.toBuffer(beforeAccount.codeHash)
-          ] as [Buffer, Buffer, Buffer, Buffer];
-
-          return {
-            address,
-            before,
-            after
-          };
-        })
-      );
-      timings.push({
-        time: performance.now(),
-        label: "finished getting accounts"
-      });
-
-      accounts.forEach(account => {
-        // nonce, balance, storageRoot, codeHash
-        const isChanged = !(
-          account.after[0].equals(account.before[0]) &&
-          account.after[1].equals(account.before[1]) &&
-          account.after[2].equals(account.before[2]) &&
-          account.after[3].equals(account.before[3])
+            // todo: it's a shame to serialize here - should get the raw address directly.
+            const beforeRaw = beforeAccount.serialize();
+            if (!beforeRaw.equals(i[1].val)) {
+              // the account has changed
+              const address = Buffer.from(i[0], "hex");
+              const after = decode<EthereumRawAccount>(i[1].val);
+              const before = [
+                Quantity.toBuffer(beforeAccount.nonce),
+                Quantity.toBuffer(beforeAccount.balance),
+                beforeAccount.storageRoot,
+                beforeAccount.codeHash
+              ] as EthereumRawAccount;
+              console.log({ before, after });
+              stateChanges.set(address, [before, after]);
+              resolve({
+                address,
+                before,
+                after
+              });
+            } else {
+              resolve(null);
+            }
+          })
         );
-        if (isChanged) {
-          stateChanges.set(account.address, [account.before, account.after]);
-        }
       });
+
+      await Promise.all(asyncAccounts);
 
       timings.push({
         time: performance.now(),
@@ -1351,34 +1308,39 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     } else {
       const totalGasSpent = result.execResult.executionGasUsed + intrinsicGas;
       const maxRefund = totalGasSpent / 5n;
-      console.log({
-        totalGasSpent,
-        execGas: result.execResult.executionGasUsed,
-        maxRefund,
-        intrinsicGas,
-        refund: result.execResult.gasRefund
-      });
       const actualRefund =
         result.execResult.gasRefund > maxRefund
           ? maxRefund
           : result.execResult.gasRefund;
 
+      console.log({
+        totalGasSpent,
+        execGas: result.execResult.executionGasUsed,
+        maxRefund,
+        intrinsicGas,
+        refund: result.execResult.gasRefund,
+        actualRefund
+      });
+
+      //todo: we are treating the property "executionGasUsed" as the total gas
+      // cost, which it is not. Probably should derive a return object here,
+      // rather than just using the object returned from the EVM.
       result.execResult.executionGasUsed =
         (result.execResult.executionGasUsed || 0n) +
         intrinsicGas -
         actualRefund;
 
       const startTime = timings[0].time;
-      timings.map(({ time, label }) => ({ label, duration: time - startTime }));
+      const timingsSummary = timings.map(({ time, label }) => ({
+        label,
+        duration: time - startTime
+      }));
 
       return {
         result: result.execResult,
         storageChanges,
         stateChanges,
-        timings: timings.map(({ time, label }) => ({
-          label,
-          duration: time - startTime
-        }))
+        timings: timingsSummary
       };
     }
   }
