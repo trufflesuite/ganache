@@ -4,7 +4,7 @@ import Blockchain from "../blockchain";
 import { TrieDB } from "../trie-db";
 
 const keyHashingFunction = (msg: Uint8Array) => {
-  return keccak(Buffer.from(msg.buffer, msg.byteOffset, msg.length));
+  return keccak(msg.buffer.slice(msg.byteOffset, msg.length) as any);
 };
 
 export class GanacheTrie extends Trie {
