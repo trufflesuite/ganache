@@ -29,6 +29,10 @@ export class GanacheTrie extends Trie {
     this.db = db;
   }
 
+  hash(msg: Buffer) {
+    return keyHashingFunction(msg);
+  }
+
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
     this.root(stateRoot);
   }
