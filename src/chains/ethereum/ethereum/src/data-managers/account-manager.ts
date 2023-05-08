@@ -37,7 +37,7 @@ export default class AccountManager {
     trieCopy.setContext(stateRoot.toBuffer(), null, number);
 
     // get the account from the trie
-    return await trieCopy.get(address.toBuffer());
+    return await trieCopy.get(address.buf);
   }
 
   public async getNonce(

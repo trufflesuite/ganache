@@ -112,7 +112,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       // block it twice for each block save step.
       legacy ? this.raw : ([this.type.toBuffer(), ...this.raw] as any),
       [
-        this.from.toBuffer(),
+        this.from.buf,
         this.hash.toBuffer(),
         blockHash.toBuffer(),
         blockNumber.toBuffer(),
@@ -201,7 +201,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         //  and `s` values, make sure the `from` address matches
         if (data.from !== null) {
           const userFrom = toValidLengthAddress(data.from, "from");
-          if (!from.toBuffer().equals(userFrom.toBuffer())) {
+          if (!from.buf.equals(userFrom.buf)) {
             throw new Error(
               "Transaction is signed and contains a `from` field, but the signature doesn't match."
             );

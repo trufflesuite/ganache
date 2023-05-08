@@ -944,7 +944,7 @@ export default class EthereumApi implements Api {
         blockchain.common,
         Quantity.from((parentHeader.number.toBigInt() || 0n) + 1n),
         parentHeader.parentHash,
-        new Address(parentHeader.miner.toBuffer()),
+        new Address(parentHeader.miner.buf),
         tx.gas,
         parentHeader.gasUsed,
         parentHeader.timestamp,
@@ -1798,7 +1798,7 @@ export default class EthereumApi implements Api {
       paddedPosBuff = posBuff.slice(-32);
     }
 
-    const addressBuf = Address.from(address).toBuffer();
+    const addressBuf = Address.toBuffer(address);
     const addressData = await trie.get(addressBuf);
     // An address's stateRoot is stored in the 3rd rlp entry
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];

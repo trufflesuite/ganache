@@ -8,7 +8,7 @@ export function parseFilterDetails(
   // `filter.address` may be a single address or an array
   const addresses = filter.address
     ? (Array.isArray(filter.address) ? filter.address : [filter.address]).map(
-        a => Address.from(a.toLowerCase()).toBuffer()
+        a => Address.toBuffer(a.toLowerCase())
       )
     : [];
   const topics = filter.topics ? filter.topics : [];

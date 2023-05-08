@@ -143,7 +143,7 @@ export class BlockLogs {
       const transactionHash = Data.from(log.transactionHash, 32);
       const transactionIndex = Quantity.from(log.transactionIndex);
       blockLogs.append(transactionIndex, transactionHash, [
-        address.toBuffer(), // `address`
+        address.buf,
         topics,
         data
       ]);

@@ -19,7 +19,7 @@ import { Common } from "@ethereumjs/common";
 export type BlockHeader = {
   parentHash: Data;
   sha3Uncles: Data;
-  miner: Data;
+  miner: Address;
   stateRoot: Data;
   transactionsRoot: Data;
   receiptsRoot: Data;
@@ -56,7 +56,7 @@ export function makeHeader(
   return {
     parentHash: Data.from(raw[0], 32),
     sha3Uncles: Data.from(raw[1], 32),
-    miner: Data.from(raw[2], 20),
+    miner: Address.from(raw[2]),
     stateRoot: Data.from(raw[3], 32),
     transactionsRoot: Data.from(raw[4], 32),
     receiptsRoot: Data.from(raw[5], 32),
@@ -113,7 +113,7 @@ export class RuntimeBlock {
     withdrawalsRoot?: Buffer
   ) {
     this._common = common;
-    const coinbaseBuffer = coinbase.toBuffer();
+    const coinbaseBuffer = coinbase.buf;
     this.header = {
       parentHash: parentHash.toBuffer(),
       coinbase: new Address(coinbaseBuffer),
@@ -183,7 +183,7 @@ export class RuntimeBlock {
         tx.raw.length === 9
           ? tx.raw // legacy transactions don't have their own encoding
           : tx.serialized ?? encodeWithPrefix(tx.type.toNumber(), tx.raw);
-      extraTxs[i] = [tx.from.toBuffer(), tx.hash.toBuffer()];
+      extraTxs[i] = [tx.from.buf, tx.hash.toBuffer()];
     }
     const rawBlock: EthereumRawBlock = isEip4895
       ? [rawHeader, txs, [], []]
