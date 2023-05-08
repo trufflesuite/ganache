@@ -77,8 +77,6 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
-import { bigIntToBuffer } from "@ganache/utils";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -254,10 +252,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.networkId,
           options.chain.hardfork
         );
-
-        if (options.chain.allowUnlimitedInitCodeSize) {
-          removeEIP3860InitCodeSizeLimitCheck(common);
-        }
       }
 
       this.isPostMerge = this.common.gteHardfork("merge");
@@ -303,6 +297,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.vm = await this.createVmFromStateTrie(
         this.trie,
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         true
       );
 
@@ -679,6 +674,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   createVmFromStateTrie = async (
     stateTrie: GanacheTrie | ForkTrie,
     allowUnlimitedContractSize: boolean,
+    allowUnlimitedInitCodeSize: boolean,
     activatePrecompile: boolean,
     common?: Common
   ) => {
@@ -709,7 +705,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       : new GanacheStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
     const eei = new EEI(stateManager, common, blockchain);
-    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const evm = new EVM({
+      common,
+      allowUnlimitedContractSize,
+      eei,
+      allowUnlimitedInitCodeSize
+    });
     const vm = await VM.create({
       activatePrecompiles: false,
       common,
@@ -1156,6 +1157,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const vm = await this.createVmFromStateTrie(
         stateTrie,
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         false, // precompiles have already been initialized in the stateTrie
         common
       );
