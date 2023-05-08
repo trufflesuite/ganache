@@ -21,7 +21,7 @@ export class GanacheTrie extends Trie {
     super({
       db,
       root,
-      useRootPersistence: true,
+      useRootPersistence: false,
       useKeyHashing: true,
       useKeyHashingFunction: keyHashingFunction
     });
