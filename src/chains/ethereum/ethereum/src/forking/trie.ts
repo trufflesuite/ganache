@@ -268,7 +268,7 @@ export class ForkTrie extends GanacheTrie {
   };
 
   async get(key: Buffer): Promise<Buffer> {
-    const value = await super.get(key);
+    let value = await super.get(key);
     if (value != null) return value;
 
     // since we don't have this key in our local trie check if we've have
@@ -281,11 +281,22 @@ export class ForkTrie extends GanacheTrie {
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
-      return this.accountFromFallback(Address.from(key), this.blockNumber);
+      value = await this.accountFromFallback(
+        Address.from(key),
+        this.blockNumber
+      );
     } else {
       // otherwise the key represents storage at the given address:
-      return this.storageFromFallback(this.address, key, this.blockNumber);
+      value = await this.storageFromFallback(
+        this.address,
+        key,
+        this.blockNumber
+      );
     }
+    // fire and forget this store write, as it's not critical that it succeeds
+    // since we can always fall back to the fork/fallback
+    super.put(key, value).catch(e => {});
+    return value;
   }
 
   /**
