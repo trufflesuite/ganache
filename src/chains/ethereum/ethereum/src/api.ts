@@ -182,15 +182,20 @@ async function simulateTransaction(
     }
   }
 
+  const incr =
+    typeof options.miner.timestampIncrement === "string"
+      ? 12n
+      : options.miner.timestampIncrement.toBigInt();
+
   const block = new RuntimeBlock(
     blockchain.common,
-    parentHeader.number,
-    parentHeader.parentHash,
+    Quantity.from(parentHeader.number.toNumber() + 1),
+    parentBlock.hash(),
     blockchain.coinbase,
     gas,
     parentHeader.gasUsed,
-    parentHeader.timestamp,
-    options.miner.difficulty,
+    Quantity.from(parentHeader.timestamp.toBigInt() + incr),
+    Quantity.Zero, //options.miner.difficulty,
     parentHeader.totalDifficulty,
     blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
     baseFeePerGasBigInt,
@@ -210,6 +215,7 @@ async function simulateTransaction(
     data,
     block
   };
+  //const _result = await blockchain.runTransaction(tx, parentBlock, parentBlock);
 
   const result = await blockchain.simulateTransaction(
     simulatedTransaction,
@@ -2930,14 +2936,17 @@ export default class EthereumApi implements Api {
     // todo: need to be able to pass in multiple transactions
     const transaction = args.transactions[0][0];
     const blockNumber = args.block || "latest";
+
     const overrides = args.overrides;
-    const { result, storageChanges, stateChanges } = await simulateTransaction(
-      this.#blockchain,
-      this.#options,
-      transaction,
-      blockNumber,
-      overrides
-    );
+    //@ts-ignore
+    const { result, storageChanges, stateChanges, timings } =
+      await simulateTransaction(
+        this.#blockchain,
+        this.#options,
+        transaction,
+        blockNumber,
+        overrides
+      );
 
     const parsedStorageChanges = [];
     for (const key of storageChanges.keys()) {
@@ -2971,7 +2980,7 @@ export default class EthereumApi implements Api {
     }
 
     const returnValue = Data.from(result.returnValue || "0x");
-    const gas = Quantity.from(result.gas);
+    const gas = Quantity.from(result.executionGasUsed);
     const logs = result.logs?.map(([addr, topics, data]) => ({
       address: Data.from(addr),
       topics: topics?.map(t => Data.from(t)),
@@ -2987,7 +2996,9 @@ export default class EthereumApi implements Api {
       //todo: populate trace
       trace: undefined,
       storageChanges: parsedStorageChanges,
-      stateChanges: parsedStateChanges
+      stateChanges: parsedStateChanges,
+      //@ts-ignore
+      timings
     };
   }
 
