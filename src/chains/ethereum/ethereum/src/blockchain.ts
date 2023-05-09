@@ -37,7 +37,8 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   KNOWN_CHAINIDS,
-  keccak
+  keccak,
+  bigIntToBuffer
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
