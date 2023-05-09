@@ -78,6 +78,7 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
+import { bigIntToBuffer } from "@ganache/utils";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1106,8 +1107,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     parentBlock: Block,
     overrides: CallOverrides
   ) {
-    let result: EVMResult;
+    const { header } = transaction.block;
 
+    const timings: { time: number; label: string }[] = [];
+
+    timings.push({ time: performance.now(), label: "start" });
+
+    let result: EVMResult;
+    const storageChanges = new Map<Buffer, [Buffer, Buffer, Buffer]>();
+    const stateChanges = new Map<
+      Buffer,
+      [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
+    >();
     const data = transaction.data;
     let gasLimit = transaction.gas.toBigInt();
     // subtract out the transaction's base fee from the gas limit before
@@ -1115,15 +1126,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const hasToAddress = transaction.to != null;
     const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
+    //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
+    // this won't work as expected if simulating on blocks before shanghai.
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
+    common.setHardfork("shanghai");
 
-    const gasLeft =
-      gasLimit - calculateIntrinsicGas(data, hasToAddress, common);
+    const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
+    const gasLeft = gasLimit - intrinsicGas;
 
     const transactionContext = {};
     this.emit("ganache:vm:tx:before", {
@@ -1145,24 +1159,54 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         false, // precompiles have already been initialized in the stateTrie
         common
       );
-
+      //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
+      const stateManager = vm.stateManager as GanacheStateManager;
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
-
-      vm.evm.events.on("step", (event: InterpreterStep) => {
-        const logs = maybeGetLogs(event);
-        if (logs) {
-          options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", {
-            context: transactionContext,
-            logs
-          });
+      vm.evm.events.on("step", async (event: InterpreterStep) => {
+        if (
+          event.opcode.name === "CALL" ||
+          event.opcode.name === "DELEGATECALL" ||
+          event.opcode.name === "STATICCALL" ||
+          event.opcode.name === "JUMP"
+        ) {
+          //console.log(event.opcode.name);
         }
 
-        if (!this.#emitStepEvent) return;
-        const ganacheStepEvent = makeStepEvent(transactionContext, event);
-        this.emit("ganache:vm:tx:step", ganacheStepEvent);
+        if (event.opcode.name === "SSTORE") {
+          const stackLength = event.stack.length;
+          const keyBigInt = event.stack[stackLength - 1];
+          const key =
+            keyBigInt === 0n
+              ? BUFFER_32_ZERO
+              : // todo: this isn't super efficient, but :shrug: we probably don't do it often
+                Data.toBuffer(bigIntToBuffer(keyBigInt), 32);
+          const valueBigInt = event.stack[stackLength - 2];
+
+          const value = Data.toBuffer(bigIntToBuffer(valueBigInt), 32);
+          // todo: DELEGATE_CALL might impact the address context from which the `before` value should be fetched
+
+          const storageTrie = await stateManager.getStorageTrie(
+            event.codeAddress.toBuffer()
+          );
+
+          const from = decode<Buffer>(await storageTrie.get(key));
+
+          /*console.log({
+            SSTORE_refund: event.gasRefund,
+            address: Data.from(event.codeAddress.toBuffer()),
+            key: Data.from(key),
+            from: Data.from(from),
+            to: Data.from(value)
+          });*/
+
+          storageChanges.set(key, [
+            event.codeAddress.toBuffer(),
+            from.length === 0 ? Buffer.alloc(32) : Data.toBuffer(from, 32),
+            value
+          ]);
+        }
       });
 
       const caller = transaction.from.toBuffer();
@@ -1189,14 +1233,20 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
       const fromAccount = await vm.eei.getAccount(callerAddress);
-      fromAccount.nonce += 1n;
-      const txCost = gasLimit * transaction.gasPrice.toBigInt();
+
+      // todo: re previous comment, incrementing the nonce here results in a double
+      // incremented nonce in the result :/ Need to validate whether this is required.
+      //fromAccount.nonce += 1n;
+      const intrinsicTxCost = intrinsicGas * transaction.gasPrice.toBigInt();
+      //todo: does the execution gas get subtracted from the balance?
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
-      fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
+      fromAccount.balance =
+        intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
       await vm.eei.putAccount(callerAddress, fromAccount);
-
       // finally, run the call
+      timings.push({ time: performance.now(), label: "running transaction" });
+
       result = await vm.evm.runCall({
         caller: callerAddress,
         data: transaction.data && transaction.data.toBuffer(),
@@ -1205,6 +1255,48 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         to,
         value: transaction.value == null ? 0n : transaction.value.toBigInt(),
         block: transaction.block as any
+      });
+      timings.push({
+        time: performance.now(),
+        label: "finished running transaction"
+      });
+
+      const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
+
+      const asyncAccounts: Promise<void>[] = [];
+
+      afterCache.forEach(i => {
+        asyncAccounts.push(
+          new Promise<void>(async resolve => {
+            const addressBuf = Buffer.from(i[0], "hex");
+            const beforeAccount = await this.vm.stateManager.getAccount(
+              Address.from(addressBuf)
+            );
+
+            // todo: it's a shame to serialize here - should get the raw address directly.
+            const beforeRaw = beforeAccount.serialize();
+            if (!beforeRaw.equals(i[1].val)) {
+              // the account has changed
+              const address = Buffer.from(i[0], "hex");
+              const after = decode<EthereumRawAccount>(i[1].val);
+              const before = [
+                Quantity.toBuffer(beforeAccount.nonce),
+                Quantity.toBuffer(beforeAccount.balance),
+                beforeAccount.storageRoot,
+                beforeAccount.codeHash
+              ] as EthereumRawAccount;
+              stateChanges.set(address, [before, after]);
+            }
+            resolve();
+          })
+        );
+      });
+
+      await Promise.all(asyncAccounts);
+
+      timings.push({
+        time: performance.now(),
+        label: "finished building state diff"
       });
     } else {
       result = {
@@ -1215,13 +1307,49 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       } as EVMResult;
     }
+
     this.emit("ganache:vm:tx:after", {
       context: transactionContext
     });
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
-      return Data.from(result.execResult.returnValue || "0x");
+      const totalGasSpent = result.execResult.executionGasUsed + intrinsicGas;
+      const maxRefund = totalGasSpent / 5n;
+      const actualRefund =
+        result.execResult.gasRefund > maxRefund
+          ? maxRefund
+          : result.execResult.gasRefund;
+
+      /*console.log({
+        totalGasSpent,
+        execGas: result.execResult.executionGasUsed,
+        maxRefund,
+        intrinsicGas,
+        refund: result.execResult.gasRefund,
+        actualRefund
+      });*/
+
+      //todo: we are treating the property "executionGasUsed" as the total gas
+      // cost, which it is not. Probably should derive a return object here,
+      // rather than just using the object returned from the EVM.
+      result.execResult.executionGasUsed =
+        (result.execResult.executionGasUsed || 0n) +
+        intrinsicGas -
+        actualRefund;
+
+      const startTime = timings[0].time;
+      const timingsSummary = timings.map(({ time, label }) => ({
+        label,
+        duration: time - startTime
+      }));
+
+      return {
+        result: result.execResult,
+        storageChanges,
+        stateChanges,
+        timings: timingsSummary
+      };
     }
   }
 

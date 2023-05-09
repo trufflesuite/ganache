@@ -197,6 +197,8 @@ export default class HttpServer {
   }
 
   #handlePost = (response: HttpResponse, request: HttpRequest) => {
+    const startTime = performance.now();
+
     // handle JSONRPC post requests...
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
@@ -241,7 +243,12 @@ export default class HttpServer {
               // cause an `Unhandled promise rejection` if we try)
               return;
             }
-            const data = connector.format(result, payload);
+            const endTime = performance.now();
+            const data = connector.format(
+              result,
+              payload,
+              Math.floor(endTime - startTime)
+            );
             if (types.isGeneratorObject(data)) {
               sendChunkedResponse(
                 response,
@@ -269,7 +276,13 @@ export default class HttpServer {
               // cause an `Unhandled promise rejection` if we try)
               return;
             }
-            const data = connector.formatError(error, payload);
+            const endTime = performance.now();
+
+            const data = connector.formatError(
+              error,
+              payload,
+              Math.floor(endTime - startTime)
+            );
             sendResponse(
               response,
               this.#isClosing,

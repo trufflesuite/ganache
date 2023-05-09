@@ -162,7 +162,7 @@ export class ForkTrie extends GanacheTrie {
     // the fork block because we can't possibly delete keys _before_ the fork
     // block, since those happened before ganache was even started
     // This little optimization can cut debug_traceTransaction time _in half_.
-    if (!this.isPreForkBlock) {
+    if (true || !this.isPreForkBlock) {
       const delKey = this.createDelKey(key);
       const metaDataPutPromise = this.checkpointedMetadata.put(
         delKey,
@@ -277,7 +277,7 @@ export class ForkTrie extends GanacheTrie {
     // the fork block because we can't possibly delete keys _before_ the fork
     // block, since those happened before ganache was even started
     // This little optimization can cut debug_traceTransaction time _in half_.
-    if (!this.isPreForkBlock && (await this.keyWasDeleted(key))) return null;
+    if (await this.keyWasDeleted(key)) return null;
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
