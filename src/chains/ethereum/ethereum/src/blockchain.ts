@@ -1126,17 +1126,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const hasToAddress = transaction.to != null;
     const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
-    const common = this.fallback.common;
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
     // this won't work as expected if simulating on blocks before shanghai.
-    /*const common = this.fallback
+    const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
           BigInt(transaction.block.header.number.toString())
         )
       : this.common;
     common.setHardfork("shanghai");
-*/
+
     const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
     const gasLeft = gasLimit - intrinsicGas;
 
@@ -1160,11 +1159,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         false, // precompiles have already been initialized in the stateTrie
         common
       );
+      //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
       const stateManager = vm.stateManager as GanacheStateManager;
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
       vm.evm.events.on("step", async (event: InterpreterStep) => {
+        if (
+          event.opcode.name === "CALL" ||
+          event.opcode.name === "DELEGATECALL" ||
+          event.opcode.name === "STATICCALL" ||
+          event.opcode.name === "JUMP"
+        ) {
+          //console.log(event.opcode.name);
+        }
+
         if (event.opcode.name === "SSTORE") {
           const stackLength = event.stack.length;
           const keyBigInt = event.stack[stackLength - 1];
@@ -1183,6 +1192,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           );
 
           const from = decode<Buffer>(await storageTrie.get(key));
+
+          /*console.log({
+            SSTORE_refund: event.gasRefund,
+            address: Data.from(event.codeAddress.toBuffer()),
+            key: Data.from(key),
+            from: Data.from(from),
+            to: Data.from(value)
+          });*/
+
           storageChanges.set(key, [
             event.codeAddress.toBuffer(),
             from.length === 0 ? Buffer.alloc(32) : Data.toBuffer(from, 32),
@@ -1303,14 +1321,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           ? maxRefund
           : result.execResult.gasRefund;
 
-      console.log({
+      /*console.log({
         totalGasSpent,
         execGas: result.execResult.executionGasUsed,
         maxRefund,
         intrinsicGas,
         refund: result.execResult.gasRefund,
         actualRefund
-      });
+      });*/
 
       //todo: we are treating the property "executionGasUsed" as the total gas
       // cost, which it is not. Probably should derive a return object here,
