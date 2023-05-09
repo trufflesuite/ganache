@@ -185,6 +185,7 @@ export class ForkTrie extends GanacheTrie {
         await this.persistRoot();
       }
     }
+    this.cache.delete(key);
     this._lock.release();
   }
 
@@ -267,8 +268,13 @@ export class ForkTrie extends GanacheTrie {
     return encode(buf);
   };
 
+  private cache: Map<Buffer, Buffer> = new Map();
+
   async get(key: Buffer): Promise<Buffer> {
-    let value = await super.get(key);
+    let value = this.cache.get(key);
+    if (value !== undefined) return value;
+
+    value = await super.get(key);
     if (value != null) return value;
 
     // since we don't have this key in our local trie check if we've have
@@ -295,7 +301,7 @@ export class ForkTrie extends GanacheTrie {
     }
     // fire and forget this store write, as it's not critical that it succeeds
     // since we can always fall back to the fork/fallback
-    super.put(key, value).catch(e => {});
+    this.cache.set(key, value);
     return value;
   }
 
