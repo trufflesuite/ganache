@@ -27,7 +27,7 @@
     "directory": "src/packages/ganache"
   },
   "scripts": {
-    "build": "npm run tsc && npx shx rm -rf ./dist && webpack && npm run types",
+    "build": "npm run tsc && npx shx rm -rf ./dist && webpack",
     "types": "api-extractor run",
     "tsc": "tsc --build",
     "test": "nyc npm run mocha",
