@@ -17,7 +17,7 @@ export class GanacheTrie extends Trie {
     super({
       db,
       root,
-      useRootPersistence: true,
+      useRootPersistence: false,
       useKeyHashing: true
     });
     this.blockchain = blockchain;
