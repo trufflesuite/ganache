@@ -29,11 +29,6 @@ export class GanacheTrie extends Trie {
     this.db = db;
   }
 
-  // the original implementation copies the buffer from keyHashingfunction instead of just using it directly.
-  hash(msg: Buffer) {
-    return keyHashingFunction(msg);
-  }
-
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
     this.root(stateRoot);
   }
