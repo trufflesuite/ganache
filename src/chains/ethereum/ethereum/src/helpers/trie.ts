@@ -3,10 +3,6 @@ import { Trie } from "@ethereumjs/trie";
 import Blockchain from "../blockchain";
 import { TrieDB } from "../trie-db";
 
-const keyHashingFunction = (msg: Uint8Array) => {
-  return keccak(msg.buffer.slice(msg.byteOffset, msg.length) as any);
-};
-
 export class GanacheTrie extends Trie {
   public readonly blockchain: Blockchain;
   /**
@@ -22,15 +18,14 @@ export class GanacheTrie extends Trie {
       db,
       root,
       useRootPersistence: true,
-      useKeyHashing: true,
-      useKeyHashingFunction: keyHashingFunction
+      useKeyHashing: true
     });
     this.blockchain = blockchain;
     this.db = db;
   }
 
   hash(msg: Buffer) {
-    return keyHashingFunction(msg);
+    return keccak(msg);
   }
 
   setContext(stateRoot: Buffer, address: Buffer, blockNumber: Quantity) {
