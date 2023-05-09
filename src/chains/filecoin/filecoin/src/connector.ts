@@ -62,7 +62,7 @@ export class Connector<
   }
 
   format(result: any, payload: R): RecognizedString {
-    const json = makeResponse(payload.id, result);
+    const json = makeResponse(payload.id, result, 1);
     return JSON.stringify(json);
   }
 
