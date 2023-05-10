@@ -72,13 +72,18 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import { maybeGetLogs } from "@ganache/console.log";
+
 import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
 import { bigIntToBuffer } from "@ganache/utils";
+import {
+  patchInterpreterRunStep,
+  unpatchInterpreterRunStep
+} from "./helpers/patchInterpreterRunStep";
+import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1164,31 +1169,27 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
-      vm.evm.events.on("step", async (event: InterpreterStep) => {
-        if (
-          event.opcode.name === "CALL" ||
-          event.opcode.name === "DELEGATECALL" ||
-          event.opcode.name === "STATICCALL" ||
-          event.opcode.name === "JUMP"
-        ) {
-          //console.log(event.opcode.name);
-        }
 
-        if (event.opcode.name === "SSTORE") {
-          const stackLength = event.stack.length;
-          const keyBigInt = event.stack[stackLength - 1];
+      const stepHandler = async (interpreter: Interpreter) => {
+        const { opCode, stack, env } = (interpreter as any)
+          ._runState as RunState;
+        const codeAddress = env.codeAddress;
+
+        if (opCode === 0x55) {
+          const stackLength = stack.length;
+          const keyBigInt = stack._store[stackLength - 1];
           const key =
             keyBigInt === 0n
               ? BUFFER_32_ZERO
               : // todo: this isn't super efficient, but :shrug: we probably don't do it often
                 Data.toBuffer(bigIntToBuffer(keyBigInt), 32);
-          const valueBigInt = event.stack[stackLength - 2];
+          const valueBigInt = stack._store[stackLength - 2];
 
           const value = Data.toBuffer(bigIntToBuffer(valueBigInt), 32);
           // todo: DELEGATE_CALL might impact the address context from which the `before` value should be fetched
 
           const storageTrie = await stateManager.getStorageTrie(
-            event.codeAddress.toBuffer()
+            codeAddress.toBuffer()
           );
 
           const from = decode<Buffer>(await storageTrie.get(key));
@@ -1202,12 +1203,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           });*/
 
           storageChanges.set(key, [
-            event.codeAddress.toBuffer(),
+            codeAddress.toBuffer(),
             from.length === 0 ? Buffer.alloc(32) : Data.toBuffer(from, 32),
             value
           ]);
         }
-      });
+      };
 
       const caller = transaction.from.toBuffer();
       const callerAddress = new Address(caller);
@@ -1246,16 +1247,20 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await vm.eei.putAccount(callerAddress, fromAccount);
       // finally, run the call
       timings.push({ time: performance.now(), label: "running transaction" });
-
-      result = await vm.evm.runCall({
-        caller: callerAddress,
-        data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: transaction.gasPrice.toBigInt(),
-        gasLimit: gasLeft,
-        to,
-        value: transaction.value == null ? 0n : transaction.value.toBigInt(),
-        block: transaction.block as any
-      });
+      patchInterpreterRunStep(stepHandler);
+      try {
+        result = await vm.evm.runCall({
+          caller: callerAddress,
+          data: transaction.data && transaction.data.toBuffer(),
+          gasPrice: transaction.gasPrice.toBigInt(),
+          gasLimit: gasLeft,
+          to,
+          value: transaction.value == null ? 0n : transaction.value.toBigInt(),
+          block: transaction.block as any
+        });
+      } finally {
+        unpatchInterpreterRunStep();
+      }
       timings.push({
         time: performance.now(),
         label: "finished running transaction"
