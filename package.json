@@ -13,7 +13,7 @@
     "docs.build": "shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache && lerna run docs.build && cd scripts && ts-node build-docs",
     "docs.preview": "lerna run docs.preview",
     "postinstall": "cd scripts && ts-node postinstall",
-    "reinstall": "npm run clean && npm install",
+    "reinstall": "npm run clean && npm install --force",
     "prepublishOnly": "cd scripts && ts-node filter-shrinkwrap.ts \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
     "postpublish": "git restore \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",

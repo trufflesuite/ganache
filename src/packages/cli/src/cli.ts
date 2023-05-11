@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import memdown from "/home/david/code/ganache/src/chains/ethereum/console.log/node_modules/memdown/memdown.js";
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import args from "./args";
@@ -57,6 +58,7 @@ if (argv.action === "start") {
   console.log(detailedVersion);
 
   let server: ReturnType<typeof Ganache.server>;
+  (argv as any).database = { db: memdown() };
   try {
     server = Ganache.server(argv);
   } catch (error: any) {
