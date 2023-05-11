@@ -994,6 +994,7 @@ describe("api", () => {
             trie,
             false,
             false,
+            false,
             blockchain.common
           );
           const fromState = await vm.stateManager.getAccount(vmFromAddress);

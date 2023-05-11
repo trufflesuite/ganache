@@ -125,6 +125,7 @@ export class ForkTrie extends GanacheTrie {
   // https://github.com/ethereumjs/ethereumjs-monorepo/blob/34f3dcdf37d2fbeffeb41dc3de693f59b91c46bc/packages/trie/src/trie/trie.ts#L218
 
   async del(key: Buffer) {
+    await this._lock.acquire();
     this._deletedKeys.set(Data.toString(key), this.blockNumber.toBigInt());
     const path = keccak(key);
     const { node, stack } = await this.findPath(path);
@@ -132,6 +133,8 @@ export class ForkTrie extends GanacheTrie {
       await this._deleteNode(path, stack);
       await this.persistRoot();
     }
+    this.cache.delete(key);
+    this._lock.release();
   }
 
   /**
@@ -213,8 +216,13 @@ export class ForkTrie extends GanacheTrie {
     return encode(buf);
   };
 
+  private cache: Map<Buffer, Buffer> = new Map();
+
   async get(key: Buffer): Promise<Buffer> {
-    const value = await super.get(key);
+    let value = this.cache.get(key);
+    if (value !== undefined) return value;
+
+    value = await super.get(key);
     if (value != null) return value;
 
     // since we don't have this key in our local trie check if we've have
@@ -227,11 +235,22 @@ export class ForkTrie extends GanacheTrie {
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
-      return this.accountFromFallback(Address.from(key), this.blockNumber);
+      value = await this.accountFromFallback(
+        Address.from(key),
+        this.blockNumber
+      );
     } else {
       // otherwise the key represents storage at the given address:
-      return this.storageFromFallback(this.address, key, this.blockNumber);
+      value = await this.storageFromFallback(
+        this.address,
+        key,
+        this.blockNumber
+      );
     }
+    // fire and forget this store write, as it's not critical that it succeeds
+    // since we can always fall back to the fork/fallback
+    this.cache.set(key, value);
+    return value;
   }
 
   /**

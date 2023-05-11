@@ -112,7 +112,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       const postData = `${JSONRPC_PREFIX}${this.id++},${key.slice(1)}`;
       this.headers["content-length"] = postData.length;
 
-      const req = this._request(requestOptions);
+      const req = this._request(requestOptions as any);
       req.on("response", res => {
         const { headers } = res;
 
