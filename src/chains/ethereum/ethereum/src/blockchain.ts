@@ -1114,10 +1114,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     parentBlock: Block,
     overrides: CallOverrides
   ) {
-    const timings: { time: number; label: string }[] = [];
-
-    timings.push({ time: performance.now(), label: "start" });
-
     let result: EVMResult;
     const storageChanges = new Map<Buffer, [Buffer, Buffer, Buffer]>();
     const stateChanges = new Map<
@@ -1241,7 +1237,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
       await vm.eei.putAccount(callerAddress, fromAccount);
       // finally, run the call
-      timings.push({ time: performance.now(), label: "running transaction" });
       patchInterpreterRunStep(stepHandler);
       try {
         result = await vm.evm.runCall({
@@ -1256,10 +1251,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       } finally {
         unpatchInterpreterRunStep();
       }
-      timings.push({
-        time: performance.now(),
-        label: "finished running transaction"
-      });
 
       for (const addr in touchedStorage) {
         let storageTrie: Trie;
@@ -1280,7 +1271,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           ]);
         }
       }
-
+      /*
       const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
 
       const asyncAccounts: Promise<void>[] = [];
@@ -1313,11 +1304,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       });
 
       await Promise.all(asyncAccounts);
-
-      timings.push({
-        time: performance.now(),
-        label: "finished building state diff"
-      });
+      */
     } else {
       result = {
         execResult: {
@@ -1358,17 +1345,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         intrinsicGas -
         actualRefund;
 
-      const startTime = timings[0].time;
-      const timingsSummary = timings.map(({ time, label }) => ({
-        label,
-        duration: time - startTime
-      }));
-
       return {
         result: result.execResult,
         storageChanges,
-        stateChanges,
-        timings: timingsSummary
+        stateChanges
       };
     }
   }
