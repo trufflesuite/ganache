@@ -1112,8 +1112,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     parentBlock: Block,
     overrides: CallOverrides
   ) {
-    const { header } = transaction.block;
-
     const timings: { time: number; label: string }[] = [];
 
     timings.push({ time: performance.now(), label: "start" });
@@ -1170,6 +1168,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // commit/revert later because this stateTrie is ephemeral anyway.
       await vm.eei.checkpoint();
 
+      type TouchedStorage = Map<
+        string,
+        [address: Buffer, key: Buffer, value: Buffer]
+      >;
+
+      const touchedStorage = new Map<string, TouchedStorage>();
       const stepHandler = async (interpreter: Interpreter) => {
         const { opCode, stack, env } = (interpreter as any)
           ._runState as RunState;
@@ -1182,31 +1186,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             keyBigInt === 0n
               ? BUFFER_32_ZERO
               : // todo: this isn't super efficient, but :shrug: we probably don't do it often
-                Data.toBuffer(bigIntToBuffer(keyBigInt), 32);
+                bigIntToBuffer(keyBigInt);
           const valueBigInt = stack._store[stackLength - 2];
 
-          const value = Data.toBuffer(bigIntToBuffer(valueBigInt), 32);
+          const value = bigIntToBuffer(valueBigInt);
           // todo: DELEGATE_CALL might impact the address context from which the `before` value should be fetched
+          const keyString = key.toString();
 
-          const storageTrie = await stateManager.getStorageTrie(
-            codeAddress.toBuffer()
-          );
-
-          const from = decode<Buffer>(await storageTrie.get(key));
-
-          /*console.log({
-            SSTORE_refund: event.gasRefund,
-            address: Data.from(event.codeAddress.toBuffer()),
-            key: Data.from(key),
-            from: Data.from(from),
-            to: Data.from(value)
-          });*/
-
-          storageChanges.set(key, [
-            codeAddress.toBuffer(),
-            from.length === 0 ? Buffer.alloc(32) : Data.toBuffer(from, 32),
-            value
-          ]);
+          const addressString = codeAddress.buf.toString();
+          let touchedAddressStorage = touchedStorage[addressString];
+          if (touchedAddressStorage === undefined) {
+            touchedAddressStorage = touchedStorage[addressString] = {};
+          }
+          touchedAddressStorage[keyString] = [codeAddress.buf, key, value];
         }
       };
 
@@ -1265,6 +1257,26 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         time: performance.now(),
         label: "finished running transaction"
       });
+
+      for (const addr in touchedStorage) {
+        let storageTrie: Trie;
+
+        const storage = touchedStorage[addr] as TouchedStorage;
+        for (const keyStr in storage) {
+          const [addrBuffer, key, value] = storage[keyStr] as Buffer[];
+          if (storageTrie === undefined) {
+            storageTrie = await stateManager.getStorageTrie(addrBuffer);
+          }
+          const from = decode<Buffer>(await storageTrie.get(key));
+
+          // todo: this should probably be keyyed by the address, not the key
+          storageChanges.set(key, [
+            addrBuffer,
+            from.length === 0 ? Buffer.alloc(32) : from,
+            value
+          ]);
+        }
+      }
 
       const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
 

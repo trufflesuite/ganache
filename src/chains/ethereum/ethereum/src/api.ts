@@ -2952,10 +2952,10 @@ export default class EthereumApi implements Api {
     for (const key of storageChanges.keys()) {
       const [contractAddress, from, to] = storageChanges.get(key);
       parsedStorageChanges.push({
-        key: Data.from(key),
+        key: Data.from(key, 32),
         address: Address.from(contractAddress),
-        from: Data.from(from),
-        to: Data.from(to)
+        from: Data.from(from, 32),
+        to: Data.from(to, 32)
       });
     }
 
