@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import memdown from "/home/david/code/ganache/src/chains/ethereum/console.log/node_modules/memdown/memdown.js";
+import memdown from "memdown";
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import args from "./args";
