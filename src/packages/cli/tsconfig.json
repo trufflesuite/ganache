@@ -37,6 +37,10 @@
     {
       "name": "@ganache/filecoin",
       "path": "../../chains/filecoin/filecoin"
+    },
+    {
+      "name": "@ganache/memdown",
+      "path": "../memdown"
     }
   ]
 }

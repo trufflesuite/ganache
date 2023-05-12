@@ -97,6 +97,9 @@ export default class Database extends Emittery {
     // the `size` of blocks incorrectly. We save the size to the db, so we need
     // to recompute it and re-save for all blocks:
     const stream = this.blocks.createReadStream();
+    await new Promise(resolve => {
+      setImmediate(resolve); // HACK
+    });
     const prefix = Buffer.from((this.blocks as any).db.db.prefix);
     for await (const data of stream) {
       const { key, value } = data as unknown as {
