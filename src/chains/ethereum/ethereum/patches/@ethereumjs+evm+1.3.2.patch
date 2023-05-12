@@ -1,0 +1,48 @@
+diff --git a/node_modules/@ethereumjs/evm/dist/interpreter.js b/node_modules/@ethereumjs/evm/dist/interpreter.js
+index 9087295..062fa34 100644
+--- a/node_modules/@ethereumjs/evm/dist/interpreter.js
++++ b/node_modules/@ethereumjs/evm/dist/interpreter.js
+@@ -150,7 +150,7 @@ class Interpreter {
+             throw new exceptions_1.EvmError(exceptions_1.ERROR.INVALID_OPCODE);
+         }
+         // Reduce opcode's base fee
+-        this.useGas(gas, `${opInfo.name} fee`);
++        this.useGas(gas);
+         // Advance program counter
+         this._runState.programCounter++;
+         // Execute opcode handler
+diff --git a/node_modules/@ethereumjs/evm/dist/opcodes/functions.js b/node_modules/@ethereumjs/evm/dist/opcodes/functions.js
+index 8a89f31..ed0ed71 100644
+--- a/node_modules/@ethereumjs/evm/dist/opcodes/functions.js
++++ b/node_modules/@ethereumjs/evm/dist/opcodes/functions.js
+@@ -1,6 +1,8 @@
++
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.handlers = void 0;
++const bufferToBigInt = require("@ganache/utils").bufferToBigInt;
+ const util_1 = require("@ethereumjs/util");
+ const keccak_1 = require("ethereum-cryptography/keccak");
+ const utils_1 = require("ethereum-cryptography/utils");
+@@ -762,14 +764,15 @@ exports.handlers = new Map([
+     [
+         0x60,
+         function (runState, common) {
+-            const numToPush = runState.opCode - 0x5f;
+-            if (common.isActivatedEIP(3540) &&
+-                runState.programCounter + numToPush > runState.code.length) {
++            const { opCode, stack, code, programCounter } = runState;
++            const numToPush = opCode - 0x5f;
++            const nextCounter = programCounter + numToPush;
++            if (nextCounter > code.length && common.isActivatedEIP(3540)) {
+                 (0, util_2.trap)(exceptions_1.ERROR.OUT_OF_RANGE);
+             }
+-            const loaded = (0, util_1.bufferToBigInt)(runState.code.slice(runState.programCounter, runState.programCounter + numToPush));
+-            runState.programCounter += numToPush;
+-            runState.stack.push(loaded);
++            const loaded = bufferToBigInt(code.subarray(programCounter, nextCounter));
++            runState.programCounter = nextCounter;
++            stack.push(loaded);
+         },
+     ],
+     // 0x80: DUP
