@@ -1,3 +1,18 @@
+diff --git a/node_modules/@ethereumjs/evm/dist/evm.js b/node_modules/@ethereumjs/evm/dist/evm.js
+index 7e6452a..4aa9303 100644
+--- a/node_modules/@ethereumjs/evm/dist/evm.js
++++ b/node_modules/@ethereumjs/evm/dist/evm.js
+@@ -416,6 +416,10 @@ class EVM {
+         if (message.selfdestruct) {
+             interpreter._result.selfdestruct = message.selfdestruct;
+         }
++        interpreter.runStep = () => {
++            this.handleRunStep && this.handleRunStep(interpreter);
++            return interpreter_1.Interpreter.prototype.runStep.call(interpreter);
++        }
+         const interpreterRes = await interpreter.run(message.code, opts);
+         let result = interpreter._result;
+         let gasUsed = message.gasLimit - interpreterRes.runState.gasLeft;
 diff --git a/node_modules/@ethereumjs/evm/dist/interpreter.js b/node_modules/@ethereumjs/evm/dist/interpreter.js
 index 9087295..062fa34 100644
 --- a/node_modules/@ethereumjs/evm/dist/interpreter.js
@@ -12,11 +27,10 @@ index 9087295..062fa34 100644
          this._runState.programCounter++;
          // Execute opcode handler
 diff --git a/node_modules/@ethereumjs/evm/dist/opcodes/functions.js b/node_modules/@ethereumjs/evm/dist/opcodes/functions.js
-index 8a89f31..ed0ed71 100644
+index 8a89f31..d85fbd8 100644
 --- a/node_modules/@ethereumjs/evm/dist/opcodes/functions.js
 +++ b/node_modules/@ethereumjs/evm/dist/opcodes/functions.js
-@@ -1,6 +1,8 @@
-+
+@@ -1,6 +1,7 @@
  "use strict";
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.handlers = void 0;
@@ -24,7 +38,7 @@ index 8a89f31..ed0ed71 100644
  const util_1 = require("@ethereumjs/util");
  const keccak_1 = require("ethereum-cryptography/keccak");
  const utils_1 = require("ethereum-cryptography/utils");
-@@ -762,14 +764,15 @@ exports.handlers = new Map([
+@@ -762,14 +763,15 @@ exports.handlers = new Map([
      [
          0x60,
          function (runState, common) {
