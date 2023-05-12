@@ -357,6 +357,7 @@ export class MemoryLevel extends AbstractLevel<any, Buffer, Buffer> {
   //@ts-ignore
   _batch(
     operations: AbstractBatchOperation<this, Buffer, Buffer>[],
+    options,
     callback: NodeCallback<void>
   ) {
     let tree = this[kTree];
