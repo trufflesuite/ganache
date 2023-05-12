@@ -28,7 +28,7 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       const cumulativeGasUsed = Quantity.toBuffer(res.cumulativeGasUsed);
       const logsBloom = Data.toBuffer(res.logsBloom, 256);
       const logs = res.logs.map(log => [
-        Address.from(log.address).toBuffer(),
+        Address.toBuffer(log.address),
         log.topics.map(topic => Data.toBuffer(topic)),
         Array.isArray(log.data)
           ? log.data.map(data => Data.toBuffer(data))
@@ -38,7 +38,7 @@ export default class TransactionReceiptManager extends Manager<InternalTransacti
       const contractAddress =
         res.contractAddress == null
           ? BUFFER_EMPTY
-          : Address.from(res.contractAddress).toBuffer();
+          : Address.toBuffer(res.contractAddress);
       return InternalTransactionReceipt.fromValues(
         status,
         cumulativeGasUsed,

@@ -634,7 +634,7 @@ export default class Wallet {
 
   public createFakePrivateKey(address: string) {
     let fakePrivateKey: Buffer;
-    const addressBuf = Address.from(address).toBuffer();
+    const addressBuf = Address.toBuffer(address);
     if (addressBuf.equals(ACCOUNT_ZERO)) {
       // allow signing with the 0x0 address...
       // always sign with the same fake key, a 31 `0`s followed by a single

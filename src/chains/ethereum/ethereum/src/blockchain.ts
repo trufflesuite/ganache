@@ -741,7 +741,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   #commitAccounts = (accounts: Account[]) => {
     return Promise.all<void>(
       accounts.map(account =>
-        this.trie.put(account.address.toBuffer(), account.serialize())
+        this.trie.put(account.address.buf, account.serialize())
       )
     );
   };
@@ -1129,7 +1129,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // subtract out the transaction's base fee from the gas limit before
     // simulating the tx, because `runCall` doesn't account for raw gas costs.
     const hasToAddress = transaction.to != null;
-    const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
+    const to = hasToAddress ? new Address(transaction.to.buf) : null;
 
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
     // this won't work as expected if simulating on blocks before shanghai.
@@ -1205,7 +1205,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       };
 
-      const caller = transaction.from.toBuffer();
+      const caller = transaction.from.buf;
       const callerAddress = new Address(caller);
 
       if (common.isActivatedEIP(2929)) {

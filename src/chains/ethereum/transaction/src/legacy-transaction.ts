@@ -204,7 +204,7 @@ export class LegacyTransaction extends RuntimeTransaction {
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
       this.gas.toBuffer(),
-      this.to ? this.to.toBuffer() : BUFFER_EMPTY,
+      this.to ? this.to.buf : BUFFER_EMPTY,
       this.value.toBuffer(),
       this.data.toBuffer(),
       v,

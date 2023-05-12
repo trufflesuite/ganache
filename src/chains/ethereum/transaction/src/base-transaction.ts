@@ -129,8 +129,7 @@ export class BaseTransaction {
   }
 
   public calculateIntrinsicGas() {
-    const hasToAddress =
-      this.to != null && !this.to.toBuffer().equals(BUFFER_EMPTY);
+    const hasToAddress = this.to != null && !this.to.buf.equals(BUFFER_EMPTY);
     return calculateIntrinsicGas(this.data, hasToAddress, this.common);
   }
 }

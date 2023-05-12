@@ -79,7 +79,7 @@ export default class BlockManager extends Manager<Block> {
     const header: EthereumRawBlockHeader = [
       Data.toBuffer(json.parentHash),
       Data.toBuffer(json.sha3Uncles),
-      Address.from(json.miner).toBuffer(),
+      Address.toBuffer(json.miner),
       Data.toBuffer(json.stateRoot),
       Data.toBuffer(json.transactionsRoot),
       Data.toBuffer(json.receiptsRoot),
