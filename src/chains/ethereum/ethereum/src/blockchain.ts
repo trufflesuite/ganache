@@ -1115,7 +1115,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     overrides: CallOverrides
   ) {
     let result: EVMResult;
-    const storageChanges = new Map<Buffer, [Buffer, Buffer, Buffer]>();
+    const storageChanges: {
+      address: Address;
+      key: Buffer;
+      from: Buffer;
+      to: Buffer;
+    }[] = [];
     const stateChanges = new Map<
       Buffer,
       [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
@@ -1169,7 +1174,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       type TouchedStorage = Map<
         string,
-        [address: Buffer, key: Buffer, value: Buffer]
+        [address: Address, key: BigInt, value: BigInt]
       >;
 
       const touchedStorage = new Map<string, TouchedStorage>();
@@ -1181,26 +1186,23 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         if (opCode === 0x55) {
           const stackLength = stack.length;
           const keyBigInt = stack._store[stackLength - 1];
-          const key =
-            keyBigInt === 0n
-              ? BUFFER_32_ZERO
-              : // todo: this isn't super efficient, but :shrug: we probably don't do it often
-                bigIntToBuffer(keyBigInt);
           const valueBigInt = stack._store[stackLength - 2];
 
-          const value = bigIntToBuffer(valueBigInt);
-          // todo: DELEGATE_CALL might impact the address context from which the `before` value should be fetched
-          const keyString = key.toString();
+          const keyString = keyBigInt.toString();
 
-          const addressString = codeAddress.buf.toString();
+          const addressString = codeAddress.buf.toString("utf8");
           let touchedAddressStorage = touchedStorage[addressString];
           if (touchedAddressStorage === undefined) {
             touchedAddressStorage = touchedStorage[addressString] = {};
           }
-          touchedAddressStorage[keyString] = [codeAddress.buf, key, value];
+          touchedAddressStorage[keyString] = [
+            codeAddress,
+            keyBigInt,
+            valueBigInt
+          ];
         }
       };
-
+      (vm.evm as any).handleRunStep = stepHandler;
       const caller = transaction.from.toBuffer();
       const callerAddress = new Address(caller);
 
@@ -1237,38 +1239,39 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
       await vm.eei.putAccount(callerAddress, fromAccount);
       // finally, run the call
-      patchInterpreterRunStep(stepHandler);
-      try {
-        result = await vm.evm.runCall({
-          caller: callerAddress,
-          data: transaction.data && transaction.data.toBuffer(),
-          gasPrice: transaction.gasPrice.toBigInt(),
-          gasLimit: gasLeft,
-          to,
-          value: transaction.value == null ? 0n : transaction.value.toBigInt(),
-          block: transaction.block as any
-        });
-      } finally {
-        unpatchInterpreterRunStep();
-      }
+      result = await vm.evm.runCall({
+        caller: callerAddress,
+        data: transaction.data && transaction.data.toBuffer(),
+        gasPrice: transaction.gasPrice.toBigInt(),
+        gasLimit: gasLeft,
+        to,
+        value: transaction.value == null ? 0n : transaction.value.toBigInt(),
+        block: transaction.block as any
+      });
 
       for (const addr in touchedStorage) {
         let storageTrie: Trie;
 
         const storage = touchedStorage[addr] as TouchedStorage;
         for (const keyStr in storage) {
-          const [addrBuffer, key, value] = storage[keyStr] as Buffer[];
+          const [address, key, value] = storage[keyStr] as [
+            Address,
+            bigint,
+            bigint
+          ];
           if (storageTrie === undefined) {
-            storageTrie = await stateManager.getStorageTrie(addrBuffer);
+            storageTrie = await stateManager.getStorageTrie(address.buf);
           }
-          const from = decode<Buffer>(await storageTrie.get(key));
-
+          const keyBuf = bigIntToBuffer(key);
+          const from = decode<Buffer>(await storageTrie.get(keyBuf));
+          const valueBuf = bigIntToBuffer(value);
           // todo: this should probably be keyyed by the address, not the key
-          storageChanges.set(key, [
-            addrBuffer,
-            from.length === 0 ? Buffer.alloc(32) : from,
-            value
-          ]);
+          storageChanges.push({
+            address,
+            key: keyBuf,
+            from,
+            to: valueBuf
+          });
         }
       }
       /*

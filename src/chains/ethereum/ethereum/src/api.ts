@@ -104,7 +104,7 @@ async function simulateTransaction(
   overrides: Ethereum.Call.Overrides = {}
 ): Promise<{
   result: any;
-  storageChanges: Map<Buffer, [Buffer, Buffer, Buffer]>;
+  storageChanges: { address: Address; key: Buffer; from: Buffer; to: Buffer }[];
   stateChanges: Map<
     Buffer,
     [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
@@ -2949,16 +2949,12 @@ export default class EthereumApi implements Api {
         overrides
       );
 
-    const parsedStorageChanges = [];
-    for (const key of storageChanges.keys()) {
-      const [contractAddress, from, to] = storageChanges.get(key);
-      parsedStorageChanges.push({
-        key: Data.from(key, 32),
-        address: Address.from(contractAddress),
-        from: Data.from(from, 32),
-        to: Data.from(to, 32)
-      });
-    }
+    const parsedStorageChanges = storageChanges.map(change => ({
+      key: Data.from(change.key),
+      address: Address.from(change.address.buf),
+      from: Data.from(change.from, 32),
+      to: Data.from(change.to, 32)
+    }));
 
     const parsedStateChanges = [];
     for (const address of stateChanges.keys()) {
