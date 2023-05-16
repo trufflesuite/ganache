@@ -554,7 +554,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (contractAddress != null) {
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
-
     str += `  Gas usage: ${Quantity.toNumber(receipt.raw[1])}
   Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
@@ -1262,16 +1261,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           if (storageTrie === undefined) {
             storageTrie = await stateManager.getStorageTrie(address.buf);
           }
-          const keyBuf = bigIntToBuffer(key);
+          const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
           const from = decode<Buffer>(await storageTrie.get(keyBuf));
           const valueBuf = bigIntToBuffer(value);
-          // todo: this should probably be keyyed by the address, not the key
-          storageChanges.push({
-            address,
-            key: keyBuf,
-            from,
-            to: valueBuf
-          });
+          if (!from.equals(valueBuf)) {
+            storageChanges.push({
+              address,
+              key: keyBuf,
+              from,
+              to: valueBuf
+            });
+          }
         }
       }
       /*
