@@ -1305,9 +1305,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             }
             const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
 
-            // todo: add running storageTrie values
             const addressSlotKey = addr + keyStr;
-
             const before =
               runningRawStorageSlots[addressSlotKey] ||
               decode<Buffer>(await storageTrie.get(keyBuf));
