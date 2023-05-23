@@ -2,7 +2,11 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { hasOwn, JsonRpcError } from "@ganache/utils";
 import { AbortSignal } from "abort-controller";
 import { OutgoingHttpHeaders } from "http";
-import RateLimiter from "../rate-limiter/rate-limiter";
+import {
+  RateLimiter,
+  LimitlessRateLimiter,
+  SlidingWindowRateLimiter
+} from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
 import { AbortError, CodedError } from "@ganache/ethereum-utils";
 import { PersistentCache } from "../persistent-cache/persistent-cache";
@@ -31,12 +35,15 @@ export class BaseHandler {
     const { requestsPerSecond, url, userAgent, origin } = forkingOptions;
 
     this.abortSignal = abortSignal;
-    this.limiter = new RateLimiter(
-      // convert `requestsPerSecond` to "requests per window"
-      requestsPerSecond * WINDOW_SECONDS,
-      WINDOW_SECONDS * 1000,
-      abortSignal
-    );
+    this.limiter =
+      requestsPerSecond === 0
+        ? new LimitlessRateLimiter()
+        : new SlidingWindowRateLimiter(
+            // convert `requestsPerSecond` to "requests per window"
+            requestsPerSecond * WINDOW_SECONDS,
+            WINDOW_SECONDS * 1000,
+            abortSignal
+          );
 
     this.valueCache = new LRU({
       max: 1_073_741_824, // 1 gigabyte

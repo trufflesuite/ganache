@@ -554,7 +554,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (contractAddress != null) {
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
-
     str += `  Gas usage: ${Quantity.toNumber(receipt.raw[1])}
   Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
@@ -1109,251 +1108,252 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
   }
 
-  public async simulateTransaction(
-    transaction: SimulationTransaction,
+  public async simulateTransactions(
+    transactions: SimulationTransaction[],
+    runtimeBlock: RuntimeBlock,
     parentBlock: Block,
     overrides: CallOverrides
   ) {
-    let result: EVMResult;
-    const storageChanges: {
-      address: Address;
-      key: Buffer;
-      from: Buffer;
-      to: Buffer;
-    }[] = [];
-    const stateChanges = new Map<
-      Buffer,
-      [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
-    >();
-    const data = transaction.data;
-    let gasLimit = transaction.gas.toBigInt();
-    // subtract out the transaction's base fee from the gas limit before
-    // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    const hasToAddress = transaction.to != null;
-    const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
-
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
     // this won't work as expected if simulating on blocks before shanghai.
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
-          BigInt(transaction.block.header.number.toString())
+          BigInt(runtimeBlock.header.number.toString())
         )
       : this.common;
     common.setHardfork("shanghai");
 
-    const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
-    const gasLeft = gasLimit - intrinsicGas;
+    const stateTrie = this.trie.copy(false);
+    stateTrie.setContext(
+      parentBlock.header.stateRoot.toBuffer(),
+      null,
+      parentBlock.header.number
+    );
 
-    const transactionContext = {};
-    this.emit("ganache:vm:tx:before", {
-      context: transactionContext
-    });
+    const options = this.#options;
 
-    if (gasLeft >= 0n) {
-      const stateTrie = this.trie.copy(false);
-      stateTrie.setContext(
-        parentBlock.header.stateRoot.toBuffer(),
-        null,
-        parentBlock.header.number
-      );
-      const options = this.#options;
+    const vm = await this.createVmFromStateTrie(
+      stateTrie,
+      options.chain.allowUnlimitedContractSize,
+      options.chain.allowUnlimitedInitCodeSize,
+      false, // precompiles have already been initialized in the stateTrie
+      common
+    );
+    if (common.isActivatedEIP(2929)) {
+      const eei = vm.eei;
+      // handle Berlin hardfork warm storage reads
+      warmPrecompiles(eei);
 
-      const vm = await this.createVmFromStateTrie(
-        stateTrie,
-        options.chain.allowUnlimitedContractSize,
-        options.chain.allowUnlimitedInitCodeSize,
-        false, // precompiles have already been initialized in the stateTrie
-        common
-      );
-      //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
-      const stateManager = vm.stateManager as GanacheStateManager;
-      // take a checkpoint so the `runCall` never writes to the trie. We don't
-      // commit/revert later because this stateTrie is ephemeral anyway.
-      await vm.eei.checkpoint();
+      // shanghai hardfork requires that we warm the coinbase address
+      if (common.isActivatedEIP(3651)) {
+        eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
+      }
+    }
+    //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
+    const stateManager = vm.stateManager as GanacheStateManager;
+    // take a checkpoint so the `runCall` never writes to the trie. We don't
+    // commit/revert later because this stateTrie is ephemeral anyway.
+    await vm.eei.checkpoint();
 
-      type TouchedStorage = Map<
-        string,
-        [address: Address, key: BigInt, value: BigInt]
-      >;
+    type TouchedStorage = Map<
+      string,
+      [address: Address, key: BigInt, value: BigInt]
+    >;
+
+    let gasLeft = runtimeBlock.header.gasLimit;
+
+    const runningEncodedAccounts = {};
+    const runningRawStorageSlots = {};
+    const results = new Array(transactions.length);
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      const storageChanges: {
+        address: Address;
+        key: Buffer;
+        before: Buffer;
+        after: Buffer;
+      }[] = [];
+      const stateChanges = new Map<
+        Buffer,
+        [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
+      >();
 
       const touchedStorage = new Map<string, TouchedStorage>();
-      const stepHandler = async (interpreter: Interpreter) => {
-        const { opCode, stack, env } = (interpreter as any)
-          ._runState as RunState;
-        const codeAddress = env.codeAddress;
 
-        if (opCode === 0x55) {
-          const stackLength = stack.length;
-          const keyBigInt = stack._store[stackLength - 1];
-          const valueBigInt = stack._store[stackLength - 2];
+      const data = transaction.data;
+      // subtract out the transaction's base fee from the gas limit before
+      // simulating the tx, because `runCall` doesn't account for raw gas costs.
+      const hasToAddress = transaction.to != null;
+      const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
-          const keyString = keyBigInt.toString();
+      const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
+      gasLeft -= transaction.gas.toBigInt();
 
-          const addressString = codeAddress.buf.toString("utf8");
-          let touchedAddressStorage = touchedStorage[addressString];
-          if (touchedAddressStorage === undefined) {
-            touchedAddressStorage = touchedStorage[addressString] = {};
-          }
-          touchedAddressStorage[keyString] = [
-            codeAddress,
-            keyBigInt,
-            valueBigInt
-          ];
+      if (gasLeft >= 0n) {
+        const caller = transaction.from.toBuffer();
+        const callerAddress = new Address(caller);
+
+        if (common.isActivatedEIP(2929) && to) {
+          vm.eei.addWarmedAddress(to.buf);
         }
-      };
-      (vm.evm as any).handleRunStep = stepHandler;
-      const caller = transaction.from.toBuffer();
-      const callerAddress = new Address(caller);
 
-      if (common.isActivatedEIP(2929)) {
-        const eei = vm.eei;
-        // handle Berlin hardfork warm storage reads
-        warmPrecompiles(eei);
-        eei.addWarmedAddress(caller);
-        if (to) eei.addWarmedAddress(to.buf);
+        // If there are any overrides requested for eth_call, apply
+        // them now before running the simulation.
+        await applySimulationOverrides(stateTrie, vm, overrides);
 
-        // shanghai hardfork requires that we warm the coinbase address
-        if (common.isActivatedEIP(3651)) {
-          eei.addWarmedAddress(transaction.block.header.coinbase.buf);
-        }
-      }
+        // we need to update the balance and nonce of the sender _before_
+        // we run this transaction so that things that rely on these values
+        // are correct (like contract creation!).
+        const fromAccount = await vm.eei.getAccount(callerAddress);
 
-      // If there are any overrides requested for eth_call, apply
-      // them now before running the simulation.
-      await applySimulationOverrides(stateTrie, vm, overrides);
+        // todo: re previous comment, incrementing the nonce here results in a double
+        // incremented nonce in the result :/ Need to validate whether this is required.
+        //fromAccount.nonce += 1n;
+        const intrinsicTxCost = intrinsicGas * transaction.gasPrice.toBigInt();
+        //todo: does the execution gas get subtracted from the balance?
+        const startBalance = fromAccount.balance;
+        // TODO: should we throw if insufficient funds?
+        fromAccount.balance =
+          intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
+        await vm.eei.putAccount(callerAddress, fromAccount);
 
-      // we need to update the balance and nonce of the sender _before_
-      // we run this transaction so that things that rely on these values
-      // are correct (like contract creation!).
-      const fromAccount = await vm.eei.getAccount(callerAddress);
+        const stepHandler = async (interpreter: Interpreter) => {
+          const { opCode, stack, env } = (interpreter as any)
+            ._runState as RunState;
+          const codeAddress = env.codeAddress;
 
-      // todo: re previous comment, incrementing the nonce here results in a double
-      // incremented nonce in the result :/ Need to validate whether this is required.
-      //fromAccount.nonce += 1n;
-      const intrinsicTxCost = intrinsicGas * transaction.gasPrice.toBigInt();
-      //todo: does the execution gas get subtracted from the balance?
-      const startBalance = fromAccount.balance;
-      // TODO: should we throw if insufficient funds?
-      fromAccount.balance =
-        intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
-      await vm.eei.putAccount(callerAddress, fromAccount);
-      // finally, run the call
-      result = await vm.evm.runCall({
-        caller: callerAddress,
-        data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: transaction.gasPrice.toBigInt(),
-        gasLimit: gasLeft,
-        to,
-        value: transaction.value == null ? 0n : transaction.value.toBigInt(),
-        block: transaction.block as any
-      });
+          if (opCode === 0x55) {
+            const stackLength = stack.length;
+            const keyBigInt = stack._store[stackLength - 1];
+            const valueBigInt = stack._store[stackLength - 2];
 
-      for (const addr in touchedStorage) {
-        let storageTrie: Trie;
+            const keyString = keyBigInt.toString();
 
-        const storage = touchedStorage[addr] as TouchedStorage;
-        for (const keyStr in storage) {
-          const [address, key, value] = storage[keyStr] as [
-            Address,
-            bigint,
-            bigint
-          ];
-          if (storageTrie === undefined) {
-            storageTrie = await stateManager.getStorageTrie(address.buf);
-          }
-          const keyBuf = bigIntToBuffer(key);
-          const from = decode<Buffer>(await storageTrie.get(keyBuf));
-          const valueBuf = bigIntToBuffer(value);
-          // todo: this should probably be keyyed by the address, not the key
-          storageChanges.push({
-            address,
-            key: keyBuf,
-            from,
-            to: valueBuf
-          });
-        }
-      }
-      /*
-      const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
-
-      const asyncAccounts: Promise<void>[] = [];
-
-      afterCache.forEach(i => {
-        asyncAccounts.push(
-          new Promise<void>(async resolve => {
-            const addressBuf = Buffer.from(i[0], "hex");
-            const beforeAccount = await this.vm.stateManager.getAccount(
-              Address.from(addressBuf)
-            );
-
-            // todo: it's a shame to serialize here - should get the raw address directly.
-            const beforeRaw = beforeAccount.serialize();
-            if (!beforeRaw.equals(i[1].val)) {
-              // the account has changed
-              const address = Buffer.from(i[0], "hex");
-              const after = decode<EthereumRawAccount>(i[1].val);
-              const before = [
-                Quantity.toBuffer(beforeAccount.nonce),
-                Quantity.toBuffer(beforeAccount.balance),
-                beforeAccount.storageRoot,
-                beforeAccount.codeHash
-              ] as EthereumRawAccount;
-              stateChanges.set(address, [before, after]);
+            const addressString = codeAddress.buf.toString("utf8");
+            let touchedAddressStorage = touchedStorage[addressString];
+            if (touchedAddressStorage === undefined) {
+              touchedAddressStorage = touchedStorage[addressString] = {};
             }
-            resolve();
-          })
-        );
-      });
+            touchedAddressStorage[keyString] = [
+              codeAddress,
+              keyBigInt,
+              valueBigInt
+            ];
+          }
+        };
 
-      await Promise.all(asyncAccounts);
-      */
-    } else {
-      result = {
-        execResult: {
-          runState: { programCounter: 0 },
-          exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: BUFFER_EMPTY
+        (vm.evm as any).handleRunStep = stepHandler;
+        const result = await vm.evm.runCall({
+          caller: callerAddress,
+          data: transaction.data && transaction.data.toBuffer(),
+          gasPrice: transaction.gasPrice.toBigInt(),
+          gasLimit: transaction.gas.toBigInt(),
+          to,
+          value: transaction.value == null ? 0n : transaction.value.toBigInt(),
+          block: runtimeBlock as any
+        });
+
+        // todo: this is always going to pull the "before" from before _all_ simulations
+        // in order for this to be correct, we need to check all previously simulated transactions
+        // (or store them in a running set of "current")
+        const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
+
+        const end = afterCache.end();
+        for (const it = afterCache.begin(); !it.equals(end); it.next()) {
+          const i = it.pointer;
+          const addressStr = i[0];
+
+          let beforeEncoded = runningEncodedAccounts[addressStr];
+          let addressBuf: Buffer;
+          if (beforeEncoded === undefined) {
+            // we haven't changed this account in a previous simulation, need to get the original account
+            addressBuf = Buffer.from(addressStr, "hex");
+            beforeEncoded = await this.accounts.getRaw(
+              Address.from(addressBuf),
+              parentBlock.header.number.toBuffer()
+            );
+          }
+          const afterEncoded = i[1].val;
+          if (!beforeEncoded.equals(afterEncoded)) {
+            // the account has changed
+
+            runningEncodedAccounts[addressStr] = afterEncoded;
+
+            const before = decode<EthereumRawAccount>(beforeEncoded);
+            const after = decode<EthereumRawAccount>(afterEncoded);
+
+            stateChanges.set(addressBuf || Buffer.from(addressStr, "hex"), [
+              before,
+              after
+            ]);
+          }
         }
-      } as EVMResult;
+
+        for (const addr in touchedStorage) {
+          let storageTrie: Trie;
+
+          const storage = touchedStorage[addr] as TouchedStorage;
+          for (const keyStr in storage) {
+            const [address, key, valueAfter] = storage[keyStr] as [
+              Address,
+              bigint,
+              bigint
+            ];
+            if (storageTrie === undefined) {
+              storageTrie = await stateManager.getStorageTrie(address.buf);
+            }
+            const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
+
+            const addressSlotKey = addr + keyStr;
+            const before =
+              runningRawStorageSlots[addressSlotKey] ||
+              decode<Buffer>(await storageTrie.get(keyBuf));
+
+            const after = bigIntToBuffer(valueAfter);
+
+            runningRawStorageSlots[addressSlotKey] = after;
+            if (!before.equals(after)) {
+              storageChanges.push({
+                address,
+                key: keyBuf,
+                before,
+                after
+              });
+            }
+          }
+        }
+
+        const totalGasSpent = intrinsicGas + result.execResult.executionGasUsed;
+        const maxRefund = totalGasSpent / 5n;
+        const actualRefund =
+          result.execResult.gasRefund > maxRefund
+            ? maxRefund
+            : result.execResult.gasRefund;
+
+        result.execResult.executionGasUsed = totalGasSpent - actualRefund;
+
+        results[i] = {
+          result,
+          storageChanges,
+          stateChanges
+        };
+      } else {
+        results[i] = {
+          execResult: {
+            runState: { programCounter: 0 },
+            exceptionError: new VmError(ERROR.OUT_OF_GAS),
+            returnValue: BUFFER_EMPTY
+          }
+        };
+      }
     }
 
-    this.emit("ganache:vm:tx:after", {
-      context: transactionContext
-    });
-    if (result.execResult.exceptionError) {
-      throw new CallError(result);
-    } else {
-      const totalGasSpent = result.execResult.executionGasUsed + intrinsicGas;
-      const maxRefund = totalGasSpent / 5n;
-      const actualRefund =
-        result.execResult.gasRefund > maxRefund
-          ? maxRefund
-          : result.execResult.gasRefund;
-
-      /*console.log({
-        totalGasSpent,
-        execGas: result.execResult.executionGasUsed,
-        maxRefund,
-        intrinsicGas,
-        refund: result.execResult.gasRefund,
-        actualRefund
-      });*/
-
-      //todo: we are treating the property "executionGasUsed" as the total gas
-      // cost, which it is not. Probably should derive a return object here,
-      // rather than just using the object returned from the EVM.
-      result.execResult.executionGasUsed =
-        (result.execResult.executionGasUsed || 0n) +
-        intrinsicGas -
-        actualRefund;
-
-      return {
-        result: result.execResult,
-        storageChanges,
-        stateChanges
-      };
-    }
+    return results.map(({ result, storageChanges, stateChanges }) => ({
+      result: result.execResult,
+      storageChanges,
+      stateChanges
+    }));
   }
 
   /**

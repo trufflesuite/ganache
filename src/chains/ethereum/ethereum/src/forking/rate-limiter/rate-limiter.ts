@@ -79,6 +79,10 @@ function isExceededLimitError(
   );
 }
 
+export type RateLimiter = {
+  handle<T>(fn: PromiseFn<T>): ReturnType<PromiseFn<T>>;
+};
+
 /**
  * A sliding window rate limiter.
  *
@@ -118,7 +122,7 @@ function isExceededLimitError(
  * an approximation of the actual rate, but it is quick to calculate and
  * lightweight.
  */
-export default class RateLimiter {
+export class SlidingWindowRateLimiter {
   private requestLimit: number;
   private windowSizeMs: number;
   private limitCounter: LimitCounter;
@@ -263,5 +267,11 @@ export default class RateLimiter {
         return result;
       }
     }
+  }
+}
+
+export class LimitlessRateLimiter {
+  async handle<T>(fn: PromiseFn<T>) {
+    return fn();
   }
 }
