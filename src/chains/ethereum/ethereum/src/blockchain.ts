@@ -1331,10 +1331,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             ? maxRefund
             : result.execResult.gasRefund;
 
-        result.execResult.executionGasUsed = totalGasSpent - actualRefund;
+        const gasBreakdown = {
+          intrinsicGas,
+          executionGas: result.execResult.executionGasUsed,
+          refund: actualRefund,
+          actualGasCost: totalGasSpent - actualRefund
+        };
 
         results[i] = {
           result,
+          gasBreakdown,
           storageChanges,
           stateChanges
         };
@@ -1349,11 +1355,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       }
     }
 
-    return results.map(({ result, storageChanges, stateChanges }) => ({
-      result: result.execResult,
-      storageChanges,
-      stateChanges
-    }));
+    return results.map(
+      ({ result, storageChanges, stateChanges, gasBreakdown }) => ({
+        result: result.execResult,
+        gasBreakdown,
+        storageChanges,
+        stateChanges
+      })
+    );
   }
 
   /**

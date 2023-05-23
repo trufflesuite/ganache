@@ -86,9 +86,15 @@ type StateChange = {
     codeHash: Data;
   };
 };
+type GasBreakdown = {
+  intrinsic: Quantity;
+  execution: Quantity;
+  refund: Quantity;
+  actualCost: Quantity;
+};
 type TransactionSimulationResult = {
   returnValue: Data;
-  gas: Quantity;
+  gas: GasBreakdown;
   logs: Log[];
   receipts?: Data[];
   trace?: [];
@@ -105,6 +111,7 @@ async function simulateTransaction(
 ): Promise<
   {
     result: any;
+    gasBreakdown: any;
     storageChanges: {
       address: Address;
       key: Buffer;
@@ -2977,7 +2984,7 @@ export default class EthereumApi implements Api {
     );
 
     return simulatedTransactionResults.map(
-      ({ result, storageChanges, stateChanges }) => {
+      ({ gasBreakdown, result, storageChanges, stateChanges }) => {
         const parsedStorageChanges = storageChanges.map(change => ({
           key: Data.from(change.key),
           address: Address.from(change.address.buf),
@@ -3006,7 +3013,12 @@ export default class EthereumApi implements Api {
         }
 
         const returnValue = Data.from(result.returnValue || "0x");
-        const gas = Quantity.from(result.executionGasUsed);
+        const gas = {
+          intrinsic: Quantity.from(gasBreakdown.intrinsicGas),
+          execution: Quantity.from(gasBreakdown.executionGas),
+          refund: Quantity.from(gasBreakdown.refund),
+          actualCost: Quantity.from(gasBreakdown.actualGasCost)
+        };
         const logs = result.logs?.map(([addr, topics, data]) => ({
           address: Data.from(addr),
           topics: topics?.map(t => Data.from(t)),
