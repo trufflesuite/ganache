@@ -1,0 +1,3 @@
+[submodule "src/packages/4byte/4bytes"]
+	path = src/packages/4byte/4bytes
+	url = https://github.com/ethereum-lists/4bytes.git
