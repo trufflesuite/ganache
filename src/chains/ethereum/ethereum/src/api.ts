@@ -34,7 +34,8 @@ import {
   keccak,
   JsonRpcErrorCode,
   min,
-  max
+  max,
+  bigIntToBuffer
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -62,6 +63,7 @@ type TransactionSimulationArgs = {
   transactions: [TransactionSimulationTransaction[]];
   overrides?: Ethereum.Call.Overrides;
   block?: QUANTITY | Ethereum.Tag;
+  includeTrace?: boolean;
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
@@ -92,14 +94,44 @@ type GasBreakdown = {
   refund: Quantity;
   actualCost: Quantity;
 };
+
+type TraceEntry = {
+  opcode: Data;
+  type: string;
+  stack: Data[];
+  pc: number;
+};
 type TransactionSimulationResult = {
   returnValue: Data;
   gas: GasBreakdown;
   logs: Log[];
-  receipts?: Data[];
-  trace?: [];
   storageChanges: StorageChange[];
   stateChanges: StateChange[];
+  receipts?: Data[];
+  trace?: TraceEntry[];
+};
+
+type InternalTransactionSimulationResult<HasTrace> = {
+  result: any;
+  gasBreakdown: any;
+  storageChanges: {
+    address: Address;
+    key: Buffer;
+    before: Buffer;
+    after: Buffer;
+  }[];
+  stateChanges: Map<
+    Buffer,
+    [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
+  >;
+  trace: HasTrace extends true
+    ? {
+        opcode: Buffer;
+        pc: number;
+        type: string;
+        stack: Buffer[];
+      }[]
+    : never;
 };
 
 async function simulateTransaction(
@@ -107,23 +139,9 @@ async function simulateTransaction(
   options: EthereumInternalOptions,
   transactions: Ethereum.Call.Transaction[],
   blockNumber: QUANTITY | Ethereum.Tag = Tag.latest,
-  overrides: Ethereum.Call.Overrides = {}
-): Promise<
-  {
-    result: any;
-    gasBreakdown: any;
-    storageChanges: {
-      address: Address;
-      key: Buffer;
-      before: Buffer;
-      after: Buffer;
-    }[];
-    stateChanges: Map<
-      Buffer,
-      [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
-    >;
-  }[]
-> {
+  overrides: Ethereum.Call.Overrides = {},
+  includeTrace: boolean = false
+): Promise<InternalTransactionSimulationResult<typeof includeTrace>[]> {
   // EVMResult
   const common = blockchain.common;
   const blocks = blockchain.blocks;
@@ -255,7 +273,8 @@ async function simulateTransaction(
     simulationTransactions,
     block,
     parentBlock,
-    overrides
+    overrides,
+    includeTrace
   );
 
   return results;
@@ -2980,11 +2999,12 @@ export default class EthereumApi implements Api {
       this.#options,
       transactions,
       blockNumber,
-      overrides
+      overrides,
+      args.includeTrace
     );
 
     return simulatedTransactionResults.map(
-      ({ gasBreakdown, result, storageChanges, stateChanges }) => {
+      ({ trace, gasBreakdown, result, storageChanges, stateChanges }) => {
         const parsedStorageChanges = storageChanges.map(change => ({
           key: Data.from(change.key),
           address: Address.from(change.address.buf),
@@ -3032,10 +3052,18 @@ export default class EthereumApi implements Api {
           logs,
           //todo: populate receipts
           receipts: undefined,
-          //todo: populate trace
-          trace: undefined,
           storageChanges: parsedStorageChanges,
-          stateChanges: parsedStateChanges
+          stateChanges: parsedStateChanges,
+          trace: args.includeTrace
+            ? trace.map(t => {
+                return {
+                  opcode: Data.from(t.opcode),
+                  type: t.type,
+                  stack: t.stack.map(s => Data.from(s)),
+                  pc: t.pc
+                };
+              })
+            : undefined
         };
       }
     );

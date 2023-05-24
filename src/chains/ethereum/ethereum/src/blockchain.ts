@@ -9,7 +9,6 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  CallError,
   StorageKeys,
   StorageRangeAtResult,
   StorageRecords,
@@ -26,7 +25,6 @@ import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult,
   EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
@@ -78,10 +76,6 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import {
-  patchInterpreterRunStep,
-  unpatchInterpreterRunStep
-} from "./helpers/patchInterpreterRunStep";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
@@ -89,6 +83,23 @@ const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.verifyOrderG1(true); // subgroup checks for G1
   mcl.verifyOrderG2(true); // subgroup checks for G2
 });
+
+const opcode = {
+  SSTORE: 0x55,
+  JUMP: 0x56,
+  JUMPI: 0x57,
+  CALL: 0xf1,
+  CALLCODE: 0xf2,
+  DELEGATECALL: 0xf4,
+  STATICCALL: 0xfa,
+  0x55: "SSTORE",
+  0x56: "JUMP",
+  0x57: "JUMPI",
+  0xf1: "CALL",
+  0xf2: "CALLCODE",
+  0xf4: "DELEGATECALL",
+  0xfa: "STATICCALL"
+};
 
 export enum Status {
   // Flags
@@ -1112,7 +1123,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transactions: SimulationTransaction[],
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
-    overrides: CallOverrides
+    overrides: CallOverrides,
+    includeTrace: boolean
   ) {
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
     // this won't work as expected if simulating on blocks before shanghai.
@@ -1168,6 +1180,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const results = new Array(transactions.length);
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
+      const trace = [];
       const storageChanges: {
         address: Address;
         key: Buffer;
@@ -1219,11 +1232,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         await vm.eei.putAccount(callerAddress, fromAccount);
 
         const stepHandler = async (interpreter: Interpreter) => {
-          const { opCode, stack, env } = (interpreter as any)
+          const { opCode, stack, env, programCounter } = (interpreter as any)
             ._runState as RunState;
           const codeAddress = env.codeAddress;
 
-          if (opCode === 0x55) {
+          if (opCode === opcode.SSTORE) {
             const stackLength = stack.length;
             const keyBigInt = stack._store[stackLength - 1];
             const valueBigInt = stack._store[stackLength - 2];
@@ -1240,6 +1253,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               keyBigInt,
               valueBigInt
             ];
+          } else if (
+            includeTrace &&
+            (opCode === opcode.JUMP ||
+              opCode === opcode.JUMPI ||
+              opCode === opcode.CALL ||
+              opCode === opcode.CALLCODE ||
+              opCode === opcode.DELEGATECALL ||
+              opCode === opcode.STATICCALL)
+          ) {
+            trace.push({
+              opcode: Buffer.from([opCode]),
+              type: opcode[opCode],
+              stack: stack._store.map(i => bigIntToBuffer(i)),
+              pc: programCounter
+            });
           }
         };
 
@@ -1342,7 +1370,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           result,
           gasBreakdown,
           storageChanges,
-          stateChanges
+          stateChanges,
+          trace
         };
       } else {
         results[i] = {
@@ -1356,11 +1385,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
 
     return results.map(
-      ({ result, storageChanges, stateChanges, gasBreakdown }) => ({
+      ({ trace, result, storageChanges, stateChanges, gasBreakdown }) => ({
         result: result.execResult,
         gasBreakdown,
         storageChanges,
-        stateChanges
+        stateChanges,
+        trace
       })
     );
   }
