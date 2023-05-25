@@ -3050,7 +3050,10 @@ export default class EthereumApi implements Api {
           topics: topics?.map(t => Data.from(t)),
           data: Data.from(data)
         }));
-        const error = result.exceptionError;
+        let error = result.exceptionError;
+        if (error && error.error == "revert") {
+          error.reason = CodedError.createRevertReason(result.returnValue);
+        }
         return {
           error,
           returnValue,
