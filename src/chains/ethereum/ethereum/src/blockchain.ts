@@ -1,3 +1,5 @@
+import { rawDecode, rawEncode } from "ethereumjs-abi";
+import { fourBytes } from "@ganache/4byte";
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
 import Database from "./database";
@@ -9,7 +11,6 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  CallError,
   StorageKeys,
   StorageRangeAtResult,
   StorageRecords,
@@ -26,7 +27,6 @@ import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult,
   EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
@@ -78,10 +78,6 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import {
-  patchInterpreterRunStep,
-  unpatchInterpreterRunStep
-} from "./helpers/patchInterpreterRunStep";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
@@ -89,6 +85,23 @@ const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.verifyOrderG1(true); // subgroup checks for G1
   mcl.verifyOrderG2(true); // subgroup checks for G2
 });
+
+const opcode = {
+  SSTORE: 0x55,
+  JUMP: 0x56,
+  JUMPI: 0x57,
+  CALL: 0xf1,
+  CALLCODE: 0xf2,
+  DELEGATECALL: 0xf4,
+  STATICCALL: 0xfa,
+  0x55: "SSTORE",
+  0x56: "JUMP",
+  0x57: "JUMPI",
+  0xf1: "CALL",
+  0xf2: "CALLCODE",
+  0xf4: "DELEGATECALL",
+  0xfa: "STATICCALL"
+};
 
 export enum Status {
   // Flags
@@ -1112,7 +1125,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     transactions: SimulationTransaction[],
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
-    overrides: CallOverrides
+    overrides: CallOverrides,
+    includeTrace: boolean
   ) {
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
     // this won't work as expected if simulating on blocks before shanghai.
@@ -1150,8 +1164,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
       }
     }
+
     //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
-    const stateManager = vm.stateManager as GanacheStateManager;
+    const stateManager = vm.stateManager.copy() as GanacheStateManager;
+
     // take a checkpoint so the `runCall` never writes to the trie. We don't
     // commit/revert later because this stateTrie is ephemeral anyway.
     await vm.eei.checkpoint();
@@ -1168,6 +1184,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const results = new Array(transactions.length);
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
+      const trace = [];
       const storageChanges: {
         address: Address;
         key: Buffer;
@@ -1219,11 +1236,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         await vm.eei.putAccount(callerAddress, fromAccount);
 
         const stepHandler = async (interpreter: Interpreter) => {
-          const { opCode, stack, env } = (interpreter as any)
-            ._runState as RunState;
+          const runState = (interpreter as any)._runState as RunState;
+          const { opCode, stack, env, programCounter } = runState;
           const codeAddress = env.codeAddress;
 
-          if (opCode === 0x55) {
+          if (opCode === opcode.SSTORE) {
             const stackLength = stack.length;
             const keyBigInt = stack._store[stackLength - 1];
             const valueBigInt = stack._store[stackLength - 2];
@@ -1240,6 +1257,101 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               keyBigInt,
               valueBigInt
             ];
+          } else if (
+            includeTrace &&
+            (opCode === opcode.CALL ||
+              opCode === opcode.CALLCODE ||
+              opCode === opcode.DELEGATECALL ||
+              opCode === opcode.STATICCALL)
+          ) {
+            // done: drop non-call opcodes from the trace
+            // done: decompose the stack to parameter values
+            // todo: build call stack and recompute gas left and return value
+            // use the call stack to compute 63/64th rules
+            // implement additional edgecases for gas estimation
+            // It'd be nice to show call heirarchy, either with nested calls or similar
+
+            let inLength, inOffset, value, toAddr;
+            if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
+              [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
+            } else {
+              [inLength, inOffset, toAddr] = stack._store.slice(-4, -1);
+            }
+            const dataLength = Number(inLength);
+            const data =
+              dataLength === 0 ? BUFFER_EMPTY : Buffer.allocUnsafe(dataLength);
+            if (dataLength > 0) {
+              const dataOffset = Number(inOffset);
+
+              runState.memory._store.copy(
+                data,
+                0,
+                dataOffset,
+                dataLength + dataOffset
+              );
+            }
+            const to = bigIntToBuffer(toAddr);
+            const functionSelector =
+              data.length >= 4 ? data.readUIntBE(0, 4) : 0;
+            const target = fourBytes.get(functionSelector);
+
+            let decodedInput;
+            if (target) {
+              const parameters = target
+                .slice(target.indexOf("(") + 1, target.length - 1)
+                .split(",");
+              if (parameters.length > 0 && parameters[0] !== "") {
+                try {
+                  const decoded = rawDecode(parameters, data.subarray(4));
+                  decodedInput = Array(parameters.length);
+                  for (let i = 0; i < parameters.length; i++) {
+                    const type = parameters[i];
+                    const rawValue = decoded[i];
+                    let value: Buffer;
+                    if (Buffer.isBuffer(rawValue)) {
+                      value = rawValue;
+                    } else {
+                      switch (typeof rawValue) {
+                        case "string":
+                          value = Buffer.from(rawValue, "hex");
+                          break;
+                        case "bigint":
+                          value = bigIntToBuffer(rawValue);
+                          break;
+                        default:
+                          value = Buffer.from(rawValue.toString(16), "hex");
+                          break;
+                      }
+                    }
+
+                    decodedInput[i] = {
+                      type,
+                      value
+                    };
+                  }
+                } catch (er) {
+                  console.error(
+                    er,
+                    parameters,
+                    Data.from(data.subarray(4)),
+                    typeof value
+                  );
+                }
+              }
+            }
+            trace.push({
+              opcode: Buffer.from([opCode]),
+              type: opcode[opCode],
+              from: codeAddress.buf,
+              to,
+              gas: 0n,
+              gasUsed: 0n,
+              value: value,
+              input: data,
+              target,
+              decodedInput,
+              pc: programCounter
+            });
           }
         };
 
@@ -1339,30 +1451,22 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         results[i] = {
-          result,
+          result: result.execResult,
           gasBreakdown,
           storageChanges,
-          stateChanges
+          stateChanges,
+          trace
         };
       } else {
         results[i] = {
-          execResult: {
-            runState: { programCounter: 0 },
-            exceptionError: new VmError(ERROR.OUT_OF_GAS),
-            returnValue: BUFFER_EMPTY
-          }
+          runState: { programCounter: 0 },
+          exceptionError: new VmError(ERROR.OUT_OF_GAS),
+          returnValue: BUFFER_EMPTY
         };
       }
     }
 
-    return results.map(
-      ({ result, storageChanges, stateChanges, gasBreakdown }) => ({
-        result: result.execResult,
-        gasBreakdown,
-        storageChanges,
-        stateChanges
-      })
-    );
+    return results;
   }
 
   /**
