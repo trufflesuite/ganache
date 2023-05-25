@@ -104,23 +104,20 @@ document.addEventListener('DOMContentLoaded', () => {
         responseElement.innerHTML = '<div class="loader"></div>';
         try {
             const jsonRPC = JSON.parse(requestElement.dataset.json);
-            try {
-                const response = await fetch('/simulate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'applicaiton/json',
-                    },
-                    body: JSON.stringify(jsonRPC),
-                });
 
-                responseElement.innerHTML = '';
-                const result = await response.json();
-                const tree = jsonview.create(result);
-                jsonview.render(tree, responseElement);
-                jsonview.expand(tree);
-            } catch (error) {
-                console.error(error);
-            }
+            const response = await fetch('/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'applicaiton/json',
+                },
+                body: JSON.stringify(jsonRPC),
+            });
+
+            responseElement.innerHTML = '';
+            const result = await response.json();
+            const tree = jsonview.create(result);
+            jsonview.render(tree, responseElement);
+            jsonview.expand(tree);
         } catch (e) {
             responseElement.innerText = e.message ? e.message : e;
         } finally {
