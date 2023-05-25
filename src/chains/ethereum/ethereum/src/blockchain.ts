@@ -1451,7 +1451,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         results[i] = {
-          result,
+          result: result.execResult,
           gasBreakdown,
           storageChanges,
           stateChanges,
@@ -1459,24 +1459,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
       } else {
         results[i] = {
-          execResult: {
-            runState: { programCounter: 0 },
-            exceptionError: new VmError(ERROR.OUT_OF_GAS),
-            returnValue: BUFFER_EMPTY
-          }
+          runState: { programCounter: 0 },
+          exceptionError: new VmError(ERROR.OUT_OF_GAS),
+          returnValue: BUFFER_EMPTY
         };
       }
     }
 
-    return results.map(
-      ({ trace, result, storageChanges, stateChanges, gasBreakdown }) => ({
-        result: result.execResult,
-        gasBreakdown,
-        storageChanges,
-        stateChanges,
-        trace
-      })
-    );
+    return results;
   }
 
   /**

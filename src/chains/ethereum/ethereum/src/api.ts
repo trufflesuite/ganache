@@ -3066,7 +3066,7 @@ export default class EthereumApi implements Api {
                   type: t.type,
                   from: Address.from(t.from),
                   to: Address.from(t.to),
-                  targetFunction: t.targetFunction,
+                  target: t.target,
                   value:
                     t.value === undefined ? undefined : Quantity.from(t.value),
                   input: Data.from(t.input),
