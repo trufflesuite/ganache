@@ -1,0 +1,96 @@
+label {
+  display: inline-block;
+  font-weight: bold;
+  color: #00c3a2;
+}
+.field-info {
+  display: inline-block;
+  font-size: 0.7em;
+  color: var(--body-text);
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+@media screen and (max-width: 755px) {
+  .field-info {
+    display: block;
+  }
+}
+select,
+input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  padding: 0.5rem;
+  color: var(--body-text);
+  border: none;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.editor-container {
+  margin-bottom: 1rem;
+  background-color: #271f21;
+}
+
+select:focus,
+input:focus {
+  outline: 3px var(--primary-bg) solid;
+}
+select > option {
+  background-color: #271f21;
+  color: var(--body-text);
+  padding: 0.5rem;
+}
+select > option:checked {
+  background-color: var(--dark-turquoise);
+}
+
+/* use css counters to append a number to the .transaction-counter class */
+/* this is used to create a unique id for each transaction */
+/* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Lists_and_Counters/Using_CSS_counters */
+/* https://css-tricks.com/almanac/properties/c/counter-increment/ */
+
+#transactions {
+  counter-reset: transaction-counter;
+}
+#transactions > .transaction > details {
+  counter-increment: transaction-counter;
+}
+#transactions > .transaction > details > .transaction-counter:after {
+  content: " " counter(transaction-counter);
+}
+
+#transactions .transaction .transaction-counter button {
+  float: right;
+  margin-left: 1rem;
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+button.run-button {
+  margin: 1rem auto;
+  position: relative;
+}
+.content {
+  grid-gap: 2rem;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr minmax(0, 2fr);
+}
+#transactionForm {
+  min-width: 200px;
+}
+#rpc {
+}
+#requestBody,
+#responseBody {
+  height: 400px;
+  overflow: auto;
+}
+.simulate-button-container {
+  display: flex;
+  justify-content: center;
+}

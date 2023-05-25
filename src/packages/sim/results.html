@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Transaction Result</title>
+    <link rel="stylesheet" type="text/css" href="main.css" />
+  </head>
+  <body>
+    <h1>Transaction Result</h1>
+
+    <h2>Transaction Details</h2>
+    <table>
+      <tr>
+        <th>Hash:</th>
+        <td id="hash"></td>
+      </tr>
+      <tr>
+        <th>Block Hash:</th>
+        <td id="blockHash"></td>
+      </tr>
+      <tr>
+        <th>Block Number:</th>
+        <td id="blockNumber"></td>
+      </tr>
+      <tr>
+        <th>From:</th>
+        <td id="from"></td>
+      </tr>
+      <tr>
+        <th>To:</th>
+        <td id="to"></td>
+      </tr>
+      <tr>
+        <th>Value:</th>
+        <td id="value"></td>
+      </tr>
+      <tr>
+        <th>Gas Price:</th>
+        <td id="gasPrice"></td>
+      </tr>
+      <tr>
+        <th>Gas Limit:</th>
+        <td id="gasLimit"></td>
+      </tr>
+      <tr>
+        <th>Nonce:</th>
+        <td id="nonce"></td>
+      </tr>
+      <tr>
+        <th>Gas Used:</th>
+        <td id="gasUsed"></td>
+      </tr>
+      <tr>
+        <th>Status:</th>
+        <td id="status"></td>
+      </tr>
+      <tr>
+        <th>Timestamp:</th>
+        <td id="timestamp"></td>
+      </tr>
+    </table>
+
+    <h2>Call Trace</h2>
+    <table id="callTraceTable">
+      <thead>
+        <tr>
+          <th>Call Type</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Gas</th>
+          <th>Gas Used</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Call trace rows will be added dynamically -->
+      </tbody>
+    </table>
+
+    <script src="app.js"></script>
+  </body>
+</html>
