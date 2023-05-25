@@ -56,6 +56,7 @@
     "@ethereumjs/tx": "4.1.2",
     "@ethereumjs/util": "8.0.6",
     "@ethereumjs/vm": "6.4.2",
+    "@ganache/4byte": "0.1.0",
     "@ganache/console.log": "0.4.0",
     "@ganache/ethereum-address": "0.8.0",
     "@ganache/ethereum-block": "0.8.0",

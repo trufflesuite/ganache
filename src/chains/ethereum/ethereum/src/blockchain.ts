@@ -1,3 +1,4 @@
+import { fourBytes } from "@ganache/4byte";
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
 import Database from "./database";
