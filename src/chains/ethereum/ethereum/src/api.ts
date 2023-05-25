@@ -103,6 +103,8 @@ type TraceEntry = {
   value: Quantity;
   input: Data;
   pc: number;
+  target?: string;
+  decodedInput?: [];
 };
 type TransactionSimulationResult = {
   returnValue: Data;
@@ -3068,7 +3070,11 @@ export default class EthereumApi implements Api {
                   value:
                     t.value === undefined ? undefined : Quantity.from(t.value),
                   input: Data.from(t.input),
-                  decodedInput: t.decodedInput,
+                  decodedInput: t.decodedInput?.map(({ type, value }) => ({
+                    type,
+                    // todo: some values will be Quantity rather
+                    value: Data.from(value)
+                  })),
                   pc: t.pc
                 };
               })

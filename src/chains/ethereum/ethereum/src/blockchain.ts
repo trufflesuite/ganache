@@ -1,3 +1,4 @@
+import { rawDecode, rawEncode } from "ethereumjs-abi";
 import { fourBytes } from "@ganache/4byte";
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
@@ -1163,8 +1164,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
       }
     }
+
     //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
-    const stateManager = vm.stateManager as GanacheStateManager;
+    const stateManager = vm.stateManager.copy() as GanacheStateManager;
+
     // take a checkpoint so the `runCall` never writes to the trie. We don't
     // commit/revert later because this stateTrie is ephemeral anyway.
     await vm.eei.checkpoint();
@@ -1290,7 +1293,52 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             const to = bigIntToBuffer(toAddr);
             const functionSelector =
               data.length >= 4 ? data.readUIntBE(0, 4) : 0;
-            const targetFunction = fourBytes.get(functionSelector);
+            const target = fourBytes.get(functionSelector);
+
+            let decodedInput;
+            if (target) {
+              const parameters = target
+                .slice(target.indexOf("(") + 1, target.length - 1)
+                .split(",");
+              if (parameters.length > 0 && parameters[0] !== "") {
+                try {
+                  const decoded = rawDecode(parameters, data.subarray(4));
+                  decodedInput = Array(parameters.length);
+                  for (let i = 0; i < parameters.length; i++) {
+                    const type = parameters[i];
+                    const rawValue = decoded[i];
+                    let value: Buffer;
+                    if (Buffer.isBuffer(rawValue)) {
+                      value = rawValue;
+                    } else {
+                      switch (typeof rawValue) {
+                        case "string":
+                          value = Buffer.from(rawValue, "hex");
+                          break;
+                        case "bigint":
+                          value = bigIntToBuffer(rawValue);
+                          break;
+                        default:
+                          value = Buffer.from(rawValue.toString(16), "hex");
+                          break;
+                      }
+                    }
+
+                    decodedInput[i] = {
+                      type,
+                      value
+                    };
+                  }
+                } catch (er) {
+                  console.error(
+                    er,
+                    parameters,
+                    Data.from(data.subarray(4)),
+                    typeof value
+                  );
+                }
+              }
+            }
             trace.push({
               opcode: Buffer.from([opCode]),
               type: opcode[opCode],
@@ -1300,8 +1348,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               gasUsed: 0n,
               value: value,
               input: data,
-              targetFunction: targetFunction,
-              decodedInput: [],
+              target,
+              decodedInput,
               pc: programCounter
             });
           }
