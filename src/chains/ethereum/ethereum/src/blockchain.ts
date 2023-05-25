@@ -1274,16 +1274,23 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             } else {
               [inLength, inOffset, toAddr] = stack._store.slice(-4, -1);
             }
-            let data;
-            if (inLength !== BigInt(0)) {
-              data = runState.memory._store.slice(
-                Number(inOffset),
-                Number(inLength) + Number(inOffset)
+            const dataLength = Number(inLength);
+            const data =
+              dataLength === 0 ? BUFFER_EMPTY : Buffer.allocUnsafe(dataLength);
+            if (dataLength > 0) {
+              const dataOffset = Number(inOffset);
+
+              runState.memory._store.copy(
+                data,
+                0,
+                dataOffset,
+                dataLength + dataOffset
               );
-            } else {
-              data = BUFFER_EMPTY;
             }
             const to = bigIntToBuffer(toAddr);
+            const functionSelector =
+              data.length >= 4 ? data.readUIntBE(0, 4) : 0;
+            const targetFunction = fourBytes.get(functionSelector);
             trace.push({
               opcode: Buffer.from([opCode]),
               type: opcode[opCode],
@@ -1293,6 +1300,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               gasUsed: 0n,
               value: value,
               input: data,
+              targetFunction: targetFunction,
               decodedInput: [],
               pc: programCounter
             });
