@@ -98,7 +98,10 @@ type GasBreakdown = {
 type TraceEntry = {
   opcode: Data;
   type: string;
-  stack: Data[];
+  from: Address;
+  to: Address;
+  value: Quantity;
+  input: Data;
   pc: number;
 };
 type TransactionSimulationResult = {
@@ -111,7 +114,7 @@ type TransactionSimulationResult = {
   trace?: TraceEntry[];
 };
 
-type InternalTransactionSimulationResult<HasTrace> = {
+type InternalTransactionSimulationResult<HasTrace extends boolean> = {
   result: any;
   gasBreakdown: any;
   storageChanges: {
@@ -3055,11 +3058,16 @@ export default class EthereumApi implements Api {
           storageChanges: parsedStorageChanges,
           stateChanges: parsedStateChanges,
           trace: args.includeTrace
-            ? trace.map(t => {
+            ? trace.map((t: any) => {
                 return {
                   opcode: Data.from(t.opcode),
                   type: t.type,
-                  stack: t.stack.map(s => Data.from(s)),
+                  from: Address.from(t.from),
+                  to: Address.from(t.to),
+                  value:
+                    t.value === undefined ? undefined : Quantity.from(t.value),
+                  input: Data.from(t.input),
+                  decodedInput: t.decodedInput,
                   pc: t.pc
                 };
               })

@@ -1232,8 +1232,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         await vm.eei.putAccount(callerAddress, fromAccount);
 
         const stepHandler = async (interpreter: Interpreter) => {
-          const { opCode, stack, env, programCounter } = (interpreter as any)
-            ._runState as RunState;
+          const runState = (interpreter as any)._runState as RunState;
+          const { opCode, stack, env, programCounter } = runState;
           const codeAddress = env.codeAddress;
 
           if (opCode === opcode.SSTORE) {
@@ -1255,17 +1255,44 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             ];
           } else if (
             includeTrace &&
-            (opCode === opcode.JUMP ||
-              opCode === opcode.JUMPI ||
-              opCode === opcode.CALL ||
+            (opCode === opcode.CALL ||
               opCode === opcode.CALLCODE ||
               opCode === opcode.DELEGATECALL ||
               opCode === opcode.STATICCALL)
           ) {
+            // done: drop non-call opcodes from the trace
+            // done: decompose the stack to parameter values
+            // todo: build call stack and recompute gas left and return value
+            // use the call stack to compute 63/64th rules
+            // implement additional edgecases for gas estimation
+            // It'd be nice to show call heirarchy, either with nested calls or similar
+
+            let inLength, inOffset, value, toAddr;
+            if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
+              [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
+            } else {
+              [inLength, inOffset, toAddr] = stack._store.slice(-4, -1);
+            }
+            let data;
+            if (inLength !== BigInt(0)) {
+              data = runState.memory._store.slice(
+                Number(inOffset),
+                Number(inLength) + Number(inOffset)
+              );
+            } else {
+              data = BUFFER_EMPTY;
+            }
+            const to = bigIntToBuffer(toAddr);
             trace.push({
               opcode: Buffer.from([opCode]),
               type: opcode[opCode],
-              stack: stack._store.map(i => bigIntToBuffer(i)),
+              from: codeAddress.buf,
+              to,
+              gas: 0n,
+              gasUsed: 0n,
+              value: value,
+              input: data,
+              decodedInput: [],
               pc: programCounter
             });
           }
