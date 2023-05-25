@@ -1166,8 +1166,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
 
     //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
-    const stateManager = vm.stateManager.copy() as GanacheStateManager;
-
+    const beforeStateManager = vm.stateManager.copy() as GanacheStateManager;
     // take a checkpoint so the `runCall` never writes to the trie. We don't
     // commit/revert later because this stateTrie is ephemeral anyway.
     await vm.eei.checkpoint();
@@ -1370,7 +1369,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // todo: this is always going to pull the "before" from before _all_ simulations
         // in order for this to be correct, we need to check all previously simulated transactions
         // (or store them in a running set of "current")
-        const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
+        const afterCache = vm.stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
 
         const end = afterCache.end();
         for (const it = afterCache.begin(); !it.equals(end); it.next()) {
@@ -1414,7 +1413,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               bigint
             ];
             if (storageTrie === undefined) {
-              storageTrie = await stateManager.getStorageTrie(address.buf);
+              storageTrie = await beforeStateManager.getStorageTrie(
+                address.buf
+              );
             }
             const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
 
