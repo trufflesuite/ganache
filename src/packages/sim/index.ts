@@ -5,6 +5,7 @@ const results = fs.readFileSync(__dirname + "/results.html");
 const css = fs.readFileSync(__dirname + "/main.css");
 const rootCss = fs.readFileSync(__dirname + "/root.css");
 const js = fs.readFileSync(__dirname + "/app.js");
+const jsonview = fs.readFileSync(__dirname + "/jsonview.js");
 const chevron = fs.readFileSync(__dirname + "/chevron.svg");
 const ganache = fs.readFileSync(__dirname + "/ganache.svg");
 
@@ -14,6 +15,9 @@ const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(index);
+  } else if (req.method === "GET" && req.url === "/jsonview.js") {
+    res.writeHead(200, { "Content-Type": "application/javascript" });
+    res.end(jsonview);
   } else if (req.method === "GET" && req.url === "/results.html") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(results);

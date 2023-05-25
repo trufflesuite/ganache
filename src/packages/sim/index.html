@@ -24,6 +24,30 @@
   </head>
   <body>
     <div class="container" id="page">
+      <header>
+        <svg
+          style="position: absolute; pointer-events: none; opacity: 0"
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+        >
+          <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
+            <path
+              fill="red"
+              stroke="none"
+              d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"
+            ></path>
+          </clipPath>
+        </svg>
+        <a
+          class="ganache-link"
+          href="https://trufflesuite.com/docs/ganache/"
+          title="Ganache Website"
+        >
+          <img src="ganache.svg" alt="ganache logo" />
+          <h1>Ganache</h1>
+        </a>
+      </header>
       <main>
         <article>
           <form method="post" action="/simulate">
@@ -152,7 +176,7 @@
                                 type="text"
                                 id="data"
                                 name="data"
-                                pattern="^(0x([a-fA-F0-9][a-fA-F0-9])+)$"
+                                pattern="^(0x([a-fA-F0-9][a-fA-F0-9])*)$"
                               />
                             </div>
                           </div>
@@ -279,6 +303,7 @@
         </article>
       </main>
     </div>
+    <script src="jsonview.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

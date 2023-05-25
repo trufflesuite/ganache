@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const transactions = document.getElementById('transactions');
     const transactionTemplate = document.getElementsByClassName('transaction')[0].cloneNode(true);
+    const advancedOptions = document.querySelector('.advanced-container');
+    const requestElement = document.getElementById("requestBody");
 
     const addTransactionButton = document.getElementById('add-transaction');
     addTransactionButton.addEventListener('click', () => {
@@ -59,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
             json.params[0].transactions.push(tx);
         });
         // also collect all of the advanced options:
-        const advancedOptions = document.getElementsByClassName('advanced-container')[0];
         advancedOptions.querySelectorAll("input, select").forEach((element) => {
             const value = element.value.trim();
             if (value) {
@@ -80,33 +81,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
 
-        document.getElementById("requestBody").innerHTML = JSON.stringify(json, null, 2);
+        requestElement.innerHTML = "";
+        const tree = jsonview.create(json);
+        jsonview.render(tree, requestElement);
+        jsonview.expand(tree);
+        requestElement.dataset.json = JSON.stringify(json);
     }
     // whenever a transaction field is changed collect all the data form all
     // transactions and generate the JSON RPC json for the
     // `evm_simulateTransactions` call:
     transactions.addEventListener('change', formatJson);
+    advancedOptions.addEventListener('change', formatJson);
     formatJson();
 
-
+    const responseElement = document.getElementById("responseBody");
     document.querySelector("form").addEventListener('submit', async (event) => {
-        debugger;
         event.preventDefault();
+        // disable the submit button:
+        document.querySelector("form button").disabled = true;
 
-        const jsonRPC = JSON.parse(document.getElementById("requestBody").innerHTML);
+        // show a loading spinner in the `responseBody` element:
+        responseElement.innerHTML = '<div class="loader"></div>';
         try {
-            const response = await fetch('/simulate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'applicaiton/json',
-                },
-                body: JSON.stringify(jsonRPC),
-            });
+            const jsonRPC = JSON.parse(requestElement.dataset.json);
+            try {
+                const response = await fetch('/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'applicaiton/json',
+                    },
+                    body: JSON.stringify(jsonRPC),
+                });
 
-            const result = await response.json();
-            document.getElementById("responseBody").innerHTML = JSON.stringify(result, null, 2);
-        } catch (error) {
-            console.error(error);
+                responseElement.innerHTML = '';
+                const result = await response.json();
+                const tree = jsonview.create(result);
+                jsonview.render(tree, responseElement);
+                jsonview.expand(tree);
+            } catch (error) {
+                console.error(error);
+            }
+        } catch (e) {
+            responseElement.innerText = e.message ? e.message : e;
+        } finally {
+
+            //re-enable the submit button:
+            document.querySelector("form button").disabled = false;
         }
     });
 });
