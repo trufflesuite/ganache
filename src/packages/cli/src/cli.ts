@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { MemoryLevel } from "@ganache/memdown";
 import type Readline from "readline";
 import Ganache, { ServerStatus } from "@ganache/core";
 import args from "./args";
@@ -57,6 +58,7 @@ if (argv.action === "start") {
   console.log(detailedVersion);
 
   let server: ReturnType<typeof Ganache.server>;
+  (argv as any).database = { db: new MemoryLevel(null) };
   try {
     server = Ganache.server(argv);
   } catch (error: any) {

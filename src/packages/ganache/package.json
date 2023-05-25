@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "7.8.0",
+  "version": "7.8.0-transaction-simulation",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#readme",
@@ -27,7 +27,7 @@
     "directory": "src/packages/ganache"
   },
   "scripts": {
-    "build": "npm run tsc && npx shx rm -rf ./dist && webpack && npm run types",
+    "build": "npm run tsc && npx shx rm -rf ./dist && webpack",
     "types": "api-extractor run",
     "tsc": "tsc --build",
     "test": "nyc npm run mocha",

@@ -31,7 +31,7 @@
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
-    "postinstall": "npx patch-package@6.5.0"
+    "postinstall": "npx -y patch-package"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"
@@ -51,11 +51,11 @@
     "tooling"
   ],
   "dependencies": {
-    "@ethereumjs/common": "3.1.1",
-    "@ethereumjs/trie": "5.0.4",
-    "@ethereumjs/tx": "4.1.1",
-    "@ethereumjs/util": "8.0.5",
-    "@ethereumjs/vm": "6.4.1",
+    "@ethereumjs/common": "3.1.2",
+    "@ethereumjs/trie": "5.0.5",
+    "@ethereumjs/tx": "4.1.2",
+    "@ethereumjs/util": "8.0.6",
+    "@ethereumjs/vm": "6.4.2",
     "@ganache/4byte": "0.1.0",
     "@ganache/console.log": "0.4.0",
     "@ganache/ethereum-address": "0.8.0",

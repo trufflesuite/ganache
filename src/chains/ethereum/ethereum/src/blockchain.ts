@@ -10,7 +10,6 @@ import {
   TraceDataFactory,
   TraceStorageMap,
   RuntimeError,
-  CallError,
   StorageKeys,
   StorageRangeAtResult,
   StorageRecords,
@@ -27,7 +26,6 @@ import { EEI, VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
-  EVMResult,
   EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
@@ -38,7 +36,8 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   KNOWN_CHAINIDS,
-  keccak
+  keccak,
+  bigIntToBuffer
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -73,18 +72,35 @@ import {
 } from "./provider-events";
 
 import mcl from "mcl-wasm";
-import { maybeGetLogs } from "@ganache/console.log";
+
 import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
+import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
   mcl.verifyOrderG1(true); // subgroup checks for G1
   mcl.verifyOrderG2(true); // subgroup checks for G2
 });
+
+const opcode = {
+  SSTORE: 0x55,
+  JUMP: 0x56,
+  JUMPI: 0x57,
+  CALL: 0xf1,
+  CALLCODE: 0xf2,
+  DELEGATECALL: 0xf4,
+  STATICCALL: 0xfa,
+  0x55: "SSTORE",
+  0x56: "JUMP",
+  0x57: "JUMPI",
+  0xf1: "CALL",
+  0xf2: "CALLCODE",
+  0xf4: "DELEGATECALL",
+  0xfa: "STATICCALL"
+};
 
 export enum Status {
   // Flags
@@ -254,10 +270,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.networkId,
           options.chain.hardfork
         );
-
-        if (options.chain.allowUnlimitedInitCodeSize) {
-          removeEIP3860InitCodeSizeLimitCheck(common);
-        }
       }
 
       this.isPostMerge = this.common.gteHardfork("merge");
@@ -303,6 +315,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.vm = await this.createVmFromStateTrie(
         this.trie,
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         true
       );
 
@@ -553,7 +566,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (contractAddress != null) {
       str += `  Contract created: ${Address.from(contractAddress)}${EOL}`;
     }
-
     str += `  Gas usage: ${Quantity.toNumber(receipt.raw[1])}
   Block number: ${blockNumber.toNumber()}
   Block time: ${timestamp}${EOL}`;
@@ -679,6 +691,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   createVmFromStateTrie = async (
     stateTrie: GanacheTrie | ForkTrie,
     allowUnlimitedContractSize: boolean,
+    allowUnlimitedInitCodeSize: boolean,
     activatePrecompile: boolean,
     common?: Common
   ) => {
@@ -709,7 +722,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       : new GanacheStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
     const eei = new EEI(stateManager, common, blockchain);
-    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const evm = new EVM({
+      common,
+      allowUnlimitedContractSize,
+      eei,
+      allowUnlimitedInitCodeSize
+    });
     const vm = await VM.create({
       activatePrecompiles: false,
       common,
@@ -1102,128 +1120,307 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
   }
 
-  public async simulateTransaction(
-    transaction: SimulationTransaction,
+  public async simulateTransactions(
+    transactions: SimulationTransaction[],
+    runtimeBlock: RuntimeBlock,
     parentBlock: Block,
-    overrides: CallOverrides
+    overrides: CallOverrides,
+    includeTrace: boolean
   ) {
-    let result: EVMResult;
-
-    const data = transaction.data;
-    let gasLimit = transaction.gas.toBigInt();
-    // subtract out the transaction's base fee from the gas limit before
-    // simulating the tx, because `runCall` doesn't account for raw gas costs.
-    const hasToAddress = transaction.to != null;
-    const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
-
+    //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
+    // this won't work as expected if simulating on blocks before shanghai.
     const common = this.fallback
       ? this.fallback.getCommonForBlockNumber(
           this.common,
-          BigInt(transaction.block.header.number.toString())
+          BigInt(runtimeBlock.header.number.toString())
         )
       : this.common;
+    common.setHardfork("shanghai");
 
-    const gasLeft =
-      gasLimit - calculateIntrinsicGas(data, hasToAddress, common);
+    const stateTrie = this.trie.copy(false);
+    stateTrie.setContext(
+      parentBlock.header.stateRoot.toBuffer(),
+      null,
+      parentBlock.header.number
+    );
 
-    const transactionContext = {};
-    this.emit("ganache:vm:tx:before", {
-      context: transactionContext
-    });
+    const options = this.#options;
 
-    if (gasLeft >= 0n) {
-      const stateTrie = this.trie.copy(false);
-      stateTrie.setContext(
-        parentBlock.header.stateRoot.toBuffer(),
-        null,
-        parentBlock.header.number
-      );
-      const options = this.#options;
+    const vm = await this.createVmFromStateTrie(
+      stateTrie,
+      options.chain.allowUnlimitedContractSize,
+      options.chain.allowUnlimitedInitCodeSize,
+      false, // precompiles have already been initialized in the stateTrie
+      common
+    );
+    if (common.isActivatedEIP(2929)) {
+      const eei = vm.eei;
+      // handle Berlin hardfork warm storage reads
+      warmPrecompiles(eei);
 
-      const vm = await this.createVmFromStateTrie(
-        stateTrie,
-        options.chain.allowUnlimitedContractSize,
-        false, // precompiles have already been initialized in the stateTrie
-        common
-      );
-
-      // take a checkpoint so the `runCall` never writes to the trie. We don't
-      // commit/revert later because this stateTrie is ephemeral anyway.
-      await vm.eei.checkpoint();
-
-      vm.evm.events.on("step", (event: InterpreterStep) => {
-        const logs = maybeGetLogs(event);
-        if (logs) {
-          options.logging.logger.log(...logs);
-          this.emit("ganache:vm:tx:console.log", {
-            context: transactionContext,
-            logs
-          });
-        }
-
-        if (!this.#emitStepEvent) return;
-        const ganacheStepEvent = makeStepEvent(transactionContext, event);
-        this.emit("ganache:vm:tx:step", ganacheStepEvent);
-      });
-
-      const caller = transaction.from.toBuffer();
-      const callerAddress = new Address(caller);
-
-      if (common.isActivatedEIP(2929)) {
-        const eei = vm.eei;
-        // handle Berlin hardfork warm storage reads
-        warmPrecompiles(eei);
-        eei.addWarmedAddress(caller);
-        if (to) eei.addWarmedAddress(to.buf);
-
-        // shanghai hardfork requires that we warm the coinbase address
-        if (common.isActivatedEIP(3651)) {
-          eei.addWarmedAddress(transaction.block.header.coinbase.buf);
-        }
+      // shanghai hardfork requires that we warm the coinbase address
+      if (common.isActivatedEIP(3651)) {
+        eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
       }
+    }
+    //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
+    const stateManager = vm.stateManager as GanacheStateManager;
+    // take a checkpoint so the `runCall` never writes to the trie. We don't
+    // commit/revert later because this stateTrie is ephemeral anyway.
+    await vm.eei.checkpoint();
 
-      // If there are any overrides requested for eth_call, apply
-      // them now before running the simulation.
-      await applySimulationOverrides(stateTrie, vm, overrides);
+    type TouchedStorage = Map<
+      string,
+      [address: Address, key: BigInt, value: BigInt]
+    >;
 
-      // we need to update the balance and nonce of the sender _before_
-      // we run this transaction so that things that rely on these values
-      // are correct (like contract creation!).
-      const fromAccount = await vm.eei.getAccount(callerAddress);
-      fromAccount.nonce += 1n;
-      const txCost = gasLimit * transaction.gasPrice.toBigInt();
-      const startBalance = fromAccount.balance;
-      // TODO: should we throw if insufficient funds?
-      fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
-      await vm.eei.putAccount(callerAddress, fromAccount);
+    let gasLeft = runtimeBlock.header.gasLimit;
 
-      // finally, run the call
-      result = await vm.evm.runCall({
-        caller: callerAddress,
-        data: transaction.data && transaction.data.toBuffer(),
-        gasPrice: transaction.gasPrice.toBigInt(),
-        gasLimit: gasLeft,
-        to,
-        value: transaction.value == null ? 0n : transaction.value.toBigInt(),
-        block: transaction.block as any
-      });
-    } else {
-      result = {
-        execResult: {
-          runState: { programCounter: 0 },
-          exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: BUFFER_EMPTY
+    const runningEncodedAccounts = {};
+    const runningRawStorageSlots = {};
+    const results = new Array(transactions.length);
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      const trace = [];
+      const storageChanges: {
+        address: Address;
+        key: Buffer;
+        before: Buffer;
+        after: Buffer;
+      }[] = [];
+      const stateChanges = new Map<
+        Buffer,
+        [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
+      >();
+
+      const touchedStorage = new Map<string, TouchedStorage>();
+
+      const data = transaction.data;
+      // subtract out the transaction's base fee from the gas limit before
+      // simulating the tx, because `runCall` doesn't account for raw gas costs.
+      const hasToAddress = transaction.to != null;
+      const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
+
+      const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
+      gasLeft -= transaction.gas.toBigInt();
+
+      if (gasLeft >= 0n) {
+        const caller = transaction.from.toBuffer();
+        const callerAddress = new Address(caller);
+
+        if (common.isActivatedEIP(2929) && to) {
+          vm.eei.addWarmedAddress(to.buf);
         }
-      } as EVMResult;
+
+        // If there are any overrides requested for eth_call, apply
+        // them now before running the simulation.
+        await applySimulationOverrides(stateTrie, vm, overrides);
+
+        // we need to update the balance and nonce of the sender _before_
+        // we run this transaction so that things that rely on these values
+        // are correct (like contract creation!).
+        const fromAccount = await vm.eei.getAccount(callerAddress);
+
+        // todo: re previous comment, incrementing the nonce here results in a double
+        // incremented nonce in the result :/ Need to validate whether this is required.
+        //fromAccount.nonce += 1n;
+        const intrinsicTxCost = intrinsicGas * transaction.gasPrice.toBigInt();
+        //todo: does the execution gas get subtracted from the balance?
+        const startBalance = fromAccount.balance;
+        // TODO: should we throw if insufficient funds?
+        fromAccount.balance =
+          intrinsicTxCost > startBalance ? 0n : startBalance - intrinsicTxCost;
+        await vm.eei.putAccount(callerAddress, fromAccount);
+
+        const stepHandler = async (interpreter: Interpreter) => {
+          const runState = (interpreter as any)._runState as RunState;
+          const { opCode, stack, env, programCounter } = runState;
+          const codeAddress = env.codeAddress;
+
+          if (opCode === opcode.SSTORE) {
+            const stackLength = stack.length;
+            const keyBigInt = stack._store[stackLength - 1];
+            const valueBigInt = stack._store[stackLength - 2];
+
+            const keyString = keyBigInt.toString();
+
+            const addressString = codeAddress.buf.toString("utf8");
+            let touchedAddressStorage = touchedStorage[addressString];
+            if (touchedAddressStorage === undefined) {
+              touchedAddressStorage = touchedStorage[addressString] = {};
+            }
+            touchedAddressStorage[keyString] = [
+              codeAddress,
+              keyBigInt,
+              valueBigInt
+            ];
+          } else if (
+            includeTrace &&
+            (opCode === opcode.CALL ||
+              opCode === opcode.CALLCODE ||
+              opCode === opcode.DELEGATECALL ||
+              opCode === opcode.STATICCALL)
+          ) {
+            // done: drop non-call opcodes from the trace
+            // done: decompose the stack to parameter values
+            // todo: build call stack and recompute gas left and return value
+            // use the call stack to compute 63/64th rules
+            // implement additional edgecases for gas estimation
+            // It'd be nice to show call heirarchy, either with nested calls or similar
+
+            let inLength, inOffset, value, toAddr;
+            if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
+              [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
+            } else {
+              [inLength, inOffset, toAddr] = stack._store.slice(-4, -1);
+            }
+            let data;
+            if (inLength !== BigInt(0)) {
+              data = runState.memory._store.slice(
+                Number(inOffset),
+                Number(inLength) + Number(inOffset)
+              );
+            } else {
+              data = BUFFER_EMPTY;
+            }
+            const to = bigIntToBuffer(toAddr);
+            trace.push({
+              opcode: Buffer.from([opCode]),
+              type: opcode[opCode],
+              from: codeAddress.buf,
+              to,
+              gas: 0n,
+              gasUsed: 0n,
+              value: value,
+              input: data,
+              decodedInput: [],
+              pc: programCounter
+            });
+          }
+        };
+
+        (vm.evm as any).handleRunStep = stepHandler;
+        const result = await vm.evm.runCall({
+          caller: callerAddress,
+          data: transaction.data && transaction.data.toBuffer(),
+          gasPrice: transaction.gasPrice.toBigInt(),
+          gasLimit: transaction.gas.toBigInt(),
+          to,
+          value: transaction.value == null ? 0n : transaction.value.toBigInt(),
+          block: runtimeBlock as any
+        });
+
+        // todo: this is always going to pull the "before" from before _all_ simulations
+        // in order for this to be correct, we need to check all previously simulated transactions
+        // (or store them in a running set of "current")
+        const afterCache = stateManager["_cache"]["_cache"] as any; // OrderedMap<any, any>
+
+        const end = afterCache.end();
+        for (const it = afterCache.begin(); !it.equals(end); it.next()) {
+          const i = it.pointer;
+          const addressStr = i[0];
+
+          let beforeEncoded = runningEncodedAccounts[addressStr];
+          let addressBuf: Buffer;
+          if (beforeEncoded === undefined) {
+            // we haven't changed this account in a previous simulation, need to get the original account
+            addressBuf = Buffer.from(addressStr, "hex");
+            beforeEncoded = await this.accounts.getRaw(
+              Address.from(addressBuf),
+              parentBlock.header.number.toBuffer()
+            );
+          }
+          const afterEncoded = i[1].val;
+          if (!beforeEncoded.equals(afterEncoded)) {
+            // the account has changed
+
+            runningEncodedAccounts[addressStr] = afterEncoded;
+
+            const before = decode<EthereumRawAccount>(beforeEncoded);
+            const after = decode<EthereumRawAccount>(afterEncoded);
+
+            stateChanges.set(addressBuf || Buffer.from(addressStr, "hex"), [
+              before,
+              after
+            ]);
+          }
+        }
+
+        for (const addr in touchedStorage) {
+          let storageTrie: Trie;
+
+          const storage = touchedStorage[addr] as TouchedStorage;
+          for (const keyStr in storage) {
+            const [address, key, valueAfter] = storage[keyStr] as [
+              Address,
+              bigint,
+              bigint
+            ];
+            if (storageTrie === undefined) {
+              storageTrie = await stateManager.getStorageTrie(address.buf);
+            }
+            const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
+
+            const addressSlotKey = addr + keyStr;
+            const before =
+              runningRawStorageSlots[addressSlotKey] ||
+              decode<Buffer>(await storageTrie.get(keyBuf));
+
+            const after = bigIntToBuffer(valueAfter);
+
+            runningRawStorageSlots[addressSlotKey] = after;
+            if (!before.equals(after)) {
+              storageChanges.push({
+                address,
+                key: keyBuf,
+                before,
+                after
+              });
+            }
+          }
+        }
+
+        const totalGasSpent = intrinsicGas + result.execResult.executionGasUsed;
+        const maxRefund = totalGasSpent / 5n;
+        const actualRefund =
+          result.execResult.gasRefund > maxRefund
+            ? maxRefund
+            : result.execResult.gasRefund;
+
+        const gasBreakdown = {
+          intrinsicGas,
+          executionGas: result.execResult.executionGasUsed,
+          refund: actualRefund,
+          actualGasCost: totalGasSpent - actualRefund
+        };
+
+        results[i] = {
+          result,
+          gasBreakdown,
+          storageChanges,
+          stateChanges,
+          trace
+        };
+      } else {
+        results[i] = {
+          execResult: {
+            runState: { programCounter: 0 },
+            exceptionError: new VmError(ERROR.OUT_OF_GAS),
+            returnValue: BUFFER_EMPTY
+          }
+        };
+      }
     }
-    this.emit("ganache:vm:tx:after", {
-      context: transactionContext
-    });
-    if (result.execResult.exceptionError) {
-      throw new CallError(result);
-    } else {
-      return Data.from(result.execResult.returnValue || "0x");
-    }
+
+    return results.map(
+      ({ trace, result, storageChanges, stateChanges, gasBreakdown }) => ({
+        result: result.execResult,
+        gasBreakdown,
+        storageChanges,
+        stateChanges,
+        trace
+      })
+    );
   }
 
   /**

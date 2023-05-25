@@ -106,27 +106,29 @@ export class Connector<
 
   format(
     result: any,
-    payload: R
+    payload: R,
+    durationMs?: number
   ): RecognizedString | Generator<RecognizedString>;
-  format(result: any, payload: R): RecognizedString;
-  format(results: any[], payloads: R[]): RecognizedString;
+  format(result: any, payload: R, durationMs?: number): RecognizedString;
+  format(results: any[], payloads: R[], durationMs?: number): RecognizedString;
   format(
     results: any | any[],
-    payload: R | R[]
+    payload: R | R[],
+    durationMs?: number
   ): RecognizedString | Generator<RecognizedString> {
     if (Array.isArray(payload)) {
       return JSON.stringify(
         payload.map((payload, i) => {
           const result = results[i];
           if (result instanceof Error) {
-            return makeError(payload.id, result as any);
+            return makeError(payload.id, result as any, durationMs);
           } else {
-            return makeResponse(payload.id, result);
+            return makeResponse(payload.id, result, durationMs);
           }
         })
       );
     } else {
-      const json = makeResponse(payload.id, results);
+      const json = makeResponse(payload.id, results, durationMs);
       if (
         payload.method === "debug_traceTransaction" &&
         typeof results === "object" &&
@@ -159,8 +161,18 @@ export class Connector<
     }
   }
 
-  formatError(error: Error & { code: number }, payload: R): RecognizedString {
-    const json = makeError(payload && payload.id ? payload.id : null, error);
+  formatError(
+    error: Error & { code: number },
+    payload: R,
+    durationMs?: number
+  ): RecognizedString {
+    console.log("Formatting error", durationMs);
+    const json = makeError(
+      payload && payload.id ? payload.id : null,
+      error,
+      undefined,
+      durationMs
+    );
     return JSON.stringify(json);
   }
 

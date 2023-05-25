@@ -13,7 +13,6 @@ import BlockManager from "../data-managers/block-manager";
 import { ProviderHandler } from "./handlers/provider-handler";
 import { PersistentCache } from "./persistent-cache/persistent-cache";
 import { URL } from "url";
-import { removeEIP3860InitCodeSizeLimitCheck } from "../helpers/common-helpers";
 
 async function fetchChainId(fork: Fork) {
   const chainIdHex = await fork.request<string>("eth_chainId", []);
@@ -129,9 +128,6 @@ export class Fork {
       },
       { baseChain: KNOWN_CHAINIDS.has(chainId) ? chainId : 1 }
     );
-    if (this.#options.chain.allowUnlimitedInitCodeSize) {
-      removeEIP3860InitCodeSizeLimitCheck(this.common);
-    }
     // disable listeners to common since we don't actually cause any `emit`s,
     // but other EVM parts to listen and will make node complain about too
     // many listeners.
@@ -313,9 +309,6 @@ export class Fork {
           },
           { baseChain: 1 }
         );
-      }
-      if (this.#options.chain.allowUnlimitedInitCodeSize) {
-        removeEIP3860InitCodeSizeLimitCheck(forkCommon);
       }
       return forkCommon;
     } else {

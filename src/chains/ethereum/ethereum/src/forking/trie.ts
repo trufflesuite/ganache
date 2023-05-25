@@ -107,84 +107,33 @@ export class ForkTrie extends GanacheTrie {
     return lexico.encode([blockNum, this.address, key]);
   }
 
-  /**
-   * Checks if the key was deleted (locally -- not on the fork)
-   * @param key -
-   */
+  // key to block number
+  _deletedKeys = new Map<string, bigint>();
+  // this only needs to check whether the key was deleted in a fork _before_ the current block
+  // if it subsequently gets re-set, then it won't really matter
   private async keyWasDeleted(key: Buffer) {
-    const selfAddress = this.address === null ? BUFFER_EMPTY : this.address;
-    // check the uncommitted checkpoints for deleted keys before
-    // checking the database itself
-    // TODO(perf): there is probably a better/faster way of doing this for the
-    // common case.
-    // Issue: https://github.com/trufflesuite/ganache/issues/3483
-    const { checkpoints } = this.checkpointedMetadata;
-    for (let i = checkpoints.length - 1; i >= 0; i--) {
-      for (let [encodedKeyStr, value] of checkpoints[i].keyValueMap.entries()) {
-        if (!value || !value.equals(DELETED_VALUE)) continue;
-        const encodedKey = Buffer.from(encodedKeyStr, "binary");
-        if (isEqualKey(encodedKey, selfAddress, key)) return true;
-      }
+    const deletedBlockNumber = this._deletedKeys.get(Data.toString(key));
+    if (deletedBlockNumber !== undefined) {
+      const currentBlockNumber = this.blockNumber.toBigInt();
+      const wasDeleted = currentBlockNumber >= deletedBlockNumber;
+      return wasDeleted;
     }
-
-    // since we didn't find proof of deletion in a checkpoint let's check the
-    // database for it.
-    // We start searching from our database key (blockNum + address + key)
-    // down to the earliest block we know about.
-    // TODO(perf): this is just going to be slow once we get lots of keys
-    // because it just checks every single key we've ever deleted (before this
-    // one).
-    // Issue: https://github.com/trufflesuite/ganache/issues/3484
-    const db = this.metadataDB;
-    const stream = db.createReadStream({
-      lte: this.createDelKey(key),
-      reverse: true
-    });
-    for await (const data of stream) {
-      const { key: encodedKey, value } = data as unknown as {
-        key: Buffer;
-        value: Buffer;
-      };
-      if (!value || !value.equals(DELETED_VALUE)) continue;
-      if (isEqualKey(encodedKey, selfAddress, key)) return true;
-    }
-
-    // we didn't find proof of deletion so we return `false`
     return false;
   }
 
   // note: this function is a slightly modified version of
   // https://github.com/ethereumjs/ethereumjs-monorepo/blob/34f3dcdf37d2fbeffeb41dc3de693f59b91c46bc/packages/trie/src/trie/trie.ts#L218
+
   async del(key: Buffer) {
     await this._lock.acquire();
-
-    // we only track if the key was deleted (locally) for state tries _after_
-    // the fork block because we can't possibly delete keys _before_ the fork
-    // block, since those happened before ganache was even started
-    // This little optimization can cut debug_traceTransaction time _in half_.
-    if (!this.isPreForkBlock) {
-      const delKey = this.createDelKey(key);
-      const metaDataPutPromise = this.checkpointedMetadata.put(
-        delKey,
-        DELETED_VALUE
-      );
-
-      const hash = keccak(key);
-      const { node, stack } = await this.findPath(hash);
-      if (node) {
-        await this._deleteNode(hash, stack);
-        await this.persistRoot();
-      }
-
-      await metaDataPutPromise;
-    } else {
-      const hash = keccak(key);
-      const { node, stack } = await this.findPath(hash);
-      if (node) {
-        await this._deleteNode(hash, stack);
-        await this.persistRoot();
-      }
+    this._deletedKeys.set(Data.toString(key), this.blockNumber.toBigInt());
+    const path = keccak(key);
+    const { node, stack } = await this.findPath(path);
+    if (node) {
+      await this._deleteNode(path, stack);
+      await this.persistRoot();
     }
+    this.cache.delete(key);
     this._lock.release();
   }
 
@@ -267,8 +216,13 @@ export class ForkTrie extends GanacheTrie {
     return encode(buf);
   };
 
+  private cache: Map<Buffer, Buffer> = new Map();
+
   async get(key: Buffer): Promise<Buffer> {
-    const value = await super.get(key);
+    let value = this.cache.get(key);
+    if (value !== undefined) return value;
+
+    value = await super.get(key);
     if (value != null) return value;
 
     // since we don't have this key in our local trie check if we've have
@@ -277,15 +231,26 @@ export class ForkTrie extends GanacheTrie {
     // the fork block because we can't possibly delete keys _before_ the fork
     // block, since those happened before ganache was even started
     // This little optimization can cut debug_traceTransaction time _in half_.
-    if (!this.isPreForkBlock && (await this.keyWasDeleted(key))) return null;
+    if (await this.keyWasDeleted(key)) return null;
 
     if (this.address === null) {
       // if the trie context's address isn't set, our key represents an address:
-      return this.accountFromFallback(Address.from(key), this.blockNumber);
+      value = await this.accountFromFallback(
+        Address.from(key),
+        this.blockNumber
+      );
     } else {
       // otherwise the key represents storage at the given address:
-      return this.storageFromFallback(this.address, key, this.blockNumber);
+      value = await this.storageFromFallback(
+        this.address,
+        key,
+        this.blockNumber
+      );
     }
+    // fire and forget this store write, as it's not critical that it succeeds
+    // since we can always fall back to the fork/fallback
+    this.cache.set(key, value);
+    return value;
   }
 
   /**

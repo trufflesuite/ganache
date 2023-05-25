@@ -467,7 +467,7 @@ export class EthereumProvider
       const result = await this.request({ method, params });
       return {
         error: null as JsonRpcError,
-        result: makeResponse(payload.id, JSON.parse(JSON.stringify(result)))
+        result: makeResponse(payload.id, JSON.parse(JSON.stringify(result)), 0)
       };
     } catch (error: any) {
       let result: any;
