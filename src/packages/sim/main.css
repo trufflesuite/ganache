@@ -1,0 +1,275 @@
+label {
+  display: inline-block;
+  font-weight: bold;
+  color: #00c3a2;
+}
+.field-info {
+  display: inline-block;
+  font-size: 0.7em;
+  color: var(--body-text);
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+@media screen and (max-width: 755px) {
+  .field-info {
+    display: block;
+  }
+}
+select,
+input {
+  display: block;
+  width: 100%;
+  background: transparent;
+  padding: 0.5rem;
+  color: var(--body-text);
+  border: none;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.editor-container {
+  margin-bottom: 1rem;
+  background-color: #271f21;
+}
+
+select:focus,
+input:focus {
+  outline: 3px var(--primary-bg) solid;
+}
+select > option {
+  background-color: #271f21;
+  color: var(--body-text);
+  padding: 0.5rem;
+}
+select > option:checked {
+  background-color: var(--dark-turquoise);
+}
+
+/* use css counters to append a number to the .transaction-counter class */
+/* this is used to create a unique id for each transaction */
+/* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Lists_and_Counters/Using_CSS_counters */
+/* https://css-tricks.com/almanac/properties/c/counter-increment/ */
+
+#transactions {
+  counter-reset: transaction-counter;
+}
+#transactions > .transaction > details {
+  counter-increment: transaction-counter;
+}
+#transactions > .transaction > details > .transaction-counter:after {
+  content: " " counter(transaction-counter);
+}
+
+#transactions .transaction .transaction-counter button {
+  float: right;
+  margin-left: 1rem;
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+button.run-button {
+  margin: 1rem auto;
+  position: relative;
+}
+.content {
+  grid-gap: 2rem;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr minmax(0, 2fr);
+}
+#transactionForm {
+  min-width: 200px;
+}
+#rpc {
+}
+#requestBody,
+#responseBody {
+  height: 400px;
+  overflow: auto;
+}
+.simulate-button-container {
+  display: flex;
+  justify-content: center;
+}
+
+.loader {
+  color: #ffffff;
+  font-size: 90px;
+  text-indent: -9999em;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  margin: 72px auto;
+  position: relative;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+  animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+}
+@-webkit-keyframes load6 {
+  0% {
+    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em,
+      -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em,
+      -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em,
+      -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em,
+      -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em,
+      -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em,
+      -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+  }
+}
+@keyframes load6 {
+  0% {
+    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+  }
+  5%,
+  95% {
+    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+  }
+  10%,
+  59% {
+    box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em,
+      -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em,
+      -0.297em -0.775em 0 -0.477em;
+  }
+  20% {
+    box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em,
+      -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em,
+      -0.749em -0.34em 0 -0.477em;
+  }
+  38% {
+    box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em,
+      -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em,
+      -0.82em -0.09em 0 -0.477em;
+  }
+  100% {
+    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em,
+      0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+  }
+}
+@-webkit-keyframes round {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes round {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.json-container {
+  font-family: "Open Sans";
+  font-size: 16px;
+  color: var(--body-text);
+  box-sizing: border-box;
+}
+.json-container .line {
+  margin: 4px 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.json-container .caret-icon {
+  width: 18px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.json-container .empty-icon {
+  width: 18px;
+}
+
+.json-container .json-type {
+  margin-right: 4px;
+  margin-left: 4px;
+}
+
+.json-container .json-key {
+  color: var(--body-text);
+  margin-right: 4px;
+  margin-left: 4px;
+}
+
+.json-container .json-index {
+  margin-right: 4px;
+  margin-left: 4px;
+}
+
+.json-container .json-value {
+  margin-left: 8px;
+}
+
+.json-container .json-number {
+  color: var(--pink);
+}
+
+.json-container .json-boolean {
+  color: var(--ganache-orange);
+}
+
+.json-container .json-string {
+  color: var(--dark-turquoise);
+}
+
+.json-container .json-size {
+  margin-right: 4px;
+  margin-left: 4px;
+}
+
+.json-container .hidden {
+  display: none;
+}
+
+.json-container .fas {
+  display: inline-block;
+  border-style: solid;
+  width: 0;
+  height: 0;
+}
+
+.json-container .fa-caret-down {
+  border-width: 6px 5px 0 5px;
+  border-color: var(--body-text) transparent;
+}
+
+.json-container .fa-caret-right {
+  border-width: 5px 0 5px 6px;
+  border-color: transparent transparent transparent var(--body-text);
+}

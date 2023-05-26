@@ -61,7 +61,7 @@ type TransactionSimulationTransaction = Ethereum.Transaction & {
 
 type TraceType = "Full" | "None";
 type TransactionSimulationArgs = {
-  transactions: [TransactionSimulationTransaction[]];
+  transactions: TransactionSimulationTransaction[];
   overrides?: Ethereum.Call.Overrides;
   block?: QUANTITY | Ethereum.Tag;
   trace?: TraceType;
@@ -2995,7 +2995,7 @@ export default class EthereumApi implements Api {
     args: TransactionSimulationArgs
   ): Promise<TransactionSimulationResult[]> {
     // todo: need to be able to pass in multiple transactions
-    const transactions = args.transactions[0];
+    const transactions = args.transactions;
     const blockNumber = args.block || "latest";
 
     const overrides = args.overrides;
@@ -3050,7 +3050,10 @@ export default class EthereumApi implements Api {
           topics: topics?.map(t => Data.from(t)),
           data: Data.from(data)
         }));
-        const error = result.exceptionError;
+        let error = result.exceptionError;
+        if (error && error.error == "revert") {
+          error.reason = CodedError.createRevertReason(result.returnValue);
+        }
         return {
           error,
           returnValue,

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ethereum Transactions</title>
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:300i,300,400|Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Grand+Hotel&text=Ganache"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" type="text/css" href="root.css" />
+    <link rel="stylesheet" type="text/css" href="main.css" />
+    <style>
+      .doc-section {
+        max-width: 1600px;
+        margin: 3rem auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="page">
+      <header>
+        <svg
+          style="position: absolute; pointer-events: none; opacity: 0"
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+        >
+          <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
+            <path
+              fill="red"
+              stroke="none"
+              d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"
+            ></path>
+          </clipPath>
+        </svg>
+        <a
+          class="ganache-link"
+          href="https://trufflesuite.com/docs/ganache/"
+          title="Ganache Website"
+        >
+          <img src="ganache.svg" alt="ganache logo" />
+          <h1>Ganache</h1>
+        </a>
+      </header>
+      <main>
+        <article>
+          <form method="post" action="/simulate">
+            <div class="doc-section">
+              <h3 class="signature">Transactions Simulator</h3>
+              <div class="content">
+                <div id="transactionForm">
+                  <div id="transactions">
+                    <div class="transaction">
+                      <details open>
+                        <summary class="transaction-counter">
+                          <span
+                            ><img src="chevron.svg" alt="" /> Transaction</span
+                          >
+                          <button
+                            class="delete-transaction"
+                            title="Remove this transaction"
+                          >
+                            🗑
+                          </button>
+                        </summary>
+                        <div>
+                          <div>
+                            <label for="from">From Address</label>
+
+                            <span class="field-info" title="From Address">
+                              <span>
+                                The Ethereum address of the account sending the
+                                transaction.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="from"
+                                name="from"
+                                required
+                                autofocus
+                                pattern="^0x[a-fA-F0-9]{40}$"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label for="to">To Address</label>
+                            <span class="field-info" title="To Address">
+                              <span>
+                                The Ethereum address of the account or smart
+                                contract the transaction is intended for.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="to"
+                                name="to"
+                                pattern="^0x[a-fA-F0-9]{40}$"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label for="value">Value (Wei)</label>
+                            <span class="field-info" title="Value (Wei)">
+                              <span>
+                                The amount of Ether (in Wei) to be transferred
+                                with the transaction.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="value"
+                                name="value"
+                                required
+                                value="0"
+                                pattern="^[0-9]+$|^(0x[a-fA-F0-9]+)$"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label for="gasPrice">Gas Price (Wei)</label>
+                            <span class="field-info" title="Gas Price (Wei)">
+                              <span>
+                                The price (in Wei) the sender is willing to pay
+                                for each unit of gas consumed.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="gasPrice"
+                                name="gasPrice"
+                                required
+                                value="0"
+                                pattern="^[0-9]+$|^(0x[a-fA-F0-9]+)$"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label for="gasLimit">Gas Limit</label>
+                            <span class="field-info" title="Gas Limit">
+                              <span>
+                                The maximum amount of gas that can be used for
+                                executing the transaction.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="gasLimit"
+                                name="gasLimit"
+                                required
+                                value="80000"
+                                pattern="^[0-9]+$|^(0x[a-fA-F0-9]+)$"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label for="data">Data</label>
+                            <span class="field-info" title="Data">
+                              <span>
+                                Contract deployment code or method call data.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="data"
+                                name="data"
+                                pattern="^(0x([a-fA-F0-9][a-fA-F0-9])*)$"
+                              />
+                            </div>
+                          </div>
+                          <!-- <div>
+                            <label for="nonce">Nonce</label>
+                            <span class="field-info" title="Nonce">
+                              <span>
+                                A unique value used to prevent replay attacks
+                                and ensure the order of transactions from the
+                                sender's account.
+                              </span>
+                            </span>
+                            <div class="editor-container">
+                              <input
+                                type="text"
+                                id="nonce"
+                                name="nonce"
+                                required
+                                value="0"
+                                pattern="^[0-9]+$|^(0x[a-fA-F0-9]+)$"
+                              />
+                            </div>
+                          </div> -->
+                        </div>
+                      </details>
+                    </div>
+                  </div>
+                  <hr />
+                  <button class="run-button" id="add-transaction" type="button">
+                    Add another transaction
+                  </button>
+
+                  <div class="advanced-container">
+                    <!-- should be hidden by default, click to expand: -->
+                    <details>
+                      <summary>
+                        <span><img src="chevron.svg" alt="" /> Advanced</span>
+                      </summary>
+                      <div>
+                        <div>
+                          <label for="blockNumber">Block Number</label>
+                          <span class="field-info" title="Nonce">
+                            <span>
+                              The string "latest" or a block number as an
+                              integer or 0x prefixed hex.
+                            </span>
+                          </span>
+                          <div class="editor-container">
+                            <input
+                              type="text"
+                              id="blockNumber"
+                              name="block"
+                              required
+                              value="latest"
+                              pattern="^latest$|^[0-9]+$|^(0x[a-fA-F0-9]+)$"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label for="gasEstimation">Gas Estimation</label>
+                          <span class="field-info" title="Nonce">
+                            <span>
+                              How precise should the returned gas estimation be?
+                            </span>
+                          </span>
+                          <div class="editor-container">
+                            <select
+                              type="text"
+                              id="gasEstimation"
+                              name="gasEstimation"
+                              required
+                            >
+                              <option value="basic">Basic (fastest)</option>
+                              <option value="call-depth">
+                                Call Depth (fast)
+                              </option>
+                              <option value="full">Full (slow)</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label for="trace">Trace</label>
+                          <span class="field-info" title="Nonce">
+                            <span>
+                              What level of detail should be returned in the
+                              response?
+                            </span>
+                          </span>
+                          <div class="editor-container">
+                            <select
+                              type="text"
+                              id="trace"
+                              name="trace"
+                              required
+                            >
+                              <option value="none">No trace</option>
+                              <option value="call">Calls only</option>
+                              <option value="all">Full</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+                <div id="rpc">
+                  <div id="request">
+                    <h4>Request</h4>
+                    <pre class="editor-container" id="requestBody"></pre>
+                  </div>
+                  <div id="response">
+                    <h4>Response</h4>
+                    <pre class="editor-container" id="responseBody"></pre>
+                  </div>
+                </div>
+              </div>
+              <div class="simulate-button-container">
+                <button class="run-button simulate-button" type="submit">
+                  Simulate Transactions
+                </button>
+              </div>
+            </div>
+          </form>
+        </article>
+      </main>
+    </div>
+    <script src="jsonview.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
