@@ -31,7 +31,7 @@
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
     "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 -s 0 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
-    "postinstall": "npx -y patch-package"
+    "postinstall": "npx patch-package"
   },
   "bugs": {
     "url": "https://github.com/trufflesuite/ganache/issues"

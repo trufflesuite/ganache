@@ -59,11 +59,12 @@ type TransactionSimulationTransaction = Ethereum.Transaction & {
   traceTypes: string[];
 };
 
+type TraceType = "Full" | "None";
 type TransactionSimulationArgs = {
   transactions: [TransactionSimulationTransaction[]];
   overrides?: Ethereum.Call.Overrides;
   block?: QUANTITY | Ethereum.Tag;
-  includeTrace?: boolean;
+  trace?: TraceType;
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
@@ -3005,7 +3006,7 @@ export default class EthereumApi implements Api {
       transactions,
       blockNumber,
       overrides,
-      args.includeTrace
+      args.trace === "Full"
     );
 
     return simulatedTransactionResults.map(
@@ -3059,26 +3060,29 @@ export default class EthereumApi implements Api {
           receipts: undefined,
           storageChanges: parsedStorageChanges,
           stateChanges: parsedStateChanges,
-          trace: args.includeTrace
-            ? trace.map((t: any) => {
-                return {
-                  opcode: Data.from(t.opcode),
-                  type: t.type,
-                  from: Address.from(t.from),
-                  to: Address.from(t.to),
-                  target: t.target,
-                  value:
-                    t.value === undefined ? undefined : Quantity.from(t.value),
-                  input: Data.from(t.input),
-                  decodedInput: t.decodedInput?.map(({ type, value }) => ({
-                    type,
-                    // todo: some values will be Quantity rather
-                    value: Data.from(value)
-                  })),
-                  pc: t.pc
-                };
-              })
-            : undefined
+          trace:
+            args.trace === "Full"
+              ? trace.map((t: any) => {
+                  return {
+                    opcode: Data.from(t.opcode),
+                    type: t.type,
+                    from: Address.from(t.from),
+                    to: Address.from(t.to),
+                    target: t.target,
+                    value:
+                      t.value === undefined
+                        ? undefined
+                        : Quantity.from(t.value),
+                    input: Data.from(t.input),
+                    decodedInput: t.decodedInput?.map(({ type, value }) => ({
+                      type,
+                      // todo: some values will be Quantity rather
+                      value: Data.from(value)
+                    })),
+                    pc: t.pc
+                  };
+                })
+              : undefined
         };
       }
     );

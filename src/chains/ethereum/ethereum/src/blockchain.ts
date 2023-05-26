@@ -1356,7 +1356,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         (vm.evm as any).handleRunStep = stepHandler;
-        const result = await vm.evm.runCall({
+        const runCallArgs = {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
           gasPrice: transaction.gasPrice.toBigInt(),
@@ -1364,7 +1364,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           to,
           value: transaction.value == null ? 0n : transaction.value.toBigInt(),
           block: runtimeBlock as any
-        });
+        };
+        const result = await vm.evm.runCall(runCallArgs as any);
 
         // todo: this is always going to pull the "before" from before _all_ simulations
         // in order for this to be correct, we need to check all previously simulated transactions
