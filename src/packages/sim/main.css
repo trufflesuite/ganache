@@ -52,10 +52,16 @@ select > option:checked {
 #transactions {
   counter-reset: transaction-counter;
 }
-#transactions > .transaction > details {
+.transaction {
   counter-increment: transaction-counter;
 }
-#transactions > .transaction > details > .transaction-counter:after {
+.transaction:after {
+  content: counter(transaction-counter);
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.transaction-counter:after {
   content: " " counter(transaction-counter);
 }
 

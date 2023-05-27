@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addTransactionButton = document.getElementById('add-transaction');
     addTransactionButton.addEventListener('click', () => {
         // close any other `open` `.transaction details`:
-        const openTransaction = transactions.querySelector('.transaction details[open]');
-        if (openTransaction) {
-            openTransaction.removeAttribute('open');
+        const openTransaction = transactions.querySelectorAll('.transaction details[open]');
+        if (openTransaction.length > 0) {
+            openTransaction.forEach(t => t.removeAttribute('open'));
         }
 
         const newTransaction = transactionTemplate.cloneNode(true);
