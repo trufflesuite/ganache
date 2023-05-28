@@ -26,10 +26,12 @@ export default class Manager<T> {
       key = BUFFER_ZERO;
     }
 
-    return this.base.get(key).catch(e => {
-      if (e.status === NOTFOUND) return null;
-      throw e;
-    }) as Promise<Buffer>;
+    return this.base
+      .get(key, { keyEncoding: "binary", valueEncoding: "binary" })
+      .catch(e => {
+        if (e.status === NOTFOUND) return null;
+        throw e;
+      }) as Promise<Buffer>;
   }
   async get(key: string | Buffer) {
     const raw = await this.getRaw(key);
