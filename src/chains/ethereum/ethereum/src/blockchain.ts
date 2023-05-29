@@ -1,4 +1,4 @@
-import { rawDecode, rawEncode } from "ethereumjs-abi";
+import { rawDecode } from "ethereumjs-abi";
 import { fourBytes } from "@ganache/4byte";
 import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
@@ -24,6 +24,7 @@ import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
 import { EEI, VM } from "@ethereumjs/vm";
+
 import {
   EvmError as VmError,
   EvmErrorMessage as ERROR,
@@ -50,7 +51,8 @@ import {
   calculateIntrinsicGas,
   InternalTransactionReceipt,
   VmTransaction,
-  TypedTransaction
+  TypedTransaction,
+  TransactionFactory
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import {
@@ -79,6 +81,7 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
+import estimateGas from "./helpers/gas-estimator";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1451,6 +1454,60 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           refund: actualRefund,
           actualGasCost: totalGasSpent - actualRefund
         };
+        const tx = TransactionFactory.fromRpc(
+          {
+            from: transaction.from?.toString(),
+            to: transaction.to?.toString(),
+            data: transaction.data?.toString(),
+            gas: transaction.gas?.toString(),
+            gasPrice: transaction.gasPrice?.toString(),
+            //accesslists,
+            maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
+          } as any,
+          common
+        );
+
+        if (tx.gas.isNull()) {
+          tx.gas = this.#options.miner.callGasLimit;
+        }
+        runtimeBlock.header.baseFeePerGas = 0n;
+
+        const generateVM = async () => {
+          console.log("Generating VM");
+          const estimateTrie = this.trie.copy(false);
+          estimateTrie.setContext(
+            parentBlock.header.stateRoot.toBuffer(),
+            null,
+            parentBlock.header.number
+          );
+          return await this.createVmFromStateTrie(
+            estimateTrie,
+            options.chain.allowUnlimitedContractSize,
+            options.chain.allowUnlimitedInitCodeSize,
+            false, // precompiles have already been initialized in the stateTrie
+            common
+          );
+        };
+
+        const estimateGasArgs = {
+          tx: tx.toVmTransaction(),
+          block: runtimeBlock,
+          skipBalance: true,
+          skipNonce: true
+        };
+
+        const estimate = await new Promise((resolve, reject) => {
+          estimateGas(generateVM, estimateGasArgs, (err: Error, result) => {
+            if (err) {
+              console.error(err);
+              resolve({});
+            } else {
+              resolve(result);
+            }
+          });
+        });
+
+        console.log({ estimate });
 
         results[i] = {
           result: result.execResult,
