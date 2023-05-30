@@ -1125,6 +1125,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   public async simulateTransactions(
+    common,
     transactions: SimulationTransaction[],
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
@@ -1132,16 +1133,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     includeTrace: boolean,
     includeGasEstimate: boolean
   ) {
-    //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
-    // this won't work as expected if simulating on blocks before shanghai.
-    const common = this.fallback
-      ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(runtimeBlock.header.number.toString())
-        )
-      : this.common;
-    common.setHardfork("shanghai");
-
     const stateTrie = this.trie.copy(false);
     stateTrie.setContext(
       parentBlock.header.stateRoot.toBuffer(),
@@ -1517,6 +1508,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                 0n, // no baseFeePerGas for estimates
                 KECCAK256_RLP
               );
+
               const runArgs = {
                 tx: tx.toVmTransaction(),
                 block,

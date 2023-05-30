@@ -151,11 +151,18 @@ async function simulateTransaction(
   includeTrace: boolean = false,
   includeGasEstimate: boolean = false
 ): Promise<InternalTransactionSimulationResult[]> {
-  // EVMResult
-  const common = blockchain.common;
   const blocks = blockchain.blocks;
   const parentBlock = await blocks.get(blockNumber);
   const parentHeader = parentBlock.header;
+  // EVMResult
+  const simulationBlockNumber = parentHeader.number.toBigInt() + 1n;
+  const common = blockchain.fallback
+    ? blockchain.fallback.getCommonForBlockNumber(
+        blockchain.common,
+        simulationBlockNumber
+      )
+    : blockchain.common;
+  common.setHardfork("shanghai");
 
   let cummulativeGas = 0n;
 
@@ -259,13 +266,10 @@ async function simulateTransaction(
   // todo: calculate baseFeePerGas
   const baseFeePerGasBigInt = parentBlock.header.baseFeePerGas.toBigInt();
   const timestamp = Quantity.from(parentHeader.timestamp.toBigInt() + incr);
-  const simulationBlockNumber = Quantity.from(
-    parentHeader.number.toNumber() + 1
-  );
 
   const block = new RuntimeBlock(
-    blockchain.common,
-    simulationBlockNumber,
+    common,
+    Quantity.from(simulationBlockNumber),
     parentBlock.hash(),
     blockchain.coinbase,
     Quantity.from(cummulativeGas),
@@ -279,6 +283,7 @@ async function simulateTransaction(
   );
 
   const results = blockchain.simulateTransactions(
+    common,
     simulationTransactions,
     block,
     parentBlock,
