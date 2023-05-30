@@ -1171,13 +1171,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       [address: Address, key: BigInt, value: BigInt]
     >;
 
-    let gasLeft = runtimeBlock.header.gasLimit;
-
     const runningEncodedAccounts = {};
     const runningRawStorageSlots = {};
     const results = new Array(transactions.length);
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
+      let gasLeft = transaction.gas.toBigInt();
       const trace = [];
       const storageChanges: {
         address: Address;
@@ -1199,7 +1198,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
       const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
-      gasLeft -= transaction.gas.toBigInt();
+      gasLeft -= intrinsicGas;
 
       if (gasLeft >= 0n) {
         const caller = transaction.from.toBuffer();
@@ -1354,7 +1353,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
           gasPrice: transaction.gasPrice.toBigInt(),
-          gasLimit: transaction.gas.toBigInt(),
+          gasLimit: gasLeft,
           to,
           value: transaction.value == null ? 0n : transaction.value.toBigInt(),
           block: runtimeBlock as any
@@ -1517,10 +1516,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               );
 
               const runArgs = {
-                tx: tx.toVmTransaction(),
+                tx: {
+                  ...tx.toVmTransaction(),
+                  gasLimit: this.#options.miner.callGasLimit.toBigInt()
+                },
                 block,
                 skipBalance: true,
-                skipNonce: true
+                skipNonce: true,
+                skipBlockGasLimitValidation: true,
+                skipHardForkValidation: true
               };
               estimateGas(generateVM, runArgs, (err: Error, result) => {
                 if (err) return void reject(err);
