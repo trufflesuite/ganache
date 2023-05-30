@@ -50,6 +50,10 @@ const server = http.createServer((req, res) => {
         "Content-Type": "application/json"
       }
     };
+
+    console.log(
+      `Forwarding request to ${options.hostname}:${options.port}${options.path}`
+    );
     const simulationReq = http.request(options, simulationRes => {
       simulationRes.on("data", data => {
         res.write(data);
