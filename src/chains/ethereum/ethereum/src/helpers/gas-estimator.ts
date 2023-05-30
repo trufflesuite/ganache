@@ -296,13 +296,14 @@ const exactimate = async (
   };
   await vm.stateManager.checkpoint();
   const result = await vm
-    .runTx(runArgs as unknown as RunTxOpts)
+    .runTx({ ...runArgs, skipNonce: true } as unknown as RunTxOpts)
     .catch(vmerr => ({ vmerr }));
   await vm.stateManager.revert();
   if ("vmerr" in result) {
     const vmerr = result.vmerr;
     return callback(vmerr);
   } else if (result.execResult.exceptionError) {
+    console.error(result.execResult.exceptionError);
     const error = new RuntimeError(
       // erroneous gas estimations don't have meaningful hashes
       Quantity.Empty,

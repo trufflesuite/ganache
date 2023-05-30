@@ -1129,7 +1129,8 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
     overrides: CallOverrides,
-    includeTrace: boolean
+    includeTrace: boolean,
+    includeGasEstimate: boolean
   ) {
     //todo: getCommonForBlockNumber doesn't presently respect shanghai, so we just assume it's the same common as the fork
     // this won't work as expected if simulating on blocks before shanghai.
@@ -1454,60 +1455,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           refund: actualRefund,
           actualGasCost: totalGasSpent - actualRefund
         };
-        const tx = TransactionFactory.fromRpc(
-          {
-            from: transaction.from?.toString(),
-            to: transaction.to?.toString(),
-            data: transaction.data?.toString(),
-            gas: transaction.gas?.toString(),
-            gasPrice: transaction.gasPrice?.toString(),
-            //accesslists,
-            maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
-          } as any,
-          common
-        );
-
-        if (tx.gas.isNull()) {
-          tx.gas = this.#options.miner.callGasLimit;
-        }
-        runtimeBlock.header.baseFeePerGas = 0n;
-
-        const generateVM = async () => {
-          console.log("Generating VM");
-          const estimateTrie = this.trie.copy(false);
-          estimateTrie.setContext(
-            parentBlock.header.stateRoot.toBuffer(),
-            null,
-            parentBlock.header.number
-          );
-          return await this.createVmFromStateTrie(
-            estimateTrie,
-            options.chain.allowUnlimitedContractSize,
-            options.chain.allowUnlimitedInitCodeSize,
-            false, // precompiles have already been initialized in the stateTrie
-            common
-          );
-        };
-
-        const estimateGasArgs = {
-          tx: tx.toVmTransaction(),
-          block: runtimeBlock,
-          skipBalance: true,
-          skipNonce: true
-        };
-
-        const estimate = await new Promise((resolve, reject) => {
-          estimateGas(generateVM, estimateGasArgs, (err: Error, result) => {
-            if (err) {
-              console.error(err);
-              resolve({});
-            } else {
-              resolve(result);
-            }
-          });
-        });
-
-        console.log({ estimate });
 
         results[i] = {
           result: result.execResult,
@@ -1516,6 +1463,78 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           stateChanges,
           trace
         };
+
+        if (includeGasEstimate) {
+          // gas estimate is required
+
+          const generateVM = async () => {
+            // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
+            // /shrug
+
+            const vm = await this.createVmFromStateTrie(
+              this.trie.copy(false),
+              options.chain.allowUnlimitedContractSize,
+              options.chain.allowUnlimitedInitCodeSize,
+              false
+            );
+            return vm;
+          };
+
+          const estimateProm: Promise<Quantity> = new Promise(
+            (resolve, reject) => {
+              const tx = TransactionFactory.fromRpc(
+                {
+                  from: transaction.from?.toString(),
+                  to: transaction.to?.toString(),
+                  data: transaction.data?.toString(),
+                  gas: transaction.gas?.toString(),
+                  gasPrice: transaction.gasPrice?.toString(),
+                  //accesslists,
+                  maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
+                } as any,
+                common
+              );
+
+              if (tx.from == null) {
+                tx.from = this.coinbase;
+              }
+              if (tx.gas.isNull()) {
+                // eth_estimateGas isn't subject to regular transaction gas limits
+                tx.gas = options.miner.callGasLimit;
+              }
+
+              const block = new RuntimeBlock(
+                common,
+                Quantity.from(runtimeBlock.header.number),
+                Data.from(runtimeBlock.header.parentHash),
+                runtimeBlock.header.coinbase,
+                Quantity.from(runtimeBlock.header.gasLimit),
+                Quantity.from(runtimeBlock.header.gasUsed),
+                Quantity.from(runtimeBlock.header.timestamp),
+                Quantity.from(runtimeBlock.header.difficulty),
+                Quantity.from(runtimeBlock.header.totalDifficulty),
+                runtimeBlock.header.mixHash,
+                0n, // no baseFeePerGas for estimates
+                KECCAK256_RLP
+              );
+              const runArgs = {
+                tx: tx.toVmTransaction(),
+                block,
+                skipBalance: true,
+                skipNonce: true
+              };
+              estimateGas(generateVM, runArgs, (err: Error, result) => {
+                if (err) return void reject(err);
+                resolve(Quantity.from(result.gasEstimate));
+              });
+            }
+          );
+
+          try {
+            const gasEstimate = await estimateProm;
+            results[i].gasEstimate = gasEstimate?.toBigInt();
+          } catch {}
+        }
       } else {
         results[i] = {
           runState: { programCounter: 0 },
