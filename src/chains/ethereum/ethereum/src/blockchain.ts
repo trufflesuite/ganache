@@ -1459,12 +1459,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           const generateVM = async () => {
             // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
             // /shrug
-            const trie = this.trie.copy(false);
-            trie.setContext(
-              parentBlock.header.stateRoot.toBuffer(),
-              null,
-              parentBlock.header.number
-            );
+            const trie = stateTrie.copy(false);
+            // trie.setContext(
+            //   parentBlock.header.stateRoot.toBuffer(),
+            //   null,
+            //   parentBlock.header.number
+            // );
 
             const vm = await this.createVmFromStateTrie(
               trie,
@@ -1488,8 +1488,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                   data: transaction.data?.toString(),
                   gas: transaction.gas?.toString(),
                   gasPrice: transaction.gasPrice?.toString(),
+                  value: transaction.value?.toString()
                   //accesslists,
-                  maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
+                  // maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
                 } as any,
                 common
               );
@@ -1497,10 +1498,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               if (tx.from == null) {
                 tx.from = this.coinbase;
               }
-              if (tx.gas.isNull()) {
-                // eth_estimateGas isn't subject to regular transaction gas limits
-                tx.gas = options.miner.callGasLimit;
-              }
+              tx.gas = options.miner.callGasLimit;
 
               const block = new RuntimeBlock(
                 common,
@@ -1508,7 +1506,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                 Data.from(runtimeBlock.header.parentHash),
                 runtimeBlock.header.coinbase,
                 Quantity.from(runtimeBlock.header.gasLimit),
-                Quantity.from(runtimeBlock.header.gasUsed),
+                Quantity.Zero,
                 Quantity.from(runtimeBlock.header.timestamp),
                 Quantity.from(runtimeBlock.header.difficulty),
                 Quantity.from(runtimeBlock.header.totalDifficulty),
@@ -1518,10 +1516,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               );
 
               const runArgs = {
-                tx: {
-                  ...tx.toVmTransaction(),
-                  gasLimit: this.#options.miner.callGasLimit.toBigInt()
-                },
+                tx: tx.toVmTransaction(),
                 block,
                 skipBalance: true,
                 skipNonce: true,
@@ -1538,7 +1533,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           try {
             const gasEstimate = await estimateProm;
             results[i].gasEstimate = gasEstimate?.toBigInt();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
         }
       } else {
         results[i] = {

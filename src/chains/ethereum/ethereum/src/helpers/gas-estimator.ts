@@ -310,7 +310,13 @@ const exactimate = async (
   };
   await vm.eei.checkpoint();
   const result = await vm
-    .runTx({ ...runArgs, skipNonce: true } as unknown as RunTxOpts)
+    .runTx({
+      ...runArgs,
+      skipNonce: true,
+      skipBalance: true,
+      skipBlockGasLimitValidation: true,
+      skipHardForkValidation: true
+    } as unknown as RunTxOpts)
     .catch(vmerr => ({ vmerr }));
   await vm.eei.revert();
   if ("vmerr" in result) {
