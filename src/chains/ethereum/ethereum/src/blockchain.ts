@@ -1458,13 +1458,23 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           const generateVM = async () => {
             // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
             // /shrug
+            const trie = this.trie.copy(false);
+            trie.setContext(
+              parentBlock.header.stateRoot.toBuffer(),
+              null,
+              parentBlock.header.number
+            );
 
             const vm = await this.createVmFromStateTrie(
-              this.trie.copy(false),
+              trie,
               options.chain.allowUnlimitedContractSize,
               options.chain.allowUnlimitedInitCodeSize,
-              false
+              false,
+              common
             );
+            await vm.eei.checkpoint();
+            //@ts-ignore
+            vm.eei.commit = () => {};
             return vm;
           };
 
