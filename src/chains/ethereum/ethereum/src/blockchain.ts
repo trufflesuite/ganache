@@ -1176,7 +1176,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const results = new Array(transactions.length);
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
-      let gasLeft = transaction.gas.toBigInt();
       const trace = [];
       const storageChanges: {
         address: Address;
@@ -1198,14 +1197,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
       const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
-      gasLeft -= intrinsicGas;
+      let gasLeft = transaction.gas.toBigInt() - intrinsicGas;
 
       if (gasLeft >= 0n) {
         const caller = transaction.from.toBuffer();
         const callerAddress = new Address(caller);
 
-        if (common.isActivatedEIP(2929) && to) {
-          vm.eei.addWarmedAddress(to.buf);
+        if (common.isActivatedEIP(2929)) {
+          vm.eei.addWarmedAddress(caller);
+          if (to) {
+            vm.eei.addWarmedAddress(to.buf);
+          }
         }
 
         // If there are any overrides requested for eth_call, apply
