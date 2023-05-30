@@ -1376,10 +1376,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           if (beforeEncoded === undefined) {
             // we haven't changed this account in a previous simulation, need to get the original account
             addressBuf = Buffer.from(addressStr, "hex");
-            beforeEncoded = await this.accounts.getRaw(
-              Address.from(addressBuf),
-              parentBlock.header.number.toBuffer()
-            );
+            beforeEncoded = await beforeStateManager._trie.get(addressBuf);
           }
           const afterEncoded = i[1].val;
           if (!beforeEncoded.equals(afterEncoded)) {
