@@ -10,6 +10,12 @@ import { BaseHandler } from "./base-handler";
 import { Handler } from "../types";
 import Deferred from "../deferred";
 
+const net = require("net");
+// work around a node v20 bug: https://github.com/nodejs/node/issues/47822#issuecomment-1564708870
+if (net.setDefaultAutoSelectFamily) {
+  net.setDefaultAutoSelectFamily(false);
+}
+
 const { JSONRPC_PREFIX } = BaseHandler;
 
 export class HttpHandler extends BaseHandler implements Handler {
@@ -170,8 +176,14 @@ export class HttpHandler extends BaseHandler implements Handler {
       });
 
       // after 5 seconds of idle abort the request
-      req.setTimeout(5000, req.abort.bind(req, null));
-      req.on("error", deferred.reject);
+      req.setTimeout(5000, () => {
+        console.log("timeout");
+        req.abort.bind(req, null)();
+      });
+      req.on("error", e => {
+        console.log("error");
+        deferred.reject(e);
+      });
       req.write(postData);
       req.end();
 
