@@ -41,15 +41,20 @@ const server = http.createServer((req, res) => {
     // send the POST request to the simulation server
     // we just take the body from the request and send it to the simulation server
     // and then return the result directly to the user:
+    let remote = false;
     const options = {
-      hostname: "localhost",
-      port: 8545,
+      hostname: remote ? "3.140.186.190" : "localhost",
+      port: remote ? 8080 : 8545,
       path: "/",
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       }
     };
+
+    console.log(
+      `Forwarding request to ${options.hostname}:${options.port}${options.path}`
+    );
     const simulationReq = http.request(options, simulationRes => {
       simulationRes.on("data", data => {
         res.write(data);

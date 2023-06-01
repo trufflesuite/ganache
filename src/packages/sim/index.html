@@ -159,7 +159,7 @@
                                 id="gasLimit"
                                 name="gasLimit"
                                 required
-                                value="80000"
+                                value="50000000"
                                 pattern="^[0-9]+$|^(0x[a-fA-F0-9]+)$"
                               />
                             </div>
@@ -249,7 +249,7 @@
                               name="gasEstimation"
                               required
                             >
-                              <option value="basic">Basic (fastest)</option>
+                              <option value="none">None</option>
                               <option value="call-depth">
                                 Call Depth (fast)
                               </option>
@@ -272,8 +272,9 @@
                               name="trace"
                               required
                             >
-                              <option value="None">No trace</option>
-                              <option value="Full">Full</option>
+                              <option value="none">No trace</option>
+                              <option value="call">Call trace</option>
+                              <option value="full">Full</option>
                             </select>
                           </div>
                         </div>

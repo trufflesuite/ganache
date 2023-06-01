@@ -1,3 +1,4 @@
+import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 import BN from "bn.js";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
 import { Quantity } from "@ganache/utils";
@@ -24,28 +25,33 @@ const bigIntToBN = (val: bigint) => {
 };
 const MULTIPLE = 64 / 63;
 
-const check = (set: Set<string>) => (opname: string) => set.has(opname);
-const isCall = check(
-  new Set(["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"])
-);
-const isCallOrCallcode = check(new Set(["CALL", "CALLCODE"]));
-const isCreate = check(new Set(["CREATE", "CREATE2"]));
+const check = (set: Set<number>) => (opname: number) => set.has(opname);
+const isCall = check(new Set([0xf1, 0xf4, 0xfa, 0xf2]));
+const isCallOrCallcode = check(new Set([0xf1, 0xf2]));
+const isCreate = check(new Set([0xf0, 0xf5]));
 const isTerminator = check(
-  new Set(["STOP", "RETURN", "REVERT", "INVALID", "SELFDESTRUCT"])
+  // TODO: figure out INVALID efficiently
+  new Set([0x00, 0xf3, 0xfd, /*"INVALID",*/ 0xff])
 );
 type SystemOptions = {
   index: number;
   depth: number;
-  name: string;
+  name: number;
+};
+type I = {
+  depth: number;
+  opcode: number;
+  stack: any[];
+  gasLeft: bigint;
 };
 const stepTracker = () => {
   const sysOps: SystemOptions[] = [];
-  const allOps: InterpreterStep[] = [];
+  const allOps: I[] = [];
   const preCompile: Set<number> = new Set();
   let preCompileCheck = false;
   let precompileCallDepth = 0;
   return {
-    collect: (info: InterpreterStep) => {
+    collect: (info: I) => {
       if (preCompileCheck) {
         if (info.depth === precompileCallDepth) {
           // If the current depth is unchanged.
@@ -55,20 +61,20 @@ const stepTracker = () => {
         // Reset the flag immediately here
         preCompileCheck = false;
       }
-      if (isCall(info.opcode.name)) {
+      if (isCall(info.opcode)) {
         info.stack = [...info.stack];
         preCompileCheck = true;
         precompileCallDepth = info.depth;
         sysOps.push({
           index: allOps.length,
           depth: info.depth,
-          name: info.opcode.name
+          name: info.opcode
         });
-      } else if (isCreate(info.opcode.name) || isTerminator(info.opcode.name)) {
+      } else if (isCreate(info.opcode) || isTerminator(info.opcode)) {
         sysOps.push({
           index: allOps.length,
           depth: info.depth,
-          name: info.opcode.name
+          name: info.opcode
         });
       }
       // This goes last so we can use the length for the index ^
@@ -78,7 +84,7 @@ const stepTracker = () => {
     done: () =>
       !allOps.length ||
       sysOps.length < 2 ||
-      !isTerminator(allOps[allOps.length - 1].opcode.name),
+      !isTerminator(allOps[allOps.length - 1].opcode),
     ops: allOps,
     systemOps: sysOps
   };
@@ -155,7 +161,15 @@ const exactimate = async (
   callback: (err: Error, result?: EstimateGasResult) => void
 ) => {
   const steps = stepTracker();
-  vm.evm.events.on("step", steps.collect);
+  (vm.evm as any).handleRunStep = (interpreter: Interpreter) => {
+    const runState = (interpreter as any)._runState as RunState;
+    steps.collect({
+      opcode: runState.opCode,
+      stack: runState.stack._store,
+      depth: interpreter._env.depth,
+      gasLeft: runState.gasLeft
+    } as any);
+  };
 
   type ContextType = ReturnType<typeof Context>;
   const Context = (index: number, fee?: BN) => {
@@ -228,7 +242,7 @@ const exactimate = async (
         range.isub(callingFee);
         addGas(range);
         if (
-          isCallOrCallcode(op.opcode.name) &&
+          isCallOrCallcode(op.opcode) &&
           !(op.stack[op.stack.length - 3] === 0n)
         ) {
           cost.iadd(sixtyFloorths);
@@ -258,7 +272,7 @@ const exactimate = async (
     while (cursor < sysops.length) {
       const currentIndex = opIndex(cursor);
       const current = ops[currentIndex];
-      const name = current.opcode.name;
+      const name = current.opcode;
       if (isCall(name) || isCreate(name)) {
         if (steps.isPrecompile(currentIndex)) {
           context.setStop(currentIndex + 1);
@@ -267,7 +281,7 @@ const exactimate = async (
           context.addSixtyFloorth(STIPEND);
         } else {
           context.setStop(currentIndex);
-          const feeBn = bn(current.opcode.fee);
+          const feeBn = bn(isCreate(name) ? 32000 : 100);
           context.addRange(feeBn);
           stack.push(context);
           context = Context(currentIndex, feeBn); // setup next context
@@ -294,15 +308,22 @@ const exactimate = async (
     const gas = context.getCost();
     return gas.cost.add(gas.sixtyFloorths);
   };
-  await vm.stateManager.checkpoint();
+  await vm.eei.checkpoint();
   const result = await vm
-    .runTx(runArgs as unknown as RunTxOpts)
+    .runTx({
+      ...runArgs,
+      skipNonce: true,
+      skipBalance: true,
+      skipBlockGasLimitValidation: true,
+      skipHardForkValidation: true
+    } as unknown as RunTxOpts)
     .catch(vmerr => ({ vmerr }));
-  await vm.stateManager.revert();
+  await vm.eei.revert();
   if ("vmerr" in result) {
     const vmerr = result.vmerr;
     return callback(vmerr);
   } else if (result.execResult.exceptionError) {
+    console.error(result.execResult.exceptionError);
     const error = new RuntimeError(
       // erroneous gas estimations don't have meaningful hashes
       Quantity.Empty,

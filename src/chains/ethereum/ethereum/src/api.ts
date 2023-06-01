@@ -59,12 +59,14 @@ type TransactionSimulationTransaction = Ethereum.Transaction & {
   traceTypes: string[];
 };
 
-type TraceType = "Full" | "None";
+type TraceType = "full" | "call" | "none";
+type GasEstimateType = "full" | "call-depth" | "none";
 type TransactionSimulationArgs = {
   transactions: TransactionSimulationTransaction[];
   overrides?: Ethereum.Call.Overrides;
   block?: QUANTITY | Ethereum.Tag;
   trace?: TraceType;
+  gasEstimation?: GasEstimateType;
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
@@ -115,11 +117,13 @@ type TransactionSimulationResult = {
   stateChanges: StateChange[];
   receipts?: Data[];
   trace?: TraceEntry[];
+  gasEstimate?: Quantity;
 };
 
-type InternalTransactionSimulationResult<HasTrace extends boolean> = {
+type InternalTransactionSimulationResult = {
   result: any;
   gasBreakdown: any;
+  gasEstimate?: bigint;
   storageChanges: {
     address: Address;
     key: Buffer;
@@ -130,14 +134,12 @@ type InternalTransactionSimulationResult<HasTrace extends boolean> = {
     Buffer,
     [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
   >;
-  trace: HasTrace extends true
-    ? {
-        opcode: Buffer;
-        pc: number;
-        type: string;
-        stack: Buffer[];
-      }[]
-    : never;
+  trace?: {
+    opcode: Buffer;
+    pc: number;
+    type: string;
+    stack: Buffer[];
+  }[];
 };
 
 async function simulateTransaction(
@@ -146,13 +148,21 @@ async function simulateTransaction(
   transactions: Ethereum.Call.Transaction[],
   blockNumber: QUANTITY | Ethereum.Tag = Tag.latest,
   overrides: Ethereum.Call.Overrides = {},
-  includeTrace: boolean = false
-): Promise<InternalTransactionSimulationResult<typeof includeTrace>[]> {
-  // EVMResult
-  const common = blockchain.common;
+  includeTrace: boolean = false,
+  includeGasEstimate: boolean = false
+): Promise<InternalTransactionSimulationResult[]> {
   const blocks = blockchain.blocks;
   const parentBlock = await blocks.get(blockNumber);
   const parentHeader = parentBlock.header;
+  // EVMResult
+  const simulationBlockNumber = parentHeader.number.toBigInt() + 1n;
+  const common = blockchain.fallback
+    ? blockchain.fallback.getCommonForBlockNumber(
+        blockchain.common,
+        simulationBlockNumber
+      )
+    : blockchain.common;
+  common.setHardfork("shanghai");
 
   let cummulativeGas = 0n;
 
@@ -256,13 +266,10 @@ async function simulateTransaction(
   // todo: calculate baseFeePerGas
   const baseFeePerGasBigInt = parentBlock.header.baseFeePerGas.toBigInt();
   const timestamp = Quantity.from(parentHeader.timestamp.toBigInt() + incr);
-  const simulationBlockNumber = Quantity.from(
-    parentHeader.number.toNumber() + 1
-  );
 
   const block = new RuntimeBlock(
-    blockchain.common,
-    simulationBlockNumber,
+    common,
+    Quantity.from(simulationBlockNumber),
     parentBlock.hash(),
     blockchain.coinbase,
     Quantity.from(cummulativeGas),
@@ -276,11 +283,13 @@ async function simulateTransaction(
   );
 
   const results = blockchain.simulateTransactions(
+    common,
     simulationTransactions,
     block,
     parentBlock,
     overrides,
-    includeTrace
+    includeTrace,
+    includeGasEstimate
   );
 
   return results;
@@ -1149,15 +1158,33 @@ export default class EthereumApi implements Api {
     const parentHeader = parentBlock.header;
     const options = this.#options;
 
+    const common = blockchain.fallback
+      ? blockchain.fallback.getCommonForBlockNumber(
+          blockchain.common,
+          parentBlock.header.number.toBigInt()
+        )
+      : blockchain.common;
+    common.setHardfork("shanghai");
+
     const generateVM = async () => {
       // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
       // /shrug
+      const trie = blockchain.trie.copy(false);
+      trie.setContext(
+        parentBlock.header.stateRoot.toBuffer(),
+        null,
+        parentBlock.header.number
+      );
       const vm = await blockchain.createVmFromStateTrie(
-        blockchain.trie.copy(false),
+        trie,
         options.chain.allowUnlimitedContractSize,
         options.chain.allowUnlimitedInitCodeSize,
-        false
+        false,
+        common
       );
+      await vm.eei.checkpoint();
+      //@ts-ignore
+      vm.eei.commit = () => {};
       return vm;
     };
     return new Promise((resolve, reject) => {
@@ -1192,7 +1219,11 @@ export default class EthereumApi implements Api {
         tx: tx.toVmTransaction(),
         block,
         skipBalance: true,
-        skipNonce: true
+        skipNonce: true,
+        //@ts-ignore
+        skipBlockGasLimitValidation: true,
+        //@ts-ignore
+        skipHardForkValidation: true
       };
       estimateGas(
         generateVM,
@@ -2987,7 +3018,7 @@ export default class EthereumApi implements Api {
   }
 
   /**
-   * This only simulates the first transaction supplied by args.transactions
+   * Presently only supports "Call" trace ("Full" trace will be treated as "Call");
    * @param  {TransactionSimulationArgs} args
    * @returns Promise
    */
@@ -2999,6 +3030,10 @@ export default class EthereumApi implements Api {
     const blockNumber = args.block || "latest";
 
     const overrides = args.overrides;
+    const includeTrace = args.trace === "full" || args.trace === "call";
+    const includeGasEstimation =
+      args.gasEstimation === "full" || args.gasEstimation === "call-depth";
+
     //@ts-ignore
     const simulatedTransactionResults = await simulateTransaction(
       this.#blockchain,
@@ -3006,11 +3041,19 @@ export default class EthereumApi implements Api {
       transactions,
       blockNumber,
       overrides,
-      args.trace === "Full"
+      includeTrace,
+      includeGasEstimation
     );
 
     return simulatedTransactionResults.map(
-      ({ trace, gasBreakdown, result, storageChanges, stateChanges }) => {
+      ({
+        trace,
+        gasBreakdown,
+        result,
+        storageChanges,
+        stateChanges,
+        gasEstimate
+      }) => {
         const parsedStorageChanges = storageChanges.map(change => ({
           key: Data.from(change.key),
           address: Address.from(change.address.buf),
@@ -3058,34 +3101,32 @@ export default class EthereumApi implements Api {
           error,
           returnValue,
           gas,
+          gasEstimate: gasEstimate ? Quantity.from(gasEstimate) : undefined,
           logs,
           //todo: populate receipts
           receipts: undefined,
           storageChanges: parsedStorageChanges,
           stateChanges: parsedStateChanges,
-          trace:
-            args.trace === "Full"
-              ? trace.map((t: any) => {
-                  return {
-                    opcode: Data.from(t.opcode),
-                    type: t.type,
-                    from: Address.from(t.from),
-                    to: Address.from(t.to),
-                    target: t.target,
-                    value:
-                      t.value === undefined
-                        ? undefined
-                        : Quantity.from(t.value),
-                    input: Data.from(t.input),
-                    decodedInput: t.decodedInput?.map(({ type, value }) => ({
-                      type,
-                      // todo: some values will be Quantity rather
-                      value: Data.from(value)
-                    })),
-                    pc: t.pc
-                  };
-                })
-              : undefined
+          trace: includeTrace
+            ? trace.map((t: any) => {
+                return {
+                  opcode: Data.from(t.opcode),
+                  type: t.type,
+                  from: Address.from(t.from),
+                  to: Address.from(t.to),
+                  target: t.target,
+                  value:
+                    t.value === undefined ? undefined : Quantity.from(t.value),
+                  input: Data.from(t.input),
+                  decodedInput: t.decodedInput?.map(({ type, value }) => ({
+                    type,
+                    // todo: some values will be Quantity rather
+                    value: Data.from(value)
+                  })),
+                  pc: t.pc
+                };
+              })
+            : undefined
         };
       }
     );
