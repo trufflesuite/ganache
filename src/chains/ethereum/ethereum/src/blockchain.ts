@@ -1171,8 +1171,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       [address: Address, key: BigInt, value: BigInt]
     >;
 
-    let gasLeft = runtimeBlock.header.gasLimit;
-
     const runningEncodedAccounts = {};
     const runningRawStorageSlots = {};
     const results = new Array(transactions.length);
@@ -1199,14 +1197,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
       const intrinsicGas = calculateIntrinsicGas(data, hasToAddress, common);
-      gasLeft -= transaction.gas.toBigInt();
+      let gasLeft = transaction.gas.toBigInt() - intrinsicGas;
 
       if (gasLeft >= 0n) {
         const caller = transaction.from.toBuffer();
         const callerAddress = new Address(caller);
 
-        if (common.isActivatedEIP(2929) && to) {
-          vm.eei.addWarmedAddress(to.buf);
+        if (common.isActivatedEIP(2929)) {
+          vm.eei.addWarmedAddress(caller);
+          if (to) {
+            vm.eei.addWarmedAddress(to.buf);
+          }
         }
 
         // If there are any overrides requested for eth_call, apply
@@ -1354,7 +1355,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
           gasPrice: transaction.gasPrice.toBigInt(),
-          gasLimit: transaction.gas.toBigInt(),
+          gasLimit: gasLeft,
           to,
           value: transaction.value == null ? 0n : transaction.value.toBigInt(),
           block: runtimeBlock as any
@@ -1376,10 +1377,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           if (beforeEncoded === undefined) {
             // we haven't changed this account in a previous simulation, need to get the original account
             addressBuf = Buffer.from(addressStr, "hex");
-            beforeEncoded = await this.accounts.getRaw(
-              Address.from(addressBuf),
-              parentBlock.header.number.toBuffer()
-            );
+            beforeEncoded = await beforeStateManager._trie.get(addressBuf);
           }
           const afterEncoded = i[1].val;
           if (!beforeEncoded.equals(afterEncoded)) {
@@ -1461,13 +1459,23 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           const generateVM = async () => {
             // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
             // /shrug
+            const trie = stateTrie.copy(false);
+            // trie.setContext(
+            //   parentBlock.header.stateRoot.toBuffer(),
+            //   null,
+            //   parentBlock.header.number
+            // );
 
             const vm = await this.createVmFromStateTrie(
-              this.trie.copy(false),
+              trie,
               options.chain.allowUnlimitedContractSize,
               options.chain.allowUnlimitedInitCodeSize,
-              false
+              false,
+              common
             );
+            await vm.eei.checkpoint();
+            //@ts-ignore
+            vm.eei.commit = () => {};
             return vm;
           };
 
@@ -1480,8 +1488,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                   data: transaction.data?.toString(),
                   gas: transaction.gas?.toString(),
                   gasPrice: transaction.gasPrice?.toString(),
+                  value: transaction.value?.toString()
                   //accesslists,
-                  maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
+                  // maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
                 } as any,
                 common
               );
@@ -1489,10 +1498,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               if (tx.from == null) {
                 tx.from = this.coinbase;
               }
-              if (tx.gas.isNull()) {
-                // eth_estimateGas isn't subject to regular transaction gas limits
-                tx.gas = options.miner.callGasLimit;
-              }
+              tx.gas = options.miner.callGasLimit;
 
               const block = new RuntimeBlock(
                 common,
@@ -1500,7 +1506,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                 Data.from(runtimeBlock.header.parentHash),
                 runtimeBlock.header.coinbase,
                 Quantity.from(runtimeBlock.header.gasLimit),
-                Quantity.from(runtimeBlock.header.gasUsed),
+                Quantity.Zero,
                 Quantity.from(runtimeBlock.header.timestamp),
                 Quantity.from(runtimeBlock.header.difficulty),
                 Quantity.from(runtimeBlock.header.totalDifficulty),
@@ -1513,7 +1519,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                 tx: tx.toVmTransaction(),
                 block,
                 skipBalance: true,
-                skipNonce: true
+                skipNonce: true,
+                skipBlockGasLimitValidation: true,
+                skipHardForkValidation: true
               };
               estimateGas(generateVM, runArgs, (err: Error, result) => {
                 if (err) return void reject(err);
@@ -1525,7 +1533,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           try {
             const gasEstimate = await estimateProm;
             results[i].gasEstimate = gasEstimate?.toBigInt();
-          } catch {}
+          } catch (e) {
+            console.error(e);
+          }
         }
       } else {
         results[i] = {

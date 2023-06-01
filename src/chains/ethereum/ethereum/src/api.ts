@@ -1158,15 +1158,33 @@ export default class EthereumApi implements Api {
     const parentHeader = parentBlock.header;
     const options = this.#options;
 
+    const common = blockchain.fallback
+      ? blockchain.fallback.getCommonForBlockNumber(
+          blockchain.common,
+          parentBlock.header.number.toBigInt()
+        )
+      : blockchain.common;
+    common.setHardfork("shanghai");
+
     const generateVM = async () => {
       // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
       // /shrug
+      const trie = blockchain.trie.copy(false);
+      trie.setContext(
+        parentBlock.header.stateRoot.toBuffer(),
+        null,
+        parentBlock.header.number
+      );
       const vm = await blockchain.createVmFromStateTrie(
-        blockchain.trie.copy(false),
+        trie,
         options.chain.allowUnlimitedContractSize,
         options.chain.allowUnlimitedInitCodeSize,
-        false
+        false,
+        common
       );
+      await vm.eei.checkpoint();
+      //@ts-ignore
+      vm.eei.commit = () => {};
       return vm;
     };
     return new Promise((resolve, reject) => {
@@ -1201,7 +1219,11 @@ export default class EthereumApi implements Api {
         tx: tx.toVmTransaction(),
         block,
         skipBalance: true,
-        skipNonce: true
+        skipNonce: true,
+        //@ts-ignore
+        skipBlockGasLimitValidation: true,
+        //@ts-ignore
+        skipHardForkValidation: true
       };
       estimateGas(
         generateVM,

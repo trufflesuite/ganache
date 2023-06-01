@@ -92,6 +92,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // `evm_simulateTransactions` call:
     transactions.addEventListener('change', formatJson);
     advancedOptions.addEventListener('change', formatJson);
+    let pre = "";
+    advancedOptions.addEventListener('change', async () => {
+        // prefetch when advanced options change
+        try {
+            const jsonRPC = JSON.stringify(JSON.parse(requestElement.dataset.json));
+            if (jsonRPC === pre) return;
+            pre = jsonRPC;
+            await fetch('/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'applicaiton/json',
+                },
+                body: jsonRPC,
+            });
+        } catch (e) {
+            // ignore
+        }
+    });
     formatJson();
 
     const responseElement = document.getElementById("responseBody");
@@ -104,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         responseElement.innerHTML = '<div class="loader"></div>';
         try {
             const jsonRPC = JSON.parse(requestElement.dataset.json);
-
+            console.log(jsonRPC);
             const response = await fetch('/simulate', {
                 method: 'POST',
                 headers: {
@@ -115,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             responseElement.innerHTML = '';
             const result = await response.json();
+            console.log(result);
             const tree = jsonview.create(result);
             jsonview.render(tree, responseElement);
             jsonview.expand(tree);
