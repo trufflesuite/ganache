@@ -19,6 +19,14 @@ import {
 import { TruffleColors } from "@ganache/colors";
 import Table from "cli-table";
 import chalk from "chalk";
+import envPaths from "env-paths";
+import * as path from "path";
+import { WriteStream, createWriteStream, existsSync, mkdirSync } from "fs";
+
+const logBasePath = envPaths(`Ganache`, { suffix: "" }).log;
+
+const logPath = path.join(logBasePath, "ganache.log");
+const errorLogPath = path.join(logBasePath, "ganache.err.log");
 
 const porscheColor = chalk.hex(TruffleColors.porsche);
 
@@ -49,9 +57,28 @@ const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @gana
 
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
-
+let logStream: WriteStream;
+let errorLogStream: WriteStream;
 const argv = args(detailedVersion, isDocker);
+
+function bindStream(readStream, writeStream) {
+  const orgWrite = readStream.write;
+  readStream.write = (...args) => {
+    writeStream.write.call(writeStream, ...args);
+    orgWrite.call(readStream, ...args);
+  };
+}
+
 if (argv.action === "start") {
+  logStream = createWriteStream(logPath, { flags: "a" });
+  errorLogStream = createWriteStream(errorLogPath, { flags: "a" });
+  console.log("Logging to " + logBasePath);
+  if (!existsSync(logBasePath)) {
+    mkdirSync(logBasePath, { recursive: true });
+  }
+  bindStream(process.stdout, logStream);
+  bindStream(process.stderr, errorLogStream);
+
   const flavor = argv.flavor;
   const cliSettings = argv.server;
 
