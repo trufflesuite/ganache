@@ -262,7 +262,10 @@ export class Fork {
   }
 
   public isValidForkBlockNumber(blockNumber: Quantity) {
-    return blockNumber.toBigInt() <= this.blockNumber.toBigInt();
+    // TODO: this is a temporary fix for using ganache for remote transaction
+    // simulations. it breaks lots of things for normal ganache usage.
+    return true;
+    // return blockNumber.toBigInt() <= this.blockNumber.toBigInt();
   }
 
   public selectValidForkBlockNumber(blockNumber: Quantity) {
@@ -281,8 +284,14 @@ export class Fork {
    * @param common -
    * @param blockNumber -
    */
-  public getCommonForBlockNumber(common: Common, blockNumber: BigInt) {
-    if (blockNumber <= this.blockNumber.toBigInt()) {
+  public getCommonForBlockNumber(
+    common: Common,
+    blockNumber: BigInt,
+    allowFuture = false
+  ) {
+    // if we are allowed to get a future hardfork block, then we should try to
+    // get a common for hardforks that will be activate at those block numbers
+    if (blockNumber <= this.blockNumber.toBigInt() || allowFuture) {
       // we are at or before our fork block
 
       let forkCommon: Common;
@@ -310,6 +319,7 @@ export class Fork {
           { baseChain: 1 }
         );
       }
+      (forkCommon as any).on = () => {};
       return forkCommon;
     } else {
       return common;

@@ -196,7 +196,8 @@ export class BaseHandler {
 
         if (hasOwn(response, "result")) {
           // cache non-error responses only
-          this.valueCache.set(key, raw);
+          // don't set the cache when "latest" is requested.
+          if (!key.includes("latest")) this.valueCache.set(key, raw);
           if (!options.disableCache && this.persistentCache) {
             // swallow errors for the persistentCache, since it's not vital that
             // it always works
