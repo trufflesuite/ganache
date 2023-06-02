@@ -35,6 +35,14 @@ export function notifyDetachedInstanceReady(port: number) {
   // in "detach" mode, the parent will wait until the port is
   // received before disconnecting from the child process.
   process.send(port);
+  process.stderr.on("error", e => {
+    // ignore errors from stderr, as once we tell the parent process we are
+    // ready it stops listening to stderror and results in a broken pipe.
+    // if any code tries to write to it it will fail with EPIPE.
+    if (e.code !== "EPIPE") {
+      throw e;
+    }
+  });
 }
 
 /**
@@ -105,7 +113,8 @@ export async function startDetachedInstance(
 
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
-    detached: true
+    detached: true,
+    execArgv: ["--inspect-brk"]
   });
 
   // Any messages output to stderr by the child process (before the `ready`
@@ -143,8 +152,8 @@ export async function startDetachedInstance(
   // destroy the ReadableStream exposed by the child process, to allow the
   // parent to exit gracefully.
   child.stderr.destroy();
-  child.unref();
-  child.disconnect();
+  // child.unref();
+  // child.disconnect();
 
   const flavor = instanceInfo.flavor;
   const { host } = instanceInfo.server;
