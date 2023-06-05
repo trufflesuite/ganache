@@ -113,8 +113,7 @@ export async function startDetachedInstance(
 
   const child = fork(module, childArgs, {
     stdio: ["ignore", "ignore", "pipe", "ipc"],
-    detached: true,
-    execArgv: ["--inspect-brk"]
+    detached: true
   });
 
   // Any messages output to stderr by the child process (before the `ready`
@@ -152,8 +151,8 @@ export async function startDetachedInstance(
   // destroy the ReadableStream exposed by the child process, to allow the
   // parent to exit gracefully.
   child.stderr.destroy();
-  // child.unref();
-  // child.disconnect();
+  child.unref();
+  child.disconnect();
 
   const flavor = instanceInfo.flavor;
   const { host } = instanceInfo.server;
