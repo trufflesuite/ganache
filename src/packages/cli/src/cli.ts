@@ -57,11 +57,11 @@ const detailedVersion = `ganache v${version} (@ganache/cli: ${cliVersion}, @gana
 
 const isDocker =
   "DOCKER" in process.env && process.env.DOCKER.toLowerCase() === "true";
-let logStream: WriteStream;
-let errorLogStream: WriteStream;
+
 const argv = args(detailedVersion, isDocker);
 
-function bindStream(readStream, writeStream) {
+function bindStream(readStream, writeFile) {
+  let writeStream = createWriteStream(writeFile, { flags: "a" });
   const orgWrite = readStream.write;
   readStream.write = (...args) => {
     const timestamp = new Date().toISOString();
@@ -76,21 +76,27 @@ function bindStream(readStream, writeStream) {
     }
     const stampedMessage =
       logLines.map(line => `${timestamp} ${line}`).join("\n") + suffix;
-    writeStream.write.call(writeStream, stampedMessage, ...additionalArgs);
+    if (!existsSync(writeFile)) {
+      writeStream.end();
+      writeStream = createWriteStream(writeFile, { flags: "a" });
+    }
+    (writeStream as any).write.call(
+      writeStream,
+      stampedMessage,
+      ...additionalArgs
+    );
     // don't timestamp writes to original stream
     orgWrite.call(readStream, ...args);
   };
 }
 
 if (argv.action === "start") {
-  logStream = createWriteStream(logPath, { flags: "a" });
-  errorLogStream = createWriteStream(errorLogPath, { flags: "a" });
   console.log("Logging to " + logBasePath);
   if (!existsSync(logBasePath)) {
     mkdirSync(logBasePath, { recursive: true });
   }
-  bindStream(process.stdout, logStream);
-  bindStream(process.stderr, errorLogStream);
+  bindStream(process.stdout, logPath);
+  bindStream(process.stderr, errorLogPath);
 
   const flavor = argv.flavor;
   const cliSettings = argv.server;
