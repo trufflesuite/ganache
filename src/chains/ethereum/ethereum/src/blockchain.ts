@@ -1543,6 +1543,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           returnValue: BUFFER_EMPTY
         };
       }
+
+      vm.eei.clearOriginalStorageCache();
+      vm.eei.clearWarmedAccounts();
+      await vm.eei.cleanupTouchedAccounts();
     }
 
     return results;
