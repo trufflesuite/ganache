@@ -64,7 +64,20 @@ const argv = args(detailedVersion, isDocker);
 function bindStream(readStream, writeStream) {
   const orgWrite = readStream.write;
   readStream.write = (...args) => {
-    writeStream.write.call(writeStream, ...args);
+    const timestamp = new Date().toISOString();
+    const [message, ...additionalArgs] = args;
+    const logLines = message.split("\n");
+    let suffix = "";
+    if (logLines[logLines.length - 1] === "") {
+      // if there's a trailing "\n" in the message, pop it off and add it back
+      // later, _without_ a timestamp
+      logLines.pop();
+      suffix = "\n";
+    }
+    const stampedMessage =
+      logLines.map(line => `${timestamp} ${line}`).join("\n") + suffix;
+    writeStream.write.call(writeStream, stampedMessage, ...additionalArgs);
+    // don't timestamp writes to original stream
     orgWrite.call(readStream, ...args);
   };
 }
