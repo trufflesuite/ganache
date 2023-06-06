@@ -1159,6 +1159,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
       }
     }
+    // If there are any overrides requested for eth_call, apply
+    // them now before running the simulation.
+    await applySimulationOverrides(stateTrie, vm, overrides);
 
     //console.log({ stateRoot: await vm.stateManager.getStateRoot() });
     const beforeStateManager = vm.stateManager.copy() as GanacheStateManager;
@@ -1209,10 +1212,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             vm.eei.addWarmedAddress(to.buf);
           }
         }
-
-        // If there are any overrides requested for eth_call, apply
-        // them now before running the simulation.
-        await applySimulationOverrides(stateTrie, vm, overrides);
 
         // we need to update the balance and nonce of the sender _before_
         // we run this transaction so that things that rely on these values
