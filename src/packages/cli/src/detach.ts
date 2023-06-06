@@ -35,6 +35,14 @@ export function notifyDetachedInstanceReady(port: number) {
   // in "detach" mode, the parent will wait until the port is
   // received before disconnecting from the child process.
   process.send(port);
+  process.stderr.on("error", e => {
+    // ignore errors from stderr, as once we tell the parent process we are
+    // ready it stops listening to stderror and results in a broken pipe.
+    // if any code tries to write to it it will fail with EPIPE.
+    if (e.code !== "EPIPE") {
+      throw e;
+    }
+  });
 }
 
 /**
