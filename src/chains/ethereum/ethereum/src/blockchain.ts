@@ -81,7 +81,8 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
-import estimateGas from "./helpers/gas-estimator";
+import { installTracker } from "./helpers/gas-estimator";
+import { GasTracer } from "./helpers/gas";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1169,6 +1170,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // commit/revert later because this stateTrie is ephemeral anyway.
     await vm.eei.checkpoint();
 
+    const gasTracer = new GasTracer(vm);
+    gasTracer.install();
+
     type TouchedStorage = Map<
       string,
       [address: Address, key: BigInt, value: BigInt]
@@ -1350,6 +1354,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         (vm.evm as any).handleRunStep = stepHandler;
+        let gasTracker = null;
+        let gasEstimate: undefined | bigint = undefined;
+        if (includeGasEstimate) {
+          gasTracker = installTracker(vm);
+        }
         const runCallArgs = {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
@@ -1443,99 +1452,22 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           refund: actualRefund,
           actualGasCost: totalGasSpent - actualRefund
         };
+        if (gasTracker) {
+          gasEstimate = gasTracker.getGasEstimate(totalGasSpent);
+          const limit =
+            gasTracer.computeGasLimit().req + gasBreakdown.intrinsicGas;
+          console.log("gas estimate", limit, 230177n);
+        }
+        gasTracer.reset();
 
         results[i] = {
           result: result.execResult,
           gasBreakdown,
           storageChanges,
           stateChanges,
-          trace
+          trace,
+          gasEstimate
         };
-
-        if (includeGasEstimate) {
-          // gas estimate is required
-
-          const generateVM = async () => {
-            // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
-            // /shrug
-            const trie = stateTrie.copy(false);
-            // trie.setContext(
-            //   parentBlock.header.stateRoot.toBuffer(),
-            //   null,
-            //   parentBlock.header.number
-            // );
-
-            const vm = await this.createVmFromStateTrie(
-              trie,
-              options.chain.allowUnlimitedContractSize,
-              options.chain.allowUnlimitedInitCodeSize,
-              false,
-              common
-            );
-            await vm.eei.checkpoint();
-            //@ts-ignore
-            vm.eei.commit = () => {};
-            return vm;
-          };
-
-          const estimateProm: Promise<Quantity> = new Promise(
-            (resolve, reject) => {
-              const tx = TransactionFactory.fromRpc(
-                {
-                  from: transaction.from?.toString(),
-                  to: transaction.to?.toString(),
-                  data: transaction.data?.toString(),
-                  gas: transaction.gas?.toString(),
-                  gasPrice: transaction.gasPrice?.toString(),
-                  value: transaction.value?.toString()
-                  //accesslists,
-                  // maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
-                } as any,
-                common
-              );
-
-              if (tx.from == null) {
-                tx.from = this.coinbase;
-              }
-              tx.gas = options.miner.callGasLimit;
-
-              const block = new RuntimeBlock(
-                common,
-                Quantity.from(runtimeBlock.header.number),
-                Data.from(runtimeBlock.header.parentHash),
-                runtimeBlock.header.coinbase,
-                Quantity.from(runtimeBlock.header.gasLimit),
-                Quantity.Zero,
-                Quantity.from(runtimeBlock.header.timestamp),
-                Quantity.from(runtimeBlock.header.difficulty),
-                Quantity.from(runtimeBlock.header.totalDifficulty),
-                runtimeBlock.header.mixHash,
-                0n, // no baseFeePerGas for estimates
-                KECCAK256_RLP
-              );
-
-              const runArgs = {
-                tx: tx.toVmTransaction(),
-                block,
-                skipBalance: true,
-                skipNonce: true,
-                skipBlockGasLimitValidation: true,
-                skipHardForkValidation: true
-              };
-              estimateGas(generateVM, runArgs, (err: Error, result) => {
-                if (err) return void reject(err);
-                resolve(Quantity.from(result.gasEstimate));
-              });
-            }
-          );
-
-          try {
-            const gasEstimate = await estimateProm;
-            results[i].gasEstimate = gasEstimate?.toBigInt();
-          } catch (e) {
-            console.error(e);
-          }
-        }
       } else {
         results[i] = {
           runState: { programCounter: 0 },

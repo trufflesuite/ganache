@@ -1,3 +1,54 @@
+// gas exactimation:
+// There are opcodes, the CALLs and CREATE (CREATE2? i dunno) that must
+// "withhold" 1/64th of gasLeft from the gasLimit of these internal CALL/CREATE.
+// The withheld gas is not used, it is just not available to any opcodes in the
+// same depth, or deeper, than the CALL/CREATE that withheld the gas.
+// The withholding computation is done _after_ the cost of the CALL/CREATE is
+// subtracted from gasLeft.
+
+// example:
+// CODE  GASLEFT  GASLIMIT  COST  DEPTH   1/64
+// -------------------------------------------
+// CALL     1000      1000   100      0     14
+// PUSH      900       886     3      1      0
+// RETURN    897       883     0      1      0
+// PUSH      897       897     3      0      0
+// STOP      894       894     0      0      0
+//
+// GAS SPENT: 106
+// CALL      106       106    100      0     1
+// PUSH        6         5      3      1     0
+// RETURN      3         2      0      1     0
+// PUSH        3         3      3      0     0
+// STOP        0         0      0      0     0
+
+// example 2:
+// CODE  GASLEFT  GASLIMIT  COST  DEPTH   1/64
+// -------------------------------------------
+// CALL     1000      1000   100      0     14
+// PUSH      900       886     3      1      0
+// PUSH      897       883     3      1      0
+// RETURN    894       880     0      1      0
+// STOP      894       894     0      0      0
+//
+// GAS SPENT: 106
+// CALL      106       106    100      0     1
+// PUSH        6         5      3      1     0
+// PUSH        3         2      3      1     0 // <-- fails because this actually needs 1 additional gas
+// RETURN      0        -1      0      1     0
+// STOP        0         0      0      0     0
+//
+// An algorithm to compute the neccessary gas needs to:
+// 1. find the deepest CALL/CREATE depth (if multiple are at the same depth, it doesn't matter which one is used first)
+// 2. compute the gas cost, including dynamic costs, of all opcodes within that depth
+//   2a. this is the minimum gasLimit needed at this depth to execute the code within it.
+// 3. move up to the next highest depth, and repeat step 2, adding in the previous step 2's total gas cost
+// 4. continue until all the things have been computed
+//
+// Caveats:
+// * if SSTORE is called and `gas_left <= 2300` it would fail, even though SSTORE doesn't cost 2300 gas.
+//   (see https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore). So we need to account for that.
+
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 import BN from "bn.js";
 import { RuntimeError, RETURN_TYPES } from "@ganache/ethereum-utils";
@@ -5,6 +56,7 @@ import { Quantity } from "@ganache/utils";
 import { RunTxOpts, RunTxResult, VM } from "@ethereumjs/vm";
 import type { InterpreterStep } from "@ethereumjs/evm/";
 import { RuntimeBlock } from "@ganache/ethereum-block";
+import { appendFileSync, fstat } from "fs";
 
 const bn = (val = 0): BN => new BN(val);
 const STIPEND = bn(2300);
@@ -37,13 +89,35 @@ type SystemOptions = {
   index: number;
   depth: number;
   name: number;
+  memoryWordCount: number;
+  highestMemCost: BN;
+  stack: any[];
 };
 type I = {
   depth: number;
   opcode: number;
   stack: any[];
   gasLeft: bigint;
+  memoryWordCount: number;
+  highestMemCost: BN;
 };
+function subMemUsage(runState: I, offset: number, length: number) {
+  //  abort if no usage
+  if (!length) return new BN(0);
+
+  const newMemoryWordCount = Math.ceil(Number(offset + length) / 32);
+  if (newMemoryWordCount <= runState.memoryWordCount) return new BN(0);
+  runState.memoryWordCount = newMemoryWordCount;
+  const words = new BN(newMemoryWordCount);
+  const fee = new BN(3);
+  const quadCoeff = new BN(512);
+  // words * 3 + words ^2 / 512
+  const cost = words.mul(fee).add(words.mul(words).div(quadCoeff));
+  if (cost.cmp(runState.highestMemCost) === 1) {
+    return cost.sub(runState.highestMemCost);
+  }
+  return new BN(0);
+}
 const stepTracker = () => {
   const sysOps: SystemOptions[] = [];
   const allOps: I[] = [];
@@ -68,13 +142,19 @@ const stepTracker = () => {
         sysOps.push({
           index: allOps.length,
           depth: info.depth,
-          name: info.opcode
+          name: info.opcode,
+          memoryWordCount: info.memoryWordCount,
+          highestMemCost: info.highestMemCost,
+          stack: info.stack
         });
       } else if (isCreate(info.opcode) || isTerminator(info.opcode)) {
         sysOps.push({
           index: allOps.length,
           depth: info.depth,
-          name: info.opcode
+          name: info.opcode,
+          memoryWordCount: info.memoryWordCount,
+          highestMemCost: info.highestMemCost,
+          stack: info.stack
         });
       }
       // This goes last so we can use the length for the index ^
@@ -120,11 +200,11 @@ const binSearch = async (
   const isEnoughGas = async (gas: BN) => {
     const vm = await generateVM(); // Generate fresh VM
     runArgs.tx.gasLimit = Quantity.toBigInt(gas.toArrayLike(Buffer));
-    await vm.stateManager.checkpoint();
+    await vm.eei.checkpoint();
     const result = await vm
       .runTx(runArgs as unknown as RunTxOpts)
       .catch(vmerr => ({ vmerr }));
-    await vm.stateManager.revert();
+    await vm.eei.revert();
     return !("vmerr" in result) && !result.execResult.exceptionError;
   };
 
@@ -155,20 +235,45 @@ const binSearch = async (
   callback(null, result);
 };
 
-const exactimate = async (
-  vm: VM,
-  runArgs: EstimateGasRunArgs,
-  callback: (err: Error, result?: EstimateGasResult) => void
-) => {
+export const installTracker = (vm: VM) => {
+  const common = vm._common;
   const steps = stepTracker();
+  const oldStep = (vm.evm as any).handleRunStep;
   (vm.evm as any).handleRunStep = (interpreter: Interpreter) => {
-    const runState = (interpreter as any)._runState as RunState;
-    steps.collect({
-      opcode: runState.opCode,
-      stack: runState.stack._store,
-      depth: interpreter._env.depth,
-      gasLeft: runState.gasLeft
-    } as any);
+    if (oldStep) {
+      oldStep.call(vm.evm, interpreter);
+    }
+
+    if (!(interpreter as any).afterGasHook) {
+      // appendFileSync("./gas.csv", "------------------\n");
+      // appendFileSync("./gas.csv", "------------------\n");
+      // appendFileSync("./gas.csv", "------------------\n");
+      // appendFileSync("./gas.csv", "------------------\n");
+      (interpreter as any).afterGasHook = (opInfo, gas) => {
+        // appendFileSync(
+        //   "./gas.csv",
+        //   `"after", "${opInfo.code}", ${interpreter.getGasLeft()}, ${gas}, ${
+        //     opInfo.name
+        //   },\n`
+        // );
+        const runState = (interpreter as any)._runState as RunState;
+        steps.collect({
+          opcode: runState.opCode,
+          stack: runState.stack._store,
+          depth: interpreter._env.depth,
+          gasLeft: runState.gasLeft,
+          memoryWordCount: runState.memoryWordCount,
+          highestMemCost: runState.highestMemCost
+        } as any);
+      };
+    }
+
+    // console.log("beforeGasHook", runState.opCode, runState.gasLeft);
+    // appendFileSync("./gas.csv", "------------------\n");
+    // appendFileSync(
+    //   "./gas.csv",
+    //   `"before", "${runState.opCode}", ${runState.gasLeft},\n`
+    // );
   };
 
   type ContextType = ReturnType<typeof Context>;
@@ -308,6 +413,31 @@ const exactimate = async (
     const gas = context.getCost();
     return gas.cost.add(gas.sixtyFloorths);
   };
+
+  return {
+    getGasEstimate: (totalGasSpent: bigint): bigint => {
+      if (steps.done()) {
+        return totalGasSpent;
+      } else {
+        const gasLeftStart = steps.ops[0].gasLeft;
+        const gasLeftEnd = steps.ops[steps.ops.length - 1].gasLeft;
+        const actualUsed = bigIntToBN(gasLeftStart - gasLeftEnd);
+        const sixtyFloorths = getTotal().sub(actualUsed);
+        return (
+          totalGasSpent + Quantity.toBigInt(sixtyFloorths.toArrayLike(Buffer))
+        );
+      }
+    }
+  };
+};
+
+export const exactimate = async (
+  vm: VM,
+  runArgs: EstimateGasRunArgs,
+  callback: (err: Error, result?: EstimateGasResult) => void
+) => {
+  const { getGasEstimate } = installTracker(vm);
+
   await vm.eei.checkpoint();
   const result = await vm
     .runTx({
@@ -321,7 +451,7 @@ const exactimate = async (
   await vm.eei.revert();
   if ("vmerr" in result) {
     const vmerr = result.vmerr;
-    return callback(vmerr);
+    callback(vmerr);
   } else if (result.execResult.exceptionError) {
     console.error(result.execResult.exceptionError);
     const error = new RuntimeError(
@@ -330,21 +460,10 @@ const exactimate = async (
       result,
       RETURN_TYPES.RETURN_VALUE
     );
-    return callback(error, result);
+    callback(error, result);
   } else {
     const ret: EstimateGasResult = result;
-    if (steps.done()) {
-      const estimate = result.totalGasSpent;
-      ret.gasEstimate = estimate;
-    } else {
-      const gasLeftStart = steps.ops[0].gasLeft;
-      const gasLeftEnd = steps.ops[steps.ops.length - 1].gasLeft;
-      const actualUsed = bigIntToBN(gasLeftStart - gasLeftEnd);
-      const sixtyFloorths = getTotal().sub(actualUsed);
-      ret.gasEstimate =
-        result.totalGasSpent +
-        Quantity.toBigInt(sixtyFloorths.toArrayLike(Buffer));
-    }
+    ret.gasEstimate = getGasEstimate(result.totalGasSpent);
     callback(null, ret);
   }
 };
