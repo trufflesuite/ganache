@@ -82,6 +82,7 @@ import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 import estimateGas from "./helpers/gas-estimator";
+import { writeFileSync } from "fs";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1349,6 +1350,49 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
         };
 
+        const root = {
+          type: "root",
+          cost: 0,
+          children: [],
+          parent: undefined
+        };
+        let currentNode = root;
+
+        const treeBuilder = (info: InterpreterStep) => {
+          const cost = Number(info.opcode.dynamicFee || info.opcode.fee);
+
+          if (
+            info.opcode.name === "CALL" ||
+            info.opcode.name === "STATICCALL" ||
+            info.opcode.name === "DELEGATECALL" ||
+            info.opcode.name === "CALLCODE"
+          ) {
+            const newNode = {
+              type: info.opcode.name,
+              cost,
+              children: [],
+              parent: currentNode
+            };
+            currentNode.children.push(newNode);
+            currentNode = newNode;
+          } else {
+            const newNode = { type: info.opcode.name, cost };
+            currentNode.children.push(newNode);
+            if (
+              info.opcode.name === "STOP" ||
+              info.opcode.name === "RETURN" ||
+              info.opcode.name === "REVERT" ||
+              info.opcode.name === "INVALID" ||
+              info.opcode.name === "SELFDESTRUCT"
+            ) {
+              if (currentNode.parent) {
+                currentNode = currentNode.parent;
+              }
+            }
+          }
+        };
+        vm.evm.events.on("step", treeBuilder);
+
         (vm.evm as any).handleRunStep = stepHandler;
         const runCallArgs = {
           caller: callerAddress,
@@ -1361,6 +1405,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
         const result = await vm.evm.runCall(runCallArgs);
 
+        vm.evm.events.off("step", treeBuilder);
         // todo: this is always going to pull the "before" from before _all_ simulations
         // in order for this to be correct, we need to check all previously simulated transactions
         // (or store them in a running set of "current")
@@ -1536,6 +1581,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             console.error(e);
           }
         }
+
+        function removeParentReference(node) {
+          delete node.parent;
+          if (node.children) node.children.forEach(removeParentReference);
+        }
+        removeParentReference(root);
+
+        writeFileSync("./tree.json", JSON.stringify(root));
       } else {
         results[i] = {
           runState: { programCounter: 0 },
