@@ -72,23 +72,26 @@ import { VM } from "@ethereumjs/vm";
 // required gas that EIP-150 requires in order to go to a deeper depth.
 
 type Node = {
-  name: string; // `name` is for debugging only and could be removed for perf
+  name: string; // `name` is required for distinguishing SSTORE opcodes for special rules
   cost: bigint;
+  minimum?: bigint; // the minimum gas left required for the opcode to execute (if different to `cost`)
   children: Node[];
   parent: Node | null;
 };
 
-function computeGas({ cost, children }: Node) {
+function computeGas({ cost, minimum, children }: Node) {
   if (children.length === 0) {
     return {
       cost,
-      required: cost
+      required: minimum || cost
     };
   } else {
     let totalRequired = 0n;
     let totalCost = 0n;
     for (const child of children) {
       const { required, cost: subCost } = computeGas(child);
+      // totalRequired = Math.max(totalCost + required, totalRequired), but bigints, so 🤷
+
       totalRequired =
         totalCost + required > totalRequired
           ? totalCost + required
@@ -99,7 +102,7 @@ function computeGas({ cost, children }: Node) {
     const sixtyFloorths = (totalRequired * 64n) / 63n;
     return {
       cost: totalCost + cost,
-      required: sixtyFloorths + cost
+      required: sixtyFloorths + (minimum || cost)
     };
   }
 }
@@ -133,24 +136,38 @@ export class GasTracer {
   onStep({ opcode, depth }: InterpreterStep) {
     const { node } = this;
     const fee = opcode.dynamicFee || BigInt(opcode.fee);
-
     if (depth === this.depth) {
-      // TODO: handle SSTORE
       // the previous opcode didn't change the depth, so we can roll this
       // opcode's cost up into it's parent's last child's costs.
       // rolling up avoids having to iteratate over all children again.
-      const previousSibling = node.children[node.children.length - 1];
-      if (previousSibling) {
-        previousSibling.cost += fee;
 
-        previousSibling.name = `...${opcode.name}`;
-      } else {
-        node.children[0] = {
-          name: `...${opcode.name}`,
+      let previousSibling: Node;
+
+      if (
+        opcode.name === "SSTORE" ||
+        (previousSibling = node.children[node.children.length - 1]) ===
+          undefined ||
+        previousSibling.name === "SSTORE"
+      ) {
+        // the current opcode is SSTORE, or there is no previous sibling, or the
+        // previous sibling's opcode is "SSTORE" we need a new node
+        const newNode = (node.children[node.children.length] = {
+          name: opcode.name,
           cost: fee,
           parent: this.node,
           children: []
-        } as Node;
+        } as Node);
+        if (newNode.name === "SSTORE") {
+          // SSTORE will revert if `gas_left <= 2300` (even though it can
+          // cost less - it's complicated). See
+          // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
+          newNode.minimum = 2301n;
+        }
+      } else {
+        // otherwise, we can amend the previous sibling
+        previousSibling.cost += fee;
+
+        previousSibling.name = `...${opcode.name}`;
       }
       return;
     }
@@ -188,6 +205,7 @@ export class GasTracer {
     // compute the final gas cost of the root node
     for (const child of children) {
       const { required, cost } = computeGas(child);
+      // totalRequired = Math.max(totalCost + required, totalRequired), but bigints, so 🤷
       totalRequired =
         totalCost + required > totalRequired
           ? totalCost + required
