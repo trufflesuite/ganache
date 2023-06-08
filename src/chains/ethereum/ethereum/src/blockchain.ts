@@ -51,8 +51,7 @@ import {
   calculateIntrinsicGas,
   InternalTransactionReceipt,
   VmTransaction,
-  TypedTransaction,
-  TransactionFactory
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import {
@@ -81,7 +80,6 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
-import { installTracker } from "./helpers/gas-estimator";
 import { GasTracer } from "./helpers/gas";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
@@ -1170,8 +1168,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // commit/revert later because this stateTrie is ephemeral anyway.
     await vm.eei.checkpoint();
 
-    const gasTracer = new GasTracer(vm);
-    gasTracer.install();
+    let gasTracer: GasTracer | undefined;
+    if (includeGasEstimate) {
+      gasTracer = new GasTracer(vm);
+      gasTracer.install();
+    }
 
     type TouchedStorage = Map<
       string,
@@ -1354,11 +1355,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
 
         (vm.evm as any).handleRunStep = stepHandler;
-        let gasTracker = null;
-        let gasEstimate: undefined | bigint = undefined;
-        if (includeGasEstimate) {
-          gasTracker = installTracker(vm);
-        }
         const runCallArgs = {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
@@ -1452,13 +1448,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           refund: actualRefund,
           actualGasCost: totalGasSpent - actualRefund
         };
-        if (gasTracker) {
-          gasEstimate = gasTracker.getGasEstimate(totalGasSpent);
-          const limit =
+
+        let gasEstimate: bigint | undefined;
+        if (gasTracer) {
+          gasEstimate =
             gasTracer.computeGasLimit().req + gasBreakdown.intrinsicGas;
-          console.log("gas estimate", limit, 230177n);
+          gasTracer.reset();
         }
-        gasTracer.reset();
 
         results[i] = {
           result: result.execResult,
