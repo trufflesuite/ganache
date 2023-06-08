@@ -200,24 +200,22 @@ export class GasTracer {
   onStep({ opcode, depth }: InterpreterStep) {
     const fee = opcode.dynamicFee || BigInt(opcode.fee);
 
+    // If the current opcode is SSTORE, we need to add a new node to the
+    // tree and compute its minimum gas left required to execute.
+    // An SSTORE will revert if `gas_left <= 2300` (even though it can
+    // cost less - it's complicated). See
+    // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
+    // Note: it can also cost more than 2300, so we need to take the larger
+    // of the two values (fee or 2301)
+    const minimum = opcode.name === "SSTORE" ? max(fee, 2301n) : fee;
+
     if (depth === this.depth) {
       // The previous opcode didn't change the depth, so we can roll this
       // opcode's cost up into it's parent's last child's costs as long as it
       // isn't an SSTORE. Rolling up avoids having to iteratate over all
       // opcodes again later.
 
-      if (opcode.name === "SSTORE") {
-        // If the current opcode is SSTORE, we need to add a new node to the
-        // tree and compute its minimum gas left required to execute.
-        // An SSTORE will revert if `gas_left <= 2300` (even though it can
-        // cost less - it's complicated). See
-        // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
-        // Note: it can also cost more than 2300, so we need to take the larger
-        // of the two values (fee or 2301)
-        const minimum = max(fee, 2301n);
-        appendNewCallNode(opcode.name, fee, minimum, this.node);
-        return; //short circuit
-      } else {
+      if (opcode.name !== "SSTORE") {
         const previousSibling = getLastChild(this.node);
         // Don't roll up into a previous SSTORE as we don't want to
         // clobber the `minimum` value that it set
@@ -226,9 +224,9 @@ export class GasTracer {
           previousSibling.name = opcode.name;
           return; //short circuit
         }
-        // we don't short circuit if there was no previous sibling, or if the
-        // previous sibling was an SSTORE
       }
+      // we don't short circuit if there was no previous sibling, or if the
+      // previous sibling was an SSTORE
     } else {
       if (depth > this.depth) {
         // The previous operation was a depth-increasing OP (CALL, CREATE, etc)
@@ -250,7 +248,7 @@ export class GasTracer {
     }
 
     // add the new node `this.node`'s call tree
-    appendNewCallNode(opcode.name, fee, fee, this.node);
+    appendNewCallNode(opcode.name, fee, minimum, this.node);
   }
 
   computeGasLimit() {
