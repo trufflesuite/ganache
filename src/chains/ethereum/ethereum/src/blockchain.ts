@@ -1410,9 +1410,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               bigint
             ];
             if (storageTrie === undefined) {
-              storageTrie = await beforeStateManager.getStorageTrie(
-                address.buf
-              );
+              // HACK: only the fork trie has a `getStorageTrie` method.
+              // i don't know why
+              storageTrie = beforeStateManager.getStorageTrie
+                ? await beforeStateManager.getStorageTrie(address.buf)
+                : await beforeStateManager._getStorageTrie(address as any);
             }
             const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
 
