@@ -1124,7 +1124,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   public async simulateTransactions(
-    common,
+    common: Common,
     transactions: SimulationTransaction[],
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
@@ -1451,9 +1451,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         let gasEstimate: bigint | undefined;
         if (gasTracer) {
-          gasEstimate =
-            gasTracer.computeGasLimit().req + gasBreakdown.intrinsicGas;
-          gasTracer.reset();
+          gasEstimate = gasTracer.computeGasLimit() + intrinsicGas;
         }
 
         results[i] = {
@@ -1472,6 +1470,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
       }
 
+      gasTracer && gasTracer.reset();
       vm.eei.clearOriginalStorageCache();
       vm.eei.clearWarmedAccounts();
       await vm.eei.cleanupTouchedAccounts();

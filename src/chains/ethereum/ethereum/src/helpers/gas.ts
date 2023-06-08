@@ -72,37 +72,103 @@ import { VM } from "@ethereumjs/vm";
 // required gas that EIP-150 requires in order to go to a deeper depth.
 
 type Node = {
-  name: string; // `name` is required for distinguishing SSTORE opcodes for special rules
+  /**
+   * `name` is required for distinguishing SSTORE opcodes for special rules
+   */
+  name: string;
   cost: bigint;
-  minimum?: bigint; // the minimum gas left required for the opcode to execute (if different to `cost`)
+  /**
+   * the minimum gas left required for the opcode to execute
+   */
+  minimum: bigint;
   children: Node[];
   parent: Node | null;
 };
 
-function computeGas({ cost, minimum, children }: Node) {
+/**
+ * Creates a new call tree node
+ *
+ * @param name The (nick)name of the opcode(s), or "ROOT" for the root node.
+ * @param cost The total gas cost to run the opcode(s).
+ * @param minimum The minimum gas left required for the opcode(s) to execute.
+ * @param parent The parent node, or `null` if this is the root node.
+ */
+function createNode(
+  name: string,
+  cost: bigint,
+  minimum: bigint,
+  parent: Node | null
+): Node {
+  return {
+    children: [],
+    cost,
+    minimum,
+    name,
+    parent
+  };
+}
+
+/**
+ * Creates a new call tree node and appends it to the parent's children.
+ *
+ * @param name The (nick)name of the opcode(s).
+ * @param cost The total gas cost to run the opcode(s).
+ * @param minimum The minimum gas left required for the opcode(s) to execute.
+ * @param parent The parent node.
+ */
+function appendNewCallNode(
+  name: string,
+  cost: bigint,
+  minimum: bigint,
+  parent: Node
+) {
+  const newNode = createNode(name, cost, minimum, parent);
+  parent.children.push(newNode);
+}
+
+/**
+ * Returns the last child of the node, or undefined if there are no children.
+ *
+ * @param node The node to get the last child of.
+ */
+function getLastChild({ children }: Node): Node | undefined {
+  return children[children.length - 1];
+}
+
+/**
+ * Returns the larger of the two bigints.
+ * @param a
+ * @param b
+ * @returns
+ */
+function max(a: bigint, b: bigint) {
+  return a > b ? a : b;
+}
+
+/**
+ * Computes the actual and required gas costs of the node.
+ *
+ * @param node The node to compute the gas costs of.
+ */
+function computeGas({ children, cost, minimum }: Node) {
   if (children.length === 0) {
     return {
       cost,
-      required: minimum || cost
+      minimum
     };
   } else {
     let totalRequired = 0n;
     let totalCost = 0n;
     for (const child of children) {
-      const { required, cost: subCost } = computeGas(child);
-      // totalRequired = Math.max(totalCost + required, totalRequired), but bigints, so 🤷
-
-      totalRequired =
-        totalCost + required > totalRequired
-          ? totalCost + required
-          : totalRequired;
+      const { cost: childCost, minimum } = computeGas(child);
+      totalRequired = max(totalCost + minimum, totalRequired);
       // we need to carry the _actual_ cost forward, as that is what we spend
-      totalCost += subCost;
+      totalCost += childCost;
     }
     const sixtyFloorths = (totalRequired * 64n) / 63n;
     return {
       cost: totalCost + cost,
-      required: sixtyFloorths + (minimum || cost)
+      minimum: sixtyFloorths + minimum
     };
   }
 }
@@ -112,7 +178,8 @@ export class GasTracer {
   node: Node;
   depth: number;
   constructor(private readonly vm: VM) {
-    this.reset();
+    this.node = this.root = createNode("ROOT", 0n, 0n, null);
+    this.depth = 0;
   }
 
   install() {
@@ -124,77 +191,66 @@ export class GasTracer {
   }
 
   reset() {
-    this.node = this.root = {
-      name: "root",
-      cost: 0n,
-      parent: null,
-      children: []
-    };
-    this.depth = 0;
+    // reset internal node state
+    this.node = this.root;
+    // reset depth and clear all children from the root node
+    this.depth = this.root.children.length = 0;
   }
 
   onStep({ opcode, depth }: InterpreterStep) {
-    const { node } = this;
     const fee = opcode.dynamicFee || BigInt(opcode.fee);
+
     if (depth === this.depth) {
-      // the previous opcode didn't change the depth, so we can roll this
-      // opcode's cost up into it's parent's last child's costs.
-      // rolling up avoids having to iteratate over all children again.
+      // The previous opcode didn't change the depth, so we can roll this
+      // opcode's cost up into it's parent's last child's costs as long as it
+      // isn't an SSTORE. Rolling up avoids having to iteratate over all
+      // opcodes again later.
 
-      let previousSibling: Node;
-
-      if (
-        opcode.name === "SSTORE" ||
-        (previousSibling = node.children[node.children.length - 1]) ===
-          undefined ||
-        previousSibling.name === "SSTORE"
-      ) {
-        // the current opcode is SSTORE, or there is no previous sibling, or the
-        // previous sibling's opcode is "SSTORE" we need a new node
-        const newNode = (node.children[node.children.length] = {
-          name: opcode.name,
-          cost: fee,
-          parent: this.node,
-          children: []
-        } as Node);
-        if (newNode.name === "SSTORE") {
-          // SSTORE will revert if `gas_left <= 2300` (even though it can
-          // cost less - it's complicated). See
-          // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
-          newNode.minimum = 2301n;
-        }
+      if (opcode.name === "SSTORE") {
+        // If the current opcode is SSTORE, we need to add a new node to the
+        // tree and compute its minimum gas left required to execute.
+        // An SSTORE will revert if `gas_left <= 2300` (even though it can
+        // cost less - it's complicated). See
+        // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
+        // Note: it can also cost more than 2300, so we need to take the larger
+        // of the two values (fee or 2301)
+        const minimum = max(fee, 2301n);
+        appendNewCallNode(opcode.name, fee, minimum, this.node);
+        return; //short circuit
       } else {
-        // otherwise, we can amend the previous sibling
-        previousSibling.cost += fee;
-
-        previousSibling.name = `...${opcode.name}`;
+        const previousSibling = getLastChild(this.node);
+        // Don't roll up into a previous SSTORE as we don't want to
+        // clobber the `minimum` value that it set
+        if (previousSibling && previousSibling.name !== "SSTORE") {
+          previousSibling.minimum = previousSibling.cost += fee;
+          previousSibling.name = opcode.name;
+          return; //short circuit
+        }
+        // we don't short circuit if there was no previous sibling, or if the
+        // previous sibling was an SSTORE
       }
-      return;
-    }
-
-    if (depth > this.depth) {
-      // The previous operation was a depth increasing OP (CALL, CREATE, etc)
-      // We know this because the depth has increased.
-      // So, we need to update our parent to be the last child of the current parent
-      this.node = node.children[node.children.length - 1];
-      this.depth = depth;
     } else {
-      // depth < this.depth
-      // The previous operation was a depth decreasing OP (STOP, INVALID, etc)
-      // This means the `this.node` will have no more children added to it.
+      if (depth > this.depth) {
+        // The previous operation was a depth-increasing OP (CALL, CREATE, etc)
+        // We know this because the depth just increased.
+        // We also know that getLastChild is not going to return `undefined` as
+        // it is impossible to increase depth without an opcode to do so.
+        // So, we need to update our parent to be the node's last child.
+        this.node = getLastChild(this.node);
+      } else {
+        /* } else if (depth < this.depth) { */
+        // The previous operation was a depth-decreasing OP (STOP, INVALID, etc)
+        // This means the `this.node` can NOT have more children added to it.
 
-      // Now we jump up to the current `node`'s parent
-      this.node = node.parent;
+        // Jump up to the current `node`'s parent.
+        this.node = this.node.parent;
+      }
+
       this.depth = depth;
     }
 
-    const op: Node = {
-      name: `${opcode.name}...`,
-      cost: fee,
-      parent: this.node,
-      children: []
-    };
-    this.node.children.push(op);
+    // add the new node `this.node`'s call tree
+    appendNewCallNode(opcode.name, fee, fee, this.node);
   }
 
   computeGasLimit() {
@@ -204,19 +260,12 @@ export class GasTracer {
 
     // compute the final gas cost of the root node
     for (const child of children) {
-      const { required, cost } = computeGas(child);
-      // totalRequired = Math.max(totalCost + required, totalRequired), but bigints, so 🤷
-      totalRequired =
-        totalCost + required > totalRequired
-          ? totalCost + required
-          : totalRequired;
+      const { cost: childCost, minimum } = computeGas(child);
+      totalRequired = max(totalCost + minimum, totalRequired);
       // we need to carry the _actual_ cost forward, as that is what we spend
-      totalCost += cost;
+      totalCost += childCost;
     }
 
-    return {
-      cost: totalCost,
-      req: totalRequired
-    };
+    return totalRequired;
   }
 }
