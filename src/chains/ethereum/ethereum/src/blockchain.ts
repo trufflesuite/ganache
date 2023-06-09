@@ -1354,7 +1354,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
         };
 
-        (vm.evm as any).handleRunStep = stepHandler;
+        // `onRunStep` is shared with the gas tracer, so we need to play nice
+        // hack: fix it sometime!
+        const evm: any = vm.evm;
+        const oldRunStep = evm.onRunStep;
+        evm.onRunStep = (...args: any) => {
+          oldRunStep && oldRunStep.apply(evm, args);
+          stepHandler.apply(evm, args);
+        };
+
         const runCallArgs = {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
@@ -1466,9 +1474,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         };
       } else {
         results[i] = {
-          runState: { programCounter: 0 },
-          exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: BUFFER_EMPTY
+          result: {
+            runState: { programCounter: 0 },
+            exceptionError: new VmError(ERROR.OUT_OF_GAS),
+            returnValue: BUFFER_EMPTY
+          },
+          gasBreakdown: {
+            intrinsicGas,
+            executionGas: 0n,
+            refund: 0n,
+            actualGasCost: 0n
+          },
+          storageChanges,
+          stateChanges,
+          trace,
+          gasEstimate: 0n
         };
       }
 

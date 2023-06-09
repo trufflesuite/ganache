@@ -1,3 +1,4 @@
+import { Interpreter } from "@ethereumjs/evm/dist/interpreter";
 import { VM } from "@ethereumjs/vm";
 
 // gas exactimation:
@@ -168,7 +169,7 @@ function max(a: bigint, b: bigint) {
  *
  * @param child The node to compute the gas costs of.
  */
-function computeGas(child: Node) {
+function _computeGas(child: Node) {
   const { children, cost, minimum, stipend } = child;
   if (children.length === 0) {
     (child as any).computed = minimum;
@@ -180,7 +181,7 @@ function computeGas(child: Node) {
     let totalMinimum = 0n;
     let totalCost = 0n;
     for (const child of children) {
-      const { cost: childCost, minimum } = computeGas(child);
+      const { cost: childCost, minimum } = _computeGas(child);
       totalMinimum = max(totalCost + minimum, totalMinimum);
       // we need to carry the _actual_ cost forward, as that is what we spend
       totalCost += childCost;
@@ -197,7 +198,7 @@ function computeGas(child: Node) {
     // which is:
     // `currentGasLeft = (availableGasLeft * 64) / 63
     // See: https://www.wolframalpha.com/input?i=x+-+%28x%2F64%29+%3D+y
-    const sixtyFloorths = (totalMinimum * 64n) / 63n;
+    const sixtyFloorths = computeAllButOneSixtyFourth(totalMinimum);
     (child as any).computed = sixtyFloorths + minimum;
     return {
       cost: totalCost + cost,
@@ -217,7 +218,6 @@ function computeAllButOneSixtyFourth(minimumGas: bigint) {
   // which is:
   // `currentGasLeft = (gasRequired * 64) / 63
   const allButOneSixtyFourths = (minimumGas * 64n) / 63n;
-  console.log(allButOneSixtyFourths % 64n === 0n);
 
   // Because of 1/64th flooring there is precision loss when we want to
   // reverse it. This means there are sometimes two numbers that resolve
@@ -327,12 +327,23 @@ export class GasTracer {
     this.depth = 0;
   }
 
+  _originalRunStep: any;
   install() {
-    (this.vm.evm as any).onRunStep = this.onStep.bind(this);
+    // we share this one `evm.onRunStep` function so we need to be nice.
+    // hack: it's gross and should be fixed later :-)
+    const evm: any = this.vm.evm;
+    const runStep = evm.onRunStep;
+    if (runStep) this._originalRunStep = runStep;
+    evm.onRunStep = (...args: any) => {
+      runStep && runStep.apply(evm, args);
+      this.onStep.apply(this, args);
+    };
   }
 
   uninstall() {
-    delete (this.vm.evm as any).onRunStep;
+    const evm: any = this.vm.evm;
+    delete evm.onRunStep;
+    if (this._originalRunStep) evm.onRunStep = this._originalRunStep;
   }
 
   /**
@@ -355,6 +366,7 @@ export class GasTracer {
    * @returns
    */
   onStep(
+    _: Interpreter,
     stack: bigint[],
     depth: number,
     fee: bigint,
@@ -386,6 +398,8 @@ export class GasTracer {
         minimum = fee;
         stipend = 0n;
     }
+
+    // CALL CALL
 
     if (depth === this.depth) {
       // The previous opcode didn't change the depth, so we can roll this
@@ -464,17 +478,6 @@ export class GasTracer {
       // we need to carry the _actual_ cost forward, as that is what we spend
       totalCost += childCost;
     }
-    // require("fs").writeFileSync(
-    //   "/home/david/code/ganache/tree.json",
-    //   JSON.stringify(
-    //     this.root,
-    //     (k, v) => {
-    //       if (k === "parent") return undefined;
-    //       return typeof v === "bigint" ? Number(v) : v;
-    //     },
-    //     2
-    //   )
-    // );
 
     return totalRequired;
   }

@@ -1,28 +1,46 @@
 diff --git a/node_modules/@ethereumjs/evm/dist/evm.js b/node_modules/@ethereumjs/evm/dist/evm.js
-index 7e6452a..4aa9303 100644
+index 7e6452a..40e0ad6 100644
 --- a/node_modules/@ethereumjs/evm/dist/evm.js
 +++ b/node_modules/@ethereumjs/evm/dist/evm.js
-@@ -416,6 +416,10 @@ class EVM {
+@@ -412,7 +412,7 @@ class EVM {
+             containerCode: message.containerCode,
+             versionedHashes: message.versionedHashes ?? [],
+         };
+-        const interpreter = new interpreter_1.Interpreter(this, this.eei, env, message.gasLimit);
++        const interpreter = new interpreter_1.Interpreter(this, this.eei, env, message.gasLimit, this.onRunStep);
          if (message.selfdestruct) {
              interpreter._result.selfdestruct = message.selfdestruct;
          }
-+        interpreter.runStep = () => {
-+            this.handleRunStep && this.handleRunStep(interpreter);
-+            return interpreter_1.Interpreter.prototype.runStep.call(interpreter);
-+        }
-         const interpreterRes = await interpreter.run(message.code, opts);
-         let result = interpreter._result;
-         let gasUsed = message.gasLimit - interpreterRes.runState.gasLeft;
 diff --git a/node_modules/@ethereumjs/evm/dist/interpreter.js b/node_modules/@ethereumjs/evm/dist/interpreter.js
-index 9087295..062fa34 100644
+index 9087295..dca219c 100644
 --- a/node_modules/@ethereumjs/evm/dist/interpreter.js
 +++ b/node_modules/@ethereumjs/evm/dist/interpreter.js
-@@ -150,7 +150,7 @@ class Interpreter {
+@@ -18,7 +18,8 @@ class Interpreter {
+     // TODO remove eei from constructor this can be directly read from EVM
+     // EEI gets created on EVM creation and will not be re-instantiated
+     // TODO remove gasLeft as constructor argument
+-    constructor(evm, eei, env, gasLeft) {
++    constructor(evm, eei, env, gasLeft, onRunStep) {
++        this.onRunStep = onRunStep;
+         // Opcode debuggers (e.g. { 'push': [debug Object], 'sstore': [debug Object], ...})
+         this.opDebuggers = {};
+         this._evm = evm;
+@@ -145,12 +146,17 @@ class Interpreter {
+             // or if the vm is running in debug mode (to display opcode debug logs)
+             await this._runStepHook(gas, gasLimitClone);
+         }
++        this.onRunStep && this.onRunStep(this, this._runState.stack._store, this._runState.env.depth, gas, this._runState.opCode, this._runState.gasLeft, opInfo.name);
++
+         // Check for invalid opcode
+         if (opInfo.name === 'INVALID') {
              throw new exceptions_1.EvmError(exceptions_1.ERROR.INVALID_OPCODE);
          }
          // Reduce opcode's base fee
 -        this.useGas(gas, `${opInfo.name} fee`);
 +        this.useGas(gas);
++
++
++
          // Advance program counter
          this._runState.programCounter++;
          // Execute opcode handler
@@ -60,3 +78,33 @@ index 8a89f31..d85fbd8 100644
          },
      ],
      // 0x80: DUP
+diff --git a/node_modules/@ethereumjs/evm/dist/opcodes/gas.js b/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
+index 4718bb1..efe8381 100644
+--- a/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
++++ b/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
+@@ -221,7 +221,7 @@ exports.dynamicGasHandlers = new Map([
+             gas += (0, util_2.subMemUsage)(runState, memOffset, memLength, common);
+             gas +=
+                 common.param('gasPrices', 'logTopic') * BigInt(topicsCount) +
+-                    memLength * common.param('gasPrices', 'logData');
++                memLength * common.param('gasPrices', 'logData');
+             return gas;
+         },
+     ],
+diff --git a/node_modules/@ethereumjs/evm/src/interpreter.ts b/node_modules/@ethereumjs/evm/src/interpreter.ts
+index ed09149..cb4e5de 100644
+--- a/node_modules/@ethereumjs/evm/src/interpreter.ts
++++ b/node_modules/@ethereumjs/evm/src/interpreter.ts
+@@ -247,11 +247,7 @@ export class Interpreter {
+       gas = await dynamicGasHandler(this._runState, gas, this._common)
+     }
+ 
+-    if (this._evm.events.listenerCount('step') > 0 || this._evm.DEBUG) {
+-      // Only run this stepHook function if there is an event listener (e.g. test runner)
+-      // or if the vm is running in debug mode (to display opcode debug logs)
+-      await this._runStepHook(gas, gasLimitClone)
+-    }
++    (this as any).onStep && (this as any).onStep(this, opInfo, gas);
+ 
+     // Check for invalid opcode
+     if (opInfo.name === 'INVALID') {
