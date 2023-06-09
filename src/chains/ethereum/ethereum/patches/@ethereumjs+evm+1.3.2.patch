@@ -78,33 +78,3 @@ index 8a89f31..d85fbd8 100644
          },
      ],
      // 0x80: DUP
-diff --git a/node_modules/@ethereumjs/evm/dist/opcodes/gas.js b/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
-index 4718bb1..efe8381 100644
---- a/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
-+++ b/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
-@@ -221,7 +221,7 @@ exports.dynamicGasHandlers = new Map([
-             gas += (0, util_2.subMemUsage)(runState, memOffset, memLength, common);
-             gas +=
-                 common.param('gasPrices', 'logTopic') * BigInt(topicsCount) +
--                    memLength * common.param('gasPrices', 'logData');
-+                memLength * common.param('gasPrices', 'logData');
-             return gas;
-         },
-     ],
-diff --git a/node_modules/@ethereumjs/evm/src/interpreter.ts b/node_modules/@ethereumjs/evm/src/interpreter.ts
-index ed09149..cb4e5de 100644
---- a/node_modules/@ethereumjs/evm/src/interpreter.ts
-+++ b/node_modules/@ethereumjs/evm/src/interpreter.ts
-@@ -247,11 +247,7 @@ export class Interpreter {
-       gas = await dynamicGasHandler(this._runState, gas, this._common)
-     }
- 
--    if (this._evm.events.listenerCount('step') > 0 || this._evm.DEBUG) {
--      // Only run this stepHook function if there is an event listener (e.g. test runner)
--      // or if the vm is running in debug mode (to display opcode debug logs)
--      await this._runStepHook(gas, gasLimitClone)
--    }
-+    (this as any).onStep && (this as any).onStep(this, opInfo, gas);
- 
-     // Check for invalid opcode
-     if (opInfo.name === 'INVALID') {
