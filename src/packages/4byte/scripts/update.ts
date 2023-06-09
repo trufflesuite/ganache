@@ -44,7 +44,9 @@ function generateFileContentEntries(
 ): string {
   let entries = "";
   fileContentsMap.forEach((content, filename) => {
-    entries += `[${parseInt("0x" + filename)}, '${escapeString(content)}'],\n`;
+    // only consider the first signature in the file
+    const firstSig = content.split(";", 1)[0];
+    entries += `[${parseInt("0x" + filename)}, '${escapeString(firstSig)}'],\n`;
   });
   return entries;
 }
