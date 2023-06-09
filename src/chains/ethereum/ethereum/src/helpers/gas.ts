@@ -1,4 +1,3 @@
-import type { InterpreterStep } from "@ethereumjs/evm/";
 import { VM } from "@ethereumjs/vm";
 
 // gas exactimation:
@@ -72,12 +71,17 @@ import { VM } from "@ethereumjs/vm";
 // required gas that EIP-150 requires in order to go to a deeper depth.
 
 const CALL_STIPEND = 2300n;
+const MIN_SSTORE_GAS = 2301n;
+
+const SSTORE = 0x55;
+const CALL = 0xf1;
+const CALLCODE = 0xf2;
 
 type Node = {
   /**
-   * `name` is required for distinguishing SSTORE opcodes for special rules
+   * `code` is required for distinguishing SSTORE opcodes for special rules
    */
-  name: string;
+  code: number;
   cost: bigint;
   /**
    * the minimum gas left required for the opcode to execute
@@ -86,49 +90,57 @@ type Node = {
   stipend: bigint;
   children: Node[];
   parent: Node | null;
+  name: string;
 };
+
+function valueFromCALLStack(stack: bigint[]) {
+  return stack[stack.length - 3];
+}
 
 /**
  * Creates a new call tree node
  *
- * @param name The (nick)name of the opcode(s), or "ROOT" for the root node.
+ * @param code The code of the opcode(s), or -1 for the root node.
  * @param cost The total gas cost to run the opcode(s).
  * @param minimum The minimum gas left required for the opcode(s) to execute.
  * @param parent The parent node, or `null` if this is the root node.
  */
 function createNode(
-  name: string,
+  code: number,
   cost: bigint,
   minimum: bigint,
   stipend: bigint,
-  parent: Node | null
+  parent: Node | null,
+  name: string
 ): Node {
   return {
     children: [],
     cost,
     minimum,
     stipend,
-    name,
-    parent
+    code,
+    parent,
+    name
   };
 }
 
 /**
  * Creates a new call tree node and appends it to the parent's children.
  *
- * @param name The (nick)name of the opcode(s).
+ * @param code The code of the opcode.
  * @param cost The total gas cost to run the opcode(s).
  * @param minimum The minimum gas left required for the opcode(s) to execute.
  * @param parent The parent node.
  */
 function appendNewCallNode(
-  name: string,
+  code: number,
   cost: bigint,
   minimum: bigint,
   stipend: bigint,
-  parent: Node
+  parent: Node,
+  name: string
 ) {
-  const newNode = createNode(name, cost, minimum, stipend, parent);
+  const newNode = createNode(code, cost, minimum, stipend, parent, name);
   parent.children.push(newNode);
 }
 
@@ -154,13 +166,15 @@ function max(a: bigint, b: bigint) {
 /**
  * Computes the actual and required gas costs of the node.
  *
- * @param node The node to compute the gas costs of.
+ * @param child The node to compute the gas costs of.
  */
-function computeGas({ children, cost, minimum, stipend }: Node) {
+function computeGas(child: Node) {
+  const { children, cost, minimum, stipend } = child;
   if (children.length === 0) {
+    (child as any).computed = minimum;
     return {
-      cost,
-      minimum
+      cost: max(cost - stipend, 0n),
+      minimum: minimum
     };
   } else {
     let totalMinimum = 0n;
@@ -177,7 +191,14 @@ function computeGas({ children, cost, minimum, stipend }: Node) {
       totalCost -= stipend;
     }
 
+    // The computation the EVM makes is:
+    // `currentGasLeft + currentGasLeft/64 = availableGasLeft`
+    // We start with `availableGasLeft` and need to solve for `currentGasLeft`,
+    // which is:
+    // `currentGasLeft = (availableGasLeft * 64) / 63
+    // See: https://www.wolframalpha.com/input?i=x+-+%28x%2F64%29+%3D+y
     const sixtyFloorths = (totalMinimum * 64n) / 63n;
+    (child as any).computed = sixtyFloorths + minimum;
     return {
       cost: totalCost + cost,
       minimum: sixtyFloorths + minimum
@@ -185,23 +206,138 @@ function computeGas({ children, cost, minimum, stipend }: Node) {
   }
 }
 
+function computeAllButOneSixtyFourth(minimumGas: bigint) {
+  // it's possible for the minimum gas to be zero, without this check we'll
+  // end up returning -1n, which is, um, wrong.
+  if (minimumGas === 0n) return 0n;
+
+  // The computation the EVM makes is:
+  // `availableGasLeft = Math.floor(currentGasLeft + currentGasLeft/64)`
+  // We start with a `gasRequired` and need to solve for `currentGasLeft`,
+  // which is:
+  // `currentGasLeft = (gasRequired * 64) / 63
+  const allButOneSixtyFourths = (minimumGas * 64n) / 63n;
+  console.log(allButOneSixtyFourths % 64n === 0n);
+
+  // Because of 1/64th flooring there is precision loss when we want to
+  // reverse it. This means there are sometimes two numbers that resolve
+  // to the same "all by 1/64th" number. We should always pick the smaller
+  // of the two, since they both will compute the same "all by 1/64th"
+  // anyway.
+  // Two example `gasLeft`s that will result in the same "all by 1/64th"
+  // number are `1023` and `1024`. The "all by 1/64th" number is `1008`.
+  //https://www.wolframalpha.com/input?i=x+-+%E2%8C%8A%28x%2F64%29%E2%8C%8B+%3D+1008
+  return allButOneSixtyFourths % 64n === 0n
+    ? allButOneSixtyFourths - 1n
+    : allButOneSixtyFourths;
+}
+
+/**
+ * Computes the actual and required gas costs of the node.
+ *
+ * @param root The root node to compute the gas costs of.
+ */
+function computeGasIt(root: Node) {
+  // Initialize stack with root node
+  const stack: {
+    node: Node;
+    parentResult?: { cost: bigint; minimum: bigint };
+  }[] = [{ node: root }];
+  const results: Map<Node, { cost: bigint; minimum: bigint }> = new Map();
+
+  while (stack.length > 0) {
+    const { node, parentResult } = stack[stack.length - 1];
+    let totalMinimum = 0n;
+    let totalCost = 0n;
+
+    if (node.children.length > 0 && !parentResult) {
+      // Push all children to stack, marking the parent as having been processed
+      stack[stack.length - 1].parentResult = { cost: 0n, minimum: 0n };
+      for (const child of node.children) {
+        stack.push({ node: child });
+      }
+    } else {
+      // Process node
+      stack.pop();
+      if (node.children.length === 0) {
+        const cost = max(node.cost - node.stipend, 0n);
+        results.set(node, {
+          cost,
+          minimum: node.minimum
+        });
+      } else {
+        for (const child of node.children) {
+          const { cost: childCost, minimum } = results.get(child) as {
+            cost: bigint;
+            minimum: bigint;
+          };
+          totalMinimum = max(totalCost + minimum, totalMinimum);
+          // we need to carry the _actual_ cost forward, as that is what we spend
+          totalCost += childCost;
+        }
+
+        if (node.stipend !== 0n) {
+          totalMinimum = max(0n, totalMinimum - node.stipend);
+          totalCost -= node.stipend;
+        }
+
+        const allButOneSixtyFourths = computeAllButOneSixtyFourth(totalMinimum);
+
+        results.set(node, {
+          cost: totalCost + node.cost,
+          minimum: allButOneSixtyFourths + node.minimum
+        });
+      }
+    }
+  }
+
+  return results.get(root);
+}
+
+function solveForX(y) {
+  const divisor = BigInt(64);
+  let x = BigInt(y) * divisor;
+  let lowerBound = x - divisor;
+  let upperBound = x;
+  let result = null;
+
+  while (lowerBound <= upperBound) {
+    const mid = (lowerBound + upperBound) / BigInt(2);
+    const floorMid = mid - mid / divisor;
+
+    if (floorMid === y) {
+      result = mid;
+      break;
+    } else if (floorMid > y) {
+      upperBound = mid - BigInt(1);
+    } else {
+      lowerBound = mid + BigInt(1);
+    }
+  }
+
+  return result;
+}
+
 export class GasTracer {
   root: Node;
   node: Node;
   depth: number;
   constructor(private readonly vm: VM) {
-    this.node = this.root = createNode("ROOT", 0n, 0n, undefined, null);
+    this.node = this.root = createNode(-1, 0n, 0n, undefined, null, "ROOT");
     this.depth = 0;
   }
 
   install() {
-    this.vm.evm.events.on("step", this.onStep.bind(this));
+    (this.vm.evm as any).onRunStep = this.onStep.bind(this);
   }
 
   uninstall() {
-    this.vm.evm.events.off("step", this.onStep.bind(this));
+    delete (this.vm.evm as any).onRunStep;
   }
 
+  /**
+   * Is called after every transaction.
+   */
   reset() {
     // reset internal node state
     this.node = this.root;
@@ -209,22 +345,47 @@ export class GasTracer {
     this.depth = this.root.children.length = 0;
   }
 
-  onStep({ opcode, depth, stack }: InterpreterStep) {
-    const fee = opcode.dynamicFee || BigInt(opcode.fee);
-
-    // If the current opcode is SSTORE, we need to add a new node to the
-    // tree and compute its minimum gas left required to execute.
-    // An SSTORE will revert if `gas_left <= 2300` (even though it can
-    // cost less - it's complicated). See
-    // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
-    // Note: it can also cost more than 2300, so we need to take the larger
-    // of the two values (fee or 2301)
-    const minimum = opcode.name === "SSTORE" ? max(fee, 2301n) : fee;
-
-    const hasStipend =
-      (opcode.name === "CALL" || opcode.name === "CALLCODE") &&
-      stack[stack.length - 3] > 0n;
-    const stipend = hasStipend ? CALL_STIPEND : 0n;
+  /**
+   * Runs after every opcode execution.
+   *
+   * @param stack
+   * @param depth
+   * @param fee
+   * @param opcode
+   * @returns
+   */
+  onStep(
+    stack: bigint[],
+    depth: number,
+    fee: bigint,
+    opcode: number,
+    gasLeft: bigint,
+    name: string
+  ) {
+    let minimum: bigint;
+    let stipend: bigint;
+    switch (opcode) {
+      case 0x55:
+        // If the current opcode is SSTORE, we need to add a new node to the
+        // tree and compute its minimum gas left required to execute.
+        // An SSTORE will revert if `gas_left <= 2300` (even though it can
+        // cost less - it's complicated). See
+        // https://github.com/wolflo/evm-opcodes/blob/main/gas.md#a7-sstore
+        // Note: it can also cost more than 2300, so we need to take the larger
+        // of the two values (fee or 2301)
+        minimum = max(fee, MIN_SSTORE_GAS);
+        stipend = 0n;
+        break;
+      case CALL:
+      case CALLCODE:
+        minimum = fee;
+        if (valueFromCALLStack(stack) !== 0n) stipend = CALL_STIPEND;
+        else stipend = 0n;
+        break;
+      default:
+        minimum = fee;
+        stipend = 0n;
+    }
 
     if (depth === this.depth) {
       // The previous opcode didn't change the depth, so we can roll this
@@ -232,13 +393,13 @@ export class GasTracer {
       // isn't an SSTORE. Rolling up avoids having to iteratate over all
       // opcodes again later.
 
-      if (opcode.name !== "SSTORE") {
+      if (opcode !== SSTORE) {
         const previousSibling = getLastChild(this.node);
         // Don't roll up into a previous SSTORE as we don't want to
         // clobber the `minimum` value that it set
         if (
           previousSibling &&
-          previousSibling.name !== "SSTORE" &&
+          previousSibling.code !== SSTORE &&
           // hack: if the target of a call is an address without contract code,
           // the additional depth will not be created, causing the sibling to be
           // over-written (we need it to be a single node to ensure that it's
@@ -248,7 +409,8 @@ export class GasTracer {
           previousSibling.stipend === 0n
         ) {
           previousSibling.minimum = previousSibling.cost += fee;
-          previousSibling.name = `...${opcode.name}`;
+          previousSibling.name = name;
+          previousSibling.code = opcode;
           // if there's a stipend, then we're definetely stepping into a new
           // callframe, so the next opcode will have depth + 1, meaning it'll
           // correctly be a child of the call node.
@@ -280,40 +442,39 @@ export class GasTracer {
     }
 
     // add the new node `this.node`'s call tree
-    appendNewCallNode(opcode.name, fee, minimum, stipend, this.node);
+    appendNewCallNode(opcode, fee, minimum, stipend, this.node, name);
   }
 
+  /**
+   * Computes the minimum gas required for the transaction to execute.
+   *
+   * Return value does not include refunds or intrinsic gas.
+   *
+   * @returns
+   */
   computeGasLimit() {
-    // todo: this is a hack to ensure that stipend is applied for nodes with no children
-    function fixTree(node) {
-      if (node.stipend !== 0n && node.children.length === 0) {
-        node.children.push({
-          name: "PLACEHOLDER",
-          stipend: 0n,
-          cost: 0n,
-          minimum: 0n,
-          children: []
-        });
-      } else if (node.children.length > 0) {
-        for (const child of node.children) {
-          fixTree(child);
-        }
-      }
-    }
-
-    fixTree(this.root);
-
     const { children } = this.root;
     let totalRequired = 0n;
     let totalCost = 0n;
 
     // compute the final gas cost of the root node
     for (const child of children) {
-      const { cost: childCost, minimum } = computeGas(child);
+      const { cost: childCost, minimum } = computeGasIt(child);
       totalRequired = max(totalCost + minimum, totalRequired);
       // we need to carry the _actual_ cost forward, as that is what we spend
       totalCost += childCost;
     }
+    // require("fs").writeFileSync(
+    //   "/home/david/code/ganache/tree.json",
+    //   JSON.stringify(
+    //     this.root,
+    //     (k, v) => {
+    //       if (k === "parent") return undefined;
+    //       return typeof v === "bigint" ? Number(v) : v;
+    //     },
+    //     2
+    //   )
+    // );
 
     return totalRequired;
   }
