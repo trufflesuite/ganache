@@ -173,11 +173,8 @@ function computeGas({ children, cost, minimum, stipend }: Node) {
     }
 
     if (stipend !== 0n) {
-      totalMinimum -= stipend;
+      totalMinimum = max(0n, totalMinimum - stipend);
       totalCost -= stipend;
-      if (totalMinimum < 0n) {
-        totalMinimum = 0n;
-      }
     }
 
     const sixtyFloorths = (totalMinimum * 64n) / 63n;
@@ -239,7 +236,17 @@ export class GasTracer {
         const previousSibling = getLastChild(this.node);
         // Don't roll up into a previous SSTORE as we don't want to
         // clobber the `minimum` value that it set
-        if (previousSibling && previousSibling.name !== "SSTORE") {
+        if (
+          previousSibling &&
+          previousSibling.name !== "SSTORE" &&
+          // hack: if the target of a call is an address without contract code,
+          // the additional depth will not be created, causing the sibling to be
+          // over-written (we need it to be a single node to ensure that it's
+          // stipend is applied correctly). (actually if it has no children, we
+          // can probably calculate it's minimum, cost, and stipend, but will
+          // need to handle it's stipend correctly)
+          previousSibling.stipend === 0n
+        ) {
           previousSibling.minimum = previousSibling.cost += fee;
           previousSibling.name = `...${opcode.name}`;
           // if there's a stipend, then we're definetely stepping into a new
@@ -277,6 +284,25 @@ export class GasTracer {
   }
 
   computeGasLimit() {
+    // todo: this is a hack to ensure that stipend is applied for nodes with no children
+    function fixTree(node) {
+      if (node.stipend !== 0n && node.children.length === 0) {
+        node.children.push({
+          name: "PLACEHOLDER",
+          stipend: 0n,
+          cost: 0n,
+          minimum: 0n,
+          children: []
+        });
+      } else if (node.children.length > 0) {
+        for (const child of node.children) {
+          fixTree(child);
+        }
+      }
+    }
+
+    fixTree(this.root);
+
     const { children } = this.root;
     let totalRequired = 0n;
     let totalCost = 0n;
