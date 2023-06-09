@@ -71,6 +71,8 @@ import { VM } from "@ethereumjs/vm";
 // Then move up to the next highest depth, and repeat, adding in the previous depth's total gas cost + the 1/64th
 // required gas that EIP-150 requires in order to go to a deeper depth.
 
+const CALL_STIPEND = 2300n;
+
 type Node = {
   /**
    * `name` is required for distinguishing SSTORE opcodes for special rules
@@ -81,6 +83,7 @@ type Node = {
    * the minimum gas left required for the opcode to execute
    */
   minimum: bigint;
+  stipend: bigint;
   children: Node[];
   parent: Node | null;
 };
@@ -97,12 +100,14 @@ function createNode(
   name: string,
   cost: bigint,
   minimum: bigint,
+  stipend: bigint,
   parent: Node | null
 ): Node {
   return {
     children: [],
     cost,
     minimum,
+    stipend,
     name,
     parent
   };
@@ -120,9 +125,10 @@ function appendNewCallNode(
   name: string,
   cost: bigint,
   minimum: bigint,
+  stipend: bigint,
   parent: Node
 ) {
-  const newNode = createNode(name, cost, minimum, parent);
+  const newNode = createNode(name, cost, minimum, stipend, parent);
   parent.children.push(newNode);
 }
 
@@ -150,22 +156,31 @@ function max(a: bigint, b: bigint) {
  *
  * @param node The node to compute the gas costs of.
  */
-function computeGas({ children, cost, minimum }: Node) {
+function computeGas({ children, cost, minimum, stipend }: Node) {
   if (children.length === 0) {
     return {
       cost,
       minimum
     };
   } else {
-    let totalRequired = 0n;
+    let totalMinimum = 0n;
     let totalCost = 0n;
     for (const child of children) {
       const { cost: childCost, minimum } = computeGas(child);
-      totalRequired = max(totalCost + minimum, totalRequired);
+      totalMinimum = max(totalCost + minimum, totalMinimum);
       // we need to carry the _actual_ cost forward, as that is what we spend
       totalCost += childCost;
     }
-    const sixtyFloorths = (totalRequired * 64n) / 63n;
+
+    if (stipend !== 0n) {
+      totalMinimum -= stipend;
+      totalCost -= stipend;
+      if (totalMinimum < 0n) {
+        totalMinimum = 0n;
+      }
+    }
+
+    const sixtyFloorths = (totalMinimum * 64n) / 63n;
     return {
       cost: totalCost + cost,
       minimum: sixtyFloorths + minimum
@@ -178,7 +193,7 @@ export class GasTracer {
   node: Node;
   depth: number;
   constructor(private readonly vm: VM) {
-    this.node = this.root = createNode("ROOT", 0n, 0n, null);
+    this.node = this.root = createNode("ROOT", 0n, 0n, undefined, null);
     this.depth = 0;
   }
 
@@ -197,7 +212,7 @@ export class GasTracer {
     this.depth = this.root.children.length = 0;
   }
 
-  onStep({ opcode, depth }: InterpreterStep) {
+  onStep({ opcode, depth, stack }: InterpreterStep) {
     const fee = opcode.dynamicFee || BigInt(opcode.fee);
 
     // If the current opcode is SSTORE, we need to add a new node to the
@@ -208,6 +223,11 @@ export class GasTracer {
     // Note: it can also cost more than 2300, so we need to take the larger
     // of the two values (fee or 2301)
     const minimum = opcode.name === "SSTORE" ? max(fee, 2301n) : fee;
+
+    const hasStipend =
+      (opcode.name === "CALL" || opcode.name === "CALLCODE") &&
+      stack[stack.length - 3] > 0n;
+    const stipend = hasStipend ? CALL_STIPEND : 0n;
 
     if (depth === this.depth) {
       // The previous opcode didn't change the depth, so we can roll this
@@ -221,7 +241,12 @@ export class GasTracer {
         // clobber the `minimum` value that it set
         if (previousSibling && previousSibling.name !== "SSTORE") {
           previousSibling.minimum = previousSibling.cost += fee;
-          previousSibling.name = opcode.name;
+          previousSibling.name = `...${opcode.name}`;
+          // if there's a stipend, then we're definetely stepping into a new
+          // callframe, so the next opcode will have depth + 1, meaning it'll
+          // correctly be a child of the call node.
+
+          previousSibling.stipend = stipend;
           return; //short circuit
         }
       }
@@ -248,7 +273,7 @@ export class GasTracer {
     }
 
     // add the new node `this.node`'s call tree
-    appendNewCallNode(opcode.name, fee, minimum, this.node);
+    appendNewCallNode(opcode.name, fee, minimum, stipend, this.node);
   }
 
   computeGasLimit() {
