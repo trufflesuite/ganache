@@ -377,7 +377,7 @@ export class GasTracer {
     let minimum: bigint;
     let stipend: bigint;
     switch (opcode) {
-      case 0x55:
+      case SSTORE:
         // If the current opcode is SSTORE, we need to add a new node to the
         // tree and compute its minimum gas left required to execute.
         // An SSTORE will revert if `gas_left <= 2300` (even though it can
