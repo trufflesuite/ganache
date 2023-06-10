@@ -247,8 +247,6 @@ function computeGasIt(root: Node) {
 
   while (stack.length > 0) {
     const { node, parentResult } = stack[stack.length - 1];
-    let totalMinimum = 0n;
-    let totalCost = 0n;
 
     if (node.children.length > 0 && !parentResult) {
       // Push all children to stack, marking the parent as having been processed
@@ -266,11 +264,11 @@ function computeGasIt(root: Node) {
           minimum: node.minimum
         });
       } else {
+        let totalMinimum = 0n;
+        let totalCost = 0n;
+
         for (const child of node.children) {
-          const { cost: childCost, minimum } = results.get(child) as {
-            cost: bigint;
-            minimum: bigint;
-          };
+          const { cost: childCost, minimum } = results.get(child);
           totalMinimum = max(totalCost + minimum, totalMinimum);
           // we need to carry the _actual_ cost forward, as that is what we spend
           totalCost += childCost;
