@@ -399,8 +399,6 @@ export class GasTracer {
         stipend = 0n;
     }
 
-    // CALL CALL
-
     if (depth === this.depth) {
       // The previous opcode didn't change the depth, so we can roll this
       // opcode's cost up into it's parent's last child's costs as long as it
