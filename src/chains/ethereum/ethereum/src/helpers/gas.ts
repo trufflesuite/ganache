@@ -73,6 +73,7 @@ import { BUFFER_ZERO, Quantity } from "@ganache/utils";
 // required gas that EIP-150 requires in order to go to a deeper depth.
 
 const CALL_STIPEND = 2300n;
+// TODO: determine if this is correct for pre-istanbul forks (or whenever this was added)
 const MIN_SSTORE_GAS = 2301n;
 
 const SSTORE = 0x55;
@@ -97,17 +98,6 @@ type Node = {
 
 function valueFromCALLStack(stack: bigint[]): bigint {
   return stack[stack.length - 3];
-}
-
-function addressFromCALLStack(stack: bigint[]): bigint {
-  return stack[stack.length - 2];
-}
-
-// gas, addr, arg0st, argLen, re0st, retLen
-function getArgStartAndLengthFromCALLStack(stack: bigint[]): [bigint, bigint] {
-  const inOffset = stack[stack.length - 3];
-  const inLength = stack[stack.length - 4];
-  return [inOffset, inLength];
 }
 
 /**

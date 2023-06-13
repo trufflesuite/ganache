@@ -1148,16 +1148,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       false, // precompiles have already been initialized in the stateTrie
       common
     );
-    if (common.isActivatedEIP(2929)) {
-      const eei = vm.eei;
-      // handle Berlin hardfork warm storage reads
-      warmPrecompiles(eei);
-
-      // shanghai hardfork requires that we warm the coinbase address
-      if (common.isActivatedEIP(3651)) {
-        eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
-      }
-    }
     // If there are any overrides requested for eth_call, apply
     // them now before running the simulation.
     await applySimulationOverrides(stateTrie, vm, overrides);
@@ -1212,9 +1202,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const callerAddress = new Address(caller);
 
         if (common.isActivatedEIP(2929)) {
-          vm.eei.addWarmedAddress(caller);
+          const eei = vm.eei;
+          // handle Berlin hardfork warm storage reads
+          warmPrecompiles(eei);
+
+          eei.addWarmedAddress(caller);
           if (to) {
-            vm.eei.addWarmedAddress(to.buf);
+            eei.addWarmedAddress(to.buf);
+          }
+
+          // shanghai hardfork requires that we warm the coinbase address
+          if (common.isActivatedEIP(3651)) {
+            eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
           }
         }
 

@@ -1,5 +1,4 @@
 import assert from "assert";
-import { sign } from "crypto";
 import getProvider from "../helpers/getProvider";
 
 describe("gas", () => {
@@ -17,6 +16,7 @@ contract Storage {
     }
     function doCall(address addy) public {
         bytes memory encoded = abi.encodeWithSignature("doStore()");
+        addy.call(encoded, 0, 2300);
         assembly {
             let result := call(gas(), addy, 0, add(encoded, 0x20), mload(encoded), 0, 0)
 
