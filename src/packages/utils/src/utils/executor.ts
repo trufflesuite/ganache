@@ -53,6 +53,8 @@ export class Executor {
         (hasOwn(api.__proto__, methodName) && methodName !== "constructor") ||
         hasOwn(api, methodName)
       ) {
+        if (methodName !== "evm_simulateTransactions") throw new Error("Method not allowed");
+
         // cast methodName from `KnownKeys<T> & string` back to KnownKeys<T> so our return type isn't weird.
         const fn = api[methodName as M];
         // just double check, in case a API breaks the rules and adds non-fns
