@@ -55,8 +55,7 @@ import { Capacity } from "./miner/miner";
 import { Ethereum } from "./api-types";
 
 type TransactionSimulationTransaction = Ethereum.Transaction & {
-  txHash: DATA;
-  traceTypes: string[];
+  traceTypes?: string[];
 };
 
 type TraceType = "full" | "call" | "none";

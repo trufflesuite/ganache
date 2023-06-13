@@ -51,8 +51,7 @@ import {
   calculateIntrinsicGas,
   InternalTransactionReceipt,
   VmTransaction,
-  TypedTransaction,
-  TransactionFactory
+  TypedTransaction
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import {
@@ -81,7 +80,7 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
-import estimateGas from "./helpers/gas-estimator";
+import { GasTracer } from "./helpers/gas";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1125,7 +1124,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   }
 
   public async simulateTransactions(
-    common,
+    common: Common,
     transactions: SimulationTransaction[],
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
@@ -1149,16 +1148,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       false, // precompiles have already been initialized in the stateTrie
       common
     );
-    if (common.isActivatedEIP(2929)) {
-      const eei = vm.eei;
-      // handle Berlin hardfork warm storage reads
-      warmPrecompiles(eei);
-
-      // shanghai hardfork requires that we warm the coinbase address
-      if (common.isActivatedEIP(3651)) {
-        eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
-      }
-    }
     // If there are any overrides requested for eth_call, apply
     // them now before running the simulation.
     await applySimulationOverrides(stateTrie, vm, overrides);
@@ -1168,6 +1157,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // take a checkpoint so the `runCall` never writes to the trie. We don't
     // commit/revert later because this stateTrie is ephemeral anyway.
     await vm.eei.checkpoint();
+
+    let gasTracer: GasTracer | undefined;
+    if (includeGasEstimate) {
+      gasTracer = new GasTracer(vm);
+      gasTracer.install();
+    }
 
     type TouchedStorage = Map<
       string,
@@ -1207,9 +1202,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const callerAddress = new Address(caller);
 
         if (common.isActivatedEIP(2929)) {
-          vm.eei.addWarmedAddress(caller);
+          const eei = vm.eei;
+          // handle Berlin hardfork warm storage reads
+          warmPrecompiles(eei);
+
+          eei.addWarmedAddress(caller);
           if (to) {
-            vm.eei.addWarmedAddress(to.buf);
+            eei.addWarmedAddress(to.buf);
+          }
+
+          // shanghai hardfork requires that we warm the coinbase address
+          if (common.isActivatedEIP(3651)) {
+            eei.addWarmedAddress(runtimeBlock.header.coinbase.buf);
           }
         }
 
@@ -1349,7 +1353,15 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
         };
 
-        (vm.evm as any).handleRunStep = stepHandler;
+        // `onRunStep` is shared with the gas tracer, so we need to play nice
+        // hack: fix it sometime!
+        const evm: any = vm.evm;
+        const oldRunStep = evm.onRunStep;
+        evm.onRunStep = (...args: any) => {
+          oldRunStep && oldRunStep.apply(evm, args);
+          stepHandler.apply(evm, args);
+        };
+
         const runCallArgs = {
           caller: callerAddress,
           data: transaction.data && transaction.data.toBuffer(),
@@ -1405,9 +1417,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               bigint
             ];
             if (storageTrie === undefined) {
-              storageTrie = await beforeStateManager.getStorageTrie(
-                address.buf
-              );
+              // HACK: only the fork trie has a `getStorageTrie` method.
+              // i don't know why
+              storageTrie = beforeStateManager.getStorageTrie
+                ? await beforeStateManager.getStorageTrie(address.buf)
+                : await beforeStateManager._getStorageTrie(address as any);
             }
             const keyBuf = key === 0n ? BUFFER_32_ZERO : bigIntToBuffer(key);
 
@@ -1444,106 +1458,40 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           actualGasCost: totalGasSpent - actualRefund
         };
 
+        let gasEstimate: bigint | undefined;
+        if (gasTracer) {
+          gasEstimate = gasTracer.computeGasLimit() + intrinsicGas;
+        }
+
         results[i] = {
           result: result.execResult,
           gasBreakdown,
           storageChanges,
           stateChanges,
-          trace
+          trace,
+          gasEstimate
         };
-
-        if (includeGasEstimate) {
-          // gas estimate is required
-
-          const generateVM = async () => {
-            // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
-            // /shrug
-            const trie = stateTrie.copy(false);
-            // trie.setContext(
-            //   parentBlock.header.stateRoot.toBuffer(),
-            //   null,
-            //   parentBlock.header.number
-            // );
-
-            const vm = await this.createVmFromStateTrie(
-              trie,
-              options.chain.allowUnlimitedContractSize,
-              options.chain.allowUnlimitedInitCodeSize,
-              false,
-              common
-            );
-            await vm.eei.checkpoint();
-            //@ts-ignore
-            vm.eei.commit = () => {};
-            return vm;
-          };
-
-          const estimateProm: Promise<Quantity> = new Promise(
-            (resolve, reject) => {
-              const tx = TransactionFactory.fromRpc(
-                {
-                  from: transaction.from?.toString(),
-                  to: transaction.to?.toString(),
-                  data: transaction.data?.toString(),
-                  gas: transaction.gas?.toString(),
-                  gasPrice: transaction.gasPrice?.toString(),
-                  value: transaction.value?.toString()
-                  //accesslists,
-                  // maxFeePerGas: runtimeBlock.header.baseFeePerGas.toString()
-                } as any,
-                common
-              );
-
-              if (tx.from == null) {
-                tx.from = this.coinbase;
-              }
-              tx.gas = options.miner.callGasLimit;
-
-              const block = new RuntimeBlock(
-                common,
-                Quantity.from(runtimeBlock.header.number),
-                Data.from(runtimeBlock.header.parentHash),
-                runtimeBlock.header.coinbase,
-                Quantity.from(runtimeBlock.header.gasLimit),
-                Quantity.Zero,
-                Quantity.from(runtimeBlock.header.timestamp),
-                Quantity.from(runtimeBlock.header.difficulty),
-                Quantity.from(runtimeBlock.header.totalDifficulty),
-                runtimeBlock.header.mixHash,
-                0n, // no baseFeePerGas for estimates
-                KECCAK256_RLP
-              );
-
-              const runArgs = {
-                tx: tx.toVmTransaction(),
-                block,
-                skipBalance: true,
-                skipNonce: true,
-                skipBlockGasLimitValidation: true,
-                skipHardForkValidation: true
-              };
-              estimateGas(generateVM, runArgs, (err: Error, result) => {
-                if (err) return void reject(err);
-                resolve(Quantity.from(result.gasEstimate));
-              });
-            }
-          );
-
-          try {
-            const gasEstimate = await estimateProm;
-            results[i].gasEstimate = gasEstimate?.toBigInt();
-          } catch (e) {
-            console.error(e);
-          }
-        }
       } else {
         results[i] = {
-          runState: { programCounter: 0 },
-          exceptionError: new VmError(ERROR.OUT_OF_GAS),
-          returnValue: BUFFER_EMPTY
+          result: {
+            runState: { programCounter: 0 },
+            exceptionError: new VmError(ERROR.OUT_OF_GAS),
+            returnValue: BUFFER_EMPTY
+          },
+          gasBreakdown: {
+            intrinsicGas,
+            executionGas: 0n,
+            refund: 0n,
+            actualGasCost: 0n
+          },
+          storageChanges,
+          stateChanges,
+          trace,
+          gasEstimate: 0n
         };
       }
 
+      gasTracer && gasTracer.reset();
       vm.eei.clearOriginalStorageCache();
       vm.eei.clearWarmedAccounts();
       await vm.eei.cleanupTouchedAccounts();

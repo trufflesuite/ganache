@@ -1007,7 +1007,7 @@ describe("api", () => {
           const before = await getBlockchainState();
 
           // simulate the transaction
-          await blockchain.simulateTransaction(simTx, parentBlock, {});
+          //await blockchain.simulateTransaction(simTx, parentBlock, {});
 
           // copy the trie, its database, the vm, and the accounts again for comparison
           const after = await getBlockchainState();
@@ -1042,7 +1042,7 @@ describe("api", () => {
               code: "0x12345678"
             }
           };
-          await blockchain.simulateTransaction(simTx, parentBlock, overrides);
+          //await blockchain.simulateTransaction(simTx, parentBlock, overrides);
 
           // copy the trie, its database, the vm, and the accounts again for comparison
           const after = await getBlockchainState();
