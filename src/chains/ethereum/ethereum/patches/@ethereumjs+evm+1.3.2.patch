@@ -1,8 +1,32 @@
 diff --git a/node_modules/@ethereumjs/evm/dist/evm.js b/node_modules/@ethereumjs/evm/dist/evm.js
-index 7e6452a..40e0ad6 100644
+index 7e6452a..06705d1 100644
 --- a/node_modules/@ethereumjs/evm/dist/evm.js
 +++ b/node_modules/@ethereumjs/evm/dist/evm.js
-@@ -412,7 +412,7 @@ class EVM {
+@@ -167,13 +167,14 @@ class EVM {
+                 debug(`Exit early on no code (CALL)`);
+             }
+         }
+-        if (errorMessage !== undefined) {
++        else if (errorMessage !== undefined) {
+             exit = true;
+             if (this.DEBUG) {
+                 debug(`Exit early on value transfer overflowed (CALL)`);
+             }
+         }
+         if (exit) {
++            this.onPrecompile && this.onPrecompile(0n);
+             return {
+                 execResult: {
+                     gasRefund: message.gasRefund,
+@@ -187,6 +188,7 @@ class EVM {
+         if (message.isCompiled) {
+             result = await this.runPrecompile(message.code, message.data, message.gasLimit);
+             result.gasRefund = message.gasRefund;
++            this.onPrecompile && this.onPrecompile(result.executionGasUsed || 0n);
+         }
+         else {
+             if (this.DEBUG) {
+@@ -412,7 +414,7 @@ class EVM {
              containerCode: message.containerCode,
              versionedHashes: message.versionedHashes ?? [],
          };
@@ -12,24 +36,32 @@ index 7e6452a..40e0ad6 100644
              interpreter._result.selfdestruct = message.selfdestruct;
          }
 diff --git a/node_modules/@ethereumjs/evm/dist/interpreter.js b/node_modules/@ethereumjs/evm/dist/interpreter.js
-index 9087295..dca219c 100644
+index 9087295..383fab0 100644
 --- a/node_modules/@ethereumjs/evm/dist/interpreter.js
 +++ b/node_modules/@ethereumjs/evm/dist/interpreter.js
-@@ -18,7 +18,8 @@ class Interpreter {
+@@ -11,6 +11,7 @@ const message_1 = require("./message");
+ const opcodes_1 = require("./opcodes");
+ const stack_1 = require("./stack");
+ const debugGas = (0, debug_1.debug)('evm:eei:gas');
++function noop() { }
+ /**
+  * Parses and executes EVM bytecode.
+  */
+@@ -18,7 +19,8 @@ class Interpreter {
      // TODO remove eei from constructor this can be directly read from EVM
      // EEI gets created on EVM creation and will not be re-instantiated
      // TODO remove gasLeft as constructor argument
 -    constructor(evm, eei, env, gasLeft) {
 +    constructor(evm, eei, env, gasLeft, onRunStep) {
-+        this.onRunStep = onRunStep;
++        this.onRunStep = onRunStep || noop;
          // Opcode debuggers (e.g. { 'push': [debug Object], 'sstore': [debug Object], ...})
          this.opDebuggers = {};
          this._evm = evm;
-@@ -145,12 +146,17 @@ class Interpreter {
+@@ -145,12 +147,15 @@ class Interpreter {
              // or if the vm is running in debug mode (to display opcode debug logs)
              await this._runStepHook(gas, gasLimitClone);
          }
-+        this.onRunStep && this.onRunStep(this, this._runState.stack._store, this._runState.env.depth, gas, this._runState.opCode, this._runState.gasLeft, opInfo.name);
++        this.onRunStep(this, this._runState.stack._store, this._runState.env.depth, gas, this._runState.opCode, this._runState.gasLeft, opInfo.name);
 +
          // Check for invalid opcode
          if (opInfo.name === 'INVALID') {
@@ -38,8 +70,6 @@ index 9087295..dca219c 100644
          // Reduce opcode's base fee
 -        this.useGas(gas, `${opInfo.name} fee`);
 +        this.useGas(gas);
-+
-+
 +
          // Advance program counter
          this._runState.programCounter++;
@@ -78,3 +108,33 @@ index 8a89f31..d85fbd8 100644
          },
      ],
      // 0x80: DUP
+diff --git a/node_modules/@ethereumjs/evm/dist/opcodes/gas.js b/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
+index 4718bb1..efe8381 100644
+--- a/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
++++ b/node_modules/@ethereumjs/evm/dist/opcodes/gas.js
+@@ -221,7 +221,7 @@ exports.dynamicGasHandlers = new Map([
+             gas += (0, util_2.subMemUsage)(runState, memOffset, memLength, common);
+             gas +=
+                 common.param('gasPrices', 'logTopic') * BigInt(topicsCount) +
+-                    memLength * common.param('gasPrices', 'logData');
++                memLength * common.param('gasPrices', 'logData');
+             return gas;
+         },
+     ],
+diff --git a/node_modules/@ethereumjs/evm/src/interpreter.ts b/node_modules/@ethereumjs/evm/src/interpreter.ts
+index ed09149..cb4e5de 100644
+--- a/node_modules/@ethereumjs/evm/src/interpreter.ts
++++ b/node_modules/@ethereumjs/evm/src/interpreter.ts
+@@ -247,11 +247,7 @@ export class Interpreter {
+       gas = await dynamicGasHandler(this._runState, gas, this._common)
+     }
+
+-    if (this._evm.events.listenerCount('step') > 0 || this._evm.DEBUG) {
+-      // Only run this stepHook function if there is an event listener (e.g. test runner)
+-      // or if the vm is running in debug mode (to display opcode debug logs)
+-      await this._runStepHook(gas, gasLimitClone)
+-    }
++    (this as any).onStep && (this as any).onStep(this, opInfo, gas);
+
+     // Check for invalid opcode
+     if (opInfo.name === 'INVALID') {

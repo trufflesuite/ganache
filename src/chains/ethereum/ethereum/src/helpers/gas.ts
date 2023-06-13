@@ -78,8 +78,6 @@ const MIN_SSTORE_GAS = 2301n;
 const SSTORE = 0x55;
 const CALL = 0xf1;
 const CALLCODE = 0xf2;
-const STATICCALL = 0xfa;
-const DELEGATECALL = 0xf4;
 
 type Node = {
   /**
@@ -307,30 +305,6 @@ function computeGasIt(root: Node) {
   return results.get(root);
 }
 
-function solveForX(y) {
-  const divisor = BigInt(64);
-  let x = BigInt(y) * divisor;
-  let lowerBound = x - divisor;
-  let upperBound = x;
-  let result = null;
-
-  while (lowerBound <= upperBound) {
-    const mid = (lowerBound + upperBound) / BigInt(2);
-    const floorMid = mid - mid / divisor;
-
-    if (floorMid === y) {
-      result = mid;
-      break;
-    } else if (floorMid > y) {
-      upperBound = mid - BigInt(1);
-    } else {
-      lowerBound = mid + BigInt(1);
-    }
-  }
-
-  return result;
-}
-
 export class GasTracer {
   root: Node;
   node: Node;
@@ -351,12 +325,14 @@ export class GasTracer {
       runStep && runStep.apply(evm, args);
       this.onStep.apply(this, args);
     };
+    evm.onPrecompile = this.onPrecompile.bind(this);
   }
 
   uninstall() {
     const evm: any = this.vm.evm;
     delete evm.onRunStep;
     if (this._originalRunStep) evm.onRunStep = this._originalRunStep;
+    delete evm.onPrecompile;
   }
 
   /**
@@ -370,6 +346,27 @@ export class GasTracer {
   }
 
   /**
+   * This function runs for both for no-code *CALLs and for *CALLs to
+   * precompiles.
+   * @param gasUsed
+   */
+  onPrecompile(gasUsed: bigint) {
+    const callNode = getLastChild(this.node);
+    // You can think of this function as comprising both:
+    // 1. a depth increasing opcode that updates `this.node` to `this.node`'s last child.
+    // 2. a depth decreasing opcode that updates `this.node` to `this.node`'s `parent`.
+    // In otherwords: `depth` and `node` don't need to change.
+    appendNewCallNode(
+      -1,
+      gasUsed,
+      gasUsed,
+      0n,
+      callNode,
+      `PRECOMPILE`
+    );
+  }
+
+  /**
    * Runs after every opcode execution.
    *
    * @param stack
@@ -378,8 +375,8 @@ export class GasTracer {
    * @param opcode
    * @returns
    */
-  async onStep(
-    interpreter: Interpreter,
+  onStep(
+    _: Interpreter,
     stack: bigint[],
     depth: number,
     fee: bigint,
@@ -404,6 +401,8 @@ export class GasTracer {
       case CALL:
       case CALLCODE:
         minimum = fee;
+        // CALL and CALLCODE get free gas (stipend) if they are called with a
+        // non-zero value.
         if (valueFromCALLStack(stack) !== 0n) stipend = CALL_STIPEND;
         else stipend = 0n;
         break;
@@ -436,60 +435,11 @@ export class GasTracer {
           previousSibling.minimum = previousSibling.cost += fee;
           previousSibling.name = name;
           previousSibling.code = opcode;
-          // if there's a stipend, then we're definetely stepping into a new
+          // if there's a stipend, then we're definitely stepping into a new
           // callframe, so the next opcode will have depth + 1, meaning it'll
           // correctly be a child of the call node.
 
           previousSibling.stipend = stipend;
-
-          if (
-            opcode === CALL ||
-            opcode === CALLCODE ||
-            opcode === STATICCALL ||
-            opcode === DELEGATECALL
-          ) {
-            // gas, addr, arg0st, argLen, re0st, retLen
-            const addr = addressFromCALLStack(stack);
-            const addrString = addr.toString(16).padStart(40, "0");
-
-            const precompileFunc = precompiles[addrString];
-            if (precompileFunc) {
-              const runState = (interpreter as any)._runState;
-
-              const gasLimit: bigint = runState.messageGasLimit!;
-              const [inLength, inOffset] =
-                getArgStartAndLengthFromCALLStack(stack);
-
-              let data: Buffer;
-              if (inLength !== BigInt(0)) {
-                data = runState.memory.read(
-                  Number(inOffset),
-                  Number(inLength),
-                  true
-                );
-              } else {
-                data = BUFFER_ZERO;
-              }
-              const precompileResult = await precompileFunc({
-                data,
-                gasLimit, // call gas limit?
-                // todo: is there going to be some sort of weird thing where precompiles have a "minimum" gas required
-                _common: this.vm._common,
-                _EVM: this.vm.evm
-              });
-              const precompileGas = precompileResult.executionGasUsed;
-              console.log({ addr, precompileGas, data });
-              // is a known precompile
-              appendNewCallNode(
-                -1,
-                precompileGas,
-                precompileGas,
-                0n,
-                previousSibling,
-                `PRECOMPILE${addr}`
-              );
-            }
-          }
           return; //short circuit
         }
       }
@@ -516,7 +466,7 @@ export class GasTracer {
     }
 
     // add the new node `this.node`'s call tree
-    const thisNode = appendNewCallNode(
+    appendNewCallNode(
       opcode,
       fee,
       minimum,
@@ -524,50 +474,6 @@ export class GasTracer {
       this.node,
       name
     );
-
-    if (
-      opcode === CALL ||
-      opcode === CALLCODE ||
-      opcode === STATICCALL ||
-      opcode === DELEGATECALL
-    ) {
-      // gas, addr, arg0st, argLen, re0st, retLen
-      const addr = addressFromCALLStack(stack);
-      const addrString = addr.toString(16).padStart(40, "0");
-
-      const precompileFunc = precompiles[addrString];
-      if (precompileFunc) {
-        const runState = (interpreter as any)._runState;
-
-        const gasLimit: bigint = runState.messageGasLimit!;
-        const [inLength, inOffset] = getArgStartAndLengthFromCALLStack(stack);
-
-        let data: Buffer;
-        if (inLength !== BigInt(0)) {
-          data = runState.memory.read(Number(inOffset), Number(inLength), true);
-        } else {
-          data = BUFFER_ZERO;
-        }
-        const precompileResult = await precompileFunc({
-          data,
-          gasLimit, // call gas limit?
-          // todo: is there going to be some sort of weird thing where precompiles have a "minimum" gas required
-          _common: this.vm._common,
-          _EVM: this.vm.evm
-        });
-        const precompileGas = precompileResult.executionGasUsed;
-        console.log({ addr, precompileGas, data });
-        // is a known precompile
-        appendNewCallNode(
-          -1,
-          precompileGas,
-          precompileGas,
-          0n,
-          thisNode,
-          `PRECOMPILE${addr}`
-        );
-      }
-    }
   }
 
   /**
@@ -590,18 +496,18 @@ export class GasTracer {
       totalCost += childCost;
     }
 
-    const tree = JSON.stringify(this.root, (key, value) => {
-      if (key === "parent") {
-        return undefined;
-      } else if (typeof value === "bigint") {
-        return Quantity.toString(value);
-      } else {
-        return value;
-      }
-    });
+    // const tree = JSON.stringify(this.root, (key, value) => {
+    //   if (key === "parent") {
+    //     return undefined;
+    //   } else if (typeof value === "bigint") {
+    //     return Quantity.toString(value);
+    //   } else {
+    //     return value;
+    //   }
+    // });
 
-    console.log({ totalRequired, totalCost });
-    console.log(tree);
+    // console.log({ totalRequired, totalCost });
+    // console.log(tree);
     return totalRequired;
   }
 }
