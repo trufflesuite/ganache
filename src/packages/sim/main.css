@@ -80,7 +80,7 @@ button.run-button {
   margin: 1rem auto;
   position: relative;
 }
-.content {
+.content.split {
   grid-gap: 2rem;
   display: grid;
   gap: 2rem;

@@ -47,13 +47,21 @@
           <img src="ganache.svg" alt="ganache logo" />
           <h1>Ganache</h1>
         </a>
+        <div class="header-actions">
+          <a
+            class="header-action" target="_blank"
+            title="Simulator Document (opens in new tab)"
+            href="docs">
+            Documentation
+          </a>
+        </div>
       </header>
       <main>
         <article>
           <form method="post" action="/simulate">
             <div class="doc-section">
               <h3 class="signature">Transactions Simulator</h3>
-              <div class="content">
+              <div class="content split">
                 <div id="transactionForm">
                   <div id="transactions">
                     <div class="transaction">
@@ -159,6 +167,7 @@
                                 id="gasLimit"
                                 name="gasLimit"
                                 required
+                                placeholder="50000000"
                                 value="50000000"
                                 pattern="^[0-9]+$|^(0x[a-fA-F0-9]+)$"
                               />
@@ -221,7 +230,9 @@
                           <span class="field-info" title="Nonce">
                             <span>
                               The string "latest" or a block number as an
-                              integer or 0x prefixed hex.
+                              integer or 0x prefixed hex. The transasctions will
+                              be simulated in the block immediately following
+                              the specified block number.
                             </span>
                           </span>
                           <div class="editor-container">
@@ -230,6 +241,7 @@
                               id="blockNumber"
                               name="block"
                               required
+                              placeholder="latest"
                               value="latest"
                               pattern="^latest$|^[0-9]+$|^(0x[a-fA-F0-9]+)$"
                             />
@@ -249,11 +261,13 @@
                               name="gasEstimation"
                               required
                             >
-                              <option value="none">None</option>
+                              <option value="none">Basic usage breakdown</option>
                               <option value="call-depth">
-                                Call Depth (fast)
+                                Exactimate (0-2% slower)
                               </option>
-                              <option value="full">Full (slow)</option>
+                              <option value="call-depth" disabled>
+                                Binary search (2-7x slower) (soon™)
+                              </option>
                             </select>
                           </div>
                         </div>
@@ -274,7 +288,7 @@
                             >
                               <option value="none">No trace</option>
                               <option value="call">Call trace</option>
-                              <option value="full">Full</option>
+                              <option value="full" disabled>Full (soon™)</option>
                             </select>
                           </div>
                         </div>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Ethereum Transactions</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,300,400|Share+Tech+Mono&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Grand+Hotel&text=Ganache" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="root.css" />
+    <link rel="stylesheet" type="text/css" href="main.css" />
+    <style>
+        .doc-section {
+            max-width: 1600px;
+            margin: 3rem auto;
+        }
+
+        .monaco {
+            contain: none;
+            position: relative;
+        }
+        .monaco pre{
+            padding: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="page">
+        <header>
+            <svg style="position: absolute; pointer-events: none; opacity: 0" width="10" height="10"
+                viewBox="0 0 10 10">
+                <clipPath id="squircleClip" clipPathUnits="objectBoundingBox">
+                    <path fill="red" stroke="none" d="M 0,0.5 C 0,0 0,0 0.5,0 S 1,0 1,0.5 1,1 0.5,1 0,1 0,0.5"></path>
+                </clipPath>
+            </svg>
+            <a class="ganache-link" href="https://trufflesuite.com/docs/ganache/" title="Ganache Website">
+                <img src="ganache.svg" alt="ganache logo" />
+                <h1>Ganache</h1>
+            </a>
+            <div class="header-actions">
+                <a class="header-action" target="_blank" title="Simulator (opens in new tab)" href="./">
+                    Simulator
+                </a>
+            </div>
+        </header>
+        <main>
+            <article>
+                <div class="doc-section">
+                    <h3 class="signature">Simulator Documentation</h3>
+                    <div class="content">
+                        <p>The endpoint to use is {URL}. The RPC method is named evm_simulateTransactions.</p>
+                        <p>Send requests just as you would any Ethereum JSON-RPC 2.0 request.</p>
+                        <p>RPC requests temporarily return a top level `durationMs` property (alongside id, jsonrpc, and result/error) which represents the amount of time
+                            the request took to process in milliseconds. You can use this value to better understand how RTT to the RPC host will affect users in different areas of the world.
+                        </p>
+                    </div>
+                </div>
+                <div class="doc-section">
+                    <h3 class="signature">Request</h3>
+                    <div class="content">
+                        <h4>
+                            Params
+                        </h4>
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">[
+    {
+        transactions: Transaction[],
+        estimateGas?: boolean = false,
+        trace?: boolean = false
+    },
+    /**
+     * The block number the transaction should be simulated after. This is how
+     * `eth_call` works, but differs from how Tenderly works.
+     */
+    blockNumberHex | TAG = "latest"
+]</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>
+                            Transaction
+                        </h4>
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">{
+    from: string,
+    to?: string,
+    /**
+     * The maximum amount of gas to use for the transaction. This value is also used as an upper limit for gas estimations.
+     */
+    gas?: string,
+    gasPrice?: string,
+    value?: string,
+    data?: string,
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="doc-section">
+                    <h3 class="signature">Response</h3>
+                    <div class="content">
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">{
+    error?: {
+        code: number;
+        message: string;
+    };
+    returnValue?: string;
+    gas: GasBreakdown;
+    logs: Log[];
+    storageChanges: StorageChange[];
+    stateChanges: StateChange[];
+    receipts?: string[];
+    /**
+     * The trace of the transaction. This is only returned if `trace` is set to true.
+     */
+    trace?: TraceEntry[];
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>
+                            GasBreakdown
+                        </h4>
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">{
+    /**
+     * The total amount of gas used by the transaction.
+     */
+    total: Quantity,
+
+    /**
+     * Total gas used minus the refund. This is what etherscan reports as `Gas Usage`.
+     */
+    actual: Quantity;
+
+    /**
+     * The amount of gas refunded to the sender.
+     */
+    refund: Quantity;
+
+    /**
+     * The amount of gas the EVM requires before it would attempt to run the
+     * transaction.
+     */
+    intrinsic: Quantity;
+
+    /**
+     * The amount of gas used by the transaction's actual execution.
+     */
+    execution: Quantity;
+
+    /**
+     * The minimum amount of gas required to run the transaction. This is only returned if `estimateGas` is set to true.
+     */
+    estimate?: Estimate extends true ? Quantity : undefined;
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>
+                            StorageChange
+                        </h4>
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">{
+    key: string;
+    address: string;
+    before: string;
+    after: string;
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>
+                            StateChange
+                        </h4>
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">{
+    address: string;
+    from: {
+        nonce: string;
+        balance: string;
+        storageRoot: string;
+        codeHash: string;
+    };
+    to: {
+        nonce: string;
+        balance: string;
+        storageRoot: string;
+        codeHash: string;
+    };
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>
+                            TraceEntry
+                        </h4>
+                        <div>
+                            <div class="monaco-outer-container">
+                                <div class="monaco-inner-container">
+                                    <div class="monaco">
+                                        <pre><code class="json">{
+    /**
+     * The opcode of the trace entry.
+     * Currently limited to opcodes for CALL, CALLCODE, DELEGATECALL, STATICCALL
+     *
+     */
+    opcode: string;
+    /**
+     * The name of the opcode (CALL, CALLCODE, DELEGATECALL, STATICCALL)
+     */
+    name: string;
+    from: string;
+    to: string;
+    value: string;
+    input: string;
+    pc: number;
+    target?: string;
+    decodedInput?: {type: string, value: string }[];
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </main>
+    </div>
+    <script src="jsonview.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

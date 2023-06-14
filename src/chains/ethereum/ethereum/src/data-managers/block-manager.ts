@@ -58,7 +58,7 @@ export default class BlockManager extends Manager<Block> {
     const bm = new BlockManager(blockchain, common, blockIndexes, base);
     await bm.updateTaggedBlocks();
     if (blockchain.fallback) {
-      // a hack to ensure `latest` is kept up to date.
+      // hack: a hack to ensure `latest` is kept up to date.
       // this just polls for `latest` every 7 seconds
       unref(
         setInterval(async () => {
@@ -74,7 +74,7 @@ export default class BlockManager extends Manager<Block> {
               bm.#common,
               BigInt(json.number)
             );
-            console.log("latest is now", json.number);
+            console.log("latest is now", parseInt(json.number));
 
             bm.latest = new Block(
               BlockManager.rawFromJSON(json, common),

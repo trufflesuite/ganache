@@ -81,6 +81,7 @@ import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 import { GasTracer } from "./helpers/gas";
+import { GasBreakdown, InternalTransactionSimulationResult, TraceEntry } from "./api";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1123,14 +1124,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
   }
 
-  public async simulateTransactions(
+  public async simulateTransactions<Estimate extends boolean>(
     common: Common,
     transactions: SimulationTransaction[],
     runtimeBlock: RuntimeBlock,
     parentBlock: Block,
     overrides: CallOverrides,
     includeTrace: boolean,
-    includeGasEstimate: boolean
+    includeGasEstimate: Estimate
   ) {
     const stateTrie = this.trie.copy(false);
     stateTrie.setContext(
@@ -1171,10 +1172,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const runningEncodedAccounts = {};
     const runningRawStorageSlots = {};
-    const results = new Array(transactions.length);
+    const results: InternalTransactionSimulationResult<Estimate>[] = new Array(transactions.length);
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
-      const trace = [];
+      const trace: TraceEntry[] = [];
       const storageChanges: {
         address: Address;
         key: Buffer;
@@ -1262,14 +1263,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               opCode === opcode.DELEGATECALL ||
               opCode === opcode.STATICCALL)
           ) {
-            // done: drop non-call opcodes from the trace
-            // done: decompose the stack to parameter values
-            // todo: build call stack and recompute gas left and return value
-            // use the call stack to compute 63/64th rules
-            // implement additional edgecases for gas estimation
             // It'd be nice to show call heirarchy, either with nested calls or similar
 
-            let inLength, inOffset, value, toAddr;
+            let inLength: bigint, inOffset: bigint, value: bigint, toAddr: bigint;
             if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
               [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
             } else {
@@ -1293,7 +1289,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               data.length >= 4 ? data.readUIntBE(0, 4) : 0;
             const target = fourBytes.get(functionSelector);
 
-            let decodedInput;
+            let decodedInput: {type: string, value: Quantity | Data}[];
             if (target) {
               const parameters = target
                 .slice(target.indexOf("(") + 1, target.length - 1)
@@ -1301,23 +1297,23 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               if (parameters.length > 0 && parameters[0] !== "") {
                 try {
                   const decoded = rawDecode(parameters, data.subarray(4));
-                  decodedInput = Array(parameters.length);
+                  decodedInput = Array(parameters.length) as any;
                   for (let i = 0; i < parameters.length; i++) {
                     const type = parameters[i];
                     const rawValue = decoded[i];
-                    let value: Buffer;
+                    let value: Data | Quantity;
                     if (Buffer.isBuffer(rawValue)) {
-                      value = rawValue;
+                      value = Data.from(rawValue);
                     } else {
                       switch (typeof rawValue) {
                         case "string":
-                          value = Buffer.from(rawValue, "hex");
+                          value = Data.from(Buffer.from(rawValue, "hex"));
                           break;
                         case "bigint":
-                          value = bigIntToBuffer(rawValue);
+                          value = Quantity.from(bigIntToBuffer(rawValue));
                           break;
                         default:
-                          value = Buffer.from(rawValue.toString(16), "hex");
+                          value = Data.from(Buffer.from(rawValue.toString(16), "hex"));
                           break;
                       }
                     }
@@ -1338,15 +1334,13 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               }
             }
             trace.push({
-              opcode: Buffer.from([opCode]),
-              type: opcode[opCode],
-              from: codeAddress.buf,
-              to,
-              gas: 0n,
-              gasUsed: 0n,
-              value: value,
-              input: data,
+              opcode: Data.from(Buffer.from([opCode])),
+              name: opcode[opCode],
+              from: Address.from(codeAddress.buf),
+              to: Address.from(to),
               target,
+              value: value === undefined ? undefined : Quantity.from(value),
+              input: Data.from(data),
               decodedInput,
               pc: programCounter
             });
@@ -1451,25 +1445,25 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             ? maxRefund
             : result.execResult.gasRefund;
 
-        const gasBreakdown = {
-          intrinsicGas,
-          executionGas: result.execResult.executionGasUsed,
-          refund: actualRefund,
-          actualGasCost: totalGasSpent - actualRefund
-        };
+        const gasBreakdown: GasBreakdown<Estimate> = {
+          total: Quantity.from(totalGasSpent),
 
-        let gasEstimate: bigint | undefined;
-        if (gasTracer) {
-          gasEstimate = gasTracer.computeGasLimit() + intrinsicGas;
-        }
+          actual: Quantity.from(totalGasSpent - actualRefund),
+          refund: Quantity.from(actualRefund),
+
+          intrinsic: Quantity.from(intrinsicGas),
+          execution: Quantity.from(result.execResult.executionGasUsed),
+
+          // @ts-ignore
+          estimate: gasTracer ? Quantity.from(gasTracer.computeGasLimit() + intrinsicGas) : undefined,
+        };
 
         results[i] = {
           result: result.execResult,
-          gasBreakdown,
+          gas: gasBreakdown,
           storageChanges,
           stateChanges,
-          trace,
-          gasEstimate
+          trace
         };
       } else {
         results[i] = {
@@ -1478,16 +1472,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             exceptionError: new VmError(ERROR.OUT_OF_GAS),
             returnValue: BUFFER_EMPTY
           },
-          gasBreakdown: {
-            intrinsicGas,
-            executionGas: 0n,
-            refund: 0n,
-            actualGasCost: 0n
+          gas: {
+            actual: Quantity.Zero,
+            refund: Quantity.Zero,
+
+            intrinsic: Quantity.from(intrinsicGas),
+            execution: Quantity.Zero,
+
+            // @ts-ignore
+            estimate: includeGasEstimate ? Quantity.Zero : undefined,
           },
           storageChanges,
           stateChanges,
-          trace,
-          gasEstimate: 0n
+          trace
         };
       }
 
