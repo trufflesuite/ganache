@@ -81,7 +81,11 @@ import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { Interpreter, RunState } from "@ethereumjs/evm/dist/interpreter";
 import { GasTracer } from "./helpers/gas";
-import { GasBreakdown, InternalTransactionSimulationResult, TraceEntry } from "./api";
+import {
+  GasBreakdown,
+  InternalTransactionSimulationResult,
+  TraceEntry
+} from "./api";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -1172,7 +1176,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
     const runningEncodedAccounts = {};
     const runningRawStorageSlots = {};
-    const results: InternalTransactionSimulationResult<Estimate>[] = new Array(transactions.length);
+    const results: InternalTransactionSimulationResult<Estimate>[] = new Array(
+      transactions.length
+    );
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const trace: TraceEntry[] = [];
@@ -1265,7 +1271,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           ) {
             // It'd be nice to show call heirarchy, either with nested calls or similar
 
-            let inLength: bigint, inOffset: bigint, value: bigint, toAddr: bigint;
+            let inLength: bigint,
+              inOffset: bigint,
+              value: bigint,
+              toAddr: bigint;
             if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
               [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
             } else {
@@ -1287,17 +1296,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             const to = bigIntToBuffer(toAddr);
             const functionSelector =
               data.length >= 4 ? data.readUIntBE(0, 4) : 0;
-            const target = fourBytes.get(functionSelector);
+            const signature = fourBytes.get(functionSelector);
 
-            let decodedInput: {type: string, value: Quantity | Data}[];
-            if (target) {
-              const parameters = target
-                .slice(target.indexOf("(") + 1, target.length - 1)
+            let args: { type: string; value: Quantity | Data }[];
+            if (signature) {
+              const parameters = signature
+                .slice(signature.indexOf("(") + 1, signature.length - 1)
                 .split(",");
               if (parameters.length > 0 && parameters[0] !== "") {
                 try {
                   const decoded = rawDecode(parameters, data.subarray(4));
-                  decodedInput = Array(parameters.length) as any;
+                  args = Array(parameters.length) as any;
                   for (let i = 0; i < parameters.length; i++) {
                     const type = parameters[i];
                     const rawValue = decoded[i];
@@ -1313,12 +1322,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
                           value = Quantity.from(bigIntToBuffer(rawValue));
                           break;
                         default:
-                          value = Data.from(Buffer.from(rawValue.toString(16), "hex"));
+                          value = Data.from(
+                            Buffer.from(rawValue.toString(16), "hex")
+                          );
                           break;
                       }
                     }
 
-                    decodedInput[i] = {
+                    args[i] = {
                       type,
                       value
                     };
@@ -1338,10 +1349,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               name: opcode[opCode],
               from: Address.from(codeAddress.buf),
               to: Address.from(to),
-              target,
+              signature,
               value: value === undefined ? undefined : Quantity.from(value),
-              input: Data.from(data),
-              decodedInput,
+              data: Data.from(data),
+              args,
               pc: programCounter
             });
           }
@@ -1455,7 +1466,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           execution: Quantity.from(result.execResult.executionGasUsed),
 
           // @ts-ignore
-          estimate: gasTracer ? Quantity.from(gasTracer.computeGasLimit() + intrinsicGas) : undefined,
+          estimate: gasTracer
+            ? Quantity.from(gasTracer.computeGasLimit() + intrinsicGas)
+            : undefined
         };
 
         results[i] = {
@@ -1480,7 +1493,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
             execution: Quantity.Zero,
 
             // @ts-ignore
-            estimate: includeGasEstimate ? Quantity.Zero : undefined,
+            estimate: includeGasEstimate ? Quantity.Zero : undefined
           },
           storageChanges,
           stateChanges,

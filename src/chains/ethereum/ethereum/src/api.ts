@@ -92,7 +92,7 @@ export type GasBreakdown<Estimate extends boolean> = {
   /**
    * The total amount of gas used by the transaction.
    */
-  total: Quantity,
+  total: Quantity;
 
   /**
    * Total gas used minus the refund. This is what etherscan reports as `Gas Usage`.
@@ -127,10 +127,10 @@ export type TraceEntry = {
   from: Address;
   to: Address;
   value: Quantity;
-  input: Data;
   pc: number;
-  target?: string;
-  decodedInput?: {type: string, value: Quantity | Data }[];
+  data: Data;
+  signature?: string;
+  args?: { type: string; value: Quantity | Data }[];
 };
 type TransactionSimulationResult<Estimate extends boolean> = {
   returnValue: Data;
@@ -3042,10 +3042,14 @@ export default class EthereumApi implements Api {
    */
   @assertArgLength(1, 2)
   async evm_simulateTransactions<Estimate extends boolean = false>(
-    { overrides, transactions, trace, estimateGas }: TransactionSimulationArgs<Estimate>,
+    {
+      overrides,
+      transactions,
+      trace,
+      estimateGas
+    }: TransactionSimulationArgs<Estimate>,
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ): Promise<TransactionSimulationResult<Estimate>[]> {
-
     const includeTrace = trace === true;
 
     const simulatedTransactionResults = await simulateTransactions<Estimate>(
@@ -3060,13 +3064,7 @@ export default class EthereumApi implements Api {
     );
 
     return simulatedTransactionResults.map(
-      ({
-        trace,
-        gas,
-        result,
-        storageChanges,
-        stateChanges
-      }) => {
+      ({ trace, gas, result, storageChanges, stateChanges }) => {
         const parsedStorageChanges = storageChanges.map(change => ({
           key: Data.from(change.key),
           address: Address.from(change.address.buf),
@@ -3113,9 +3111,7 @@ export default class EthereumApi implements Api {
           receipts: undefined,
           storageChanges: parsedStorageChanges,
           stateChanges: parsedStateChanges,
-          trace: includeTrace
-            ? trace
-            : undefined
+          trace: includeTrace ? trace : undefined
         };
       }
     );

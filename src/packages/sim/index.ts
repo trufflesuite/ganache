@@ -2,10 +2,9 @@ import http from "http";
 import fs from "fs";
 let remote = false;
 const hostname = remote ? "3.140.186.190" : "localhost";
-const port = remote ? 8080 : 8545
+const port = remote ? 8080 : 8545;
 
 const index = fs.readFileSync(__dirname + "/index.html");
-const docs = fs.readFileSync(__dirname + "/docs.html");
 const results = fs.readFileSync(__dirname + "/results.html");
 const css = fs.readFileSync(__dirname + "/main.css");
 const rootCss = fs.readFileSync(__dirname + "/root.css");
@@ -14,16 +13,10 @@ const jsonview = fs.readFileSync(__dirname + "/jsonview.js");
 const chevron = fs.readFileSync(__dirname + "/chevron.svg");
 const ganache = fs.readFileSync(__dirname + "/ganache.svg");
 
-
-
 const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(index);
-  } else if (req.method === "GET" && req.url === "/docs") {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    const docsHtml = docs.toString("utf-8").replace("{URL}", `http://${hostname}:${port}`)
-    res.end(docsHtml);
   } else if (req.method === "GET" && req.url === "/jsonview.js") {
     res.writeHead(200, { "Content-Type": "application/javascript" });
     res.end(jsonview);
