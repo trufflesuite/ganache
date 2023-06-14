@@ -261,13 +261,13 @@
                               name="gasEstimation"
                               required
                             >
-                              <option value="none">
+                              <option value="false">
                                 Basic usage breakdown
                               </option>
-                              <option value="call-depth">
+                              <option value="true">
                                 Exactimate (0-2% slower)
                               </option>
-                              <option value="call-depth" disabled>
+                              <option value=" " disabled>
                                 Binary search (2-7x slower) (soon™)
                               </option>
                             </select>
@@ -288,11 +288,9 @@
                               name="trace"
                               required
                             >
-                              <option value="none">No trace</option>
-                              <option value="call">Call trace</option>
-                              <option value="full" disabled>
-                                Full (soon™)
-                              </option>
+                              <option value="false">No trace</option>
+                              <option value="true">Call trace</option>
+                              <option value=" " disabled>Full (soon™)</option>
                             </select>
                           </div>
                         </div>

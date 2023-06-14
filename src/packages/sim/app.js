@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const value = element.value.trim();
                 if (value) {
                     if ("SELECT" === element.tagName) {
-                        tx[element.name] = value;
+                        tx[element.name] = value === "true";
                     } else {
                         if (element.getAttribute("pattern")) {
                             tx[element.name] = value.toLowerCase().startsWith("0x") ? value : "0x" + parseInt(value).toString(16);
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const value = element.value.trim();
             if (value) {
                 if ("SELECT" === element.tagName) {
-                    json.params[0][element.name] = value;
+                    json.params[0][element.name] = value === "true";
                 } else {
                     if (element.getAttribute("pattern")) {
                         if (element.name === "block" && value.toLowerCase() === "latest") {
