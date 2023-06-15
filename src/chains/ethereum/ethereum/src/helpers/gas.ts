@@ -170,12 +170,11 @@ function max(a: bigint, b: bigint) {
 /**
  * Computes the actual and required gas costs of the node.
  *
- * @param child The node to compute the gas costs of.
+ * @param node The node to compute the gas costs of.
  */
-function _computeGas(child: Node) {
-  const { children, cost, minimum, stipend } = child;
+function _computeGas(node: Node) {
+  const { children, cost, minimum, stipend } = node;
   if (children.length === 0) {
-    (child as any).computed = minimum;
     return {
       cost: max(cost - stipend, 0n),
       minimum: minimum
@@ -183,12 +182,51 @@ function _computeGas(child: Node) {
   } else {
     let totalMinimum = 0n;
     let totalCost = 0n;
+
+    // At any point, `totalMinimum` represents the total minimum gas required to
+    // execute the nodes in `this.children` up to that point. This node's cost
+    // will be considered at the end.
+    //
+
+    // As we iterate over a child, `totalMinimum` becomes the total minimum gas
+    // required to execute the nodes in `this.children` up to and including that
+    // node. At this point, `totalMinimum` may be greater than (`totalCost` +
+    // `minimum`) if previous nodes had a signficant `minimum > cost` overhead.
+    // ie.
+    //
+    // Given nodes:
+    // { cost: 10, minimum: 10 },
+    // { cost: 10, minimum: 50 },
+    // { cost: 10, minimum: 30 },
+    //
+    // Before executing the third node:
+    //
+    // `totalCost`    = 20
+    // `this.minimum` = 30
+    // `totalMinimum` = 60
+    //
+    // therefore,
+    // `totalMinimum` := max(totalCost + minimum, totalMinimum)
+    //                := max(20 + 30, 60) = 60
+
     for (const child of children) {
       const { cost: childCost, minimum } = _computeGas(child);
       totalMinimum = max(totalCost + minimum, totalMinimum);
-      // we need to carry the _actual_ cost forward, as that is what we spend
+      // we need to carry the _actual_ cost forward, as that is what we spend,
+      // and is needed to calculate subsequent nodes
       totalCost += childCost;
     }
+
+    // This node's `stipend` is available (in it's entirety - 1/64th is not
+    // "withheld") to it's children (in the node's call frame). Therefore, the
+    // `totalMinimum` is decremented by the `stipend` amount. The stipend is not
+    // allowed to reduce the `totalMinimum` to < 0, because the actual _final_
+    // `totalMinimum` must be at least this node's `minimum` value. The
+    // `totalCost` is also decremented by the `stipend` amount, because the
+    // `stipend` is "free gas". No worries if the `totalCost` becomes < 0,
+    // because the the `totalMinimum` will ensure that `gasLeft` never
+    // decrements below
+    // 0.
 
     if (stipend !== 0n) {
       totalMinimum = max(0n, totalMinimum - stipend);
@@ -202,7 +240,10 @@ function _computeGas(child: Node) {
     // `currentGasLeft = (availableGasLeft * 64) / 63
     // See: https://www.wolframalpha.com/input?i=x+-+%28x%2F64%29+%3D+y
     const sixtyFloorths = computeAllButOneSixtyFourth(totalMinimum);
-    (child as any).computed = sixtyFloorths + minimum;
+
+    // the minimum gas required for this node and it's children, is the
+    // children's minimum gas, plus withheld (1/64th) gas, plus the minimum gas
+    // to execute this node.
     return {
       cost: totalCost + cost,
       minimum: sixtyFloorths + minimum
@@ -224,11 +265,11 @@ function computeAllButOneSixtyFourth(minimumGas: bigint) {
 
   // Because of 1/64th flooring there is precision loss when we want to
   // reverse it. This means there are sometimes two numbers that resolve
-  // to the same "all by 1/64th" number. We should always pick the smaller
+  // to the same "all but 1/64th" number. We should always pick the smaller
   // of the two, since they both will compute the same "all by 1/64th"
   // anyway.
   // Two example `gasLeft`s that will result in the same "all by 1/64th"
-  // number are `1023` and `1024`. The "all by 1/64th" number is `1008`.
+  // number are `1023` and `1024`. The "all but 1/64th" number is `1008`.
   //https://www.wolframalpha.com/input?i=x+-+%E2%8C%8A%28x%2F64%29%E2%8C%8B+%3D+1008
   return allButOneSixtyFourths % 64n === 0n
     ? allButOneSixtyFourths - 1n
@@ -346,14 +387,7 @@ export class GasTracer {
     // 1. a depth increasing opcode that updates `this.node` to `this.node`'s last child.
     // 2. a depth decreasing opcode that updates `this.node` to `this.node`'s `parent`.
     // In otherwords: `depth` and `node` don't need to change.
-    appendNewCallNode(
-      -1,
-      gasUsed,
-      gasUsed,
-      0n,
-      callNode,
-      `PRECOMPILE`
-    );
+    appendNewCallNode(-1, gasUsed, gasUsed, 0n, callNode, `PRECOMPILE`);
   }
 
   /**
@@ -456,14 +490,7 @@ export class GasTracer {
     }
 
     // add the new node `this.node`'s call tree
-    appendNewCallNode(
-      opcode,
-      fee,
-      minimum,
-      stipend,
-      this.node,
-      name
-    );
+    appendNewCallNode(opcode, fee, minimum, stipend, this.node, name);
   }
 
   /**
