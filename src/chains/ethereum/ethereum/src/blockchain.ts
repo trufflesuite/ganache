@@ -1535,7 +1535,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         const destination = Quantity.from(stack._store[stack.length - 1]);
         const condition =
           opCode === opcode.JUMPI
-            ? Quantity.from(stack._store[stack.length - 1])
+            ? Quantity.from(stack._store[stack.length - 2])
             : undefined;
         return {
           opcode: Data.from(Buffer.from([opCode])),
