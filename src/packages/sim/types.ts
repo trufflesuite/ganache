@@ -158,22 +158,30 @@ type StateChange = {
 export type TraceEntry = {
   /**
    * The opcode of the trace entry.
-   * Currently limited to opcodes for CALL, CALLCODE, DELEGATECALL, STATICCALL
+   * Currently limited to opcodes for CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, JUMP, JUMPI
    *
    */
   opcode: DATA;
   /**
-   * The name of the opcode (CALL, CALLCODE, DELEGATECALL, STATICCALL)
+   * The name of the opcode (CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, JUMP, JUMPI)
    */
   name: string;
-  from: ADDRESS;
-  to: ADDRESS;
-  value: QUANTITY;
   pc: number;
-  data?: string;
   /**
    * Decoded function signature (via 4byte directory)
    */
   signature?: string;
-  args?: { type: string; value: DATA | QUANTITY }[];
+} & (CALLTraceEntry | JUMPTraceEntry | {}); // {} because CREATE and CREATE2 materialize as just the base TraceEntry
+
+export type CALLTraceEntry = {
+  from?: ADDRESS;
+  to?: ADDRESS;
+  value?: QUANTITY;
+  data?: DATA;
+  args?: { type: string; value: QUANTITY | DATA }[];
+};
+
+export type JUMPTraceEntry = {
+  destination: QUANTITY;
+  condition?: QUANTITY;
 };

@@ -122,9 +122,20 @@ export type GasBreakdown<Estimate extends boolean> = {
 };
 
 export type TraceEntry = {
+  /**
+   * The opcode of the trace entry.
+   * Currently limited to opcodes for CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, JUMP, JUMPI
+   *
+   */
   opcode: Data;
+  /**
+   * The name of the opcode (CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, JUMP, JUMPI)
+   */
   name: string;
   pc: number;
+  /**
+   * Decoded function signature (via 4byte directory)
+   */
   signature?: string;
 } & (CALLTraceEntry | JUMPTraceEntry | {}); // {} because CREATE and CREATE2 materialize as just the base TraceEntry
 
