@@ -124,14 +124,23 @@ export type GasBreakdown<Estimate extends boolean> = {
 export type TraceEntry = {
   opcode: Data;
   name: string;
-  from: Address;
-  to: Address;
-  value: Quantity;
   pc: number;
-  data: Data;
   signature?: string;
+} & (CALLTraceEntry | JUMPTraceEntry | {}); // {} because CREATE and CREATE2 materialize as just the base TraceEntry
+
+type CALLTraceEntry = {
+  from?: Address;
+  to?: Address;
+  value?: Quantity;
+  data?: Data;
   args?: { type: string; value: Quantity | Data }[];
 };
+
+type JUMPTraceEntry = {
+  destination: Quantity;
+  condition?: Quantity;
+};
+
 type TransactionSimulationResult<Estimate extends boolean> = {
   returnValue: Data;
   gas: GasBreakdown<Estimate>;
