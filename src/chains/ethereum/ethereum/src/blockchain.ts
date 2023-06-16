@@ -1179,7 +1179,16 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const results: InternalTransactionSimulationResult<Estimate>[] = new Array(
       transactions.length
     );
-    for (let i = 0; i < transactions.length; i++) {
+
+    // We only simulate transactions until a reversion occurs. We hang onto `i`, so that we know how many we simulated.
+    let i = 0;
+    for (
+      ;
+      i < transactions.length &&
+      // break out as soon as we receive an error
+      (i === 0 || results[i - 1].result.exceptionError === undefined);
+      i++
+    ) {
       const transaction = transactions[i];
       const trace: TraceEntry[] = [];
       const storageChanges: {
@@ -1507,7 +1516,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       await vm.eei.cleanupTouchedAccounts();
     }
 
-    return results;
+    return i < transactions.length ? results.slice(0, i) : results;
   }
 
   /**
