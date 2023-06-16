@@ -1,6 +1,6 @@
 import http from "http";
 import fs from "fs";
-let remote = false;
+let remote = true;
 const hostname = remote ? "3.140.186.190" : "localhost";
 const port = remote ? 8080 : 8545;
 

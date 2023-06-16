@@ -64,6 +64,7 @@ type TransactionSimulationArgs<Estimate extends boolean> = {
   overrides?: Ethereum.Call.Overrides;
   trace?: TraceType;
   estimateGas?: Estimate;
+  continueOnFailure?: boolean;
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
@@ -186,7 +187,8 @@ async function simulateTransactions<Estimate extends boolean>(
   blockNumber: QUANTITY | Ethereum.Tag,
   overrides: Ethereum.Call.Overrides = {},
   includeTrace: boolean,
-  includeGasEstimate: Estimate
+  includeGasEstimate: Estimate,
+  continueOnFailure: boolean
 ): Promise<InternalTransactionSimulationResult<Estimate>[]> {
   const blocks = blockchain.blocks;
   const parentBlock = await blocks.get(blockNumber);
@@ -327,7 +329,8 @@ async function simulateTransactions<Estimate extends boolean>(
     parentBlock,
     overrides,
     includeTrace,
-    includeGasEstimate
+    includeGasEstimate,
+    continueOnFailure
   );
 
   return results;
@@ -3066,7 +3069,8 @@ export default class EthereumApi implements Api {
       overrides,
       transactions,
       trace,
-      estimateGas
+      estimateGas,
+      continueOnFailure
     }: TransactionSimulationArgs<Estimate>,
     blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
   ): Promise<TransactionSimulationResult<Estimate>[]> {
@@ -3080,7 +3084,8 @@ export default class EthereumApi implements Api {
       overrides,
       includeTrace,
       //@ts-ignore
-      estimateGas === true
+      estimateGas === true,
+      continueOnFailure === true
     );
 
     return simulatedTransactionResults.map(

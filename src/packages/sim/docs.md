@@ -41,12 +41,20 @@ export type SimulationRequestParams = [
      * This means that if the transaction runs out of gas at the user-specified
      * limit the gas estimate will reflect the amount of gas required to get
      * to the point at which it ran out of gas.
+     * default is `false`
      */
     estimateGas?: boolean;
     /**
      * `true` to return a transaction CALL* trace, otherwise `false`.
+     * default is `false`
      */
     trace?: boolean;
+
+    /**
+     * `true` to run all transactions even if preceding transactions fail.
+     * default is `false`
+     */
+    continueOnFailure?: boolean;
 
     overrides: {
       [address: ADDRESS]: StateOverride;
