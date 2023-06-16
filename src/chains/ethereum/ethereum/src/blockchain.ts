@@ -101,13 +101,17 @@ const opcode = {
   CALLCODE: 0xf2,
   DELEGATECALL: 0xf4,
   STATICCALL: 0xfa,
+  CREATE: 0xf0,
+  CREATE2: 0xf5,
   0x55: "SSTORE",
   0x56: "JUMP",
   0x57: "JUMPI",
   0xf1: "CALL",
   0xf2: "CALLCODE",
   0xf4: "DELEGATECALL",
-  0xfa: "STATICCALL"
+  0xfa: "STATICCALL",
+  0xf0: "CREATE",
+  0xf5: "CREATE2"
 };
 
 export enum Status {
@@ -1242,7 +1246,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
         const stepHandler = async (interpreter: Interpreter) => {
           const runState = (interpreter as any)._runState as RunState;
-          const { opCode, stack, env, programCounter } = runState;
+          const { opCode, stack, env } = runState;
           const codeAddress = env.codeAddress;
 
           if (opCode === opcode.SSTORE) {
@@ -1262,99 +1266,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
               keyBigInt,
               valueBigInt
             ];
-          } else if (
-            includeTrace &&
-            (opCode === opcode.CALL ||
-              opCode === opcode.CALLCODE ||
-              opCode === opcode.DELEGATECALL ||
-              opCode === opcode.STATICCALL)
-          ) {
-            // It'd be nice to show call heirarchy, either with nested calls or similar
-
-            let inLength: bigint,
-              inOffset: bigint,
-              value: bigint,
-              toAddr: bigint;
-            if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
-              [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
-            } else {
-              [inLength, inOffset, toAddr] = stack._store.slice(-4, -1);
+          } else if (includeTrace) {
+            const traceElement = this.makeTraceElement(runState);
+            if (traceElement) {
+              trace.push(traceElement);
             }
-            const dataLength = Number(inLength);
-            const data =
-              dataLength === 0 ? BUFFER_EMPTY : Buffer.allocUnsafe(dataLength);
-            if (dataLength > 0) {
-              const dataOffset = Number(inOffset);
-
-              runState.memory._store.copy(
-                data,
-                0,
-                dataOffset,
-                dataLength + dataOffset
-              );
-            }
-            const to = bigIntToBuffer(toAddr);
-            const functionSelector =
-              data.length >= 4 ? data.readUIntBE(0, 4) : 0;
-            const signature = fourBytes.get(functionSelector);
-
-            let args: { type: string; value: Quantity | Data }[];
-            if (signature) {
-              const parameters = signature
-                .slice(signature.indexOf("(") + 1, signature.length - 1)
-                .split(",");
-              if (parameters.length > 0 && parameters[0] !== "") {
-                try {
-                  const decoded = rawDecode(parameters, data.subarray(4));
-                  args = Array(parameters.length) as any;
-                  for (let i = 0; i < parameters.length; i++) {
-                    const type = parameters[i];
-                    const rawValue = decoded[i];
-                    let value: Data | Quantity;
-                    if (Buffer.isBuffer(rawValue)) {
-                      value = Data.from(rawValue);
-                    } else {
-                      switch (typeof rawValue) {
-                        case "string":
-                          value = Data.from(Buffer.from(rawValue, "hex"));
-                          break;
-                        case "bigint":
-                          value = Quantity.from(bigIntToBuffer(rawValue));
-                          break;
-                        default:
-                          value = Data.from(
-                            Buffer.from(rawValue.toString(16), "hex")
-                          );
-                          break;
-                      }
-                    }
-
-                    args[i] = {
-                      type,
-                      value
-                    };
-                  }
-                } catch (er) {
-                  console.error(
-                    er,
-                    parameters,
-                    Data.from(data.subarray(4)),
-                    typeof value
-                  );
-                }
-              }
-            }
-            trace.push({
-              opcode: Data.from(Buffer.from([opCode])),
-              name: opcode[opCode],
-              from: Address.from(codeAddress.buf),
-              to: Address.from(to),
-              signature,
-              value: value === undefined ? undefined : Quantity.from(value),
-              data: Data.from(data),
-              args,
-              pc: programCounter
-            });
           }
         };
 
@@ -1508,6 +1424,118 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     }
 
     return results;
+  }
+
+  private makeTraceElement(runState: RunState): TraceEntry | undefined {
+    // It'd be nice to show call heirarchy, either with nested calls or similar
+    const { opCode, env, programCounter, stack } = runState;
+    switch (opCode) {
+      case opcode.CALL:
+      case opcode.STATICCALL:
+      case opcode.CALLCODE:
+      case opcode.DELEGATECALL:
+        let inLength: bigint, inOffset: bigint, value: bigint, toAddr: bigint;
+        if (opCode === opcode.CALL || opCode === opcode.CALLCODE) {
+          [inLength, inOffset, value, toAddr] = stack._store.slice(-5, -1);
+        } else {
+          [inLength, inOffset, toAddr] = stack._store.slice(-4, -1);
+        }
+        const dataLength = Number(inLength);
+        const data =
+          dataLength === 0 ? BUFFER_EMPTY : Buffer.allocUnsafe(dataLength);
+        if (dataLength > 0) {
+          const dataOffset = Number(inOffset);
+
+          runState.memory._store.copy(
+            data,
+            0,
+            dataOffset,
+            dataLength + dataOffset
+          );
+        }
+        const to = bigIntToBuffer(toAddr);
+        const functionSelector = data.length >= 4 ? data.readUIntBE(0, 4) : 0;
+        const signature = fourBytes.get(functionSelector);
+
+        let args: { type: string; value: Quantity | Data }[];
+        if (signature) {
+          const parameters = signature
+            .slice(signature.indexOf("(") + 1, signature.length - 1)
+            .split(",");
+          if (parameters.length > 0 && parameters[0] !== "") {
+            try {
+              const decoded = rawDecode(parameters, data.subarray(4));
+              args = Array(parameters.length) as any;
+              for (let i = 0; i < parameters.length; i++) {
+                const type = parameters[i];
+                const rawValue = decoded[i];
+                let value: Data | Quantity;
+                if (Buffer.isBuffer(rawValue)) {
+                  value = Data.from(rawValue);
+                } else {
+                  switch (typeof rawValue) {
+                    case "string":
+                      value = Data.from(Buffer.from(rawValue, "hex"));
+                      break;
+                    case "bigint":
+                      value = Quantity.from(bigIntToBuffer(rawValue));
+                      break;
+                    default:
+                      value = Data.from(
+                        Buffer.from(rawValue.toString(16), "hex")
+                      );
+                      break;
+                  }
+                }
+
+                args[i] = {
+                  type,
+                  value
+                };
+              }
+            } catch (er) {
+              console.error(
+                er,
+                parameters,
+                Data.from(data.subarray(4)),
+                typeof value
+              );
+            }
+          }
+        }
+        return {
+          opcode: Data.from(Buffer.from([opCode])),
+          name: opcode[opCode],
+          from: Address.from(env.codeAddress.buf),
+          to: Address.from(to),
+          signature,
+          value: value === undefined ? undefined : Quantity.from(value),
+          data: Data.from(data),
+          args,
+          pc: programCounter
+        };
+      case opcode.CREATE:
+      case opcode.CREATE2:
+        return {
+          opcode: Data.from(Buffer.from([opCode])),
+          name: opcode[opCode],
+          pc: programCounter
+        };
+      case opcode.JUMP:
+      case opcode.JUMPI:
+        const destination = Quantity.from(stack._store[stack.length - 1]);
+        const condition =
+          opCode === opcode.JUMPI
+            ? Quantity.from(stack._store[stack.length - 1])
+            : undefined;
+        return {
+          opcode: Data.from(Buffer.from([opCode])),
+          name: opcode[opCode],
+          destination,
+          condition,
+          pc: programCounter
+        };
+    }
   }
 
   /**
