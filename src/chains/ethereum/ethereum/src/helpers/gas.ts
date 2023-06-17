@@ -1,7 +1,5 @@
 import { Interpreter } from "@ethereumjs/evm/dist/interpreter";
-import { precompiles } from "@ethereumjs/evm/dist/precompiles";
 import { VM } from "@ethereumjs/vm";
-import { BUFFER_ZERO, Quantity } from "@ganache/utils";
 // gas exactimation:
 // There are opcodes, the CALLs and CREATE (CREATE2? i dunno) that must
 // "withhold" 1/64th of gasLeft from the gasLimit of these internal CALL/CREATE.
@@ -80,7 +78,7 @@ const SSTORE = 0x55;
 const CALL = 0xf1;
 const CALLCODE = 0xf2;
 
-type Node = {
+type Op = {
   /**
    * `code` is required for distinguishing SSTORE opcodes for special rules
    */
@@ -91,8 +89,8 @@ type Node = {
    */
   minimum: bigint;
   stipend: bigint;
-  children: Node[];
-  parent: Node | null;
+  children: Op[];
+  parent: Op | null;
   name: string;
 };
 
@@ -113,9 +111,9 @@ function createNode(
   cost: bigint,
   minimum: bigint,
   stipend: bigint,
-  parent: Node | null,
+  parent: Op | null,
   name: string
-): Node {
+): Op {
   return {
     children: [],
     cost,
@@ -140,9 +138,9 @@ function appendNewCallNode(
   cost: bigint,
   minimum: bigint,
   stipend: bigint,
-  parent: Node,
+  parent: Op,
   name: string
-): Node {
+): Op {
   const newNode = createNode(code, cost, minimum, stipend, parent, name);
   parent.children.push(newNode);
   return newNode;
@@ -153,7 +151,7 @@ function appendNewCallNode(
  *
  * @param node The node to get the last child of.
  */
-function getLastChild({ children }: Node): Node | undefined {
+function getLastChild({ children }: Op): Op | undefined {
   return children[children.length - 1];
 }
 
@@ -172,7 +170,7 @@ function max(a: bigint, b: bigint) {
  *
  * @param node The node to compute the gas costs of.
  */
-function _computeGas(node: Node) {
+function _computeGas(node: Op) {
   const { children, cost, minimum, stipend } = node;
   if (children.length === 0) {
     return {
@@ -239,19 +237,19 @@ function _computeGas(node: Node) {
     // which is:
     // `currentGasLeft = (availableGasLeft * 64) / 63
     // See: https://www.wolframalpha.com/input?i=x+-+%28x%2F64%29+%3D+y
-    const sixtyFloorths = computeAllButOneSixtyFourth(totalMinimum);
+    const sixtyFourSixtyFourths = reverseAllButOneSixtyFloorth(totalMinimum);
 
     // the minimum gas required for this node and it's children, is the
     // children's minimum gas, plus withheld (1/64th) gas, plus the minimum gas
     // to execute this node.
     return {
       cost: totalCost + cost,
-      minimum: sixtyFloorths + minimum
+      minimum: sixtyFourSixtyFourths + minimum
     };
   }
 }
 
-function computeAllButOneSixtyFourth(minimumGas: bigint) {
+function reverseAllButOneSixtyFloorth(minimumGas: bigint) {
   // it's possible for the minimum gas to be zero, without this check we'll
   // end up returning -1n, which is, um, wrong.
   if (minimumGas === 0n) return 0n;
@@ -266,9 +264,9 @@ function computeAllButOneSixtyFourth(minimumGas: bigint) {
   // Because of 1/64th flooring there is precision loss when we want to
   // reverse it. This means there are sometimes two numbers that resolve
   // to the same "all but 1/64th" number. We should always pick the smaller
-  // of the two, since they both will compute the same "all by 1/64th"
+  // of the two, since they both will compute the same "all but 1/64th"
   // anyway.
-  // Two example `gasLeft`s that will result in the same "all by 1/64th"
+  // Two example `gasLeft`s that will result in the same "all but 1/64th"
   // number are `1023` and `1024`. The "all but 1/64th" number is `1008`.
   //https://www.wolframalpha.com/input?i=x+-+%E2%8C%8A%28x%2F64%29%E2%8C%8B+%3D+1008
   return allButOneSixtyFourths % 64n === 0n
@@ -276,60 +274,117 @@ function computeAllButOneSixtyFourth(minimumGas: bigint) {
     : allButOneSixtyFourths;
 }
 
+function processNode(
+  op: Op,
+  results: Map<Op, { cost: bigint; minimum: bigint }>
+) {
+  if (op.children.length === 0) {
+    const cost = max(op.cost - op.stipend, 0n);
+    results.set(op, {
+      cost,
+      minimum: op.minimum
+    });
+  } else {
+    // At any point, `totalMinimum` represents the total minimum gas required to
+    // execute the ops in `this.children` up to that point. This op's cost
+    // will be considered at the end.
+    //
+    // As we iterate over a child, `totalMinimum` becomes the total minimum gas
+    // required to execute the ops in `this.children` up to and including that
+    // op. At this point, `totalMinimum` may be greater than (`totalCost` +
+    // `minimum`) if previous ops had a signficant `minimum > cost` overhead.
+    // e.g.:
+    //
+    // Given ops:
+    // { cost: 10, minimum: 10 },
+    // { cost: 10, minimum: 50 },
+    // { cost: 10, minimum: 30 },
+    //
+    // Before executing the third op:
+    //
+    // `totalCost`    = 20
+    // `this.minimum` = 30
+    // `totalMinimum` = 60
+    //
+    // therefore,
+    // `totalMinimum` := max(totalCost + minimum, totalMinimum)
+    //                := max(20 + 30, 60) = 60
+
+    let totalMinimum = 0n;
+    let totalCost = 0n;
+
+    for (const child of op.children) {
+      const { cost: childCost, minimum } = results.get(child);
+      totalMinimum = max(totalCost + minimum, totalMinimum);
+      // we need to carry the _actual_ cost forward, as that is what we spend,
+      // and is needed to calculate subsequent ops
+      totalCost += childCost;
+    }
+
+    // This op's `stipend` is available (in its entirety - 1/64th is not
+    // "withheld") to its children (in the op's call frame). Therefore, the
+    // `totalMinimum` is decremented by the `stipend` amount. The stipend is not
+    // allowed to reduce the `totalMinimum` to < 0, because the actual _final_
+    // `totalMinimum` must be at least this op's `minimum` value. The
+    // `totalCost` is also decremented by the `stipend` amount, because the
+    // `stipend` is "free gas". No worries if the `totalCost` becomes < 0,
+    // because the the `totalMinimum` will ensure that `gasLeft` never
+    // decrements below 0.
+    if (op.stipend !== 0n) {
+      totalMinimum = max(0n, totalMinimum - op.stipend);
+      totalCost -= op.stipend;
+    }
+
+    // sixtyFourSixtyFourths represents the amount of gas required before the
+    // CALL. It is the amount of gas before 63/64ths is calculated. It is not
+    // neccessarily the amount of gas that is passed to the CALL, i.e.,
+    // `call(gas(), ...)`, as the developer could have specified a their own
+    // gas amount. If the gas amount the dev passed to the CALL is less than
+    // totalMinimum (63/64ths of `sixtyFourSixtyFourths`) then we need to use
+    // that number instead.
+    // This is number is not possible to compute in every case, but we can
+    // guess at it by looking at the difference between `totalMinimum` and the
+    // `gasLeft` at the time of the `CALL`, and the gas the CALL itself actually
+    //  received. think: `delegatecall(sub(gas(), 10000), ...)`
+    // If the CALL received `n` gas less less than the actual gas left at the
+    // time, we can assume the contract did something like:
+    // `delegatecall(sub(preCallGasLimit, n), ...)`
+    const sixtyFourSixtyFourths = reverseAllButOneSixtyFloorth(totalMinimum);
+
+    // the minimum gas required for this op and its children, is the
+    // children's minimum gas, plus withheld (1/64th) gas, plus the minimum gas
+    // to execute this op.
+    results.set(op, {
+      cost: totalCost + op.cost,
+      minimum: sixtyFourSixtyFourths + op.minimum
+    });
+  }
+}
+
 /**
  * Computes the actual and required gas costs of the node.
  *
  * @param root The root node to compute the gas costs of.
  */
-function computeGasIt(root: Node) {
+function computeGasIt(root: Op) {
   // Initialize stack with root node
   const stack: {
-    node: Node;
-    parentResult?: { cost: bigint; minimum: bigint };
-  }[] = [{ node: root }];
-  const results: Map<Node, { cost: bigint; minimum: bigint }> = new Map();
+    op: Op;
+    result?: { cost: bigint; minimum: bigint };
+  }[] = [{ op: root }];
+  const results: Map<Op, { cost: bigint; minimum: bigint }> = new Map();
 
   while (stack.length > 0) {
-    const { node, parentResult } = stack[stack.length - 1];
+    const node = stack[stack.length - 1];
 
-    if (node.children.length > 0 && !parentResult) {
+    if (node.op.children.length > 0 && !node.result) {
       // Push all children to stack, marking the parent as having been processed
-      stack[stack.length - 1].parentResult = { cost: 0n, minimum: 0n };
-      for (const child of node.children) {
-        stack.push({ node: child });
-      }
+      node.result = { cost: 0n, minimum: 0n };
+      for (const child of node.op.children) stack.push({ op: child });
     } else {
       // Process node
       stack.pop();
-      if (node.children.length === 0) {
-        const cost = max(node.cost - node.stipend, 0n);
-        results.set(node, {
-          cost,
-          minimum: node.minimum
-        });
-      } else {
-        let totalMinimum = 0n;
-        let totalCost = 0n;
-
-        for (const child of node.children) {
-          const { cost: childCost, minimum } = results.get(child);
-          totalMinimum = max(totalCost + minimum, totalMinimum);
-          // we need to carry the _actual_ cost forward, as that is what we spend
-          totalCost += childCost;
-        }
-
-        if (node.stipend !== 0n) {
-          totalMinimum = max(0n, totalMinimum - node.stipend);
-          totalCost -= node.stipend;
-        }
-
-        const allButOneSixtyFourths = computeAllButOneSixtyFourth(totalMinimum);
-
-        results.set(node, {
-          cost: totalCost + node.cost,
-          minimum: allButOneSixtyFourths + node.minimum
-        });
-      }
+      processNode(node.op, results);
     }
   }
 
@@ -337,8 +392,8 @@ function computeGasIt(root: Node) {
 }
 
 export class GasTracer {
-  root: Node;
-  node: Node;
+  root: Op;
+  node: Op;
   depth: number;
   constructor(private readonly vm: VM) {
     this.node = this.root = createNode(-1, 0n, 0n, undefined, null, "ROOT");
@@ -387,7 +442,10 @@ export class GasTracer {
     // 1. a depth increasing opcode that updates `this.node` to `this.node`'s last child.
     // 2. a depth decreasing opcode that updates `this.node` to `this.node`'s `parent`.
     // In otherwords: `depth` and `node` don't need to change.
-    appendNewCallNode(-1, gasUsed, gasUsed, 0n, callNode, `PRECOMPILE`);
+    // Note: `callNode` could be `undefined` in cases like when someone sends
+    // a transactions with data to an account that doesn't have code.
+    callNode &&
+      appendNewCallNode(-1, gasUsed, gasUsed, 0n, callNode, `PRECOMPILE`);
   }
 
   /**
@@ -453,7 +511,7 @@ export class GasTracer {
           // over-written (we need it to be a single node to ensure that it's
           // stipend is applied correctly). (actually if it has no children, we
           // can probably calculate it's minimum, cost, and stipend, but will
-          // need to handle it's stipend correctly)
+          // need to handle its stipend correctly)
           previousSibling.stipend === 0n
         ) {
           previousSibling.minimum = previousSibling.cost += fee;
@@ -489,7 +547,7 @@ export class GasTracer {
       this.depth = depth;
     }
 
-    // add the new node `this.node`'s call tree
+    // add the new node to `this.node`'s call tree
     appendNewCallNode(opcode, fee, minimum, stipend, this.node, name);
   }
 
