@@ -1,6 +1,6 @@
 {
   "name": "ganache",
-  "version": "7.8.0-tx-sim.0",
+  "version": "7.8.0-tx-sim.1",
   "description": "A library and cli to create a local blockchain for fast Ethereum development.",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#readme",
