@@ -795,10 +795,12 @@ describe("provider", () => {
             () => closeSync(descriptor),
             "File descriptor is still valid after disconnect() called"
           );
-
-          await unlink(filePath);
         },
-        { unsafeCleanup: true }
+        {
+          // `unsafeCleanup` instructs tmp-promise to recursively remove the
+          // created temporary directory, even when it's not empty.
+          unsafeCleanup: true
+        }
       );
     });
 
