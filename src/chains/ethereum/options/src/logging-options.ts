@@ -100,7 +100,7 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   quiet: {
     normalize,
-    cliDescription: "Set to `true` to disable writing logs to the terminal.",
+    cliDescription: "Set to `true` to disable writing logs to `logger.log` (`stdout` by default).",
     default: () => false,
     cliAliases: ["q", "quiet"],
     cliType: "boolean"
