@@ -45,10 +45,7 @@ function fill(options: any, target: any, def: any, namespace: any) {
   if (hasOwn(options, namespace)) {
     const namespaceOptions = options[namespace];
 
-    for (let i = 0, l = entries.length; i < l; i++) {
-      const entry = entries[i];
-      const key = entry[0];
-      const propDefinition = entry[1];
+    for (const [key, propDefinition] of entries) {
       let value = namespaceOptions[key];
       if (value !== undefined) {
         const normalized = propDefinition.normalize(value);
