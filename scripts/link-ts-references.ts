@@ -5,7 +5,6 @@
 
 import { readFileSync, existsSync, writeFileSync } from "fs-extra";
 import { resolve, join, relative, sep } from "path";
-import { EOL } from "os";
 
 // using `require` because everything in scripts uses typescript's default
 // compiler settings, and these two modules require enabling `esModuleInterop`
@@ -138,7 +137,7 @@ function saveConfigs(configs: PackageInfo[]) {
   configs.forEach(({ modified, path, tsConfig }) => {
     if (modified) {
       const tsConfigFile = join(path, "tsconfig.json");
-      const body = JSON5.stringify(tsConfig, null, 2) + EOL;
+      const body = JSON5.stringify(tsConfig, null, 2) + "\n";
       writeFileSync(tsConfigFile, body);
     }
   });
