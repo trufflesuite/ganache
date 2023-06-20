@@ -16,29 +16,36 @@
 
 If installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
 
-### on Linux (Ubuntu-based)
+Ganache uses [node-gyp v7.1.2](https://github.com/nodejs/node-gyp/tree/v7.1.2) as part of it's build system, which requires Python v2.7, v3.5, v3.6, v3.7, or v3.8 to be installed on the system.
 
-- Determine if you have Python 2.7 installed
-  - example: `which python2.7`
-- If you do not have Python 2.7 installed, you need to install it
-  - example: `sudo apt update && sudo apt install python2.7`
-- Finally, run `npm config set python python2.7`
+In order to debug issues with Python, follow the instructions for your operating system below:
 
 ### on Windows
 
 - Install [https://www.npmjs.com/package/windows-build-tools](Windows-Build-Tools)
   - `npm install --global windows-build-tools`
 
+### on Linux (Ubuntu-based)
+
+- Determine whether you have a compatible version of Python installed:
+  - example: `python --version` (and `python3 --version` if `python3` is installed)
+- If you do not have a compatible version installed: (v2.7, v3.5, v3.6, v3.7, or v3.8), you will need to install it:
+  - example: `sudo apt update && sudo apt install python2.7`
+- You may need to configure the python dependency (see [node-gyp for details on different ways to do this](https://github.com/nodejs/node-gyp/tree/v7.1.2#configuring-python-dependency)):
+  - example: `npm config set python <path-to-python-executable>`
+
 ### on macOS
 
 - Attempt to install Xcode command line tools (the console will tell you if they're already installed)
   - example: `xcode-select --install`
-- Determine if you have Python 2.x installed
-  - example: `which python`
-- If you do not have Python 2.x installed, you need to install it. We recommend `pyenv` for this so you can keep the default macOS Python installation untouched.
+- Determine whether you have a compatible version of Python installed:
+  - example: `python --version` (and `python3 --version` if `python3` is installed)
+- If you do not have a compatible version installed: (v2.7, v3.5, v3.6, v3.7, or v3.8), you will need to install it: (we recommend [pyenv](https://github.com/pyenv/pyenv) to manage your python installation)
   1. [Install `pyenv`](https://github.com/pyenv/pyenv#homebrew-in-macos)
   2. [Setup your shell environment for `pyenv`](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv)
-  3. Install Python 2.x: `pyenv install 2.7.18`
+  3. Install Python: `pyenv install 2.7`
+  4. You may need to configure the python dependency (see [node-gyp for details on different ways to do this](https://github.com/nodejs/node-gyp/tree/v7.1.2#configuring-python-dependency)):
+  - example: `npm config set python <path-to-python-executable>`
 - If the above steps don't fix the `node-gyp` issue and you've recently updated your OS, you may need to re-install Xcode command line tools:
   1. Remove the existing, broken installation: `rm -rf /Library/Developer/CommandLineTools`
   2. Install them again: `xcode-select --install`
