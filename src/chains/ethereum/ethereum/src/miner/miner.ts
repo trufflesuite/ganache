@@ -236,8 +236,8 @@ export default class Miner extends Emittery<{
 
       // don't mine anything at all if maxTransactions is `0`
       if (maxTransactions === Capacity.Empty) {
-        await vm.stateManager.checkpoint();
-        await vm.stateManager.commit();
+        await vm.eei.checkpoint();
+        await vm.eei.commit();
         const finalizedBlockData = runtimeBlock.finalize(
           transactionsTrie.root(),
           receiptTrie.root(),
@@ -262,7 +262,7 @@ export default class Miner extends Emittery<{
 
       // Set a block-level checkpoint so our unsaved trie doesn't update the
       // vm's "live" trie.
-      await vm.stateManager.checkpoint();
+      await vm.eei.checkpoint();
 
       const TraceData = TraceDataFactory();
       // We need to listen for any SSTORE opcodes so we can grab the raw, unhashed version
@@ -305,7 +305,7 @@ export default class Miner extends Emittery<{
 
         // Set a transaction-level checkpoint so we can undo state changes in
         // the case where the transaction is rejected by the VM.
-        await vm.stateManager.checkpoint();
+        await vm.eei.checkpoint();
 
         // Set the internal trie's block number (for forking)
         (vm.stateManager as any)._trie.blockNumber = Quantity.from(
@@ -317,7 +317,7 @@ export default class Miner extends Emittery<{
           const gasUsed = result.totalGasSpent;
           if (blockGasLeft >= gasUsed) {
             // if the transaction will fit in the block, commit it!
-            await vm.stateManager.commit();
+            await vm.eei.commit();
             blockTransactions[numTransactions] = best;
 
             blockGasLeft -= gasUsed;
@@ -373,7 +373,7 @@ export default class Miner extends Emittery<{
             }
           } else {
             // didn't fit in the current block
-            await vm.stateManager.revert();
+            await vm.eei.revert();
 
             // unlock the transaction so the transaction pool can reconsider this
             // transaction
@@ -389,12 +389,12 @@ export default class Miner extends Emittery<{
           // revert its changes here.
           // Note: we don't clean up (`removeBest`, etc) because `runTx`'s
           // error handler does the clean up itself.
-          await vm.stateManager.revert();
+          await vm.eei.revert();
         }
       }
 
       await Promise.all(promises);
-      await vm.stateManager.commit();
+      await vm.eei.commit();
 
       vm.evm.events.removeListener("step", stepListener);
 

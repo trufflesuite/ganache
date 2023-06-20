@@ -268,7 +268,9 @@ export class ForkTrie extends GanacheTrie {
     secureTrie.accounts = this.accounts;
     secureTrie.address = this.address;
     secureTrie.blockNumber = this.blockNumber;
+    secureTrie.isPreForkBlock = this.isPreForkBlock;
     if (includeCheckpoints && this.hasCheckpoints()) {
+      secureTrie.cache = new Map(this.cache);
       secureTrie._db.checkpoints = [...this._db.checkpoints];
 
       // Our metadata checkpoints need to be the same reference to the
