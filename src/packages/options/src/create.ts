@@ -80,10 +80,7 @@ function fill(options: any, target: any, def: any, namespace: any) {
       }
     }
   } else {
-    for (let i = 0, l = entries.length; i < l; i++) {
-      const entry = entries[i];
-      const key = entry[0];
-      const propDefinition = entry[1];
+    for (const [key, propDefinition] of entries) {
 
       const legacyName = propDefinition.legacyName || key;
       const value = options[legacyName];
