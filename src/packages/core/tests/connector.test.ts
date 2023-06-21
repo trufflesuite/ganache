@@ -108,7 +108,7 @@ describe("connector", () => {
     const illegalMethodTypes = [
       123,
       // just cast as string to make TS let me test weird stuff...
-      (Buffer.from([1]) as unknown) as string,
+      Buffer.from([1]) as unknown as string,
       null,
       void 0,
       {},

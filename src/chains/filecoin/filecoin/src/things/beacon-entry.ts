@@ -24,7 +24,8 @@ interface BeaconEntryConfig {
 
 class BeaconEntry
   extends SerializableObject<BeaconEntryConfig>
-  implements DeserializedObject<BeaconEntryConfig> {
+  implements DeserializedObject<BeaconEntryConfig>
+{
   get config(): Definitions<BeaconEntryConfig> {
     return {
       round: {

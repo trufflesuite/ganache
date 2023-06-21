@@ -101,7 +101,8 @@ interface BlockHeaderConfig {
 
 class BlockHeader
   extends SerializableObject<BlockHeaderConfig>
-  implements DeserializedObject<BlockHeaderConfig> {
+  implements DeserializedObject<BlockHeaderConfig>
+{
   get config(): Definitions<BlockHeaderConfig> {
     return {
       miner: {

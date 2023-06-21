@@ -18,7 +18,8 @@ interface RootCIDConfig {
 
 class RootCID
   extends SerializableObject<RootCIDConfig>
-  implements DeserializedObject<RootCIDConfig> {
+  implements DeserializedObject<RootCIDConfig>
+{
   get config(): Definitions<RootCIDConfig> {
     return {
       root: {

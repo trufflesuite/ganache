@@ -6,11 +6,9 @@ import { hasOwn } from "@ganache/utils";
 
 export type NamespacedOptions = { [key: string]: Base.Config };
 
-export type ProviderOptions<O extends NamespacedOptions> = Partial<
-  {
-    [K in keyof O]: ExternalConfig<O[K]>;
-  }
->;
+export type ProviderOptions<O extends NamespacedOptions> = Partial<{
+  [K in keyof O]: ExternalConfig<O[K]>;
+}>;
 
 export type InternalOptions<O extends NamespacedOptions> = {
   [K in keyof O]: InternalConfig<O[K]>;

@@ -71,7 +71,8 @@ type MinerInfoConfig = {
 
 class MinerInfo
   extends SerializableObject<MinerInfoConfig>
-  implements DeserializedObject<MinerInfoConfig> {
+  implements DeserializedObject<MinerInfoConfig>
+{
   get config(): Definitions<MinerInfoConfig> {
     return {
       owner: {

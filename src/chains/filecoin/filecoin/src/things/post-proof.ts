@@ -24,7 +24,8 @@ interface PoStProofConfig {
 
 class PoStProof
   extends SerializableObject<PoStProofConfig>
-  implements DeserializedObject<PoStProofConfig> {
+  implements DeserializedObject<PoStProofConfig>
+{
   get config(): Definitions<PoStProofConfig> {
     return {
       postProof: {

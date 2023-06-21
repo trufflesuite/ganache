@@ -164,9 +164,7 @@ export class BaseHandler {
     method: string,
     params: any[],
     key: string,
-    send: (
-      ...args: unknown[]
-    ) => Promise<{
+    send: (...args: unknown[]) => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
     }>,

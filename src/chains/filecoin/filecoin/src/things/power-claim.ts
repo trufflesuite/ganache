@@ -24,7 +24,8 @@ type PowerClaimConfig = {
 
 class PowerClaim
   extends SerializableObject<PowerClaimConfig>
-  implements DeserializedObject<PowerClaimConfig> {
+  implements DeserializedObject<PowerClaimConfig>
+{
   get config(): Definitions<PowerClaimConfig> {
     return {
       rawBytePower: {

@@ -48,8 +48,7 @@ type PairsToMapping<T extends unknown[]> = T extends []
   : T extends [[infer N, infer O], ...infer R]
   ? {
       [N_ in string & N]: O;
-    } &
-      PairsToMapping<R>
+    } & PairsToMapping<R>
   : never;
 
 type RequireOnly<T, K extends keyof T> = Pick<T, K> & Partial<Omit<T, K>>;

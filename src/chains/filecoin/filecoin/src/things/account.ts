@@ -38,7 +38,8 @@ type AccountConfig = {
 
 class Account
   extends SerializableObject<AccountConfig>
-  implements DeserializedObject<AccountConfig> {
+  implements DeserializedObject<AccountConfig>
+{
   get config(): Definitions<AccountConfig> {
     return {
       address: {

@@ -5,10 +5,7 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": [
-    "index.ts",
-    "types.ts"
-  ],
+  "include": ["index.ts", "types.ts"],
   "references": [
     {
       "name": "@ganache/utils",

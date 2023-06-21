@@ -25,7 +25,8 @@ interface HeadChangeConfig {
 
 class HeadChange
   extends SerializableObject<HeadChangeConfig>
-  implements DeserializedObject<HeadChangeConfig> {
+  implements DeserializedObject<HeadChangeConfig>
+{
   get config(): Definitions<HeadChangeConfig> {
     return {
       type: {

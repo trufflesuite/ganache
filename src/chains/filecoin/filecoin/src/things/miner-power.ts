@@ -31,7 +31,8 @@ type MinerPowerConfig = {
 
 class MinerPower
   extends SerializableObject<MinerPowerConfig>
-  implements DeserializedObject<MinerPowerConfig> {
+  implements DeserializedObject<MinerPowerConfig>
+{
   get config(): Definitions<MinerPowerConfig> {
     return {
       minerPower: {

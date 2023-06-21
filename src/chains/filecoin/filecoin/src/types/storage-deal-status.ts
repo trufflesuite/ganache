@@ -116,36 +116,34 @@ export const terminalStates: Array<StorageDealStatus> = [
   StorageDealStatus.Expired
 ];
 
-export const nextSuccessfulState: Record<
-  StorageDealStatus,
-  StorageDealStatus
-> = [
-  StorageDealStatus.Validating,
-  StorageDealStatus.Staged,
-  StorageDealStatus.ReserveProviderFunds,
-  StorageDealStatus.ReserveClientFunds,
-  StorageDealStatus.FundsReserved,
-  StorageDealStatus.ProviderFunding,
-  StorageDealStatus.ClientFunding,
-  StorageDealStatus.Publish,
-  StorageDealStatus.Publishing,
-  StorageDealStatus.Transferring,
-  StorageDealStatus.Sealing,
-  StorageDealStatus.Active
-].reduce((obj, currentValue, index, array) => {
-  // This creates an object linking each state to its next state
+export const nextSuccessfulState: Record<StorageDealStatus, StorageDealStatus> =
+  [
+    StorageDealStatus.Validating,
+    StorageDealStatus.Staged,
+    StorageDealStatus.ReserveProviderFunds,
+    StorageDealStatus.ReserveClientFunds,
+    StorageDealStatus.FundsReserved,
+    StorageDealStatus.ProviderFunding,
+    StorageDealStatus.ClientFunding,
+    StorageDealStatus.Publish,
+    StorageDealStatus.Publishing,
+    StorageDealStatus.Transferring,
+    StorageDealStatus.Sealing,
+    StorageDealStatus.Active
+  ].reduce((obj, currentValue, index, array) => {
+    // This creates an object linking each state to its next state
 
-  let nextValue: StorageDealStatus;
-  if (index + 1 < array.length) {
-    nextValue = array[index + 1];
-  } else {
-    nextValue = array[index];
-  }
+    let nextValue: StorageDealStatus;
+    if (index + 1 < array.length) {
+      nextValue = array[index + 1];
+    } else {
+      nextValue = array[index];
+    }
 
-  obj[currentValue] = nextValue;
+    obj[currentValue] = nextValue;
 
-  return obj;
-}, {} as Record<StorageDealStatus, StorageDealStatus>);
+    return obj;
+  }, {} as Record<StorageDealStatus, StorageDealStatus>);
 
 export function dealIsInProcess(state: StorageDealStatus) {
   return (

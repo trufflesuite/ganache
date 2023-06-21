@@ -4,7 +4,8 @@ import Emittery from "emittery";
 
 export default class TezosProvider
   extends Emittery<{ ready: undefined; close: undefined }>
-  implements Provider<TezosApi> {
+  implements Provider<TezosApi>
+{
   constructor(providerOptions?: any) {
     super();
     this.emit("ready");

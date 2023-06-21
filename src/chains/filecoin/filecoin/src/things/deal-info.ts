@@ -99,7 +99,8 @@ type DealInfoConfig = {
 
 class DealInfo
   extends SerializableObject<DealInfoConfig>
-  implements DeserializedObject<DealInfoConfig> {
+  implements DeserializedObject<DealInfoConfig>
+{
   get config(): Definitions<DealInfoConfig> {
     return {
       proposalCid: {

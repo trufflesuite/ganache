@@ -67,7 +67,8 @@ type RetrievalOrderConfig = {
 
 class RetrievalOrder
   extends SerializableObject<RetrievalOrderConfig>
-  implements DeserializedObject<RetrievalOrderConfig> {
+  implements DeserializedObject<RetrievalOrderConfig>
+{
   get config(): Definitions<RetrievalOrderConfig> {
     return {
       root: {

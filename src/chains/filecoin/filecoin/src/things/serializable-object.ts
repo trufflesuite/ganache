@@ -77,9 +77,10 @@ type SerializedObject<C extends BaseConfig> = FlattenUnion<
   Values<SerializedObjectWrapper<C>>
 >;
 
-type DefaultValue<D, S> =  // A default value can be:
-  | D // the expected type
-  | ((options?: S) => D); // a fn that takes in a serialized object and returns the type
+type DefaultValue<D, S> = // A default value can be:
+
+    | D // the expected type
+    | ((options?: S) => D); // a fn that takes in a serialized object and returns the type
 type Definition<C extends BaseConfig, N extends PropertyName<C>> = {
   deserializedName: N;
   serializedName: SerializedPropertyName<C, N>;
@@ -106,7 +107,8 @@ interface Serializable<C> {
 }
 
 abstract class SerializableObject<C extends BaseConfig>
-  implements Serializable<SerializedObject<C>> {
+  implements Serializable<SerializedObject<C>>
+{
   protected abstract get config(): Definitions<C>;
 
   // The constructor can take in a serialized object, or a deserialized one.
@@ -127,9 +129,9 @@ abstract class SerializableObject<C extends BaseConfig>
     const deserializedInput: PropertyType<C, N> | undefined = (options as any)[
       valueConfig.deserializedName
     ];
-    const serializedInput:
-      | SerializedPropertyType<C, N>
-      | undefined = (options as any)[valueConfig.serializedName];
+    const serializedInput: SerializedPropertyType<C, N> | undefined = (
+      options as any
+    )[valueConfig.serializedName];
 
     if (typeof deserializedInput !== "undefined") {
       return deserializedInput;
