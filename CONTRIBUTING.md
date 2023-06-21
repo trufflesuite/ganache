@@ -11,6 +11,8 @@
 - `cd ganache`
 - `npm install` (use npm v6)
 - On Linux and macOS: run `source completions.sh` to enable autocomplete for npm scripts.
+- For better local `git diff` results run `git config blame.ignoreRevsFile .git-blame-ignore-revs` to automatically ignore
+  large formatting/style revisions.
 
 ## Solving node-gyp issues
 
