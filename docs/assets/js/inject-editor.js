@@ -16,7 +16,7 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
-function getTheme() {
+function getTheme(userTheme) {
   const styles = getComputedStyle(document.querySelector("#page"));
 
   const format = str => str.trim().substring(1, 9);
@@ -58,7 +58,7 @@ function getTheme() {
     { token: "string", foreground: text4 },
     { token: "keyword", foreground: text6 }
   ];
-  const base = userColorTheme === "light" ? "vs" : "vs-dark";
+  const base = userTheme === "light" ? "vs" : "vs-dark";
   return {
     base,
     colors: {
@@ -78,7 +78,7 @@ function getTheme() {
     const newTheme = e.target.checked === true ? "light" : "dark";
     localStorage.setItem("theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
-    monaco.editor.defineTheme("ganache", getTheme());
+    monaco.editor.defineTheme("ganache", getTheme(newTheme));
   });
 })();
 
@@ -106,9 +106,9 @@ require(["vs/editor/editor.main"], function () {
   const libUri = "ts:filename/provider.d.ts";
   monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
   monaco.editor.createModel(libSource, "typescript", monaco.Uri.parse(libUri));
-  monaco.editor.defineTheme("ganache", getTheme());
+  monaco.editor.defineTheme("ganache", getTheme(userColorTheme));
 
-  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
   let ganachePromise = null;
   async function downloadGanacheIfNeeded() {
     if (Ganache) return;
