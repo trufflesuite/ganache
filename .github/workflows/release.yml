@@ -11,7 +11,7 @@ jobs:
   release:
     # this should match the os version used by the "check bundle size" step in
     # pr.yml
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       TAG: ${{ steps.set_tag_output.outputs.TAG }}
       VERSION: ${{ steps.set_version_output.outputs.VERSION }}
@@ -169,7 +169,7 @@ jobs:
 
   publish-docker:
     needs: release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       # because the docker publish action is an action we made, we have to
       # check out the repo
@@ -177,6 +177,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # by specifying the tag of this version as the ref to checkout, we're
+          # making sure the version we just released to npm is being released to
+          # Docker.
+          ref: v${{ needs.release.outputs.VERSION }}
       - name: Run Ganache's docker publish action
         # we are running our local action, so point directly to a folder
         # containing an `action.yml` file

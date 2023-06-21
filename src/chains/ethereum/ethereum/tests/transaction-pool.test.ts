@@ -92,7 +92,13 @@ describe("transaction pool", async () => {
       },
       common,
       blocks: {
-        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
+        latest: {
+          header: {
+            baseFeePerGas: Quantity.from(875000000),
+            gasLimit: Quantity.from(30000000),
+            gasUsed: Quantity.from(0)
+          }
+        }
       }
     };
   });
@@ -105,7 +111,7 @@ describe("transaction pool", async () => {
     // for this tx pool, we'll have the block gas limit low
     const optionsJson = { miner: { blockGasLimit: "0xff" } };
     const options = EthereumOptionsConfig.normalize(optionsJson);
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
     await assert.rejects(
       txPool.prepareTransaction(executableTx, secretKey),
@@ -117,7 +123,7 @@ describe("transaction pool", async () => {
     );
   });
   it("rejects transactions whose gasLimit is not enough to run the transaction", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain);
+    const txPool = new TransactionPool(options, blockchain);
     // the tx should have a very low gas limit to be rejected
     const lowGasRpc: Transaction = {
       from: from,
@@ -147,11 +153,9 @@ describe("transaction pool", async () => {
         }
       },
       common,
-      blocks: {
-        latest: { header: { baseFeePerGas: Quantity.from(875000000) } }
-      }
+      blocks: blockchain.blocks
     } as any;
-    const txPool = new TransactionPool(options.miner, fakeNonceChain, origins);
+    const txPool = new TransactionPool(options, fakeNonceChain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
     await assert.rejects(
       txPool.prepareTransaction(executableTx, secretKey),
@@ -163,7 +167,7 @@ describe("transaction pool", async () => {
   });
 
   it("rejects executable replacement transactions whose gas price isn't sufficiently high", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
     const isExecutable = await txPool.prepareTransaction(
       executableTx,
@@ -227,7 +231,7 @@ describe("transaction pool", async () => {
   });
 
   it("rejects future nonce replacement transactions whose gas price isn't sufficiently high", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const futureNonceTx = TransactionFactory.fromRpc(futureNonceRpc, common);
     const isExecutable = await txPool.prepareTransaction(
       futureNonceTx,
@@ -261,7 +265,7 @@ describe("transaction pool", async () => {
       maxPriorityFeePerGas: "0xff",
       gasLimit: "0xffff"
     };
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const expensiveTx = TransactionFactory.fromRpc(expensiveRpc, common);
     await assert.rejects(
       txPool.prepareTransaction(expensiveTx, secretKey),
@@ -274,7 +278,7 @@ describe("transaction pool", async () => {
   });
 
   it("adds immediately executable transactions to the pending queue", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
     const isExecutable = await txPool.prepareTransaction(
       executableTx,
@@ -291,7 +295,7 @@ describe("transaction pool", async () => {
   });
 
   it("adds future nonce transactions to the future queue", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const futureNonceTx = TransactionFactory.fromRpc(futureNonceRpc, common);
     const isExecutable = await txPool.prepareTransaction(
       futureNonceTx,
@@ -307,7 +311,7 @@ describe("transaction pool", async () => {
   });
 
   it("replaces immediately executable transactions in the pending queue", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const executableTx = TransactionFactory.fromRpc(executableRpc, common);
     const isExecutable = await txPool.prepareTransaction(
       executableTx,
@@ -357,7 +361,7 @@ describe("transaction pool", async () => {
   });
 
   it("replaces future nonce transactions in the future queue", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const futureNonceTx = TransactionFactory.fromRpc(futureNonceRpc, common);
     const isExecutable = await txPool.prepareTransaction(
       futureNonceTx,
@@ -399,7 +403,7 @@ describe("transaction pool", async () => {
   });
 
   it("executes future transactions when the nonce gap is filled", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const futureNonceTx = TransactionFactory.fromRpc(futureNonceRpc, common);
     const futureIsExecutable = await txPool.prepareTransaction(
       futureNonceTx,
@@ -453,7 +457,7 @@ describe("transaction pool", async () => {
   });
 
   it("sets the transactions nonce appropriately if omitted from the transaction", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     // our transaction doesn't have a nonce up front.
@@ -464,7 +468,7 @@ describe("transaction pool", async () => {
   });
 
   it("can be cleared/emptied", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     await txPool.prepareTransaction(transaction, secretKey);
@@ -496,7 +500,7 @@ describe("transaction pool", async () => {
   });
 
   it("emits an event when a transaction is ready to be mined", async () => {
-    const txPool = new TransactionPool(options.miner, blockchain, origins);
+    const txPool = new TransactionPool(options, blockchain, origins);
     const transaction = TransactionFactory.fromRpc(rpcTx, common);
 
     await txPool.prepareTransaction(transaction, secretKey);

@@ -9,11 +9,13 @@ import {
   UNDERPRICED,
   REPLACED,
   TRANSACTION_LOCKED,
-  INSUFFICIENT_FUNDS
+  INSUFFICIENT_FUNDS,
+  INITCODE_TOO_LARGE
 } from "@ganache/ethereum-utils";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Executables } from "./miner/executables";
 import { TypedTransaction } from "@ganache/ethereum-transaction";
+import { Block } from "@ganache/ethereum-block";
 
 /**
  * Checks if the `replacer` is eligible to replace the `replacee` transaction
@@ -110,7 +112,7 @@ export enum TriageOption {
   ReplacesFutureTransaction = 3
 }
 export default class TransactionPool extends Emittery<{ drain: undefined }> {
-  #options: EthereumInternalOptions["miner"];
+  #options: EthereumInternalOptions;
 
   /**
    * Minimum price bump percentage needed to replace a transaction that already exists in the transaction pool.
@@ -119,7 +121,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
   #blockchain: Blockchain;
   constructor(
-    options: EthereumInternalOptions["miner"],
+    options: EthereumInternalOptions,
     blockchain: Blockchain,
     origins: Map<string, Heap<TypedTransaction>> = new Map()
   ) {
@@ -127,7 +129,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
     this.#blockchain = blockchain;
     this.#options = options;
     this.origins = origins;
-    this.#priceBump = options.priceBump;
+    this.#priceBump = options.miner.priceBump;
   }
   public readonly executables: Executables = {
     inProgress: new Set(),
@@ -188,7 +190,10 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
       !transaction.effectiveGasPrice &&
       this.#blockchain.common.isActivatedEIP(1559)
     ) {
-      const baseFeePerGas = this.#blockchain.blocks.latest.header.baseFeePerGas;
+      const baseFeePerGas = Block.calcNextBaseFee(
+        this.#blockchain.blocks.latest
+      );
+
       transaction.updateEffectiveGasPrice(baseFeePerGas);
     }
 
@@ -461,7 +466,7 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
 
   readonly #validateTransaction = (transaction: TypedTransaction): Error => {
     // Check the transaction doesn't exceed the current block limit gas.
-    if (transaction.gas > this.#options.blockGasLimit) {
+    if (transaction.gas > this.#options.miner.blockGasLimit) {
       return new CodedError(GAS_LIMIT, JsonRpcErrorCode.INVALID_INPUT);
     }
 
@@ -472,6 +477,18 @@ export default class TransactionPool extends Emittery<{ drain: undefined }> {
         INTRINSIC_GAS_TOO_LOW,
         JsonRpcErrorCode.INVALID_INPUT
       );
+    }
+
+    if (
+      transaction.to == null &&
+      transaction.data &&
+      this.#options.chain.allowUnlimitedInitCodeSize === false &&
+      this.#blockchain.common.isActivatedEIP(3860) &&
+      // this is contract creation transaction and it is subject to EIP-3860
+      // which limits the size of initcode to 49152
+      transaction.data.valueOf().length > 49152
+    ) {
+      return new CodedError(INITCODE_TOO_LARGE, JsonRpcErrorCode.INVALID_INPUT);
     }
 
     return null;

@@ -40,22 +40,6 @@ export default class AccountManager {
     return await trieCopy.get(address.toBuffer());
   }
 
-  public async getStorageAt(
-    address: Address,
-    key: Buffer,
-    blockNumber: Buffer | Tag = Tag.latest
-  ) {
-    const { trie, blocks } = this.#blockchain;
-
-    // get the block, its state root, and the trie at that state root
-    const { stateRoot, number } = (await blocks.get(blockNumber)).header;
-    const trieCopy = trie.copy(false);
-    trieCopy.setContext(stateRoot.toBuffer(), address.toBuffer(), number);
-
-    // get the account from the trie
-    return await trieCopy.get(key);
-  }
-
   public async getNonce(
     address: Address,
     blockNumber: QUANTITY | Buffer | Tag = Tag.latest

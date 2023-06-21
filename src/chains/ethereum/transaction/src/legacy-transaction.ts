@@ -13,10 +13,9 @@ import { encodeRange, digest, EncodedPart } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
 import { Transaction } from "./rpc-transaction";
 import {
-  EIP2930AccessListDatabasePayload,
+  EIP2930AccessListRawTransaction,
   GanacheRawExtraTx,
-  LegacyDatabasePayload,
-  TypedDatabaseTransaction
+  LegacyRawTransaction
 } from "./raw";
 import { computeIntrinsicsLegacyTx } from "./signing";
 import { Capability, LegacyTransactionJSON } from "./transaction-types";
@@ -26,7 +25,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x0");
 
   public constructor(
-    data: LegacyDatabasePayload | Transaction,
+    data: LegacyRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -46,14 +45,15 @@ export class LegacyTransaction extends RuntimeTransaction {
       if (!extra) {
         // TODO(hack): Transactions that come from the database must not be
         // validated since they may come from a fork.
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, this.raw, this.common.chainId());
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          this.raw,
+          this.common.chainId()
+        );
 
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
       }
     } else {
       this.gasPrice = this.effectiveGasPrice = Quantity.from(data.gasPrice);
@@ -92,7 +92,7 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: LegacyDatabasePayload | Transaction,
+    data: LegacyRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -100,13 +100,13 @@ export class LegacyTransaction extends RuntimeTransaction {
   }
 
   public static fromEIP2930AccessListTransaction(
-    data: EIP2930AccessListDatabasePayload | Transaction,
+    data: EIP2930AccessListRawTransaction | Transaction,
     common: Common
   ) {
     if (Array.isArray(data)) {
       // remove 1st item, chainId, and 7th item, accessList
       return new LegacyTransaction(
-        data.slice(1, 7).concat(data.slice(8)) as LegacyDatabasePayload,
+        data.slice(1, 7).concat(data.slice(8)) as LegacyRawTransaction,
         common
       );
     }
@@ -116,6 +116,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     const data = this.data.toBuffer();
     return {
       hash: () => BUFFER_32_ZERO,
+      common: this.common,
       nonce: this.nonce.toBigInt(),
       gasPrice: this.gasPrice.toBigInt(),
       gasLimit: this.gas.toBigInt(),
@@ -155,7 +156,7 @@ export class LegacyTransaction extends RuntimeTransaction {
     // for those transactions)
     const eip155IsActive = this.common.gteHardfork("spuriousDragon");
     let chainId: Buffer;
-    let raw: LegacyDatabasePayload;
+    let raw: LegacyRawTransaction;
     let data: EncodedPart;
     let dataLength: number;
     let sig: ECSignResult;
@@ -187,20 +188,18 @@ export class LegacyTransaction extends RuntimeTransaction {
 
     this.raw = raw;
     const encodedSignature = encodeRange(raw, 6, 3);
-    this.serialized = digest(
-      [data.output, encodedSignature.output],
-      dataLength + encodedSignature.length
-    );
+    const ranges = [data.output, encodedSignature.output];
+    const length = dataLength + encodedSignature.length;
+    // serialized is the rlp encoded raw data
+    this.serialized = digest(ranges, length);
     this.hash = Data.from(keccak(this.serialized));
-    this.encodedData = data;
-    this.encodedSignature = encodedSignature;
   }
 
   public toEthRawTransaction(
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): LegacyDatabasePayload {
+  ): LegacyRawTransaction {
     return [
       this.nonce.toBuffer(),
       this.gasPrice.toBuffer(),
@@ -216,10 +215,10 @@ export class LegacyTransaction extends RuntimeTransaction {
 
   public computeIntrinsics(
     v: Quantity,
-    raw: TypedDatabaseTransaction,
+    raw: LegacyRawTransaction,
     chainId: bigint
   ) {
-    return computeIntrinsicsLegacyTx(v, <LegacyDatabasePayload>raw, chainId);
+    return computeIntrinsicsLegacyTx(v, <LegacyRawTransaction>raw, chainId);
   }
   public updateEffectiveGasPrice() {}
 }

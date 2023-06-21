@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [14.0.0, 14.x, 16.x, 18.x]
-        os: [ubuntu-20.04]
+        os: [ubuntu-22.04]
 
     runs-on: ${{ matrix.os }}
 
@@ -35,11 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [14.0.0, 14.x, 16.x, 18.x]
-        os: [windows-2019, ubuntu-18.04, ubuntu-20.04, macos-11]
-        exclude:
-          # Node v18 does not run on ubuntu-18.04: https://github.com/nodejs/node/issues/42351#issuecomment-1068424442
-          - os: ubuntu-18.04
-            node: 18.x
+        os: [windows-2019, ubuntu-20.04, ubuntu-22.04, macos-12]
 
     runs-on: ${{ matrix.os }}
 
@@ -58,29 +54,6 @@ jobs:
         # we need msbuild tools for the `bigint-buffer` module
         if: startsWith(matrix.os, 'windows-')
         uses: microsoft/setup-msbuild@v1.1
-
-      - name: install node tools
-        # we don't need to install the windows-build-tools package, as we
-        # already have almost everything we need. We only need to install
-        # python 2.7. Also windows-build-tools@4 fails to install because some
-        # resources it downloads no longer exist, and windows-build-tools@5
-        # fails to install Python (it will wait on the python installer forever)
-        if: startsWith(matrix.os, 'windows-')
-        uses: actions/setup-python@v2
-        with:
-          python-version: "2.7"
-
-      - name: install node-gyp
-        if: startsWith(matrix.os, 'windows-')
-        run: npm install --global node-gyp@7.1.2
-
-      - name: Set node config to use python2.7
-        if: startsWith(matrix.os, 'windows-')
-        run: npm config set python python2.7
-
-      - name: Set node config to set msvs_version to 2019
-        if: startsWith(matrix.os, 'windows-')
-        run: npm config set msvs_version 2019 --global
 
       - run: npm ci
       - run: npm run tsc

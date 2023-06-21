@@ -89,14 +89,14 @@ export class ForkTrie extends GanacheTrie {
     endBlockNumber: Quantity
   ) {
     const db = this.metadataDB;
-    const stream = db.createReadStream({
+    const stream = db.createKeyStream({
       gte: lexico.encode([startBlockNumber.toBuffer()]),
       lt: lexico.encode([
         Quantity.from(endBlockNumber.toBigInt() + 1n).toBuffer()
       ])
     });
     const batch = db.batch();
-    for await (const [key] of stream) {
+    for await (const key of stream) {
       batch.del(key);
     }
     await batch.write();

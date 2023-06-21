@@ -1,9 +1,8 @@
 import { Data, Quantity } from "@ganache/utils";
 import {
+  encodeWithPrefix,
   GanacheRawBlockTransactionMetaData,
   GanacheRawExtraTx,
-  TransactionFactory,
-  TypedDatabaseTransaction,
   TypedTransaction,
   TypedTransactionJSON
 } from "@ganache/ethereum-transaction";
@@ -11,7 +10,18 @@ import type { Common } from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
 import { BlockHeader, makeHeader } from "./runtime-block";
 import { keccak } from "@ganache/utils";
-import { EthereumRawBlockHeader, GanacheRawBlock } from "./serialize";
+import {
+  BlockRawTransaction,
+  blockTransactionFromRaw,
+  convertRawWithdrawals,
+  EthereumRawBlock,
+  EthereumRawBlockHeader,
+  GanacheRawBlock,
+  GanacheRawBlockExtras,
+  Head,
+  serialize,
+  WithdrawalRaw
+} from "./serialize";
 import { BlockParams } from "./block-params";
 
 export type BaseFeeHeader = BlockHeader &
@@ -27,8 +37,9 @@ export class Block {
   protected _size: number;
   protected _raw: EthereumRawBlockHeader;
   protected _common: Common;
-  protected _rawTransactions: TypedDatabaseTransaction[];
+  protected _rawTransactions: BlockRawTransaction[];
   protected _rawTransactionMetaData: GanacheRawBlockTransactionMetaData[];
+  protected _rawWithdrawals: WithdrawalRaw[] | null;
 
   public header: BlockHeader;
 
@@ -41,11 +52,55 @@ export class Block {
       // TODO: support actual uncle data (needed for forking!)
       // Issue: https://github.com/trufflesuite/ganache/issues/786
       // const uncles = deserialized[2];
-      const totalDifficulty = deserialized[3];
+
+      let totalDifficulty: Buffer;
+      // if there are 7 serialized fields we are after shanghai
+      // as in shanghai we added `withdrawals` to the block data
+      if (deserialized.length === 7) {
+        this._rawWithdrawals = deserialized[3] || []; // added in Shanghai
+        totalDifficulty = deserialized[4];
+        this._rawTransactionMetaData = deserialized[5] || [];
+        this._size = Quantity.toNumber(deserialized[6]);
+      } else {
+        this._rawWithdrawals = null;
+        totalDifficulty = deserialized[3] as any;
+        this._rawTransactionMetaData = (deserialized[4] || []) as any;
+        this._size = Quantity.toNumber(deserialized[5] as any);
+      }
       this.header = makeHeader(this._raw, totalDifficulty);
-      this._rawTransactionMetaData = deserialized[4] || [];
-      this._size = Quantity.toNumber(deserialized[5]);
     }
+  }
+
+  /**
+   * Migrates a serialized Block to the latest version. This should only be
+   * called on serialized data from blocks created before v7.8.0.
+   *
+   * This migration updates the `size` value of the block to the correct value
+   * by re-serializing the block for storage in the db.
+   * @param serialized
+   * @returns
+   */
+  static migrate(serialized: Buffer) {
+    const deserialized = decode<GanacheRawBlock>(serialized);
+    const start = deserialized.slice(0, 3) as EthereumRawBlock;
+    start[1] = start[1].map((oldRawTx: any) => {
+      if (oldRawTx.length === 9) {
+        return oldRawTx; // legacy transactions are fine
+      } else {
+        // `type` is always `< 0x7F`, so we can yank the first byte from the
+        // Buffer without having to think about conversion.
+        // https://eips.ethereum.org/EIPS/eip-2718#transactiontype-only-goes-up-to-0x7f
+        const type = oldRawTx[0][0];
+        const raw = oldRawTx.slice(1);
+        // type 1 and 2 transactions were encoded within the block as:
+        // `[type, ...rawTx]` when they should have been `[type, encode(rawTx)]`
+        return encodeWithPrefix(type, raw);
+      }
+    });
+    return serialize(
+      start,
+      deserialized.slice(3, 5) as Head<GanacheRawBlockExtras>
+    ).serialized;
   }
 
   private _hash: Data;
@@ -57,16 +112,18 @@ export class Block {
 
   getTransactions() {
     const common = this._common;
+    const blockHash = this.hash().toBuffer();
+    const number = this.header.number.toBuffer();
     return this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
         from,
         hash,
-        this.hash().toBuffer(),
-        this.header.number.toBuffer(),
+        blockHash,
+        number,
         Quantity.toBuffer(index)
       ];
-      return TransactionFactory.fromDatabaseTx(raw, common, extra);
+      return blockTransactionFromRaw(raw, common, extra);
     });
   }
 
@@ -79,7 +136,7 @@ export class Block {
     const header = this.header;
     const number = header.number.toBuffer();
     const common = this._common;
-    const jsonTxs = this._rawTransactions.map((raw, index) => {
+    const transactions = this._rawTransactions.map((raw, index) => {
       const [from, hash] = this._rawTransactionMetaData[index];
       const extra: GanacheRawExtraTx = [
         from,
@@ -88,12 +145,12 @@ export class Block {
         number,
         Quantity.toBuffer(index)
       ];
-      const tx = TransactionFactory.fromDatabaseTx(raw, common, extra);
+      const tx = blockTransactionFromRaw(raw, common, extra);
       // we could either parse the raw data to check if the tx is type 2,
       // get the maxFeePerGas and maxPriorityFeePerGas, use those to calculate
       // the effectiveGasPrice and add it to `extra` above, or we can just
       // leave it out of extra and update the effectiveGasPrice after like this
-      tx.updateEffectiveGasPrice(header.baseFeePerGas);
+      tx.updateEffectiveGasPrice(header.baseFeePerGas?.toBigInt());
       return txFn(tx);
     }) as IncludeTransactions extends true ? TypedTransactionJSON[] : Data[];
 
@@ -101,8 +158,11 @@ export class Block {
       hash,
       ...header,
       size: Quantity.from(this._size),
-      transactions: jsonTxs,
-      uncles: [] as Data[] // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+      transactions,
+      uncles: [] as Data[], // this.value.uncleHeaders.map(function(uncleHash) {return to.hex(uncleHash)})
+      // if `this._rawWithdrawals` is not set we should not include it in the
+      // JSON response (`undefined` gets stripped when JSON.stringify is called).
+      withdrawals: this._rawWithdrawals?.map(convertRawWithdrawals)
     };
   }
 
@@ -114,23 +174,6 @@ export class Block {
     } else {
       return (tx: TypedTransaction) => tx.hash;
     }
-  }
-
-  static fromParts(
-    rawHeader: EthereumRawBlockHeader,
-    txs: TypedDatabaseTransaction[],
-    totalDifficulty: Buffer,
-    extraTxs: GanacheRawBlockTransactionMetaData[],
-    size: number,
-    common: Common
-  ): Block {
-    const block = new Block(null, common);
-    block._raw = rawHeader;
-    block._rawTransactions = txs;
-    block.header = makeHeader(rawHeader, totalDifficulty);
-    block._rawTransactionMetaData = extraTxs;
-    block._size = size;
-    return block;
   }
 
   static calcNextBaseFeeBigInt(parentHeader: BaseFeeHeader) {

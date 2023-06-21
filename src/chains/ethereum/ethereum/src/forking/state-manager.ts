@@ -1,14 +1,13 @@
 import { Address as EJS_Address } from "@ethereumjs/util";
 import { decode } from "@ganache/rlp";
-import { DefaultStateManager as StateManager } from "@ethereumjs/statemanager";
-import AccountManager from "../data-managers/account-manager";
 import { ForkCache } from "./cache";
 import { ForkTrie } from "./trie";
+import { GanacheStateManager } from "../state-manager";
 
 /**
- * Options for constructing a [[StateManager]].
+ * Options for constructing a [[GanacheStateManager]].
  */
-export interface DefaultStateManagerOpts {
+export interface ForkStateManagerOpts {
   /**
    * An [`@ethereumjs/trie`](https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/trie) instance
    */
@@ -25,14 +24,14 @@ export interface DefaultStateManagerOpts {
  * Interface for getting and setting data from an underlying
  * state trie.
  */
-export class ForkStateManager extends StateManager {
+export class ForkStateManager extends GanacheStateManager {
   _cache: ForkCache;
   readonly prefixCodeHashes: boolean;
 
   /**
    * Instantiate the StateManager interface.
    */
-  constructor(opts: DefaultStateManagerOpts) {
+  constructor(opts: ForkStateManagerOpts) {
     super(opts);
 
     this._cache = new ForkCache(opts.trie);
@@ -44,7 +43,7 @@ export class ForkStateManager extends StateManager {
    * at the last fully committed point, i.e. as if all current
    * checkpoints were reverted.
    */
-  copy(): StateManager {
+  copy(): ForkStateManager {
     return new ForkStateManager({
       trie: this._trie.copy(false) as ForkTrie,
       prefixCodeHashes: this.prefixCodeHashes

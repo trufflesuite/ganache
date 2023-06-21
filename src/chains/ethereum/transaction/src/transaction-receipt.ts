@@ -133,30 +133,19 @@ export class InternalTransactionReceipt {
     }
   }
 
-  public toJSON(
-    block: {
-      hash(): Data;
-      header: { number: Quantity; baseFeePerGas?: Quantity };
-    },
-    transaction: TypedTransaction,
-    common: Common
-  ) {
+  public toJSON(transaction: TypedTransaction, common: Common) {
     const raw = this.raw;
     const contractAddress =
       this.contractAddress.length === 0
         ? null
         : Data.from(this.contractAddress);
-    const blockHash = block.hash();
-    const blockNumber = block.header.number;
+    const { blockHash, blockNumber } = transaction;
     const blockLog = BlockLogs.create(blockHash);
     const transactionHash = transaction.hash;
     const transactionIndex = transaction.index;
     blockLog.blockNumber = blockNumber;
     raw[3].forEach(l => blockLog.append(transactionIndex, transactionHash, l));
     const logs = [...blockLog.toJSON()];
-    if (block.header.baseFeePerGas) {
-      transaction.updateEffectiveGasPrice(block.header.baseFeePerGas);
-    }
     const json: TransactionReceipt = {
       transactionHash,
       transactionIndex,

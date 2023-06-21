@@ -116,11 +116,7 @@ describe("server", () => {
     return deferred;
   }
 
-  // skip this test unless in GitHub Actions, as this test iterates over
-  // all available network interfaces and network interfaces on user
-  // machines are unpredictible and may behave in ways that we don't care
-  // about.
-  (process.env.GITHUB_ACTION ? describe : describe.skip)("listen", function () {
+  describe("listen", function () {
     function isIPv6(
       info: NetworkInterfaceInfo
     ): info is NetworkInterfaceInfoIPv6 {
@@ -132,7 +128,7 @@ describe("server", () => {
     function getHost(info: NetworkInterfaceInfo, interfaceName: string) {
       // a link-local ipv6 address starts with fe80:: and _must_ include a "zone_id"
       if (isIPv6(info) && info.address.startsWith("fe80::")) {
-        if (process.platform == "win32") {
+        if (IS_WINDOWS) {
           // on windows the zone_id is the scopeid
           return `${info.address}%${info.scopeid}`;
         } else {
@@ -159,7 +155,13 @@ describe("server", () => {
       return validInterfaces;
     }
 
-    it("listens on all interfaces by default", async () => {
+    it("listens on all interfaces by default", async function () {
+      // This test iterates over all available network interfaces. This can be problematic on user
+      // machines (which may be configured in unsupported ways), so we skip it in this case.
+      if (process.env.CI !== "true") {
+        this.skip();
+      }
+
       await setup();
       try {
         const interfaces = getNetworkInterfaces();
@@ -190,10 +192,12 @@ describe("server", () => {
     });
 
     it("listens on given interface only", async function () {
-      // skip this test unless in CI, as this test iterates over all available network interfaces
-      // and network interfaces on user machines are unpredictible and may behave in ways that
-      // we don't care about.
-      if (process.env.CI) this.skip();
+      // This test iterates over all available network interfaces. This can be problematic on user
+      // machines (which may be configured in unsupported ways), and also in macOS (which exposes
+      // unsupported interfaces). In these cases, we skip this test.
+      if (process.env.CI !== "true" || process.platform === "darwin") {
+        this.skip();
+      }
 
       const interfaces = networkInterfaces();
       assert(Object.keys(interfaces).length > 0);
@@ -336,15 +340,71 @@ describe("server", () => {
 
       for (const specificPort of validPorts) {
         s = Ganache.server(defaultOptions);
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null before `server.listen(...)` is called"
+        );
         await s.listen(<any>specificPort);
 
         try {
+          const address = s.address();
+          assert.notEqual(
+            address,
+            null,
+            "server.address() should not be null after listening"
+          );
+          assert.strictEqual(
+            address!.port,
+            +specificPort,
+            "server.address().port should be equal to the specified port after server.listen(nonZeroPort)"
+          );
           const req = request.post(`http://localhost:${+specificPort}`);
           await req.send(jsonRpcJson);
         } finally {
           await teardown();
         }
+        assert.strictEqual(
+          s.address(),
+          null,
+          "server.address() should be null after server is stopped"
+        );
       }
+    });
+
+    it("finds a port to listen on when port is 0", async () => {
+      const zeroPort = 0;
+      s = Ganache.server(defaultOptions);
+      assert.strictEqual(
+        s.address(),
+        null,
+        "server.address() should be null before `server.listen(...)` is called"
+      );
+      await s.listen(zeroPort);
+
+      try {
+        const address = s.address();
+        assert.notEqual(
+          address,
+          null,
+          "server.address() should not be null after listening"
+        );
+        const specificPort = address!.port;
+        assert.notStrictEqual(
+          specificPort,
+          zeroPort,
+          "server.address().port should be non-zero after server.listen(0)"
+        );
+        const req = request.post(`http://localhost:${+specificPort}`);
+        await req.send(jsonRpcJson);
+      } finally {
+        await teardown();
+      }
+      assert.strictEqual(
+        s.address(),
+        null,
+        "server.address() should be null after server is stopped"
+      );
     });
 
     it("fails with invalid ports", async () => {
@@ -369,8 +429,7 @@ describe("server", () => {
         "-0o1",
         "-0b1",
         "0o",
-        "0b",
-        0
+        "0b"
       ];
 
       for (const specificPort of invalidPorts) {
@@ -493,10 +552,10 @@ describe("server", () => {
       server.listen(port);
 
       try {
-        await assert.rejects(
-          setup(),
-          `Error: listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
-        );
+        await assert.rejects(setup(), {
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`,
+          code: "EADDRINUSE"
+        });
       } finally {
         await Promise.all([
           teardown(),
@@ -517,7 +576,8 @@ describe("server", () => {
         const s = Ganache.server();
         const listen = promisify(s.listen.bind(s));
         await assert.rejects(listen(port), {
-          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`
+          message: `listen EADDRINUSE: address already in use 127.0.0.1:${port}.`,
+          code: "EADDRINUSE"
         });
       } finally {
         await Promise.all([

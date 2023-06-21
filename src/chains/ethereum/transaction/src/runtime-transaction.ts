@@ -6,16 +6,13 @@ import {
 import { Data, Quantity, BUFFER_ZERO } from "@ganache/utils";
 import { Transaction } from "./rpc-transaction";
 import type { Common } from "@ethereumjs/common";
-import {
-  GanacheRawExtraTx,
-  TypedDatabasePayload,
-  TypedDatabaseTransaction
-} from "./raw";
+import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
 import type { RunTxResult } from "@ethereumjs/vm";
 import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
+import { encodeWithPrefix } from "./signing";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
   const buffer = Data.toBuffer(address);
@@ -61,15 +58,13 @@ export abstract class RuntimeTransaction extends BaseTransaction {
   public receipt: InternalTransactionReceipt;
   public execException: RuntimeError;
 
-  public raw: TypedDatabaseTransaction | null;
+  public raw: TypedRawTransaction;
   public serialized: Buffer;
-  public encodedData: EncodedPart;
-  public encodedSignature: EncodedPart;
   private finalizer: (eventData: TransactionFinalization) => void;
   private finalized: Promise<TransactionFinalization>;
 
   constructor(
-    data: TypedDatabasePayload | Transaction,
+    data: TypedRawTransaction | Transaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -108,9 +103,14 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     blockNumber: Quantity,
     transactionIndex: Quantity
   ): Buffer {
+    const legacy = this.raw.length === 9;
     // todo(perf):make this work with encodeRange and digest
-    const txAndExtraData: [TypedDatabaseTransaction, GanacheRawExtraTx] = [
-      this.raw,
+    const txAndExtraData: [TypedRawTransaction, GanacheRawExtraTx] = [
+      // todo: this is encoded differently in the tx table than it is in the
+      // block table. we should migrate the tx table to use the same format as
+      // the block (`Buffer.concat([type, encode(raw)])`) so that we can avoid
+      // block it twice for each block save step.
+      legacy ? this.raw : ([this.type.toBuffer(), ...this.raw] as any),
       [
         this.from.toBuffer(),
         this.hash.toBuffer(),
@@ -184,15 +184,18 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       this.s = Quantity.from(data.s, true);
 
       // compute the `hash` and the `from` address
-      const raw: TypedDatabaseTransaction = this.toEthRawTransaction(
+      const raw: TypedRawTransaction = this.toEthRawTransaction(
         this.v.toBuffer(),
         this.r.toBuffer(),
         this.s.toBuffer()
       );
       this.raw = raw;
       if (!this.from) {
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, raw, this.common.chainId());
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          raw,
+          this.common.chainId()
+        );
 
         // if the user specified a `from` address in addition to the  `v`, `r`,
         //  and `s` values, make sure the `from` address matches
@@ -207,8 +210,6 @@ export abstract class RuntimeTransaction extends BaseTransaction {
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
       }
     } else if (data.from != null) {
       // we don't have a signature yet, so we just need to record the `from`
@@ -224,7 +225,7 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    *
    * Note: it is possible to be confirmed AND have an error
    *
-   * @param event - "finalized"
+   * @param _event - "finalized"
    */
   public once(_event: "finalized") {
     return this.finalized;
@@ -247,14 +248,14 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): TypedDatabaseTransaction;
+  ): TypedRawTransaction;
 
   protected abstract computeIntrinsics(
     v: Quantity,
-    raw: TypedDatabaseTransaction,
+    raw: TypedRawTransaction,
     chainId: bigint
   );
 
   protected abstract toVmTransaction();
-  protected abstract updateEffectiveGasPrice(baseFeePerGas?: Quantity);
+  protected abstract updateEffectiveGasPrice(baseFeePerGas: bigint);
 }

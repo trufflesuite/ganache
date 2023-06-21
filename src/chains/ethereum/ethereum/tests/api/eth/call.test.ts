@@ -17,6 +17,7 @@ import {
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { GanacheTrie } from "../../../src/helpers/trie";
 import { Transaction } from "@ganache/ethereum-transaction";
+import { KECCAK256_RLP } from "@ethereumjs/util";
 
 const encodeValue = (val: number | string) => {
   return Quantity.toBuffer(val).toString("hex").padStart(64, "0");
@@ -203,6 +204,67 @@ describe("api", () => {
               "VM Exception while processing transaction: revert you are a failure",
             data: revertString
           });
+        });
+
+        it("warms coinbase when shanghai is active", async () => {
+          // eth_call uses evm.runCall which doesn't warm addreses, so we handle it
+          // ourselves
+
+          const preShanghaiProvider = await getProvider({
+            wallet: { deterministic: true },
+            chain: { hardfork: "merge" },
+            miner: {
+              coinbase:
+                "0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B" /*a random address*/
+            }
+          });
+          const [from] = await preShanghaiProvider.send("eth_accounts");
+          const preShanghaiContractAddress = await deployContract(
+            preShanghaiProvider,
+            from,
+            contract.code
+          );
+          const tx = {
+            from,
+            to: preShanghaiContractAddress,
+            data: "0x779c0854", // accessCoinBase, which actually returns gasleft after using the coinbase address
+            gasLimit: "0xffffff"
+          };
+          const preShanghaiGasLeft = await preShanghaiProvider.send(
+            "eth_call",
+            [tx, "latest"]
+          );
+
+          const postShanghaiProvider = await getProvider({
+            wallet: { deterministic: true },
+            chain: { hardfork: "shanghai" },
+            miner: {
+              coinbase:
+                "0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B" /*a random address*/
+            }
+          });
+          const postShanghaiContractAddress = await deployContract(
+            postShanghaiProvider,
+            from,
+            contract.code
+          );
+          tx.to = postShanghaiContractAddress;
+
+          const postShanghaiGasLeft = await postShanghaiProvider.send(
+            "eth_call",
+            [tx, "latest"]
+          );
+
+          // reading the coinbase address from the block is cheaper after
+          // shanghai as it is treated as a "warm" address nt
+          assert(
+            BigInt(preShanghaiGasLeft) < BigInt(postShanghaiGasLeft),
+            `postShanghaiGasLeft ${BigInt(
+              postShanghaiGasLeft
+            )} should be greater than preShanghaiGasLeft ${BigInt(
+              preShanghaiGasLeft
+            )}`
+          );
         });
       });
 
@@ -873,6 +935,7 @@ describe("api", () => {
           const parentHeader = parentBlock.header;
           gas = Quantity.from("0xfffff");
           const block = new RuntimeBlock(
+            blockchain.common,
             parentHeader.number,
             parentHeader.parentHash,
             blockchain.coinbase,
@@ -882,7 +945,8 @@ describe("api", () => {
             Quantity.One, // difficulty
             parentHeader.totalDifficulty,
             BUFFER_32_ZERO,
-            parentHeader.baseFeePerGas.toBigInt()
+            parentHeader.baseFeePerGas.toBigInt(),
+            KECCAK256_RLP
           );
           vmFromAddress = Address.from(from);
           vmToAddress = Address.from(to);

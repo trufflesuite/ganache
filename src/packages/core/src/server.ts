@@ -5,16 +5,6 @@ import {
   serverOptionsConfig
 } from "./options";
 
-import allSettled from "promise.allsettled";
-
-// This `shim()` is necessary for `Promise.allSettled` to be shimmed
-// in `node@10`. We cannot use `allSettled([...])` directly due to
-// https://github.com/es-shims/Promise.allSettled/issues/5 without
-// upgrading Typescript. TODO: if Typescript is upgraded to 4.2.3+
-// then this line could be removed and `Promise.allSettled` below
-// could replaced with `allSettled`.
-allSettled.shim();
-
 import AggregateError from "aggregate-error";
 import type {
   TemplatedApp,
@@ -23,6 +13,7 @@ import type {
 import {
   App,
   us_listen_socket_close,
+  us_socket_local_port,
   _cfg as setUwsGlobalConfig
 } from "@trufflesuite/uws-js-unofficial";
 
@@ -43,6 +34,13 @@ import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
 
+// not using the "net" node package in order to avoid having to polyfill this
+// for the browser build.
+// isIPv4 taken from https://github.com/nodejs/node/blob/01323d50c4b24cf730a651d06ba20633905ecbed/lib/internal/net.js#L31
+const v4Seg = "(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
+const IPv4Reg = new RegExp(`^(${v4Seg}[.]){3}${v4Seg}$`);
+const isIPv4 = (s: string) => IPv4Reg.test(s);
+
 export type Provider = Connector["provider"];
 
 const DEFAULT_HOST = "127.0.0.1";
@@ -53,13 +51,13 @@ export type Callback = (err: Error | null) => void;
  * Server ready state constants.
  *
  * These are bit flags. This means that you can check if the status is:
- *  * ready: `status === Status.ready` or `status & Status.ready !== 0`
- *  * opening: `status === Status.opening` or `status & Status.opening !== 0`
- *  * open: `status === Status.open` or `status & Status.open !== 0`
- *  * opening || open: `status & Status.openingOrOpen !== 0` or `status & (Status.opening | Status.open) !== 0`
- *  * closing: `status === Status.closing` or `status & Status.closing !== 0`
- *  * closed: `status === Status.closed` or `status & Status.closed !== 0`
- *  * closing || closed: `status & Status.closingOrClosed !== 0` or `status & (Status.closing | Status.closed) !== 0`
+ *  * ready: `status === ServerStatus.ready` or `status & ServerStatus.ready !== 0`
+ *  * opening: `status === ServerStatus.opening` or `status & ServerStatus.opening !== 0`
+ *  * open: `status === ServerStatus.open` or `status & ServerStatus.open !== 0`
+ *  * opening || open: `status & ServerStatus.openingOrOpen !== 0` or `status & (ServerStatus.opening | ServerStatus.open) !== 0`
+ *  * closing: `status === ServerStatus.closing` or `status & ServerStatus.closing !== 0`
+ *  * closed: `status === ServerStatus.closed` or `status & ServerStatus.closed !== 0`
+ *  * closing || closed: `status & ServerStatus.closingOrClosed !== 0` or `status & (ServerStatus.closing | ServerStatus.closed) !== 0`
  */
 export enum ServerStatus {
   /**
@@ -116,6 +114,7 @@ export class Server<
   #app: TemplatedApp | null = null;
   #httpServer: HttpServer | null = null;
   #listenSocket: us_listen_socket | null = null;
+  #host: string | null = null;
   #connector: ConnectorsByName[Flavor];
   #websocketServer: WebsocketServer | null = null;
 
@@ -193,8 +192,7 @@ export class Server<
       (typeof port !== "number" && typeof port !== "string") ||
       (typeof port === "string" && (<string>port).trim().length === 0) ||
       +port !== +port >>> 0 ||
-      port > 0xffff ||
-      port === 0
+      port > 0xffff
     ) {
       const err = new Error(
         `Port should be >= 0 and < 65536. Received ${port}.`
@@ -249,13 +247,16 @@ export class Server<
         if (listenSocket) {
           this.#status = ServerStatus.open;
           this.#listenSocket = listenSocket;
+          this.#host = (host as string) || DEFAULT_HOST;
         } else {
           this.#status = ServerStatus.closed;
           const err = new Error(
             `listen EADDRINUSE: address already in use ${
               host || DEFAULT_HOST
             }:${portNumber}.`
-          );
+          ) as NodeJS.ErrnoException;
+          // emulate part of node's EADDRINUSE error:
+          err.code = "EADDRINUSE";
           throw err;
         }
       })
@@ -263,10 +264,10 @@ export class Server<
       const errors: Error[] = [];
 
       if (promiseResults[0].status === "rejected") {
-        errors.push(promiseResults[0].reason);
+        errors.push(promiseResults[0].reason as Error);
       }
       if (promiseResults[1].status === "rejected") {
-        errors.push(promiseResults[1].reason);
+        errors.push(promiseResults[1].reason as Error);
       }
 
       if (errors.length === 0) {
@@ -290,6 +291,19 @@ export class Server<
       promise.then(() => callback(null)).catch(callback);
     } else {
       return promise;
+    }
+  }
+
+  public address() {
+    if (this.#listenSocket) {
+      const address = this.#host;
+      return {
+        address,
+        family: isIPv4(address) ? "IPv4" : "IPv6",
+        port: us_socket_local_port(this.#listenSocket)
+      };
+    } else {
+      return null;
     }
   }
 

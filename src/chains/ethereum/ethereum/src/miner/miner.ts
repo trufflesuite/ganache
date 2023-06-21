@@ -71,7 +71,7 @@ const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
   values[a].effectiveGasPrice > values[b].effectiveGasPrice;
 
-const refresher = (item: TypedTransaction, context: Quantity) =>
+const refresher = (item: TypedTransaction, context: bigint) =>
   item.updateEffectiveGasPrice(context);
 
 export default class Miner extends Emittery<{
@@ -93,7 +93,7 @@ export default class Miner extends Emittery<{
   #isBusy: boolean = false;
   #paused: boolean = false;
   #resumer: Promise<void>;
-  #currentBlockBaseFeePerGas: Quantity;
+  #currentBlockBaseFeePerGas: bigint;
   #resolver: (value: void) => void;
 
   /**
@@ -127,10 +127,7 @@ export default class Miner extends Emittery<{
   }
 
   // create a Heap that sorts by gasPrice
-  readonly #priced = new Heap<TypedTransaction, Quantity>(
-    sortByPrice,
-    refresher
-  );
+  readonly #priced = new Heap<TypedTransaction, bigint>(sortByPrice, refresher);
   /*
    * @param executables - A live Map of pending transactions from the transaction
    * pool. The miner will update this Map by removing the best transactions
@@ -149,7 +146,7 @@ export default class Miner extends Emittery<{
     this.#executables = executables;
     this.#createBlock = (previousBlock: Block) => {
       const newBlock = createBlock(previousBlock);
-      this.#setCurrentBlockBaseFeePerGas(newBlock);
+      this.#currentBlockBaseFeePerGas = newBlock.header.baseFeePerGas;
       return newBlock;
     };
 
@@ -182,7 +179,7 @@ export default class Miner extends Emittery<{
       this.#updatePricedHeap();
       return;
     } else {
-      this.#setCurrentBlockBaseFeePerGas(block);
+      this.#currentBlockBaseFeePerGas = block.header.baseFeePerGas;
       this.#setPricedHeap();
       const result = await this.#mine(block, maxTransactions, onlyOneBlock);
       this.emit("idle");
@@ -460,6 +457,7 @@ export default class Miner extends Emittery<{
     vm.evm.events.on("step", stepListener);
     try {
       return await vm.runTx({
+        skipHardForkValidation: true,
         tx: tx.toVmTransaction() as any,
         block: block as any
       });
@@ -584,15 +582,4 @@ export default class Miner extends Emittery<{
   public toggleStepEvent(enable: boolean) {
     this.#emitStepEvent = enable;
   }
-
-  /**
-   * Sets the #currentBlockBaseFeePerGas property if the current block
-   * has a baseFeePerGas property
-   */
-  #setCurrentBlockBaseFeePerGas = (block: RuntimeBlock) => {
-    const baseFeePerGas = block.header.baseFeePerGas;
-    // before london hard fork, there will be no baseFeePerGas on the block
-    this.#currentBlockBaseFeePerGas =
-      baseFeePerGas === undefined ? undefined : Quantity.from(baseFeePerGas);
-  };
 }

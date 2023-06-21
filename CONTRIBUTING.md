@@ -16,9 +16,7 @@
 
 If installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
 
-Ganache uses [node-gyp v7.1.2](https://github.com/nodejs/node-gyp/tree/v7.1.2) as part of its build system, which requires Python v2.7, v3.5, v3.6, v3.7, or v3.8 to be installed on the system.
-
-In order to debug issues with Python, follow the instructions for your operating system below:
+note: Ganache uses [node-gyp v7.1.2](https://github.com/nodejs/node-gyp/tree/v7.1.2) as part of its build system, which requires Python v2.7, v3.5, v3.6, v3.7, or v3.8 to be installed on the system.
 
 ### on Windows
 
@@ -27,6 +25,9 @@ In order to debug issues with Python, follow the instructions for your operating
 
 ### on Linux (Ubuntu-based)
 
+- Make sure `npm` commands are not run as `root`.
+- If you get an error that `make` isn't installed you might need to also install the `build-essential` package
+ - example `sudo apt update && sudo apt install build-essential`
 - Determine whether you have a compatible version of Python installed:
   - example: `python --version` (and `python3 --version` if `python3` is installed)
 - If you do not have a compatible version installed: (v2.7, v3.5, v3.6, v3.7, or v3.8), you will need to install it:

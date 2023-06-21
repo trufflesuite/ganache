@@ -10,22 +10,16 @@ import {
 } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import type { Common } from "@ethereumjs/common";
-import { Transaction } from "./rpc-transaction";
-import { encodeRange, digest } from "@ganache/rlp";
+import { EIP1559FeeMarketRpcTransaction } from "./rpc-transaction";
+import { encodeRange } from "@ganache/rlp";
 import { RuntimeTransaction } from "./runtime-transaction";
-import {
-  EIP1559FeeMarketDatabasePayload,
-  EIP1559FeeMarketDatabaseTx,
-  GanacheRawExtraTx,
-  TypedDatabaseTransaction
-} from "./raw";
+import { EIP1559FeeMarketRawTransaction, GanacheRawExtraTx } from "./raw";
 import { AccessList, AccessListBuffer, AccessLists } from "./access-lists";
-import { computeIntrinsicsFeeMarketTx } from "./signing";
+import { computeIntrinsicsFeeMarketTx, digestWithPrefix } from "./signing";
 import {
   Capability,
   EIP1559FeeMarketTransactionJSON
 } from "./transaction-types";
-import secp256k1 from "@ganache/secp256k1";
 import { CodedError } from "@ganache/ethereum-utils";
 
 const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
@@ -42,7 +36,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public type: Quantity = Quantity.from("0x2");
 
   public constructor(
-    data: EIP1559FeeMarketDatabasePayload | Transaction,
+    data: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -63,7 +57,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.v = Quantity.from(data[9]);
       this.r = Quantity.from(data[10]);
       this.s = Quantity.from(data[11]);
-      this.raw = [this.type.toBuffer(), ...data];
+      this.raw = data;
 
       if (!extra) {
         // TODO(hack): we use the presence of `extra` to determine if this data
@@ -76,14 +70,14 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
           );
         }
 
-        const { from, serialized, hash, encodedData, encodedSignature } =
-          this.computeIntrinsics(this.v, this.raw);
+        const { from, serialized, hash } = this.computeIntrinsics(
+          this.v,
+          this.raw
+        );
 
         this.from = from;
         this.serialized = serialized;
         this.hash = hash;
-        this.encodedData = encodedData;
-        this.encodedSignature = encodedSignature;
       }
     } else {
       if (data.chainId) {
@@ -131,7 +125,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   }
 
   public static fromTxData(
-    data: EIP1559FeeMarketDatabasePayload | Transaction,
+    data: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRpcTransaction,
     common: Common,
     extra?: GanacheRawExtraTx
   ) {
@@ -143,6 +137,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     return {
       hash: () => BUFFER_32_ZERO,
       nonce: this.nonce.toBigInt(),
+      common: this.common,
       maxPriorityFeePerGas: this.maxPriorityFeePerGas.toBigInt(),
       maxFeePerGas: this.maxFeePerGas.toBigInt(),
       gasLimit: this.gas.toBigInt(),
@@ -155,8 +150,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
        * the minimum amount of gas the tx must have (DataFee + TxFee + Creation Fee)
        */
       getBaseFee: () => {
-        const fee = this.calculateIntrinsicGas();
-        return fee + this.accessListDataFee;
+        return this.calculateIntrinsicGas();
       },
       getUpfrontCost: (baseFee: bigint = 0n) => {
         const { gas, maxPriorityFeePerGas, maxFeePerGas, value } = this;
@@ -178,6 +172,9 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       }
     };
   }
+  public calculateIntrinsicGas(): bigint {
+    return super.calculateIntrinsicGas() + this.accessListDataFee;
+  }
   /**
    * sign a transaction with a given private key, then compute and set the `hash`.
    *
@@ -190,50 +187,36 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       );
     }
 
-    const typeBuf = this.type.toBuffer();
-    const raw: EIP1559FeeMarketDatabaseTx = this.toEthRawTransaction(
-      BUFFER_ZERO,
-      BUFFER_ZERO,
-      BUFFER_ZERO
-    );
-    const data = encodeRange(raw, 1, 9);
+    const raw = this.toEthRawTransaction(BUFFER_ZERO, BUFFER_ZERO, BUFFER_ZERO);
+    const data = encodeRange(raw, 0, 9);
     const dataLength = data.length;
 
-    const msgHash = keccak(
-      Buffer.concat([typeBuf, digest([data.output], dataLength)])
-    );
+    const msgHash = keccak(digestWithPrefix(2, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
     this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 
-    raw[10] = this.v.toBuffer();
-    raw[11] = this.r.toBuffer();
-    raw[12] = this.s.toBuffer();
+    raw[9] = this.v.toBuffer();
+    raw[10] = this.r.toBuffer();
+    raw[11] = this.s.toBuffer();
 
     this.raw = raw;
 
-    const encodedSignature = encodeRange(raw, 10, 3);
-    // raw data is type concatenated with the rest of the data rlp encoded
-    this.serialized = Buffer.concat([
-      typeBuf,
-      digest(
-        [data.output, encodedSignature.output],
-        dataLength + encodedSignature.length
-      )
-    ]);
+    const encodedSignature = encodeRange(raw, 9, 3);
+    const ranges = [data.output, encodedSignature.output];
+    const length = dataLength + encodedSignature.length;
+    // serialized is type concatenated with the rest of the data rlp encoded
+    this.serialized = digestWithPrefix(2, ranges, length);
     this.hash = Data.from(keccak(this.serialized));
-    this.encodedData = data;
-    this.encodedSignature = encodedSignature;
   }
 
   public toEthRawTransaction(
     v: Buffer,
     r: Buffer,
     s: Buffer
-  ): EIP1559FeeMarketDatabaseTx {
+  ): EIP1559FeeMarketRawTransaction {
     return [
-      this.type.toBuffer(),
       this.chainId.toBuffer(),
       this.nonce.toBuffer(),
       this.maxPriorityFeePerGas.toBuffer(),
@@ -249,16 +232,15 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     ];
   }
 
-  public computeIntrinsics(v: Quantity, raw: TypedDatabaseTransaction) {
-    return computeIntrinsicsFeeMarketTx(v, <EIP1559FeeMarketDatabaseTx>raw);
+  public computeIntrinsics(v: Quantity, raw: EIP1559FeeMarketRawTransaction) {
+    return computeIntrinsicsFeeMarketTx(v, raw);
   }
 
-  public updateEffectiveGasPrice(baseFeePerGas: Quantity) {
-    const baseFeePerGasBigInt = baseFeePerGas.toBigInt();
+  public updateEffectiveGasPrice(baseFeePerGas: bigint) {
     const maxFeePerGas = this.maxFeePerGas.toBigInt();
     const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
-    const a = maxFeePerGas - baseFeePerGasBigInt;
+    const a = maxFeePerGas - baseFeePerGas;
     const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
-    this.effectiveGasPrice = Quantity.from(baseFeePerGasBigInt + tip);
+    this.effectiveGasPrice = Quantity.from(baseFeePerGas + tip);
   }
 }
