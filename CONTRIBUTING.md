@@ -16,7 +16,7 @@
 
 If installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
 
-Ganache uses [node-gyp v7.1.2](https://github.com/nodejs/node-gyp/tree/v7.1.2) as part of it's build system, which requires Python v2.7, v3.5, v3.6, v3.7, or v3.8 to be installed on the system.
+Ganache uses [node-gyp v7.1.2](https://github.com/nodejs/node-gyp/tree/v7.1.2) as part of its build system, which requires Python v2.7, v3.5, v3.6, v3.7, or v3.8 to be installed on the system.
 
 In order to debug issues with Python, follow the instructions for your operating system below:
 
