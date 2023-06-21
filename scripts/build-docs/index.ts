@@ -447,15 +447,11 @@ const preamble =
 
 **Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in your [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
-// these are the fonts that are loaded when you navigate to ganache. It's possible others could be
-// loaded if users use the page, but these are the initial ones at time of writing. To verify this
-// is still true, load ganache.dev with devtools open, and check the `Font` tab within the Network
-// tab.
+// this font is loaded when you navigate to ganache. Others are loaded as well, but they are dependent on the,
+// User-Agent and thus different browsers get different versions. To verify check what fonts are downloaded, load
+// ganache.dev with devtools open, and check the `Font` tab within the Network tab.
 const fontPreload = `
-<link rel="preload" crossorigin="anonymous" as="font" href="https://fonts.gstatic.com/l/font?kit=7Au7p_IgjDKdCRWuR1azpmQICl9BsjpVmYM&skey=3d5373e9fc70eefe&v=v13">
-<link rel="preload" crossorigin="anonymous" as="font" href="https://fonts.gstatic.com/s/opensans/v34/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2">
-<link rel="preload" crossorigin="anonymous" as="font" href="https://fonts.gstatic.com/s/sharetechmono/v15/J7aHnp1uDWRBEqV98dVQztYldFcLowEF.woff2">
-<link rel="preload" crossorigin="anonymous" as="font" href="https://fonts.gstatic.com/s/opensans/v34/memQYaGs126MiZpBA-UFUIcVXSCEkx2cmqvXlWq8tWZ0Pw86hd0Rk5hkWVAewA.woff2">
+<link rel="preload" crossorigin="anonymous" as="font" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs/base/browser/ui/codicons/codicon/codicon.ttf">
 `;
 
 const html = `
@@ -466,7 +462,7 @@ const html = `
     <meta name="description" content="Ganache Ethereum JSON-RPC Documentation" />
     <meta name="author" content="David Murdoch" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
 
     ${fontPreload}
@@ -501,7 +497,7 @@ const html = `
   <body>
     <input type="checkbox" id="sidebar-switch" tabindex="1">
     <input type="checkbox" id="theme-switch" tabindex="2">
-    <script> 
+    <script>
       document.querySelector("#theme-switch").checked = userColorTheme === "light";
     </script>
     <div class="container" id="page">
