@@ -227,11 +227,10 @@ export class Fork {
       this.#setCommonFromChain(chainIdPromise)
     ]);
 
-    const blockFromFallback = await fetchBlock(this, this.blockNumber);
-    const timestamp = BigInt(blockFromFallback.timestamp);
-    const number = BigInt(blockFromFallback.number);
-
-    const common = this.getCommonForBlock(this.common, { timestamp, number });
+    const common = this.getCommonForBlock(this.common, {
+      timestamp: BigInt(block.timestamp),
+      number: BigInt(block.number)
+    });
     this.block = new Block(BlockManager.rawFromJSON(block, common), common);
     if (!chainOptions.time && minerOptions.timestampIncrement !== "clock") {
       chainOptions.time = new Date(
