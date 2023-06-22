@@ -86,7 +86,6 @@
     "ws": "8.2.3"
   },
   "devDependencies": {
-    "tmp-promise": "3.0.2",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
     "@types/encoding-down": "5.0.0",
     "@types/fs-extra": "9.0.2",
@@ -110,6 +109,7 @@
     "shx": "0.3.3",
     "solc": "0.8.11",
     "superagent": "6.1.0",
+    "tmp-promise": "3.0.2",
     "ts-node": "10.9.1",
     "typedoc": "0.22.10",
     "typescript": "4.7.4",
