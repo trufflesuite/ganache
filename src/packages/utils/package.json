@@ -50,10 +50,10 @@
     "@ganache/secp256k1": "0.5.0",
     "emittery": "0.10.0",
     "keccak": "3.0.2",
-    "seedrandom": "3.0.5",
-    "tmp-promise": "3.0.2"
+    "seedrandom": "3.0.5"
   },
   "devDependencies": {
+    "tmp-promise": "3.0.2",
     "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
     "@types/mocha": "9.0.0",
     "@types/seedrandom": "3.0.1",
