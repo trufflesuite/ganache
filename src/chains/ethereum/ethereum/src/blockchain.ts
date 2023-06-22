@@ -1116,10 +1116,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
     const common = this.fallback
-      ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(transaction.block.header.number.toString())
-        )
+      ? this.fallback.getCommonForBlock(this.common, transaction.block.header)
       : this.common;
 
     const gasLeft =
@@ -1253,10 +1250,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     } as any;
 
     const common = this.fallback
-      ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(block.header.number.toString())
-        )
+      ? this.fallback.getCommonForBlock(this.common, block.header)
       : this.common;
 
     // TODO: prefixCodeHashes should eventually be conditional

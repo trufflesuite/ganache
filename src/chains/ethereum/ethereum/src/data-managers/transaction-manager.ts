@@ -65,10 +65,17 @@ export default class TransactionManager extends Manager<NoOp> {
       index.toBuffer(),
       Quantity.toBuffer(tx.gasPrice)
     ];
-    const common = fallback.getCommonForBlockNumber(
-      fallback.common,
-      blockNumber.toBigInt()
-    );
+    const block = await fallback.request<any>("eth_getBlockByNumber", [
+      blockNumber.toString(),
+      false
+    ]);
+    if (block == null) return null;
+
+    const common = fallback.getCommonForBlock(fallback.common, {
+      number: blockNumber.toBigInt(),
+      timestamp: Quantity.toBigInt(block.timestamp)
+    });
+
     const runTx = TransactionFactory.fromRpc(tx, common, extra);
     return runTx.serializeForDb(blockHash, blockNumber, index);
   };

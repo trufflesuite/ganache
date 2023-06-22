@@ -226,10 +226,12 @@ export class Fork {
       cacheProm,
       this.#setCommonFromChain(chainIdPromise)
     ]);
-    const common = this.getCommonForBlockNumber(
-      this.common,
-      this.blockNumber.toBigInt()
-    );
+
+    const blockFromFallback = await fetchBlock(this, this.blockNumber);
+    const timestamp = BigInt(blockFromFallback.timestamp);
+    const number = BigInt(blockFromFallback.number);
+
+    const common = this.getCommonForBlock(this.common, { timestamp, number });
     this.block = new Block(BlockManager.rawFromJSON(block, common), common);
     if (!chainOptions.time && minerOptions.timestampIncrement !== "clock") {
       chainOptions.time = new Date(
@@ -238,6 +240,7 @@ export class Fork {
           1000
       );
     }
+
     if (cache) await this.initCache(cache);
   }
   private async initCache(cache: PersistentCache) {
@@ -275,18 +278,11 @@ export class Fork {
       : this.blockNumber;
   }
 
-  /**
-   * If the `blockNumber` is before our `fork.blockNumber`, return a `Common`
-   * instance, applying the rules from the remote chain's `common` via its
-   * original `chainId`. If the remote chain's `chainId` is now "known", return
-   * a `Common` with our local `common`'s rules applied, but with the remote
-   * chain's `chainId`. If the block is greater than or equal to our
-   * `fork.blockNumber` return `common`.
-   * @param common -
-   * @param blockNumber -
-   */
-  public getCommonForBlockNumber(common: Common, blockNumber: BigInt) {
-    if (blockNumber <= this.blockNumber.toBigInt()) {
+  public getCommonForBlock(
+    common: Common,
+    block: { number: bigint; timestamp: bigint }
+  ): Common {
+    if (block.number <= this.blockNumber.toBigInt()) {
       // we are at or before our fork block
 
       let forkCommon: Common;
@@ -295,11 +291,19 @@ export class Fork {
         let hardfork;
         // hardforks are iterated from earliest to latest
         for (const hf of common.hardforks()) {
-          if (hf.block === null) continue;
-          if (blockNumber >= BigInt(hf.block)) {
-            hardfork = hf.name;
-          } else {
-            break;
+          if (hf.timestamp) {
+            const hfTimestamp = BigInt(hf.timestamp);
+            if (block.timestamp >= hfTimestamp) {
+              hardfork = hf.name;
+            } else {
+              break;
+            }
+          } else if (hf.block) {
+            if (block.number >= BigInt(hf.block)) {
+              hardfork = hf.name;
+            } else {
+              break;
+            }
           }
         }
         forkCommon = new Common({ chain: this.chainId, hardfork });
