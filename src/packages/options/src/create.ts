@@ -36,19 +36,16 @@ const checkForConflicts = (
   }
 };
 
-function fill(defaults: any, options: any, target: any, namespace: any) {
-  const def = defaults[namespace];
+function fill(options: any, target: any, def: any, namespace: any) {
   const config = (target[namespace] = target[namespace] || {});
   const flavor = options.flavor;
 
   const suppliedOptions = new Set<string>();
-  const keys = Object.keys(def);
+  const entries = Object.entries(def) as [string, any][];
   if (hasOwn(options, namespace)) {
     const namespaceOptions = options[namespace];
 
-    for (let i = 0, l = keys.length; i < l; i++) {
-      const key = keys[i];
-      const propDefinition = def[key];
+    for (const [key, propDefinition] of entries) {
       let value = namespaceOptions[key];
       if (value !== undefined) {
         const normalized = propDefinition.normalize(value, config);
@@ -83,9 +80,7 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
       }
     }
   } else {
-    for (let i = 0, l = keys.length; i < l; i++) {
-      const key = keys[i];
-      const propDefinition = def[key];
+    for (const [key, propDefinition] of entries) {
 
       const legacyName = propDefinition.legacyName || key;
       const value = options[legacyName];
@@ -110,19 +105,15 @@ function fill(defaults: any, options: any, target: any, namespace: any) {
 
 export class OptionsConfig<O extends NamespacedOptions> {
   #defaults: Defaults<O>;
-  #namespaces: UnionToTuple<keyof Defaults<O>>;
 
   constructor(defaults: Defaults<O>) {
     this.#defaults = defaults;
-    this.#namespaces = Object.keys(defaults) as UnionToTuple<keyof Defaults<O>>;
   }
 
   normalize(options: ProviderOptions<O>) {
-    const defaults = this.#defaults;
-
     const out = {} as InternalOptions<O>;
-    this.#namespaces.forEach(namespace => {
-      fill(defaults, options, out, namespace as keyof Defaults<O>);
+    Object.entries(this.#defaults).forEach(([namespace, definition]) => {
+      fill(options, out, definition, namespace as keyof Defaults<O>);
     });
     return out;
   }
