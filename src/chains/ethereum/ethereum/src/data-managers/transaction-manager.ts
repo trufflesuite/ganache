@@ -5,12 +5,11 @@ import Blockchain from "../blockchain";
 import PromiseQueue from "@ganache/promise-queue";
 import type { Common } from "@ethereumjs/common";
 import { Data, Quantity } from "@ganache/utils";
-import { Address } from "@ganache/ethereum-address";
 import {
-  GanacheRawExtraTx,
   TransactionFactory,
   Transaction,
-  TypedTransaction
+  TypedTransaction,
+  serializeRpcForDb
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
 
@@ -57,27 +56,7 @@ export default class TransactionManager extends Manager<NoOp> {
     // fallback's blocknumber because it doesn't exist in our local chain.
     if (!fallback.isValidForkBlockNumber(blockNumber)) return null;
 
-    const extra: GanacheRawExtraTx = [
-      Address.toBuffer(tx.from),
-      Data.toBuffer((tx as any).hash, 32),
-      blockHash.toBuffer(),
-      blockNumber.toBuffer(),
-      index.toBuffer(),
-      Quantity.toBuffer(tx.gasPrice)
-    ];
-    const block = await fallback.request<any>("eth_getBlockByNumber", [
-      blockNumber.toString(),
-      false
-    ]);
-    if (block == null) return null;
-
-    const common = fallback.getCommonForBlock(fallback.common, {
-      number: blockNumber.toBigInt(),
-      timestamp: Quantity.toBigInt(block.timestamp)
-    });
-
-    const runTx = TransactionFactory.fromRpc(tx, common, extra);
-    return runTx.serializeForDb(blockHash, blockNumber, index);
+    return serializeRpcForDb(tx, blockHash, blockNumber, index);
   };
 
   public async getRaw(transactionHash: Buffer): Promise<Buffer> {

@@ -180,6 +180,7 @@ export class TransactionFactory {
       JsonRpcErrorCode.METHOD_NOT_FOUND
     );
   }
+
   /**
    * Create a transaction from a `txData` object
    *
