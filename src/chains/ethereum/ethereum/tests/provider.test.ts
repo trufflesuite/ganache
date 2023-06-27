@@ -8,7 +8,11 @@ import EthereumApi from "../src/api";
 import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import Web3 from "web3";
+import { promises, closeSync } from "fs";
+const { stat, unlink } = promises;
 import { INITCODE_TOO_LARGE } from "@ganache/ethereum-utils";
+import tmp from "tmp-promise";
+import { resolve } from "path";
 
 describe("provider", () => {
   describe("options", () => {
@@ -765,6 +769,39 @@ describe("provider", () => {
           );
         });
       });
+    });
+
+    it("closes the logging fileDescriptor", async () => {
+      await tmp.withDir(
+        async ({ path }) => {
+          const filePath = resolve(path, "closes-logging-descriptor.log");
+          const provider = await getProvider({ logging: { file: filePath } });
+
+          const descriptor = provider.getOptions().logging.file;
+          assert.strictEqual(
+            typeof descriptor,
+            "number",
+            `File descriptor has unexpected type`
+          );
+
+          assert(
+            (await stat(filePath)).isFile(),
+            `log file: ${filePath} was not created`
+          );
+
+          await provider.disconnect();
+
+          assert.throws(
+            () => closeSync(descriptor),
+            "File descriptor is still valid after disconnect() called"
+          );
+        },
+        {
+          // `unsafeCleanup` instructs tmp-promise to recursively remove the
+          // created temporary directory, even when it's not empty.
+          unsafeCleanup: true
+        }
+      );
     });
 
     // todo: Reinstate this test when https://github.com/trufflesuite/ganache/issues/3499 is fixed

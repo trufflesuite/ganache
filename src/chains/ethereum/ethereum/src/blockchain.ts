@@ -37,7 +37,8 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   KNOWN_CHAINIDS,
-  keccak
+  keccak,
+  Logger
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -105,10 +106,6 @@ type BlockchainTypedEvents = {
   ready: undefined;
   stop: undefined;
 };
-
-interface Logger {
-  log(message?: any, ...optionalParams: any[]): void;
-}
 
 export type BlockchainOptions = {
   db?: string | object;

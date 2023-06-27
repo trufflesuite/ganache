@@ -14,3 +14,4 @@ export {
   JsonRpcErrorCode
 } from "./src/things/jsonrpc";
 export { default as PromiEvent } from "./src/things/promievent";
+export * from "./src/things/logger";
