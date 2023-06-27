@@ -239,22 +239,9 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public updateEffectiveGasPrice(baseFeePerGas: bigint) {
     const maxFeePerGas = this.maxFeePerGas.toBigInt();
     const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
-    const effectiveGasPrice = EIP1559FeeMarketTransaction.getEffectiveGasPrice(
-      baseFeePerGas,
-      maxFeePerGas,
-      maxPriorityFeePerGas
-    );
-    this.effectiveGasPrice = Quantity.from(effectiveGasPrice);
-  }
-
-  public static getEffectiveGasPrice(
-    baseFeePerGas: bigint,
-    maxFeePerGas: bigint,
-    maxPriorityFeePerGas: bigint
-  ): bigint {
     const a = maxFeePerGas - baseFeePerGas;
     const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
 
-    return baseFeePerGas + tip;
+    this.effectiveGasPrice = Quantity.from(baseFeePerGas + tip);
   }
 }
