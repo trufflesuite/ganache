@@ -9,16 +9,10 @@ export class ForkCache extends Cache {
      * Looks up address in underlying trie.
      * @param address - Address of account
      */
-    const lookupAccount: (
-      address: Address
-    ) => Promise<Account | undefined> = async (address: Address) => {
+    const lookupAccount = async (address: Address) => {
       const rlp = await (trie as ForkTrie).get(address.buf);
-      return rlp ? Account.fromRlpSerializedAccount(rlp) : undefined;
-    };
-    super({
-      getCb: lookupAccount,
-      putCb: trie.put.bind(trie),
-      deleteCb: trie.del.bind(trie)
-    });
+      return rlp ? Account.fromRlpSerializedAccount(rlp) : new Account();
+    }
+    super({ getCb: lookupAccount, putCb: trie.put.bind(trie), deleteCb: trie.del.bind(trie) });
   }
 }

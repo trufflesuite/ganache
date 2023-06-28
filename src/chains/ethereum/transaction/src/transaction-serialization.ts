@@ -32,14 +32,16 @@ export function serializeRpcForDb(
   return serializeForDb(txData, blockHash, blockNumber, transactionIndex);
 }
 
+type SerializableTransaction = {
+  raw: TypedRawTransaction;
+  from: Address;
+  hash: Data;
+  effectiveGasPrice: Quantity;
+  type: Quantity;
+};
+
 export function serializeForDb(
-  tx: {
-    raw: TypedRawTransaction;
-    from: Address;
-    hash: Data;
-    effectiveGasPrice: Quantity;
-    type: Quantity;
-  },
+  tx: SerializableTransaction,
   blockHash: Data,
   blockNumber: Quantity,
   transactionIndex: Quantity
@@ -61,6 +63,7 @@ export function serializeForDb(
       tx.effectiveGasPrice.toBuffer()
     ]
   ];
+
   return encode(txAndExtraData);
 }
 

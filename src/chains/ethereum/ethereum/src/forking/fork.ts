@@ -294,17 +294,12 @@ export class Fork {
             const hfTimestamp = BigInt(hf.timestamp);
             if (block.timestamp >= hfTimestamp) {
               hardfork = hf.name;
-            } else {
-              break;
             }
-          } else if (hf.block) {
-            if (block.number >= BigInt(hf.block)) {
-              hardfork = hf.name;
-            } else {
-              break;
-            }
+          } else if (hf.block && block.number >= BigInt(hf.block)) {
+            hardfork = hf.name;
           }
         }
+
         forkCommon = new Common({ chain: this.chainId, hardfork });
       } else {
         // we don't know about this chain or hardfork, so just carry on per usual,

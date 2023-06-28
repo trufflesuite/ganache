@@ -228,11 +228,10 @@ export default class BlockManager extends Manager<Block> {
         ]);
         if (json) {
           const number = BigInt(json.number);
-          const timestamp = BigInt(json.timestamp);
           if (number <= fallback.blockNumber.toBigInt()) {
             const common = fallback.getCommonForBlock(this.#common, {
               number,
-              timestamp
+              timestamp: BigInt(json.timestamp)
             });
             return new Block(BlockManager.rawFromJSON(json, common), common);
           }
