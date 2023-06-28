@@ -15,6 +15,7 @@ import { BaseFeeHeader, Block, RuntimeBlock } from "@ganache/ethereum-block";
 import {
   Transaction,
   TransactionFactory,
+  calculateIntrinsicGas,
   TypedTransaction
 } from "@ganache/ethereum-transaction";
 import {
@@ -1920,6 +1921,34 @@ export default class EthereumApi implements Api {
     return null;
   }
 
+  async evm_simulateTransaction(
+    transaction: Ethereum.Transaction
+  ): Promise<Quantity> {
+    const data = Data.from(transaction.data);
+    const intrinsicGas = calculateIntrinsicGas(
+      data,
+      true,
+      this.#blockchain.common
+    );
+    console.time("eth_simulateTransaction");
+    const blockchain = this.#blockchain;
+    const minerOptions = this.#options.miner;
+
+    const fromAddress = Address.from(transaction.from);
+    const toAddress = Address.from(transaction.to);
+    const code = await blockchain.accounts.getCode(toAddress);
+    const latest = blockchain.blocks.latest;
+
+    const result = await blockchain.vm.evm.runCode({
+      code: code.toBuffer(),
+      gasLimit: minerOptions.callGasLimit.toBigInt(),
+      caller: fromAddress,
+      address: toAddress,
+      data: data.toBuffer()
+    });
+    console.timeEnd("eth_simulateTransaction");
+    return Quantity.from(result.executionGasUsed + intrinsicGas);
+  }
   /**
    * Creates new message call transaction or a contract creation, if the data field contains code.
    *
