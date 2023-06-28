@@ -1,5 +1,5 @@
 # use full node to install dependencies
-FROM node:14.17.4@sha256:cd98882c1093f758d09cf6821dc8f96b241073b38e8ed294ca1f9e484743858f AS builder
+FROM node:20.3.0@sha256:600cac71919fc686481c9c1d652c493c630ceeb13d207f9ae8c0a7bb9fde4a71 AS builder
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm run build
 RUN npx lerna exec --scope ganache -- npm prune --production
 
 # we use node "slim" instead of "alpine" until we create a uwebsockets build for alpine.
-FROM node:14.17.4-slim@sha256:766e2dcf4461582f7f750656807edbc28019753cecae92b1f2b25d13d3401ef3
+FROM node:20.3.0-slim@sha256:68fa53d981a628c2ce9d8e1d9f587b4dba2ff412f2f32a1fa11cb332a897af14
 
 WORKDIR /app
 
