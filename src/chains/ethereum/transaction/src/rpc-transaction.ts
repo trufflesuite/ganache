@@ -26,6 +26,13 @@ export type Transaction =
   | EIP2930AccessListRpcTransaction
   | EIP1559FeeMarketRpcTransaction;
 
+export enum TransactionType {
+  Legacy = 0x0,
+  EIP2930AccessList = 0x1,
+  //todo: should this be EIP1559FeeMarket?
+  EIP1559AccessList = 0x2
+}
+
 export type CallTransaction = Omit<Transaction, "from"> & { from?: string };
 
 export type LegacyRpcTransaction = Readonly<RpcTransaction> & {

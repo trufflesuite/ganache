@@ -1,9 +1,20 @@
 import { Quantity, Data, JsonRpcErrorCode } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
-import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
+import {
+  EIP1559FeeMarketRawTransaction,
+  EIP2930AccessListRawTransaction,
+  GanacheRawExtraTx,
+  LegacyRawTransaction,
+  TypedRawTransaction
+} from "./raw";
 import { encode } from "@ganache/rlp";
-import { TransactionType } from "./transaction-factory";
-import { Transaction } from "./rpc-transaction";
+import {
+  EIP1559FeeMarketRpcTransaction,
+  EIP2930AccessListRpcTransaction,
+  LegacyRpcTransaction,
+  Transaction,
+  TransactionType
+} from "./rpc-transaction";
 import { AccessLists } from "./access-lists";
 import { CodedError } from "@ganache/ethereum-utils";
 
@@ -67,7 +78,26 @@ export function serializeForDb(
   return encode(txAndExtraData);
 }
 
-function rawFromRpc(txData: Transaction, txType: number): TypedRawTransaction {
+export function rawFromRpc(
+  txData: LegacyRpcTransaction,
+  txType: TransactionType.Legacy
+): LegacyRawTransaction;
+export function rawFromRpc(
+  txData: EIP2930AccessListRpcTransaction,
+  txType: TransactionType.EIP1559AccessList
+): EIP2930AccessListRawTransaction | LegacyRawTransaction;
+export function rawFromRpc(
+  txData: EIP1559FeeMarketRpcTransaction,
+  txType: TransactionType.EIP1559AccessList
+): EIP1559FeeMarketRawTransaction;
+export function rawFromRpc(
+  txData: Transaction,
+  txType: TransactionType
+): TypedRawTransaction;
+export function rawFromRpc(
+  txData: Transaction,
+  txType: TransactionType
+): TypedRawTransaction {
   const chainId = Quantity.toBuffer(txData.chainId);
   const nonce = Quantity.toBuffer(txData.nonce);
   const gasPrice = Quantity.toBuffer(txData.gasPrice);
@@ -112,7 +142,6 @@ function rawFromRpc(txData: Transaction, txType: number): TypedRawTransaction {
       return [
         chainId,
         nonce,
-
         Quantity.toBuffer(txData.maxPriorityFeePerGas),
         Quantity.toBuffer(txData.maxFeePerGas),
         gasLimit,
@@ -128,7 +157,7 @@ function rawFromRpc(txData: Transaction, txType: number): TypedRawTransaction {
       ];
     default:
       throw new CodedError(
-        `Tx instantiation with supplied type not supported`,
+        "Tx instantiation with supplied type not supported",
         JsonRpcErrorCode.METHOD_NOT_FOUND
       );
   }

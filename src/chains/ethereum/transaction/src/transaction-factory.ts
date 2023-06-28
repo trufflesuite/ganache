@@ -5,7 +5,8 @@ import { EIP2930AccessListTransaction } from "./eip2930-access-list-transaction"
 import {
   EIP1559FeeMarketRpcTransaction,
   EIP2930AccessListRpcTransaction,
-  Transaction
+  Transaction,
+  TransactionType
 } from "./rpc-transaction";
 import {
   EIP1559FeeMarketRawTransaction,
@@ -40,12 +41,6 @@ function assertValidTransactionSValue(common: Common, tx: TypedTransaction) {
       "Invalid Signature: s-values greater than secp256k1n/2 are considered invalid"
     );
   }
-}
-
-export enum TransactionType {
-  Legacy = 0x0,
-  EIP2930AccessList = 0x1,
-  EIP1559AccessList = 0x2
 }
 
 export class TransactionFactory {
