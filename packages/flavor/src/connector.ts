@@ -41,11 +41,11 @@ export interface Connector<Provider, RequestFormat, ResponseFormat> {
       ) => Promise<{ value: unknown[] }>)
     | ((
         payload: RequestFormat,
-        connection: WebSocket
+        connection: WebSocket<void>
       ) => Promise<{ value: unknown }>)
     | ((
         payload: RequestFormat[],
-        connection: WebSocket
+        connection: WebSocket<void>
       ) => Promise<{ value: unknown[] }>);
 
   /**
@@ -73,6 +73,6 @@ export interface WebsocketConnector<Provider, RequestFormat, ResponseFormat>
   extends Connector<Provider, RequestFormat, ResponseFormat> {
   handle(
     payload: RequestFormat,
-    connection: WebSocket
+    connection: WebSocket<void>
   ): Promise<{ value: ReturnType<Api[KnownKeys<Api>]> }>;
 }

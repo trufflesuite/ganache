@@ -52,7 +52,7 @@
     "@ganache/flavor": "0.9.0",
     "@ganache/options": "0.8.0",
     "@ganache/utils": "0.8.0",
-    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
+    "@trufflesuite/uws-js-unofficial": "20.30.0-unofficial.0",
     "aggregate-error": "3.1.0",
     "emittery": "0.10.0"
   },

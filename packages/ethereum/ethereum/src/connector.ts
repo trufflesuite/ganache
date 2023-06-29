@@ -24,7 +24,7 @@ import {
 import { bufferify } from "./helpers/bufferify";
 
 function isHttp(
-  connection: HttpRequest | WebSocket
+  connection: HttpRequest | WebSocket<void>
 ): connection is HttpRequest {
   return (
     connection.constructor.name === "uWS.HttpRequest" ||
@@ -65,7 +65,7 @@ export class Connector<
     }
   }
 
-  handle(payload: R | R[], connection: HttpRequest | WebSocket) {
+  handle(payload: R | R[], connection: HttpRequest | WebSocket<void>) {
     if (Array.isArray(payload)) {
       // handle batch transactions
       const promises = payload.map(payload =>
@@ -78,7 +78,7 @@ export class Connector<
       return this.#handle(payload, connection);
     }
   }
-  #handle = (payload: R, connection: HttpRequest | WebSocket) => {
+  #handle = (payload: R, connection: HttpRequest | WebSocket<void>) => {
     const method = payload.method;
     if (method === "eth_subscribe") {
       if (isHttp(connection)) {

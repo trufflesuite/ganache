@@ -93,7 +93,7 @@
   },
   "dependencies": {
     "@trufflesuite/bigint-buffer": "1.1.10",
-    "@trufflesuite/uws-js-unofficial": "20.10.0-unofficial.2",
+    "@trufflesuite/uws-js-unofficial": "20.30.0-unofficial.0",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "5.1.1",
     "@types/seedrandom": "3.0.1",
