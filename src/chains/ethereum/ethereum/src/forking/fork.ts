@@ -277,6 +277,18 @@ export class Fork {
       : this.blockNumber;
   }
 
+  /**
+   * If the `blockNumber` is before our `fork.blockNumber`, return a `Common`
+   * instance, applying the rules from the remote chain's `common` via its
+   * original `chainId` (hardforks are applied if they are scheduled on the
+   * given chain on or after the blocknumber or timestamp of the given `block`).
+   * If the remote chain's `chainId` is not "known", return a `Common` with our
+   * local `common`'s rules applied, but with the remote chain's `chainId`. If
+   * the block is greater than or equal to our `fork.blockNumber` return
+   * `common`.
+   * @param common -
+   * @param blockNumber -
+   */
   public getCommonForBlock(
     common: Common,
     block: { number: bigint; timestamp: bigint }
@@ -294,9 +306,15 @@ export class Fork {
             const hfTimestamp = BigInt(hf.timestamp);
             if (block.timestamp >= hfTimestamp) {
               hardfork = hf.name;
+            } else {
+              break;
             }
-          } else if (hf.block && block.number >= BigInt(hf.block)) {
-            hardfork = hf.name;
+          } else if (hf.block) {
+            if (block.number >= BigInt(hf.block)) {
+              hardfork = hf.name;
+            } else {
+              break;
+            }
           }
         }
 
