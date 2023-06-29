@@ -113,7 +113,10 @@ describe("transaction-serialization", () => {
         transactionIndex
       );
 
-      assert(Buffer.isBuffer(serialized));
+      assert(
+        Buffer.isBuffer(serialized),
+        `Expected a Buffer, got ${serialized}`
+      );
     });
 
     it("should serialize an EIP2930 accesslist transaction RPC transaction", () => {
@@ -124,7 +127,10 @@ describe("transaction-serialization", () => {
         transactionIndex
       );
 
-      assert(Buffer.isBuffer(serialized));
+      assert(
+        Buffer.isBuffer(serialized),
+        `Expected a Buffer, got ${serialized}`
+      );
     });
 
     it("should serialize an EIP1559 fee market transaction RPC transaction", () => {
@@ -135,7 +141,10 @@ describe("transaction-serialization", () => {
         transactionIndex
       );
 
-      assert(Buffer.isBuffer(serialized));
+      assert(
+        Buffer.isBuffer(serialized),
+        `Expected a Buffer, got ${serialized}`
+      );
     });
   });
 

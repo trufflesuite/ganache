@@ -8,12 +8,12 @@ import assert from "assert";
 import { logging } from "./helpers";
 
 describe("Fork", () => {
-  const PORT = 9999;
-  const NETWORK_ID = 1;
-  const ACCOUNTS = [];
-  const FORK_OPTIONS = {
+  const port = 9999;
+  const networkId = 1;
+  const accounts = [];
+  const forkOptions = {
     fork: {
-      url: `http://localhost:${PORT}`
+      url: `http://localhost:${port}`
     },
     logging
   };
@@ -24,15 +24,15 @@ describe("Fork", () => {
   before(async () => {
     remoteServer = ganache.server({
       wallet: { deterministic: true },
-      chain: { networkId: NETWORK_ID },
+      chain: { networkId: networkId },
       logging
     });
-    await remoteServer.listen(PORT);
+    await remoteServer.listen(port);
   });
 
   beforeEach(async () => {
-    const providerOptions = EthereumOptionsConfig.normalize(FORK_OPTIONS);
-    fork = new Fork(providerOptions, ACCOUNTS);
+    const providerOptions = EthereumOptionsConfig.normalize(forkOptions);
+    fork = new Fork(providerOptions, accounts);
     await fork.initialize();
   });
 
@@ -48,8 +48,8 @@ describe("Fork", () => {
     it("should return a Common for known chainIds", () => {
       KNOWN_CHAINIDS.forEach(chainId => {
         if (chainId === 42) {
-          // skip kovan, because it is no longer supported by ethereumjs
-          // todo: should we remove 42 from the list of known chainIds?
+          // Skip kovan, because it is no longer supported by ethereumjs. To be
+          // removed in https://github.com/trufflesuite/ganache/issues/4461
         } else {
           assert.doesNotThrow(() => {
             const parentCommon = new Common({ chain: chainId });

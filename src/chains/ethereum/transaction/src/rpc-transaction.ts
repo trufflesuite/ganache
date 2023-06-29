@@ -29,7 +29,8 @@ export type Transaction =
 export enum TransactionType {
   Legacy = 0x0,
   EIP2930AccessList = 0x1,
-  //todo: should this be EIP1559FeeMarket?
+  //todo: this should be EIP1559FeeMarket
+  //https://github.com/trufflesuite/ganache/issues/4462
   EIP1559AccessList = 0x2
 }
 
