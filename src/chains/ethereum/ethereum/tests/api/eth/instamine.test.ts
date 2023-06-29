@@ -1,6 +1,6 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
-import { Logger } from "@ganache/ethereum-options";
+import { Logger } from "@ganache/utils";
 
 describe("api", () => {
   describe("eth", () => {
