@@ -1031,7 +1031,7 @@ export default class EthereumApi implements Api {
    * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
    * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
    * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
-   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `miner`: `ADDRESS`, 20 Bytes -  Address of the miner.
    * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
    * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
    * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
@@ -1173,7 +1173,7 @@ export default class EthereumApi implements Api {
    * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
    * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
    * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
-   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `miner`: `ADDRESS`, 20 Bytes -  Address of the miner.
    * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
    * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
    * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
@@ -1435,7 +1435,7 @@ export default class EthereumApi implements Api {
    * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
    * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
    * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
-   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `miner`: `ADDRESS`, 20 Bytes -  Address of the miner.
    * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
    * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
    * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
@@ -1477,7 +1477,7 @@ export default class EthereumApi implements Api {
    * * `hash`: `DATA`, 32 Bytes - Hash of the block. `null` when pending.
    * * `parentHash`: `DATA`, 32 Bytes - Hash of the parent block.
    * * `sha3Uncles`: `DATA`, 32 Bytes - SHA3 of the uncles data in the block.
-   * * `miner`: `DATA`, 20 Bytes -  Address of the miner.
+   * * `miner`: `ADDRESS`, 20 Bytes -  Address of the miner.
    * * `stateRoot`: `DATA`, 32 Bytes - The root of the state trie of the block.
    * * `transactionsRoot`: `DATA`, 32 Bytes - The root of the transaction trie of the block.
    * * `receiptsRoot`: `DATA`, 32 Bytes - The root of the receipts trie of the block.
