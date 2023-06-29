@@ -67,7 +67,7 @@ describe("Fork", () => {
       const mainnet = 1;
       const mergeBlocknumber = 15537394n;
 
-      // ensure that the fork blockNumber is after the merge blockNumber
+      // ensure that the "fork" blockNumber is after the "merge" hardfork blockNumber
       fork.blockNumber = Quantity.from(mergeBlocknumber + 100n);
       fork.chainId = mainnet;
 
@@ -80,7 +80,7 @@ describe("Fork", () => {
 
       blocknumberToHardfork.forEach(([number, expectedHardfork]) => {
         const common = fork.getCommonForBlock(parentCommon, {
-          number, // the block at which paris is scheduled
+          number,
           timestamp: 0n
         });
 
