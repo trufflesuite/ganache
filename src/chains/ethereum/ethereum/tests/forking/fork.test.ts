@@ -100,7 +100,7 @@ describe("Fork", () => {
       const shanghaiTimestamp = 1677557088n;
       const mergeForkIdTransitionBlockNumber = 1735371n;
 
-      // ensure that the fork blockNumber is after the mergeForkIdTransition blockNumber
+      // ensure that the "fork" blockNumber is after the "mergeForkIdTransition" hardfork blockNumber
       fork.blockNumber = Quantity.from(mergeForkIdTransitionBlockNumber + 100n);
       fork.chainId = sepolia;
 
