@@ -1,14 +1,24 @@
-import { JsonRpcErrorCode } from "@ganache/utils";
+import { JsonRpcErrorCode, Quantity } from "@ganache/utils";
 import {
   EIP1559FeeMarketRpcTransaction,
   EIP2930AccessListRpcTransaction,
   Transaction,
   TransactionType
 } from "../src/rpc-transaction";
-import { rawFromRpc } from "../src/transaction-serialization";
+import {
+  rawFromRpc,
+  serializeForDb,
+  serializeRpcForDb
+} from "../src/transaction-serialization";
 import assert from "assert";
 import { Data } from "@ganache/utils";
 import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
+import {
+  EIP1559FeeMarketRawTransaction,
+  EIP2930AccessListRawTransaction,
+  LegacyRawTransaction
+} from "../src/raw";
+import { Address } from "@ganache/ethereum-address";
 
 function assertBufferEqualsString(
   actual: Buffer,
@@ -47,7 +57,7 @@ function assertAccessListEqualsBuffer(
 }
 
 describe("transaction-serialization", () => {
-  const baseTx = {
+  const baseRpcTx = {
     from: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
     nonce: "0x1",
     gas: "0x945",
@@ -56,8 +66,183 @@ describe("transaction-serialization", () => {
     data: "0x48656c6c6f20776f726c64"
   };
 
+  const legacyTx = { ...baseRpcTx, gasPrice: "0x945945" };
+  const eip2930Tx = {
+    ...baseRpcTx,
+    gasPrice: "0x945945",
+    type: "0x1",
+    chainId: "0x1"
+  };
+
+  const eip1559Tx = {
+    ...baseRpcTx,
+    maxPriorityFeePerGas: "0x945945",
+    maxFeePerGas: "0x549549",
+    type: "0x1",
+    chainId: "0x1",
+    accessList: [
+      {
+        address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        storageKeys: [
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        ]
+      }
+    ]
+  };
+
+  const blockHash = Data.from(
+    "0x7fe24cdff5b4bdcb277616483c850e67d0fd0705a9ac2d89e28a77403a162946",
+    32
+  );
+  const blockNumber = Quantity.from("0xa0f98f");
+  const transactionIndex = Quantity.from("0x1");
+  const from = Address.from("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
+  const txHash = Data.from(
+    "0x11af86dbff8c977f7bb2d6d6619c9297814d588d47430c86ac794fafaf2cbbde"
+  );
+  const effectiveGasPrice = Quantity.from("0x945");
+  const chainId = Buffer.from("01", "hex");
+
   describe("serializeRpcForDb()", () => {
-    // needs tests
+    // this just exercizes the serializeRpcForDb() function, which depends on `rawFromRpc` and `serializeForDb` which are both tested below.
+    it("should serialize a legacy RPC transaction", () => {
+      const serialized = serializeRpcForDb(
+        legacyTx,
+        blockHash,
+        blockNumber,
+        transactionIndex
+      );
+
+      assert(Buffer.isBuffer(serialized));
+    });
+
+    it("should serialize an EIP2930 accesslist transaction RPC transaction", () => {
+      const serialized = serializeRpcForDb(
+        eip2930Tx as EIP2930AccessListRpcTransaction,
+        blockHash,
+        blockNumber,
+        transactionIndex
+      );
+
+      assert(Buffer.isBuffer(serialized));
+    });
+
+    it("should serialize an EIP1559 fee market transaction RPC transaction", () => {
+      const serialized = serializeRpcForDb(
+        eip2930Tx as EIP2930AccessListRpcTransaction,
+        blockHash,
+        blockNumber,
+        transactionIndex
+      );
+
+      assert(Buffer.isBuffer(serialized));
+    });
+  });
+
+  describe("serializeForDb()", () => {
+    // this just exercizes the serializeForDb() function, which depends on RLP `encode()` function.
+    // the behaviour of both `encode` and this are tested in higher level tests.
+    const legacyRawTx: LegacyRawTransaction = [
+      Buffer.from("01", "hex"), // nonce
+      Buffer.from("0945", "hex"), // gasPrice
+      Buffer.from("0101", "hex"), // gas
+      Buffer.from("90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", "hex"), // to
+      Buffer.from("0de0b6b3a7640000", "hex"), // value
+      Buffer.from("48656c6c6f20776f726c64", "hex"), // data
+      Buffer.from("00", "hex"), // v
+      Buffer.from(
+        "7aa7c79312a0f5cc49862f70c2971d6022a7adc29c1509cf22f03ebcf0c31f45",
+        "hex"
+      ), // r
+      Buffer.from(
+        "113e899c92a3dcf9a1c2dc6f367f02fb398d7b4c777fed451228eda9d6f4f24d",
+        "hex"
+      ) // s
+    ];
+
+    it("should serialize a legacy transaction", () => {
+      const serializableTx = {
+        raw: legacyRawTx,
+        from,
+        hash: txHash,
+        effectiveGasPrice,
+        type: Quantity.from(TransactionType.Legacy)
+      };
+
+      const serialized = serializeForDb(
+        serializableTx,
+        blockHash,
+        blockNumber,
+        transactionIndex
+      );
+
+      assert(
+        Buffer.isBuffer(serialized),
+        `Expected a Buffer, got ${serialized}`
+      );
+    });
+
+    it("should serialize an EIP2940AccessList transaction", () => {
+      const accessListBuffer = [] as AccessListBuffer;
+      const raw = [
+        chainId,
+        ...legacyRawTx.slice(0, 6),
+        accessListBuffer,
+        ...legacyRawTx.slice(6)
+      ] as EIP2930AccessListRawTransaction;
+      const serializableTx = {
+        raw,
+        from,
+        hash: txHash,
+        effectiveGasPrice,
+        type: Quantity.from(TransactionType.EIP2930AccessList)
+      };
+
+      const serialized = serializeForDb(
+        serializableTx,
+        blockHash,
+        blockNumber,
+        transactionIndex
+      );
+
+      assert(
+        Buffer.isBuffer(serialized),
+        `Expected a Buffer, got ${serialized}`
+      );
+    });
+
+    it("should serialize an EIP1559FeeMarket transaction", () => {
+      const chainId = Buffer.from("01", "hex");
+      const maxFeePerGas = Buffer.from("0945", "hex");
+      const accessListBuffer = [] as AccessListBuffer;
+      const raw = [
+        chainId,
+        ...legacyRawTx.slice(0, 2),
+        maxFeePerGas,
+        ...legacyRawTx.slice(2, 6),
+        accessListBuffer,
+        ...legacyRawTx.slice(6)
+      ] as EIP1559FeeMarketRawTransaction;
+      const serializableTx = {
+        raw,
+        from,
+        hash: txHash,
+        effectiveGasPrice,
+        type: Quantity.from(TransactionType.EIP1559AccessList)
+      };
+
+      const serialized = serializeForDb(
+        serializableTx,
+        blockHash,
+        blockNumber,
+        transactionIndex
+      );
+
+      assert(
+        Buffer.isBuffer(serialized),
+        `Expected a Buffer, got ${serialized}`
+      );
+    });
   });
 
   describe("rawFromRpc()", () => {
@@ -77,7 +262,6 @@ describe("transaction-serialization", () => {
     });
 
     it("should convert a legacy transaction", () => {
-      const legacyTx = { ...baseTx, gasPrice: "0x945945" };
       const raw = rawFromRpc(legacyTx, TransactionType.Legacy);
 
       assert.strictEqual(raw.length, 9);
@@ -97,13 +281,7 @@ describe("transaction-serialization", () => {
       assert.strictEqual(s.length, 0);
     });
 
-    it("should convert an EIP-2930 transaction without accesslists to legacy", () => {
-      const eip2930Tx = {
-        ...baseTx,
-        gasPrice: "0x945945",
-        type: "0x1",
-        chainId: "0x1"
-      };
+    it("should convert an EIP2930 accesslist transaction without accesslists to legacy", () => {
       const raw = rawFromRpc(
         eip2930Tx as EIP2930AccessListRpcTransaction,
         TransactionType.EIP2930AccessList
@@ -126,9 +304,9 @@ describe("transaction-serialization", () => {
       assert.strictEqual(s.length, 0);
     });
 
-    it("should convert an EIP-2930 accesslist transaction", () => {
+    it("should convert an EIP2930 accesslist transaction", () => {
       const eip2930Tx = {
-        ...baseTx,
+        ...baseRpcTx,
         gasPrice: "0x945945",
         type: "0x1",
         chainId: "0x1",
@@ -186,22 +364,7 @@ describe("transaction-serialization", () => {
       );
     });
 
-    it("should convert an EIP-1559 fee market transaction", () => {
-      const eip1559Tx = {
-        ...baseTx,
-        maxPriorityFeePerGas: "0x945945",
-        maxFeePerGas: "0x549549",
-        type: "0x1",
-        chainId: "0x1",
-        accessList: [
-          {
-            address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-            storageKeys: [
-              "0x0000000000000000000000000000000000000000000000000000000000000001"
-            ]
-          }
-        ]
-      };
+    it("should convert an EIP1559 fee market transaction", () => {
       const raw = rawFromRpc(
         eip1559Tx as EIP1559FeeMarketRpcTransaction,
         TransactionType.EIP1559AccessList

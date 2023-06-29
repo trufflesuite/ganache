@@ -23,7 +23,7 @@ export function serializeRpcForDb(
   blockHash: Data,
   blockNumber: Quantity,
   transactionIndex: Quantity
-) {
+): Buffer {
   let type: number;
   if (!("type" in tx) || tx.type === undefined) {
     type = TransactionType.Legacy;
@@ -43,7 +43,7 @@ export function serializeRpcForDb(
   return serializeForDb(txData, blockHash, blockNumber, transactionIndex);
 }
 
-type SerializableTransaction = {
+export type SerializableTransaction = {
   raw: TypedRawTransaction;
   from: Address;
   hash: Data;
