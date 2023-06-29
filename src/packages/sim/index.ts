@@ -1,5 +1,9 @@
 import http from "http";
 import fs from "fs";
+let remote = true;
+const hostname = remote ? "3.140.186.190" : "localhost";
+const port = remote ? 8080 : 8545;
+
 const index = fs.readFileSync(__dirname + "/index.html");
 const results = fs.readFileSync(__dirname + "/results.html");
 const css = fs.readFileSync(__dirname + "/main.css");
@@ -8,8 +12,6 @@ const js = fs.readFileSync(__dirname + "/app.js");
 const jsonview = fs.readFileSync(__dirname + "/jsonview.js");
 const chevron = fs.readFileSync(__dirname + "/chevron.svg");
 const ganache = fs.readFileSync(__dirname + "/ganache.svg");
-
-const port = 3000;
 
 const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url === "/") {
@@ -41,10 +43,10 @@ const server = http.createServer((req, res) => {
     // send the POST request to the simulation server
     // we just take the body from the request and send it to the simulation server
     // and then return the result directly to the user:
-    let remote = false;
+
     const options = {
-      hostname: remote ? "3.140.186.190" : "localhost",
-      port: remote ? 8080 : 8545,
+      hostname: hostname,
+      port: port,
       path: "/",
       method: "POST",
       headers: {
@@ -79,6 +81,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+server.listen(9009, () => {
+  console.log(`Server is running on http://localhost:${9009}`);
 });

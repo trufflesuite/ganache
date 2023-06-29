@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const value = element.value.trim();
                 if (value) {
                     if ("SELECT" === element.tagName) {
-                        tx[element.name] = value;
+                        tx[element.name] = value === "true";
                     } else {
                         if (element.getAttribute("pattern")) {
                             tx[element.name] = value.toLowerCase().startsWith("0x") ? value : "0x" + parseInt(value).toString(16);
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const value = element.value.trim();
             if (value) {
                 if ("SELECT" === element.tagName) {
-                    json.params[0][element.name] = value;
+                    json.params[0][element.name] = value === "true";
                 } else {
                     if (element.getAttribute("pattern")) {
                         if (element.name === "block" && value.toLowerCase() === "latest") {
@@ -92,17 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // `evm_simulateTransactions` call:
     transactions.addEventListener('change', formatJson);
     advancedOptions.addEventListener('change', formatJson);
-    let pre = "";
+    const preFetchCache = new Set();
     advancedOptions.addEventListener('change', async () => {
         // prefetch when advanced options change
         try {
             const jsonRPC = JSON.stringify(JSON.parse(requestElement.dataset.json));
-            if (jsonRPC === pre) return;
-            pre = jsonRPC;
+            if (preFetchCache.has(jsonRPC)) return;
+            preFetchCache.add(jsonRPC);
+            console.log("prefetch");
+
             await fetch('/simulate', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'applicaiton/json',
+                    'Content-Type': 'application/json',
                 },
                 body: jsonRPC,
             });
@@ -114,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const responseElement = document.getElementById("responseBody");
     document.querySelector("form").addEventListener('submit', async (event) => {
+        preFetchCache.clear();
+
         event.preventDefault();
         // disable the submit button:
         document.querySelector("form button").disabled = true;
@@ -126,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/simulate', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'applicaiton/json',
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(jsonRPC),
             });

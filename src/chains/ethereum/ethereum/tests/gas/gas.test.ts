@@ -62,7 +62,7 @@ contract Storage {
       params: [
         {
           transactions: [tx],
-          gasEstimation: "call-depth"
+          estimateGas: true
         }
       ]
     };

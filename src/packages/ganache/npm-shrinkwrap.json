@@ -1,12 +1,12 @@
 {
 	"name": "ganache",
-	"version": "7.8.0-transaction-simulation",
+	"version": "7.8.0-tx-sim.0",
 	"lockfileVersion": 3,
 	"requires": true,
 	"packages": {
 		"": {
 			"name": "ganache",
-			"version": "7.8.0-transaction-simulation",
+			"version": "7.8.0-tx-sim.0",
 			"license": "MIT",
 			"dependencies": {
 				"@trufflesuite/bigint-buffer": "1.1.10",

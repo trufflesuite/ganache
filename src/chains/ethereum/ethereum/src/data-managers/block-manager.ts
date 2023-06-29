@@ -1,6 +1,6 @@
 import Manager from "./manager";
 import { Tag, QUANTITY } from "@ganache/ethereum-utils";
-import { Quantity, Data, BUFFER_ZERO } from "@ganache/utils";
+import { Quantity, Data, BUFFER_ZERO, unref } from "@ganache/utils";
 import type { Common } from "@ethereumjs/common";
 import Blockchain from "../blockchain";
 import {
@@ -57,6 +57,33 @@ export default class BlockManager extends Manager<Block> {
   ) {
     const bm = new BlockManager(blockchain, common, blockIndexes, base);
     await bm.updateTaggedBlocks();
+    if (blockchain.fallback) {
+      // hack: a hack to ensure `latest` is kept up to date.
+      // this just polls for `latest` every 7 seconds
+      unref(
+        setInterval(async () => {
+          const json = await blockchain.fallback.request<any>(
+            "eth_getBlockByNumber",
+            ["latest", true],
+            { disableCache: true }
+          );
+          if (json == null) {
+            return null;
+          } else {
+            const common = blockchain.fallback.getCommonForBlockNumber(
+              bm.#common,
+              BigInt(json.number)
+            );
+            console.log("latest is now", parseInt(json.number));
+
+            bm.latest = new Block(
+              BlockManager.rawFromJSON(json, common),
+              common
+            );
+          }
+        }, 7000)
+      );
+    }
     return bm;
   }
 

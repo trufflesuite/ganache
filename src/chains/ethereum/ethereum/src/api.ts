@@ -58,14 +58,13 @@ type TransactionSimulationTransaction = Ethereum.Transaction & {
   traceTypes?: string[];
 };
 
-type TraceType = "full" | "call" | "none";
-type GasEstimateType = "full" | "call-depth" | "none";
-type TransactionSimulationArgs = {
+type TraceType = boolean;
+type TransactionSimulationArgs<Estimate extends boolean> = {
   transactions: TransactionSimulationTransaction[];
   overrides?: Ethereum.Call.Overrides;
-  block?: QUANTITY | Ethereum.Tag;
   trace?: TraceType;
-  gasEstimation?: GasEstimateType;
+  estimateGas?: Estimate;
+  continueOnFailure?: boolean;
 };
 
 type Log = [address: Address, topics: DATA[], data: DATA];
@@ -90,27 +89,73 @@ type StateChange = {
     codeHash: Data;
   };
 };
-type GasBreakdown = {
-  intrinsic: Quantity;
-  execution: Quantity;
+export type GasBreakdown<Estimate extends boolean> = {
+  /**
+   * The total amount of gas used by the transaction.
+   */
+  total: Quantity;
+
+  /**
+   * Total gas used minus the refund. This is what etherscan reports as `Gas Usage`.
+   */
+  actual: Quantity;
+
+  /**
+   * The amount of gas refunded to the sender.
+   */
   refund: Quantity;
-  actualCost: Quantity;
+
+  /**
+   * The amount of gas the EVM requires before it would attempt to run the
+   * transaction.
+   */
+  intrinsic: Quantity;
+
+  /**
+   * The amount of gas used by the transaction's actual execution.
+   */
+  execution: Quantity;
+
+  /**
+   * The minimum amount of gas required to run the transaction.
+   */
+  estimate: Estimate extends true ? Quantity : undefined;
 };
 
-type TraceEntry = {
+export type TraceEntry = {
+  /**
+   * The opcode of the trace entry.
+   * Currently limited to opcodes for CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, JUMP, JUMPI
+   *
+   */
   opcode: Data;
-  type: string;
-  from: Address;
-  to: Address;
-  value: Quantity;
-  input: Data;
+  /**
+   * The name of the opcode (CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2, JUMP, JUMPI)
+   */
+  name: string;
   pc: number;
-  target?: string;
-  decodedInput?: [];
+  /**
+   * Decoded function signature (via 4byte directory)
+   */
+  signature?: string;
+} & (CALLTraceEntry | JUMPTraceEntry | {}); // {} because CREATE and CREATE2 materialize as just the base TraceEntry
+
+type CALLTraceEntry = {
+  from?: Address;
+  to?: Address;
+  value?: Quantity;
+  data?: Data;
+  args?: { type: string; value: Quantity | Data }[];
 };
-type TransactionSimulationResult = {
+
+type JUMPTraceEntry = {
+  destination: Quantity;
+  condition?: Quantity;
+};
+
+type TransactionSimulationResult<Estimate extends boolean> = {
   returnValue: Data;
-  gas: GasBreakdown;
+  gas: GasBreakdown<Estimate>;
   logs: Log[];
   storageChanges: StorageChange[];
   stateChanges: StateChange[];
@@ -119,10 +164,9 @@ type TransactionSimulationResult = {
   gasEstimate?: Quantity;
 };
 
-type InternalTransactionSimulationResult = {
+export type InternalTransactionSimulationResult<Estimate extends boolean> = {
   result: any;
-  gasBreakdown: any;
-  gasEstimate?: bigint;
+  gas: GasBreakdown<Estimate>;
   storageChanges: {
     address: Address;
     key: Buffer;
@@ -133,27 +177,22 @@ type InternalTransactionSimulationResult = {
     Buffer,
     [[Buffer, Buffer, Buffer, Buffer], [Buffer, Buffer, Buffer, Buffer]]
   >;
-  trace?: {
-    opcode: Buffer;
-    pc: number;
-    type: string;
-    stack: Buffer[];
-  }[];
+  trace?: TraceEntry[];
 };
 
-async function simulateTransaction(
+async function simulateTransactions<Estimate extends boolean>(
   blockchain: Blockchain,
   options: EthereumInternalOptions,
   transactions: Ethereum.Call.Transaction[],
-  blockNumber: QUANTITY | Ethereum.Tag = Tag.latest,
+  blockNumber: QUANTITY | Ethereum.Tag,
   overrides: Ethereum.Call.Overrides = {},
-  includeTrace: boolean = false,
-  includeGasEstimate: boolean = false
-): Promise<InternalTransactionSimulationResult[]> {
+  includeTrace: boolean,
+  includeGasEstimate: Estimate,
+  continueOnFailure: boolean
+): Promise<InternalTransactionSimulationResult<Estimate>[]> {
   const blocks = blockchain.blocks;
   const parentBlock = await blocks.get(blockNumber);
   const parentHeader = parentBlock.header;
-  // EVMResult
   const simulationBlockNumber = parentHeader.number.toBigInt() + 1n;
   const common = blockchain.fallback
     ? blockchain.fallback.getCommonForBlockNumber(
@@ -161,9 +200,33 @@ async function simulateTransaction(
         simulationBlockNumber
       )
     : blockchain.common;
+  // TODO: why do we do this? can we not?
   common.setHardfork("shanghai");
 
-  let cummulativeGas = 0n;
+  let cumulativeGas = 0n;
+
+  const incr =
+    typeof options.miner.timestampIncrement === "string"
+      ? 12n
+      : options.miner.timestampIncrement.toBigInt();
+
+  const baseFeePerGasBigInt = Block.calcNextBaseFee(parentBlock);
+  const timestamp = Quantity.from(parentHeader.timestamp.toBigInt() + incr);
+
+  const block = new RuntimeBlock(
+    common,
+    Quantity.from(simulationBlockNumber),
+    parentBlock.hash(),
+    blockchain.coinbase,
+    Quantity.Zero, // we'll fill this with cumulativeGas in later
+    parentHeader.gasUsed,
+    timestamp,
+    Quantity.Zero, //options.miner.difficulty,
+    parentHeader.totalDifficulty,
+    blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
+    baseFeePerGasBigInt,
+    KECCAK256_RLP
+  );
 
   const simulationTransactions = transactions.map(transaction => {
     let txGas: Quantity;
@@ -242,7 +305,7 @@ async function simulateTransaction(
       transaction.value == null ? null : Quantity.from(transaction.value);
 
     // add this transaction's gas to the block gas
-    cummulativeGas += txGas.toBigInt();
+    cumulativeGas += txGas.toBigInt();
 
     const simulatedTransaction = {
       gas: txGas,
@@ -251,44 +314,23 @@ async function simulateTransaction(
       gasPrice,
       value,
       data,
-      block: undefined
+      block
     };
 
     return simulatedTransaction;
   });
 
-  const incr =
-    typeof options.miner.timestampIncrement === "string"
-      ? 12n
-      : options.miner.timestampIncrement.toBigInt();
+  block.header.gasLimit = cumulativeGas;
 
-  // todo: calculate baseFeePerGas
-  const baseFeePerGasBigInt = parentBlock.header.baseFeePerGas.toBigInt();
-  const timestamp = Quantity.from(parentHeader.timestamp.toBigInt() + incr);
-
-  const block = new RuntimeBlock(
-    common,
-    Quantity.from(simulationBlockNumber),
-    parentBlock.hash(),
-    blockchain.coinbase,
-    Quantity.from(cummulativeGas),
-    parentHeader.gasUsed,
-    timestamp,
-    Quantity.Zero, //options.miner.difficulty,
-    parentHeader.totalDifficulty,
-    blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
-    baseFeePerGasBigInt,
-    KECCAK256_RLP
-  );
-
-  const results = blockchain.simulateTransactions(
+  const results = await blockchain.simulateTransactions<Estimate>(
     common,
     simulationTransactions,
     block,
     parentBlock,
     overrides,
     includeTrace,
-    includeGasEstimate
+    includeGasEstimate,
+    continueOnFailure
   );
 
   return results;
@@ -3021,38 +3063,33 @@ export default class EthereumApi implements Api {
    * @param  {TransactionSimulationArgs} args
    * @returns Promise
    */
-  async evm_simulateTransactions(
-    args: TransactionSimulationArgs
-  ): Promise<TransactionSimulationResult[]> {
-    // todo: need to be able to pass in multiple transactions
-    const transactions = args.transactions;
-    const blockNumber = args.block || "latest";
+  @assertArgLength(1, 2)
+  async evm_simulateTransactions<Estimate extends boolean = false>(
+    {
+      overrides,
+      transactions,
+      trace,
+      estimateGas,
+      continueOnFailure
+    }: TransactionSimulationArgs<Estimate>,
+    blockNumber: QUANTITY | Ethereum.Tag = Tag.latest
+  ): Promise<TransactionSimulationResult<Estimate>[]> {
+    const includeTrace = trace === true;
 
-    const overrides = args.overrides;
-    const includeTrace = args.trace === "full" || args.trace === "call";
-    const includeGasEstimation =
-      args.gasEstimation === "full" || args.gasEstimation === "call-depth";
-
-    //@ts-ignore
-    const simulatedTransactionResults = await simulateTransaction(
+    const simulatedTransactionResults = await simulateTransactions<Estimate>(
       this.#blockchain,
       this.#options,
       transactions,
       blockNumber,
       overrides,
       includeTrace,
-      includeGasEstimation
+      //@ts-ignore
+      estimateGas === true,
+      continueOnFailure === true
     );
 
     return simulatedTransactionResults.map(
-      ({
-        trace,
-        gasBreakdown,
-        result,
-        storageChanges,
-        stateChanges,
-        gasEstimate
-      }) => {
+      ({ trace, gas, result, storageChanges, stateChanges }) => {
         const parsedStorageChanges = storageChanges.map(change => ({
           key: Data.from(change.key),
           address: Address.from(change.address.buf),
@@ -3081,12 +3118,6 @@ export default class EthereumApi implements Api {
         }
 
         const returnValue = Data.from(result.returnValue || "0x");
-        const gas = {
-          intrinsic: Quantity.from(gasBreakdown.intrinsicGas),
-          execution: Quantity.from(gasBreakdown.executionGas),
-          refund: Quantity.from(gasBreakdown.refund),
-          actualCost: Quantity.from(gasBreakdown.actualGasCost)
-        };
         const logs = result.logs?.map(([addr, topics, data]) => ({
           address: Data.from(addr),
           topics: topics?.map(t => Data.from(t)),
@@ -3100,32 +3131,12 @@ export default class EthereumApi implements Api {
           error,
           returnValue,
           gas,
-          gasEstimate: gasEstimate ? Quantity.from(gasEstimate) : undefined,
           logs,
           //todo: populate receipts
           receipts: undefined,
           storageChanges: parsedStorageChanges,
           stateChanges: parsedStateChanges,
-          trace: includeTrace
-            ? trace.map((t: any) => {
-                return {
-                  opcode: Data.from(t.opcode),
-                  type: t.type,
-                  from: Address.from(t.from),
-                  to: Address.from(t.to),
-                  target: t.target,
-                  value:
-                    t.value === undefined ? undefined : Quantity.from(t.value),
-                  input: Data.from(t.input),
-                  decodedInput: t.decodedInput?.map(({ type, value }) => ({
-                    type,
-                    // todo: some values will be Quantity rather
-                    value: Data.from(value)
-                  })),
-                  pc: t.pc
-                };
-              })
-            : undefined
+          trace: includeTrace ? trace : undefined
         };
       }
     );
@@ -3189,7 +3200,7 @@ export default class EthereumApi implements Api {
   ): Promise<Data> {
     //cos I've broken it real good
     //@ts-ignore
-    const { result } = await simulateTransaction(
+    const { result } = await simulateTransactions(
       this.#blockchain,
       this.#options,
       //@ts-ignore
