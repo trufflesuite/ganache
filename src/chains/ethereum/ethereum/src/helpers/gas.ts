@@ -444,8 +444,7 @@ export class GasTracer {
     // In otherwords: `depth` and `node` don't need to change.
     // Note: `callNode` could be `undefined` in cases like when someone sends
     // a transactions with data to an account that doesn't have code.
-    callNode &&
-      appendNewCallNode(-1, gasUsed, gasUsed, 0n, callNode, `PRECOMPILE`);
+    appendNewCallNode(-1, gasUsed, gasUsed, 0n, callNode, `PRECOMPILE`);
   }
 
   /**
