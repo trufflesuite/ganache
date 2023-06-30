@@ -112,7 +112,7 @@
     "solc": "0.8.11",
     "superagent": "6.1.0",
     "ts-node": "10.9.1",
-    "typedoc": "0.22.10",
+    "typedoc": "0.24.8",
     "typescript": "4.7.4",
     "web3": "1.7.0"
   },
