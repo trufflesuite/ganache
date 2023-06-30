@@ -19,16 +19,16 @@
       "path": "../options"
     },
     {
-      "name": "@ganache/ethereum",
-      "path": "../../chains/ethereum/ethereum"
-    },
-    {
       "name": "@ganache/colors",
       "path": "../colors"
     },
     {
       "name": "@ganache/flavor",
       "path": "../flavor"
+    },
+    {
+      "name": "@ganache/ethereum",
+      "path": "../ethereum/ethereum"
     }
   ]
 }

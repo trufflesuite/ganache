@@ -53,7 +53,7 @@ jobs:
         run: |
           npm run build &&
           npm run prepublishOnly &&
-          cd ./src/packages/ganache &&
+          cd ./packages/ganache &&
           npm pack &&
           size="$(zcat ganache-*.tgz | wc -c)" &&
           echo "Bundle size: $size" &&
@@ -69,4 +69,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Candidate
-          path: ./src/packages/ganache/ganache-*.tgz
+          path: ./packages/ganache/ganache-*.tgz

@@ -592,7 +592,7 @@ Currently, we do not await the event listener's return value, however, we'll lik
 
 By default, Ganache logs to stdout when a contract executes a `console.log`
 Solidity statement during `eth_call`, `eth_sendTransaction`, `personal_sendTransaction`, and `eth_sendRawTransaction`.
-See the [@ganache/console.log package](https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/console.log)
+See the [@ganache/console.log package](https://github.com/trufflesuite/ganache/tree/develop/packages/ethereum/console.log)
 for implementation and usage.
 
 ## Community
@@ -631,7 +631,7 @@ $ git clone https://github.com/trufflesuite/ganache.git && cd ganache
 then:
 
 ```console
-$ docker build --tag trufflesuite/ganache --file ./src/packages/ganache/Dockerfile .
+$ docker build --tag trufflesuite/ganache --file ./packages/ganache/Dockerfile .
 $ docker run --publish 8545:8545 trufflesuite/ganache
 ```
 

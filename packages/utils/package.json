@@ -6,7 +6,7 @@
   "version": "0.8.0",
   "description": "Utility functions for @ganache packages",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/utils#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/utils#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/packages/utils"
+    "directory": "packages/utils"
   },
   "scripts": {
     "tsc": "tsc --build",

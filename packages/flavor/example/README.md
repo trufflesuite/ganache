@@ -14,7 +14,7 @@ You can use Flavors via the CLI or progammatically from JavaScript.
 ### On the CLI
 
 ```console
-$ ganache --flavor ~/code/ganache/src/packages/flavor/example --accounts david
+$ ganache --flavor ~/code/ganache/packages/flavor/example --accounts david
 ```
 
 ### Programmatically

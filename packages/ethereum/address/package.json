@@ -6,7 +6,7 @@
   "version": "0.8.0",
   "description": "",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/address#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/ethereum/address#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/chains/ethereum/address"
+    "directory": "packages/ethereum/address"
   },
   "scripts": {
     "tsc": "tsc --build",

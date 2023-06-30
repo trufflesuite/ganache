@@ -1,21 +1,3 @@
 # global code owner:
 
 *       @davidmurdoch
-
-# typed transactions:
-
-src/chains/ethereum/transaction/src/access-lists.ts @MicaiahReid
-src/chains/ethereum/transaction/src/base-transaction.ts @MicaiahReid
-src/chains/ethereum/transaction/src/eip1559-fee-market-transaction.ts @MicaiahReid
-src/chains/ethereum/transaction/src/eip2930-access-list-transaction.ts @MicaiahReid
-src/chains/ethereum/transaction/src/legacy-transaction.ts @MicaiahReid
-src/chains/ethereum/transaction/src/transaction-factory.ts @MicaiahReid
-src/chains/ethereum/transaction/src/transaction-types.ts @MicaiahReid
-
-# transaction pool:
-
-src/chains/ethereum/ethereum/src/transaction-pool.ts @MicaiahReid
-
-# miner:
-
-src/chains/ethereum/ethereum/src/miner @MicaiahReid

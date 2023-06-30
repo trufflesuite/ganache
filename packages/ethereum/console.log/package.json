@@ -6,7 +6,7 @@
   "version": "0.4.0",
   "description": "A Solidity library and EVM hooks for using console.log from Solidity contracts",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/console.log#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/ethereum/console.log#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -23,7 +23,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/chains/ethereum/console.log"
+    "directory": "packages/ethereum/console.log"
   },
   "scripts": {
     "tsc": "tsc --build",
