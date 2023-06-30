@@ -56,6 +56,7 @@ function e(s: string) {
 type Tag = {
   tag: string;
   text: string;
+  content: {text: string}[]
 };
 
 type Type = {
@@ -70,9 +71,8 @@ type Type = {
 };
 
 type Comment = {
-  shortText: string;
-  text: string;
-  tags: Tag[];
+  summary: {text: string}[],
+  blockTags: Tag[];
   returns: string;
 };
 
@@ -93,15 +93,17 @@ type Method = {
     comment: Comment;
   }[];
   type: Type;
+  kind: number;
   kindString: string;
   flags: any;
   sources: any[];
 };
 
 function renderReturns(method: Method) {
+  const returns = method.signatures[0].comment && method.signatures[0].comment.blockTags.filter(t => t.tag === "@returns");
   const comment =
-    method.signatures[0].comment && method.signatures[0].comment.returns
-      ? method.signatures[0].comment.returns
+    returns.length > 0
+      ? returns[0].content.map(c => c.text).join("")
       : null;
   let returnType = renderReturnType(method);
   if (returnType.includes("Quantity")) {
@@ -152,10 +154,11 @@ function (${name}: ${type})
 \`\`\``;
       const html = marked(md, markedOptions)
         .replace(/<span class="hljs-keyword">function<\/span> \((.*)\)/, "$1")
-        .replace(/<\/?pre>/g, "");
+        .replace(/<\/?pre>/g, "")
+        .replace(/\n<\/code>\n/g, "</code>");
       return `<li>${html}${
-        param.comment && param.comment.text && param.comment.text.trim().length
-          ? `: ${marked.parseInline(param.comment.text, markedOptions)}`
+        param.comment && param.comment.summary && param.comment.summary.length > 0
+          ? `: ${marked.parseInline(param.comment.summary.map(s => s.text).join(""), markedOptions)}`
           : ""
       }</li>`;
     });
@@ -205,33 +208,22 @@ function renderMethodDocs(method: Method) {
 
 function renderMethodComment(method: Method) {
   const signature = method.signatures[0];
-  return signature.comment
-    ? `
-    ${
-      signature.comment.shortText
-        ? marked(signature.comment.shortText, markedOptions)
-        : ""
-    }
-    ${
-      signature.comment.text
-        ? marked(signature.comment.text, markedOptions)
-        : ""
-    }
-  `
-    : "";
+  return marked(signature.comment.summary.map(summary => summary.text).join(""), markedOptions);
 }
 
 function renderTag(method: Method, tag: Tag, i: number) {
   switch (tag.tag) {
-    case "example":
+    case "@returns":
+      return ""; // handled elsewhere
+    case "@example":
       const h = highlight();
-      const code = marked(tag.text, { highlight: h.fn });
+      const code = marked((tag as any).content[0].text, { highlight: h.fn });
       const lang = h.raw.language || "javascript";
       const height = Math.max(100, code.split(/\n/).length * 19 + 20);
       return `
           <div class="content wide-content example_container" style="position: relative">
-            <div class="tag content tag_${x(tag.tag)}">
-              ${x(tag.tag)}
+            <div class="tag content tag_${x(tag.tag.replace(/^@/g, ""))}">
+              ${x(tag.tag.replace(/^@/g, ""))}
             </div>
             <div class="monaco-outer-container">
               <div style="height:${height}px" class="monaco-inner-container">
@@ -249,10 +241,10 @@ function renderTag(method: Method, tag: Tag, i: number) {
       return `
           <div class="content">
             <div class="tag">
-              ${x(tag.tag)}
+              ${x(tag.tag.replace(/^@/g, ""))}
             </div>
             <div>
-              ${marked(tag.text, markedOptions)}
+              ${marked((tag as any).content[0].text, markedOptions)}
             </div>
           </div>
         `;
@@ -279,10 +271,10 @@ function renderTags(method: Method) {
   const signature = method.signatures[0];
   if (
     signature.comment &&
-    signature.comment.tags &&
-    signature.comment.tags.length
+    signature.comment.blockTags &&
+    signature.comment.blockTags.length
   ) {
-    return signature.comment.tags.map(renderTag.bind(null, method)).join("\n");
+    return signature.comment.blockTags.map(renderTag.bind(null, method)).join("\n");
   }
   return "";
 }
@@ -378,10 +370,11 @@ const orderedNamespaces = [
   "other"
 ];
 
+const METHOD_KIND = 2048;
 const groupedMethods: { [group: string]: Method[] } = {};
 for (const child of ethereum.children) {
   const { name } = child;
-  if (name === "constructor" || child.kindString !== "Method") continue;
+  if (name === "constructor" || child.kind !== METHOD_KIND) continue;
 
   const parts = name.split("_");
   let namespace = "other";
