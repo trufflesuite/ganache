@@ -1,5 +1,5 @@
 {
-  "packages": ["src/packages/*", "src/chains/*/*"],
+  "packages": ["packages/*", "packages/ethereum/*"],
   "version": "independent",
   "command": {
     "version": {
