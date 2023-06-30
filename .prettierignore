@@ -3,7 +3,7 @@
 .nyc_output
 lerna-debug.log
 npm-debug.log
-src/**/*/lib
+packages/**/*/lib
 coverage
 npm-shrinkwrap.json
 docs/assets/js/ganache/*
