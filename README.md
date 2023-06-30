@@ -1,1 +1,1 @@
-./src/packages/ganache/README.md
+./packages/ganache/README.md
