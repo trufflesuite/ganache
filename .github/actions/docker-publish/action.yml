@@ -64,7 +64,7 @@ runs:
       uses: docker/build-push-action@175d02bffea74695e96b351069ac938b338802f9
       with:
         context: .
-        file: ./src/packages/ganache/Dockerfile
+        file: ./packages/ganache/Dockerfile
         push: true
         tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', inputs.TAG, inputs.VERSION) }}
         labels: ${{ steps.meta.outputs.labels }}

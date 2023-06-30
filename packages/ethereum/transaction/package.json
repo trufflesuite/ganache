@@ -6,7 +6,7 @@
   "version": "0.9.0",
   "description": "",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/chains/ethereum/transaction#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/ethereum/transaction#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/chains/ethereum/transaction"
+    "directory": "packages/ethereum/transaction"
   },
   "scripts": {
     "tsc": "tsc --build",

@@ -6,7 +6,7 @@
   "version": "0.5.0",
   "description": "",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/secp256k1#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/secp256k1#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/packages/secp256k1"
+    "directory": "packages/secp256k1"
   },
   "scripts": {
     "tsc": "tsc --build",

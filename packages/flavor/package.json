@@ -6,7 +6,7 @@
   "version": "0.10.0",
   "description": "Ganache's flavors enumeration and TypeScript types",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/flavor#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/flavor#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -22,7 +22,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/packages/flavor"
+    "directory": "packages/flavor"
   },
   "scripts": {
     "tsc": "tsc --build",

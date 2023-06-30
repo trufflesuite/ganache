@@ -24,10 +24,10 @@ FROM node:14.17.4-slim@sha256:766e2dcf4461582f7f750656807edbc28019753cecae92b1f2
 WORKDIR /app
 
 # copy from build image
-COPY --from=builder /app/src/packages/ganache/node_modules node_modules
+COPY --from=builder /app/packages/ganache/node_modules node_modules
 # TODO(perf): we don't need everything in here. Maybe either create a separate
 # build for docker or cherry-pick the files we actually need.
-COPY --from=builder /app/src/packages/ganache/dist/node dist/node
+COPY --from=builder /app/packages/ganache/dist/node dist/node
 
 ENV DOCKER true
 ENV NODE_ENV production

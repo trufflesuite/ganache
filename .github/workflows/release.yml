@@ -124,7 +124,7 @@ jobs:
 
       - name: Set VERSION
         run: |
-          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+          echo "VERSION=$(node -e 'console.log(require("./packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
       - name: Set VERSION as job output variable
         id: set_version_output

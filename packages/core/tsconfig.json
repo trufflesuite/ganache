@@ -11,10 +11,6 @@
   ],
   "references": [
     {
-      "name": "@ganache/ethereum",
-      "path": "../../chains/ethereum/ethereum"
-    },
-    {
       "name": "@ganache/options",
       "path": "../options"
     },
@@ -25,6 +21,10 @@
     {
       "name": "@ganache/flavor",
       "path": "../flavor"
+    },
+    {
+      "name": "@ganache/ethereum",
+      "path": "../ethereum/ethereum"
     }
   ]
 }

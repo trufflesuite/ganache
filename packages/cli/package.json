@@ -6,7 +6,7 @@
   "version": "0.10.0",
   "description": "",
   "author": "David Murdoch",
-  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/src/packages/cli#readme",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/cli#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "typings",
@@ -26,7 +26,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/trufflesuite/ganache.git",
-    "directory": "src/packages/cli"
+    "directory": "packages/cli"
   },
   "scripts": {
     "tsc": "tsc --build",
