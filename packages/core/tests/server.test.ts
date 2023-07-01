@@ -216,7 +216,13 @@ describe("server", () => {
               for (const info of interfaceInfo) {
                 const host = getHost(info, interfaceName);
 
-                const requestPromise = post(host, port, jsonRpcJson);
+                // TODO: passing `false` as the httpAgent will disable the default
+                // keepAlive (by not using an httpAgent at all, since the
+                // default `globalAgent` has a default keepAlive of 5 seconds)
+                // This is necessary as of node v20, not sure why!
+                // if `https://github.com/trufflesuite/ganache/issues/2788` this
+                // issue would be resolved and we can remove this.
+                const requestPromise = post(host, port, jsonRpcJson, false);
                 if (serverHost === host) {
                   const response = await requestPromise;
                   assert.strictEqual(response.status, 200);
