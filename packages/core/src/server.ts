@@ -331,6 +331,11 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
       await this.#connector.close();
     }
 
+    // calling `close()` on the app closes any idle connections immediately,
+    // this is neccessary because keepAlive connections can keep the server
+    // open indefintely even after the listen socket is closed.
+    this.#app.close();
+
     this.#status = ServerStatus.closed;
     this.#app = null;
 
