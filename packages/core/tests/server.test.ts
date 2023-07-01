@@ -514,9 +514,8 @@ describe("server", () => {
 
         await s.close();
 
-        // connection has now closed, allowing ganache to close
         await assert.rejects(post("localhost", port, jsonRpcJson, agent), {
-          code: "ECONNREFUSED"
+          code: "ECONNRESET"
         });
       } finally {
         teardown();
