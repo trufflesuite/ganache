@@ -513,9 +513,6 @@ describe("server", () => {
         await post("localhost", port, jsonRpcJson, agent);
 
         await s.close();
-        // a request is required in order to actually close the connection
-        // see https://github.com/trufflesuite/ganache/issues/2788
-        await post("localhost", port, jsonRpcJson, agent);
 
         // connection has now closed, allowing ganache to close
         await assert.rejects(post("localhost", port, jsonRpcJson, agent), {
