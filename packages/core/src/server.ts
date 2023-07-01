@@ -271,6 +271,7 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
           errors.push(e);
         }
         if (errors.length > 1) {
+          console.log(errors); // just for debugging CI
           throw new AggregateError(errors);
         } else {
           throw errors[0];
