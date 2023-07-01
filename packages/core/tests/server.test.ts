@@ -222,7 +222,7 @@ describe("server", () => {
                 // This is necessary as of node v20, not sure why!
                 // if `https://github.com/trufflesuite/ganache/issues/2788` this
                 // issue would be resolved and we can remove this.
-                const requestPromise = post(host, port, jsonRpcJson, false);
+                const requestPromise = post(host, port, jsonRpcJson);
                 if (serverHost === host) {
                   const response = await requestPromise;
                   assert.strictEqual(response.status, 200);
