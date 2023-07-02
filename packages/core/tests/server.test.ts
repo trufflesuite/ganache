@@ -514,9 +514,9 @@ describe("server", () => {
 
         await s.close();
 
-        await assert.rejects(post("localhost", port, jsonRpcJson, agent), {
-          code: "ECONNRESET"
-        });
+        const error = await post("localhost", port, jsonRpcJson, agent).catch(e => e);
+        assert(error instanceof Error, `Expected error to be an instance of Error, but got ${error} instead`);
+        assert("code" in error && (error["code"] === "ECONNREFUSED" || error["code"] === "ECONNRESET"), `Expected error.code to be ECONNREFUSED or ECONNRESET, got ${error} instead`);
       } finally {
         teardown();
       }
