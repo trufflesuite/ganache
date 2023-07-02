@@ -271,7 +271,6 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
           errors.push(e);
         }
         if (errors.length > 1) {
-          console.log(errors); // just for debugging CI
           throw new AggregateError(errors);
         } else {
           throw errors[0];
@@ -335,7 +334,8 @@ export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
     // calling `close()` on the app closes any idle connections immediately,
     // this is neccessary because keepAlive connections can keep the server
     // open indefintely even after the listen socket is closed.
-    (this.#app as any).close();
+    // TODO: add a `close` is our uws fork fallback:
+    (this.#app as any).close && (this.#app as any).close();
 
     this.#status = ServerStatus.closed;
     this.#app = null;
