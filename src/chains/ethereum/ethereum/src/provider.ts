@@ -35,7 +35,6 @@ import {
   MessageEvent,
   VmConsoleLogEvent
 } from "./provider-events";
-
 declare type RequestMethods = KnownKeys<EthereumApi>;
 
 function parseCoinbase(
@@ -431,6 +430,8 @@ export class EthereumProvider
     // (unhelpful) internal errors. See https://github.com/trufflesuite/ganache/issues/3499
     this.#executor.stop();
     await this.#blockchain.stop();
+
+    await this.#options.logging.logger.close();
 
     this.#executor.end();
     this.emit("disconnect");

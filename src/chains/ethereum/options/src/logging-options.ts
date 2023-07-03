@@ -1,9 +1,8 @@
 import { normalize } from "./helpers";
 import { Definitions } from "@ganache/options";
-
-export type Logger = {
-  log(message?: any, ...optionalParams: any[]): void;
-};
+import { openSync, PathLike } from "fs";
+import { Logger, InternalLogger, createLogger } from "@ganache/utils";
+import { EOL } from "os";
 
 export type LoggingConfig = {
   options: {
@@ -38,7 +37,8 @@ export type LoggingConfig = {
      * ```
      */
     readonly logger: {
-      type: Logger;
+      rawType: Logger;
+      type: InternalLogger;
       hasDefault: true;
       legacy: {
         /**
@@ -65,14 +65,27 @@ export type LoggingConfig = {
     };
 
     /**
-     * Set to `true` to disable logging. This option overrides
-     * logging.logger and option.verbose.
+     * Set to `true` to disable writing logs to stdout (or logging.logger if specified).
+     * This option does not impact writing logs to a file (with logging.file).
      *
      * @defaultValue false
      */
     readonly quiet: {
       type: boolean;
       hasDefault: true;
+    };
+
+    /**
+     * The file to append logs to.
+     *
+     * Can be a filename, or an instance of URL.
+     * note: the URL scheme must be `file`, e.g., `file://path/to/file.log`.
+     *
+     * By default no log file is created.
+     */
+    readonly file: {
+      type: number;
+      rawType: PathLike;
     };
   };
 };
@@ -87,21 +100,10 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
   },
   quiet: {
     normalize,
-    cliDescription: "Set to `true` to disable logging.",
+    cliDescription: "Set to `true` to disable writing logs to `logger.log` (`stdout` by default).",
     default: () => false,
     cliAliases: ["q", "quiet"],
     cliType: "boolean"
-  },
-  logger: {
-    normalize,
-    cliDescription:
-      "An object, like `console`, that implements a `log` function.",
-    disableInCLI: true,
-    // disable the default logger if `quiet` is `true`
-    default: config => ({
-      log: config.quiet ? () => {} : console.log
-    }),
-    legacyName: "logger"
   },
   verbose: {
     normalize,
@@ -110,5 +112,41 @@ export const LoggingOptions: Definitions<LoggingConfig> = {
     legacyName: "verbose",
     cliAliases: ["v", "verbose"],
     cliType: "boolean"
+  },
+  file: {
+    normalize: (raw: PathLike): number => {
+      let descriptor: number;
+
+      try {
+        descriptor = openSync(raw, "a");
+      } catch (err) {
+        const details = (err as Error).message;
+        throw new Error(
+          `Failed to open log file ${raw}. Please check if the file path is valid and if the process has write permissions to the directory.${EOL}${details}`
+        );
+      }
+      return descriptor;
+    },
+    cliDescription: "The file to append logs to.",
+    cliType: "string"
+  },
+  logger: {
+    normalize: (logger: Logger, config: Readonly<{ file: number }>) => {
+      return createLogger({
+        file: config.file,
+        baseLogger: logger
+      });
+    },
+    cliDescription:
+      "An object, like `console`, that implements a `log` function.",
+    disableInCLI: true,
+    default: config => {
+      const baseLogger = config.quiet ? { log: () => {} } : console;
+      return createLogger({
+        file: config.file,
+        baseLogger
+      });
+    },
+    legacyName: "logger"
   }
 };
