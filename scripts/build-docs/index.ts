@@ -447,7 +447,7 @@ const preamble =
 
 **Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in your [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
-// this font is loaded when you navigate to ganache. Others are loaded as well, but they are dependent on the,
+// this font is loaded when you navigate to ganache. Others are loaded as well, but they are dependent on the
 // User-Agent and thus different browsers get different versions. To verify check what fonts are downloaded, load
 // ganache.dev with devtools open, and check the `Font` tab within the Network tab.
 const fontPreload = `
