@@ -19,7 +19,7 @@ import { Common } from "@ethereumjs/common";
 export type BlockHeader = {
   parentHash: Data;
   sha3Uncles: Data;
-  miner: Data;
+  miner: Address;
   stateRoot: Data;
   transactionsRoot: Data;
   receiptsRoot: Data;
@@ -56,7 +56,7 @@ export function makeHeader(
   return {
     parentHash: Data.from(raw[0], 32),
     sha3Uncles: Data.from(raw[1], 32),
-    miner: Data.from(raw[2], 20),
+    miner: new Address(raw[2]),
     stateRoot: Data.from(raw[3], 32),
     transactionsRoot: Data.from(raw[4], 32),
     receiptsRoot: Data.from(raw[5], 32),
