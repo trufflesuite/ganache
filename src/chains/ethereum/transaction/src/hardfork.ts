@@ -9,4 +9,5 @@ export type Hardfork =
   | "arrowGlacier"
   | "grayGlacier"
   | "merge"
+  | "mergeForkIdTransition"
   | "shanghai";
