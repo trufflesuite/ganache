@@ -29,6 +29,7 @@ export const Params = {
     | "arrowGlacier"
     | "grayGlacier"
     | "merge"
+    | "mergeForkIdTransition"
     | "shanghai",
     bigint
   >([
@@ -47,6 +48,7 @@ export const Params = {
     ["arrowGlacier", 16n],
     ["grayGlacier", 16n],
     ["merge", 16n],
+    ["mergeForkIdTransition", 16n],
     ["shanghai", 16n]
   ]),
 

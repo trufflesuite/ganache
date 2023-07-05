@@ -241,6 +241,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
     const maxPriorityFeePerGas = this.maxPriorityFeePerGas.toBigInt();
     const a = maxFeePerGas - baseFeePerGas;
     const tip = a < maxPriorityFeePerGas ? a : maxPriorityFeePerGas;
+
     this.effectiveGasPrice = Quantity.from(baseFeePerGas + tip);
   }
 }

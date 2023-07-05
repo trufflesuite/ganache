@@ -96,6 +96,7 @@ export class RuntimeBlock {
     prevRandao: Buffer;
     baseFeePerGas?: bigint; // added in london
     withdrawalsRoot?: Buffer; // added in shanghai
+    cliqueSigner: () => Address;
   };
 
   constructor(
@@ -113,10 +114,9 @@ export class RuntimeBlock {
     withdrawalsRoot?: Buffer
   ) {
     this._common = common;
-    const coinbaseBuffer = coinbase.toBuffer();
     this.header = {
       parentHash: parentHash.toBuffer(),
-      coinbase: new Address(coinbaseBuffer),
+      coinbase: coinbase,
       number: number.toBigInt(),
       difficulty: difficulty.toBigInt(),
       totalDifficulty: Quantity.toBuffer(
@@ -128,7 +128,9 @@ export class RuntimeBlock {
       baseFeePerGas,
       mixHash,
       prevRandao: mixHash,
-      withdrawalsRoot
+      withdrawalsRoot,
+      // fixes https://github.com/trufflesuite/ganache/issues/4359
+      cliqueSigner: () => coinbase
     };
   }
 

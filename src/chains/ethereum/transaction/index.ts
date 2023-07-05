@@ -19,3 +19,4 @@ export * from "./src/transaction-receipt";
 export * from "./src/transaction-factory";
 export * from "./src/transaction-types";
 export * from "./src/vm-transaction";
+export * from "./src/transaction-serialization";

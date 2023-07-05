@@ -26,6 +26,14 @@ export type Transaction =
   | EIP2930AccessListRpcTransaction
   | EIP1559FeeMarketRpcTransaction;
 
+export enum TransactionType {
+  Legacy = 0x0,
+  EIP2930AccessList = 0x1,
+  //todo: this should be EIP1559FeeMarket
+  //https://github.com/trufflesuite/ganache/issues/4462
+  EIP1559AccessList = 0x2
+}
+
 export type CallTransaction = Omit<Transaction, "from"> & { from?: string };
 
 export type LegacyRpcTransaction = Readonly<RpcTransaction> & {
