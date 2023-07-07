@@ -8,6 +8,7 @@ import {
   BlockRawTransaction,
   EthereumRawBlock,
   EthereumRawBlockHeader,
+  GanacheRawBlock,
   Head,
   serialize,
   WithdrawalRaw
@@ -21,7 +22,7 @@ import {
 } from "@ganache/ethereum-transaction";
 import { GanacheLevelUp } from "../database";
 import { Ethereum } from "../api-types";
-import { encode } from "@ganache/rlp";
+import { decode, encode } from "@ganache/rlp";
 
 const LATEST_INDEX_KEY = BUFFER_ZERO;
 
@@ -171,10 +172,10 @@ export default class BlockManager extends Manager<Block> {
     if (json == null) {
       return null;
     } else {
-      const common = fallback.getCommonForBlockNumber(
-        this.#common,
-        BigInt(json.number)
-      );
+      const common = fallback.getCommonForBlock(this.#common, {
+        number: BigInt(json.number),
+        timestamp: BigInt(json.timestamp)
+      });
 
       return BlockManager.rawFromJSON(json, common);
     }
@@ -226,12 +227,12 @@ export default class BlockManager extends Manager<Block> {
           true
         ]);
         if (json) {
-          const blockNumber = BigInt(json.number);
-          if (blockNumber <= fallback.blockNumber.toBigInt()) {
-            const common = fallback.getCommonForBlockNumber(
-              this.#common,
-              blockNumber
-            );
+          const number = BigInt(json.number);
+          if (number <= fallback.blockNumber.toBigInt()) {
+            const common = fallback.getCommonForBlock(this.#common, {
+              number,
+              timestamp: BigInt(json.timestamp)
+            });
             return new Block(BlockManager.rawFromJSON(json, common), common);
           }
         }
@@ -272,9 +273,14 @@ export default class BlockManager extends Manager<Block> {
       if (fallback) {
         const block = await this.fromFallback(blockNumber);
         if (block) {
+          const header: EthereumRawBlockHeader =
+            decode<GanacheRawBlock>(block)[0];
           return new Block(
             block,
-            fallback.getCommonForBlockNumber(common, blockNumber.toBigInt())
+            fallback.getCommonForBlock(common, {
+              number: blockNumber.toBigInt(),
+              timestamp: Quantity.toBigInt(header[11])
+            })
           );
         }
       }
@@ -319,10 +325,10 @@ export default class BlockManager extends Manager<Block> {
         { disableCache: true }
       );
       if (json) {
-        const common = fallback.getCommonForBlockNumber(
-          this.#common,
-          BigInt(json.number)
-        );
+        const common = fallback.getCommonForBlock(this.#common, {
+          number: BigInt(json.number),
+          timestamp: BigInt(json.timestamp)
+        });
         return new Block(BlockManager.rawFromJSON(json, common), common);
       }
     } else {

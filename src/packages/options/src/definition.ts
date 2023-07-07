@@ -19,7 +19,10 @@ import { UnionToIntersection } from "./types";
 type Normalize<
   C extends Base.Config,
   N extends OptionName<C> = OptionName<C>
-> = (rawInput: OptionRawType<C, N>) => OptionType<C, N>;
+> = (
+  rawInput: OptionRawType<C, N>,
+  config: Readonly<InternalConfig<C>>
+) => OptionType<C, N>;
 
 export type ExternalConfig<C extends Base.Config> = Partial<
   ExclusiveGroupUnionAndUnconstrainedPlus<C, "rawType">

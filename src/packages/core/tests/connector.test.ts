@@ -9,29 +9,33 @@ describe("connector", () => {
   });
 
   it("it logs when `options.verbose` is `true`", async () => {
-    const logger = { log: (_msg: string) => {} };
+    const logLines: string[] = [];
+    const logger = {
+      log: (_msg: string) => {
+        logLines.push(_msg);
+      }
+    };
     const p = Ganache.provider({
       logging: { logger, verbose: true }
     });
 
-    logger.log = msg => {
-      assert.strictEqual(
-        msg,
-        "   >  net_version: undefined",
-        "doesn't work when no params"
-      );
-    };
     await p.send("net_version");
+    assert.deepStrictEqual(
+      logLines,
+      ["   >  net_version: undefined"],
+      "doesn't work when no params"
+    );
 
-    return new Promise(async resolve => {
-      logger.log = msg => {
-        const expected =
-          "   >  web3_sha3: [\n" + '   >   "Tim is a swell guy."\n' + "   > ]";
-        assert.strictEqual(msg, expected, "doesn't work with params");
-        resolve();
-      };
-      await p.send("web3_sha3", ["Tim is a swell guy."]);
-    });
+    // clear the logLines
+    logLines.length = 0;
+
+    const message = `0x${Buffer.from("Tim is a swell guy.").toString("hex")}`;
+    await p.send("web3_sha3", [message]);
+    assert.deepStrictEqual(
+      logLines,
+      [`   >  web3_sha3: [\n   >   \"${message}\"\n   > ]`],
+      "doesn't work with params"
+    );
   });
 
   it("it processes requests asynchronously when `asyncRequestProcessing` is default (true)", async () => {
@@ -108,7 +112,7 @@ describe("connector", () => {
     const illegalMethodTypes = [
       123,
       // just cast as string to make TS let me test weird stuff...
-      (Buffer.from([1]) as unknown) as string,
+      Buffer.from([1]) as unknown as string,
       null,
       void 0,
       {},

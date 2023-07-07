@@ -8,11 +8,9 @@ import { Transaction } from "./rpc-transaction";
 import type { Common } from "@ethereumjs/common";
 import { GanacheRawExtraTx, TypedRawTransaction } from "./raw";
 import type { RunTxResult } from "@ethereumjs/vm";
-import { EncodedPart, encode } from "@ganache/rlp";
 import { BaseTransaction } from "./base-transaction";
 import { InternalTransactionReceipt } from "./transaction-receipt";
 import { Address } from "@ganache/ethereum-address";
-import { encodeWithPrefix } from "./signing";
 
 export const toValidLengthAddress = (address: string, fieldName: string) => {
   const buffer = Data.toBuffer(address);
@@ -97,31 +95,6 @@ export abstract class RuntimeTransaction extends BaseTransaction {
    * @param privateKey - Must be 32 bytes in length
    */
   protected abstract signAndHash(privateKey: Buffer);
-
-  public serializeForDb(
-    blockHash: Data,
-    blockNumber: Quantity,
-    transactionIndex: Quantity
-  ): Buffer {
-    const legacy = this.raw.length === 9;
-    // todo(perf):make this work with encodeRange and digest
-    const txAndExtraData: [TypedRawTransaction, GanacheRawExtraTx] = [
-      // todo: this is encoded differently in the tx table than it is in the
-      // block table. we should migrate the tx table to use the same format as
-      // the block (`Buffer.concat([type, encode(raw)])`) so that we can avoid
-      // block it twice for each block save step.
-      legacy ? this.raw : ([this.type.toBuffer(), ...this.raw] as any),
-      [
-        this.from.toBuffer(),
-        this.hash.toBuffer(),
-        blockHash.toBuffer(),
-        blockNumber.toBuffer(),
-        transactionIndex.toBuffer(),
-        this.effectiveGasPrice.toBuffer()
-      ]
-    ];
-    return encode(txAndExtraData);
-  }
 
   abstract toJSON(common: Common);
 

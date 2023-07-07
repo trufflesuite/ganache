@@ -36,7 +36,8 @@ import {
   BUFFER_32_ZERO,
   BUFFER_256_ZERO,
   KNOWN_CHAINIDS,
-  keccak
+  keccak,
+  Logger
 } from "@ganache/utils";
 import AccountManager from "./data-managers/account-manager";
 import BlockManager from "./data-managers/block-manager";
@@ -48,7 +49,8 @@ import {
   calculateIntrinsicGas,
   InternalTransactionReceipt,
   VmTransaction,
-  TypedTransaction
+  TypedTransaction,
+  serializeForDb
 } from "@ganache/ethereum-transaction";
 import { Block, RuntimeBlock, Snapshots } from "@ganache/ethereum-block";
 import {
@@ -104,10 +106,6 @@ type BlockchainTypedEvents = {
   ready: undefined;
   stop: undefined;
 };
-
-interface Logger {
-  log(message?: any, ...optionalParams: any[]): void;
-}
 
 export type BlockchainOptions = {
   db?: string | object;
@@ -444,7 +442,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         // TODO: the block has already done most of the work serializing the tx
         // we should reuse it, if possible
         // https://github.com/trufflesuite/ganache/issues/4341
-        const serialized = tx.serializeForDb(blockHash, blockNumberQ, index);
+        const serialized = serializeForDb(tx, blockHash, blockNumberQ, index);
         this.transactions.set(hash, serialized);
 
         // save receipt to the database
@@ -1115,10 +1113,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const to = hasToAddress ? new Address(transaction.to.toBuffer()) : null;
 
     const common = this.fallback
-      ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(transaction.block.header.number.toString())
-        )
+      ? this.fallback.getCommonForBlock(this.common, transaction.block.header)
       : this.common;
 
     const gasLeft =
@@ -1252,10 +1247,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     } as any;
 
     const common = this.fallback
-      ? this.fallback.getCommonForBlockNumber(
-          this.common,
-          BigInt(block.header.number.toString())
-        )
+      ? this.fallback.getCommonForBlock(this.common, block.header)
       : this.common;
 
     // TODO: prefixCodeHashes should eventually be conditional

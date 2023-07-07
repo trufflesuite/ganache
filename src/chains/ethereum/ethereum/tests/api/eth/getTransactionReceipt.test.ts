@@ -89,7 +89,8 @@ describe("api", () => {
                 ` > \`${hash}\` has not\n` +
                 " > yet been mined." +
                 " See https://trfl.io/v7-instamine for additional information."
-            )
+            ),
+            `Actual: ${logger.loggedStuff}`
           );
         });
 
