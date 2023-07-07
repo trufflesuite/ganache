@@ -5,7 +5,7 @@ import merge from "webpack-merge";
 import DeduplicatePlugin from "./deduplicate-plugin";
 
 const config: webpack.Configuration = merge({}, base, {
-  target: "node10.7",
+  target: "node16.0",
   entry: {
     core: "./index.ts",
     cli: "./src/cli.ts"
