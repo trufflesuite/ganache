@@ -5,7 +5,6 @@ import { AbortError } from "@ganache/ethereum-utils";
 // Issue: https://github.com/trufflesuite/ganache/issues/3474
 import http, { RequestOptions, Agent as HttpAgent } from "http";
 import https, { Agent as HttpsAgent } from "https";
-import { AbortSignal } from "abort-controller";
 import { BaseHandler } from "./base-handler";
 import { Handler } from "../types";
 import Deferred from "../deferred";

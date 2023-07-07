@@ -1,6 +1,5 @@
 import { AbortError } from "@ganache/ethereum-utils";
 import { JsonRpcError, JsonRpcErrorCode, hasOwn } from "@ganache/utils";
-import { AbortSignal } from "abort-controller";
 import Semaphore from "semaphore";
 import { LimitCounter } from "./limit-counter";
 
