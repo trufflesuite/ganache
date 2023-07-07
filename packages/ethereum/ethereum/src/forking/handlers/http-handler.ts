@@ -169,7 +169,7 @@ export class HttpHandler extends BaseHandler implements Handler {
       });
 
       // after 5 seconds of idle abort the request
-      req.setTimeout(5000, req.abort.bind(req, null));
+      req.setTimeout(5000, req.abort.bind(req));
       req.on("error", deferred.reject);
       req.write(postData);
       req.end();

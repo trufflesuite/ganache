@@ -25,7 +25,7 @@ export interface ForkStateManagerOpts {
  * state trie.
  */
 export class ForkStateManager extends GanacheStateManager {
-  _cache: ForkCache;
+  declare _cache: ForkCache;
   readonly prefixCodeHashes: boolean;
 
   /**

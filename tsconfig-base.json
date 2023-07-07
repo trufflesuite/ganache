@@ -6,7 +6,7 @@
     "skipLibCheck": true,
     "module": "CommonJS",
     "esModuleInterop": true,
-    "target": "ES2020",
+    "target": "es2021",
     "moduleResolution": "node",
     "noErrorTruncation": true,
     "sourceMap": true,
@@ -15,7 +15,7 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "newLine": "lf",
-    "lib": ["ES2020"],
+    "lib": ["es2021"],
     "experimentalDecorators": true
   }
 }
