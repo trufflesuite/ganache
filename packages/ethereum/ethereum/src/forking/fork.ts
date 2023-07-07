@@ -1,6 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { Data, Quantity, KNOWN_CHAINIDS } from "@ganache/utils";
-import AbortController from "abort-controller";
 import { Common } from "@ethereumjs/common";
 import { HttpHandler } from "./handlers/http-handler";
 import { WsHandler } from "./handlers/ws-handler";
