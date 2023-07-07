@@ -8,7 +8,7 @@ import {
 } from "@ganache/ethereum-transaction";
 import type { Common } from "@ethereumjs/common";
 import { encode, decode } from "@ganache/rlp";
-import { BlockHeader, makeHeader } from "./runtime-block";
+import { BlockHeader, makeHeader } from "./helpers";
 import { keccak } from "@ganache/utils";
 import {
   BlockRawTransaction,
@@ -23,6 +23,8 @@ import {
   WithdrawalRaw
 } from "./serialize";
 import { BlockParams } from "./block-params";
+
+export type { BlockHeader } from "./helpers";
 
 export type BaseFeeHeader = BlockHeader &
   Required<Pick<BlockHeader, "baseFeePerGas">>;

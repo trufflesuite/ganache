@@ -141,7 +141,8 @@ export class Fork {
     chainIdPromise: Promise<number>
   ) => {
     const { fork: options } = this.#options;
-    if (options.blockNumber === Tag.latest) {
+    const blockNumber = options.blockNumber;
+    if (blockNumber === Tag.latest) {
       const [latestBlock, chainId] = await Promise.all([
         fetchBlock(this, Tag.latest),
         chainIdPromise
@@ -161,27 +162,24 @@ export class Fork {
       this.stateRoot = Data.from(block.stateRoot);
       await this.#syncAccounts(this.blockNumber);
       return block;
-    } else if (
-      Number.isInteger(options.blockNumber) &&
-      options.blockNumber >= 0
-    ) {
-      const blockNumber = Quantity.from(options.blockNumber);
+    } else if (blockNumber >= 0) {
+      const qBlockNumber = Quantity.from(blockNumber);
       const [block] = await Promise.all([
-        fetchBlock(this, blockNumber).then(async block => {
+        fetchBlock(this, qBlockNumber).then(async block => {
           this.stateRoot = block.stateRoot;
-          await this.#syncAccounts(blockNumber);
+          await this.#syncAccounts(qBlockNumber);
           return block;
         }),
         fetchBlockNumber(this).then((latestBlockNumberHex: string) => {
           const latestBlockNumberInt = parseInt(latestBlockNumberHex, 16);
           // if our block number option is _after_ the current block number
           // throw, as it likely wasn't intentional and doesn't make sense.
-          if (options.blockNumber > latestBlockNumberInt) {
+          if (blockNumber > latestBlockNumberInt) {
             throw new Error(
               `\`fork.blockNumber\` (${options.blockNumber}) must not be greater than the current block number (${latestBlockNumberInt})`
             );
           } else {
-            this.blockNumber = blockNumber;
+            this.blockNumber = qBlockNumber;
           }
         })
       ]);

@@ -10,7 +10,7 @@ export enum RETURN_TYPES {
 }
 
 export class RuntimeError extends CodedError {
-  public code: JsonRpcErrorCode;
+  public declare code: JsonRpcErrorCode;
   public data: {
     hash: string;
     programCounter: number;

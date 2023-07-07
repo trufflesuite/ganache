@@ -98,7 +98,7 @@ export function encode(input: Input | Readonly<Input>): Buffer {
       return buf;
     } else {
       const length = input.length;
-      if (length === 1 && input[0] < 128) {
+      if (length === 1 && (input as Buffer)[0] < 128) {
         return input as Buffer;
       } else {
         const encLength = encodeLength(length, 128);
@@ -199,7 +199,7 @@ function _decode<T extends Buffer | NestedBuffer>(input: Buffer): Decoded<T> {
       data = safeSlice(input, 1, length) as unknown as T;
     }
 
-    if (length === 2 && data[0] < 0x80) {
+    if (length === 2 && (data as Buffer)[0] < 0x80) {
       throw new Error(
         "invalid RLP encoding: invalid prefix, single byte < 0x80 are not prefixed"
       );
