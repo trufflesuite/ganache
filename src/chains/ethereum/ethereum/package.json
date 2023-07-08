@@ -113,7 +113,7 @@
     "ts-node": "10.9.1",
     "typedoc": "0.22.10",
     "typescript": "4.7.4",
-    "web3": "1.7.0"
+    "web3": "4.0.2"
   },
   "optionalDependencies": {
     "bufferutil": "4.0.5",
