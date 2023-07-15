@@ -67,6 +67,6 @@
   },
   "dependencies": {
     "@ethereumjs/util": "8.0.5",
-    "@ganache/utils": "0.3.0"
+    "@ganache/utils": "0.8.0"
   }
 }
