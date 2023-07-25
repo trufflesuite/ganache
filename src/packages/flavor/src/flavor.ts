@@ -1,5 +1,5 @@
 import type { OptionsConfig } from "@ganache/options";
-import { Executor } from "..";
+import { Executor } from "../index";
 import { Connector } from "./connector";
 
 export type CliSettings = { host: string; port: number };
