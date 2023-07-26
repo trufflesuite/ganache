@@ -53,17 +53,23 @@ function addOptions(
     ["$0"],
     chalk`Use the {bold ${flavor}} flavor of Ganache`,
     args => {
-      applyDefaults(cliDefaults, args);
+      // flavor defaults must be merged onto the ganache defaults, in order to
+      // support overriding ganache defaults
+      const combinedCliOptions = {
+        ...cliDefaults,
+        ...options?.cli?.defaults
+      };
+      const combinedServerOptions = {
+        ...serverDefaults,
+        ...options?.server?.defaults
+      };
 
-      applyDefaults(serverDefaults, args);
-
-      // flavorDefaults are applied after the default cli and server options
-      // so that the flavor defaults can override them.
-      if (options) {
-        options.provider && applyDefaults(options.provider.defaults, args);
-        options.server && applyDefaults(options.server.defaults, args);
-        options.cli && applyDefaults(options.cli.defaults, args);
+      if (options && options.provider) {
+        applyDefaults(options.provider.defaults, args);
       }
+
+      applyDefaults(combinedCliOptions, args);
+      applyDefaults(combinedServerOptions, args);
     },
     parsed => (parsed.action = parsed.detach ? "start-detached" : "start")
   );

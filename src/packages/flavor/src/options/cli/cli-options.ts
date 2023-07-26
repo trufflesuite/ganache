@@ -16,7 +16,8 @@ export const CliOptions: CliOptions = {
     cliDescription: "The port to listen on.",
     default: () => 8545,
     legacyName: "port",
-    cliType: "number"
+    cliType: "number",
+    cliAliases: ["p", "port"]
   },
   host: {
     normalize: host => {
@@ -31,7 +32,8 @@ export const CliOptions: CliOptions = {
       return isDocker ? "0.0.0.0" : "127.0.0.1";
     },
     legacyName: "host",
-    cliType: "string"
+    cliType: "string",
+    cliAliases: ["h", "host"]
   },
   detach: {
     normalize: detach => detach,
