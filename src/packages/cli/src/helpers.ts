@@ -117,6 +117,12 @@ function addOption(
 
     const key = `${category}.${option}`;
 
+    // todo: this is a terrible hack - the `default` property must be set for `server.host` and
+    // `server.port` in order for detach mode to work
+    if ((key === "server.host" || key === "server.port") && optionObj.default) {
+      options.default = optionObj.default(state);
+    }
+
     // First, create *hidden* deprecated aliases...
     argv = addAliases(argv, legacyAliases, key);
 

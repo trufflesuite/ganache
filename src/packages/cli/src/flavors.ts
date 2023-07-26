@@ -37,7 +37,16 @@ function addFlavorFlag(yargs: Argv<{}>) {
   });
 }
 
-function addOptions(
+function addDetachFlag(yargs: Argv<{}>) {
+  yargs.option("detach", {
+    type: "boolean",
+    description: `Run Ganache in detached (daemon) mode.
+See \`ganache instances --help\` for information on managing detached instances.`,
+    alias: ["D", "😈"]
+  });
+}
+
+export function configureStartCommandForFlavor(
   yargs: Argv<{}>,
   flavor: string,
   options: {
@@ -70,21 +79,10 @@ function addOptions(
 
       applyDefaults(combinedCliOptions, args);
       applyDefaults(combinedServerOptions, args);
+
+      addFlavorFlag(args);
+      addDetachFlag(args);
     },
     parsed => (parsed.action = parsed.detach ? "start-detached" : "start")
   );
-}
-
-export function configureFlavorOptions(
-  yargs: Argv<{}>,
-  flavor: string,
-  options: {
-    provider?: OptionsConfig<any>;
-    server?: OptionsConfig<any>;
-    cli?: OptionsConfig<any>;
-  }
-) {
-  addFlavorFlag(yargs);
-
-  addOptions(yargs, flavor, options);
 }

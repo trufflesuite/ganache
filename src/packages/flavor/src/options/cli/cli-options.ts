@@ -34,12 +34,5 @@ export const CliOptions: CliOptions = {
     legacyName: "host",
     cliType: "string",
     cliAliases: ["h", "host"]
-  },
-  detach: {
-    normalize: detach => detach,
-    cliDescription: `Run Ganache in detached (daemon) mode.
-See \`ganache instances --help\` for information on managing detached instances.`,
-    cliType: "boolean",
-    cliAliases: ["D", "😈", "detach"]
   }
 };

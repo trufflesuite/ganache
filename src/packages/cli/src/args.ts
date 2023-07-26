@@ -3,7 +3,7 @@ import yargs from "yargs";
 import { StartArgs, GanacheArgs } from "./types";
 import chalk from "chalk";
 import { EOL } from "os";
-import { configureFlavorOptions, loadFlavorFromArgs } from "./flavors";
+import { configureStartCommandForFlavor, loadFlavorFromArgs } from "./flavors";
 import { center, highlight, wrapWidth } from "./helpers";
 
 const NEED_HELP = "Need more help? Reach out to the Truffle community at";
@@ -47,38 +47,7 @@ export const parseArgs = (version: string, rawArgs = process.argv.slice(2)) => {
     );
 
   const { flavor, options: flavorOptions } = loadFlavorFromArgs(rawArgs);
-  configureFlavorOptions(yargs, flavor, flavorOptions);
-
-  yargs.command(
-    "instances",
-    highlight(
-      "Manage instances of Ganache running in detached mode." +
-        EOL +
-        "(Ganache can be run in detached mode by providing the `--detach` flag)"
-    ),
-    _yargs => {
-      _yargs
-        .command(
-          "list",
-          "List instances running in detached mode",
-          _ => {},
-          listArgs => {
-            listArgs.action = "list";
-          }
-        )
-        .command(
-          "stop <name>",
-          "Stop the instance specified by <name>",
-          stopArgs => {
-            stopArgs.positional("name", { type: "string" });
-          },
-          stopArgs => {
-            stopArgs.action = "stop";
-          }
-        )
-        .version(false);
-    }
-  );
+  configureStartCommandForFlavor(yargs, flavor, flavorOptions);
 
   yargs
     .command(

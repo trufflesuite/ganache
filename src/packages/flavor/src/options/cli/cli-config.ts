@@ -31,14 +31,5 @@ export type CliConfig = {
         host: boolean;
       };
     };
-
-    /**
-     * Host for the server to bind to
-     *
-     * @defaultValue true
-     */
-    readonly detach: {
-      type: boolean;
-    };
   };
 };
