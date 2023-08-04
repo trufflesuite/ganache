@@ -158,7 +158,7 @@ if (argv.action === "start") {
     // instance), so we need to notify that we are ready.
     const isDetachedInstance = process.send !== undefined;
     if (isDetachedInstance) {
-      notifyDetachedInstanceReady(cliSettings.port);
+      notifyDetachedInstanceReady(cliSettings);
     }
   });
 } else if (argv.action === "stop") {
