@@ -15,10 +15,6 @@
       "path": "../utils"
     },
     {
-      "name": "@ganache/options",
-      "path": "../../../packages/options"
-    },
-    {
       "name": "@ganache/promise-queue",
       "path": "../../../packages/promise-queue"
     },
@@ -53,6 +49,14 @@
     {
       "name": "@ganache/console.log",
       "path": "../console.log"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../../../packages/flavor"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../../../packages/colors"
     }
   ]
 }

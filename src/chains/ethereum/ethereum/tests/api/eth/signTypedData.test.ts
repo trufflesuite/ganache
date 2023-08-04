@@ -1,5 +1,5 @@
 import assert from "assert";
-const createKeccakHash = require("keccak");
+import { Data, keccak } from "@ganache/utils";
 import getProvider from "../../helpers/getProvider";
 
 describe("api", () => {
@@ -13,7 +13,7 @@ describe("api", () => {
         // Account based on https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
         const acc = {
           balance: "0x0",
-          secretKey: createKeccakHash("keccak256").update("cow").digest()
+          secretKey: Data.toString(keccak(Buffer.from("cow", "utf8")))
         };
         provider = await getProvider({
           wallet: {

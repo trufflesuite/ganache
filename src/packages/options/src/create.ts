@@ -38,7 +38,6 @@ const checkForConflicts = (
 
 function fill(options: any, target: any, def: any, namespace: any) {
   const config = (target[namespace] = target[namespace] || {});
-  const flavor = options.flavor;
 
   const suppliedOptions = new Set<string>();
   const entries = Object.entries(def) as [string, any][];
@@ -75,13 +74,12 @@ function fill(options: any, target: any, def: any, namespace: any) {
             suppliedOptions.add(key);
           }
         } else if (hasOwn(propDefinition, "default")) {
-          config[key] = propDefinition.default(config, flavor);
+          config[key] = propDefinition.default(config);
         }
       }
     }
   } else {
     for (const [key, propDefinition] of entries) {
-
       const legacyName = propDefinition.legacyName || key;
       const value = options[legacyName];
       if (value !== undefined) {
@@ -97,22 +95,22 @@ function fill(options: any, target: any, def: any, namespace: any) {
           suppliedOptions.add(key);
         }
       } else if (hasOwn(propDefinition, "default")) {
-        config[key] = propDefinition.default(config, flavor);
+        config[key] = propDefinition.default(config);
       }
     }
   }
 }
 
 export class OptionsConfig<O extends NamespacedOptions> {
-  #defaults: Defaults<O>;
+  public readonly defaults: Defaults<O>;
 
   constructor(defaults: Defaults<O>) {
-    this.#defaults = defaults;
+    this.defaults = defaults;
   }
 
   normalize(options: ProviderOptions<O>) {
     const out = {} as InternalOptions<O>;
-    Object.entries(this.#defaults).forEach(([namespace, definition]) => {
+    Object.entries(this.defaults).forEach(([namespace, definition]) => {
       fill(options, out, definition, namespace as keyof Defaults<O>);
     });
     return out;

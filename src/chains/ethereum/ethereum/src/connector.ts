@@ -1,7 +1,5 @@
-import Emittery from "emittery";
 import EthereumApi from "./api";
 import {
-  Connector as IConnector,
   Executor,
   makeError,
   makeResponse,
@@ -12,19 +10,18 @@ import {
 } from "@ganache/utils";
 export type { EthereumProvider } from "./provider";
 import { EthereumProvider } from "./provider";
-import {
+import type {
   RecognizedString,
   WebSocket,
-  HttpRequest
-} from "@trufflesuite/uws-js-unofficial";
+  HttpRequest,
+  Connector as IConnector
+} from "@ganache/flavor";
 import { CodedError } from "@ganache/ethereum-utils";
 import {
   EthereumProviderOptions,
   EthereumLegacyProviderOptions
 } from "@ganache/ethereum-options";
 import { bufferify } from "./helpers/bufferify";
-
-type ProviderOptions = EthereumProviderOptions | EthereumLegacyProviderOptions;
 
 function isHttp(
   connection: HttpRequest | WebSocket
@@ -36,25 +33,21 @@ function isHttp(
 }
 
 export class Connector<
-    R extends JsonRpcRequest<
-      EthereumApi,
-      KnownKeys<EthereumApi>
-    > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
-  >
-  extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<EthereumApi, R | R[], JsonRpcResponse>
+  R extends JsonRpcRequest<
+    EthereumApi,
+    KnownKeys<EthereumApi>
+  > = JsonRpcRequest<EthereumApi, KnownKeys<EthereumApi>>
+> implements IConnector<EthereumProvider, R | R[], JsonRpcResponse>
 {
   #provider: EthereumProvider;
 
   static BUFFERIFY_THRESHOLD: number = 100000;
 
-  get provider() {
+  get provider(): EthereumProvider {
     return this.#provider;
   }
 
-  constructor(providerOptions: ProviderOptions = null, executor: Executor) {
-    super();
-
+  constructor(providerOptions: EthereumProviderOptions | EthereumLegacyProviderOptions = null, executor: Executor) {
     this.#provider = new EthereumProvider(providerOptions, executor);
   }
 
@@ -62,9 +55,6 @@ export class Connector<
 
   async connect() {
     await this.#provider.initialize();
-    // no need to wait for #provider.once("connect") as the initialize()
-    // promise has already accounted for that after the promise is resolved
-    await this.emit("ready");
   }
 
   parse(message: Buffer) {

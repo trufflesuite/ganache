@@ -5,19 +5,35 @@
  * @license MIT
  */
 
-import {
-  Connector as FilecoinConnector,
-  FilecoinProvider,
-  StorageDealStatus
-} from "./src/connector";
-export type {
-  Connector as FilecoinConnector,
-  FilecoinProvider,
+import type { Flavor } from "@ganache/flavor";
+import { Connector } from "./src/connector";
+import { ready } from "./src/ready";
+import { FilecoinOptionsConfig } from "@ganache/filecoin-options";
+import { CliOptionsConfig, ServerOptionsConfig } from "./src/defaults";
+
+export {
+  FilecoinProvider as Provider,
   StorageDealStatus
 } from "./src/connector";
 
-export default {
-  Connector: FilecoinConnector,
-  FilecoinProvider,
-  StorageDealStatus
+type FilecoinFlavor = Flavor<
+  "filecoin",
+  Connector,
+  {
+    provider: FilecoinOptionsConfig;
+    server: ServerOptionsConfig;
+    cli: CliOptionsConfig;
+  }
+>;
+const FilecoinFlavor: FilecoinFlavor = {
+  flavor: "filecoin",
+  connect: (options, executor) => new Connector(options, executor),
+  options: {
+    provider: FilecoinOptionsConfig,
+    server: ServerOptionsConfig,
+    cli: CliOptionsConfig
+  },
+  ready
 };
+
+export default FilecoinFlavor;

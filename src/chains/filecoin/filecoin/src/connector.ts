@@ -1,56 +1,48 @@
-import Emittery from "emittery";
 import FilecoinApi from "./api";
-import {
+import type {
   Executor,
   Connector as IConnector,
+  RecognizedString,
+  HttpRequest,
+  WebSocket
+} from "@ganache/flavor";
+import {
   JsonRpcRequest,
   JsonRpcResponse,
   makeResponse,
   makeError,
   KnownKeys
 } from "@ganache/utils";
+import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 import { FilecoinProvider } from "./provider";
 export { FilecoinProvider } from "./provider";
-import {
-  RecognizedString,
-  HttpRequest,
-  WebSocket
-} from "@trufflesuite/uws-js-unofficial";
-import { FilecoinProviderOptions } from "@ganache/filecoin-options";
 export { StorageDealStatus } from "./types/storage-deal-status";
 
 /**
  * @internal
  */
 export class Connector<
-    R extends JsonRpcRequest<
-      FilecoinApi,
-      KnownKeys<FilecoinApi>
-    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
-  >
-  extends Emittery<{ ready: undefined; close: undefined }>
-  implements IConnector<FilecoinApi, R, JsonRpcResponse>
+  R extends JsonRpcRequest<
+    FilecoinApi,
+    KnownKeys<FilecoinApi>
+  > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+> implements IConnector<FilecoinProvider, R, JsonRpcResponse>
 {
   #provider: FilecoinProvider;
 
-  get provider() {
+  get provider(): FilecoinProvider {
     return this.#provider;
   }
 
   constructor(
-    providerOptions: FilecoinProviderOptions = {},
+    providerOptions: FilecoinProviderOptions | null = null,
     executor: Executor
   ) {
-    super();
-
     this.#provider = new FilecoinProvider(providerOptions, executor);
   }
 
   async connect() {
     await this.#provider.initialize();
-    // no need to wait for #provider.once("connect") as the initialize()
-    // promise has already accounted for that after the promise is resolved
-    await this.emit("ready");
   }
 
   parse(message: Buffer) {

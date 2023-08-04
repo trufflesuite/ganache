@@ -1,17 +1,17 @@
-import { ConnectorsByName, DefaultFlavor, FlavorName } from "@ganache/flavors";
+import type { AnyFlavor } from "@ganache/flavor";
+import type EthereumFlavor from "@ganache/ethereum";
 import { KNOWN_CHAINIDS } from "@ganache/utils";
-import ConnectorLoader from "./src/connector-loader";
-import { ProviderOptions, ServerOptions } from "./src/options";
+import { initializeFlavor } from "./src/connector-loader";
 import Server from "./src/server";
-export { Server, ServerStatus, _DefaultServerOptions } from "./src/server";
-
+import { ProviderOptions, ServerOptions } from "./src/types";
+export type { ProviderOptions, ServerOptions } from "./src/types";
+export { Server, ServerStatus } from "./src/server";
 export type {
-  Provider,
-  Ethereum,
+  EthereumProvider as Provider,
   EthereumProvider,
-  FilecoinProvider
-} from "@ganache/flavors";
-export type { ProviderOptions, ServerOptions } from "./src/options";
+  Ethereum
+} from "@ganache/ethereum";
+
 export type _ExperimentalInfo = Readonly<{
   version: string;
   fork: Readonly<{
@@ -43,9 +43,9 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  server: <T extends FlavorName = typeof DefaultFlavor>(
-    options?: ServerOptions<T>
-  ) => new Server(options),
+  server: <F extends AnyFlavor = EthereumFlavor>(
+    options?: ServerOptions<F>
+  ): Server<F> => new Server<F>(options),
 
   /**
    * Initializes a Web3 provider for a Ganache instance.
@@ -61,10 +61,10 @@ const Ganache = {
    * @returns A provider instance for the flavor
    * `options.flavor` which defaults to `ethereum`.
    */
-  provider: <Flavor extends FlavorName = typeof DefaultFlavor>(
-    options?: ProviderOptions<Flavor>
-  ): ConnectorsByName[Flavor]["provider"] => {
-    const loader = ConnectorLoader.initialize<Flavor>(options);
+  provider: <F extends AnyFlavor = EthereumFlavor>(
+    options?: ProviderOptions<F>
+  ): ReturnType<F["connect"]>["provider"] => {
+    const loader = initializeFlavor<F>(options);
     return loader.connector.provider;
   },
   /**

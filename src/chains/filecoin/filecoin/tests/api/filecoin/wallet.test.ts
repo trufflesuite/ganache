@@ -147,7 +147,7 @@ describe("api", () => {
         addressBLS = Address.random();
         const importedAddress = await client.walletImport({
           Type: KeyType.KeyTypeBLS,
-          PrivateKey: Buffer.from(addressBLS.privateKey, "hex").toString(
+          PrivateKey: Buffer.from(addressBLS.privateKey!, "hex").toString(
             "base64"
           )
         });
@@ -164,7 +164,7 @@ describe("api", () => {
         );
         const importedAddress = await client.walletImport({
           Type: KeyType.KeyTypeSecp256k1,
-          PrivateKey: Buffer.from(addressSECP256K1.privateKey, "hex").toString(
+          PrivateKey: Buffer.from(addressSECP256K1.privateKey!, "hex").toString(
             "base64"
           )
         });
@@ -182,7 +182,7 @@ describe("api", () => {
           );
           await client.walletImport({
             Type: KeyType.KeyTypeSecp256k1Ledger,
-            PrivateKey: Buffer.from(address.privateKey, "hex").toString(
+            PrivateKey: Buffer.from(address.privateKey!, "hex").toString(
               "base64"
             )
           });

@@ -470,7 +470,7 @@ Server:
 
   --server.rpcEndpoint                  Defines the endpoint route the HTTP and WebSocket servers will listen
                                         on.
-                                                               [default: "/" (Ethereum), "/rpc/v0" (Filecoin)]
+                                                                                                [default: "/"]
 
   -h, --server.host                     Hostname to listen on.
                                         deprecated aliases: --host, --hostname

@@ -6,7 +6,7 @@ import { Dirent, promises as fsPromises } from "fs";
 // this awkward import is required to support node 12
 const { readFile, mkdir, readdir, rmdir, writeFile, unlink } = fsPromises;
 import path from "path";
-import { FlavorName } from "@ganache/flavors";
+import { CliSettings } from "@ganache/flavor";
 
 export type DetachedInstance = {
   name: string;
@@ -14,7 +14,7 @@ export type DetachedInstance = {
   startTime: number;
   host: string;
   port: number;
-  flavor: FlavorName;
+  flavor: "ethereum" | string;
   cmd: string;
   version: string;
 };
@@ -31,10 +31,10 @@ function getInstanceFilePath(instanceName: string): string {
 /**
  * Notify that the detached instance has started and is ready to receive requests.
  */
-export function notifyDetachedInstanceReady(port: number) {
+export function notifyDetachedInstanceReady(cliSettings: CliSettings) {
   // in "detach" mode, the parent will wait until the port is
   // received before disconnecting from the child process.
-  process.send(port);
+  process.send(cliSettings);
 }
 
 /**
@@ -91,8 +91,7 @@ export async function stopDetachedInstance(
 export async function startDetachedInstance(
   argv: string[],
   instanceInfo: {
-    flavor?: FlavorName;
-    server: { host: string; port: number };
+    flavor?: "ethereum" | string;
   },
   version: string
 ): Promise<DetachedInstance> {
@@ -116,10 +115,12 @@ export async function startDetachedInstance(
   // Ganache server has started and is ready to receive RPC requests. It signals
   // by sending the port number to which it was bound back to us; this is needed
   // because Ganache may bind to a random port if the user specified port 0.
-  const port = await new Promise<number>((resolve, reject) => {
-    child.on("message", port => {
-      resolve(port as number);
-    });
+  // It sends both `port` and `host` as a CliSettings, since host could
+  // theoretically have a variable default (in the case of plugins), so we can't
+  // just grab a `hostOptionObj.default(state)` host and use it here, as it
+  // could differ from the actual host.
+  const { port, host } = await new Promise<CliSettings>((resolve, reject) => {
+    child.once("message", resolve);
 
     child.on("error", err => {
       // This only happens if there's an error starting the child process, not
@@ -147,7 +148,6 @@ export async function startDetachedInstance(
   child.disconnect();
 
   const flavor = instanceInfo.flavor;
-  const { host } = instanceInfo.server;
   const cmd =
     process.platform === "win32"
       ? path.basename(process.execPath)

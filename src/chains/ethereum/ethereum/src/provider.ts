@@ -4,7 +4,6 @@ import {
   Executor,
   hasOwn,
   KnownKeys,
-  Provider,
   JsonRpcRequest,
   JsonRpcResponse,
   JsonRpcError,
@@ -123,20 +122,17 @@ type RequestParams<Method extends RequestMethods> = {
   readonly method: Method;
   readonly params: OverloadedParameters<EthereumApi[Method]> | undefined;
 };
-export class EthereumProvider
-  extends Emittery<{
-    message: MessageEvent;
-    data: DataEvent;
-    error: Error;
-    "ganache:vm:tx:step": VmStepEvent;
-    "ganache:vm:tx:before": VmBeforeTransactionEvent;
-    "ganache:vm:tx:after": VmAfterTransactionEvent;
-    "ganache:vm:tx:console.log": VmConsoleLogEvent;
-    connect: undefined;
-    disconnect: undefined;
-  }>
-  implements Provider<EthereumApi>
-{
+export class EthereumProvider extends Emittery<{
+  message: MessageEvent;
+  data: DataEvent;
+  error: Error;
+  "ganache:vm:tx:step": VmStepEvent;
+  "ganache:vm:tx:before": VmBeforeTransactionEvent;
+  "ganache:vm:tx:after": VmAfterTransactionEvent;
+  "ganache:vm:tx:console.log": VmConsoleLogEvent;
+  connect: undefined;
+  disconnect: undefined;
+}> {
   #options: EthereumInternalOptions;
   #api: EthereumApi;
   #wallet: Wallet;

@@ -2,7 +2,6 @@ import Emittery from "emittery";
 import {
   Executor,
   PromiEvent,
-  Provider,
   JsonRpcRequest,
   Subscription,
   KnownKeys
@@ -22,15 +21,11 @@ import cloneDeep from "lodash.clonedeep";
 // Meant to mimic this provider:
 // https://github.com/filecoin-shipyard/js-lotus-client-provider-browser
 export class FilecoinProvider<
-    R extends JsonRpcRequest<
-      FilecoinApi,
-      KnownKeys<FilecoinApi>
-    > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
-  >
-  extends Emittery<{ connect: undefined; disconnect: undefined }>
-  // Do I actually need this? `types.Provider` doesn't actually define anything behavior
-  implements Provider<FilecoinApi>
-{
+  R extends JsonRpcRequest<
+    FilecoinApi,
+    KnownKeys<FilecoinApi>
+  > = JsonRpcRequest<FilecoinApi, KnownKeys<FilecoinApi>>
+> extends Emittery<{ connect: undefined; disconnect: undefined }> {
   #options: FilecoinInternalOptions;
   #api: FilecoinApi;
   #executor: Executor;
@@ -39,7 +34,7 @@ export class FilecoinProvider<
 
   static readonly Schema: Schema = GanacheSchema;
 
-  constructor(options: FilecoinProviderOptions = {}, executor: Executor) {
+  constructor(options: FilecoinProviderOptions | null = null, executor: Executor) {
     super();
     const providerOptions = (this.#options = FilecoinOptionsConfig.normalize(
       options as FilecoinProviderOptions

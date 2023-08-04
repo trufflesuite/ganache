@@ -3,10 +3,11 @@ import { SubscriptionMethod } from "../../../src/types/subscriptions";
 import getServer from "../../helpers/getServer";
 import WebSocket from "ws";
 import Server from "../../../../../../packages/core/src/server";
+import type FilecoinFlavor from "../../../";
 
 describe("api", () => {
   describe("filecoin", () => {
-    let server: Server<"filecoin">;
+    let server: Server<FilecoinFlavor>;
     let ws: WebSocket;
     const port = 7778; // Use a different port than the default, to test it works
 

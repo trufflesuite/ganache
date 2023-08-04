@@ -1,10 +1,3 @@
-import {
-  InternalOptions,
-  serverDefaults,
-  ServerOptions,
-  serverOptionsConfig
-} from "./options";
-
 import AggregateError from "aggregate-error";
 import type {
   TemplatedApp,
@@ -22,15 +15,10 @@ import {
 setUwsGlobalConfig &&
   setUwsGlobalConfig(new Uint8Array([115, 105, 108, 101, 110, 116]) as any);
 
-import {
-  Connector,
-  ConnectorsByName,
-  DefaultFlavor,
-  FlavorName,
-  FlavorOptions
-} from "@ganache/flavors";
-import ConnectorLoader from "./connector-loader";
-import WebsocketServer, { WebSocketCapableFlavor } from "./servers/ws-server";
+import type { AnyFlavor, WebsocketConnector } from "@ganache/flavor";
+import { ServerOptionsConfig } from "@ganache/flavor";
+import { initializeFlavor } from "./connector-loader";
+import WebsocketServer from "./servers/ws-server";
 import HttpServer from "./servers/http-server";
 import Emittery from "emittery";
 
@@ -41,7 +29,9 @@ const v4Seg = "(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
 const IPv4Reg = new RegExp(`^(${v4Seg}[.]){3}${v4Seg}$`);
 const isIPv4 = (s: string) => IPv4Reg.test(s);
 
-export type Provider = Connector["provider"];
+export type { Provider } from "../index";
+import type EthereumFlavor from "@ganache/ethereum";
+import { InternalServerOptions, ServerOptions } from "./types";
 
 const DEFAULT_HOST = "127.0.0.1";
 
@@ -95,32 +85,24 @@ export enum ServerStatus {
 }
 
 /**
- * For private use. May change in the future.
- * I don't don't think these options should be held in this `core` package.
- * @ignore
- * @internal
- */
-export const _DefaultServerOptions = serverDefaults;
-
-/**
  * @public
  */
-export class Server<
-  Flavor extends FlavorName = typeof DefaultFlavor
-> extends Emittery<{ open: undefined; close: undefined }> {
-  #options: InternalOptions;
-  #providerOptions: FlavorOptions<Flavor>;
+export class Server<F extends AnyFlavor = EthereumFlavor> extends Emittery<{
+  open: undefined;
+  close: undefined;
+}> {
+  #options: InternalServerOptions;
   #status: number = ServerStatus.unknown;
   #app: TemplatedApp | null = null;
-  #httpServer: HttpServer | null = null;
+  #httpServer: HttpServer<ReturnType<F["connect"]>> | null = null;
   #listenSocket: us_listen_socket | null = null;
   #host: string | null = null;
-  #connector: ConnectorsByName[Flavor];
+  #connector: ReturnType<F["connect"]>;
   #websocketServer: WebsocketServer | null = null;
 
-  #initializer: Promise<[void, void]>;
+  #initializer: Promise<void>;
 
-  public get provider(): ConnectorsByName[Flavor]["provider"] {
+  public get provider(): ReturnType<F["connect"]>["provider"] {
     return this.#connector.provider;
   }
 
@@ -129,45 +111,49 @@ export class Server<
   }
 
   constructor(
-    providerAndServerOptions: ServerOptions<Flavor> = {
-      flavor: DefaultFlavor
-    } as ServerOptions<Flavor>
+    options: ServerOptions<F> = {
+      flavor: "ethereum"
+    } as ServerOptions<F>
   ) {
     super();
-    this.#options = serverOptionsConfig.normalize(providerAndServerOptions);
-    this.#providerOptions = providerAndServerOptions;
     this.#status = ServerStatus.ready;
 
-    // we need to start initializing now because `initialize` sets the
-    // `provider` property... and someone might want to do:
-    //   const server = Ganache.server();
-    //   const provider = server.provider;
-    //   await server.listen(8545)
-    const loader = ConnectorLoader.initialize(this.#providerOptions);
-    const connector = (this.#connector = loader.connector);
+    // we need to start initializing now because the connector's `#provider
+    // property must be available to the server immediately... someone might
+    // want to do:
+    // ```
+    // const server = Ganache.server();
+    // const provider = server.provider; // this needs to exist
+    // await server.listen(8545)
+    // ```
+    const { flavor, connector, promise } = initializeFlavor<F>(options);
+    this.#connector = connector;
 
-    // Since the ConnectorLoader starts an async promise that we intentionally
-    // don't await yet we keep the promise around for something else to handle
-    // later.
-    this.#initializer = Promise.all([
-      loader.promise,
-      this.initialize(connector)
-    ]);
-  }
+    let serverOptions = ServerOptionsConfig.normalize(options);
+    // etheruem flavor options are the defaults, so only merge for non-ethereum
+    if (flavor.flavor !== "ethereum" && flavor.options.server) {
+      serverOptions = {
+        ...serverOptions,
+        ...flavor.options.server.normalize(options)
+      };
+    }
+    this.#options = serverOptions;
 
-  private async initialize(connector: Connector) {
     const _app = (this.#app = App());
 
-    if (this.#options.server.ws) {
+    if (serverOptions.server.ws) {
       this.#websocketServer = new WebsocketServer(
         _app,
-        connector as WebSocketCapableFlavor,
-        this.#options.server
+        <WebsocketConnector<any, any, any>>connector,
+        serverOptions.server
       );
     }
     this.#httpServer = new HttpServer(_app, connector, this.#options.server);
 
-    await (connector as any).once("ready");
+    // Since `loadConnector` starts an async promise that we intentionally
+    // don't await yet we keep the promise around for `listen` to handle
+    // later.
+    this.#initializer = promise;
   }
 
   listen(port: number): Promise<void>;
@@ -222,9 +208,14 @@ export class Server<
     }
 
     this.#status = ServerStatus.opening;
+    const initializer = this.#initializer;
+
+    // don't keep old promises around as they could be holding onto
+    // references to things that could otherwise be collected.
+    this.#initializer = null;
 
     const promise = Promise.allSettled([
-      this.#initializer,
+      initializer,
       new Promise(
         (resolve: (listenSocket: false | us_listen_socket) => void) => {
           // Make sure we have *exclusive* use of this port.

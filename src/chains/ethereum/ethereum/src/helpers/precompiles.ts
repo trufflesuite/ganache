@@ -1,5 +1,5 @@
 import { Account, Address } from "@ethereumjs/util";
-import { EEIInterface } from "@ethereumjs/evm";
+import type { EEIInterface } from "@ethereumjs/evm";
 
 const NUM_PRECOMPILES = 18;
 /**

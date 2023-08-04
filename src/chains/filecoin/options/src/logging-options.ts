@@ -1,4 +1,4 @@
-import { Definitions } from "@ganache/options";
+import type { Definitions } from "@ganache/flavor";
 import { openSync, PathLike } from "fs";
 import { Logger, InternalLogger, createLogger } from "@ganache/utils";
 import { EOL } from "os";

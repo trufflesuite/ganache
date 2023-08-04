@@ -23,7 +23,6 @@ const base: webpack.Configuration = {
   output: {
     filename: "ganache-filecoin.min.js",
     library: "Filecoin-flavored Ganache",
-    libraryExport: "default",
     libraryTarget: "umd"
   },
   stats: {

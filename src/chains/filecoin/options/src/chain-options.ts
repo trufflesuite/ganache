@@ -1,5 +1,5 @@
 import { normalize } from "./helpers";
-import { Definitions } from "@ganache/options";
+import type { Definitions } from "@ganache/flavor";
 
 export type ChainConfig = {
   options: {

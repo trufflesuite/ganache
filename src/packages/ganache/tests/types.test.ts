@@ -1,4 +1,4 @@
-import { Ethereum, Provider } from "../"; // <- same as `from "ganache"`
+import { Ethereum } from "../"; // <- same as `from "ganache"`
 
 //#region type helpers
 /**

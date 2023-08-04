@@ -51,7 +51,8 @@ export type EthereumInternalOptions = {
   [K in keyof EthereumConfig]: InternalConfig<EthereumConfig[K]>;
 };
 
-export const EthereumDefaults: Defaults<EthereumConfig> = {
+export type EthereumDefaults = Defaults<EthereumConfig>;
+export const EthereumDefaults: EthereumDefaults = {
   chain: ChainOptions,
   database: DatabaseOptions,
   logging: LoggingOptions,
@@ -60,7 +61,10 @@ export const EthereumDefaults: Defaults<EthereumConfig> = {
   fork: ForkOptions
 };
 
-export const EthereumOptionsConfig = new OptionsConfig(EthereumDefaults);
+export type EthereumOptionsConfig = OptionsConfig<EthereumConfig>;
+export const EthereumOptionsConfig: EthereumOptionsConfig = new OptionsConfig(
+  EthereumDefaults
+);
 
 export * from "./chain-options";
 export * from "./database-options";

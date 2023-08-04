@@ -18,9 +18,9 @@ To use Filecoin-flavored Ganache via the CLI, follow the below instructions:
    npm uninstall --global ganache-cli
    npm uninstall --global ganache
    ```
-1. Install the `ganache` package globally with the `filecoin` tag (note that we're **not** installing the old `ganache-cli` package)
+1. Install the `ganache` package globally
    ```bash
-   npm install --global ganache@filecoin
+   npm install --global ganache
    ```
 1. Install the `@ganache/filecoin` globally
    ```bash
@@ -28,11 +28,11 @@ To use Filecoin-flavored Ganache via the CLI, follow the below instructions:
    ```
 1. Run Filecoin-flavored Ganache
    ```bash
-   ganache filecoin
+   ganache --flavor @ganache/filecoin
    ```
 1. See available [options](#startup-options)
    ```bash
-   ganache filecoin --help
+   ganache --flavor @ganache/filecoin --help
    ```
 1. You can use Ethereum-flavored Ganache still
 
@@ -52,7 +52,7 @@ If you're using Filecoin-flavored Ganache as a NodeJS dependency, you need to ma
 
 ```bash
 # install the base Ganache package
-npm install ganache@filecoin
+npm install ganache
 
 # install the Filecoin peer dependency package
 npm install @ganache/filecoin
@@ -66,7 +66,7 @@ In your code, you will use the `ganache` package directly to instantiate the Fil
 import Ganache from "ganache";
 
 const startupOptions = {
-  flavor: "filecoin";
+  flavor: "@ganache/filecoin";
 }
 
 // Provider usage

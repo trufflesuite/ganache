@@ -1,0 +1,39 @@
+{
+  "name": "not-a-blockchain-chain",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.6.0",
+  "description": "Ganache flavor plugin for the fictional chain \"Not-a-Blockchain-Chain\"",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "source": "src/index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "typings"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "postinstall": "npm run build",
+    "prepublish": "npm run build",
+    "test": "ts-mocha"
+  },
+  "keywords": [
+    "ganache-flavor"
+  ],
+  "dependencies": {
+    "@ganache/flavor": "../",
+    "emittery": "0.13.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.0",
+    "ganache": "file:../../ganache",
+    "mocha": "10.2.0",
+    "ts-mocha": "10.0.0",
+    "typescript": "5.0.4"
+  }
+}

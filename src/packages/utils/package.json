@@ -47,6 +47,7 @@
     "tooling"
   ],
   "dependencies": {
+    "@trufflesuite/bigint-buffer": "1.1.10",
     "@ganache/secp256k1": "0.5.0",
     "emittery": "0.10.0",
     "keccak": "3.0.2",
@@ -62,8 +63,5 @@
     "tmp-promise": "3.0.2",
     "ts-node": "10.9.1",
     "typescript": "4.7.4"
-  },
-  "optionalDependencies": {
-    "@trufflesuite/bigint-buffer": "1.1.10"
   }
 }

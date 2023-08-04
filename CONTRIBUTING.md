@@ -122,10 +122,10 @@ Where `<module>` is the npm-module you want to add and `<package>` is where you 
 Example:
 
 ```bash
-npx lerna add @ganache/options -E --scope=@ganache/filecoin
+npx lerna add @ganache/options -E --scope=@ganache/ethereum
 ```
 
-will add our local `@ganache/options` package to the `@ganache/filecoin` package.
+will add our local `@ganache/options` package to the `@ganache/ethereum` package.
 
 ## To remove a module from another package:
 

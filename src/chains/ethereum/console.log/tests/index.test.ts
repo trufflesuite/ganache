@@ -30,6 +30,7 @@ describe("@ganache/console.log", () => {
   let from: string;
 
   before("set up a ganache provider", function () {
+    this.timeout(10000);
     provider = Ganache.provider({
       wallet: { deterministic: true, totalAccounts: 1 },
       miner: { blockGasLimit: "0xfffffffff" },

@@ -1,24 +1,16 @@
-import {
-  RecognizedString,
-  TemplatedApp,
-  WebSocket
-} from "@trufflesuite/uws-js-unofficial";
+import { TemplatedApp } from "@trufflesuite/uws-js-unofficial";
 import WebSocketCloseCodes from "./utils/websocket-close-codes";
-import { InternalOptions } from "../options";
-import * as Flavors from "@ganache/flavors";
+import { InternalServerOptions } from "../types";
 import { PromiEvent } from "@ganache/utils";
 import { types } from "util";
 import { getFragmentGenerator } from "./utils/fragment-generator";
+import type {
+  WebsocketConnector,
+  RecognizedString,
+  WebSocket
+} from "@ganache/flavor";
 
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
-
-type HandlesWebSocketSignature = (payload: any, connection: WebSocket) => any;
-
-type WebSocketCapableFlavorMap = {
-  [k in keyof Flavors.ConnectorsByName]: Flavors.ConnectorsByName[k]["handle"] extends HandlesWebSocketSignature
-    ? Flavors.ConnectorsByName[k]
-    : never;
-};
 
 export function sendFragmented(
   ws: WebSocket,
@@ -63,14 +55,10 @@ export function sendFragmented(
   });
 }
 
-export type WebSocketCapableFlavor = {
-  [k in keyof WebSocketCapableFlavorMap]: WebSocketCapableFlavorMap[k];
-}[keyof WebSocketCapableFlavorMap];
-
 export type GanacheWebSocket = WebSocket & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
-  InternalOptions["server"],
+  InternalServerOptions["server"],
   "wsBinary" | "rpcEndpoint" | "chunkSize"
 >;
 
@@ -81,7 +69,7 @@ export default class WebsocketServer {
   #connections = new Map<WebSocket, Set<() => void>>();
   constructor(
     app: TemplatedApp,
-    connector: WebSocketCapableFlavor,
+    connector: WebsocketConnector<any, any, any>,
     options: WebsocketServerOptions
   ) {
     const connections = this.#connections;
@@ -138,10 +126,11 @@ export default class WebsocketServer {
 
           // if the result is an emitter listen to its `"message"` event
           // We check if `on` is a function rather than check if
-          // `resultEmitter instanceof PromiEvent` because `@ganache/filecoin`
+          // `resultEmitter instanceof PromiEvent` because flavor plugins
           // and `ganache` webpack `@ganache/utils` separately. This causes
-          // instanceof to fail here. Since we know `resultEmitter` is MergePromiseT
-          // we can safely assume that if `on` is a function, then we have a PromiEvent
+          // `instanceof` to fail here. Since we know `resultEmitter` is
+          // MergePromiseT we can safely assume that if `on` is a function, then
+          // we have a PromiEvent
           if (typeof resultEmitter["on"] === "function") {
             const resultEmitterPromiEvent = resultEmitter as PromiEvent<any>;
             resultEmitterPromiEvent.on("message", (result: any) => {

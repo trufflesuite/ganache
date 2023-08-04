@@ -1,10 +1,10 @@
 import assert from "assert";
-import loader from "../src/connector-loader";
+import { initializeFlavor } from "../src/connector-loader";
 
 describe("connector-loader", () => {
   describe("initialize", () => {
     it("the returned promise should reject, if disconnect() is called before the provider is ready", async () => {
-      const { promise, connector } = loader.initialize({});
+      const { promise, connector } = initializeFlavor({});
       connector.provider.disconnect();
 
       // This assertion ensures that the "stopped" queue() method that is

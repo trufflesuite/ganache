@@ -17,6 +17,10 @@
       "path": "../../../packages/options"
     },
     {
+      "name": "@ganache/flavor",
+      "path": "../../../packages/flavor"
+    },
+    {
       "name": "@ganache/utils",
       "path": "../../../packages/utils"
     }
