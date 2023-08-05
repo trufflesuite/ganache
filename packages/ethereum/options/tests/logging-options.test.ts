@@ -39,7 +39,7 @@ describe("EthereumOptionsConfig", () => {
       });
 
       afterEach(async () => {
-        spy.restore();
+        spy && spy.restore();
 
         await unlink(logfilePath).catch(() => {});
       });
