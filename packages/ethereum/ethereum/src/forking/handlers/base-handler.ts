@@ -1,6 +1,5 @@
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { hasOwn, JsonRpcError } from "@ganache/utils";
-import { AbortSignal } from "abort-controller";
 import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
 import LRU from "lru-cache";
@@ -164,9 +163,7 @@ export class BaseHandler {
     method: string,
     params: any[],
     key: string,
-    send: (
-      ...args: unknown[]
-    ) => Promise<{
+    send: (...args: unknown[]) => Promise<{
       response: { result: any } | { error: { message: string; code: number } };
       raw: string | Buffer;
     }>,

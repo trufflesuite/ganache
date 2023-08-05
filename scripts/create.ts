@@ -213,7 +213,6 @@ describe("${packageName}", () => {
     const tests = join(dir, "tests");
     const src = join(dir, "src");
 
-    //@ts-ignore
     function initSrc() {
       return writeFile(
         join(src, "index.ts"),
@@ -224,7 +223,6 @@ describe("${packageName}", () => {
       );
     }
 
-    //@ts-ignore
     function initIndex() {
       // When a bundler compiles our libs this headerdoc comment will cause that
       // tool to retain our LICENSE information in their bundled output.
@@ -245,7 +243,6 @@ describe("${packageName}", () => {
       );
     }
 
-    //@ts-ignore
     function initRootFiles() {
       return Promise.all([
         writeFile(
@@ -264,7 +261,6 @@ describe("${packageName}", () => {
       ]);
     }
 
-    //@ts-ignore
     function initTests() {
       return writeFile(
         join(tests, "index.test.ts"),

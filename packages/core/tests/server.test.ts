@@ -216,6 +216,12 @@ describe("server", () => {
               for (const info of interfaceInfo) {
                 const host = getHost(info, interfaceName);
 
+                // TODO: passing `false` as the httpAgent will disable the default
+                // keepAlive (by not using an httpAgent at all, since the
+                // default `globalAgent` has a default keepAlive of 5 seconds)
+                // This is necessary as of node v20, not sure why!
+                // if `https://github.com/trufflesuite/ganache/issues/2788` this
+                // issue would be resolved and we can remove this.
                 const requestPromise = post(host, port, jsonRpcJson);
                 if (serverHost === host) {
                   const response = await requestPromise;
@@ -507,14 +513,10 @@ describe("server", () => {
         await post("localhost", port, jsonRpcJson, agent);
 
         await s.close();
-        // a request is required in order to actually close the connection
-        // see https://github.com/trufflesuite/ganache/issues/2788
-        await post("localhost", port, jsonRpcJson, agent);
 
-        // connection has now closed, allowing ganache to close
-        await assert.rejects(post("localhost", port, jsonRpcJson, agent), {
-          code: "ECONNREFUSED"
-        });
+        const error = await post("localhost", port, jsonRpcJson, agent).catch(e => e);
+        assert(error instanceof Error, `Expected error to be an instance of Error, but got ${error} instead`);
+        assert("code" in error && (error["code"] === "ECONNREFUSED" || error["code"] === "ECONNRESET"), `Expected error.code to be ECONNREFUSED or ECONNRESET, got ${error} instead`);
       } finally {
         teardown();
       }
@@ -537,10 +539,6 @@ describe("server", () => {
         await assert.rejects(post("localhost", port, jsonRpcJson), {
           code: "ECONNREFUSED"
         });
-
-        // a request is required in order to actually close the connection
-        // see https://github.com/trufflesuite/ganache/issues/2788
-        await post("localhost", port, jsonRpcJson, agent);
       } finally {
         teardown();
       }

@@ -13,7 +13,7 @@ import type {
 type MergePromiseT<Type> = Promise<Type extends Promise<infer X> ? X : never>;
 
 export function sendFragmented(
-  ws: WebSocket,
+  ws: WebSocket<void>,
   data: Generator<Buffer, void, void>,
   useBinary: boolean,
   chunkSize: number
@@ -55,7 +55,7 @@ export function sendFragmented(
   });
 }
 
-export type GanacheWebSocket = WebSocket & { closed?: boolean };
+export type GanacheWebSocket = WebSocket<void> & { closed?: boolean };
 
 export type WebsocketServerOptions = Pick<
   InternalServerOptions["server"],
@@ -66,7 +66,7 @@ export type WebsocketServerOptions = Pick<
 export const MAX_PAYLOAD_SIZE = 15 * 1024 * 1024;
 
 export default class WebsocketServer {
-  #connections = new Map<WebSocket, Set<() => void>>();
+  #connections = new Map<WebSocket<void>, Set<() => void>>();
   constructor(
     app: TemplatedApp,
     connector: WebsocketConnector<any, any, any>,
@@ -166,7 +166,7 @@ export default class WebsocketServer {
         }
       },
 
-      drain: (ws: WebSocket) => {
+      drain: (ws: WebSocket<void>) => {
         // This is there so tests can detect if a small amount of backpressure
         // is happening and that things will still work if it does. We actually
         // don't do anything to manage excessive backpressure.

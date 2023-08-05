@@ -157,6 +157,8 @@ export default class HttpServer<C extends Connector<any, any, any>> {
 
     // because Easter Eggs are fun...
     app.get("/418", response => {
+      if (this.#isClosing) return void response.close();
+
       sendResponse(
         response,
         this.#isClosing,
@@ -168,6 +170,8 @@ export default class HttpServer<C extends Connector<any, any, any>> {
 
     // fallback routes...
     app.any("/*", (response, request) => {
+      if (this.#isClosing) return void response.close();
+
       const connectionHeader = request.getHeader("connection");
       if (connectionHeader && connectionHeader.toLowerCase() === "upgrade") {
         // if we got here it means the websocket server wasn't enabled but
@@ -193,6 +197,8 @@ export default class HttpServer<C extends Connector<any, any, any>> {
   }
 
   #handlePost = (response: HttpResponse, request: HttpRequest) => {
+    if (this.#isClosing) return void response.close();
+
     // handle JSONRPC post requests...
     const writeHeaders = prepareCORSResponseHeaders("POST", request);
 
@@ -286,6 +292,8 @@ export default class HttpServer<C extends Connector<any, any, any>> {
   };
 
   #handleOptions = (response: HttpResponse, request: HttpRequest) => {
+    if (this.#isClosing) return void response.close();
+
     // handle CORS preflight requests...
     const writeHeaders = prepareCORSResponseHeaders("OPTIONS", request);
     // OPTIONS responses don't have a body, so respond with `204 No Content`...

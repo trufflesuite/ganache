@@ -24,10 +24,10 @@ runs:
   # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
   steps:
-    - name: Use npm 14
+    - name: Use node 16
       uses: actions/setup-node@v3
       with:
-        node-version: 14
+        node-version: 16
 
     - name: Run installation
       run: npm ci
