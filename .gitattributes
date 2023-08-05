@@ -2,5 +2,5 @@ docs/assets/launch.json linguist-language=JSON5
 tsconfig-base.json linguist-language=JSON5
 .nycrc linguist-language=JSON
 .prettierrc linguist-language=JSON
-src/packages/ganache/api-extractor.json linguist-language=JSON5
-src/packages/ganache/tsdoc.json linguist-language=JSON5
+packages/ganache/api-extractor.json linguist-language=JSON5
+packages/ganache/tsdoc.json linguist-language=JSON5

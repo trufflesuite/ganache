@@ -1,6 +1,0 @@
-{
-  "name": "@ganache/ethereum",
-  "excludeExternals": true,
-  "categoryOrder": [],
-  "exclude": ["**/test/*"]
-}

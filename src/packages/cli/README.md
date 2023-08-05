@@ -1,3 +1,0 @@
-# `@ganache/cli`
-
-> TODO: description

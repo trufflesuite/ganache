@@ -10,7 +10,7 @@
     "build": "npm run tsc && cross-env NODE_OPTIONS=--max_old_space_size=4096 lerna run build",
     "clean": "npm run tsc.clean && npx lerna clean -y && npx shx rm -rf node_modules",
     "create": "cd scripts && ts-node create",
-    "docs.build": "shx cp -r src/packages/ganache/dist/web/* docs/assets/js/ganache && lerna run docs.build && cd scripts && ts-node build-docs",
+    "docs.build": "shx cp -r packages/ganache/dist/web/* docs/assets/js/ganache && lerna run docs.build && cd scripts && ts-node build-docs",
     "docs.preview": "lerna run docs.preview",
     "postinstall": "cd scripts && ts-node postinstall",
     "reinstall": "npm run clean && npm install",
@@ -18,7 +18,7 @@
     "postpublish": "git restore \"$(lerna list --parseable --scope ganache)\"/npm-shrinkwrap.json",
     "start": "lerna exec --loglevel=silent --scope ganache -- npm run start --silent -- ",
     "test": "lerna exec --concurrency 1 -- npm run test",
-    "tsc": "tsc --build src",
+    "tsc": "tsc --build",
     "tsc.clean": "npx lerna exec -- npx shx rm -rf lib dist typings"
   },
   "devDependencies": {

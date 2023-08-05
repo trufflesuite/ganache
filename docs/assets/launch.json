@@ -24,7 +24,7 @@
         "--colors",
         "--require",
         "ts-node/register",
-        "${workspaceFolder}/src/**/tests/**/*.test.ts"
+        "${workspaceFolder}/packages/**/tests/**/*.test.ts"
       ],
       "skipFiles": [
         "<node_internals>/**"

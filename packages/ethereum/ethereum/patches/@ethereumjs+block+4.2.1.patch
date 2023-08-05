@@ -1,0 +1,147 @@
+diff --git a/node_modules/@ethereumjs/block/dist/block.d.ts b/node_modules/@ethereumjs/block/dist/block.d.ts
+index 6fd773b..bbfc908 100644
+--- a/node_modules/@ethereumjs/block/dist/block.d.ts
++++ b/node_modules/@ethereumjs/block/dist/block.d.ts
+@@ -1,7 +1,6 @@
+ /// <reference types="node" />
+ import { Trie } from '@ethereumjs/trie';
+ import { Withdrawal } from '@ethereumjs/util';
+-import { ethers } from 'ethers';
+ import { BlockHeader } from './header';
+ import type { BlockBuffer, BlockData, BlockOptions, JsonBlock, JsonRpcBlock } from './types';
+ import type { Common } from '@ethereumjs/common';
+@@ -62,14 +61,6 @@ export declare class Block {
+      * @param options - An object describing the blockchain
+      */
+     static fromRPC(blockData: JsonRpcBlock, uncles?: any[], opts?: BlockOptions): Block;
+-    /**
+-     *  Method to retrieve a block from the provider and format as a {@link Block}
+-     * @param provider an Ethers JsonRPCProvider
+-     * @param blockTag block hash or block number to be run
+-     * @param opts {@link BlockOptions}
+-     * @returns the block specified by `blockTag`
+-     */
+-    static fromEthersProvider: (provider: ethers.providers.JsonRpcProvider | string, blockTag: string | bigint, opts: BlockOptions) => Promise<Block>;
+     /**
+      * This constructor takes the values, validates them, assigns them and freezes the object.
+      * Use the static factory methods to assist in creating a Block object from varying data types and options.
+diff --git a/node_modules/@ethereumjs/block/dist/block.js b/node_modules/@ethereumjs/block/dist/block.js
+index 6ae410c..d83cc96 100644
+--- a/node_modules/@ethereumjs/block/dist/block.js
++++ b/node_modules/@ethereumjs/block/dist/block.js
+@@ -8,7 +8,6 @@ const trie_1 = require("@ethereumjs/trie");
+ const tx_1 = require("@ethereumjs/tx");
+ const util_1 = require("@ethereumjs/util");
+ const keccak_1 = require("ethereum-cryptography/keccak");
+-const ethers_1 = require("ethers");
+ const from_rpc_1 = require("./from-rpc");
+ const header_1 = require("./header");
+ const helpers_1 = require("./helpers");
+@@ -445,41 +444,4 @@ class Block {
+ }
+ exports.Block = Block;
+ _a = Block;
+-/**
+- *  Method to retrieve a block from the provider and format as a {@link Block}
+- * @param provider an Ethers JsonRPCProvider
+- * @param blockTag block hash or block number to be run
+- * @param opts {@link BlockOptions}
+- * @returns the block specified by `blockTag`
+- */
+-Block.fromEthersProvider = async (provider, blockTag, opts) => {
+-    let blockData;
+-    const prov = typeof provider === 'string' ? new ethers_1.ethers.providers.JsonRpcProvider(provider) : provider;
+-    if (typeof blockTag === 'string' && blockTag.length === 66) {
+-        blockData = await prov.send('eth_getBlockByHash', [blockTag, true]);
+-    }
+-    else if (typeof blockTag === 'bigint') {
+-        blockData = await prov.send('eth_getBlockByNumber', [(0, util_1.bigIntToHex)(blockTag), true]);
+-    }
+-    else if ((0, util_1.isHexPrefixed)(blockTag) ||
+-        blockTag === 'latest' ||
+-        blockTag === 'earliest' ||
+-        blockTag === 'pending') {
+-        blockData = await prov.send('eth_getBlockByNumber', [blockTag, true]);
+-    }
+-    else {
+-        throw new Error(`expected blockTag to be block hash, bigint, hex prefixed string, or earliest/latest/pending; got ${blockTag}`);
+-    }
+-    const uncleHeaders = [];
+-    if (blockData.uncles.length > 0) {
+-        for (let x = 0; x < blockData.uncles.length; x++) {
+-            const headerData = await prov.send('eth_getUncleByBlockHashAndIndex', [
+-                blockData.hash,
+-                (0, util_1.intToHex)(x),
+-            ]);
+-            uncleHeaders.push(headerData);
+-        }
+-    }
+-    return (0, from_rpc_1.blockFromRpc)(blockData, uncleHeaders, opts);
+-};
+ //# sourceMappingURL=block.js.map
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/block/src/block.ts b/node_modules/@ethereumjs/block/src/block.ts
+index 6f77530..8ffcaf4 100644
+--- a/node_modules/@ethereumjs/block/src/block.ts
++++ b/node_modules/@ethereumjs/block/src/block.ts
+@@ -14,7 +14,6 @@ import {
+   ssz,
+ } from '@ethereumjs/util'
+ import { keccak256 } from 'ethereum-cryptography/keccak'
+-import { ethers } from 'ethers'
+ 
+ import { blockFromRpc } from './from-rpc'
+ import { BlockHeader } from './header'
+@@ -212,52 +211,6 @@ export class Block {
+     return blockFromRpc(blockData, uncles, opts)
+   }
+ 
+-  /**
+-   *  Method to retrieve a block from the provider and format as a {@link Block}
+-   * @param provider an Ethers JsonRPCProvider
+-   * @param blockTag block hash or block number to be run
+-   * @param opts {@link BlockOptions}
+-   * @returns the block specified by `blockTag`
+-   */
+-  public static fromEthersProvider = async (
+-    provider: ethers.providers.JsonRpcProvider | string,
+-    blockTag: string | bigint,
+-    opts: BlockOptions
+-  ) => {
+-    let blockData
+-    const prov =
+-      typeof provider === 'string' ? new ethers.providers.JsonRpcProvider(provider) : provider
+-    if (typeof blockTag === 'string' && blockTag.length === 66) {
+-      blockData = await prov.send('eth_getBlockByHash', [blockTag, true])
+-    } else if (typeof blockTag === 'bigint') {
+-      blockData = await prov.send('eth_getBlockByNumber', [bigIntToHex(blockTag), true])
+-    } else if (
+-      isHexPrefixed(blockTag) ||
+-      blockTag === 'latest' ||
+-      blockTag === 'earliest' ||
+-      blockTag === 'pending'
+-    ) {
+-      blockData = await prov.send('eth_getBlockByNumber', [blockTag, true])
+-    } else {
+-      throw new Error(
+-        `expected blockTag to be block hash, bigint, hex prefixed string, or earliest/latest/pending; got ${blockTag}`
+-      )
+-    }
+-
+-    const uncleHeaders = []
+-    if (blockData.uncles.length > 0) {
+-      for (let x = 0; x < blockData.uncles.length; x++) {
+-        const headerData = await prov.send('eth_getUncleByBlockHashAndIndex', [
+-          blockData.hash,
+-          intToHex(x),
+-        ])
+-        uncleHeaders.push(headerData)
+-      }
+-    }
+-
+-    return blockFromRpc(blockData, uncleHeaders, opts)
+-  }
+-
+   /**
+    * This constructor takes the values, validates them, assigns them and freezes the object.
+    * Use the static factory methods to assist in creating a Block object from varying data types and options.
