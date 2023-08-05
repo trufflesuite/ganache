@@ -9,7 +9,7 @@ import { BaseHandler } from "./base-handler";
 import { Handler } from "../types";
 import Deferred from "../deferred";
 
-// Work around a node v20.0.0, v20.1.0, and v20.1.2 bug. The issue was fixed
+// Work around a node v20.0.0, v20.1.0, and v20.2.0 bug. The issue was fixed
 // in v20.3.0.
 // https://github.com/nodejs/node/issues/47822#issuecomment-1564708870
 // Safe to remove once support for Node v20 is dropped.
