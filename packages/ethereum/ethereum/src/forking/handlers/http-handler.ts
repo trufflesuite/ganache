@@ -9,6 +9,21 @@ import { BaseHandler } from "./base-handler";
 import { Handler } from "../types";
 import Deferred from "../deferred";
 
+// Work around a node v20.0.0, v20.1.0, and v20.2.0 bug. The issue was fixed
+// in v20.3.0.
+// https://github.com/nodejs/node/issues/47822#issuecomment-1564708870
+// Safe to remove once support for Node v20 is dropped.
+if (
+  // webpack will replace process.env.IS_BROWSER with a boolean
+  !process.env.IS_BROWSER &&
+  process.versions &&
+  // check for `node` in case we want to use this in deno/bun/etc
+  process.versions.node &&
+  process.versions.node.match(/20\.[0-2]\.0/)
+) {
+  require("net").setDefaultAutoSelectFamily(false);
+}
+
 const { JSONRPC_PREFIX } = BaseHandler;
 
 export class HttpHandler extends BaseHandler implements Handler {
