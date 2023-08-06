@@ -5,10 +5,8 @@
     "declarationDir": "typings",
     "composite": true
   },
-  "include": [
-    "index.ts",
-    "src/**/*"
-  ],
+  "include": ["index.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "lib", "typings", "example"],
   "references": [
     {
       "name": "@ganache/utils",

@@ -1,4 +1,4 @@
-import { Api, Executor, KnownKeys } from "@ganache/utils";
+import { Api, KnownKeys } from "@ganache/utils";
 import {
   RecognizedString,
   WebSocket,

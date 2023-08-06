@@ -45,7 +45,7 @@ const ONE_BUFFER = Quantity.One.toBuffer();
  */
 
 export abstract class RuntimeTransaction extends BaseTransaction {
-  public hash: Data | null;
+  public declare hash: Data | null;
   /**
    * used by the miner to mark if this transaction is eligible for reordering or
    * removal

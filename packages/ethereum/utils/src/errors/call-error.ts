@@ -5,7 +5,7 @@ import { JsonRpcErrorCode } from "@ganache/utils";
 import { Data } from "@ganache/utils";
 
 export class CallError extends CodedError {
-  public code: JsonRpcErrorCode;
+  public declare code: JsonRpcErrorCode;
   public data: string;
   constructor(result: EVMResult) {
     const execResult = result.execResult;

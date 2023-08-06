@@ -332,15 +332,14 @@ Alternatively, you can use the \`fork.username\` and \`fork.password\` options.`
         // handle `ganache --fork` case, which gets weird because both url
         // and network can use the `--fork` flag (the `url` handler ignores
         // non-strings, like `true` and strings that match our known networks)
-        typeof rawInput === "object"
+        typeof rawInput === "object" &&
+        "url" in (rawInput as any)
       ) {
-        if ("url" in rawInput) {
-          const { url } = rawInput as any;
-          if (url === true) {
-            return "mainnet";
-          } else if (KNOWN_NETWORKS.includes(url)) {
-            return (rawInput as any).url;
-          }
+        const { url } = rawInput as any;
+        if (url === true) {
+          return "mainnet";
+        } else if (KNOWN_NETWORKS.includes(url)) {
+          return (rawInput as any).url;
         }
       }
     },
@@ -384,7 +383,7 @@ Use the shorthand command \`ganache --fork\` to automatically fork from Mainnet 
   username: {
     normalize,
     cliDescription: `Username to use for Basic Authentication. Does not require setting \`fork.password\`.
-    
+
 When combined with \`fork.password\`, is shorthand for \`fork: { headers: { "Authorization": "Basic {ENCODED-BASIC-HEADER}" } }\`
 
 If the \`fork.headers\` option specifies an "Authorization" header, it will be be inserted _after_ this Basic token.`,
@@ -431,7 +430,7 @@ Shorthand for \`fork: { headers: { "Authorization": "Bearer {YOUR-ENCODED-JWT}" 
     cliDescription: `The User-Agent header sent to the fork on each request.
 
 Sent as Api-User-Agent when used in the browser.
- 
+
 Will be overridden by a \`"User-Agent"\` defined in the \`fork.headers\` option, if provided.`,
     default: () => {
       return `Ganache/${version} (https://www.trufflesuite.com/ganache; ganache<at>trufflesuite.com)`;
