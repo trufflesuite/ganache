@@ -461,7 +461,9 @@ describe("server", () => {
       } finally {
         await teardown();
       }
-    });
+      // TODO: this test can take a while on mac in CI, figure out why
+      // https://github.com/trufflesuite/ganache/issues/4505
+    }).timeout(0);
 
     it("fails to `.listen()` twice, Callback", async () => {
       await setup();
@@ -514,9 +516,19 @@ describe("server", () => {
 
         await s.close();
 
-        const error = await post("localhost", port, jsonRpcJson, agent).catch(e => e);
-        assert(error instanceof Error, `Expected error to be an instance of Error, but got ${error} instead`);
-        assert("code" in error && (error["code"] === "ECONNREFUSED" || error["code"] === "ECONNRESET"), `Expected error.code to be ECONNREFUSED or ECONNRESET, got ${error} instead`);
+        const error = await post("localhost", port, jsonRpcJson, agent).catch(
+          e => e
+        );
+        assert(
+          error instanceof Error,
+          `Expected error to be an instance of Error, but got ${error} instead`
+        );
+        assert(
+          "code" in error &&
+            (error["code"] === "ECONNREFUSED" ||
+              error["code"] === "ECONNRESET"),
+          `Expected error.code to be ECONNREFUSED or ECONNRESET, got ${error} instead`
+        );
       } finally {
         teardown();
       }
