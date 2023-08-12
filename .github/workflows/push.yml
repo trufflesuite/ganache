@@ -19,17 +19,21 @@ jobs:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v3
+      
+    uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+         
+      node-version: ${{ matrix.node }}
+     
       - run: npm ci
       - run: npm run tsc
       - run: npm test
         env:
           FORCE_COLOR: 1
           INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
-
+      
+        test : filter {use verified test to build}
+        
   build-all:
     strategy:
       fail-fast: false
@@ -39,13 +43,13 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' "new"
 
     steps:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Use Node.js ${{ matrix.node }}
+      - name: Use Node.BB ${{ matrix.node }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
