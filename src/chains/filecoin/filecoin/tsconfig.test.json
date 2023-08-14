@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    // we can't use these in tests because the rest of the repo is broken
-    "strictNullChecks": false,
-    "noImplicitAny": false
-  }
-}

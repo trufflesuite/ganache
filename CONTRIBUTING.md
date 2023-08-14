@@ -2,37 +2,53 @@
 
 ## Getting set up
 
-- Use Node.js v14.0.0.
-  - Why v14.0.0? Because this is the first LTS release of Node.js v14 and is the earliest version Ganache supports.
+- Use Node.js v16.0.0.
+  - Why v16.0.0? Because this is the first LTS release of Node.js v16 and is the earliest version Ganache supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
-    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v14.0.0.
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v16.0.0.
 - `git clone git@github.com:trufflesuite/ganache.git`
 - `cd ganache`
-- `npm install` (use npm v6)
-- On Linux and macOS: run `source completions.sh` to enable autocomplete for npm scripts.
+- `npm install` (use npm v7)
 
 ## Solving node-gyp issues
 
 If installation fails due to a `node-gyp` issue you may need to perform some additional system configuration.
 
-### on Linux (Ubuntu-based)
-
-- Make sure `npm` commands are not run as `root`.
-- Determine if you have Python 2.7 installed
-  - example: `which python2.7`
-- If you do not have Python 2.7 installed, you need to install it
-  - example: `sudo apt update && sudo apt install python2.7`
-- Run `npm config set python python2.7`
+note: Ganache uses [node-gyp v7.1.2](https://github.com/nodejs/node-gyp/tree/v7.1.2) as part of its build system, which requires Python v2.7, v3.5, v3.6, v3.7, or v3.8 to be installed on the system.
 
 ### on Windows
 
 - Install [https://www.npmjs.com/package/windows-build-tools](Windows-Build-Tools)
   - `npm install --global windows-build-tools`
 
+### on Linux (Ubuntu-based)
+
+- Make sure `npm` commands are not run as `root`.
+- If you get an error that `make` isn't installed you might need to also install the `build-essential` package
+ - example `sudo apt update && sudo apt install build-essential`
+- Determine whether you have a compatible version of Python installed:
+  - example: `python --version` (and `python3 --version` if `python3` is installed)
+- If you do not have a compatible version installed: (v2.7, v3.5, v3.6, v3.7, or v3.8), you will need to install it:
+  - example: `sudo apt update && sudo apt install python2.7`
+- You may need to configure the python dependency (see [node-gyp for details on different ways to do this](https://github.com/nodejs/node-gyp/tree/v7.1.2#configuring-python-dependency)):
+  - example: `npm config set python <path-to-python-executable>`
+
 ### on macOS
 
-- I have no idea.
+- Attempt to install Xcode command line tools (the console will tell you if they're already installed)
+  - example: `xcode-select --install`
+- Determine whether you have a compatible version of Python installed:
+  - example: `python --version` (and `python3 --version` if `python3` is installed)
+- If you do not have a compatible version installed: (v2.7, v3.5, v3.6, v3.7, or v3.8), you will need to install it: (we recommend [pyenv](https://github.com/pyenv/pyenv) to manage your python installation)
+  1. [Install `pyenv`](https://github.com/pyenv/pyenv#homebrew-in-macos)
+  2. [Setup your shell environment for `pyenv`](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv)
+  3. Install Python: `pyenv install 2.7`
+  4. You may need to configure the python dependency (see [node-gyp for details on different ways to do this](https://github.com/nodejs/node-gyp/tree/v7.1.2#configuring-python-dependency)):
+  - example: `npm config set python <path-to-python-executable>`
+- If the above steps don't fix the `node-gyp` issue and you've recently updated your OS, you may need to re-install Xcode command line tools:
+  1. Remove the existing, broken installation: `rm -rf /Library/Developer/CommandLineTools`
+  2. Install them again: `xcode-select --install`
 
 ## Clean install
 
@@ -80,20 +96,13 @@ To pass options to the cli you must separate the args with `--`, e.g.:
 
 - `npm start -- --chain.chainId 1 --wallet.totalAccounts 5`
 
-## To create a new chain/flavor
-
-- `npm run create <name> --location chains`
-
-This will create a new folder at `src/chains/<name>` where `<name>` should be the flavor name (e.g. `ethereum`), which
-you then can [create packages under](#to-create-a-new-package).
-
 ## To create a new package
 
 - `npm run create <name> --location <location> [--folder <folder>]`
 
-This will create a new package with Ganache defaults at `src/<location>/<name>`.
+This will create a new package with Ganache defaults at `<location>/<name>`.
 
-If you provide the optional `--folder` option, the package will be created at `src/<location>/<folder>`.
+If you provide the optional `--folder` option, the package will be created at `<location>/<folder>`.
 
 ## To add a module to a package:
 
@@ -105,10 +114,10 @@ Where `<module>` is the npm-module you want to add and `<package>` is where you 
 Example:
 
 ```bash
-npx lerna add @ganache/options -E --scope=@ganache/filecoin
+npx lerna add @ganache/options -E --scope=@ganache/ethereum
 ```
 
-will add our local `@ganache/options` package to the `@ganache/filecoin` package.
+will add our local `@ganache/options` package to the `@ganache/ethereum` package.
 
 ## To remove a module from another package:
 
@@ -143,8 +152,8 @@ index 2a2aa9e..57cbf21 100644
          "--colors",
          "--require",
          "ts-node/register",
--        "${workspaceFolder}/src/**/tests/**/*.test.ts"
-+        "${workspaceFolder}/src/chains/ethereum/ethereum/tests/**/*.test.ts"
+-        "${workspaceFolder}/packages/**/tests/**/*.test.ts"
++        "${workspaceFolder}/packages/ethereum/ethereum/tests/**/*.test.ts"
        ],
        "skipFiles": ["<node_internals>/**"],
        "console": "integratedTerminal",
@@ -154,7 +163,7 @@ index 2a2aa9e..57cbf21 100644
 
 These are guidelines, not rules. :-)
 
-- Use Node.js v14.0.0 for most local development.
+- Use Node.js v16.0.0 for most local development.
 - Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
 - Write tests.

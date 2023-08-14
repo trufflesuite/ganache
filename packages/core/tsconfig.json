@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declarationDir": "typings",
+    "composite": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "name": "@ganache/options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/utils",
+      "path": "../utils"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../flavor"
+    },
+    {
+      "name": "@ganache/ethereum",
+      "path": "../ethereum/ethereum"
+    }
+  ]
+}

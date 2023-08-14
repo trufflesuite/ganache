@@ -1,8 +1,8 @@
 import { join } from "path";
 import { readFileSync, writeFileSync } from "fs";
-const { execSync } = require("child_process");
-const marked = require("marked");
-const hljs = require("highlight.js");
+import { execSync } from "child_process";
+import { marked } from "marked";
+import hljs from "highlight.js";
 
 const highlight = () => {
   const raw = {} as any;
@@ -56,6 +56,7 @@ function e(s: string) {
 type Tag = {
   tag: string;
   text: string;
+  content: {text: string}[]
 };
 
 type Type = {
@@ -70,9 +71,8 @@ type Type = {
 };
 
 type Comment = {
-  shortText: string;
-  text: string;
-  tags: Tag[];
+  summary: {text: string}[],
+  blockTags: Tag[];
   returns: string;
 };
 
@@ -93,15 +93,17 @@ type Method = {
     comment: Comment;
   }[];
   type: Type;
+  kind: number;
   kindString: string;
   flags: any;
   sources: any[];
 };
 
 function renderReturns(method: Method) {
+  const returns = method.signatures[0].comment && method.signatures[0].comment.blockTags.filter(t => t.tag === "@returns");
   const comment =
-    method.signatures[0].comment && method.signatures[0].comment.returns
-      ? method.signatures[0].comment.returns
+    returns.length > 0
+      ? returns[0].content.map(c => c.text).join("")
       : null;
   let returnType = renderReturnType(method);
   if (returnType.includes("Quantity")) {
@@ -152,10 +154,11 @@ function (${name}: ${type})
 \`\`\``;
       const html = marked(md, markedOptions)
         .replace(/<span class="hljs-keyword">function<\/span> \((.*)\)/, "$1")
-        .replace(/<\/?pre>/g, "");
+        .replace(/<\/?pre>/g, "")
+        .replace(/\n<\/code>\n/g, "</code>");
       return `<li>${html}${
-        param.comment && param.comment.text && param.comment.text.trim().length
-          ? `: ${marked.parseInline(param.comment.text, markedOptions)}`
+        param.comment && param.comment.summary && param.comment.summary.length > 0
+          ? `: ${marked.parseInline(param.comment.summary.map(s => s.text).join(""), markedOptions)}`
           : ""
       }</li>`;
     });
@@ -205,33 +208,22 @@ function renderMethodDocs(method: Method) {
 
 function renderMethodComment(method: Method) {
   const signature = method.signatures[0];
-  return signature.comment
-    ? `
-    ${
-      signature.comment.shortText
-        ? marked(signature.comment.shortText, markedOptions)
-        : ""
-    }
-    ${
-      signature.comment.text
-        ? marked(signature.comment.text, markedOptions)
-        : ""
-    }
-  `
-    : "";
+  return marked(signature.comment.summary.map(summary => summary.text).join(""), markedOptions);
 }
 
 function renderTag(method: Method, tag: Tag, i: number) {
   switch (tag.tag) {
-    case "example":
+    case "@returns":
+      return ""; // handled elsewhere
+    case "@example":
       const h = highlight();
-      const code = marked(tag.text, { highlight: h.fn });
+      const code = marked((tag as any).content[0].text, { highlight: h.fn });
       const lang = h.raw.language || "javascript";
       const height = Math.max(100, code.split(/\n/).length * 19 + 20);
       return `
           <div class="content wide-content example_container" style="position: relative">
-            <div class="tag content tag_${x(tag.tag)}">
-              ${x(tag.tag)}
+            <div class="tag content tag_${x(tag.tag.replace(/^@/g, ""))}">
+              ${x(tag.tag.replace(/^@/g, ""))}
             </div>
             <div class="monaco-outer-container">
               <div style="height:${height}px" class="monaco-inner-container">
@@ -249,10 +241,10 @@ function renderTag(method: Method, tag: Tag, i: number) {
       return `
           <div class="content">
             <div class="tag">
-              ${x(tag.tag)}
+              ${x(tag.tag.replace(/^@/g, ""))}
             </div>
             <div>
-              ${marked(tag.text, markedOptions)}
+              ${marked((tag as any).content[0].text, markedOptions)}
             </div>
           </div>
         `;
@@ -268,7 +260,7 @@ function renderSource(method: Method) {
         encoding: "utf8"
       }).trim() || "master";
   } catch (e) {}
-  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/src/chains/ethereum/${encodeURIComponent(
+  return `<a href="https://github.com/trufflesuite/ganache/blob/${branchOrCommitHash}/packages/ethereum/${encodeURIComponent(
     source.fileName
   )}#L${
     source.line
@@ -279,10 +271,10 @@ function renderTags(method: Method) {
   const signature = method.signatures[0];
   if (
     signature.comment &&
-    signature.comment.tags &&
-    signature.comment.tags.length
+    signature.comment.blockTags &&
+    signature.comment.blockTags.length
   ) {
-    return signature.comment.tags.map(renderTag.bind(null, method)).join("\n");
+    return signature.comment.blockTags.map(renderTag.bind(null, method)).join("\n");
   }
   return "";
 }
@@ -378,10 +370,11 @@ const orderedNamespaces = [
   "other"
 ];
 
+const METHOD_KIND = 2048;
 const groupedMethods: { [group: string]: Method[] } = {};
 for (const child of ethereum.children) {
   const { name } = child;
-  if (name === "constructor" || child.kindString !== "Method") continue;
+  if (name === "constructor" || child.kind !== METHOD_KIND) continue;
 
   const parts = name.split("_");
   let namespace = "other";
@@ -447,6 +440,13 @@ const preamble =
 
 **Pro Tip**: You can define your own provider by adding \`const provider = ganache.provider({})\` to the start of any example and passing in your [startup options](https://trufflesuite.com/docs/ganache/reference/cli-options/).`);
 
+// this font is loaded when you navigate to ganache. Others are loaded as well, but they are dependent on the
+// User-Agent and thus different browsers get different versions. To verify check what fonts are downloaded, load
+// ganache.dev with devtools open, and check the `Font` tab within the Network tab.
+const fontPreload = `
+<link rel="preload" crossorigin="anonymous" as="font" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs/base/browser/ui/codicons/codicon/codicon.ttf">
+`;
+
 const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -455,17 +455,44 @@ const html = `
     <meta name="description" content="Ganache Ethereum JSON-RPC Documentation" />
     <meta name="author" content="David Murdoch" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="./assets/js/preload.js"></script>
+
     <link rel="shortcut icon" href="./assets/img/favicon.png" />
+
+    ${fontPreload}
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,300,400|Share+Tech+Mono&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Grand+Hotel&text=Ganache" rel="stylesheet" />
     <link rel="stylesheet" href="./assets/css/main.css" />
     <link rel="stylesheet" href="./assets/css/highlight-truffle.css" />
+    <link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous" />
+    <link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs/editor/editor.main.js" crossorigin="anonymous" />
+    <link rel="preload" as="script" href="./assets/js/inject-editor.js" />
+
+    <script>
+      function getUserColorTheme() {
+        const localTheme = localStorage.getItem("theme");
+        if (localTheme) {
+          return localTheme;
+        } else if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: light)").matches
+        ) {
+          return "light";
+        } else {
+          return "dark";
+        }
+      }
+
+      const userColorTheme = getUserColorTheme();
+      document.documentElement.setAttribute("data-theme", userColorTheme);
+    </script>
   </head>
   <body>
     <input type="checkbox" id="sidebar-switch" tabindex="1">
     <input type="checkbox" id="theme-switch" tabindex="2">
+    <script>
+      document.querySelector("#theme-switch").checked = userColorTheme === "light";
+    </script>
     <div class="container" id="page">
       <header>
         <svg style="position:absolute;pointer-events:none;opacity:0;" width="10" height="10" viewBox="0 0 10 10">
@@ -516,13 +543,6 @@ const html = `
         </article>
       </main>
     </div>
-    <script> 
-      (function initColorTheme() {
-        const theme = getUserColorTheme();
-        const checked = theme === "light" ? true : false;
-        document.querySelector("#theme-switch").checked = checked;
-      })();
-    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
     <script src="./assets/js/inject-editor.js"></script>
