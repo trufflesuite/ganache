@@ -2,15 +2,14 @@
 
 ## Getting set up
 
-- Use Node.js v14.0.0.
-  - Why v14.0.0? Because this is the first LTS release of Node.js v14 and is the earliest version Ganache supports.
+- Use Node.js v16.0.0.
+  - Why v16.0.0? Because this is the first LTS release of Node.js v16 and is the earliest version Ganache supports.
   - recommendation: use [nvm](https://github.com/nvm-sh/nvm) on Linux and macOS, and [nvm-windows](https://github.com/coreybutler/nvm-windows) on
     Windows, to configure your node version.
-    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v14.0.0.
+    - On Linux and macOS, if you have `nvm` installed, just run `nvm use` to switch to Node.js v16.0.0.
 - `git clone git@github.com:trufflesuite/ganache.git`
 - `cd ganache`
-- `npm install` (use npm v6)
-- On Linux and macOS: run `source completions.sh` to enable autocomplete for npm scripts.
+- `npm install` (use npm v7)
 
 ## Solving node-gyp issues
 
@@ -97,20 +96,13 @@ To pass options to the cli you must separate the args with `--`, e.g.:
 
 - `npm start -- --chain.chainId 1 --wallet.totalAccounts 5`
 
-## To create a new chain/flavor
-
-- `npm run create <name> --location chains`
-
-This will create a new folder at `src/chains/<name>` where `<name>` should be the flavor name (e.g. `ethereum`), which
-you then can [create packages under](#to-create-a-new-package).
-
 ## To create a new package
 
 - `npm run create <name> --location <location> [--folder <folder>]`
 
-This will create a new package with Ganache defaults at `src/<location>/<name>`.
+This will create a new package with Ganache defaults at `<location>/<name>`.
 
-If you provide the optional `--folder` option, the package will be created at `src/<location>/<folder>`.
+If you provide the optional `--folder` option, the package will be created at `<location>/<folder>`.
 
 ## To add a module to a package:
 
@@ -122,10 +114,10 @@ Where `<module>` is the npm-module you want to add and `<package>` is where you 
 Example:
 
 ```bash
-npx lerna add @ganache/options -E --scope=@ganache/filecoin
+npx lerna add @ganache/options -E --scope=@ganache/ethereum
 ```
 
-will add our local `@ganache/options` package to the `@ganache/filecoin` package.
+will add our local `@ganache/options` package to the `@ganache/ethereum` package.
 
 ## To remove a module from another package:
 
@@ -160,8 +152,8 @@ index 2a2aa9e..57cbf21 100644
          "--colors",
          "--require",
          "ts-node/register",
--        "${workspaceFolder}/src/**/tests/**/*.test.ts"
-+        "${workspaceFolder}/src/chains/ethereum/ethereum/tests/**/*.test.ts"
+-        "${workspaceFolder}/packages/**/tests/**/*.test.ts"
++        "${workspaceFolder}/packages/ethereum/ethereum/tests/**/*.test.ts"
        ],
        "skipFiles": ["<node_internals>/**"],
        "console": "integratedTerminal",
@@ -171,7 +163,7 @@ index 2a2aa9e..57cbf21 100644
 
 These are guidelines, not rules. :-)
 
-- Use Node.js v14.0.0 for most local development.
+- Use Node.js v16.0.0 for most local development.
 - Use `bigint` literals, e.g., `123n`; if the number is externally configurable and/or could exceed
   `Number.MAX_SAFE_INTEGER`.
 - Write tests.

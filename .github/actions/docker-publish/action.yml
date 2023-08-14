@@ -24,10 +24,10 @@ runs:
   # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
   steps:
-    - name: Use npm 14
+    - name: Use node 16
       uses: actions/setup-node@v3
       with:
-        node-version: 14
+        node-version: 16
 
     - name: Run installation
       run: npm ci
@@ -64,7 +64,7 @@ runs:
       uses: docker/build-push-action@175d02bffea74695e96b351069ac938b338802f9
       with:
         context: .
-        file: ./src/packages/ganache/Dockerfile
+        file: ./packages/ganache/Dockerfile
         push: true
         tags: ${{ format('trufflesuite/ganache:{0}, trufflesuite/ganache:v{1}', inputs.TAG, inputs.VERSION) }}
         labels: ${{ steps.meta.outputs.labels }}

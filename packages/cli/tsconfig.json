@@ -1,0 +1,34 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declarationDir": "typings",
+    "composite": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "name": "@ganache/core",
+      "path": "../core"
+    },
+    {
+      "name": "@ganache/options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../colors"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../flavor"
+    },
+    {
+      "name": "@ganache/ethereum",
+      "path": "../ethereum/ethereum"
+    }
+  ]
+}

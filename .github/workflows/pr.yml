@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [14.0.0, 14.x, 16.x, 18.x]
+        node: [16.0.0, 16.x, 18.x, 20.x]
         os: [windows-2019, ubuntu-20.04, ubuntu-22.04, macos-12]
 
     runs-on: ${{ matrix.os }}
@@ -43,7 +43,7 @@ jobs:
 
       - name: Check bundle size
         # this should match the os and version used in the release.yml
-        if: startsWith(matrix.os, 'ubuntu-22.04') && startsWith(matrix.node, '14.') && matrix.node != '14.0.0'
+        if: startsWith(matrix.os, 'ubuntu-22.04') && startsWith(matrix.node, '20.') && matrix.node != '20.0.0'
         # 1. build ganache
         # 2. pack it into a tarball
         # 3. measure the _unpacked_ tarball's size
@@ -53,7 +53,7 @@ jobs:
         run: |
           npm run build &&
           npm run prepublishOnly &&
-          cd ./src/packages/ganache &&
+          cd ./packages/ganache &&
           npm pack &&
           size="$(zcat ganache-*.tgz | wc -c)" &&
           echo "Bundle size: $size" &&
@@ -65,8 +65,8 @@ jobs:
           INFURA_KEY: "badc0de0deadc0debadc0de0deadc0de"
       - name: Upload artifact
         # this should match the os and version used in the release.yml
-        if: startsWith(matrix.os, 'ubuntu-22.04') && startsWith(matrix.node, '14.') && matrix.node != '14.0.0'
+        if: startsWith(matrix.os, 'ubuntu-22.04') && startsWith(matrix.node, '20.') && matrix.node != '20.0.0'
         uses: actions/upload-artifact@v3
         with:
           name: Candidate
-          path: ./src/packages/ganache/ganache-*.tgz
+          path: ./packages/ganache/ganache-*.tgz

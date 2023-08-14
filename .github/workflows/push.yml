@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [14.0.0, 14.x, 16.x, 18.x]
+        node: [16.0.0, 16.x, 18.x, 20.x]
         os: [ubuntu-22.04]
 
     runs-on: ${{ matrix.os }}
@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [14.0.0, 14.x, 16.x, 18.x]
+        node: [16.0.0, 16.x, 18.x, 20.x]
         os: [windows-2019, ubuntu-20.04, ubuntu-22.04, macos-12]
 
     runs-on: ${{ matrix.os }}

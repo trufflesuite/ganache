@@ -1,0 +1,118 @@
+{
+  "name": "ganache",
+  "version": "7.9.0",
+  "description": "A library and cli to create a local blockchain for fast Ethereum development.",
+  "author": "David Murdoch",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/ganache#readme",
+  "license": "MIT",
+  "main": "dist/node/core.js",
+  "browser": "dist/web/ganache.min.js",
+  "typings": "dist/ganache.d.ts",
+  "source": "index.ts",
+  "bin": {
+    "ganache": "dist/node/cli.js",
+    "ganache-cli": "dist/node/cli.js"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "/dist",
+    "/index.d.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache.git",
+    "directory": "packages/ganache"
+  },
+  "scripts": {
+    "build": "npm run tsc && npx shx rm -rf ./dist && webpack && npm run types",
+    "types": "api-extractor run",
+    "tsc": "tsc --build",
+    "test": "nyc npm run mocha",
+    "mocha": "cross-env TS_NODE_FILES=true mocha --timeout 5000 --exit --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "start": "cross-env node --require ts-node/register --inspect src/cli.ts"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-core",
+    "ganache-cli",
+    "@trufflesuite/ganache",
+    "@truffle/ganache",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling",
+    "truffle"
+  ],
+  "devDependencies": {
+    "@ganache/cli": "0.10.0",
+    "@ganache/core": "0.10.0",
+    "@microsoft/api-extractor": "7.20.1",
+    "@types/abstract-leveldown": "7.2.0",
+    "@types/mocha": "9.0.0",
+    "@types/node": "17.0.0",
+    "assert": "2.0.0",
+    "browserify-aes": "1.2.0",
+    "buffer": "6.0.3",
+    "cross-env": "7.0.3",
+    "crypto-browserify": "3.12.0",
+    "events": "3.3.0",
+    "https-browserify": "1.0.0",
+    "level-js": "6.1.0",
+    "mcl-wasm": "0.9.0",
+    "mocha": "9.1.3",
+    "node-loader": "1.0.2",
+    "os-browserify": "0.3.0",
+    "path-browserify": "1.0.1",
+    "process": "0.11.10",
+    "scrypt-js": "3.0.1",
+    "setimmediate": "1.0.5",
+    "shebang-loader": "0.0.1",
+    "shx": "0.3.3",
+    "stream-browserify": "3.0.0",
+    "stream-http": "3.2.0",
+    "terser-webpack-plugin": "5.2.5",
+    "ts-loader": "9.3.1",
+    "ts-node": "10.9.1",
+    "typescript": "5.1.6",
+    "util": "0.12.4",
+    "webpack": "5.65.0",
+    "webpack-cli": "4.9.1",
+    "webpack-merge": "5.8.0"
+  },
+  "dependencies": {
+    "@trufflesuite/bigint-buffer": "1.1.10",
+    "@trufflesuite/uws-js-unofficial": "20.30.0-unofficial.0",
+    "@types/bn.js": "^5.1.0",
+    "@types/lru-cache": "5.1.1",
+    "@types/seedrandom": "3.0.1",
+    "abstract-level": "1.0.3",
+    "abstract-leveldown": "7.2.0",
+    "async-eventemitter": "0.2.4",
+    "emittery": "0.10.0",
+    "keccak": "3.0.2",
+    "leveldown": "6.1.0",
+    "secp256k1": "4.0.3"
+  },
+  "optionalDependencies": {
+    "bufferutil": "4.0.5",
+    "utf-8-validate": "5.0.7"
+  },
+  "bundledDependencies": [
+    "@trufflesuite/bigint-buffer",
+    "keccak",
+    "leveldown",
+    "secp256k1"
+  ]
+}
