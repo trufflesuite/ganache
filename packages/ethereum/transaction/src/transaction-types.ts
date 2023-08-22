@@ -52,6 +52,7 @@ export type EIP2930AccessListTransactionJSON = {
   v: Quantity;
   r: Quantity;
   s: Quantity;
+  yParity: Quantity;
 };
 
 export type EIP1559FeeMarketTransactionJSON = {
@@ -74,4 +75,5 @@ export type EIP1559FeeMarketTransactionJSON = {
   v: Quantity;
   r: Quantity;
   s: Quantity;
+  yParity: Quantity;
 };
