@@ -23,10 +23,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
-          # use node 14 until we can evaluate using npm 7+ and lock file version 2
           # this should match the node version used by the "check bundle size"
           # step in pr.yml
-          node-version: 14
+          node-version: 20
 
       - name: Import Robot GPG key
         uses: crazy-max/ghaction-import-gpg@v4
@@ -103,11 +102,11 @@ jobs:
 
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
-        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
+        run: npx -y lerna@4.0.0 version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
 
       - name: Update package versions for pre-releases
         if: ${{ env.TAG != 'latest' }}
-        run: $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
+        run: npx -y lerna@4.0.0 version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
 
       - name: Add updated versions to git
         run: git add .
@@ -124,7 +123,7 @@ jobs:
 
       - name: Set VERSION
         run: |
-          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+          echo "VERSION=$(node -e 'console.log(require("./packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
       - name: Set VERSION as job output variable
         id: set_version_output
@@ -155,7 +154,7 @@ jobs:
       # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
       - name: Release to npm
         run: |
-          $(npm bin)/lerna publish from-package --yes --dist-tag ${TAG} --pre-dist-tag ${TAG} --no-verify-access
+          npx -y lerna@4.0.0 publish from-package --yes --dist-tag ${TAG} --pre-dist-tag ${TAG} --no-verify-access
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "packages/ganache"
+    }
+  ]
+}

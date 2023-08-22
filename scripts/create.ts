@@ -1,11 +1,10 @@
-import { TruffleColors } from "../src/packages/colors";
+import { TruffleColors } from "../packages/colors";
 import { sep, join, resolve } from "path";
 import { highlight } from "cli-highlight";
 import { mkdir, mkdirSync, writeFile } from "fs-extra";
-import yargs from "yargs";
+import yargs from "yargs/yargs";
+import { hideBin } from "yargs/helpers";
 import {
-  lstatSync as lstat,
-  readdirSync as readDir,
   readFileSync as readFile
 } from "fs";
 
@@ -22,21 +21,19 @@ const COMMAND_NAME = "create";
 const getArgv = () => {
   const npmConfigArgv = process.env["npm_config_argv"];
   if (npmConfigArgv) {
-    // handle `npm run create name --location chains`
+    // handle `npm run create name --location ethereum`
     // convert original npm args into a command
     // create <name> --location <location> [--folder <folder>]
     return JSON.parse(npmConfigArgv).original.slice(1);
   } else {
-    // handle `ts-node ./scripts/create.ts name --location chains`
+    // handle `ts-node ./scripts/create.ts name --location packages/ethereum`
 
-    const args = [...process.argv].slice(2);
+    const args = hideBin(process.argv);
     args.unshift(COMMAND_NAME);
     return args;
   }
 };
 
-const isDir = (s: string) => lstat(s).isDirectory();
-const getDirectories = (s: string) => readDir(s).filter(n => isDir(join(s, n)));
 const nameIncludesScope = (s: string) => s.indexOf("@") === 0;
 
 const COLORS = {
@@ -45,11 +42,7 @@ const COLORS = {
   FgRed: "\x1b[31m"
 };
 
-let locations = getDirectories(join(__dirname, "../src"));
-const chainLocations = getDirectories(join(__dirname, "../src/chains")).map(
-  d => `chains/${d}`
-);
-locations = locations.concat(chainLocations);
+const locations = ["packages", "packages/ethereum"];
 
 const argv = yargs(getArgv())
   .command(`${COMMAND_NAME} <name>`, "", yargs => {
@@ -116,26 +109,12 @@ process.stdout.write(`${COLORS.Reset}`);
   }
 
   // determines how many `../` are needed for package contents
-  const numDirectoriesAwayFromSrc = 1 + location.split(sep).length;
-  const relativePathToSrc = "../".repeat(numDirectoriesAwayFromSrc);
-  const isNewChain = location === "chains";
+  const numDirectoriesAwayFromPackages = 1 + location.split(sep).length;
+  const relativePathToPackages = "../".repeat(numDirectoriesAwayFromPackages);
 
   const workspaceDir = join(__dirname, "../");
-  const dir = join(workspaceDir, "src", location, folderName);
+  const dir = join(workspaceDir, location, folderName);
 
-  if (isNewChain) {
-    mkdirSync(dir);
-
-    const fullLocation = join(location, folderName);
-    console.log(
-      chalk`{green success} {magenta create} New chain folder {bgBlack  ${name} } created at ./src/${fullLocation}.`
-    );
-    console.log("");
-    console.log(
-      chalk`  Add packages to this chain by running: {bgBlack {bold npm run create {dim <}name{dim >} {dim --}location ${fullLocation}}}`
-    );
-    return;
-  }
   try {
     const LICENSE = readFile(join(workspaceDir, "LICENSE"), "utf-8");
 
@@ -155,7 +134,7 @@ process.stdout.write(`${COLORS.Reset}`);
       version,
       description: "",
       author: packageAuthor || rootPackageJson.author,
-      homepage: `https://github.com/trufflesuite/ganache/tree/develop/src/${location}/${folderName}#readme`,
+      homepage: `https://github.com/trufflesuite/ganache/tree/develop/${location}/${folderName}#readme`,
       license: "MIT",
       main: "lib/index.js",
       typings: "typings",
@@ -168,7 +147,7 @@ process.stdout.write(`${COLORS.Reset}`);
       repository: {
         type: "git",
         url: "https://github.com/trufflesuite/ganache.git",
-        directory: `src/${location}/${folderName}`
+        directory: `${location}/${folderName}`
       },
       scripts: {
         tsc: "tsc --build",
@@ -205,7 +184,7 @@ process.stdout.write(`${COLORS.Reset}`);
     };
 
     const tsConfig = {
-      extends: `${relativePathToSrc}tsconfig-base.json`,
+      extends: `${relativePathToPackages}tsconfig-base.json`,
       compilerOptions: {
         outDir: "lib",
         declarationDir: "typings"
@@ -234,7 +213,6 @@ describe("${packageName}", () => {
     const tests = join(dir, "tests");
     const src = join(dir, "src");
 
-    //@ts-ignore
     function initSrc() {
       return writeFile(
         join(src, "index.ts"),
@@ -245,7 +223,6 @@ describe("${packageName}", () => {
       );
     }
 
-    //@ts-ignore
     function initIndex() {
       // When a bundler compiles our libs this headerdoc comment will cause that
       // tool to retain our LICENSE information in their bundled output.
@@ -266,7 +243,6 @@ describe("${packageName}", () => {
       );
     }
 
-    //@ts-ignore
     function initRootFiles() {
       return Promise.all([
         writeFile(
@@ -285,7 +261,6 @@ describe("${packageName}", () => {
       ]);
     }
 
-    //@ts-ignore
     function initTests() {
       return writeFile(
         join(tests, "index.test.ts"),
@@ -336,7 +311,6 @@ describe("${packageName}", () => {
 
     console.log(
       chalk`{green success} {magenta create} New package {bgBlack  ${name} } created at .${sep}${join(
-        "src",
         location,
         folderName
       )}.`

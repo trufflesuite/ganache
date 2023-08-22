@@ -1,0 +1,62 @@
+{
+  "extends": "../../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declarationDir": "typings",
+    "composite": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "name": "@ganache/ethereum-utils",
+      "path": "../utils"
+    },
+    {
+      "name": "@ganache/promise-queue",
+      "path": "../../../packages/promise-queue"
+    },
+    {
+      "name": "@ganache/ethereum-options",
+      "path": "../options"
+    },
+    {
+      "name": "@ganache/utils",
+      "path": "../../../packages/utils"
+    },
+    {
+      "name": "@ganache/rlp",
+      "path": "../../../packages/rlp"
+    },
+    {
+      "name": "@ganache/ethereum-transaction",
+      "path": "../transaction"
+    },
+    {
+      "name": "@ganache/ethereum-address",
+      "path": "../address"
+    },
+    {
+      "name": "@ganache/ethereum-block",
+      "path": "../block"
+    },
+    {
+      "name": "@ganache/secp256k1",
+      "path": "../../../packages/secp256k1"
+    },
+    {
+      "name": "@ganache/console.log",
+      "path": "../console.log"
+    },
+    {
+      "name": "@ganache/flavor",
+      "path": "../../../packages/flavor"
+    },
+    {
+      "name": "@ganache/colors",
+      "path": "../../../packages/colors"
+    }
+  ]
+}
