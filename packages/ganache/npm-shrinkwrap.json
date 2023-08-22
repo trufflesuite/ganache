@@ -5,6 +5,7 @@
 	"requires": true,
 	"packages": {
 		"": {
+			"name": "ganache",
 			"version": "7.9.0",
 			"license": "MIT",
 			"dependencies": {
