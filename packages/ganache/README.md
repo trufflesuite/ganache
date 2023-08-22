@@ -146,7 +146,7 @@ You can use Ganache programmatically from Node.js. Install Ganache into your npm
 $ npm install ganache
 ```
 
-Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), or an [ethers provider](#as-an-ethersjs-provider).
+Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), an [ethers provider](#as-an-ethersjs-provider), or a [viem transport](#as-a-viem-transport).
 
 #### As an EIP-1193 provider only:
 
@@ -201,6 +201,20 @@ const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks:
 const ganache = require("ganache");
 
 const provider = new ethers.providers.Web3Provider(ganache.provider());
+```
+
+#### As a [viem](https://www.npmjs.com/package/viem) transport:
+
+To use a ganache provider as a viem transport:
+
+```javascript
+import { createWalletClient, custom } from "viem";
+import { localhost } from "viem/chains";
+import ganache from "ganache";
+const client = createWalletClient({
+  chain: localhost,
+  transport: custom(ganache.provider())
+});
 ```
 
 ### Browser Use
