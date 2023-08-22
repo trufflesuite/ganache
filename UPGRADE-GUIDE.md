@@ -33,7 +33,7 @@ depending on how you originally installed ganache-cli or ganache-core._
 
 #### Locally installed
 
-A local installation makes it possible to `import` or `require` Ganache  
+A local installation makes it possible to `import` or `require` Ganache
 programmatically from JavaScript or TypeScript. Additionally, you can run the
 command line version of Ganache from your [package.json scripts](https://docs.npmjs.com/cli/v8/using-npm/scripts) or directly
 from the command line using `npx ganache` ([what is npx?](https://www.npmjs.com/package/npx)).
@@ -113,7 +113,7 @@ and it defaulted to `true`.
 
 Ganache now _disables_ the `vmErrorsOnRPCResponse` functionality by default.
 
-If your code relies on these non-standard errors on transaction failure, you'll 
+If your code relies on these non-standard errors on transaction failure, you'll
 need to _enable_ the `vmErrorsOnRpcResponse` flag to restore this behavior:
 
 ```console
@@ -139,6 +139,10 @@ As of v7.0.0 we no longer support Node v8-v10. You'll need to update to Node v12
 #### v7.7.0+, Dropped support for Node v12
 
 We no longer support Node v12. You'll need to update to Node v14.0.0 or later. NOTE: Support for Node.js v14.x.x will be dropped shortly after the Node.js Foundation stops supporting it in April 2023.
+
+#### v7.8.0+, Dropped support for Node v14
+
+We no longer support Node v14. You'll need to update to Node v16.0.0 or later. NOTE: Support for Node.js v16.x.x will be dropped shortly after the Node.js Foundation stops supporting it in April 2024.
 
 #### DockerHub repo has been moved to trufflesuite/ganache
 
@@ -288,7 +292,7 @@ likely enable this in the future.
 
 Ganache's old database format is incompatible with this version. We've decided
 to hold off on building migration tools for this. If you will need a migration
-tool (you use the `db` flag or the `db_path` option and are unable to recreate 
+tool (you use the `db` flag or the `db_path` option and are unable to recreate
 your initial DB state) please
 [open an issue](https://github.com/trufflesuite/ganache/issues/new)
 to let us know.
@@ -343,7 +347,7 @@ If you send a transaction with `eth_sendTransaction` and that transaction doesn'
 
 ```typescript
 // send a "legacy" transaction
-const hash = await provider.request("eth_sendTransaction", [{ from }]); 
+const hash = await provider.request("eth_sendTransaction", [{ from }]);
 const tx = await provider.request("eth_getTransactionByHash", [hash]);
 // The returned `type` field indicates it was updated to a type 2 transaction
 assert.strictEqual(tx.type, "0x2");

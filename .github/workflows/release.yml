@@ -23,10 +23,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
-          # use node 14 until we can evaluate using npm 7+ and lock file version 2
           # this should match the node version used by the "check bundle size"
           # step in pr.yml
-          node-version: 14
+          node-version: 20
 
       - name: Import Robot GPG key
         uses: crazy-max/ghaction-import-gpg@v4
@@ -124,7 +123,7 @@ jobs:
 
       - name: Set VERSION
         run: |
-          echo "VERSION=$(node -e 'console.log(require("./src/packages/ganache/package.json").version)')" >> $GITHUB_ENV
+          echo "VERSION=$(node -e 'console.log(require("./packages/ganache/package.json").version)')" >> $GITHUB_ENV
 
       - name: Set VERSION as job output variable
         id: set_version_output

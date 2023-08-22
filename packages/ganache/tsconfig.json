@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": "lib"
+  },
+  "include": [
+    "index.ts",
+    "src/**/*",
+    "src/cli.ts"
+  ],
+  "paths": {
+    "@ganache/cli/src/cli": [
+      "../cli/src/cli"
+    ]
+  },
+  "references": [
+    {
+      "name": "@ganache/cli",
+      "path": "../cli"
+    },
+    {
+      "name": "@ganache/core",
+      "path": "../core"
+    }
+  ]
+}

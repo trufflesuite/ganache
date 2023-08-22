@@ -4,7 +4,7 @@ node_modules
 .nyc_output
 lerna-debug.log
 npm-debug.log
-src/**/*/lib
+packages/**/*/lib
 coverage
 dist/
 typings/

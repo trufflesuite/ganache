@@ -1,0 +1,70 @@
+{
+  "name": "@ganache/core",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.10.0",
+  "description": "A library to create a local blockchain for fast Ethereum development.",
+  "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
+  "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/core#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "typings": "typings",
+  "source": "index.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "typings"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trufflesuite/ganache.git",
+    "directory": "packages/core"
+  },
+  "scripts": {
+    "tsc": "tsc --build",
+    "test": "nyc npm run mocha && npm run mocha:fallback",
+    "mocha:fallback": "cross-env UWS_USE_FALLBACK=true npm run mocha",
+    "mocha": "cross-env TS_NODE_PROJECT=tsconfig.json TS_NODE_FILES=true mocha --timeout 5000 --exit --colors --throw-deprecation --trace-warnings --check-leaks --require ts-node/register 'tests/**/*.test.ts'"
+  },
+  "bugs": {
+    "url": "https://github.com/trufflesuite/ganache/issues"
+  },
+  "keywords": [
+    "ganache",
+    "ganache-core",
+    "ethereum",
+    "evm",
+    "blockchain",
+    "smart contracts",
+    "dapps",
+    "solidity",
+    "vyper",
+    "fe",
+    "web3",
+    "tooling"
+  ],
+  "dependencies": {
+    "@ganache/ethereum": "0.10.0",
+    "@ganache/flavor": "0.10.0",
+    "@ganache/options": "0.9.0",
+    "@ganache/utils": "0.9.0",
+    "@trufflesuite/uws-js-unofficial": "20.30.0-unofficial.0",
+    "aggregate-error": "3.1.0",
+    "emittery": "0.10.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "9.0.0",
+    "@types/superagent": "4.1.10",
+    "cross-env": "7.0.3",
+    "mocha": "9.1.3",
+    "nyc": "15.1.0",
+    "superagent": "6.1.0",
+    "ts-node": "10.9.1",
+    "typescript": "5.1.6",
+    "ws": "8.2.3"
+  }
+}
