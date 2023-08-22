@@ -31,6 +31,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
   public accessListDataFee: bigint;
   public gasPrice: Quantity;
   public type: Quantity = Quantity.from("0x1");
+  public yParity: Quantity = Quantity.from("0x0");
 
   public constructor(
     data: EIP2930AccessListRawTransaction | EIP2930AccessListRpcTransaction,
@@ -50,7 +51,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
       this.accessListDataFee = accessListData.dataFeeEIP2930;
-      this.v = Quantity.from(data[8]);
+      this.yParity = this.v = Quantity.from(data[8]);
       this.r = Quantity.from(data[9]);
       this.s = Quantity.from(data[10]);
       this.raw = data;
@@ -94,6 +95,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       this.accessListJSON = accessListData.AccessListJSON;
       this.accessListDataFee = accessListData.dataFeeEIP2930;
       this.validateAndSetSignature(data);
+      this.yParity = this.v;
     }
   }
 
@@ -119,7 +121,8 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
       accessList: this.accessListJSON,
       v: this.v,
       r: this.r,
-      s: this.s
+      s: this.s,
+      yParity: this.v
     };
   }
   public static fromTxData(
@@ -179,7 +182,7 @@ export class EIP2930AccessListTransaction extends RuntimeTransaction {
 
     const msgHash = keccak(digestWithPrefix(1, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
-    this.v = Quantity.from(sig.v);
+    this.yParity = this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 

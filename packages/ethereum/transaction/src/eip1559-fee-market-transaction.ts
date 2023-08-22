@@ -34,6 +34,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
   public accessListJSON: AccessList;
   public accessListDataFee: bigint;
   public type: Quantity = Quantity.from("0x2");
+  public yParity: Quantity = Quantity.from("0x0");
 
   public constructor(
     data: EIP1559FeeMarketRawTransaction | EIP1559FeeMarketRpcTransaction,
@@ -54,7 +55,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.accessList = accessListData.accessList;
       this.accessListJSON = accessListData.AccessListJSON;
       this.accessListDataFee = accessListData.dataFeeEIP2930;
-      this.v = Quantity.from(data[9]);
+      this.yParity = this.v = Quantity.from(data[9]);
       this.r = Quantity.from(data[10]);
       this.s = Quantity.from(data[11]);
       this.raw = data;
@@ -93,6 +94,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       this.accessListJSON = accessListData.AccessListJSON;
       this.accessListDataFee = accessListData.dataFeeEIP2930;
       this.validateAndSetSignature(data);
+
+      this.yParity = this.v;
     }
   }
 
@@ -120,7 +123,8 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
       accessList: this.accessListJSON,
       v: this.v,
       r: this.r,
-      s: this.s
+      s: this.s,
+      yParity: this.yParity
     };
   }
 
@@ -193,7 +197,7 @@ export class EIP1559FeeMarketTransaction extends RuntimeTransaction {
 
     const msgHash = keccak(digestWithPrefix(2, [data.output], dataLength));
     const sig = ecsign(msgHash, privateKey);
-    this.v = Quantity.from(sig.v);
+    this.yParity = this.v = Quantity.from(sig.v);
     this.r = Quantity.from(sig.r);
     this.s = Quantity.from(sig.s);
 

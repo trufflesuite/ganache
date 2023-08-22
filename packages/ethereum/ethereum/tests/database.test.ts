@@ -227,7 +227,8 @@ describe("database", () => {
                 accessList: [],
                 v: "0x0",
                 r: "0x48507a6e4e1e7bdbcdb0a5021195d13d7c2a1b89f06555049bca5cc246b6f7d4",
-                s: "0x487a3f23364c97c469f8ee948a9de2bdc80a4502046625793f664bb7be4c0cd9"
+                s: "0x487a3f23364c97c469f8ee948a9de2bdc80a4502046625793f664bb7be4c0cd9",
+                yParity: "0x0"
               }
             ],
             uncles: []

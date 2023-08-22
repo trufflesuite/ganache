@@ -9,7 +9,6 @@ import {
   LegacyRawTransaction,
   LegacyTransaction,
   TransactionFactory,
-  TransactionType,
   TypedDatabaseTransaction,
   Transaction,
   encodeWithPrefix,
