@@ -102,11 +102,11 @@ jobs:
 
       - name: Update package versions for latest release (master)
         if: ${{ env.TAG == 'latest' }}
-        run: $(npm bin)/lerna version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
+        run: npx -y lerna@4.0.0 version "$RELEASE_KIND" --no-git-tag-version --no-push --yes --exact
 
       - name: Update package versions for pre-releases
         if: ${{ env.TAG != 'latest' }}
-        run: $(npm bin)/lerna version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
+        run: npx -y lerna@4.0.0 version prerelease --no-git-tag-version --no-push --yes --exact --preid "$TAG"
 
       - name: Add updated versions to git
         run: git add .
@@ -154,7 +154,7 @@ jobs:
       # this needs `--no-verify-access` until https://github.com/lerna/lerna/issues/2788 is fixed
       - name: Release to npm
         run: |
-          $(npm bin)/lerna publish from-package --yes --dist-tag ${TAG} --pre-dist-tag ${TAG} --no-verify-access
+          npx -y lerna@4.0.0 publish from-package --yes --dist-tag ${TAG} --pre-dist-tag ${TAG} --no-verify-access
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
