@@ -40,6 +40,7 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 - Listens for JSON-RPC 2.0 requests over HTTP/WebSockets
 - Programmatic use in Node.js
 - Pending Transactions
+- <a href="https://github.com/trufflesuite/ganache/tree/develop/packages/flavor#readme">Flavors</a> (aka Plugins), like <a href="https://github.com/trufflesuite/ganache-plugin-filecoin/tree/main/packages/filecoin#readme">Filecoin</a>
 
 ## Getting Started
 
