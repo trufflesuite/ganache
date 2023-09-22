@@ -1,12 +1,11 @@
 {
 	"name": "ganache",
-	"version": "7.9.0",
+	"version": "7.9.1",
 	"lockfileVersion": 2,
 	"requires": true,
 	"packages": {
 		"": {
-			"name": "ganache",
-			"version": "7.9.0",
+			"version": "7.9.1",
 			"license": "MIT",
 			"dependencies": {
 				"@trufflesuite/bigint-buffer": "1.1.10",
