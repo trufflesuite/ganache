@@ -235,7 +235,7 @@ describe("api", () => {
       });
 
       it("should return correct storage given different storage slot changes at different transaction indexes in same block", async () => {
-        /* 
+        /*
           Strategy for this test:
             1. Create snapshot
             2. Call miner.stop() so we can send a few transactions

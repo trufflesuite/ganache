@@ -15,8 +15,8 @@ export class Account {
   public balance: Quantity;
   public privateKey: Data;
   public nonce: Quantity;
-  public storageRoot: Buffer = KECCAK256_RLP;
-  public codeHash: Buffer = KECCAK256_NULL;
+  public storageRoot: Buffer = Buffer.from(KECCAK256_RLP);
+  public codeHash: Buffer = Buffer.from(KECCAK256_NULL);
 
   constructor(address: Address) {
     this.address = address;

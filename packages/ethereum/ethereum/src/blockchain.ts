@@ -2,6 +2,7 @@ import { EOL } from "os";
 import Miner, { Capacity } from "./miner/miner";
 import Database from "./database";
 import Emittery from "emittery";
+import { Account as EJS_Account } from "@ethereumjs/util";
 import {
   BlockLogs,
   Account,
@@ -22,10 +23,10 @@ import type { InterpreterStep, EVMResult } from "@ethereumjs/evm";
 import { decode } from "@ganache/rlp";
 import { KECCAK256_RLP } from "@ethereumjs/util";
 import { Common } from "@ethereumjs/common";
-import { EEI, VM } from "@ethereumjs/vm";
+import { VM } from "@ethereumjs/vm";
 import {
   EvmError as VmError,
-  EvmErrorMessage as ERROR,
+  EVMErrorMessage as ERROR,
   EVM
 } from "@ethereumjs/evm";
 import { EthereumInternalOptions, Hardfork } from "@ganache/ethereum-options";
@@ -79,6 +80,7 @@ import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
 import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
+import { Journal } from "@ethereumjs/evm/dist/cjs/journal";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
   mcl.setMapToMode(mcl.IRTF); // set the right map mode; otherwise mapToG2 will return wrong values.
@@ -139,9 +141,10 @@ function setStateRootSync(
   stateManager: DefaultStateManager,
   stateRoot: Buffer
 ) {
-  stateManager._trie.root(stateRoot);
-  stateManager._cache.clear();
-  stateManager._storageTries = {};
+  (stateManager as any)._trie.root(stateRoot);
+  stateManager.clearCaches();
+  (stateManager as any)._storageTries = {};
+  (stateManager as any)._codeCache = {};
 }
 
 function makeTrie(blockchain: Blockchain, trieDB: TrieDB, root: Data) {
@@ -256,7 +259,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         }
       }
 
-      this.isPostMerge = this.common.gteHardfork("merge");
+      this.isPostParis = this.common.gteHardfork("paris");
 
       const blocks = (this.blocks = await BlockManager.initialize(
         this,
@@ -599,17 +602,17 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       minerOptions.blockGasLimit,
       Quantity.Zero,
       Quantity.from(timestamp),
-      this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
+      this.isPostParis ? Quantity.Zero : minerOptions.difficulty,
       previousHeader.totalDifficulty,
       this.getMixHash(previousBlock.hash().toBuffer()),
       Block.calcNextBaseFee(previousBlock),
-      KECCAK256_RLP
+      Buffer.from(KECCAK256_RLP)
     );
   };
 
   getMixHash(data: Buffer) {
     // mixHash is used as an RNG post merge hardfork
-    return this.isPostMerge ? keccak(data) : BUFFER_32_ZERO;
+    return this.isPostParis ? keccak(data) : BUFFER_32_ZERO;
   }
 
   isStarted = () => {
@@ -704,8 +707,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         })
       : new GanacheStateManager({ trie: stateTrie, prefixCodeHashes: false });
 
-    const eei = new EEI(stateManager, common, blockchain);
-    const evm = new EVM({ common, allowUnlimitedContractSize, eei });
+    const evm = new EVM({
+      common,
+      allowUnlimitedContractSize,
+      stateManager,
+      blockchain
+    });
     const vm = await VM.create({
       activatePrecompiles: false,
       common,
@@ -715,7 +722,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     });
 
     if (activatePrecompile) {
-      await activatePrecompiles(vm.eei);
+      await activatePrecompiles(vm.stateManager);
 
       if (common.isActivatedEIP(2537)) {
         // BLS12-381 curve, not yet included in any supported hardforks
@@ -748,7 +755,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const stateManager = <DefaultStateManager>this.vm.stateManager;
       await stateManager.checkpoint();
       initialAccounts.forEach(account => {
-        this.vm.eei.putAccount(account.address, account as any);
+        this.vm.stateManager.putAccount(account.address, account as any);
       });
       await stateManager.commit();
 
@@ -769,19 +776,19 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         blockGasLimit,
         Quantity.Zero,
         Quantity.from(timestamp),
-        this.isPostMerge ? Quantity.Zero : minerOptions.difficulty,
+        this.isPostParis ? Quantity.Zero : minerOptions.difficulty,
         fallbackBlock.header.totalDifficulty,
         this.getMixHash(fallbackBlock.hash().toBuffer()),
         baseFeePerGas,
-        KECCAK256_RLP
+        Buffer.from(KECCAK256_RLP)
       );
 
       // store the genesis block in the database
       const { block, serialized } = genesis.finalize(
-        KECCAK256_RLP,
-        KECCAK256_RLP,
+        Buffer.from(KECCAK256_RLP),
+        Buffer.from(KECCAK256_RLP),
         BUFFER_256_ZERO,
-        this.trie.root(),
+        Buffer.from(this.trie.root()),
         0n,
         minerOptions.extraData,
         [],
@@ -819,21 +826,21 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       blockGasLimit,
       Quantity.Zero,
       Quantity.from(timestamp),
-      this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
+      this.isPostParis ? Quantity.Zero : this.#options.miner.difficulty,
       Quantity.Zero, // we start the totalDifficulty at 0
       // we use the initial trie root as the genesis block's mixHash as it
       // is deterministic based on initial wallet conditions
-      this.isPostMerge ? keccak(this.trie.root()) : BUFFER_32_ZERO,
+      this.isPostParis ? keccak(Buffer.from(this.trie.root())) : BUFFER_32_ZERO,
       baseFeePerGas,
-      KECCAK256_RLP
+      Buffer.from(KECCAK256_RLP)
     );
 
     // store the genesis block in the database
     const { block, serialized } = genesis.finalize(
-      KECCAK256_RLP,
-      KECCAK256_RLP,
+      Buffer.from(KECCAK256_RLP),
+      Buffer.from(KECCAK256_RLP),
       BUFFER_256_ZERO,
-      this.trie.root(),
+      Buffer.from(this.trie.root()),
       0n,
       this.#options.miner.extraData,
       [],
@@ -1125,7 +1132,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     });
 
     if (gasLeft >= 0n) {
-      const stateTrie = this.trie.copy(false);
+      const stateTrie = this.trie.shallowCopy(false);
       stateTrie.setContext(
         parentBlock.header.stateRoot.toBuffer(),
         null,
@@ -1142,7 +1149,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
 
       // take a checkpoint so the `runCall` never writes to the trie. We don't
       // commit/revert later because this stateTrie is ephemeral anyway.
-      await vm.eei.checkpoint();
+      await vm.stateManager.checkpoint();
 
       vm.evm.events.on("step", (event: InterpreterStep) => {
         const logs = maybeGetLogs(event);
@@ -1163,15 +1170,18 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const callerAddress = new Address(caller);
 
       if (common.isActivatedEIP(2929)) {
-        const eei = vm.eei;
+        const journal = vm.evm.journal as Journal;
         // handle Berlin hardfork warm storage reads
-        warmPrecompiles(eei);
-        eei.addWarmedAddress(caller);
-        if (to) eei.addWarmedAddress(to.buf);
+        warmPrecompiles(journal);
+        journal.addAlwaysWarmAddress(transaction.from.toString(), false);
+        if (to) journal.addAlwaysWarmAddress(to.toString(), false);
 
         // shanghai hardfork requires that we warm the coinbase address
         if (common.isActivatedEIP(3651)) {
-          eei.addWarmedAddress(transaction.block.header.coinbase.buf);
+          journal.addAlwaysWarmAddress(
+            transaction.block.header.coinbase.toString(),
+            false
+          );
         }
       }
 
@@ -1182,13 +1192,14 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // we need to update the balance and nonce of the sender _before_
       // we run this transaction so that things that rely on these values
       // are correct (like contract creation!).
-      const fromAccount = await vm.eei.getAccount(callerAddress);
+      const fromAccount =
+        (await vm.stateManager.getAccount(callerAddress)) || new EJS_Account();
       fromAccount.nonce += 1n;
       const txCost = gasLimit * transaction.gasPrice.toBigInt();
       const startBalance = fromAccount.balance;
       // TODO: should we throw if insufficient funds?
       fromAccount.balance = txCost > startBalance ? 0n : startBalance - txCost;
-      await vm.eei.putAccount(callerAddress, fromAccount);
+      await vm.stateManager.putAccount(callerAddress, fromAccount);
 
       // finally, run the call
       result = await vm.evm.runCall({
@@ -1207,7 +1218,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           exceptionError: new VmError(ERROR.OUT_OF_GAS),
           returnValue: BUFFER_EMPTY
         }
-      } as EVMResult;
+      } as any;
     }
     this.emit("ganache:vm:tx:after", {
       context: transactionContext
@@ -1215,7 +1226,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (result.execResult.exceptionError) {
       throw new CallError(result);
     } else {
-      return Data.from(result.execResult.returnValue || "0x");
+      return Data.from(
+        result.execResult.returnValue
+          ? Buffer.from(result.execResult.returnValue)
+          : "0x"
+      );
     }
   }
 
@@ -1259,12 +1274,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         })
       : new GanacheStateManager({ trie, prefixCodeHashes: false });
 
-    const eei = new EEI(stateManager, common, blockchain);
     const evm = new EVM({
       common,
       allowUnlimitedContractSize:
         this.#options.chain.allowUnlimitedContractSize,
-      eei
+      stateManager,
+      blockchain
     });
     const vm = await VM.create({
       activatePrecompiles: false,
@@ -1284,7 +1299,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     // simplest method I could find) is fine.
     // Remove this and you may see the infamous
     // `Uncaught TypeError: Cannot read property 'pop' of undefined` error!
-    (vm.stateManager as GanacheStateManager)._cache.flush = async () => {};
+
+    // TODO EJS: maybve this isn't needed naymore?
+    // (vm.stateManager as GanacheStateManager)._cache.flush = async () => {};
 
     // Process the block without committing the data.
     await vm.stateManager.checkpoint();
@@ -1363,7 +1380,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         let index = 0;
         while (index < limit) {
           const offset = index * 32;
-          const slice = event.memory.subarray(offset, offset + 32);
+          const slice = Buffer.from(event.memory.subarray(offset, offset + 32));
           memory[index++] = TraceData.from(slice);
         }
       }
@@ -1426,9 +1443,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           }
           case "SLOAD": {
             const key = stack[stack.length - 1];
-            const result = await vm.stateManager.getContractStorage(
-              event.address,
-              key.toBuffer()
+            const result = Buffer.from(
+              await vm.stateManager.getContractStorage(
+                event.address,
+                key.toBuffer()
+              )
             );
             const value = TraceData.from(result);
             storageStack[eventDepth].set(key, value);
@@ -1474,7 +1493,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     };
   };
 
-  isPostMerge: boolean;
+  isPostParis: boolean;
 
   /**
    * Creates a block based on the given `targetBlock` that contains only the
@@ -1505,11 +1524,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       Quantity.Zero,
       // make sure we use the same timestamp as the target block
       targetBlock.header.timestamp,
-      this.isPostMerge ? Quantity.Zero : this.#options.miner.difficulty,
+      this.isPostParis ? Quantity.Zero : this.#options.miner.difficulty,
       parentBlock.header.totalDifficulty,
       this.getMixHash(parentBlock.hash().toBuffer()),
       Block.calcNextBaseFee(parentBlock),
-      KECCAK256_RLP
+      Buffer.from(KECCAK256_RLP)
     ) as RuntimeBlock & {
       uncleHeaders: [];
       transactions: VmTransaction[];
@@ -1568,7 +1587,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     //
     // TODO: Forking needs the forked block number passed during this step:
     // https://github.com/trufflesuite/ganache/blob/develop/lib/blockchain_double.js#L917
-    const trie = this.trie.copy();
+    const trie = this.trie.shallowCopy();
     trie.setContext(
       parentBlock.header.stateRoot.toBuffer(),
       null,
@@ -1631,7 +1650,9 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (txIndex === 0) {
       // there are no transactions to run, so let's just grab what we need
       // from the last block's trie
-      const [, , stateRoot] = decode<EthereumRawAccount>(rawAccount);
+      const [, , stateRoot] = decode<EthereumRawAccount>(
+        Buffer.from(rawAccount)
+      );
       trie.setContext(
         stateRoot,
         contractAddressBuffer,

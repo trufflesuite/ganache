@@ -1,0 +1,1011 @@
+diff --git a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.d.ts b/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.d.ts
+deleted file mode 100644
+index 0fc615b..0000000
+--- a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.d.ts
++++ /dev/null
+@@ -1,170 +0,0 @@
+-import { Account } from '@ethereumjs/util';
+-import { ethers } from 'ethers';
+-import { AccountCache, StorageCache } from './cache/index.js';
+-import { OriginalStorageCache } from './cache/originalStorageCache.js';
+-import type { Proof } from './index.js';
+-import type { AccountFields, EVMStateManagerInterface, StorageDump } from '@ethereumjs/common';
+-import type { StorageRange } from '@ethereumjs/common/src';
+-import type { Address } from '@ethereumjs/util';
+-import type { Debugger } from 'debug';
+-export interface EthersStateManagerOpts {
+-    provider: string | ethers.JsonRpcProvider;
+-    blockTag: bigint | 'earliest';
+-}
+-export declare class EthersStateManager implements EVMStateManagerInterface {
+-    protected _provider: ethers.JsonRpcProvider;
+-    protected _contractCache: Map<string, Uint8Array>;
+-    protected _storageCache: StorageCache;
+-    protected _blockTag: string;
+-    protected _accountCache: AccountCache;
+-    originalStorageCache: OriginalStorageCache;
+-    protected _debug: Debugger;
+-    protected DEBUG: boolean;
+-    constructor(opts: EthersStateManagerOpts);
+-    /**
+-     * Note that the returned statemanager will share the same JsonRpcProvider as the original
+-     *
+-     * @returns EthersStateManager
+-     */
+-    shallowCopy(): EthersStateManager;
+-    /**
+-     * Sets the new block tag used when querying the provider and clears the
+-     * internal cache.
+-     * @param blockTag - the new block tag to use when querying the provider
+-     */
+-    setBlockTag(blockTag: bigint | 'earliest'): void;
+-    /**
+-     * Clears the internal cache so all accounts, contract code, and storage slots will
+-     * initially be retrieved from the provider
+-     */
+-    clearCaches(): void;
+-    /**
+-     * Gets the code corresponding to the provided `address`.
+-     * @param address - Address to get the `code` for
+-     * @returns {Promise<Uint8Array>} - Resolves with the code corresponding to the provided address.
+-     * Returns an empty `Uint8Array` if the account has no associated code.
+-     */
+-    getContractCode(address: Address): Promise<Uint8Array>;
+-    /**
+-     * Adds `value` to the state trie as code, and sets `codeHash` on the account
+-     * corresponding to `address` to reference this.
+-     * @param address - Address of the `account` to add the `code` for
+-     * @param value - The value of the `code`
+-     */
+-    putContractCode(address: Address, value: Uint8Array): Promise<void>;
+-    /**
+-     * Gets the storage value associated with the provided `address` and `key`. This method returns
+-     * the shortest representation of the stored value.
+-     * @param address - Address of the account to get the storage for
+-     * @param key - Key in the account's storage to get the value for. Must be 32 bytes long.
+-     * @returns {Uint8Array} - The storage value for the account
+-     * corresponding to the provided address at the provided key.
+-     * If this does not exist an empty `Uint8Array` is returned.
+-     */
+-    getContractStorage(address: Address, key: Uint8Array): Promise<Uint8Array>;
+-    /**
+-     * Adds value to the cache for the `account`
+-     * corresponding to `address` at the provided `key`.
+-     * @param address - Address to set a storage value for
+-     * @param key - Key to set the value at. Must be 32 bytes long.
+-     * @param value - Value to set at `key` for account corresponding to `address`.
+-     * Cannot be more than 32 bytes. Leading zeros are stripped.
+-     * If it is empty or filled with zeros, deletes the value.
+-     */
+-    putContractStorage(address: Address, key: Uint8Array, value: Uint8Array): Promise<void>;
+-    /**
+-     * Clears all storage entries for the account corresponding to `address`.
+-     * @param address - Address to clear the storage of
+-     */
+-    clearContractStorage(address: Address): Promise<void>;
+-    /**
+-     * Dumps the RLP-encoded storage values for an `account` specified by `address`.
+-     * @param address - The address of the `account` to return storage for
+-     * @returns {Promise<StorageDump>} - The state of the account as an `Object` map.
+-     * Keys are the storage keys, values are the storage values as strings.
+-     * Both are represented as `0x` prefixed hex strings.
+-     */
+-    dumpStorage(address: Address): Promise<StorageDump>;
+-    dumpStorageRange(_address: Address, _startKey: bigint, _limit: number): Promise<StorageRange>;
+-    /**
+-     * Checks if an `account` exists at `address`
+-     * @param address - Address of the `account` to check
+-     */
+-    accountExists(address: Address): Promise<boolean>;
+-    /**
+-     * Gets the code corresponding to the provided `address`.
+-     * @param address - Address to get the `account` for
+-     * @returns {Promise<Uint8Array>} - Resolves with the code corresponding to the provided address.
+-     * Returns an empty `Uint8Array` if the account has no associated code.
+-     */
+-    getAccount(address: Address): Promise<Account | undefined>;
+-    /**
+-     * Retrieves an account from the provider and stores in the local trie
+-     * @param address Address of account to be retrieved from provider
+-     * @private
+-     */
+-    getAccountFromProvider(address: Address): Promise<Account>;
+-    /**
+-     * Saves an account into state under the provided `address`.
+-     * @param address - Address under which to store `account`
+-     * @param account - The account to store
+-     */
+-    putAccount(address: Address, account: Account | undefined): Promise<void>;
+-    /**
+-     * Gets the account associated with `address`, modifies the given account
+-     * fields, then saves the account into state. Account fields can include
+-     * `nonce`, `balance`, `storageRoot`, and `codeHash`.
+-     * @param address - Address of the account to modify
+-     * @param accountFields - Object containing account fields and values to modify
+-     */
+-    modifyAccountFields(address: Address, accountFields: AccountFields): Promise<void>;
+-    /**
+-     * Deletes an account from state under the provided `address`.
+-     * @param address - Address of the account which should be deleted
+-     */
+-    deleteAccount(address: Address): Promise<void>;
+-    /**
+-     * Get an EIP-1186 proof from the provider
+-     * @param address address to get proof of
+-     * @param storageSlots storage slots to get proof of
+-     * @returns an EIP-1186 formatted proof
+-     */
+-    getProof(address: Address, storageSlots?: Uint8Array[]): Promise<Proof>;
+-    /**
+-     * Checkpoints the current state of the StateManager instance.
+-     * State changes that follow can then be committed by calling
+-     * `commit` or `reverted` by calling rollback.
+-     *
+-     * Partial implementation, called from the subclass.
+-     */
+-    checkpoint(): Promise<void>;
+-    /**
+-     * Commits the current change-set to the instance since the
+-     * last call to checkpoint.
+-     *
+-     * Partial implementation, called from the subclass.
+-     */
+-    commit(): Promise<void>;
+-    /**
+-     * Reverts the current change-set to the instance since the
+-     * last call to checkpoint.
+-     *
+-     * Partial implementation , called from the subclass.
+-     */
+-    revert(): Promise<void>;
+-    flush(): Promise<void>;
+-    /**
+-     * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-     */
+-    getStateRoot: () => Promise<Uint8Array>;
+-    /**
+-     * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-     */
+-    setStateRoot: (_root: Uint8Array) => Promise<void>;
+-    /**
+-     * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-     */
+-    hasStateRoot: () => never;
+-    generateCanonicalGenesis(_initState: any): Promise<void>;
+-}
+-//# sourceMappingURL=ethersStateManager.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.d.ts.map b/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.d.ts.map
+deleted file mode 100644
+index 6c748af..0000000
+--- a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.d.ts.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"ethersStateManager.d.ts","sourceRoot":"","sources":["../../src/ethersStateManager.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.js b/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.js
+deleted file mode 100644
+index 755c3a5..0000000
+--- a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.js
++++ /dev/null
+@@ -1,349 +0,0 @@
+-"use strict";
+-Object.defineProperty(exports, "__esModule", { value: true });
+-exports.EthersStateManager = void 0;
+-const trie_1 = require("@ethereumjs/trie");
+-const util_1 = require("@ethereumjs/util");
+-const debug_1 = require("debug");
+-const keccak_js_1 = require("ethereum-cryptography/keccak.js");
+-const ethers_1 = require("ethers");
+-const index_js_1 = require("./cache/index.js");
+-const originalStorageCache_js_1 = require("./cache/originalStorageCache.js");
+-const { debug: createDebugLogger } = debug_1.default;
+-class EthersStateManager {
+-    constructor(opts) {
+-        /**
+-         * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-         */
+-        this.getStateRoot = async () => {
+-            return new Uint8Array(32);
+-        };
+-        /**
+-         * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-         */
+-        this.setStateRoot = async (_root) => { };
+-        /**
+-         * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-         */
+-        this.hasStateRoot = () => {
+-            throw new Error('function not implemented');
+-        };
+-        // Skip DEBUG calls unless 'ethjs' included in environmental DEBUG variables
+-        // Additional window check is to prevent vite browser bundling (and potentially other) to break
+-        this.DEBUG =
+-            typeof window === 'undefined' ? process?.env?.DEBUG?.includes('ethjs') ?? false : false;
+-        this._debug = createDebugLogger('statemanager:ethersStateManager');
+-        if (typeof opts.provider === 'string') {
+-            this._provider = new ethers_1.ethers.JsonRpcProvider(opts.provider);
+-        }
+-        else if (opts.provider instanceof ethers_1.ethers.JsonRpcProvider) {
+-            this._provider = opts.provider;
+-        }
+-        else {
+-            throw new Error(`valid JsonRpcProvider or url required; got ${opts.provider}`);
+-        }
+-        this._blockTag = opts.blockTag === 'earliest' ? opts.blockTag : (0, util_1.bigIntToHex)(opts.blockTag);
+-        this._contractCache = new Map();
+-        this._storageCache = new index_js_1.StorageCache({ size: 100000, type: index_js_1.CacheType.ORDERED_MAP });
+-        this._accountCache = new index_js_1.AccountCache({ size: 100000, type: index_js_1.CacheType.ORDERED_MAP });
+-        this.originalStorageCache = new originalStorageCache_js_1.OriginalStorageCache(this.getContractStorage.bind(this));
+-    }
+-    /**
+-     * Note that the returned statemanager will share the same JsonRpcProvider as the original
+-     *
+-     * @returns EthersStateManager
+-     */
+-    shallowCopy() {
+-        const newState = new EthersStateManager({
+-            provider: this._provider,
+-            blockTag: BigInt(this._blockTag),
+-        });
+-        newState._contractCache = new Map(this._contractCache);
+-        newState._storageCache = new index_js_1.StorageCache({
+-            size: 100000,
+-            type: index_js_1.CacheType.ORDERED_MAP,
+-        });
+-        newState._accountCache = new index_js_1.AccountCache({
+-            size: 100000,
+-            type: index_js_1.CacheType.ORDERED_MAP,
+-        });
+-        return newState;
+-    }
+-    /**
+-     * Sets the new block tag used when querying the provider and clears the
+-     * internal cache.
+-     * @param blockTag - the new block tag to use when querying the provider
+-     */
+-    setBlockTag(blockTag) {
+-        this._blockTag = blockTag === 'earliest' ? blockTag : (0, util_1.bigIntToHex)(blockTag);
+-        this.clearCaches();
+-        if (this.DEBUG)
+-            this._debug(`setting block tag to ${this._blockTag}`);
+-    }
+-    /**
+-     * Clears the internal cache so all accounts, contract code, and storage slots will
+-     * initially be retrieved from the provider
+-     */
+-    clearCaches() {
+-        this._contractCache.clear();
+-        this._storageCache.clear();
+-        this._accountCache.clear();
+-    }
+-    /**
+-     * Gets the code corresponding to the provided `address`.
+-     * @param address - Address to get the `code` for
+-     * @returns {Promise<Uint8Array>} - Resolves with the code corresponding to the provided address.
+-     * Returns an empty `Uint8Array` if the account has no associated code.
+-     */
+-    async getContractCode(address) {
+-        let codeBytes = this._contractCache.get(address.toString());
+-        if (codeBytes !== undefined)
+-            return codeBytes;
+-        const code = await this._provider.getCode(address.toString(), this._blockTag);
+-        codeBytes = (0, util_1.toBytes)(code);
+-        this._contractCache.set(address.toString(), codeBytes);
+-        return codeBytes;
+-    }
+-    /**
+-     * Adds `value` to the state trie as code, and sets `codeHash` on the account
+-     * corresponding to `address` to reference this.
+-     * @param address - Address of the `account` to add the `code` for
+-     * @param value - The value of the `code`
+-     */
+-    async putContractCode(address, value) {
+-        // Store contract code in the cache
+-        this._contractCache.set(address.toString(), value);
+-    }
+-    /**
+-     * Gets the storage value associated with the provided `address` and `key`. This method returns
+-     * the shortest representation of the stored value.
+-     * @param address - Address of the account to get the storage for
+-     * @param key - Key in the account's storage to get the value for. Must be 32 bytes long.
+-     * @returns {Uint8Array} - The storage value for the account
+-     * corresponding to the provided address at the provided key.
+-     * If this does not exist an empty `Uint8Array` is returned.
+-     */
+-    async getContractStorage(address, key) {
+-        // Check storage slot in cache
+-        if (key.length !== 32) {
+-            throw new Error('Storage key must be 32 bytes long');
+-        }
+-        let value = this._storageCache.get(address, key);
+-        if (value !== undefined) {
+-            return value;
+-        }
+-        // Retrieve storage slot from provider if not found in cache
+-        const storage = await this._provider.getStorage(address.toString(), (0, util_1.bytesToBigInt)(key), this._blockTag);
+-        value = (0, util_1.toBytes)(storage);
+-        await this.putContractStorage(address, key, value);
+-        return value;
+-    }
+-    /**
+-     * Adds value to the cache for the `account`
+-     * corresponding to `address` at the provided `key`.
+-     * @param address - Address to set a storage value for
+-     * @param key - Key to set the value at. Must be 32 bytes long.
+-     * @param value - Value to set at `key` for account corresponding to `address`.
+-     * Cannot be more than 32 bytes. Leading zeros are stripped.
+-     * If it is empty or filled with zeros, deletes the value.
+-     */
+-    async putContractStorage(address, key, value) {
+-        this._storageCache.put(address, key, value);
+-    }
+-    /**
+-     * Clears all storage entries for the account corresponding to `address`.
+-     * @param address - Address to clear the storage of
+-     */
+-    async clearContractStorage(address) {
+-        this._storageCache.clearContractStorage(address);
+-    }
+-    /**
+-     * Dumps the RLP-encoded storage values for an `account` specified by `address`.
+-     * @param address - The address of the `account` to return storage for
+-     * @returns {Promise<StorageDump>} - The state of the account as an `Object` map.
+-     * Keys are the storage keys, values are the storage values as strings.
+-     * Both are represented as `0x` prefixed hex strings.
+-     */
+-    dumpStorage(address) {
+-        const storageMap = this._storageCache._lruCache?.get(address.toString());
+-        const dump = {};
+-        if (storageMap !== undefined) {
+-            for (const slot of storageMap) {
+-                dump[slot[0]] = (0, util_1.bytesToHex)(slot[1]);
+-            }
+-        }
+-        return Promise.resolve(dump);
+-    }
+-    dumpStorageRange(_address, _startKey, _limit) {
+-        // TODO: Implement.
+-        return Promise.reject();
+-    }
+-    /**
+-     * Checks if an `account` exists at `address`
+-     * @param address - Address of the `account` to check
+-     */
+-    async accountExists(address) {
+-        if (this.DEBUG)
+-            this._debug?.(`verify if ${address.toString()} exists`);
+-        const localAccount = this._accountCache.get(address);
+-        if (localAccount !== undefined)
+-            return true;
+-        // Get merkle proof for `address` from provider
+-        const proof = await this._provider.send('eth_getProof', [
+-            address.toString(),
+-            [],
+-            this._blockTag,
+-        ]);
+-        const proofBuf = proof.accountProof.map((proofNode) => (0, util_1.toBytes)(proofNode));
+-        const trie = new trie_1.Trie({ useKeyHashing: true });
+-        const verified = await trie.verifyProof((0, keccak_js_1.keccak256)(proofBuf[0]), address.bytes, proofBuf);
+-        // if not verified (i.e. verifyProof returns null), account does not exist
+-        return verified === null ? false : true;
+-    }
+-    /**
+-     * Gets the code corresponding to the provided `address`.
+-     * @param address - Address to get the `account` for
+-     * @returns {Promise<Uint8Array>} - Resolves with the code corresponding to the provided address.
+-     * Returns an empty `Uint8Array` if the account has no associated code.
+-     */
+-    async getAccount(address) {
+-        const elem = this._accountCache?.get(address);
+-        if (elem !== undefined) {
+-            return elem.accountRLP !== undefined
+-                ? util_1.Account.fromRlpSerializedAccount(elem.accountRLP)
+-                : undefined;
+-        }
+-        const rlp = (await this.getAccountFromProvider(address)).serialize();
+-        const account = rlp !== null ? util_1.Account.fromRlpSerializedAccount(rlp) : undefined;
+-        this._accountCache?.put(address, account);
+-        return account;
+-    }
+-    /**
+-     * Retrieves an account from the provider and stores in the local trie
+-     * @param address Address of account to be retrieved from provider
+-     * @private
+-     */
+-    async getAccountFromProvider(address) {
+-        if (this.DEBUG)
+-            this._debug(`retrieving account data from ${address.toString()} from provider`);
+-        const accountData = await this._provider.send('eth_getProof', [
+-            address.toString(),
+-            [],
+-            this._blockTag,
+-        ]);
+-        const account = util_1.Account.fromAccountData({
+-            balance: BigInt(accountData.balance),
+-            nonce: BigInt(accountData.nonce),
+-            codeHash: (0, util_1.toBytes)(accountData.codeHash),
+-            storageRoot: (0, util_1.toBytes)(accountData.storageHash),
+-        });
+-        return account;
+-    }
+-    /**
+-     * Saves an account into state under the provided `address`.
+-     * @param address - Address under which to store `account`
+-     * @param account - The account to store
+-     */
+-    async putAccount(address, account) {
+-        if (this.DEBUG) {
+-            this._debug(`Save account address=${address} nonce=${account?.nonce} balance=${account?.balance} contract=${account && account.isContract() ? 'yes' : 'no'} empty=${account && account.isEmpty() ? 'yes' : 'no'}`);
+-        }
+-        if (account !== undefined) {
+-            this._accountCache.put(address, account);
+-        }
+-        else {
+-            this._accountCache.del(address);
+-        }
+-    }
+-    /**
+-     * Gets the account associated with `address`, modifies the given account
+-     * fields, then saves the account into state. Account fields can include
+-     * `nonce`, `balance`, `storageRoot`, and `codeHash`.
+-     * @param address - Address of the account to modify
+-     * @param accountFields - Object containing account fields and values to modify
+-     */
+-    async modifyAccountFields(address, accountFields) {
+-        if (this.DEBUG) {
+-            this._debug(`modifying account fields for ${address.toString()}`);
+-            this._debug(JSON.stringify(accountFields, (k, v) => {
+-                if (k === 'nonce')
+-                    return v.toString();
+-                return v;
+-            }, 2));
+-        }
+-        let account = await this.getAccount(address);
+-        if (!account) {
+-            account = new util_1.Account();
+-        }
+-        account.nonce = accountFields.nonce ?? account.nonce;
+-        account.balance = accountFields.balance ?? account.balance;
+-        account.storageRoot = accountFields.storageRoot ?? account.storageRoot;
+-        account.codeHash = accountFields.codeHash ?? account.codeHash;
+-        await this.putAccount(address, account);
+-    }
+-    /**
+-     * Deletes an account from state under the provided `address`.
+-     * @param address - Address of the account which should be deleted
+-     */
+-    async deleteAccount(address) {
+-        if (this.DEBUG) {
+-            this._debug(`deleting account corresponding to ${address.toString()}`);
+-        }
+-        this._accountCache.del(address);
+-    }
+-    /**
+-     * Get an EIP-1186 proof from the provider
+-     * @param address address to get proof of
+-     * @param storageSlots storage slots to get proof of
+-     * @returns an EIP-1186 formatted proof
+-     */
+-    async getProof(address, storageSlots = []) {
+-        if (this.DEBUG)
+-            this._debug(`retrieving proof from provider for ${address.toString()}`);
+-        const proof = await this._provider.send('eth_getProof', [
+-            address.toString(),
+-            [storageSlots.map((slot) => (0, util_1.bytesToHex)(slot))],
+-            this._blockTag,
+-        ]);
+-        return proof;
+-    }
+-    /**
+-     * Checkpoints the current state of the StateManager instance.
+-     * State changes that follow can then be committed by calling
+-     * `commit` or `reverted` by calling rollback.
+-     *
+-     * Partial implementation, called from the subclass.
+-     */
+-    async checkpoint() {
+-        this._accountCache.checkpoint();
+-        this._storageCache.checkpoint();
+-    }
+-    /**
+-     * Commits the current change-set to the instance since the
+-     * last call to checkpoint.
+-     *
+-     * Partial implementation, called from the subclass.
+-     */
+-    async commit() {
+-        // setup cache checkpointing
+-        this._accountCache.commit();
+-    }
+-    /**
+-     * Reverts the current change-set to the instance since the
+-     * last call to checkpoint.
+-     *
+-     * Partial implementation , called from the subclass.
+-     */
+-    async revert() {
+-        this._accountCache.revert();
+-        this._storageCache.revert();
+-        this._contractCache.clear();
+-    }
+-    async flush() {
+-        this._accountCache.flush();
+-    }
+-    generateCanonicalGenesis(_initState) {
+-        return Promise.resolve();
+-    }
+-}
+-exports.EthersStateManager = EthersStateManager;
+-//# sourceMappingURL=ethersStateManager.js.map
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.js.map b/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.js.map
+deleted file mode 100644
+index 55c3227..0000000
+--- a/node_modules/@ethereumjs/statemanager/dist/cjs/ethersStateManager.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"ethersStateManager.js","sourceRoot":"","sources":["../../src/ethersStateManager.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/statemanager/dist/cjs/index.d.ts b/node_modules/@ethereumjs/statemanager/dist/cjs/index.d.ts
+index a7a2746..bd675b8 100644
+--- a/node_modules/@ethereumjs/statemanager/dist/cjs/index.d.ts
++++ b/node_modules/@ethereumjs/statemanager/dist/cjs/index.d.ts
+@@ -1,4 +1,3 @@
+ export * from './cache/index.js';
+-export * from './ethersStateManager.js';
+ export * from './stateManager.js';
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/statemanager/dist/cjs/index.js b/node_modules/@ethereumjs/statemanager/dist/cjs/index.js
+index f8b7f49..3997284 100644
+--- a/node_modules/@ethereumjs/statemanager/dist/cjs/index.js
++++ b/node_modules/@ethereumjs/statemanager/dist/cjs/index.js
+@@ -1,20 +1,19 @@
+ "use strict";
+-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function (o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+     var desc = Object.getOwnPropertyDescriptor(m, k);
+     if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+-      desc = { enumerable: true, get: function() { return m[k]; } };
++        desc = { enumerable: true, get: function () { return m[k]; } };
+     }
+     Object.defineProperty(o, k2, desc);
+-}) : (function(o, m, k, k2) {
++}) : (function (o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+     o[k2] = m[k];
+ }));
+-var __exportStar = (this && this.__exportStar) || function(m, exports) {
++var __exportStar = (this && this.__exportStar) || function (m, exports) {
+     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ __exportStar(require("./cache/index.js"), exports);
+-__exportStar(require("./ethersStateManager.js"), exports);
+ __exportStar(require("./stateManager.js"), exports);
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@ethereumjs/statemanager/src/ethersStateManager.ts b/node_modules/@ethereumjs/statemanager/src/ethersStateManager.ts
+deleted file mode 100644
+index cbe36d5..0000000
+--- a/node_modules/@ethereumjs/statemanager/src/ethersStateManager.ts
++++ /dev/null
+@@ -1,408 +0,0 @@
+-import { Trie } from '@ethereumjs/trie'
+-import { Account, bigIntToHex, bytesToBigInt, bytesToHex, toBytes } from '@ethereumjs/util'
+-import debugDefault from 'debug'
+-import { keccak256 } from 'ethereum-cryptography/keccak.js'
+-import { ethers } from 'ethers'
+-
+-import { AccountCache, CacheType, StorageCache } from './cache/index.js'
+-import { OriginalStorageCache } from './cache/originalStorageCache.js'
+-
+-import type { Proof } from './index.js'
+-import type { AccountFields, EVMStateManagerInterface, StorageDump } from '@ethereumjs/common'
+-import type { StorageRange } from '@ethereumjs/common/src'
+-import type { Address } from '@ethereumjs/util'
+-import type { Debugger } from 'debug'
+-const { debug: createDebugLogger } = debugDefault
+-
+-export interface EthersStateManagerOpts {
+-  provider: string | ethers.JsonRpcProvider
+-  blockTag: bigint | 'earliest'
+-}
+-
+-export class EthersStateManager implements EVMStateManagerInterface {
+-  protected _provider: ethers.JsonRpcProvider
+-  protected _contractCache: Map<string, Uint8Array>
+-  protected _storageCache: StorageCache
+-  protected _blockTag: string
+-  protected _accountCache: AccountCache
+-  originalStorageCache: OriginalStorageCache
+-  protected _debug: Debugger
+-  protected DEBUG: boolean
+-  constructor(opts: EthersStateManagerOpts) {
+-    // Skip DEBUG calls unless 'ethjs' included in environmental DEBUG variables
+-    // Additional window check is to prevent vite browser bundling (and potentially other) to break
+-    this.DEBUG =
+-      typeof window === 'undefined' ? process?.env?.DEBUG?.includes('ethjs') ?? false : false
+-
+-    this._debug = createDebugLogger('statemanager:ethersStateManager')
+-    if (typeof opts.provider === 'string') {
+-      this._provider = new ethers.JsonRpcProvider(opts.provider)
+-    } else if (opts.provider instanceof ethers.JsonRpcProvider) {
+-      this._provider = opts.provider
+-    } else {
+-      throw new Error(`valid JsonRpcProvider or url required; got ${opts.provider}`)
+-    }
+-
+-    this._blockTag = opts.blockTag === 'earliest' ? opts.blockTag : bigIntToHex(opts.blockTag)
+-
+-    this._contractCache = new Map()
+-    this._storageCache = new StorageCache({ size: 100000, type: CacheType.ORDERED_MAP })
+-    this._accountCache = new AccountCache({ size: 100000, type: CacheType.ORDERED_MAP })
+-
+-    this.originalStorageCache = new OriginalStorageCache(this.getContractStorage.bind(this))
+-  }
+-
+-  /**
+-   * Note that the returned statemanager will share the same JsonRpcProvider as the original
+-   *
+-   * @returns EthersStateManager
+-   */
+-  shallowCopy(): EthersStateManager {
+-    const newState = new EthersStateManager({
+-      provider: this._provider,
+-      blockTag: BigInt(this._blockTag),
+-    })
+-    newState._contractCache = new Map(this._contractCache)
+-    newState._storageCache = new StorageCache({
+-      size: 100000,
+-      type: CacheType.ORDERED_MAP,
+-    })
+-    newState._accountCache = new AccountCache({
+-      size: 100000,
+-      type: CacheType.ORDERED_MAP,
+-    })
+-    return newState
+-  }
+-
+-  /**
+-   * Sets the new block tag used when querying the provider and clears the
+-   * internal cache.
+-   * @param blockTag - the new block tag to use when querying the provider
+-   */
+-  setBlockTag(blockTag: bigint | 'earliest'): void {
+-    this._blockTag = blockTag === 'earliest' ? blockTag : bigIntToHex(blockTag)
+-    this.clearCaches()
+-    if (this.DEBUG) this._debug(`setting block tag to ${this._blockTag}`)
+-  }
+-
+-  /**
+-   * Clears the internal cache so all accounts, contract code, and storage slots will
+-   * initially be retrieved from the provider
+-   */
+-  clearCaches(): void {
+-    this._contractCache.clear()
+-    this._storageCache.clear()
+-    this._accountCache.clear()
+-  }
+-
+-  /**
+-   * Gets the code corresponding to the provided `address`.
+-   * @param address - Address to get the `code` for
+-   * @returns {Promise<Uint8Array>} - Resolves with the code corresponding to the provided address.
+-   * Returns an empty `Uint8Array` if the account has no associated code.
+-   */
+-  async getContractCode(address: Address): Promise<Uint8Array> {
+-    let codeBytes = this._contractCache.get(address.toString())
+-    if (codeBytes !== undefined) return codeBytes
+-    const code = await this._provider.getCode(address.toString(), this._blockTag)
+-    codeBytes = toBytes(code)
+-    this._contractCache.set(address.toString(), codeBytes)
+-    return codeBytes
+-  }
+-
+-  /**
+-   * Adds `value` to the state trie as code, and sets `codeHash` on the account
+-   * corresponding to `address` to reference this.
+-   * @param address - Address of the `account` to add the `code` for
+-   * @param value - The value of the `code`
+-   */
+-  async putContractCode(address: Address, value: Uint8Array): Promise<void> {
+-    // Store contract code in the cache
+-    this._contractCache.set(address.toString(), value)
+-  }
+-
+-  /**
+-   * Gets the storage value associated with the provided `address` and `key`. This method returns
+-   * the shortest representation of the stored value.
+-   * @param address - Address of the account to get the storage for
+-   * @param key - Key in the account's storage to get the value for. Must be 32 bytes long.
+-   * @returns {Uint8Array} - The storage value for the account
+-   * corresponding to the provided address at the provided key.
+-   * If this does not exist an empty `Uint8Array` is returned.
+-   */
+-  async getContractStorage(address: Address, key: Uint8Array): Promise<Uint8Array> {
+-    // Check storage slot in cache
+-    if (key.length !== 32) {
+-      throw new Error('Storage key must be 32 bytes long')
+-    }
+-
+-    let value = this._storageCache!.get(address, key)
+-    if (value !== undefined) {
+-      return value
+-    }
+-
+-    // Retrieve storage slot from provider if not found in cache
+-    const storage = await this._provider.getStorage(
+-      address.toString(),
+-      bytesToBigInt(key),
+-      this._blockTag
+-    )
+-    value = toBytes(storage)
+-
+-    await this.putContractStorage(address, key, value)
+-    return value
+-  }
+-
+-  /**
+-   * Adds value to the cache for the `account`
+-   * corresponding to `address` at the provided `key`.
+-   * @param address - Address to set a storage value for
+-   * @param key - Key to set the value at. Must be 32 bytes long.
+-   * @param value - Value to set at `key` for account corresponding to `address`.
+-   * Cannot be more than 32 bytes. Leading zeros are stripped.
+-   * If it is empty or filled with zeros, deletes the value.
+-   */
+-  async putContractStorage(address: Address, key: Uint8Array, value: Uint8Array): Promise<void> {
+-    this._storageCache.put(address, key, value)
+-  }
+-
+-  /**
+-   * Clears all storage entries for the account corresponding to `address`.
+-   * @param address - Address to clear the storage of
+-   */
+-  async clearContractStorage(address: Address): Promise<void> {
+-    this._storageCache.clearContractStorage(address)
+-  }
+-
+-  /**
+-   * Dumps the RLP-encoded storage values for an `account` specified by `address`.
+-   * @param address - The address of the `account` to return storage for
+-   * @returns {Promise<StorageDump>} - The state of the account as an `Object` map.
+-   * Keys are the storage keys, values are the storage values as strings.
+-   * Both are represented as `0x` prefixed hex strings.
+-   */
+-  dumpStorage(address: Address): Promise<StorageDump> {
+-    const storageMap = this._storageCache._lruCache?.get(address.toString())
+-    const dump: StorageDump = {}
+-    if (storageMap !== undefined) {
+-      for (const slot of storageMap) {
+-        dump[slot[0]] = bytesToHex(slot[1])
+-      }
+-    }
+-    return Promise.resolve(dump)
+-  }
+-
+-  dumpStorageRange(_address: Address, _startKey: bigint, _limit: number): Promise<StorageRange> {
+-    // TODO: Implement.
+-    return Promise.reject()
+-  }
+-
+-  /**
+-   * Checks if an `account` exists at `address`
+-   * @param address - Address of the `account` to check
+-   */
+-  async accountExists(address: Address): Promise<boolean> {
+-    if (this.DEBUG) this._debug?.(`verify if ${address.toString()} exists`)
+-
+-    const localAccount = this._accountCache.get(address)
+-    if (localAccount !== undefined) return true
+-    // Get merkle proof for `address` from provider
+-    const proof = await this._provider.send('eth_getProof', [
+-      address.toString(),
+-      [],
+-      this._blockTag,
+-    ])
+-
+-    const proofBuf = proof.accountProof.map((proofNode: string) => toBytes(proofNode))
+-
+-    const trie = new Trie({ useKeyHashing: true })
+-    const verified = await trie.verifyProof(keccak256(proofBuf[0]), address.bytes, proofBuf)
+-    // if not verified (i.e. verifyProof returns null), account does not exist
+-    return verified === null ? false : true
+-  }
+-
+-  /**
+-   * Gets the code corresponding to the provided `address`.
+-   * @param address - Address to get the `account` for
+-   * @returns {Promise<Uint8Array>} - Resolves with the code corresponding to the provided address.
+-   * Returns an empty `Uint8Array` if the account has no associated code.
+-   */
+-  async getAccount(address: Address): Promise<Account | undefined> {
+-    const elem = this._accountCache?.get(address)
+-    if (elem !== undefined) {
+-      return elem.accountRLP !== undefined
+-        ? Account.fromRlpSerializedAccount(elem.accountRLP)
+-        : undefined
+-    }
+-
+-    const rlp = (await this.getAccountFromProvider(address)).serialize()
+-    const account = rlp !== null ? Account.fromRlpSerializedAccount(rlp) : undefined
+-    this._accountCache?.put(address, account)
+-    return account
+-  }
+-
+-  /**
+-   * Retrieves an account from the provider and stores in the local trie
+-   * @param address Address of account to be retrieved from provider
+-   * @private
+-   */
+-  async getAccountFromProvider(address: Address): Promise<Account> {
+-    if (this.DEBUG) this._debug(`retrieving account data from ${address.toString()} from provider`)
+-    const accountData = await this._provider.send('eth_getProof', [
+-      address.toString(),
+-      [],
+-      this._blockTag,
+-    ])
+-    const account = Account.fromAccountData({
+-      balance: BigInt(accountData.balance),
+-      nonce: BigInt(accountData.nonce),
+-      codeHash: toBytes(accountData.codeHash),
+-      storageRoot: toBytes(accountData.storageHash),
+-    })
+-    return account
+-  }
+-
+-  /**
+-   * Saves an account into state under the provided `address`.
+-   * @param address - Address under which to store `account`
+-   * @param account - The account to store
+-   */
+-  async putAccount(address: Address, account: Account | undefined): Promise<void> {
+-    if (this.DEBUG) {
+-      this._debug(
+-        `Save account address=${address} nonce=${account?.nonce} balance=${
+-          account?.balance
+-        } contract=${account && account.isContract() ? 'yes' : 'no'} empty=${
+-          account && account.isEmpty() ? 'yes' : 'no'
+-        }`
+-      )
+-    }
+-    if (account !== undefined) {
+-      this._accountCache!.put(address, account)
+-    } else {
+-      this._accountCache!.del(address)
+-    }
+-  }
+-
+-  /**
+-   * Gets the account associated with `address`, modifies the given account
+-   * fields, then saves the account into state. Account fields can include
+-   * `nonce`, `balance`, `storageRoot`, and `codeHash`.
+-   * @param address - Address of the account to modify
+-   * @param accountFields - Object containing account fields and values to modify
+-   */
+-  async modifyAccountFields(address: Address, accountFields: AccountFields): Promise<void> {
+-    if (this.DEBUG) {
+-      this._debug(`modifying account fields for ${address.toString()}`)
+-      this._debug(
+-        JSON.stringify(
+-          accountFields,
+-          (k, v) => {
+-            if (k === 'nonce') return v.toString()
+-            return v
+-          },
+-          2
+-        )
+-      )
+-    }
+-    let account = await this.getAccount(address)
+-    if (!account) {
+-      account = new Account()
+-    }
+-    account.nonce = accountFields.nonce ?? account.nonce
+-    account.balance = accountFields.balance ?? account.balance
+-    account.storageRoot = accountFields.storageRoot ?? account.storageRoot
+-    account.codeHash = accountFields.codeHash ?? account.codeHash
+-    await this.putAccount(address, account)
+-  }
+-
+-  /**
+-   * Deletes an account from state under the provided `address`.
+-   * @param address - Address of the account which should be deleted
+-   */
+-  async deleteAccount(address: Address) {
+-    if (this.DEBUG) {
+-      this._debug(`deleting account corresponding to ${address.toString()}`)
+-    }
+-    this._accountCache.del(address)
+-  }
+-
+-  /**
+-   * Get an EIP-1186 proof from the provider
+-   * @param address address to get proof of
+-   * @param storageSlots storage slots to get proof of
+-   * @returns an EIP-1186 formatted proof
+-   */
+-  async getProof(address: Address, storageSlots: Uint8Array[] = []): Promise<Proof> {
+-    if (this.DEBUG) this._debug(`retrieving proof from provider for ${address.toString()}`)
+-    const proof = await this._provider.send('eth_getProof', [
+-      address.toString(),
+-      [storageSlots.map((slot) => bytesToHex(slot))],
+-      this._blockTag,
+-    ])
+-
+-    return proof
+-  }
+-
+-  /**
+-   * Checkpoints the current state of the StateManager instance.
+-   * State changes that follow can then be committed by calling
+-   * `commit` or `reverted` by calling rollback.
+-   *
+-   * Partial implementation, called from the subclass.
+-   */
+-  async checkpoint(): Promise<void> {
+-    this._accountCache.checkpoint()
+-    this._storageCache.checkpoint()
+-  }
+-
+-  /**
+-   * Commits the current change-set to the instance since the
+-   * last call to checkpoint.
+-   *
+-   * Partial implementation, called from the subclass.
+-   */
+-  async commit(): Promise<void> {
+-    // setup cache checkpointing
+-    this._accountCache.commit()
+-  }
+-
+-  /**
+-   * Reverts the current change-set to the instance since the
+-   * last call to checkpoint.
+-   *
+-   * Partial implementation , called from the subclass.
+-   */
+-  async revert(): Promise<void> {
+-    this._accountCache.revert()
+-    this._storageCache.revert()
+-    this._contractCache.clear()
+-  }
+-
+-  async flush(): Promise<void> {
+-    this._accountCache.flush()
+-  }
+-
+-  /**
+-   * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-   */
+-  getStateRoot = async () => {
+-    return new Uint8Array(32)
+-  }
+-
+-  /**
+-   * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-   */
+-  setStateRoot = async (_root: Uint8Array) => {}
+-
+-  /**
+-   * @deprecated This method is not used by the Ethers State Manager and is a stub required by the State Manager interface
+-   */
+-  hasStateRoot = () => {
+-    throw new Error('function not implemented')
+-  }
+-
+-  generateCanonicalGenesis(_initState: any): Promise<void> {
+-    return Promise.resolve()
+-  }
+-}
+diff --git a/node_modules/@ethereumjs/statemanager/src/index.ts b/node_modules/@ethereumjs/statemanager/src/index.ts
+index 5c20d4f..6ca1ee3 100644
+--- a/node_modules/@ethereumjs/statemanager/src/index.ts
++++ b/node_modules/@ethereumjs/statemanager/src/index.ts
+@@ -1,3 +1,2 @@
+ export * from './cache/index.js'
+-export * from './ethersStateManager.js'
+ export * from './stateManager.js'

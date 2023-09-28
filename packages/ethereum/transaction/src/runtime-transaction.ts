@@ -77,7 +77,8 @@ export abstract class RuntimeTransaction extends BaseTransaction {
       // handle JSON
       this.nonce = Quantity.from(data.nonce, true);
       this.gas = Quantity.from(data.gas == null ? data.gasLimit : data.gas);
-      this.to = data.to == null ? null : toValidLengthAddress(data.to, "to");
+      this.to =
+        data.to == null ? undefined : toValidLengthAddress(data.to, "to");
       this.value = Quantity.from(data.value || 0);
       const dataVal =
         data.data == null
@@ -121,10 +122,10 @@ export abstract class RuntimeTransaction extends BaseTransaction {
     const receipt = (this.receipt = InternalTransactionReceipt.fromValues(
       status,
       Quantity.toBuffer(cumulativeGasUsed),
-      result.bloom.bitvector,
+      Buffer.from(result.bloom.bitvector),
       (this.logs = vmResult.logs || ([] as TransactionLog[])),
       Quantity.toBuffer(result.totalGasSpent),
-      result.createdAddress ? result.createdAddress.buf : null,
+      result.createdAddress ? Buffer.from(result.createdAddress.bytes) : null,
       this.type
     ));
     return receipt.serialize(false);

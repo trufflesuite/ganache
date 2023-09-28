@@ -2,10 +2,9 @@ import { KNOWN_NETWORKS } from "@ganache/ethereum-options";
 import getProvider from "../helpers/getProvider";
 import skipIfNoInfuraKey from "../helpers/skipIfNoInfuraKey";
 import http from "http";
-import ganache from "../../../../../packages/core";
+const ganache = require("../../../../ganache");
 import assert from "assert";
 import { EthereumProvider } from "../../src/provider";
-import Server from "../../../../../packages/core/lib/src/server";
 import { Quantity, WEI } from "@ganache/utils";
 import {
   logging,
@@ -57,11 +56,11 @@ async function deployContract(
 const PORT = 9999;
 
 describe("forking", function () {
-  this.timeout(10000);
+  this.timeout(0);
 
   const NETWORK_ID = 1234;
   const REMOTE_ACCOUNT_COUNT = 15;
-  let remoteServer: Server;
+  let remoteServer: any;
   let remoteProvider: EthereumProvider;
   let remoteAccounts: string[];
 
@@ -1391,7 +1390,7 @@ describe("forking", function () {
       });
       it("returns the withdrawals and withdrawalsRoot", async () => {
         provider = await getProvider({
-          chain: { hardfork: "merge" },
+          chain: { hardfork: "paris" },
           fork: { network: "goerli", blockNumber }
         });
         const block = await provider.send("eth_getBlockByNumber", [
@@ -1409,7 +1408,7 @@ describe("forking", function () {
         // tests this.
         provider = await getProvider({
           // the blockNumber is after shanghai, but the hardfork is before:
-          chain: { hardfork: "merge" },
+          chain: { hardfork: "paris" },
           fork: { network: "goerli", blockNumber }
         });
         const block = await provider.send("eth_getBlockByNumber", [

@@ -238,10 +238,10 @@ export default class Miner extends Emittery<{
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
-          transactionsTrie.root(),
-          receiptTrie.root(),
+          Buffer.from(transactionsTrie.root()),
+          Buffer.from(receiptTrie.root()),
           BUFFER_256_ZERO,
-          (vm.stateManager as DefaultStateManager)._trie.root(),
+          Buffer.from((vm.stateManager as any)._trie.root()),
           0n, // gas used
           options.extraData,
           [],
@@ -333,7 +333,7 @@ export default class Miner extends Emittery<{
             promises.push(receiptTrie.put(txKey, receipt));
 
             // update the block's bloom
-            updateBloom(blockBloom, result.bloom.bitvector);
+            updateBloom(blockBloom, Buffer.from(result.bloom.bitvector));
 
             numTransactions++;
 
@@ -398,10 +398,10 @@ export default class Miner extends Emittery<{
       vm.evm.events.removeListener("step", stepListener);
 
       const finalizedBlockData = runtimeBlock.finalize(
-        transactionsTrie.root(),
-        receiptTrie.root(),
+        Buffer.from(transactionsTrie.root()),
+        Buffer.from(receiptTrie.root()),
         blockBloom,
-        (vm.stateManager as DefaultStateManager)._trie.root(),
+        Buffer.from((vm.stateManager as any)._trie.root()),
         blockGasUsed,
         options.extraData,
         blockTransactions,
@@ -477,8 +477,8 @@ export default class Miner extends Emittery<{
 
       const e = {
         execResult: {
-          runState: { programCounter: 0 },
-          exceptionError: { error: errorMessage },
+          executionGasUsed: 0n,
+          exceptionError: { error: errorMessage, errorType: "EvmError" },
           returnValue: BUFFER_EMPTY
         }
       } as EVMResult;

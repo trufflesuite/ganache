@@ -1,9 +1,8 @@
 import { EthereumOptionsConfig } from "@ganache/ethereum-options";
 import { Fork } from "../../src/forking/fork";
 import { KNOWN_CHAINIDS, Quantity } from "@ganache/utils";
-import { Common } from "@ethereumjs/common/dist/common";
-import ganache from "../../../../../packages/core";
-import Server from "../../../../../packages/core/lib/src/server";
+import { Common } from "@ethereumjs/common";
+const ganache = require("../../../../ganache");
 import assert from "assert";
 import { logging } from "./helpers";
 
@@ -18,7 +17,7 @@ describe("Fork", () => {
     logging
   };
 
-  let remoteServer: Server;
+  let remoteServer: any;
   let fork: Fork;
 
   before(async () => {
@@ -47,35 +46,30 @@ describe("Fork", () => {
   describe("getCommonForBlock()", () => {
     it("should return a Common for known chainIds", () => {
       KNOWN_CHAINIDS.forEach(chainId => {
-        if (chainId === 42) {
-          // Skip kovan, because it is no longer supported by ethereumjs. To be
-          // removed in https://github.com/trufflesuite/ganache/issues/4461
-        } else {
-          assert.doesNotThrow(() => {
-            const parentCommon = new Common({ chain: chainId });
+        assert.doesNotThrow(() => {
+          const parentCommon = new Common({ chain: chainId });
 
-            fork.getCommonForBlock(parentCommon, {
-              number: 0n,
-              timestamp: 0n
-            });
+          fork.getCommonForBlock(parentCommon, {
+            number: 0n,
+            timestamp: 0n
           });
-        }
+        });
       });
     });
 
     it("should resolve the correct hardfork based on block number for known chainId", () => {
       const mainnet = 1;
-      const mergeBlocknumber = 15537394n;
+      const parisBlocknumber = 15537394n;
 
-      // ensure that the "fork" blockNumber is after the "merge" hardfork blockNumber
-      fork.blockNumber = Quantity.from(mergeBlocknumber + 100n);
+      // ensure that the "fork" blockNumber is after the "paris" hardfork blockNumber
+      fork.blockNumber = Quantity.from(parisBlocknumber + 100n);
       fork.chainId = mainnet;
 
       const parentCommon = new Common({ chain: mainnet });
       const blocknumberToHardfork: [bigint, string][] = [
-        [mergeBlocknumber - 1n, "grayGlacier"],
-        [mergeBlocknumber, "merge"],
-        [mergeBlocknumber + 1n, "merge"]
+        [parisBlocknumber - 1n, "grayGlacier"],
+        [parisBlocknumber, "paris"],
+        [parisBlocknumber + 1n, "paris"]
       ];
 
       blocknumberToHardfork.forEach(([number, expectedHardfork]) => {

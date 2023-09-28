@@ -5,7 +5,7 @@
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/ganache#readme",
   "license": "MIT",
-  "main": "dist/node/core.js",
+  "main": "./index.ts",
   "browser": "dist/web/ganache.min.js",
   "typings": "dist/ganache.d.ts",
   "source": "index.ts",

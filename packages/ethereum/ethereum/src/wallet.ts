@@ -550,7 +550,9 @@ export default class Wallet {
   }
 
   public static createAccountFromPrivateKey(privateKey: Data) {
-    const address = Address.from(privateToAddress(privateKey.toBuffer()));
+    const address = Address.from(
+      Buffer.from(privateToAddress(privateKey.toBuffer()))
+    );
     const account = new Account(address);
     account.privateKey = privateKey;
     return account;

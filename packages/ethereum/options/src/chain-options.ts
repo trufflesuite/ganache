@@ -13,6 +13,7 @@ const HARDFORKS = [
   "arrowGlacier",
   "grayGlacier",
   "merge",
+  "paris",
   "shanghai"
 ] as const;
 

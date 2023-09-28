@@ -105,8 +105,8 @@ export class RuntimeBlock {
     const { header } = this;
     const rawHeader: EthereumRawBlockHeader = [
       header.parentHash,
-      KECCAK256_RLP_ARRAY, // uncleHash
-      header.coinbase.buf,
+      Buffer.from(KECCAK256_RLP_ARRAY), // uncleHash
+      Buffer.from(header.coinbase.bytes),
       stateRoot,
       transactionsTrie,
       receiptTrie,

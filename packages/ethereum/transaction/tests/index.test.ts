@@ -449,7 +449,10 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(vmTx.gasLimit.toString(), "0");
       });
       it("has to property", () => {
-        assert.strictEqual("0x" + vmTx.to.buf.toString("hex"), to);
+        assert.strictEqual(
+          "0x" + Buffer.from(vmTx.to.bytes).toString("hex"),
+          to
+        );
       });
       it("has value property", () => {
         assert.strictEqual(vmTx.value.toString(), "0");
@@ -459,7 +462,7 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("has a function to get sender address", () => {
         assert.strictEqual(
-          "0x" + vmTx.getSenderAddress().buf.toString("hex"),
+          "0x" + Buffer.from(vmTx.getSenderAddress().bytes).toString("hex"),
           from
         );
       });
@@ -547,7 +550,10 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(vmTx.gasLimit.toString(), "0");
       });
       it("has to property", () => {
-        assert.strictEqual("0x" + vmTx.to.buf.toString("hex"), to);
+        assert.strictEqual(
+          "0x" + Buffer.from(vmTx.to.bytes).toString("hex"),
+          to
+        );
       });
       it("has value property", () => {
         assert.strictEqual(vmTx.value.toString(), "0");
@@ -557,7 +563,7 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("has a function to get sender address", () => {
         assert.strictEqual(
-          "0x" + vmTx.getSenderAddress().buf.toString("hex"),
+          "0x" + Buffer.from(vmTx.getSenderAddress().bytes).toString("hex"),
           from
         );
       });
@@ -649,7 +655,10 @@ describe("@ganache/ethereum-transaction", async () => {
         assert.strictEqual(vmTx.gasLimit.toString(), "0");
       });
       it("has to property", () => {
-        assert.strictEqual("0x" + vmTx.to.buf.toString("hex"), to);
+        assert.strictEqual(
+          "0x" + Buffer.from(vmTx.to.bytes).toString("hex"),
+          to
+        );
       });
       it("has value property", () => {
         assert.strictEqual(vmTx.value.toString(), "0");
@@ -659,7 +668,7 @@ describe("@ganache/ethereum-transaction", async () => {
       });
       it("has a function to get sender address", () => {
         assert.strictEqual(
-          "0x" + vmTx.getSenderAddress().buf.toString("hex"),
+          "0x" + Buffer.from(vmTx.getSenderAddress().bytes).toString("hex"),
           from
         );
       });

@@ -1,20 +1,24 @@
 import type { RangeOf, Remainders } from "./types";
 import { BUFFER_EMPTY, uintToBuffer } from "@ganache/utils";
 
-export declare type Input = Buffer | Buffer[] | List;
+export declare type Input =
+  | (Buffer | Uint8Array)
+  | (Buffer | Uint8Array)[]
+  | List;
 export interface List extends Array<Input> {}
 
-export declare type EncodingInput = Buffer[] | EncodingList;
-export interface EncodingList extends Array<EncodingInput | Buffer> {}
+export declare type EncodingInput = (Buffer | Uint8Array)[] | EncodingList;
+export interface EncodingList
+  extends Array<EncodingInput | (Buffer | Uint8Array)> {}
 
 export type EncodedPart = {
   length: number;
   output: Buffer[];
 };
 
-export type NestedBuffer = Array<Buffer | NestedBuffer>;
+export type NestedBuffer = Array<(Buffer | Uint8Array) | NestedBuffer>;
 
-export interface Decoded<T extends Buffer | NestedBuffer> {
+export interface Decoded<T extends (Buffer | Uint8Array) | NestedBuffer> {
   data: T;
   remainder: Buffer;
 }
@@ -145,9 +149,11 @@ function safeSlice(input: Buffer, start: number, end: number) {
  * @param input Will be converted to Buffer
  * @returns decoded Array of Buffers containing the original message
  **/
-export function decode<T extends Buffer | NestedBuffer = Buffer | NestedBuffer>(
-  input: Buffer
-): T {
+export function decode<
+  T extends (Buffer | Uint8Array) | NestedBuffer =
+    | (Buffer | Uint8Array)
+    | NestedBuffer
+>(input: Buffer): T {
   if (!input || input.length === 0) {
     return BUFFER_EMPTY as T;
   }
@@ -172,7 +178,9 @@ function decodeLength(v: Buffer): number {
 }
 
 /** Decode an input with RLP */
-function _decode<T extends Buffer | NestedBuffer>(input: Buffer): Decoded<T> {
+function _decode<T extends (Buffer | Uint8Array) | NestedBuffer>(
+  input: Buffer
+): Decoded<T> {
   let length: number,
     llength: number,
     data: T,

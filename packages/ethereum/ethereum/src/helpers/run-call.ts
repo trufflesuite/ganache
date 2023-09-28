@@ -117,7 +117,7 @@ export async function applySimulationOverrides(
   vm: VM,
   overrides: CallOverrides
 ): Promise<void> {
-  const eei = vm.eei;
+  const stateManager = vm.stateManager;
   for (const address in overrides) {
     if (!hasOwn(overrides, address)) continue;
     const { balance, nonce, code, state, stateDiff } = overrides[address];
@@ -125,7 +125,7 @@ export async function applySimulationOverrides(
     const vmAddr = Address.from(address);
     // group together overrides that update the account
     if (nonce != null || balance != null || code != null) {
-      const account = await eei.getAccount(vmAddr);
+      const account = await stateManager.getAccount(vmAddr);
 
       if (nonce != null) {
         account.nonce = nonce === "" ? 0n : Quantity.toBigInt(nonce);
@@ -143,7 +143,7 @@ export async function applySimulationOverrides(
         account.codeHash = codeHash;
         await stateTrie.database().put(codeHash, codeBuffer);
       }
-      await eei.putAccount(vmAddr, account);
+      await stateManager.putAccount(vmAddr, account);
     }
     // group together overrides that update storage
     if (state || stateDiff) {
@@ -163,13 +163,13 @@ export async function applySimulationOverrides(
           validateStorageOverride(slot, value, "State");
           if (!clearedState) {
             // override.state clears all storage and sets just the specified slots
-            await eei.clearContractStorage(vmAddr);
+            await stateManager.clearContractStorage(vmAddr);
             clearedState = true;
           }
           const slotBuf = Data.toBuffer(slot, 32);
           const valueBuf = Data.toBuffer(value);
 
-          await eei.putContractStorage(vmAddr, slotBuf, valueBuf);
+          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       } else {
         for (const slot in stateDiff) {
@@ -181,7 +181,7 @@ export async function applySimulationOverrides(
           const slotBuf = Data.toBuffer(slot, 32);
           const valueBuf = Data.toBuffer(value);
 
-          await eei.putContractStorage(vmAddr, slotBuf, valueBuf);
+          await stateManager.putContractStorage(vmAddr, slotBuf, valueBuf);
         }
       }
     }

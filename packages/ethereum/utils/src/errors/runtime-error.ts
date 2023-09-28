@@ -33,7 +33,7 @@ export class RuntimeError extends CodedError {
     this.name = this.constructor.name;
 
     const hash = transactionHash.toString();
-    const { returnValue } = execResult;
+    const returnValue = Buffer.from(execResult.returnValue);
     const reason = CodedError.createRevertReason(returnValue);
     this.message = reason ? message + " " + reason : message;
 

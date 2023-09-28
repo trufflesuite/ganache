@@ -212,7 +212,7 @@ describe("api", () => {
 
           const preShanghaiProvider = await getProvider({
             wallet: { deterministic: true },
-            chain: { hardfork: "merge" },
+            chain: { hardfork: "paris" },
             miner: {
               coinbase:
                 "0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B" /*a random address*/
@@ -946,7 +946,7 @@ describe("api", () => {
             parentHeader.totalDifficulty,
             BUFFER_32_ZERO,
             parentHeader.baseFeePerGas.toBigInt(),
-            KECCAK256_RLP
+            Buffer.from(KECCAK256_RLP)
           );
           vmFromAddress = Address.from(from);
           vmToAddress = Address.from(to);
@@ -988,7 +988,7 @@ describe("api", () => {
         };
 
         const getBlockchainState = async () => {
-          const trie = blockchain.trie.copy(true);
+          const trie = blockchain.trie.shallowCopy(true);
           const trieDbData = await getDbData(trie);
           const vm = await blockchain.createVmFromStateTrie(
             trie,
