@@ -33,6 +33,9 @@ const base: webpack.Configuration = {
   mode: "production",
   entry: "./index.ts",
   devtool: "source-map",
+  experiments: {
+    topLevelAwait: true
+  },
   module: {
     rules: [
       {

@@ -1,6 +1,6 @@
 import type { BatchDBOp, DB } from "@ethereumjs/util";
 import sub from "subleveldown";
-import type { AbstractIteratorOptions } from "abstract-level";
+import type { AbstractIteratorOptions } from "abstract-leveldown";
 import { GanacheLevelUp } from "./database";
 
 const ENCODING_OPTS = { keyEncoding: "binary", valueEncoding: "binary" };
@@ -79,7 +79,7 @@ export class TrieDB implements DB<string, string> {
     return sub(this._db, prefix, options);
   }
 
-  createReadStream(options?: AbstractIteratorOptions<Buffer, Buffer>) {
+  createReadStream(options?: AbstractIteratorOptions<Buffer>) {
     return this._db.createReadStream(options);
   }
 }
