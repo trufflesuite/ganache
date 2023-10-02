@@ -183,7 +183,7 @@ export default class EthereumApi implements Api {
    * @returns returns true if the value was stored, otherwise false.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_putString", ["testDb", "testKey", "testValue"] ));
+   * console.log(await provider.request("db_putString", ["testDb", "testKey", "testValue"] ));
    * ```
    */
   @assertArgLength(3)
@@ -203,7 +203,7 @@ export default class EthereumApi implements Api {
    * @returns The previously stored string.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_getString", ["testDb", "testKey"] ));
+   * console.log(await provider.request("db_getString", ["testDb", "testKey"] ));
    * ```
    */
   @assertArgLength(2)
@@ -220,7 +220,7 @@ export default class EthereumApi implements Api {
    * @returns true if the value was stored, otherwise false.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_putHex", ["testDb", "testKey", "0x0"] ));
+   * console.log(await provider.request("db_putHex", ["testDb", "testKey", "0x0"] ));
    * ```
    */
   @assertArgLength(3)
@@ -236,7 +236,7 @@ export default class EthereumApi implements Api {
    * @returns The previously stored data.
    * @example
    * ```javascript
-   * console.log(await provider.send("db_getHex", ["testDb", "testKey"] ));
+   * console.log(await provider.request("db_getHex", ["testDb", "testKey"] ));
    * ```
    */
   @assertArgLength(2)
@@ -251,7 +251,7 @@ export default class EthereumApi implements Api {
    * @returns Returns the kademlia table in a readable table format.
    * @example
    * ```javascript
-   * console.log(await provider.send("bzz_hive"));
+   * console.log(await provider.request("bzz_hive"));
    * ```
    */
   @assertArgLength(0)
@@ -264,7 +264,7 @@ export default class EthereumApi implements Api {
    * @returns Returns details about the swarm node.
    * @example
    * ```javascript
-   * console.log(await provider.send("bzz_info"));
+   * console.log(await provider.request("bzz_info"));
    * ```
    */
   @assertArgLength(0)
@@ -290,9 +290,9 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * console.log("start", await provider.send("eth_blockNumber"));
-   * await provider.send("evm_mine", [{blocks: 5}] ); // mines 5 blocks
-   * console.log("end", await provider.send("eth_blockNumber"));
+   * console.log("start", await provider.request("eth_blockNumber"));
+   * await provider.request("evm_mine", [{blocks: 5}] ); // mines 5 blocks
+   * console.log("end", await provider.request("eth_blockNumber"));
    * ```
    */
   async evm_mine(): Promise<"0x0">;
@@ -355,7 +355,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const nonce = "0x3e8";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setAccountNonce", [address, nonce] );
+   * const result = await provider.request("evm_setAccountNonce", [address, nonce] );
    * console.log(result);
    * ```
    */
@@ -394,7 +394,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const balance = "0x3e8";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setAccountBalance", [address, balance] );
+   * const result = await provider.request("evm_setAccountBalance", [address, balance] );
    * console.log(result);
    * ```
    */
@@ -434,7 +434,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const data = "0xbaddad42";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setAccountCode", [address, data] );
+   * const result = await provider.request("evm_setAccountCode", [address, data] );
    * console.log(result);
    * ```
    */
@@ -480,7 +480,7 @@ export default class EthereumApi implements Api {
    * const slot = "0x0000000000000000000000000000000000000000000000000000000000000005";
    * const data = "0xbaddad42";
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
-   * const result = await provider.send("evm_setAccountStorageAt", [address, slot, data] );
+   * const result = await provider.request("evm_setAccountStorageAt", [address, slot, data] );
    * console.log(result);
    * ```
    */
@@ -511,7 +511,7 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const seconds = 10;
-   * const timeAdjustment = await provider.send("evm_increaseTime", [seconds] );
+   * const timeAdjustment = await provider.request("evm_increaseTime", [seconds] );
    * console.log(timeAdjustment);
    * ```
    */
@@ -537,7 +537,7 @@ export default class EthereumApi implements Api {
    * const currentDate = Date.now();
    * await new Promise(resolve => {
    *   setTimeout(async () => {
-   *     const time = await provider.send("evm_setTime", [currentDate]);
+   *     const time = await provider.request("evm_setTime", [currentDate]);
    *     console.log(time); // should be about two seconds ago
    *     resolve();
    *   }, 1000);
@@ -575,27 +575,27 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * const [from, to] = await provider.send("eth_accounts");
-   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from] ));
+   * const [from, to] = await provider.request("eth_accounts");
+   * const startingBalance = BigInt(await provider.request("eth_getBalance", [from] ));
    *
    * // take a snapshot
-   * const snapshotId = await provider.send("evm_snapshot");
+   * const snapshotId = await provider.request("evm_snapshot");
    *
    * // send value to another account (over-simplified example)
-   * await provider.send("eth_subscribe", ["newHeads"] );
-   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}] );
+   * await provider.request("eth_subscribe", ["newHeads"] );
+   * await provider.request("eth_sendTransaction", [{from, to, value: "0xffff"}] );
    *
    * // ensure balance has updated
-   * const newBalance = await provider.send("eth_getBalance", [from] );
+   * const newBalance = await provider.request("eth_getBalance", [from] );
    * assert(BigInt(newBalance) < startingBalance);
    *
    * // revert the snapshot
-   * const isReverted = await provider.send("evm_revert", [snapshotId] );
+   * const isReverted = await provider.request("evm_revert", [snapshotId] );
    * assert(isReverted);
    * console.log({isReverted: isReverted});
    *
    * // ensure balance has reverted
-   * const endingBalance = await provider.send("eth_getBalance", [from] );
+   * const endingBalance = await provider.request("eth_getBalance", [from] );
    * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
    * console.log({isBalanceReverted: isBalanceReverted});
    * ```
@@ -617,26 +617,26 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const provider = ganache.provider();
-   * const [from, to] = await provider.send("eth_accounts");
-   * const startingBalance = BigInt(await provider.send("eth_getBalance", [from] ));
+   * const [from, to] = await provider.request("eth_accounts");
+   * const startingBalance = BigInt(await provider.request("eth_getBalance", [from] ));
    *
    * // take a snapshot
-   * const snapshotId = await provider.send("evm_snapshot");
+   * const snapshotId = await provider.request("evm_snapshot");
    *
    * // send value to another account (over-simplified example)
-   * await provider.send("eth_subscribe", ["newHeads"] );
-   * await provider.send("eth_sendTransaction", [{from, to, value: "0xffff"}] );
+   * await provider.request("eth_subscribe", ["newHeads"] );
+   * await provider.request("eth_sendTransaction", [{from, to, value: "0xffff"}] );
    *
    * // ensure balance has updated
-   * const newBalance = await provider.send("eth_getBalance", [from] );
+   * const newBalance = await provider.request("eth_getBalance", [from] );
    * assert(BigInt(newBalance) < startingBalance);
    *
    * // revert the snapshot
-   * const isReverted = await provider.send("evm_revert", [snapshotId] );
+   * const isReverted = await provider.request("evm_revert", [snapshotId] );
    * assert(isReverted);
    *
    * // ensure balance has reverted
-   * const endingBalance = await provider.send("eth_getBalance", [from] );
+   * const endingBalance = await provider.request("eth_getBalance", [from] );
    * const isBalanceReverted = assert.strictEqual(BigInt(endingBalance), startingBalance);
    * console.log({isBalanceReverted: isBalanceReverted});
    * ```
@@ -661,7 +661,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
    * const passphrase = "passphrase"
-   * const result = await provider.send("evm_addAccount", [address, passphrase] );
+   * const result = await provider.request("evm_addAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
@@ -684,7 +684,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const [address] = await provider.request({ method: "eth_accounts", params: [] });
    * const passphrase = "";
-   * const result = await provider.send("evm_removeAccount", [address, passphrase] );
+   * const result = await provider.request("evm_removeAccount", [address, passphrase] );
    * console.log(result);
    * ```
    */
@@ -704,12 +704,12 @@ export default class EthereumApi implements Api {
    * @returns `true`.
    * @example
    * ```javascript
-   * await provider.send("miner_stop");
+   * await provider.request("miner_stop");
    * // check that eth_mining returns false
-   * console.log(await provider.send("eth_mining"));
-   * await provider.send("miner_start");
+   * console.log(await provider.request("eth_mining"));
+   * await provider.request("miner_start");
    * // check that eth_mining returns true
-   * console.log(await provider.send("eth_mining"));
+   * console.log(await provider.request("eth_mining"));
    * ```
    */
   @assertArgLength(0, 1)
@@ -736,10 +736,10 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * // check that eth_mining returns true
-   * console.log(await provider.send("eth_mining"));
-   * await provider.send("miner_stop");
+   * console.log(await provider.request("eth_mining"));
+   * await provider.request("miner_stop");
    * // check that eth_mining returns false
-   * console.log(await provider.send("eth_mining"));
+   * console.log(await provider.request("eth_mining"));
    * ```
    */
   @assertArgLength(0)
@@ -756,7 +756,7 @@ export default class EthereumApi implements Api {
    * @returns `true`.
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setGasPrice", [300000] ));
+   * console.log(await provider.request("miner_setGasPrice", [300000] ));
    * ```
    */
   @assertArgLength(1)
@@ -772,7 +772,7 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const [account] = await provider.request({ method: "eth_accounts", params: [] });
-   * console.log(await provider.send("miner_setEtherbase", [account] ));
+   * console.log(await provider.request("miner_setEtherbase", [account] ));
    * ```
    */
   @assertArgLength(1)
@@ -787,7 +787,7 @@ export default class EthereumApi implements Api {
    * @returns If successfully set returns `true`, otherwise returns an error.
    * @example
    * ```javascript
-   * console.log(await provider.send("miner_setExtra", ["0x0"] ));
+   * console.log(await provider.request("miner_setExtra", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -808,7 +808,7 @@ export default class EthereumApi implements Api {
    * @returns The current client version.
    * @example
    * ```javascript
-   * console.log(await provider.send("web3_clientVersion"));
+   * console.log(await provider.request("web3_clientVersion"));
    * ```
    */
   @assertArgLength(0)
@@ -823,7 +823,7 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const data = "0xabcdef0123456789";
-   * const sha3 = await provider.send("web3_sha3", [data] );
+   * const sha3 = await provider.request("web3_sha3", [data] );
    * console.log(sha3);
    * ```
    */
@@ -840,7 +840,7 @@ export default class EthereumApi implements Api {
    * Quantity/Data encoded.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_version"));
+   * console.log(await provider.request("net_version"));
    * ```
    */
   @assertArgLength(0)
@@ -853,7 +853,7 @@ export default class EthereumApi implements Api {
    * @returns `true` when listening, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_listening"));
+   * console.log(await provider.request("net_listening"));
    * ```
    */
   @assertArgLength(0)
@@ -866,7 +866,7 @@ export default class EthereumApi implements Api {
    * @returns Number of connected peers.
    * @example
    * ```javascript
-   * console.log(await provider.send("net_peerCount"));
+   * console.log(await provider.request("net_peerCount"));
    * ```
    */
   @assertArgLength(0)
@@ -1294,7 +1294,7 @@ export default class EthereumApi implements Api {
    * @returns List of available compilers.
    * @example
    * ```javascript
-   * const compilers = await provider.send("eth_getCompilers");
+   * const compilers = await provider.request("eth_getCompilers");
    * console.log(compilers);
    * ```
    */
@@ -1399,8 +1399,8 @@ export default class EthereumApi implements Api {
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
-   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
-   * const uncleCount = await provider.send("eth_getUncleCountByBlockHash", [blockHash] );
+   * const blockHash = await provider.request("eth_getBlockByNumber", ["latest"] );
+   * const uncleCount = await provider.request("eth_getUncleCountByBlockHash", [blockHash] );
    * console.log(uncleCount);
    * ```
    */
@@ -1415,7 +1415,7 @@ export default class EthereumApi implements Api {
    * @returns The number of uncles in a block.
    * @example
    * ```javascript
-   * const uncleCount = await provider.send("eth_getUncleCountByBlockNumber", ["latest"] );
+   * const uncleCount = await provider.request("eth_getUncleCountByBlockNumber", ["latest"] );
    * console.log(uncleCount);
    * ```
    */
@@ -1456,8 +1456,8 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * const blockHash = await provider.send("eth_getBlockByNumber", ["latest"] );
-   * const block = await provider.send("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"] );
+   * const blockHash = await provider.request("eth_getBlockByNumber", ["latest"] );
+   * const block = await provider.request("eth_getUncleByBlockHashAndIndex", [blockHash, "0x0"] );
    * console.log(block);
    * ```
    */
@@ -1498,7 +1498,7 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * const block = await provider.send("eth_getUncleByBlockNumberAndIndex", ["latest", "0x0"] );
+   * const block = await provider.request("eth_getUncleByBlockNumberAndIndex", ["latest", "0x0"] );
    * console.log(block);
    * ```
    */
@@ -1519,7 +1519,7 @@ export default class EthereumApi implements Api {
    * @returns The hash of the current block, the seedHash, and the boundary condition to be met ("target").
    * @example
    * ```javascript
-   * console.log(await provider.send("eth_getWork", [] ));
+   * console.log(await provider.request("eth_getWork", [] ));
    * ```
    */
   @assertArgLength(0)
@@ -1660,7 +1660,7 @@ export default class EthereumApi implements Api {
    *
    * @example
    * ```javascript
-   * const chainId = await provider.send("eth_chainId");
+   * const chainId = await provider.request("eth_chainId");
    * console.log(chainId);
    * ```
    */
@@ -2031,7 +2031,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const [from, to] = await provider.request({ method: "eth_accounts", params: [] });
    * const signedTx = await provider.request({ method: "eth_signTransaction", params: [{ from, to, gas: "0x5b8d80", maxFeePerGas: "0xffffffff" }] });
-   * const txHash = await provider.send("eth_sendRawTransaction", [signedTx] );
+   * const txHash = await provider.request("eth_sendRawTransaction", [signedTx] );
    * console.log(txHash);
    * ```
    */
@@ -2569,16 +2569,16 @@ export default class EthereumApi implements Api {
    * // }
    *
    * const logsContract = "0x608060405234801561001057600080fd5b5061003c60405180606001604052806022815260200161064b6022913961007160201b6100cd1760201c565b600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a36101f0565b61010d8160405160240161008591906101ce565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff838183161783525050505061011060201b60201c565b50565b60006a636f6e736f6c652e6c6f6790508151602083016000808383865afa5050505050565b600081519050919050565b600082825260208201905092915050565b60005b8381101561016f578082015181840152602081019050610154565b8381111561017e576000848401525b50505050565b6000601f19601f8301169050919050565b60006101a082610135565b6101aa8185610140565b93506101ba818560208601610151565b6101c381610184565b840191505092915050565b600060208201905081810360008301526101e88184610195565b905092915050565b61044c806101ff6000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80635e19e69f14610030575b600080fd5b61004a60048036038101906100459190610265565b61004c565b005b6100716040518060600160405280602781526020016103f0602791398260ff16610166565b60005b8160ff168160ff1610156100c9578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a380806100c1906102c1565b915050610074565b5050565b610163816040516024016100e19190610384565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610202565b50565b6101fe828260405160240161017c9291906103bf565b6040516020818303038152906040527fb60e72cc000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610202565b5050565b60006a636f6e736f6c652e6c6f6790508151602083016000808383865afa5050505050565b600080fd5b600060ff82169050919050565b6102428161022c565b811461024d57600080fd5b50565b60008135905061025f81610239565b92915050565b60006020828403121561027b5761027a610227565b5b600061028984828501610250565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60006102cc8261022c565b915060ff8214156102e0576102df610292565b5b600182019050919050565b600081519050919050565b600082825260208201905092915050565b60005b8381101561032557808201518184015260208101905061030a565b83811115610334576000848401525b50505050565b6000601f19601f8301169050919050565b6000610356826102eb565b61036081856102f6565b9350610370818560208601610307565b6103798161033a565b840191505092915050565b6000602082019050818103600083015261039e818461034b565b905092915050565b6000819050919050565b6103b9816103a6565b82525050565b600060408201905081810360008301526103d9818561034b565b90506103e860208301846103b0565b939250505056fe43616c6c6564206c6f674e54696d657320776974682074686520706172616d657465723a20256fa2646970667358221220efe39b9dc769a10eb54b65df8344ee92d584288e80e1c170636e1ede5dd7c3e064736f6c634300080b0033456e7465726564204c6f677320636f6e747261637420636f6e7374727563746f722e";
-   * const [from] = await provider.send("eth_accounts");
-   * const filterId = await provider.send("eth_newFilter");
+   * const [from] = await provider.request("eth_accounts");
+   * const filterId = await provider.request("eth_newFilter");
    *
-   * const subscriptionId = await provider.send("eth_subscribe", ["newHeads"]);
-   * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * const subscriptionId = await provider.request("eth_subscribe", ["newHeads"]);
+   * await provider.request("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
    *
    * const changes = await provider.request({ method: "eth_getFilterChanges", params: [filterId] });
    * console.log(changes);
    *
-   * await provider.send("eth_unsubscribe", [subscriptionId]);
+   * await provider.request("eth_unsubscribe", [subscriptionId]);
    * ```
    */
   @assertArgLength(1)
@@ -2645,11 +2645,11 @@ export default class EthereumApi implements Api {
    * // }
    *
    * const logsContract = "0x608060405234801561001057600080fd5b5061003c60405180606001604052806022815260200161064b6022913961007160201b6100cd1760201c565b600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a36101f0565b61010d8160405160240161008591906101ce565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff838183161783525050505061011060201b60201c565b50565b60006a636f6e736f6c652e6c6f6790508151602083016000808383865afa5050505050565b600081519050919050565b600082825260208201905092915050565b60005b8381101561016f578082015181840152602081019050610154565b8381111561017e576000848401525b50505050565b6000601f19601f8301169050919050565b60006101a082610135565b6101aa8185610140565b93506101ba818560208601610151565b6101c381610184565b840191505092915050565b600060208201905081810360008301526101e88184610195565b905092915050565b61044c806101ff6000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80635e19e69f14610030575b600080fd5b61004a60048036038101906100459190610265565b61004c565b005b6100716040518060600160405280602781526020016103f0602791398260ff16610166565b60005b8160ff168160ff1610156100c9578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a380806100c1906102c1565b915050610074565b5050565b610163816040516024016100e19190610384565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610202565b50565b6101fe828260405160240161017c9291906103bf565b6040516020818303038152906040527fb60e72cc000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610202565b5050565b60006a636f6e736f6c652e6c6f6790508151602083016000808383865afa5050505050565b600080fd5b600060ff82169050919050565b6102428161022c565b811461024d57600080fd5b50565b60008135905061025f81610239565b92915050565b60006020828403121561027b5761027a610227565b5b600061028984828501610250565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60006102cc8261022c565b915060ff8214156102e0576102df610292565b5b600182019050919050565b600081519050919050565b600082825260208201905092915050565b60005b8381101561032557808201518184015260208101905061030a565b83811115610334576000848401525b50505050565b6000601f19601f8301169050919050565b6000610356826102eb565b61036081856102f6565b9350610370818560208601610307565b6103798161033a565b840191505092915050565b6000602082019050818103600083015261039e818461034b565b905092915050565b6000819050919050565b6103b9816103a6565b82525050565b600060408201905081810360008301526103d9818561034b565b90506103e860208301846103b0565b939250505056fe43616c6c6564206c6f674e54696d657320776974682074686520706172616d657465723a20256fa2646970667358221220efe39b9dc769a10eb54b65df8344ee92d584288e80e1c170636e1ede5dd7c3e064736f6c634300080b0033456e7465726564204c6f677320636f6e747261637420636f6e7374727563746f722e";
-   * const [from] = await provider.send("eth_accounts");
-   * const filterId = await provider.send("eth_newFilter");
+   * const [from] = await provider.request("eth_accounts");
+   * const filterId = await provider.request("eth_newFilter");
    *
-   * await provider.send("eth_subscribe", ["newHeads"]);
-   * await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.request("eth_subscribe", ["newHeads"]);
+   * await provider.request("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
    *
    * const logs = await provider.request({ method: "eth_getFilterLogs", params: [filterId] });
    * console.log(logs);
@@ -2705,12 +2705,12 @@ export default class EthereumApi implements Api {
    * // }
    *
    * const logsContract = "0x608060405234801561001057600080fd5b5061003c60405180606001604052806022815260200161064b6022913961007160201b6100cd1760201c565b600260017f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a36101f0565b61010d8160405160240161008591906101ce565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff838183161783525050505061011060201b60201c565b50565b60006a636f6e736f6c652e6c6f6790508151602083016000808383865afa5050505050565b600081519050919050565b600082825260208201905092915050565b60005b8381101561016f578082015181840152602081019050610154565b8381111561017e576000848401525b50505050565b6000601f19601f8301169050919050565b60006101a082610135565b6101aa8185610140565b93506101ba818560208601610151565b6101c381610184565b840191505092915050565b600060208201905081810360008301526101e88184610195565b905092915050565b61044c806101ff6000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80635e19e69f14610030575b600080fd5b61004a60048036038101906100459190610265565b61004c565b005b6100716040518060600160405280602781526020016103f0602791398260ff16610166565b60005b8160ff168160ff1610156100c9578060ff168160ff167f34e802e5ebd1f132e05852c5064046c1b535831ec52f1c4997fc6fdc4d5345b360405160405180910390a380806100c1906102c1565b915050610074565b5050565b610163816040516024016100e19190610384565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610202565b50565b6101fe828260405160240161017c9291906103bf565b6040516020818303038152906040527fb60e72cc000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610202565b5050565b60006a636f6e736f6c652e6c6f6790508151602083016000808383865afa5050505050565b600080fd5b600060ff82169050919050565b6102428161022c565b811461024d57600080fd5b50565b60008135905061025f81610239565b92915050565b60006020828403121561027b5761027a610227565b5b600061028984828501610250565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60006102cc8261022c565b915060ff8214156102e0576102df610292565b5b600182019050919050565b600081519050919050565b600082825260208201905092915050565b60005b8381101561032557808201518184015260208101905061030a565b83811115610334576000848401525b50505050565b6000601f19601f8301169050919050565b6000610356826102eb565b61036081856102f6565b9350610370818560208601610307565b6103798161033a565b840191505092915050565b6000602082019050818103600083015261039e818461034b565b905092915050565b6000819050919050565b6103b9816103a6565b82525050565b600060408201905081810360008301526103d9818561034b565b90506103e860208301846103b0565b939250505056fe43616c6c6564206c6f674e54696d657320776974682074686520706172616d657465723a20256fa2646970667358221220efe39b9dc769a10eb54b65df8344ee92d584288e80e1c170636e1ede5dd7c3e064736f6c634300080b0033456e7465726564204c6f677320636f6e747261637420636f6e7374727563746f722e";
-   * const [from] = await provider.send("eth_accounts");
+   * const [from] = await provider.request("eth_accounts");
    *
-   * await provider.send("eth_subscribe", ["newHeads"]);
-   * const txHash = await provider.send("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
+   * await provider.request("eth_subscribe", ["newHeads"]);
+   * const txHash = await provider.request("eth_sendTransaction", [{ from, data: logsContract, gas: "0x5b8d80" }] );
    *
-   * const { contractAddress } = await provider.send("eth_getTransactionReceipt", [txHash] );
+   * const { contractAddress } = await provider.request("eth_getTransactionReceipt", [txHash] );
    *
    * const logs = await provider.request({ method: "eth_getLogs", params: [{ address: contractAddress }] });
    * console.log(logs);
@@ -3246,7 +3246,7 @@ export default class EthereumApi implements Api {
    * @returns The Ethereum account addresses of all keys that have been added.
    * @example
    * ```javascript
-   * console.log(await provider.send("personal_listAccounts"));
+   * console.log(await provider.request("personal_listAccounts"));
    * ```
    */
   @assertArgLength(0)
@@ -3262,7 +3262,7 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const passphrase = "passphrase";
-   * const address = await provider.send("personal_newAccount", [passphrase] );
+   * const address = await provider.request("personal_newAccount", [passphrase] );
    * console.log(address);
    * ```
    */
@@ -3293,7 +3293,7 @@ export default class EthereumApi implements Api {
    * const rawKey = "0x0123456789012345678901234567890123456789012345678901234567890123";
    * const passphrase = "passphrase";
    *
-   * const address = await provider.send("personal_importRawKey",[rawKey, passphrase] );
+   * const address = await provider.request("personal_importRawKey",[rawKey, passphrase] );
    * console.log(address);
    * ```
    */
@@ -3322,8 +3322,8 @@ export default class EthereumApi implements Api {
    * @returns Returns `true` if the account was locked, otherwise `false`.
    * @example
    * ```javascript
-   * const [account] = await provider.send("personal_listAccounts");
-   * const isLocked = await provider.send("personal_lockAccount", [account] );
+   * const [account] = await provider.request("personal_listAccounts");
+   * const isLocked = await provider.request("personal_lockAccount", [account] );
    * console.log(isLocked);
    * ```
    */
@@ -3350,8 +3350,8 @@ export default class EthereumApi implements Api {
    * ```javascript
    * // generate an account
    * const passphrase = "passphrase";
-   * const newAccount = await provider.send("personal_newAccount", [passphrase] );
-   * const isUnlocked = await provider.send("personal_unlockAccount", [newAccount, passphrase] );
+   * const newAccount = await provider.request("personal_newAccount", [passphrase] );
+   * const isUnlocked = await provider.request("personal_unlockAccount", [newAccount, passphrase] );
    * console.log(isUnlocked);
    * ```
    */
@@ -3388,13 +3388,13 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const passphrase = "passphrase";
-   * const newAccount = await provider.send("personal_newAccount", [passphrase] );
+   * const newAccount = await provider.request("personal_newAccount", [passphrase] );
    * // fund the new account
-   * await provider.send("evm_setAccountBalance", [newAccount,"0xffffffffffffff"])
-   * const [to] = await provider.send("personal_listAccounts");
+   * await provider.request("evm_setAccountBalance", [newAccount,"0xffffffffffffff"])
+   * const [to] = await provider.request("personal_listAccounts");
    *
    * // use account and passphrase to send the transaction
-   * const txHash = await provider.send("personal_sendTransaction", [{ from: newAccount, to, gasLimit: "0x5b8d80" }, passphrase] );
+   * const txHash = await provider.request("personal_sendTransaction", [{ from: newAccount, to, gasLimit: "0x5b8d80" }, passphrase] );
    * console.log(txHash);
    * ```
    */
@@ -3451,7 +3451,7 @@ export default class EthereumApi implements Api {
    * ```javascript
    * const [to] = await provider.request({ method: "eth_accounts", params: [] });
    * const passphrase = "passphrase";
-   * const from = await provider.send("personal_newAccount", [passphrase] );
+   * const from = await provider.request("personal_newAccount", [passphrase] );
    * await provider.request({ method: "eth_subscribe", params: ["newHeads"] });
    * const signedTx = await provider.request({ method: "personal_signTransaction", params: [{ from, to }, passphrase] });
    * console.log(signedTx)
@@ -3485,7 +3485,7 @@ export default class EthereumApi implements Api {
    * @returns RPC modules.
    * @example
    * ```javascript
-   * console.log(await provider.send("rpc_modules"));
+   * console.log(await provider.request("rpc_modules"));
    * ```
    */
   @assertArgLength(0)
@@ -3502,7 +3502,7 @@ export default class EthereumApi implements Api {
    * @returns - The address of the new identity.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_newIdentity"));
+   * console.log(await provider.request("shh_newIdentity"));
    * ```
    */
   @assertArgLength(0)
@@ -3517,7 +3517,7 @@ export default class EthereumApi implements Api {
    * @returns Returns `true` if the client holds the private key for that identity, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_hasIdentity", ["0x0"] ));
+   * console.log(await provider.request("shh_hasIdentity", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -3542,7 +3542,7 @@ export default class EthereumApi implements Api {
    * @returns `true` if the identity was successfully added to the group, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_addToGroup", ["0x0"] ));
+   * console.log(await provider.request("shh_addToGroup", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -3559,7 +3559,7 @@ export default class EthereumApi implements Api {
    * @returns Returns `true` if the identity was successfully added to the group, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_newFilter", ["0x0", []] ));
+   * console.log(await provider.request("shh_newFilter", ["0x0", []] ));
    * ```
    */
   @assertArgLength(2)
@@ -3575,7 +3575,7 @@ export default class EthereumApi implements Api {
    * @returns `true` if the filter was successfully uninstalled, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_uninstallFilter", ["0x0"] ));
+   * console.log(await provider.request("shh_uninstallFilter", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -3590,7 +3590,7 @@ export default class EthereumApi implements Api {
    * @returns More Info: https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_getfilterchanges
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_getFilterChanges", ["0x0"] ));
+   * console.log(await provider.request("shh_getFilterChanges", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -3605,7 +3605,7 @@ export default class EthereumApi implements Api {
    * @returns See: `shh_getFilterChanges`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_getMessages", ["0x0"] ));
+   * console.log(await provider.request("shh_getMessages", ["0x0"] ));
    * ```
    */
   @assertArgLength(1)
@@ -3620,7 +3620,7 @@ export default class EthereumApi implements Api {
    * @returns Returns `true` if the message was sent, otherwise `false`.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_post", [{}] ));
+   * console.log(await provider.request("shh_post", [{}] ));
    * ```
    */
   @assertArgLength(1)
@@ -3634,7 +3634,7 @@ export default class EthereumApi implements Api {
    * @returns The current whisper protocol version.
    * @example
    * ```javascript
-   * console.log(await provider.send("shh_version"));
+   * console.log(await provider.request("shh_version"));
    * ```
    */
   @assertArgLength(0)
@@ -3652,10 +3652,10 @@ export default class EthereumApi implements Api {
    * @example
    * ```javascript
    * const [from] = await provider.request({ method: "eth_accounts", params: [] });
-   * await provider.send("miner_stop")
+   * await provider.request("miner_stop")
    * const pendingTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x0" }] });
    * const queuedTx = await provider.request({ method: "eth_sendTransaction", params: [{ from, gas: "0x5b8d80", nonce:"0x2" }] });
-   * const pool = await provider.send("txpool_content");
+   * const pool = await provider.request("txpool_content");
    * console.log(pool);
    * ```
    */
