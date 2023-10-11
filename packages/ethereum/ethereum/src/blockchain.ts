@@ -79,7 +79,6 @@ import { dumpTrieStorageDetails } from "./helpers/storage-range-at";
 import { GanacheStateManager } from "./state-manager";
 import { TrieDB } from "./trie-db";
 import { Trie } from "@ethereumjs/trie";
-import { removeEIP3860InitCodeSizeLimitCheck } from "./helpers/common-helpers";
 import { Journal } from "@ethereumjs/evm/dist/cjs/journal";
 
 const mclInitPromise = mcl.init(mcl.BLS12_381).then(() => {
@@ -253,10 +252,6 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
           options.chain.networkId,
           options.chain.hardfork
         );
-
-        if (options.chain.allowUnlimitedInitCodeSize) {
-          removeEIP3860InitCodeSizeLimitCheck(common);
-        }
       }
 
       this.isPostParis = this.common.gteHardfork("paris");
@@ -302,6 +297,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.vm = await this.createVmFromStateTrie(
         this.trie,
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         true
       );
 
@@ -678,6 +674,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
   createVmFromStateTrie = async (
     stateTrie: GanacheTrie | ForkTrie,
     allowUnlimitedContractSize: boolean,
+    allowUnlimitedInitCodeSize: boolean,
     activatePrecompile: boolean,
     common?: Common
   ) => {
@@ -710,6 +707,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     const evm = new EVM({
       common,
       allowUnlimitedContractSize,
+      allowUnlimitedInitCodeSize,
       stateManager,
       blockchain
     });
@@ -1143,6 +1141,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       const vm = await this.createVmFromStateTrie(
         stateTrie,
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         false, // precompiles have already been initialized in the stateTrie
         common
       );
@@ -1274,10 +1273,12 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         })
       : new GanacheStateManager({ trie, prefixCodeHashes: false });
 
+    const { allowUnlimitedContractSize, allowUnlimitedInitCodeSize } =
+      this.#options.chain;
     const evm = new EVM({
       common,
-      allowUnlimitedContractSize:
-        this.#options.chain.allowUnlimitedContractSize,
+      allowUnlimitedContractSize,
+      allowUnlimitedInitCodeSize,
       stateManager,
       blockchain
     });
@@ -1312,7 +1313,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       this.emit("ganache:vm:tx:before", {
         context: transactionEventContext
       });
-      await vm.runTx({
+      const g = vm.runTx({
         skipHardForkValidation: true,
         skipNonce: true,
         skipBalance: true,
@@ -1320,6 +1321,7 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
         tx,
         block: block as any
       });
+      await g;
       this.emit("ganache:vm:tx:after", {
         context: transactionEventContext
       });
@@ -1646,13 +1648,11 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
     if (!rawAccount) {
       throw new Error(`account ${contractAddress} doesn't exist`);
     }
+    const [, , stateRoot] = decode<EthereumRawAccount>(Buffer.from(rawAccount));
     let storageTrie: Trie;
     if (txIndex === 0) {
       // there are no transactions to run, so let's just grab what we need
       // from the last block's trie
-      const [, , stateRoot] = decode<EthereumRawAccount>(
-        Buffer.from(rawAccount)
-      );
       trie.setContext(
         stateRoot,
         contractAddressBuffer,
@@ -1670,7 +1670,10 @@ export default class Blockchain extends Emittery<BlockchainTypedEvents> {
       // run every transaction in that block prior to the requested transaction
       const vm = await this.#createFastForwardVm(txIndex, trie, newBlock);
 
-      storageTrie = await vm.stateManager.getStorageTrie(contractAddressBuffer);
+      storageTrie = await vm.stateManager.getStorageTrie(
+        contractAddressBuffer,
+        await vm.stateManager.getStateRoot()
+      );
     }
 
     return await dumpTrieStorageDetails(

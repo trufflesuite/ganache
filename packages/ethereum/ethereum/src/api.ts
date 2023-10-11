@@ -924,6 +924,7 @@ export default class EthereumApi implements Api {
       const vm = await blockchain.createVmFromStateTrie(
         blockchain.trie.shallowCopy(false),
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         false
       );
       return vm;
