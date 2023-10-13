@@ -1,5 +1,6 @@
+import { EVMStateManagerInterface } from "@ethereumjs/common";
+import { Journal } from "@ethereumjs/evm/dist/cjs/journal";
 import { Account, Address } from "@ethereumjs/util";
-import type { EEIInterface } from "@ethereumjs/evm";
 
 const NUM_PRECOMPILES = 18;
 /**
@@ -23,29 +24,30 @@ const makeAccount = (i: number): Address => {
   // 20 bytes, the first 19 are 0, the last byte is the address
   const buf = Buffer.allocUnsafe(20).fill(0, 0, 19);
   buf[19] = i;
-  return (accountCache[i] = { buf } as any);
+  return (accountCache[i] = { bytes: buf } as any);
 };
 
 /**
  * Puts the precompile accounts into the state tree
  * @param eei -
  */
-export const activatePrecompiles = async (eei: EEIInterface) => {
-  await eei.checkpoint();
+export const activatePrecompiles = async (
+  stateManager: EVMStateManagerInterface
+) => {
+  await stateManager.checkpoint();
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
     const account = makeAccount(i);
-    eei.putAccount(account, PRECOMPILED_ACCOUNT);
+    stateManager.putAccount(account, PRECOMPILED_ACCOUNT);
   }
-  await eei.commit();
+  await stateManager.commit();
 };
 
 /**
  * Puts the precompile accounts into the warmed addresses
- * @param eei -
  */
-export const warmPrecompiles = async (eei: EEIInterface) => {
+export const warmPrecompiles = async (journal: Journal) => {
   for (let i = 1; i <= NUM_PRECOMPILES; i++) {
     const account = makeAccount(i);
-    eei.addWarmedAddress(account.buf);
+    journal.addWarmedAddress(account.bytes);
   }
 };

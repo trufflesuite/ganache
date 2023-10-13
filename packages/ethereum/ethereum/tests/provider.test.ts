@@ -1,6 +1,6 @@
 import assert from "assert";
 import { join } from "path";
-import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
+import { LegacyTransaction as Transaction } from "@ethereumjs/tx";
 import { Data, JsonRpcErrorCode, JsonRpcRequest } from "@ganache/utils";
 import { Common } from "@ethereumjs/common";
 import { EthereumProvider } from "../src/provider";
@@ -9,7 +9,7 @@ import getProvider from "./helpers/getProvider";
 import compile from "./helpers/compile";
 import Web3 from "web3";
 import { promises, closeSync } from "fs";
-const { stat, unlink } = promises;
+const { stat } = promises;
 import { INITCODE_TOO_LARGE } from "@ganache/ethereum-utils";
 import tmp from "tmp-promise";
 import { resolve } from "path";
@@ -578,7 +578,7 @@ describe("provider", () => {
           }
         );
         const rawTransaction = Data.from(
-          tx.sign(secretKey).serialize()
+          Buffer.from(tx.sign(secretKey).serialize())
         ).toString();
 
         await testEvents(async () => {

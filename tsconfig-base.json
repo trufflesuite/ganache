@@ -15,7 +15,7 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "newLine": "lf",
-    "lib": ["es2021"],
+    "lib": ["es2021", "DOM"],
     "experimentalDecorators": true
   }
 }

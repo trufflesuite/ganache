@@ -4,13 +4,13 @@ import { EthereumProvider } from "../src/provider";
 import compile from "./helpers/compile";
 import getProvider from "./helpers/getProvider";
 
-describe("merge", () => {
+describe("merge/paris", () => {
   let provider: EthereumProvider;
   let accounts: string[];
   beforeEach("get provider", async () => {
     provider = await getProvider({
       wallet: { seed: "temet nosce" },
-      chain: { hardfork: "merge" }
+      chain: { hardfork: "paris" }
     });
     accounts = await provider.send("eth_accounts");
   });

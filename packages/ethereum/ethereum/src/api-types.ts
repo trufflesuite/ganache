@@ -1,4 +1,3 @@
-import type * as EthSigUtil from "eth-sig-util";
 import type * as TransactionTypes from "@ganache/ethereum-transaction";
 import type * as UtilTypes from "@ganache/ethereum-utils";
 import type { EthereumProvider, Externalize } from "./provider";
@@ -6,10 +5,9 @@ import { BlockHeader, Withdrawal } from "@ganache/ethereum-block";
 import { Data, Quantity } from "@ganache/utils";
 import { CallOverrides } from "./helpers/run-call";
 import { Log, InternalTag } from "@ganache/ethereum-utils";
+import { MessageTypes, TypedMessage } from "@metamask/eth-sig-util";
 
-type EthSignedDataParams = Parameters<
-  typeof EthSigUtil.signTypedData_v4
->[1]["data"];
+type EthSignedDataParams = TypedMessage<MessageTypes>;
 
 type AsCall<T> = Flatten<
   Omit<T, "from"> & {
@@ -191,7 +189,7 @@ export namespace Ethereum {
   };
 
   // Sign Typed Data
-  export type TypedData = Exclude<EthSignedDataParams, EthSigUtil.TypedData>;
+  export type TypedData = EthSignedDataParams;
 
   // whisper
   export type WhisperPostObject = UtilTypes.WhisperPostObject;

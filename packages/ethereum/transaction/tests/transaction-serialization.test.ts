@@ -12,13 +12,14 @@ import {
 } from "../src/transaction-serialization";
 import assert from "assert";
 import { Data } from "@ganache/utils";
-import { AccessList, AccessListBuffer } from "@ethereumjs/tx";
+import { AccessList } from "@ethereumjs/tx";
 import {
   EIP1559FeeMarketRawTransaction,
   EIP2930AccessListRawTransaction,
   LegacyRawTransaction
 } from "../src/raw";
 import { Address } from "@ganache/ethereum-address";
+import { AccessListBuffer } from "../src/access-lists";
 
 function assertBufferEqualsString(
   actual: Buffer,

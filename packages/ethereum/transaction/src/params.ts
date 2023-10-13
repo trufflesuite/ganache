@@ -29,8 +29,10 @@ export const Params = {
     | "arrowGlacier"
     | "grayGlacier"
     | "merge"
+    | "paris"
     | "mergeForkIdTransition"
-    | "shanghai",
+    | "shanghai"
+    | "cancun",
     bigint
   >([
     ["chainstart", 68n],
@@ -48,8 +50,10 @@ export const Params = {
     ["arrowGlacier", 16n],
     ["grayGlacier", 16n],
     ["merge", 16n],
+    ["paris", 16n],
     ["mergeForkIdTransition", 16n],
-    ["shanghai", 16n]
+    ["shanghai", 16n],
+    ["cancun", 16n]
   ]),
 
   /**

@@ -19,17 +19,17 @@ function normalizeEvent(event: InterpreterStep) {
   // Instead of making a bunch of individual buffers, we just make 1 and then
   // fill it in as needed.
   const sharedBuffer = Buffer.allocUnsafe(104 + memoryLength);
-  account.storageRoot.copy(sharedBuffer, 0, 0, 32); // always 32 bytes
-  account.codeHash.copy(sharedBuffer, 32, 0, 32); // always 32 bytes
-  event.address.buf.copy(sharedBuffer, 64, 0, 20); // always 20 bytes
-  event.codeAddress.buf.copy(sharedBuffer, 84, 0, 20); // always 20 bytes
+  Buffer.from(account.storageRoot).copy(sharedBuffer, 0, 0, 32); // always 32 bytes
+  Buffer.from(account.codeHash).copy(sharedBuffer, 32, 0, 32); // always 32 bytes
+  Buffer.from(event.address.bytes).copy(sharedBuffer, 64, 0, 20); // always 20 bytes
+  Buffer.from(event.codeAddress.bytes).copy(sharedBuffer, 84, 0, 20); // always 20 bytes
   const stateRoot = sharedBuffer.slice(0, 32);
   const codeHash = sharedBuffer.slice(32, 64);
   const address = sharedBuffer.slice(64, 84);
   const codeAddress = sharedBuffer.slice(84, 104);
   let memory: Buffer;
   if (memoryLength !== 0) {
-    originalMemory.copy(sharedBuffer, 104, 0, memoryLength);
+    Buffer.from(originalMemory).copy(sharedBuffer, 104, 0, memoryLength);
     memory = sharedBuffer.slice(104, 104 + memoryLength);
   } else {
     memory = BUFFER_ZERO;

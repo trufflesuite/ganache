@@ -37,10 +37,10 @@ export class GanacheTrie extends Trie {
    * Returns a copy of the underlying trie with the interface of GanacheTrie.
    * @param includeCheckpoints - If true and during a checkpoint, the copy will contain the checkpointing metadata and will use the same scratch as underlying db.
    */
-  copy(includeCheckpoints: boolean = true) {
+  shallowCopy(includeCheckpoints: boolean = true) {
     const secureTrie = new GanacheTrie(
-      this.db.copy(),
-      this.root(),
+      this.db.shallowCopy(),
+      Buffer.from(this.root()),
       this.blockchain
     );
     if (includeCheckpoints && this.hasCheckpoints()) {

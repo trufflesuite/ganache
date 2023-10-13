@@ -33,6 +33,9 @@ const base: webpack.Configuration = {
   mode: "production",
   entry: "./index.ts",
   devtool: "source-map",
+  experiments: {
+    topLevelAwait: true
+  },
   module: {
     rules: [
       {
@@ -62,11 +65,14 @@ const base: webpack.Configuration = {
     mangleExports: "size",
     // make module ids tiny
     moduleIds: "size",
-    minimize: true,
+    minimize: false,
     minimizer: [
       new TerserPlugin({
         parallel: true,
         terserOptions: {
+          compress: {
+            passes: 2
+          },
           sourceMap: true,
           // Truffle needs our stack traces in its tests:
           // https://github.com/trufflesuite/truffle/blob/b2742bc1187a3c1513173d19c58ce0d3a8fe969b/packages/contract-tests/test/errors.js#L280

@@ -29,7 +29,7 @@ type LogsStack = [
  */
 export const maybeGetLogs = (event: {
   opcode: { name: string };
-  memory: Buffer;
+  memory: Uint8Array;
   stack: bigint[];
 }): ConsoleLogs | null => {
   if (event.opcode.name !== "STATICCALL") return null;
@@ -47,7 +47,10 @@ export const maybeGetLogs = (event: {
   try {
     const memoryStart = Number(memoryOffset);
     const memoryEnd = memoryStart + Number(memoryLength);
-    const memory: Buffer = event.memory.subarray(memoryStart, memoryEnd);
+    const memory: Buffer = Buffer.from(event.memory).subarray(
+      memoryStart,
+      memoryEnd
+    );
     const method = memory.readUInt32BE(0); // 4 bytes wide
     const handlers = signatureMap.get(method);
     if (!handlers) return null;

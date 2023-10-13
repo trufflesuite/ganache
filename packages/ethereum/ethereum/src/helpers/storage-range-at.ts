@@ -57,10 +57,10 @@ async function getHashedKeysWithValues(
       .createReadStream()
       .on("data", function onData({ key, value }: TrieData) {
         // ignore anything that comes before our starting point
-        if (startKey.compare(key) > 0) return;
+        if (startKey.compare(Buffer.from(key)) > 0) return;
 
         // insert the key exactly where it needs to go in the array
-        const position = findInsertPosition(keys, key, compare);
+        const position = findInsertPosition(keys, Buffer.from(key), compare);
 
         // ignore if the value couldn't possibly be relevant (array is full, and
         // this element sorts after the last element we already have)
@@ -68,8 +68,8 @@ async function getHashedKeysWithValues(
         // `nextKey` if necessary
         if (position > maxKeys) return;
 
-        keys.splice(position, 0, key);
-        values.splice(position, 0, value);
+        keys.splice(position, 0, Buffer.from(key));
+        values.splice(position, 0, Buffer.from(value));
       })
       .on("end", function onEnd() {
         const length = keys.length;
@@ -109,8 +109,8 @@ async function getHashedKeysWithValues(
  * @param database - the database containing the `hashedKey -> rawKey` index.
  */
 export async function getStorage(
-  hashedKeys: Buffer[],
-  values: Buffer[],
+  hashedKeys: Uint8Array[],
+  values: Uint8Array[],
   count: number,
   database: LevelUp
 ): Promise<StorageRecords> {
@@ -122,9 +122,9 @@ export async function getStorage(
     promises.push(
       // get the "raw" key using the *hashed* key
       database.get(hashedKey).then((rawKey: Buffer) => {
-        storage[Data.toString(hashedKey, 32)] = {
+        storage[Data.toString(Buffer.from(hashedKey), 32)] = {
           key: Data.from(rawKey, 32),
-          value: Data.from(decode<Buffer>(values[i]), 32)
+          value: Data.from(decode<Buffer>(Buffer.from(values[i])), 32)
         };
       })
     );

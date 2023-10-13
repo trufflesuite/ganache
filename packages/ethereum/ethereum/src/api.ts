@@ -23,7 +23,7 @@ import {
   KECCAK256_NULL,
   KECCAK256_RLP
 } from "@ethereumjs/util";
-import { signTypedData_v4 } from "eth-sig-util";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import {
   Data,
   ecsign,
@@ -366,14 +366,14 @@ export default class EthereumApi implements Api {
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const vmAddress = Address.from(address);
     const blockchain = this.#blockchain;
-    const eei = blockchain.vm.eei;
-    const account = await eei.getAccount(vmAddress);
+    const stateManager = blockchain.vm.stateManager;
+    const account = await stateManager.getAccount(vmAddress);
 
     account.nonce = Quantity.toBigInt(nonce);
 
-    await eei.checkpoint();
-    await eei.putAccount(vmAddress, account);
-    await eei.commit();
+    await stateManager.checkpoint();
+    await stateManager.putAccount(vmAddress, account);
+    await stateManager.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -405,14 +405,14 @@ export default class EthereumApi implements Api {
     // Issue: https://github.com/trufflesuite/ganache/issues/1646
     const vmAddress = Address.from(address);
     const blockchain = this.#blockchain;
-    const eei = blockchain.vm.eei;
-    const account = await eei.getAccount(vmAddress);
+    const stateManager = blockchain.vm.stateManager;
+    const account = await stateManager.getAccount(vmAddress);
 
     account.balance = Quantity.toBigInt(balance);
 
-    await eei.checkpoint();
-    await eei.putAccount(vmAddress, account);
-    await eei.commit();
+    await stateManager.checkpoint();
+    await stateManager.putAccount(vmAddress, account);
+    await stateManager.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -446,18 +446,18 @@ export default class EthereumApi implements Api {
     const vmAddress = Address.from(address);
     const codeBuffer = Data.toBuffer(code);
     const blockchain = this.#blockchain;
-    const eei = blockchain.vm.eei;
+    const stateManager = blockchain.vm.stateManager;
     // The ethereumjs-vm StateManager does not allow to set empty code,
     // therefore we will manually set the code hash when "clearing" the contract code
-    await eei.checkpoint();
+    await stateManager.checkpoint();
     if (codeBuffer.length > 0) {
-      await eei.putContractCode(vmAddress, codeBuffer);
+      await stateManager.putContractCode(vmAddress, codeBuffer);
     } else {
-      const account = await eei.getAccount(vmAddress);
+      const account = await stateManager.getAccount(vmAddress);
       account.codeHash = KECCAK256_NULL;
-      await eei.putAccount(vmAddress, account);
+      await stateManager.putAccount(vmAddress, account);
     }
-    await eei.commit();
+    await stateManager.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -493,10 +493,10 @@ export default class EthereumApi implements Api {
     const slotBuffer = Data.toBuffer(slot);
     const valueBuffer = Data.toBuffer(value);
     const blockchain = this.#blockchain;
-    const eei = blockchain.vm.eei;
-    await eei.checkpoint();
-    await eei.putContractStorage(vmAddress, slotBuffer, valueBuffer);
-    await eei.commit();
+    const stateManager = blockchain.vm.stateManager;
+    await stateManager.checkpoint();
+    await stateManager.putContractStorage(vmAddress, slotBuffer, valueBuffer);
+    await stateManager.commit();
 
     // TODO: do we need to mine a block here? The changes we're making really don't make any sense at all
     // and produce an invalid trie going forward.
@@ -920,8 +920,9 @@ export default class EthereumApi implements Api {
       // note(hack): blockchain.vm.copy() doesn't work so we just do it this way
       // /shrug
       const vm = await blockchain.createVmFromStateTrie(
-        blockchain.trie.copy(false),
+        blockchain.trie.shallowCopy(false),
         options.chain.allowUnlimitedContractSize,
+        options.chain.allowUnlimitedInitCodeSize,
         false
       );
       return vm;
@@ -952,9 +953,10 @@ export default class EthereumApi implements Api {
         parentHeader.totalDifficulty,
         blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
         0n, // no baseFeePerGas for estimates
-        KECCAK256_RLP
+        Buffer.from(KECCAK256_RLP)
       );
       const runArgs: EstimateGasRunArgs = {
+        skipHardForkValidation: true,
         tx: tx.toVmTransaction(),
         block,
         skipBalance: true,
@@ -1140,7 +1142,7 @@ export default class EthereumApi implements Api {
     const vmAddress = Address.from(address);
     const slotBuffers = storageKeys.map(slotHex => Data.toBuffer(slotHex, 32));
 
-    const stateManagerCopy = blockchain.vm.stateManager.copy();
+    const stateManagerCopy = blockchain.vm.stateManager.shallowCopy();
     await stateManagerCopy.setStateRoot(
       targetBlock.header.stateRoot.toBuffer()
     );
@@ -1149,9 +1151,9 @@ export default class EthereumApi implements Api {
 
     return {
       address: vmAddress,
-      balance: Quantity.from(proof.balance),
+      balance: Quantity.from(proof.balance === "0x" ? "0x0" : proof.balance),
       codeHash: Data.from(proof.codeHash),
-      nonce: Quantity.from(proof.nonce),
+      nonce: Quantity.from(proof.nonce === "0x" ? "0x0" : proof.nonce),
       storageHash: Data.from(proof.storageHash),
       accountProof: proof.accountProof.map(p => Data.from(p)),
       storageProof: proof.storageProof.map(storageProof => ({
@@ -1778,7 +1780,7 @@ export default class EthereumApi implements Api {
     if (!block) throw new Error("header not found");
 
     const [[, , , blockStateRoot]] = decode<GanacheRawBlock>(block);
-    const trie = blockchain.trie.copy(false);
+    const trie = blockchain.trie.shallowCopy(false);
     trie.setContext(blockStateRoot, null, blockNum);
 
     const posBuff = Quantity.toBuffer(position);
@@ -1797,13 +1799,17 @@ export default class EthereumApi implements Api {
       paddedPosBuff = posBuff.slice(-32);
     }
 
-    const addressBuf = Address.from(address).toBuffer();
-    const addressData = await trie.get(addressBuf);
+    const addressBuf = Address.toBuffer(address);
+    const addressData = Buffer.from(await trie.get(addressBuf));
     // An address's stateRoot is stored in the 3rd rlp entry
     const addressStateRoot = decode<EthereumRawAccount>(addressData)[2];
     trie.setContext(addressStateRoot, addressBuf, blockNum);
-    const value = await trie.get(paddedPosBuff);
-    return Data.from(decode<Buffer>(value), 32);
+    const utf8array = await trie.get(paddedPosBuff);
+    if (utf8array) {
+      return Data.from(decode<Buffer>(Buffer.from(utf8array)), 32);
+    } else {
+      return Data.Empty;
+    }
   }
 
   /**
@@ -2231,7 +2237,11 @@ export default class EthereumApi implements Api {
       throw new Error("cannot sign data; message missing");
     }
 
-    return signTypedData_v4(privateKey.toBuffer(), { data: typedData });
+    return signTypedData({
+      privateKey: privateKey.toBuffer(),
+      data: typedData,
+      version: SignTypedDataVersion.V4
+    });
   }
 
   /**
@@ -2888,7 +2898,7 @@ export default class EthereumApi implements Api {
       parentHeader.totalDifficulty,
       blockchain.getMixHash(parentHeader.parentHash.toBuffer()),
       baseFeePerGasBigInt,
-      KECCAK256_RLP
+      Buffer.from(KECCAK256_RLP)
     );
 
     const simulatedTransaction = {

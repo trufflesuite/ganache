@@ -17,7 +17,7 @@ export class CallError extends CodedError {
     CodedError.captureStackTraceExtended.bind(this, message);
     this.name = this.constructor.name;
 
-    const { returnValue } = execResult;
+    const returnValue = Buffer.from(execResult.returnValue);
     const reason = CodedError.createRevertReason(returnValue);
     this.message = reason ? message + " " + reason : message;
     this.data = Data.toString(returnValue);

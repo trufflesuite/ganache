@@ -20,6 +20,10 @@ export class Address extends EJSAddress {
     return Address.from(value).toString();
   }
 
+  toBuffer() {
+    return Buffer.from(this.bytes);
+  }
+
   toJSON() {
     return this.toString();
   }

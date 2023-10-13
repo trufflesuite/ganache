@@ -3,6 +3,7 @@ import webpack from "webpack";
 import path from "path";
 import merge from "webpack-merge";
 import DeduplicatePlugin from "./deduplicate-plugin";
+const DuplicatePackageCheckerPlugin = require("duplicate-package-checker-webpack-plugin");
 
 const config: webpack.Configuration = merge({}, base, {
   target: "node16.0",
@@ -35,7 +36,7 @@ const config: webpack.Configuration = merge({}, base, {
       banner: "#!/usr/bin/env node",
       raw: true
     }),
-    new DeduplicatePlugin(),
+    new DuplicatePackageCheckerPlugin(),
     // replace process.env.IS_BROWSER with `false` to cause the minifier to
     // remove code blocks that require `process.env.IS_BROWSER != true`
     new webpack.EnvironmentPlugin({
@@ -68,7 +69,6 @@ const config: webpack.Configuration = merge({}, base, {
     //#endregion
     // things api-extractor can't handle, so we don't bundle them:
     "emittery",
-    "abstract-level",
     "abstract-leveldown",
     "async-eventemitter"
   ],

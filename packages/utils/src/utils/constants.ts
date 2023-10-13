@@ -7,7 +7,7 @@ export const BUFFER_8_ZERO = BUFFER_256_ZERO.slice(0, 8);
 
 export const WEI = 1000000000000000000n as const;
 
-export const KNOWN_CHAINIDS = new Set([1, 3, 4, 5, 42, 11155111]);
+export const KNOWN_CHAINIDS = new Set([1, 5, 11155111]);
 
 /**
  * Buffer representation of the string "version":

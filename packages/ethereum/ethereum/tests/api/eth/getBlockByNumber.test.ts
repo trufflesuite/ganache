@@ -6,7 +6,7 @@ import { Data } from "@ganache/utils";
 
 const DEFAULT_DIFFICULTY = 1;
 let provider: EthereumProvider;
-const emptyTrieRoot = Data.toString(new Trie().root());
+const emptyTrieRoot = Data.toString(Buffer.from(new Trie().root()));
 
 describe("api", () => {
   describe("eth", () => {

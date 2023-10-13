@@ -33,11 +33,12 @@ export default class AccountManager {
 
     // get the block, its state root, and the trie at that state root
     const { stateRoot, number } = (await blocks.get(blockNumber)).header;
-    const trieCopy = trie.copy(false);
+    const trieCopy = trie.shallowCopy(false);
     trieCopy.setContext(stateRoot.toBuffer(), null, number);
 
     // get the account from the trie
-    return await trieCopy.get(address.toBuffer());
+    const d = await trieCopy.get(address.toBuffer());
+    return d ? Buffer.from(d) : null;
   }
 
   public async getNonce(
@@ -89,6 +90,10 @@ export default class AccountManager {
 
     const [, , , codeHash] = decode<EthereumRawAccount>(data);
     if (codeHash.equals(KECCAK256_NULL)) return Data.Empty;
-    else return this.#blockchain.trie.database().get(codeHash).then(Data.from);
+    else
+      return this.#blockchain.trie
+        .database()
+        .get(codeHash)
+        .then(a => Data.from(Buffer.from(a)));
   }
 }

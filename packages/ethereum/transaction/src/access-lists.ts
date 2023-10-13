@@ -1,15 +1,9 @@
-import {
-  AccessList,
-  AccessListBuffer,
-  AccessListItem,
-  isAccessList
-} from "@ethereumjs/tx";
-export {
-  AccessList,
-  AccessListBuffer,
-  AccessListItem,
-  isAccessList
-} from "@ethereumjs/tx";
+import { AccessList, AccessListItem, isAccessList } from "@ethereumjs/tx";
+export { AccessList, AccessListItem, isAccessList } from "@ethereumjs/tx";
+
+type AccessListBufferItem = [Buffer, Buffer[]];
+export type AccessListBuffer = AccessListBufferItem[];
+
 import { Data } from "@ganache/utils";
 import { Address } from "@ganache/ethereum-address";
 import { Params } from "./params";
@@ -55,12 +49,14 @@ export class AccessLists {
       const json: AccessList = [];
       for (let i = 0; i < bufferAccessList.length; i++) {
         const data = bufferAccessList[i];
-        const address = Address.toString(data[0]);
+        const address = Address.toString(Buffer.from(data[0]));
         const storageKeys: string[] = [];
         const storageKeysLength = data[1].length;
         slots += storageKeysLength;
         for (let item = 0; item < storageKeysLength; item++) {
-          storageKeys.push(Data.toString(data[1][item], STORAGE_KEY_LENGTH));
+          storageKeys.push(
+            Data.toString(Buffer.from(data[1][item]), STORAGE_KEY_LENGTH)
+          );
         }
         const jsonItem: AccessListItem = {
           address,

@@ -16,7 +16,7 @@ import {
 
 import http from "http";
 // https://github.com/sindresorhus/into-stream/releases/tag/v6.0.0
-import intoStream = require("into-stream");
+import intoStream from "into-stream";
 import { PromiEvent } from "@ganache/utils";
 import { promisify } from "util";
 import { Connector, EthereumProvider } from "@ganache/ethereum";
@@ -642,7 +642,9 @@ describe("server", () => {
             resolve();
           };
 
-          const mochaListener = process.listeners("uncaughtException").pop();
+          const mochaListener = process
+            .listeners("uncaughtException")
+            .pop() as (...args: any[]) => void;
           process.removeListener("uncaughtException", mochaListener);
           process.on("uncaughtException", handleUncaughtException);
 

@@ -1,6 +1,6 @@
-import { Address as EJS_Address } from "@ethereumjs/util";
+import { Trie } from "@ethereumjs/trie";
+import { Account, Address as EJS_Address } from "@ethereumjs/util";
 import { decode } from "@ganache/rlp";
-import { ForkCache } from "./cache";
 import { ForkTrie } from "./trie";
 import { GanacheStateManager } from "../state-manager";
 
@@ -25,7 +25,7 @@ export interface ForkStateManagerOpts {
  * state trie.
  */
 export class ForkStateManager extends GanacheStateManager {
-  declare _cache: ForkCache;
+  // declare _cache: ForkCache;
   readonly prefixCodeHashes: boolean;
 
   /**
@@ -34,7 +34,7 @@ export class ForkStateManager extends GanacheStateManager {
   constructor(opts: ForkStateManagerOpts) {
     super(opts);
 
-    this._cache = new ForkCache(opts.trie);
+    // this._cache = new ForkCache(opts.trie);
     this.prefixCodeHashes = opts.prefixCodeHashes || false;
   }
 
@@ -43,30 +43,35 @@ export class ForkStateManager extends GanacheStateManager {
    * at the last fully committed point, i.e. as if all current
    * checkpoints were reverted.
    */
-  copy(): ForkStateManager {
+  shallowCopy(): ForkStateManager {
     return new ForkStateManager({
-      trie: this._trie.copy(false) as ForkTrie,
+      trie: this._trie.shallowCopy(false) as ForkTrie,
       prefixCodeHashes: this.prefixCodeHashes
     });
   }
 
-  /**
-   * Creates a storage trie from the primary storage trie
-   * for an account and saves this in the storage cache.
-   * @private
-   */
-  async _lookupStorageTrie(address: EJS_Address) {
-    // from state trie
-    const account = await this.getAccount(address);
-    const storageTrie = this._trie.copy(true) as ForkTrie;
-    storageTrie.setContext(
-      account.storageRoot,
-      address.buf,
-      storageTrie.blockNumber
-    );
-    // we copy checkpoints over only for the metadata checkpoints, not the trie
-    // checkpoints.
-    storageTrie.database().checkpoints = [];
+  protected async _getStorageTrie(
+    address: EJS_Address,
+    account: Account
+  ): Promise<Trie> {
+    // from storage cache
+    const addressHex = Buffer.from(address.bytes).toString("hex");
+    const storageTrie = this._storageTries[addressHex];
+    if (storageTrie === undefined) {
+      const storageTrie = this._trie.shallowCopy(false) as ForkTrie;
+      storageTrie.setContext(
+        Buffer.from(account.storageRoot),
+        Buffer.from(address.bytes),
+        storageTrie.blockNumber
+      );
+      // we copy checkpoints over only for the metadata checkpoints, not the trie
+      // checkpoints.
+      storageTrie.database().checkpoints = [];
+
+      this._storageTries[addressHex] = storageTrie;
+
+      return storageTrie;
+    }
     return storageTrie;
   }
 
@@ -80,9 +85,19 @@ export class ForkStateManager extends GanacheStateManager {
    * corresponding to the provided address at the provided key. If this does not
    * exist an empty `Buffer` is returned.
    */
-  async getContractStorage(address: EJS_Address, key: Buffer): Promise<Buffer> {
-    const trie = (await this._getStorageTrie(address)) as ForkTrie;
+  async getContractStorage(
+    address: EJS_Address,
+    key: Uint8Array
+  ): Promise<Uint8Array> {
+    const account = await this.getAccount(address);
+    const trie = (await this._getStorageTrie(address, account)) as ForkTrie;
     const value = await trie.get(key);
-    return decode<Buffer>(value);
+    if (value) {
+      const bufferValue = Buffer.from(value);
+      const buf = decode<Buffer>(bufferValue);
+      return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+    } else {
+      return new Uint8Array(0);
+    }
   }
 }

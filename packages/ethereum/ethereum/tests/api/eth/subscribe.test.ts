@@ -11,7 +11,7 @@ describe("api", () => {
       let accounts: string[];
       const gasLimit = "0x6691b7";
       const time = new Date("2019/03/15 GMT");
-      const emptyMerkleRoot = Data.toString(new Trie().root());
+      const emptyMerkleRoot = Data.toString(Buffer.from(new Trie().root()));
 
       beforeEach(async () => {
         provider = await getProvider({

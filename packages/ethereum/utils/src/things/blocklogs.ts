@@ -4,9 +4,9 @@ import { decode, encode } from "@ganache/rlp";
 import { Address } from "@ganache/ethereum-address";
 
 export type TransactionLog = [
-  address: Buffer,
-  topics: Buffer[],
-  data: Buffer | Buffer[]
+  address: Uint8Array,
+  topics: Uint8Array[],
+  data: Uint8Array | Uint8Array[]
 ];
 
 export type BlockLog = [
@@ -35,7 +35,7 @@ const _logs = Symbol("logs");
 
 const filterByTopic = (
   expectedTopics: (string | string[])[],
-  logTopics: Buffer[]
+  logTopics: Uint8Array[]
 ) => {
   // Exclude log if its number of topics is less than the number expected
   if (expectedTopics.length > logTopics.length) return false;
@@ -47,13 +47,15 @@ const filterByTopic = (
 
     let expectedTopicSet: string[];
     if (!Array.isArray(expectedTopic)) {
-      return logTopics[logPosition].equals(Data.toBuffer(expectedTopic));
+      return Buffer.from(logTopics[logPosition]).equals(
+        Data.toBuffer(expectedTopic)
+      );
     }
     // an empty rule set means "anything"
     if (expectedTopic.length === 0) return true;
     expectedTopicSet = expectedTopic;
 
-    const logTopic = logTopics[logPosition];
+    const logTopic = Buffer.from(logTopics[logPosition]);
     // "OR" logic, e.g., [[A, B]] means log topic in the first position matching either "A" OR "B":
     return expectedTopicSet.some(expectedTopic =>
       logTopic.equals(Data.toBuffer(expectedTopic))
@@ -209,16 +211,16 @@ export class BlockLogs {
     const data = log[5];
 
     return {
-      address: Address.from(log[3]),
+      address: Address.from(Buffer.from(log[3])),
       blockHash,
       blockNumber,
       data: Array.isArray(data)
-        ? data.map(d => Data.from(d, d.length))
-        : Data.from(data, data.length),
+        ? data.map(d => Data.from(Buffer.from(d), d.length))
+        : Data.from(Buffer.from(data), data.length),
       logIndex, // this is the index in the *block*
       removed: log[0].equals(BUFFER_ZERO) ? false : true,
       topics: Array.isArray(topics)
-        ? topics.map(t => Data.from(t, 32))
+        ? topics.map(t => Data.from(Buffer.from(t), 32))
         : Data.from(topics, 32),
       transactionHash: Data.from(log[2], 32),
       transactionIndex: Quantity.from(log[1])

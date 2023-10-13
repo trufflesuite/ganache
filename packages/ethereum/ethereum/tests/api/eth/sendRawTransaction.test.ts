@@ -1,7 +1,7 @@
 import getProvider from "../../helpers/getProvider";
 import assert from "assert";
 import { EthereumProvider } from "../../../src/provider";
-import { Transaction } from "@ethereumjs/tx/dist/legacyTransaction";
+import { LegacyTransaction as Transaction } from "@ethereumjs/tx";
 import { Common } from "@ethereumjs/common";
 import { join } from "path";
 import compile from "../../helpers/compile";
@@ -43,7 +43,7 @@ describe("api", () => {
 
         await passedProvider.send("eth_subscribe", ["newHeads"]);
         const txHash = await passedProvider.send("eth_sendRawTransaction", [
-          Data.from(signed.serialize()).toString()
+          Data.from(Buffer.from(signed.serialize())).toString()
         ]);
         await passedProvider.once("message");
 

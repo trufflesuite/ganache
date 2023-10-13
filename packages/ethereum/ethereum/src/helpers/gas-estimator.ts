@@ -8,6 +8,7 @@ import { RuntimeBlock } from "@ganache/ethereum-block";
 const bn = (val = 0): BN => new BN(val);
 const STIPEND = bn(2300);
 export type EstimateGasRunArgs = {
+  skipHardForkValidation?: boolean;
   tx: { gasLimit: bigint };
   block: RuntimeBlock;
   skipBalance: boolean;

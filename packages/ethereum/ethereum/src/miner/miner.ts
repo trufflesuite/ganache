@@ -16,7 +16,6 @@ import {
 import { encode } from "@ganache/rlp";
 import { Trie } from "@ethereumjs/trie";
 import Emittery from "emittery";
-import type { DefaultStateManager } from "@ethereumjs/statemanager";
 import { VM } from "@ethereumjs/vm";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import replaceFromHeap from "./replace-from-heap";
@@ -64,7 +63,7 @@ export type BlockData = {
 
 const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
   let i = 256;
-  while (--i) blockBloom[i] |= bloom[i];
+  while (i--) blockBloom[i] |= bloom[i];
 };
 
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
@@ -238,10 +237,10 @@ export default class Miner extends Emittery<{
         await vm.stateManager.checkpoint();
         await vm.stateManager.commit();
         const finalizedBlockData = runtimeBlock.finalize(
-          transactionsTrie.root(),
-          receiptTrie.root(),
+          Buffer.from(transactionsTrie.root()),
+          Buffer.from(receiptTrie.root()),
           BUFFER_256_ZERO,
-          (vm.stateManager as DefaultStateManager)._trie.root(),
+          Buffer.from((vm.stateManager as any)._trie.root()),
           0n, // gas used
           options.extraData,
           [],
@@ -333,7 +332,14 @@ export default class Miner extends Emittery<{
             promises.push(receiptTrie.put(txKey, receipt));
 
             // update the block's bloom
-            updateBloom(blockBloom, result.bloom.bitvector);
+            updateBloom(
+              blockBloom,
+              Buffer.from(
+                result.bloom.bitvector,
+                result.bloom.bitvector.byteOffset,
+                result.bloom.bitvector.byteLength
+              )
+            );
 
             numTransactions++;
 
@@ -398,10 +404,10 @@ export default class Miner extends Emittery<{
       vm.evm.events.removeListener("step", stepListener);
 
       const finalizedBlockData = runtimeBlock.finalize(
-        transactionsTrie.root(),
-        receiptTrie.root(),
+        Buffer.from(transactionsTrie.root()),
+        Buffer.from(receiptTrie.root()),
         blockBloom,
-        (vm.stateManager as DefaultStateManager)._trie.root(),
+        Buffer.from((vm.stateManager as any)._trie.root()),
         blockGasUsed,
         options.extraData,
         blockTransactions,
@@ -477,8 +483,8 @@ export default class Miner extends Emittery<{
 
       const e = {
         execResult: {
-          runState: { programCounter: 0 },
-          exceptionError: { error: errorMessage },
+          executionGasUsed: 0n,
+          exceptionError: { error: errorMessage, errorType: "EvmError" },
           returnValue: BUFFER_EMPTY
         }
       } as EVMResult;

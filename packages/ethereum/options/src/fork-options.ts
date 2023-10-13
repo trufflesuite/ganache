@@ -1,7 +1,6 @@
 import { normalize } from "./helpers";
 import { Definitions, UnionToTuple } from "@ganache/options";
 import { Tag } from "@ganache/ethereum-utils";
-import { URL } from "url";
 const version = process.env.VERSION || "DEV";
 
 // we aren't going to treat block numbers as a bigint, so we don't want to

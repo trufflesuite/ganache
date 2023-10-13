@@ -1,0 +1,18 @@
+diff --git a/node_modules/@ethereumjs/evm/src/precompiles/types.ts b/node_modules/@ethereumjs/evm/src/precompiles/types.ts
+index 05c44ff..80ae823 100644
+--- a/node_modules/@ethereumjs/evm/src/precompiles/types.ts
++++ b/node_modules/@ethereumjs/evm/src/precompiles/types.ts
+@@ -1,6 +1,5 @@
+ import type { EVMInterface, ExecResult } from '../types.js'
+ import type { Common } from '@ethereumjs/common'
+-import type { debug } from 'debug'
+ 
+ export interface PrecompileFunc {
+   (input: PrecompileInput): Promise<ExecResult> | ExecResult
+@@ -11,5 +10,5 @@ export interface PrecompileInput {
+   gasLimit: bigint
+   common: Common
+   _EVM: EVMInterface
+-  _debug?: debug.Debugger
++  _debug?: any
+ }
