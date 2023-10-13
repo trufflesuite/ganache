@@ -14,7 +14,8 @@ const HARDFORKS = [
   "grayGlacier",
   "merge",
   "paris",
-  "shanghai"
+  "shanghai",
+  "cancun"
 ] as const;
 
 export type Hardfork = Writeable<ArrayToTuple<typeof HARDFORKS>>;

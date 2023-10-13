@@ -1,6 +1,5 @@
 // We use the Node.js `ws` module on the Node.js side but it doesn't work in the
 // browser, so we need to export the browser `WebSocket` for the browser.
-import type { URL } from "url";
 
 export default class WebSocket {
   // the browser `WebSocket` class has a second parameter, `protocols`, which is

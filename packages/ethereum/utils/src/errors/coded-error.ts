@@ -1,5 +1,5 @@
 import { JsonRpcErrorCode } from "@ganache/utils";
-import { rawDecode } from "ethereumjs-abi";
+import { rawDecodeBytes } from "../things/abi";
 
 const REVERT_REASON = Buffer.from("08c379a0", "hex"); // keccak("Error(string)").slice(0, 4)
 export class CodedError extends Error {
@@ -44,23 +44,14 @@ export class CodedError extends Error {
       );
     }
   }
-  static createRevertReason(returnValue: Buffer) {
-    let reason: string | null;
-    if (
-      returnValue.length > 4 &&
-      REVERT_REASON.compare(returnValue, 0, 4) === 0
-    ) {
-      try {
+  static createRevertReason(returnValue: Buffer): string | null {
+    try {
+      if (REVERT_REASON.compare(returnValue, 0, 4, 0, 4) === 0) {
         // it is possible for the `returnValue` to be gibberish that can't be
         // decoded. See: https://github.com/trufflesuite/ganache/pull/452
-        reason = rawDecode(["bytes"], returnValue.slice(4))[0].toString();
-      } catch {
-        // ignore error since reason string recover is impossible
-        reason = null;
+        return rawDecodeBytes(returnValue.subarray(4)).toString();
       }
-    } else {
-      reason = null;
-    }
-    return reason;
+    } catch {}
+    return null;
   }
 }

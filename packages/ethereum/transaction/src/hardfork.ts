@@ -11,4 +11,5 @@ export type Hardfork =
   | "merge"
   | "paris"
   | "mergeForkIdTransition"
-  | "shanghai";
+  | "shanghai"
+  | "cancun";

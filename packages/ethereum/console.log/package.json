@@ -28,7 +28,7 @@
   "scripts": {
     "tsc": "tsc --build",
     "test": "nyc --reporter lcov npm run mocha",
-    "mocha": "echo 1 || cross-env TS_NODE_FILES=true mocha --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
+    "mocha": "cross-env TS_NODE_FILES=true mocha -t 0 --check-leaks --throw-deprecation --trace-warnings --require ts-node/register 'tests/**/*.test.ts'",
     "prepare": "cd scripts && ts-node generate"
   },
   "bugs": {
@@ -63,7 +63,7 @@
     "nyc": "15.1.0",
     "solc": "0.8.11",
     "ts-node": "10.9.1",
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   },
   "dependencies": {
     "@ganache/utils": "0.9.1"

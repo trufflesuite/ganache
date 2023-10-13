@@ -23,7 +23,7 @@ import {
   KECCAK256_NULL,
   KECCAK256_RLP
 } from "@ethereumjs/util";
-import { signTypedData_v4 } from "eth-sig-util";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import {
   Data,
   ecsign,
@@ -34,9 +34,7 @@ import {
   keccak,
   JsonRpcErrorCode,
   min,
-  max,
-  BUFFER_ZERO,
-  BUFFER_EMPTY
+  max
 } from "@ganache/utils";
 import Blockchain from "./blockchain";
 import { EthereumInternalOptions } from "@ganache/ethereum-options";
@@ -2239,7 +2237,11 @@ export default class EthereumApi implements Api {
       throw new Error("cannot sign data; message missing");
     }
 
-    return signTypedData_v4(privateKey.toBuffer(), { data: typedData });
+    return signTypedData({
+      privateKey: privateKey.toBuffer(),
+      data: typedData,
+      version: SignTypedDataVersion.V4
+    });
   }
 
   /**

@@ -2,7 +2,7 @@ import { EthereumInternalOptions } from "@ganache/ethereum-options";
 import { hasOwn, JsonRpcError } from "@ganache/utils";
 import { OutgoingHttpHeaders } from "http";
 import RateLimiter from "../rate-limiter/rate-limiter";
-import LRU from "lru-cache";
+import { LRUCache as LRU } from "lru-cache";
 import { AbortError, CodedError } from "@ganache/ethereum-utils";
 import { PersistentCache } from "../persistent-cache/persistent-cache";
 
@@ -37,9 +37,9 @@ export class BaseHandler {
       abortSignal
     );
 
-    this.valueCache = new LRU({
+    this.valueCache = new LRU<string, string | Buffer>({
       max: 1_073_741_824, // 1 gigabyte
-      length: (value, key) => {
+      sizeCalculation: (value: string | Buffer, key: string) => {
         return value.length + key.length;
       }
     });

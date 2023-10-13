@@ -389,7 +389,7 @@ describe("@ganache/console.log", () => {
     describe("miscellaneous", () => {
       const func = functions.find(
         f => f.params.length === 1 && f.params[0].type === "string memory"
-      );
+      )!;
       const method = get4ByteForSignature(`${func.functionName}(string)`);
       const params = [{ type: func.params[0].type, value: "Hello, World!" }];
 
