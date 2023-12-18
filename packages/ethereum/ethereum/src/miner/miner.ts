@@ -64,7 +64,7 @@ export type BlockData = {
 
 const updateBloom = (blockBloom: Buffer, bloom: Buffer) => {
   let i = 256;
-  while (--i) blockBloom[i] |= bloom[i];
+  while (i--) blockBloom[i] |= bloom[i];
 };
 
 const sortByPrice = (values: TypedTransaction[], a: number, b: number) =>
