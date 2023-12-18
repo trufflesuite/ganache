@@ -1,6 +1,6 @@
 <!-- Using h2 instead of h1 because npm doesn't support align=center on h1 tags -->
 <h2 align="center">
-  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://ganache.dev/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
+  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://raw.githubusercontent.com/trufflesuite/ganache/develop/docs/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
 </h2>
 
 <h3 align="center">
