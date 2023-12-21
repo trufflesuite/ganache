@@ -8,6 +8,7 @@ import {
 } from "@ethereumjs/util";
 import getProvider from "../../helpers/getProvider";
 import { Data, Quantity } from "@ganache/utils";
+import { sign } from "crypto";
 
 describe("api", () => {
   describe("eth", () => {
@@ -37,10 +38,17 @@ describe("api", () => {
         const msgHash = hashPersonalMessage(msg);
 
         const address = accounts[0];
-        let sgn = await provider.send("eth_sign", [
+        let sgn: string = await provider.send("eth_sign", [
           address,
           Data.toString(msg)
         ]);
+
+        assert.strictEqual(
+          sgn.substring(sgn.length - 2),
+          "1c", // 28 in hex
+          "eth_sign should produce a v value of 27 or 28"
+        );
+
         const { v, r, s } = fromRpcSig(sgn);
 
         const pub = ecrecover(msgHash, v, r, s);
@@ -59,7 +67,14 @@ describe("api", () => {
 
         let sgn = await provider.send("eth_sign", [accounts[0], msgHex]);
 
+        assert.strictEqual(
+          sgn.substring(sgn.length - 2),
+          "1c", // 28 in hex
+          "eth_sign should produce a v value of 27 or 28"
+        );
+
         const { v, r, s } = fromRpcSig(sgn);
+
         const pub = ecrecover(msgHash, v, r, s);
         const addr = fromSigned(pubToAddress(pub));
         const strAddr = Data.toString(Quantity.toBuffer(addr), 20);

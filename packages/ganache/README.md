@@ -1,6 +1,6 @@
 <!-- Using h2 instead of h1 because npm doesn't support align=center on h1 tags -->
 <h2 align="center">
-  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://ganache.dev/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
+  <a href="#readme" title="Ganache README.md"><img alt="Ganache" src="https://raw.githubusercontent.com/trufflesuite/ganache/develop/docs/assets/img/ganache-logo-dark.svg" alt="Ganache" width="160"/></a>
 </h2>
 
 <h3 align="center">
@@ -40,6 +40,7 @@ Ganache is an Ethereum simulator that makes developing Ethereum applications fas
 - Listens for JSON-RPC 2.0 requests over HTTP/WebSockets
 - Programmatic use in Node.js
 - Pending Transactions
+- <a href="https://github.com/trufflesuite/ganache/tree/develop/packages/flavor#readme">Flavors</a> (aka Plugins), like <a href="https://github.com/trufflesuite/ganache-plugin-filecoin/tree/main/packages/filecoin#readme">Filecoin</a>
 
 ## Getting Started
 
@@ -146,7 +147,7 @@ You can use Ganache programmatically from Node.js. Install Ganache into your npm
 $ npm install ganache
 ```
 
-Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), or an [ethers provider](#as-an-ethersjs-provider).
+Then you can use ganache as an [EIP-1193 provider only](#as-an-eip-1193-provider-only), an [EIP-1193 provider and JSON-RPC web server](#as-an-eip-1193-provider-and-json-rpc-web-server), as a [Web3 provider](#as-a-web3js-provider), an [ethers provider](#as-an-ethersjs-provider), or a [viem transport](#as-a-viem-transport).
 
 #### As an EIP-1193 provider only:
 
@@ -201,6 +202,20 @@ const web3 = new Web3(ganache.provider(), null, { transactionConfirmationBlocks:
 const ganache = require("ganache");
 
 const provider = new ethers.providers.Web3Provider(ganache.provider());
+```
+
+#### As a [viem](https://www.npmjs.com/package/viem) transport:
+
+To use a ganache provider as a viem transport:
+
+```javascript
+import { createWalletClient, custom } from "viem";
+import { localhost } from "viem/chains";
+import ganache from "ganache";
+const client = createWalletClient({
+  chain: localhost,
+  transport: custom(ganache.provider())
+});
 ```
 
 ### Browser Use

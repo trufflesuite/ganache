@@ -2079,7 +2079,7 @@ export default class EthereumApi implements Api {
 
     const messageHash = hashPersonalMessage(Data.toBuffer(message));
     const { v, r, s } = ecsign(messageHash, privateKey.toBuffer());
-    return toRpcSig(v, r, s);
+    return toRpcSig(v + 27n, r, s);
   }
 
   /**
