@@ -164,11 +164,29 @@ if (argv.action === "start") {
 } else if (argv.action === "stop") {
   const instanceName = argv.name;
 
-  stopDetachedInstance(instanceName).then(instanceFound => {
-    if (instanceFound) {
-      console.log("Instance stopped");
+  stopDetachedInstance(instanceName).then(instanceOrSuggestions => {
+    if ("instance" in instanceOrSuggestions) {
+      const highlightedName = porscheColor(instanceOrSuggestions.instance.name);
+      console.log(`${highlightedName} stopped.`);
     } else {
-      console.error("Instance not found");
+      process.exitCode = 1;
+      console.log(`We couldn't find '${porscheColor(instanceName)}'.`);
+      if (instanceOrSuggestions.suggestions?.length > 0) {
+        console.log();
+        console.log("But here's some instances with similar names:");
+        console.log(
+          instanceOrSuggestions.suggestions
+            .map(name => " - " + porscheColor(name))
+            .join("\n")
+        );
+      }
+
+      console.log();
+      console.log(
+        `Try ${porscheColor(
+          "ganache instances list"
+        )} to see all running instances.`
+      );
     }
   });
 } else if (argv.action === "start-detached") {
@@ -181,7 +199,8 @@ if (argv.action === "start") {
     })
     .catch(err => {
       // the child process would have output its error to stdout, so no need to
-      // output anything more
+      // do anything more other than set the exitCode
+      process.exitCode = 1;
     });
 } else if (argv.action === "list") {
   getDetachedInstances().then(instances => {

@@ -19,6 +19,8 @@ export type DetachedInstance = {
   version: string;
 };
 
+const MAX_SUGGESTIONS = 4;
+const MAX_LEVENSHTEIN_DISTANCE = 10;
 const FILE_ENCODING = "utf8";
 const START_ERROR =
   "An error occurred spawning a detached instance of Ganache:";
@@ -39,8 +41,9 @@ export function notifyDetachedInstanceReady(cliSettings: CliSettings) {
 
 /**
  * Attempt to find and remove the instance file for a detached instance.
- * @param  {string} instanceName the name of the instance to be removed
- * @returns boolean indicating whether the instance file was cleaned up successfully
+ * @param instanceName the name of the instance to be removed
+ * @returns resolves to a boolean indicating whether the instance file was
+ * cleaned up successfully
  */
 export async function removeDetachedInstanceFile(
   instanceName: string
@@ -53,6 +56,12 @@ export async function removeDetachedInstanceFile(
   return false;
 }
 
+// A fuzzy matched detached instance(s). Either a strong match as instance,
+// or a list of suggestions.
+type InstanceOrSuggestions =
+  | { instance: DetachedInstance }
+  | { suggestions: string[] };
+
 /**
  * Attempts to stop a detached instance with the specified instance name by
  * sending a SIGTERM signal. Returns a boolean indicating whether the process
@@ -60,32 +69,134 @@ export async function removeDetachedInstanceFile(
  * corresponding instance file will be removed.
  *
  * Note: This does not guarantee that the instance actually stops.
- * @param  {string} instanceName
- * @returns boolean indicating whether the instance was found.
+ * @param instanceName
+ * @returns an object containing either the stopped
+ * `instance`, or `suggestions` for similar instance names
  */
 export async function stopDetachedInstance(
   instanceName: string
-): Promise<boolean> {
-  try {
-    // getDetachedInstanceByName() throws if the instance file is not found or
-    // cannot be parsed
-    const instance = await getDetachedInstanceByName(instanceName);
+): Promise<InstanceOrSuggestions> {
+  let instance;
 
+  try {
+    instance = await getDetachedInstanceByName(instanceName);
+  } catch {
+    const similarInstances = await getSimilarInstanceNames(instanceName);
+
+    if ("match" in similarInstances) {
+      try {
+        instance = await getDetachedInstanceByName(similarInstances.match);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+          // The instance file was removed between the call to
+          // `getSimilarInstanceNames` and `getDetachedInstancesByName`, but we
+          // didn't get suggestions (although some may exist). We _could_
+          // reiterate stopDetachedInstance but that seems messy. Let's just
+          // tell the user the instance wasn't found, and be done with it.
+          return {
+            suggestions: []
+          };
+        }
+        throw err;
+      }
+    } else {
+      return { suggestions: similarInstances.suggestions };
+    }
+  }
+
+  if (instance) {
     // process.kill() throws if the process was not found (or was a group
     // process in Windows)
-    process.kill(instance.pid, "SIGTERM");
-  } catch (err) {
-    return false;
-  } finally {
-    await removeDetachedInstanceFile(instanceName);
+    try {
+      process.kill(instance.pid, "SIGTERM");
+    } catch (err) {
+      // process not found
+      // todo: log message saying that the process could not be found
+    } finally {
+      await removeDetachedInstanceFile(instance.name);
+      return { instance };
+    }
   }
-  return true;
+}
+
+/**
+ * Find instances with names similar to `instanceName`.
+ *
+ * If there is a single instance with an exact prefix match, it is returned as
+ * the `match` property in the result. Otherwise, up to `MAX_SUGGESTIONS` names
+ * that are similar to `instanceName` are returned as `suggestions`. Names with
+ * an exact prefix match are prioritized, followed by increasing Levenshtein
+ * distance, up to a maximum distance of `MAX_LEVENSHTEIN_DISTANCE`.
+ * @param {string} instanceName the name for which similarly named instance will
+ * be searched
+ * @returns {{ match: string } | { suggestions: string[] }} an object
+ * containiner either a single exact `match` or a number of `suggestions`
+ */
+async function getSimilarInstanceNames(
+  instanceName: string
+): Promise<{ match: string } | { suggestions: string[] }> {
+  const filenames: string[] = [];
+  try {
+    const parsedPaths = (
+      await fsPromises.readdir(dataPath, { withFileTypes: true })
+    ).map(file => path.parse(file.name));
+
+    for (const { ext, name } of parsedPaths) {
+      if (ext === ".json") {
+        filenames.push(name);
+      }
+    }
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      // instances directory does not exist, so there can be no suggestions
+      return { suggestions: [] };
+    }
+  }
+
+  const prefixMatches = [];
+  for (const name of filenames) {
+    if (name.startsWith(instanceName)) {
+      prefixMatches.push(name);
+    }
+  }
+
+  if (prefixMatches.length === 1) {
+    return { match: prefixMatches[0] };
+  }
+
+  let suggestions: string[];
+  if (prefixMatches.length >= MAX_SUGGESTIONS) {
+    suggestions = prefixMatches;
+  } else {
+    const similar = [];
+
+    for (const name of filenames) {
+      if (!prefixMatches.some(m => m === name)) {
+        const distance = levenshteinDistance(instanceName, name);
+        if (distance <= MAX_LEVENSHTEIN_DISTANCE) {
+          similar.push({
+            name,
+            distance
+          });
+        }
+      }
+    }
+    similar.sort((a, b) => a.distance - b.distance);
+
+    suggestions = similar.map(s => s.name);
+    // matches should be at the start of the suggestions array
+    suggestions.splice(0, 0, ...prefixMatches);
+  }
+
+  return {
+    suggestions: suggestions.slice(0, MAX_SUGGESTIONS)
+  };
 }
 
 /**
  * Start an instance of Ganache in detached mode.
- * @param  {string[]} argv arguments to be passed to the new instance.
- * @returns {Promise<DetachedInstance>} resolves to the DetachedInstance once it
+ * @param argv arguments to be passed to the new instance.
+ * @returns resolves to the DetachedInstance once it
  * is started and ready to receive requests.
  */
 export async function startDetachedInstance(
@@ -200,7 +311,7 @@ export async function startDetachedInstance(
 /**
  * Fetch all instance of Ganache running in detached mode. Cleans up any
  * instance files for processes that are no longer running.
- * @returns {Promise<DetachedInstance[]>} resolves with an array of instances
+ * @returns resolves with an array of instances
  */
 export async function getDetachedInstances(): Promise<DetachedInstance[]> {
   let dirEntries: Dirent[];
@@ -292,7 +403,7 @@ export async function getDetachedInstances(): Promise<DetachedInstance[]> {
 /**
  * Attempts to load data for the instance specified by instanceName. Throws if
  * the instance file is not found or cannot be parsed
- * @param  {string} instanceName
+ * @param instanceName
  */
 async function getDetachedInstanceByName(
   instanceName: string
@@ -322,4 +433,45 @@ export function formatUptime(ms: number) {
     .join(" ");
 
   return isFuture ? `In ${duration}` : duration;
+}
+
+/**
+ * This function calculates the Levenshtein distance between two strings.
+ * Levenshtein distance is a measure of the difference between two strings,
+ * defined as the minimum number of edits (insertions, deletions or substitutions)
+ * required to transform one string into another.
+ *
+ * @param a - The first string to compare.
+ * @param b - The second string to compare.
+ * @return The Levenshtein distance between the two strings.
+ */
+export function levenshteinDistance(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  let matrix = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) == a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
 }
