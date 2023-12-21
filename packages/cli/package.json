@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "",
   "author": "David Murdoch",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/cli#readme",
@@ -62,11 +62,11 @@
     "typescript": "5.1.6"
   },
   "dependencies": {
-    "@ganache/colors": "0.4.1",
-    "@ganache/core": "0.10.1",
-    "@ganache/ethereum": "0.10.1",
-    "@ganache/flavor": "0.10.1",
-    "@ganache/options": "0.9.1",
+    "@ganache/colors": "0.4.2",
+    "@ganache/core": "0.10.2",
+    "@ganache/ethereum": "0.10.2",
+    "@ganache/flavor": "0.10.2",
+    "@ganache/options": "0.9.2",
     "@trufflesuite/ps-list": "0.0.3",
     "@types/node": "17.0.0",
     "chalk": "4.1.0",

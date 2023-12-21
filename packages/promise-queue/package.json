@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A queue that resolves Promise instances in first-in first-out order.",
   "author": "David Murdoch <david@trufflesuite.com> (https://davidmurdoch.com)",
   "homepage": "https://github.com/trufflesuite/ganache/tree/develop/packages/promise-queue#readme",
